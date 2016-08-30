@@ -7,9 +7,11 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
+
 script:
  - mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
- notifications:
+
+notifications:
   slack:
     rooms:
       - dhis2:NYWS8riPK2LrGuKRUX1UT3ie#ci
