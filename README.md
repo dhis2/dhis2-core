@@ -11,7 +11,7 @@ For general info please visit the [project web page](https://www.dhis2.org).
 
 ## Build process
 
-This repository contains the server-side component of DHIS 2, which is developed in Java and built with Maven. 
+This repository contains the source code for the server-side component of DHIS 2, which is developed in Java and built with Maven. 
 
 To build it you must first install the root POM file, navigate to the dhis-web directory and then build the web POM file.
 
