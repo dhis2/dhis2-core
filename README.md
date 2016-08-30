@@ -25,3 +25,4 @@ mvn install
 cd dhis-web
 mvn install
 </pre>
+[![Build Status](https://travis-ci.org/dhis2/dhis2-core.svg?branch=master)](https://travis-ci.org/dhis2/dhis2-core)
