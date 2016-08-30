@@ -1,3 +1,5 @@
+org.hibernate.cache.internal.StandardQueryCache
+org.hibernate.cache.spi.UpdateTimestampsCache
 org.hisp.dhis.attribute.Attribute
 org.hisp.dhis.attribute.AttributeValue
 org.hisp.dhis.chart.Chart

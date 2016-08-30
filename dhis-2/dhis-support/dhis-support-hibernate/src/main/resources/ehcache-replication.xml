@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ehcache>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="ehcache.xsd">
   
-  <defaultCache maxElementsInMemory="800000" eternal="false" timeToIdleSeconds="360" timeToLiveSeconds="720"
+  <defaultCache maxElementsInMemory="800000" eternal="false" timeToLiveSeconds="720"
     overflowToDisk="false" diskPersistent="false">
     
     <cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
@@ -11,9 +11,15 @@
 
   <!-- Hibernate query cache -->
 
-  <cache name="org.hibernate.cache.internal.StandardQueryCache" maxElementsInMemory="250000" />
+  <cache name="org.hibernate.cache.internal.StandardQueryCache" maxElementsInMemory="250000" timeToLiveSeconds="360">
+    <cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+      properties="replicateAsynchronously=true,replicatePuts=false,replicateUpdates=true,replicateUpdatesViaCopy=false,replicateRemovals=true" />
+  </cache>
 
-  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" maxElementsInMemory="3000" />
+  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" maxElementsInMemory="2000">
+    <cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+      properties="replicateAsynchronously=true,replicatePuts=false,replicateUpdates=true,replicateUpdatesViaCopy=false,replicateRemovals=true" />
+  </cache>
   
   <!-- RMI replication -->
   
