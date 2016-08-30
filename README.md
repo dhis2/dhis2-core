@@ -7,7 +7,11 @@ The software is open source and released under the [BSD license](https://opensou
 
 For documentation please visit the [doc page](https://www.dhis2.org/documentation).
 
-For general info please visit the [project web page](https://www.dhis2.org).
+To can download pre-built WAR files from the [contiunuous integration server](http://ci.dhis2.org/).
+
+You can explore various demos of DHIS 2 in the [play environment](https://play.dhis2.org/).
+
+For general info please visit the [project web page](https://www.dhis2.org/).
 
 ## Build process
 
