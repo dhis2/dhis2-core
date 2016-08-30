@@ -1,8 +1,11 @@
 language: java
-sudo: required
-script:
-  - sudo apt-get update && sudo apt-get install oracle-java8-installer
-  - java -version
 
+jdk:
+  - oraclejdk8
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 script:
  - mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
