@@ -1,0 +1,6 @@
+language: java
+jdk:
+ - openjdk7
+script:
+ - mvn clean install -DskipTests=true -f ./dhis-2/pom.xml
+ - mvn clean install -DskipTests=true -f /dhis-2/dhis-web/pom.xml
