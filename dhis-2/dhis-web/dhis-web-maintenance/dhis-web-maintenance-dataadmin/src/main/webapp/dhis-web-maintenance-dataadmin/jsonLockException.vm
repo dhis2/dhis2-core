@@ -1,0 +1,10 @@
+{ "lockException":
+  {
+	"id": "${lockException.id}",
+	"uid": "${lockException.uid}",
+	"name": "$!encoder.jsonEncode( ${lockException.name} )",
+    "organisationUnit": "$!{lockException.organisationUnit.name}",
+    "dataSet": "$!{lockException.dataSet.name}",
+    "period": "$!format.formatPeriod(${lockException.period})"
+  }
+}

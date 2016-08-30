@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+>
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" table="orgunitgroupset">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="orgunitgroupsetid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="description" type="text" />
+
+    <property name="compulsory" not-null="true" />
+
+    <property name="dataDimension" column="datadimension" not-null="true" />
+
+    <set name="organisationUnitGroups" table="orgunitgroupsetmembers">
+      <cache usage="read-write" />
+      <key column="orgunitgroupsetid" foreign-key="fk_orgunitgroupsetmembers_orgunitgroupsetid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroup" column="orgunitgroupid"
+        foreign-key="fk_orgunitgroupset_orgunitgroupid" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="orgunitgroupsetattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitgroupsetid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="orgunitgroupsettranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitgroupsetid" foreign-key="fk_objecttranslation_orgunitgroupsetid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_orgunitgroupset_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="orgunitgroupsetusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="orgunitgroupsetid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

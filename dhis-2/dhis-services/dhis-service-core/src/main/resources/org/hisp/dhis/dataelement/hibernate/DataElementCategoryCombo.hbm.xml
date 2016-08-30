@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataelement.DataElementCategoryCombo" table="categorycombo">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="categorycomboid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <list name="categories" table="categorycombos_categories">
+      <cache usage="read-write" />
+      <key column="categorycomboid" foreign-key="fk_categorycombos_categories_categorycomboid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementCategory" column="categoryid"
+        foreign-key="fk_categorycombo_categoryid" />
+    </list>
+
+    <set name="optionCombos" table="categorycombos_optioncombos" inverse="true">
+      <cache usage="read-write" />
+      <key column="categorycomboid" foreign-key="fk_categorycombos_optioncombos_categorycomboid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
+        foreign-key="fk_categorycombo_categoryoptioncomboid" unique="true" />
+    </set>
+    
+    <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" not-null="true" />
+
+    <property name="skipTotal" column="skiptotal" not-null="true" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="categorycombotranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="categorycomboid" foreign-key="fk_objecttranslation_categorycomboid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_categorycombo_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="categorycombousergroupaccesses">
+      <cache usage="read-write" />
+      <key column="categorycomboid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+  </hibernate-mapping>

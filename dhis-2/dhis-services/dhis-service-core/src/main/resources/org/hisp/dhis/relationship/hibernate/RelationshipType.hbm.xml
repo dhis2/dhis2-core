@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.relationship.RelationshipType" table="relationshiptype">
+
+    <cache usage="read-write" />
+    
+    <id name="id" column="relationshiptypeid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="aIsToB" column="a_is_to_b" not-null="true" />
+
+    <property name="bIsToA" column="b_is_to_a" not-null="true" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="relationshiptypetranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="relationshiptypeid" foreign-key="fk_objecttranslation_relationshiptypeid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

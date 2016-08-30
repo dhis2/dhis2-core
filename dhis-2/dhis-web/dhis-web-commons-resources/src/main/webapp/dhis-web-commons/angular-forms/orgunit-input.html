@@ -1,0 +1,11 @@
+<div class="input-group">
+    <input type="text" name="foo" ng-disabled="true" class="form-control" placeholder="{{'please_select' | translate}}" ng-model="d2Object[id]" ng-disabled="{{d2Disabled}}" ng-required="{{d2Required}}"> 
+    <span class="input-group-btn"> 
+        <button class="btn btn-danger hideInPrint trim" type="button" title="{{'remove' | translate}}" ng-click="removeSelectedOrgUnit(id)" ng-if="d2Object[id]"> 
+            <i class="fa fa-trash-o"></i> 
+        </button> 
+        <button class="btn btn-default hideInPrint trim" type="button" title="{{'get_from_tree' | translate}}" ng-click="showOrgUnitTree(id)"> 
+            <i class="fa fa-plus-square-o"></i> 
+        </button> 
+    </span> 
+</div>

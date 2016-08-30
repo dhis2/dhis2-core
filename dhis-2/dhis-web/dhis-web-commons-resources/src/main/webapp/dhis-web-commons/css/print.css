@@ -1,0 +1,28 @@
+*
+{
+  font-family: arial, sans-serif;
+  -webkit-print-color-adjust: exact;
+}
+
+div#header, div#headerMessage, div#leftBar, div#headerMessage, div#rightBar, .hideInPrint
+{
+  display: none;
+}
+
+div#mainPage 
+{
+  margin-left: 20px;
+  margin-top: 10px;
+}
+
+.not-for-screen {
+  display: none;
+}
+
+@media print {
+  .not-for-screen {
+    margin-top:0%;
+    display:block;
+    height:100%
+  }
+}

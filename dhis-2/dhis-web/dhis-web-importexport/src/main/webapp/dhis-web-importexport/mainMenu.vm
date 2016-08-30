@@ -1,0 +1,34 @@
+
+<h2>$i18n.getString( "import" )&nbsp;</h2>
+
+<ul>
+  #if( $auth.hasAccess( "dhis-web-importexport", "dxf2MetaDataImport" ) )
+  <li><a href="dxf2MetaDataImport.action">$i18n.getString( "metadata_import" )&nbsp;</a></li>
+  #end
+  #if( $auth.hasAccess( "dhis-web-importexport", "displayImportDataValueForm" ) )
+  <li><a href="displayImportDataValueForm.action">$i18n.getString( "data_import" )&nbsp;</a></li>
+  #end
+  #if( $auth.hasAccess( "dhis-web-importexport", "gmlImport" ) )
+  <li><a href="gmlImport.action">$i18n.getString( "gml_import" )&nbsp;</a></li>
+  #end
+  #if( $auth.hasAccess( "dhis-web-importexport", "displayEventImportForm" ) )
+  <li><a href="displayEventImportForm.action">$i18n.getString( "event_import" )&nbsp;</a></li>
+  #end
+</ul>
+
+<h2>$i18n.getString( "export" )&nbsp;</h2>
+
+<ul>
+  #if( $auth.hasAccess( "dhis-web-importexport", "dxf2MetaDataExport" ) )
+  <li><a href="dxf2MetaDataExport.action">$i18n.getString( "metadata_export" )&nbsp;</a></li>
+  #end
+  #if( $auth.hasAccess( "dhis-web-importexport", "dxf2MetaDataExport" ) )
+  <li><a href="metadataDependencyExport.action">$i18n.getString( "metadata_dependency_export" )&nbsp;</a></li>
+  #end
+  #if( $auth.hasAccess( "dhis-web-importexport", "displayDataValueExportForm" ) )
+  <li><a href="displayDataValueExportForm.action">$i18n.getString( "data_export" )&nbsp;</a></li>
+  #end
+  #if( $auth.hasAccess( "dhis-web-importexport", "displayEventExportForm" ) )
+  <li><a href="displayEventExportForm.action">$i18n.getString( "event_export" )&nbsp;</a></li>
+  #end
+</ul>

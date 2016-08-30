@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <!-- App store -->
+
+  <bean id="org.hisp.dhis.appstore.AppStoreManager" class="org.hisp.dhis.appstore.DefaultAppStoreManager" />
+
+  <!-- ResourceTable -->
+
+  <bean id="org.hisp.dhis.resourcetable.ResourceTableStore" class="org.hisp.dhis.resourcetable.jdbc.JdbcResourceTableStore">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="dbmsManager" ref="dbmsManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.resourcetable.ResourceTableService" class="org.hisp.dhis.resourcetable.DefaultResourceTableService">
+    <property name="resourceTableStore" ref="org.hisp.dhis.resourcetable.ResourceTableStore" />
+    <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+    <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="statementBuilder" ref="statementBuilder" />
+  </bean>
+  
+  <!-- Data integrity -->
+
+  <bean id="org.hisp.dhis.dataintegrity.DataIntegrityService" class="org.hisp.dhis.dataintegrity.DefaultDataIntegrityService">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+	<property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+	<property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+	<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+  
+  <!-- Maintenance -->
+
+  <bean id="org.hisp.dhis.maintenance.MaintenanceStore" class="org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="statementBuilder" ref="statementBuilder" />
+  </bean>
+
+  <bean id="org.hisp.dhis.maintenance.MaintenanceService" class="org.hisp.dhis.maintenance.DefaultMaintenanceService">
+    <property name="maintenanceStore" ref="org.hisp.dhis.maintenance.MaintenanceStore" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+  
+  <!-- Statistics -->
+
+  <bean id="org.hisp.dhis.statistics.StatisticsProvider" class="org.hisp.dhis.statistics.jdbc.JdbcStatisticsProvider">
+    <property name="jdbcTemplate" ref="readOnlyJdbcTemplate" />
+  </bean>
+    
+  <!-- Sql View -->
+
+  <bean id="org.hisp.dhis.sqlview.SqlViewService" class="org.hisp.dhis.sqlview.DefaultSqlViewService">
+    <property name="sqlViewStore" ref="org.hisp.dhis.sqlview.SqlViewStore" />
+  </bean>
+  
+  <!-- Scheduled tasks -->
+  
+  <bean id="resourceTableTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
+
+  <bean id="resourceTable15MinTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
+  
+  <bean id="abstractScheduledMessageTask"
+		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask">
+		<property name="programStageInstanceService"
+			ref="org.hisp.dhis.program.ProgramStageInstanceService" />
+		<property name="outboundSmsService"
+			ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
+		<property name="smsSender" ref="smsMessageSender" />
+		<property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+		<property name="notifier" ref="notifier" />
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+	</bean>
+
+	<bean id="sendScheduledMessageTask"
+		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask"
+		parent="abstractScheduledMessageTask" scope="prototype">
+		<property name="sendingMessage" value="true" />
+		<property name="sendNow" value="false"/>
+	</bean>
+
+	<bean id="smsSchedulerTask"
+		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask"
+		parent="abstractScheduledMessageTask" scope="prototype">
+		<property name="sendingMessage" value="false" />
+		<property name="sendNow" value="false"/>
+	</bean>
+	
+	<bean id="sendScheduledMessageTaskNow"
+		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask"
+		parent="abstractScheduledMessageTask" scope="prototype">
+		<property name="sendingMessage" value="false" />
+		<property name="sendNow" value="true"/>
+	</bean>
+
+</beans>

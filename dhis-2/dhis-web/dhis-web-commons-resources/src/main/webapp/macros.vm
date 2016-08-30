@@ -1,0 +1,538 @@
+
+#macro( objectList $objectName $objects )
+    <table class="objectListTable">
+        <col>
+        <col width="80">    
+        <tr>
+            <td class="filter"><label for="filter">$i18n.getString( "filter_by_name" )</label>: <form action="none" onsubmit="filterValues(this.firstChild.firstChild.value);return false"><div><input id="filter" type="text"><input type="submit" value="$i18n.getString( 'filter' )"></div></form></td>
+            <td style="text-align:right"><input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAdd${objectName}Form.action'"></td>
+        </tr>
+        <tr>
+            <th>$i18n.getString( "name" )</th>
+            <th>$i18n.getString( "operations" )</th>
+        </tr>
+        <tbody id="list">
+        #set( $mark = false )
+        #set( $info = false )
+        #foreach( $object in $objects )
+        <tr #if( $mark ) class="odd" #end>
+            <td>$encoder.htmlEncode( $object.name )</td>
+            <td>
+              <a href="showUpdate${objectName}Form.action?id=${object.id}" title="$i18n.getString( "edit" )"><img src="../images/edit.png" alt="$i18n.getString( "edit" )"></a>
+              <a href="$i18n.getString( "translation_translate" )" title="$i18n.getString( "translation_translate" )" onclick="this.href='javascript:location.href= \'../dhis-web-commons/i18n.action?className=${objectName}&amp;$objectId=${object.id}&amp;returnUrl=\' + location.href'"><img src="../images/i18n.png" alt="$i18n.getString( "translation_translate" )"></a>
+              <a href="javascript:remove${objectName}( $object.id, '$encoder.jsEncode( $object.name )' )" title="$i18n.getString( "remove" )"><img src="../images/delete.png" alt="$i18n.getString( "remove" )"></a>
+              <a href="javascript:show${objectName}Details( $object.id )" title="$i18n.getString( "show_details" )"><img src="../images/information.png" alt="$i18n.getString( "show_details" )"></a>
+            </td>
+        </tr>
+            #if( $mark )
+                #set( $mark = false )
+            #else
+                #set( $mark = true )
+            #end
+        #end
+        </tbody>
+    </table>
+#end
+
+#macro( alternate $mark )
+#if ( $mark ) class="listAlternateRow"#else class="listRow"#end
+#end
+
+#macro( formatBool $bool )
+#if ( $bool )
+  $i18n.getString( "yes" )
+#else
+  $i18n.getString( "no" )
+#end
+#end
+
+#macro( formatAggregationOperator $operator )
+#if ( $operator == "average" )
+  $i18n.getString( "average" )
+#elseif ( $operator == "count" )
+  $i18n.getString( "count" )
+#elseif ( $operator == "sum" )
+  $i18n.getString( "sum" )
+#else
+  $i18n.getString( "unknown" )
+#end
+#end
+
+#macro( formatType $type )
+#if ( $type == "string" )
+  $i18n.getString( "text" )
+#elseif ( $type == "bool" )
+  $i18n.getString( "yes_no" )
+#elseif ( $type == "int" )
+  $i18n.getString( "number" )
+#else
+  $i18n.getString( "unknown" )
+#end
+#end
+
+#macro( openHelp $id )
+<a href="javascript:getHelpContent('${id}')" title="$i18n.getString( 'help' )"><i class="fa fa-question-circle"></i></a>
+#end
+
+#macro( introListImgItem $action $objectKey $image )
+<li class="introItem" onclick="window.location.href='${action}'">
+  <img src="../icons/${image}.png" class="introIcon">
+  <div class="introItemText"><div class="introItemHeader">$i18n.getString( "${objectKey}" )</div><div>$i18n.getString( "intro_${objectKey}" )</div></div>
+</li>
+#end
+
+#macro( introListImgApp $module )
+<li class="introItem" onclick="window.location.href='${module.defaultAction}'">
+  <img src="${appBaseUrl}/${module.icon}" class="introIcon">
+  <div class="introItemText"><div class="introItemHeader">${module.name}</div><div>${module.description}</div></div>
+</li>
+#end
+
+#macro( organisationUnitSelectionTree $cleanAll $multipleSelectionAllowed $required $showCtrls )
+#if( "$!showCtrls" == "" ) #set( $showCtrls = true ) #end
+
+#if( $multipleSelectionAllowed )
+	#parse( "/dhis-web-commons/oust/selectionTreeMultipleSelect.vm" )
+#else
+	#parse( "/dhis-web-commons/oust/selectionTreeSingleSelect.vm" )
+#end	
+#end
+
+#macro( filterDiv $action )
+<form id="filterKeyForm" action="${action}.action" method="GET" onsubmit="submitFilter()">
+	<input type="text" id="key" name="key" value="$!encoder.htmlEncode( $key )" placeholder="$i18n.getString( 'filter_by_name' )" class="filterInput" />
+	<input type="hidden" id="curKey" name="curKey" value="$!encoder.htmlEncode( $key )"/>
+	<input type="submit" id="filterButton" value="$i18n.getString( 'filter' )" class="filterButton" />
+	<input type="button" value="$i18n.getString( 'clear' )" onclick="javascript:clearFilter()" class="filterButton" />
+</form>
+<script>
+function submitFilter() {
+    jQuery.cookie( "currentKey", $( '#key' ).val() );
+}
+
+function clearFilter() {
+    jQuery.cookie( "currentPage", null );
+    jQuery.cookie( "currentKey", null );
+    window.location.href = '${action}.action';
+}
+</script>
+#end
+
+#macro( trHeader $text )
+<tr>
+	<th colspan="2">$text</th>
+</tr>
+#end
+
+#macro( trStringInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<input type="text" id="$!args.id" name="$!name" value="$!args.value" class="{validate:{required:$args.mandatory}}" />
+	</td>
+</tr>
+#end
+
+#macro( trTextInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<textarea id="$!args.id" name="$!name" class="{validate:{required:$args.mandatory}}">$!args.value</textarea>
+	</td>
+</tr>
+#end
+
+#macro( trBooleanSelectInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<select id="$!args.id" name="$!name" class="{validate:{required:$args.mandatory}}">
+			<option value="" />
+			<option value="true" #if( $!args.value=="true" )selected="selected"#end>Yes</option>
+			<option value="false" #if( $!args.value=="false" )selected="selected"#end>No</option>
+		</select>
+	</td>
+</tr>
+#end
+
+#macro( trYesOnlySelectInput $args )
+    #if( "$!args.name" == "" )
+        #set( $name = $!args.id )
+    #else
+        #set( $name = $!args.name )
+    #end
+<tr>
+    <td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+    <td>
+        <input type="checkbox" id="$!args.id" name="$!name" class="{validate:{required:$args.mandatory}}" #if( $!args.value=="true" )checked#end />
+    </td>
+</tr>
+#end
+
+#macro( trDateInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<script type="text/javascript">
+jQuery(function() {
+	jQuery("#$!args.id").datepicker({ "dateFormat": "yy-mm-dd" });
+});
+</script>
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<input type="text" id="$!args.id" name="$!name" value="$!args.value" class="{validate:{required:$args.mandatory}}" />
+	</td>
+</tr>
+#end
+
+#macro( trNumberInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<input type="text" id="$!args.id" name="$!name" value="$!args.value" class="{validate:{required:$args.mandatory,number:true}}" />
+	</td>
+</tr>
+#end
+
+#macro( trIntegerInput $args ) 
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<input type="text" id="$!args.id" name="$!name" value="$!args.value" class="{validate:{required:$args.mandatory,integer:true}}" />
+	</td>
+</tr>
+#end
+
+#macro( trPositiveIntegerInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<input type="text" id="$!args.id" name="$!name" value="$!args.value" class="{validate:{required:$args.mandatory,positive_integer:true}}" />
+	</td>
+</tr>
+#end
+
+#macro( trNegativeIntegerInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<input type="text" id="$!args.id" name="$!name" value="$!args.value" class="{validate:{required:$args.mandatory,negative_integer:true}}" />
+	</td>
+</tr>
+#end
+
+#macro( trMultipleChoiceInput $args )
+#if( "$!args.name" == "" )
+	#set( $name = $!args.id )
+#else
+	#set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<select id="$!args.id" name="$name" class="{validate:{required:$args.mandatory}}">
+		<option value="" #if( $choice == $args.value )selected="selected"#end />
+		#foreach( $choice in $args.choices )
+			<option value="$choice" #if( $args.value == $choice )selected="selected"#end>$choice</option>
+		#end
+		</select>
+	</td>
+</tr>
+#end
+
+#macro( trOptionSetInput $args )
+#if( "$!args.name" == "" )
+  #set( $name = $!args.id )
+#else
+  #set( $name = $!args.name )
+#end
+
+<tr>
+	<td style="width: 200px;"><label for="$!args.id">$!args.text #if($args.mandatory)<em title="$i18n.getString( 'required' )" class="required">*</em>#end</label></td>
+	<td>
+		<select id="$!args.id" name="$name">
+    #if( $args.mandatory != true )
+      <option value="">[ $i18n.getString( "please_select" ) ]</option>
+    #end
+		#foreach( $choice in $args.attribute.optionSet.options )
+			<option value="$choice.code" #if( $args.value == $choice.code )selected="selected"#end>$choice.displayName</option>
+		#end
+		</select>
+	</td>
+</tr>
+#end
+
+#macro( tblDynamicAttributesJavascript )
+var attributes = jQuery("form").find(":input[name*='attribute_']");
+var jqJsonAttributeValues= jQuery("#jsonAttributeValues");
+jqJsonAttributeValues.children().remove();
+
+jQuery.each(attributes, function(i, item) {
+	var jqItem = jQuery(item);
+	var json = {};
+
+	json.id = jqItem.attr("id").split("_")[1];
+
+	if( jqItem.is("input[type='text']") || jqItem.is("textarea") )
+	{
+		json.value = jqItem.val();
+	}
+	else if( jqItem.is("select") )
+	{
+		json.value = jqItem.find(":selected").val();
+	}
+    else if( jqItem.is("input:checkbox") )
+    {
+        json.value = jqItem.is(":checked") ? "true" : null;
+    }
+
+	json = JSON.stringify(json);
+
+	jQuery("<option />")
+		.attr("value", json)
+		.attr("selected", "selected")
+		.text(json)
+	.appendTo(jqJsonAttributeValues);
+});
+#end
+
+#macro( tblDynamicAttributes $args )
+
+#if( $args.attributes.size() > 0 )
+<select multiple="multiple" id="jsonAttributeValues" name="jsonAttributeValues" style="display: none;"></select>
+
+<div id="dynamicAttributesContainer" style="margin-bottom: 10px;">
+<table>
+	#foreach( $attribute in $args.attributes )
+		#set( $text = $attribute.displayName )
+		#set( $id = $attribute.id )
+		#set( $mandatory = $attribute.mandatory )
+    #set( $valueType = $attribute.valueType )
+
+		#if( $!args.attributeValues.get( $attribute.id ) )
+			#set( $value = $!args.attributeValues.get( $attribute.id ) )
+		#else
+			#set( $value = "" )
+		#end
+
+    #if( $attribute.optionSet )
+      #trOptionSetInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value, "attribute": $attribute } )
+		#elseif( $valueType == "TEXT" )
+			#trStringInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+		#elseif( $valueType == "LONG_TEXT" )
+			#trTextInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+		#elseif( $valueType == "BOOLEAN" )
+			#trBooleanSelectInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+        #elseif( $valueType == "TRUE_ONLY" )
+            #trYesOnlySelectInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+		#elseif( $valueType == "DATE" )
+			#trDateInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+		#elseif( $valueType == "NUMBER" )
+			#trNumberInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+		#elseif( $valueType == "INTEGER" )
+			#trIntegerInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+		#elseif( $valueType == "INTEGER_POSITIVE" )
+			#trPositiveIntegerInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+		#elseif( $valueType == "INTEGER_NEGATIVE" )
+			#trNegativeIntegerInput( { "text": $text, "id": "attribute_$id", "mandatory": $mandatory, "value": $value } )
+  	#end
+	#end
+</table>
+</div>
+#end
+#end
+
+#macro( sharingDialog )
+
+<div id="sharingSettings" title='$i18n.getString( "sharing_settings" )' style="display: none;" class="page">
+    <table style="width: 100%;">
+        <tbody>
+            <tr>
+                <td colspan="2" style="height: 40px"><span class="settingHeader" id="sharingName"></span></td>
+            </tr>
+            <tr>
+                <td><input style="width: 100%;" id="sharingFindUserGroup" placeholder="$i18n.getString( 'search_for_user_groups' )"/></td>
+                <td style="width: 24px;"><button id="addUserGroupAccess" disabled="disabled" style="width:24px; margin-left:2px; text-align:center;">+</button></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table id="sharingAccessTable" style="width: 100%; margin-top: 6px;">
+        <tbody>
+        <tr>
+        	<td colspan="2" style="padding: 5px 0"><span class="tipText">$i18n.getString( "created_by" ): </span><span class="tipText" id="sharingUser"></span></td>
+        </tr>
+        <tr>
+        	<td style="width: 300px; padding: 5px 0;">$i18n.getString( "external_access" )</td>
+            <td style="text-align: right;">
+                <input id="sharingExternalAccess" type="checkbox" value="true" />
+            </td>
+            <td style="width: 25px; text-align: center;"></td>
+        </tr>
+        <tr>
+            <td style="width: 300px;">$i18n.getString( "public_access" )</td>
+            <td>
+                <select id="sharingPublicAccess" style="width: 150px;">
+                    <option selected="selected" value="--------">$i18n.getString( "none" )</option>
+                    <option value="r-------">$i18n.getString( "can_view" )</option>
+                    <option value="rw------">$i18n.getString( "can_edit_and_view" )</option>
+                </select>
+            </td>
+            <td style="width: 25px; text-align: center;"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script id="user-group-access-template" type="text/template">
+<tr id="<%= id %>">
+    <td class="sharingGroupName" style="width: 300px;"><%= label %></td>
+    <td>
+        <select class="sharingGroupAccess" style="width: 150px;">
+            <option value="r-------" <% if(access == 'r-------') { %>selected<% } %>>$i18n.getString( "can_view" )</option>
+            <option value="rw------" <% if(access == 'rw------') { %>selected<% } %>>$i18n.getString( "can_edit_and_view" )</option>
+        </select>
+    </td>
+    <td style="width: 25px; text-align: center;"><a href="" class="removeUserGroupAccess">X</a></td>
+</tr>
+</script>
+#end
+
+#macro( sharingCreateNotification $type )
+<div class="message message-info">
+    #if( $security.canCreatePublic( $type ) )
+    $i18n.getString("object_will_created_public")
+    #elseif( $security.canCreatePrivate( $type ) )
+    $i18n.getString("object_will_created_private")
+    #end
+</div>
+#end
+
+#macro( googleAnalyticsUA )
+
+#if( $googleAnalyticsUA && $googleAnalyticsUA != '' )
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', '$encoder.jsEncode($googleAnalyticsUA)']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+#end
+
+#end
+
+#************************************************************************************
+ * Args:
+ *   prefix: prefix to add before Available/Selected identifiers
+ *   required: true/false (default false), selection is required
+ *   i18n_available: i18n string for available part
+ *   i18n_selected: i18n string for selected part
+ *   objects: objects to add to selected, uses value=uid and name=displayName
+ ************************************************************************************#
+#macro( jqSelected $args )
+#if( "$!args.required" == "" ) #set( $required = false ) #else #set( $required = true ) #end
+
+<table style="margin-bottom: 20px">
+    <colgroup>
+      <col style="width: 500px;"/>
+      <col/>
+      <col style="width: 500px;"/>
+    </colgroup>
+    <thead>
+    <tr>
+      <th>$i18n.getString( $args.i18n_available )</th>
+      <th></th>
+      <th>$i18n.getString( $args.i18n_selected )
+          #if( $required )
+            <em title="$i18n.getString( 'required' )" class="required">*</em>
+          #end
+      </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>
+        <input id="${args.prefix}AvailableSearch" type="text" placeholder=" Search.." style="width: 100%; margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0;" />
+      </td>
+      <td>
+        <button id="${args.prefix}AvailableSearchButton" type="button"><i class="fa fa-search"></i></button>
+      </td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>
+        <select id="${args.prefix}Available" name="${args.prefix}Available" multiple="multiple" style="height: 200px; width: 100%;"/>
+      </td>
+      <td>
+        <button type="button" style="width: 25px; text-align: center;" onclick="$.fn.selected.defaults.defaultMoveSelected('#${args.prefix}Available');"><span class="fa fa-angle-right"> </span></button><br />
+        <button type="button" style="width: 25px; text-align: center;" onclick="$.fn.selected.defaults.defaultMoveSelected('#${args.prefix}Selected');"><span class="fa fa-angle-left"> </span></button><br />
+        <button type="button" style="width: 25px; text-align: center;" onclick="$.fn.selected.defaults.defaultMoveAll('#${args.prefix}Available');"><span class="fa fa-angle-double-right"> </span></button><br />
+        <button type="button" style="width: 25px; text-align: center;" onclick="$.fn.selected.defaults.defaultMoveAll('#${args.prefix}Selected');"><span class="fa fa-angle-double-left"> </span></button><br />
+      </td>
+      <td>
+        <select id="${args.prefix}Selected" name="${args.prefix}Selected" multiple="multiple" style="height: 200px; width: 100%;">
+        #foreach ( $object in $args.objects )
+        <option value="$object.uid">$encoder.htmlEncode( $object.displayName )</option>
+        #end
+        </select>
+      </td>
+    </tr>
+    </tbody>
+</table>
+
+<select id="${args.prefix}Validator" style="display:none"></select>
+
+#end

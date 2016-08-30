@@ -1,0 +1,122 @@
+<script type="text/javascript">
+jQuery(document).ready(function() {        
+    	  	
+  #if( $render == true )
+  var dataSetReport = {
+    dataSet: "${ds}",
+    periodType: "${periodType.name}",
+    period: "${pe}",
+    offset: ${offset}
+  };
+  dhis2.dsr.setDataSetReport( dataSetReport );	  	
+  #else
+  selectionTreeSelection.setMultipleSelectionAllowed( false );
+  selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+  #end
+});
+
+var i18n_select_data_set = '$encoder.jsEscape( $i18n.getString( "select_data_set" ), "'")';
+var i18n_select_period = '$encoder.jsEscape( $i18n.getString( "select_period" ), "'")';
+var i18n_select_organisation_unit = '$encoder.jsEscape( $i18n.getString( "select_organisation_unit" ), "'")';
+var i18n_generating_report = '$encoder.jsEscape( $i18n.getString( "generating_report" ), "'")';    
+var i18n_share_your_interpretation = '$encoder.jsEscape( $i18n.getString( "share_your_interpretation" ), "'")';
+var i18n_interpretation_was_shared = '$encoder.jsEscape( $i18n.getString( "interpretation_was_shared" ), "'")';
+var i18n_select_option_view_all = '$encoder.jsEscape( $i18n.getString( "select_option_view_all" ) , "'")';
+</script>
+
+<style type="text/css">
+div#control {
+  margin-bottom: 15px;
+}
+
+div.inputSection {
+  padding-top: 7px;
+  padding-bottom: 5px;
+}
+</style>
+
+<h3 id="dataSetReportHeader">$i18n.getString( "dataset_report" ) #openHelp( "dataset_reports" )</h3>
+
+<div id="control">
+<input type="button" id="dataButton" value='$i18n.getString( "data_criteria" )' style="width:140px" onclick="dhis2.dsr.showCriteria()" disabled="disabled">
+<input type="button" class="downloadButton" value="$i18n.getString( 'get_report_as_xls' )" onclick="dhis2.dsr.exportDataSetReport( 'xls' )" style="width:140px; display:none;">
+<input type="button" class="downloadButton" value="$i18n.getString( 'get_report_as_pdf' )" onclick="dhis2.dsr.exportDataSetReport( 'pdf' )" style="width:140px; display:none;">
+<input type="button" class="downloadButton" value="$i18n.getString( 'print' )" onclick="window.print()" style="width:140px; display:none;">
+</div>
+
+<div id="criteria" class="inputCriteria" style="width:360px;">
+
+<!-- Data set -->
+
+<div class="inputSection">
+<label>$i18n.getString( "dataset" )</label><br>
+<select id="dataSetId" name="dataSetId" style="width:330px" onchange="dhis2.dsr.dataSetSelected()">
+  <option value="">[ $i18n.getString( "select" ) ]</option>
+  #foreach( $dataSet in $dataSets )
+  <option value="$dataSet.uid" data-approval="${dataSet.approveData}">
+  $encoder.htmlEncode( $dataSet.displayName )
+  </option>
+  #end
+</select>
+</div>
+
+<div id="dimensionsDiv" style="display:none"></div>
+
+<!-- Period -->
+
+<div class="inputSection">
+<label>$i18n.getString( "report_period" )</label><br>
+<select id="periodType" name="periodType" style="width:173px" onchange="dhis2.dsr.displayPeriods()">
+  <option value="">[ $i18n.getString( "select_period_type" ) ]</option>
+  #foreach ( $type in $periodTypes )
+  <option value="$type.name">$i18n.getString( $type.name )</option>
+  #end
+</select>
+<input type="button" style="width:75px" value="$i18n.getString( 'prev_year' )" onclick="dhis2.dsr.displayPreviousPeriods()" />
+<input type="button" style="width:75px" value="$i18n.getString( 'next_year' )" onclick="dhis2.dsr.displayNextPeriods()" /><br>
+
+<select id="periodId" name="periodId" style="width:330px" disabled="disabled">
+</select>
+</div>
+
+<!-- Organisation unit -->
+
+<div class="inputSection">
+<label>$i18n.getString( "use_data_for_selected_unit_only" )</label>
+<input type="checkbox" id="selectedUnitOnly" name="selectedUnitOnly" value="true">
+</div>
+
+<div class="inputSection">
+<label>$i18n.getString( "report_organisation_unit" )</label><br>
+<div id="selectionTree" style="width:328px; height:200px; overflow:auto; border:1px solid #ccc; margin-bottom: 8px;"></div>
+</div>
+
+<!-- Org unit group sets -->
+
+<div id="advancedOptions" style="display:none">
+#foreach( $groupSet in $organisationUnitGroupSets )
+<div class="inputSection">
+<div><label>$encoder.htmlEncode( $groupSet.name )</label></div>
+<select class="dimension" data-uid="${groupSet.uid}" style="width:330px" class="advanced">
+    <option value="">[ $i18n.getString( "select_option_view_all" ) ]</option>
+    #foreach( $group in $groupSet.organisationUnitGroups )
+    <option value="${group.uid}">$encoder.htmlEncode( $group.name )</option>
+    #end
+</select></div>
+#end </div>
+
+#if( $organisationUnitGroupSets.size() > 0 )
+<div id="moreOptionsLink" style="padding: 8px 0;"><a href="javascript:dhis2.dsr.showMoreOptions()">$i18n.getString( "show_more_options" )</a></div>
+<div id="fewerOptionsLink" style="display: none; padding: 8px 0;"><a href="javascript:dhis2.dsr.showFewerOptions()">$i18n.getString( "show_fewer_options" )</a></div>
+#end
+
+<div class="inputSection">
+<input type="button" value='$i18n.getString( "get_report" )' style="width:120px" onclick="dhis2.dsr.generateDataSetReport()">
+<input type="button" value='$i18n.getString( "cancel" )' style="width:120px" onclick="dhis2.dsr.hideCriteria()">
+</div>
+
+</div>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<div id="content"></div>

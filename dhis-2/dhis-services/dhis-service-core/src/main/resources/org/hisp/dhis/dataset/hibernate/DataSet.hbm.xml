@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataset.DataSet" table="dataset">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="datasetid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <property name="shortName" unique="false" length="50" />
+
+    <property name="description" type="text" />
+
+    <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
+      not-null="true" foreign-key="fk_dataset_periodtypeid" />
+
+    <set name="dataElements" table="datasetmembers">
+      <cache usage="read-write" />
+      <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+        foreign-key="fk_dataset_dataelementid" />
+    </set>
+
+    <set name="indicators" table="datasetindicators">
+      <cache usage="read-write" />
+      <key column="datasetid" foreign-key="fk_datasetindicators_datasetid" />
+      <many-to-many class="org.hisp.dhis.indicator.Indicator" column="indicatorid"
+        foreign-key="fk_dataset_indicatorid" />
+    </set>
+
+    <set name="compulsoryDataElementOperands" table="datasetoperands" cascade="all-delete-orphan">
+      <key column="datasetid" foreign-key="fk_datasetoperands_datasetid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"
+        foreign-key="fk_dataset_dataelementoperandid" />
+    </set>
+
+    <set name="sources" table="datasetsource">
+      <cache usage="read-write" />
+      <key column="datasetid" foreign-key="fk_datasetsource_datasetid" />
+      <many-to-many column="sourceid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+        foreign-key="fk_dataset_organisationunit" />
+    </set>
+
+    <set name="sections" order-by="sortorder" inverse="true">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <one-to-many class="org.hisp.dhis.dataset.Section" />
+    </set>
+
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+      column="categorycomboid" not-null="true" foreign-key="fk_dataset_categorycomboid" />
+
+    <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
+      foreign-key="fk_dataset_dataentryform" cascade="all" />
+
+    <property name="mobile" not-null="true" />
+
+    <property name="version" />
+
+    <property name="expiryDays" />
+
+    <property name="timelyDays" />
+
+    <property name="startDate" type="timestamp" />
+
+    <property name="endDate" type="timestamp" />
+
+    <many-to-one name="notificationRecipients" class="org.hisp.dhis.user.UserGroup"
+      foreign-key="fk_dataset_notificationrecipients" />
+
+    <property name="notifyCompletingUser" />
+
+    <many-to-one name="workflow" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid"
+      foreign-key="fk_dataset_workflowid" />
+
+    <!-- Form properties -->
+
+    <property name="openFuturePeriods" column="openfutureperiods" />
+
+    <property name="fieldCombinationRequired" />
+
+    <property name="validCompleteOnly" />
+
+    <property name="noValueRequiresComment" />
+
+    <property name="skipOffline" />
+
+    <property name="dataElementDecoration" />
+
+    <property name="renderAsTabs" />
+
+    <property name="renderHorizontally" />
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_dataset_legendset" />
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="datasetattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="datasettranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="datasetid" foreign-key="fk_objecttranslation_datasetid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataset_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="datasetusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+>
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.mapping.MapLayer" table="maplayer">
+
+    <id name="id" column="maplayerid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="type" column="type" />
+
+    <property name="url" column="url" type="text" />
+
+    <property name="layers" column="layers" type="text" />
+
+    <property name="time" column="time" type="text" />
+
+    <property name="fillColor" column="fillcolor" />
+
+    <property name="fillOpacity" column="fillopacity" not-null="true" />
+
+    <property name="strokeColor" column="strokecolor" />
+
+    <property name="strokeWidth" column="strokewidth" not-null="true" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="maplayertranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="maplayerid" foreign-key="fk_objecttranslation_maplayerid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,196 @@
+<!DOCTYPE struts PUBLIC
+  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+  "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-maintenance-mobile" extends="dhis-web-commons" namespace="/dhis-web-maintenance-mobile">
+
+    <!-- Pages -->
+
+    <action name="index" class="org.hisp.dhis.mobile.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/index.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+    </action>
+    
+     <!-- Sending SMS Action -->
+     
+    <action name="sendSMS"
+      class="org.hisp.dhis.mobile.action.incoming.ProcessingSendQuickSMSAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">../dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <!-- Sent SMS -->
+
+    <action name="showSentPage" class="org.hisp.dhis.mobile.action.ShowSentSMSAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/showSentSMSPage.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <!-- Receiving SMS Action -->
+
+    <action name="showReceivingPage" class="org.hisp.dhis.mobile.action.incoming.ReceivingSMSAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/receiveSMSPage.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+    </action>
+
+    <action name="checkNewMessage" class="org.hisp.dhis.mobile.action.incoming.ReceivingSMSAction">
+      <result name="success" type="velocity-json">/dhis-web-maintenance-mobile/jsonCheckMessage.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="deleteReceiveSMS" class="org.hisp.dhis.mobile.action.incoming.DeleteReceiveSMSAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_MOBILE_DELETE_SMS</param>
+    </action>
+
+    <action name="updateReceiveSMS" class="org.hisp.dhis.mobile.action.incoming.UpdateReceiveSMSAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="deleteSentSMS" class="org.hisp.dhis.mobile.action.DeleteSentSMSAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">../dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_MOBILE_DELETE_SMS</param>
+    </action>
+
+    <action name="reimport" class="org.hisp.dhis.mobile.action.incoming.ReimportSMSAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">../dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- SMS Service Configuration Action -->
+
+    <action name="showSMSConfigureForm" class="org.hisp.dhis.mobile.action.GetSmsConfigurationAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/smsServiceConfiguration.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="javascripts">javascript/gateway.js</param>
+      <param name="requiredAuthorities">F_MOBILE_SETTINGS</param>
+    </action>
+
+    <action name="showUpdateGateWayConfigForm" class="org.hisp.dhis.mobile.action.GetSmsConfigurationAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/updateGateway.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="javascripts">javascript/gateway.js</param>
+      <param name="requiredAuthorities">F_MOBILE_SETTINGS</param>
+    </action>
+
+    <action name="saveSmsConfiguration" class="org.hisp.dhis.mobile.action.SaveSmsConfigurationAction">
+      <result name="success" type="redirect">showSMSConfigureForm.action</result>
+      <param name="requiredAuthorities">F_MOBILE_SETTINGS</param>
+    </action>
+
+    <action name="saveBulkSMSConfig" class="org.hisp.dhis.mobile.action.UpdateBulkGateWayConfigAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="saveClickatellConfig" class="org.hisp.dhis.mobile.action.UpdateClickatellGateWayConfigAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_MOBILE_SETTINGS</param>
+    </action>
+
+    <action name="saveHTTPConfig" class="org.hisp.dhis.mobile.action.UpdateGenericHTTPGateWayConfigAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_MOBILE_SETTINGS</param>
+    </action>
+
+    <action name="updateDefaultGateway" class="org.hisp.dhis.mobile.action.UpdateDefaultGatewayAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_MOBILE_SETTINGS</param>
+    </action>
+
+    <action name="removeGatewayConfig" class="org.hisp.dhis.mobile.action.RemoveGatewayConfigAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_MOBILE_SETTINGS</param>
+    </action>
+
+    <!-- SMSCommmand start -->
+
+    <action name="SMSCommands" class="org.hisp.dhis.mobile.action.smscommand.SMSCommandAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/smscommand/sms-commands.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js</param>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <action name="newSMSCommand" class="org.hisp.dhis.mobile.action.smscommand.SMSCommandAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/smscommand/new-sms-command.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/command.js</param>
+      <param name="stylesheets">style/dhis-web-maintenance-mobile.css</param>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <action name="editSMSCommand" class="org.hisp.dhis.mobile.action.smscommand.SMSCommandAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/smscommand/edit-sms-command.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/command.js</param>
+      <param name="stylesheets">style/dhis-web-maintenance-mobile.css</param>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <action name="saveEditSMSCommandForm" class="org.hisp.dhis.mobile.action.smscommand.EditSMSCommandForm">
+      <result name="success" type="redirect">SMSCommands.action</result>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <action name="createSMSCommandForm" class="org.hisp.dhis.mobile.action.smscommand.CreateSMSCommandForm">
+      <result name="success" type="redirect">SMSCommands.action</result>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <action name="deleteSMSCommand" class="org.hisp.dhis.mobile.action.smscommand.DeleteSMSCommandAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+    
+    <action name="validateSMSCommand"
+      class="org.hisp.dhis.mobile.action.smscommand.ValidateSMSCommandAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- J2ME Client Update -->
+
+    <action name="showJ2meClientUpdatePage" class="org.hisp.dhis.mobile.action.J2meClientUpdateAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/j2meClientUpdatePage.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="javascripts">javascript/gateway.js</param>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <!-- Mobile Phones Pattern 
+    <action name="mobilePhonesPattern" class="org.hisp.dhis.mobile.action.MobilePhonesPatternAction">
+  	  <result name="success" type="velocity">/main.vm</result>
+  	  <param name="page">/dhis-web-maintenance-mobile/phonePatternPage.vm</param>
+  	  <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+    </action>-->
+
+  </package>
+</struts>

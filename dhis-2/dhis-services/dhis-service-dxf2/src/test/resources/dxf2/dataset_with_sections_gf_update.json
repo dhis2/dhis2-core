@@ -1,0 +1,422 @@
+{
+  "dataSets": [
+    {
+      "version": 5,
+      "name": "Updated Data Set",
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "expiryDays": 0,
+      "mobile": false,
+      "compulsoryDataElementOperands": [ ],
+      "created": "2016-03-08T07:31:30.424+0000",
+      "publicAccess": "rw------",
+      "periodType": "Monthly",
+      "validCompleteOnly": false,
+      "attributeValues": [ ],
+      "openFuturePeriods": 0,
+      "userGroupAccesses": [ ],
+      "organisationUnits": [
+        {
+          "id": "x3gVvpbVgqy"
+        }
+      ],
+      "timelyDays": 15,
+      "dataElements": [
+        {
+          "id": "nHwIqKAudKN"
+        },
+        {
+          "id": "VolAzjFe5zP"
+        }
+      ],
+      "indicators": [ ],
+      "noValueRequiresComment": false,
+      "notifyCompletingUser": false,
+      "skipOffline": false,
+      "renderAsTabs": false,
+      "id": "em8Bg4LCr5k",
+      "shortName": "Data Set",
+      "fieldCombinationRequired": false,
+      "categoryCombo": {
+        "id": "VfQ8S1gSE9T"
+      },
+      "renderHorizontally": false,
+      "lastUpdated": "2016-03-08T07:34:23.833+0000",
+      "dataElementDecoration": false
+    }
+  ],
+  "organisationUnits": [
+    {
+      "openingDate": "2016-03-08",
+      "name": "Country",
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "description": "",
+      "path": "/x3gVvpbVgqy",
+      "uuid": "d981e7c4-3c72-4e0d-8995-078f16830473",
+      "created": "2016-03-08T07:27:17.757+0000",
+      "id": "x3gVvpbVgqy",
+      "shortName": "Country",
+      "attributeValues": [ ],
+      "featureType": "NONE",
+      "lastUpdated": "2016-03-08T07:27:17.772+0000"
+    }
+  ],
+  "categoryOptions": [
+    {
+      "name": "default",
+      "id": "NS6DGfTR650",
+      "publicAccess": "--------",
+      "created": "2016-03-08T07:26:31.533+0000",
+      "lastUpdated": "2016-03-08T07:26:31.551+0000",
+      "userGroupAccesses": [ ],
+      "organisationUnits": [ ],
+      "attributeValues": [ ],
+      "shortName": "default"
+    },
+    {
+      "created": "2016-03-08T07:28:50.372+0000",
+      "publicAccess": "rw------",
+      "id": "JYiFOMKa25J",
+      "shortName": "Female",
+      "organisationUnits": [ ],
+      "attributeValues": [ ],
+      "userGroupAccesses": [ ],
+      "lastUpdated": "2016-03-08T07:28:50.374+0000",
+      "name": "Female",
+      "user": {
+        "id": "T12jeH7KPzk"
+      }
+    },
+    {
+      "attributeValues": [ ],
+      "organisationUnits": [ ],
+      "userGroupAccesses": [ ],
+      "shortName": "Male",
+      "lastUpdated": "2016-03-08T07:28:44.217+0000",
+      "created": "2016-03-08T07:28:44.214+0000",
+      "id": "tdaMRD34m8o",
+      "publicAccess": "rw------",
+      "name": "Male",
+      "user": {
+        "id": "T12jeH7KPzk"
+      }
+    }
+  ],
+  "dataElements": [
+    {
+      "domainType": "AGGREGATE",
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "valueType": "NUMBER",
+      "name": "Simple Value",
+      "lastUpdated": "2016-03-08T07:30:07.699+0000",
+      "attributeValues": [ ],
+      "shortName": "Simple Value",
+      "userGroupAccesses": [ ],
+      "categoryCombo": {
+        "id": "VfQ8S1gSE9T"
+      },
+      "aggregationLevels": [ ],
+      "aggregationType": "SUM",
+      "publicAccess": "rw------",
+      "zeroIsSignificant": false,
+      "id": "nHwIqKAudKN",
+      "created": "2016-03-08T07:30:07.698+0000"
+    },
+    {
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "valueType": "NUMBER",
+      "name": "Value with CC",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "zeroIsSignificant": false,
+      "id": "VolAzjFe5zP",
+      "created": "2016-03-08T07:30:58.416+0000",
+      "lastUpdated": "2016-03-08T07:30:58.417+0000",
+      "attributeValues": [ ],
+      "userGroupAccesses": [ ],
+      "shortName": "Value with CC",
+      "aggregationType": "SUM",
+      "aggregationLevels": [ ],
+      "categoryCombo": {
+        "id": "faV8QvLgIwB"
+      }
+    }
+  ],
+  "userRoles": [
+    {
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_MAP_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_PROGRAM_ENROLLMENT",
+        "F_REPORTTABLE_EXTERNAL",
+        "F_SQLVIEW_EXTERNAL",
+        "F_GIS_ADMIN",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_CHART_PUBLIC_ADD",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_CHART_EXTERNAL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_MAP_EXTERNAL",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+      ],
+      "name": "Superuser",
+      "dataSets": [ ],
+      "userGroupAccesses": [ ],
+      "lastUpdated": "2016-03-08T07:26:51.925+0000",
+      "programs": [ ],
+      "created": "2016-03-08T07:26:51.925+0000",
+      "publicAccess": "--------",
+      "id": "wSdzlWUHmEu"
+    }
+  ],
+  "trackedEntities": [
+    {
+      "description": "Person",
+      "id": "MDvmqCKmXQM",
+      "name": "Person",
+      "attributeValues": [ ],
+      "created": "2016-03-09T09:56:10.596+0000",
+      "lastUpdated": "2016-03-09T09:56:10.597+0000"
+    }
+  ],
+  "categoryCombos": [
+    {
+      "created": "2016-03-08T07:26:31.545+0000",
+      "skipTotal": false,
+      "publicAccess": "--------",
+      "id": "VfQ8S1gSE9T",
+      "userGroupAccesses": [ ],
+      "lastUpdated": "2016-03-08T07:26:31.548+0000",
+      "categories": [
+        {
+          "id": "k3ASmFuqr11"
+        }
+      ],
+      "name": "default",
+      "dataDimensionType": "DISAGGREGATION"
+    },
+    {
+      "created": "2016-03-08T07:29:07.104+0000",
+      "id": "faV8QvLgIwB",
+      "skipTotal": false,
+      "publicAccess": "rw------",
+      "userGroupAccesses": [ ],
+      "lastUpdated": "2016-03-08T07:29:15.719+0000",
+      "name": "Gender",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [
+        {
+          "id": "XJGLlMAMCcn"
+        }
+      ],
+      "user": {
+        "id": "T12jeH7KPzk"
+      }
+    }
+  ],
+  "organisationUnitLevels": [
+    {
+      "id": "JEMRBUHgpqN",
+      "created": "2016-03-08T07:27:22.448+0000",
+      "name": "Level 1",
+      "level": 1,
+      "lastUpdated": "2016-03-08T07:27:22.449+0000"
+    }
+  ],
+  "users": [
+    {
+      "lastUpdated": "2016-03-08T07:26:51.909+0000",
+      "attributeValues": [ ],
+      "organisationUnits": [
+        {
+          "id": "x3gVvpbVgqy"
+        }
+      ],
+      "firstName": "admin",
+      "userCredentials": {
+        "id": "m3ww4DWJtMf",
+        "cogsDimensionConstraints": [ ],
+        "lastLogin": "2016-03-08T07:26:51.942+0000",
+        "invitation": false,
+        "username": "admin",
+        "passwordLastUpdated": "2016-03-08T07:26:51.942+0000",
+        "selfRegistered": false,
+        "externalAuth": false,
+        "created": "2016-03-08T07:26:52.033+0000",
+        "disabled": false,
+        "userInfo": {
+          "id": "T12jeH7KPzk"
+        },
+        "catDimensionConstraints": [ ],
+        "userRoles": [
+          {
+            "id": "wSdzlWUHmEu"
+          }
+        ]
+      },
+      "id": "T12jeH7KPzk",
+      "created": "2016-03-08T07:26:51.909+0000",
+      "teiSearchOrganisationUnits": [ ],
+      "dataViewOrganisationUnits": [ ],
+      "surname": "admin"
+    }
+  ],
+  "categories": [
+    {
+      "lastUpdated": "2016-03-08T07:26:31.729+0000",
+      "categoryOptions": [
+        {
+          "id": "NS6DGfTR650"
+        }
+      ],
+      "userGroupAccesses": [ ],
+      "id": "k3ASmFuqr11",
+      "publicAccess": "--------",
+      "created": "2016-03-08T07:26:31.543+0000",
+      "dataDimensionType": "DISAGGREGATION",
+      "dataDimension": true,
+      "name": "default"
+    },
+    {
+      "id": "XJGLlMAMCcn",
+      "publicAccess": "rw------",
+      "created": "2016-03-08T07:28:58.738+0000",
+      "lastUpdated": "2016-03-08T07:28:58.740+0000",
+      "categoryOptions": [
+        {
+          "id": "JYiFOMKa25J"
+        },
+        {
+          "id": "tdaMRD34m8o"
+        }
+      ],
+      "userGroupAccesses": [ ],
+      "dataDimension": true,
+      "dataDimensionType": "DISAGGREGATION",
+      "user": {
+        "id": "T12jeH7KPzk"
+      },
+      "name": "Gender"
+    }
+  ],
+  "sections": [
+    {
+      "lastUpdated": "2016-03-08T07:32:29.362+0000",
+      "indicators": [ ],
+      "dataElements": [
+        {
+          "id": "nHwIqKAudKN"
+        }
+      ],
+      "dataSet": {
+        "id": "em8Bg4LCr5k"
+      },
+      "id": "JwcV2ZifEQf",
+      "greyedFields": [
+        {
+          "dataElement": {
+            "id": "VolAzjFe5zP"
+          },
+          "categoryOptionCombo": {
+            "id": "p99yaU6mweU"
+          }
+        }
+      ],
+      "created": "2016-03-08T07:32:29.361+0000",
+      "sortOrder": 0,
+      "name": "Section Default"
+    },
+    {
+      "dataElements": [
+        {
+          "id": "VolAzjFe5zP"
+        }
+      ],
+      "indicators": [ ],
+      "greyedFields": [ ],
+      "lastUpdated": "2016-03-08T07:34:23.831+0000",
+      "created": "2016-03-08T07:32:42.140+0000",
+      "dataSet": {
+        "id": "em8Bg4LCr5k"
+      },
+      "id": "C50M0WxaI7y",
+      "name": "Section Gender",
+      "sortOrder": 0
+    }
+  ],
+  "date": "2016-03-08T07:35:11.295+0000",
+  "categoryOptionCombos": [
+    {
+      "name": "default",
+      "created": "2016-03-08T07:26:31.546+0000",
+      "id": "Z3oAZ1xdHIg",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "VfQ8S1gSE9T"
+      },
+      "lastUpdated": "2016-03-08T07:26:31.546+0000",
+      "categoryOptions": [
+        {
+          "id": "NS6DGfTR650"
+        }
+      ]
+    },
+    {
+      "name": "Female",
+      "created": "2016-03-08T07:29:15.714+0000",
+      "id": "J5uZylXMmbB",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "faV8QvLgIwB"
+      },
+      "categoryOptions": [
+        {
+          "id": "JYiFOMKa25J"
+        }
+      ],
+      "lastUpdated": "2016-03-08T07:29:15.715+0000"
+    },
+    {
+      "name": "Male",
+      "created": "2016-03-08T07:29:15.717+0000",
+      "id": "p99yaU6mweU",
+      "ignoreApproval": false,
+      "categoryCombo": {
+        "id": "faV8QvLgIwB"
+      },
+      "categoryOptions": [
+        {
+          "id": "tdaMRD34m8o"
+        }
+      ],
+      "lastUpdated": "2016-03-08T07:29:15.717+0000"
+    }
+  ]
+}

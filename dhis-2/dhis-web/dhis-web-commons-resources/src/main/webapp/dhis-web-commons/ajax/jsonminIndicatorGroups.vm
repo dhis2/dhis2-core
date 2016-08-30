@@ -1,0 +1,2 @@
+#set( $size = $indicatorGroups.size() )
+{"indicatorGroups":[#foreach( $group in $indicatorGroups ){"id":"$!{group.uid}","name":"$!encoder.jsonEncode( ${group.displayName} )"}#if( $velocityCount < $size ),#end#end]}

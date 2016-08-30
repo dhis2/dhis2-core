@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataset.Section" table="section">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="sectionid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" length="230"
+      unique-key="key_sectionnamedataset" />
+
+    <property name="description" type="text" />
+
+    <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
+      unique-key="key_sectionnamedataset" foreign-key="fk_section_datasetid" not-null="true" />
+
+    <list name="dataElements" table="sectiondataelements">
+      <cache usage="read-write" />
+      <key column="sectionid" foreign-key="fk_sectiondataelements_sectionid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+        foreign-key="fk_section_dataelementid" />
+    </list>
+
+    <list name="indicators" table="sectionindicators">
+      <cache usage="read-write" />
+      <key column="sectionid" foreign-key="fk_sectionindicators_sectionid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.indicator.Indicator" column="indicatorid"
+        foreign-key="fk_section_indicatorid" />
+    </list>
+
+    <set name="greyedFields" table="sectiongreyedfields" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="sectionid" foreign-key="fk_sectiongreyedfields_sectionid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementOperand" column="dataelementoperandid"
+        foreign-key="fk_section_dataelementoperandid" />
+    </set>
+
+    <property name="sortOrder" column="sortorder" not-null="true" />
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="sectionattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="sectionid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+
+    <set name="translations" table="datasetsectiontranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="sectionid" foreign-key="fk_objecttranslation_sectionid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

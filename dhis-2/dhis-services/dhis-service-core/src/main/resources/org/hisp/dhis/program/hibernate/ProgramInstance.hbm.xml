@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramInstance" table="programinstance">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programinstanceid">
+      <generator class="native" />
+    </id>
+
+    <property name="uid" column="uid" unique="true" length="11" />
+
+    <property name="created" type="timestamp" not-null="true" />
+
+    <property name="lastUpdated" type="timestamp" not-null="true" />
+
+    <property name="incidentDate" column="incidentDate" />
+
+    <property name="enrollmentDate" column="enrollmentdate" not-null="true" />
+
+    <property name="endDate" column="enddate" />
+
+    <property name="followup" column="followup" />
+
+    <property name="completedBy" />
+    
+    <property name="longitude" />
+
+    <property name="latitude" />
+    
+    <property name="status" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="entityInstance"
+      class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
+      foreign-key="fk_programinstance_trackedentityinstanceid" lazy="false" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" not-null="true" foreign-key="fk_programinstance_programid" lazy="false" />
+
+    <set name="programStageInstances" order-by="executionDate,duedate">
+      <key column="programinstanceid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStageInstance" />
+    </set>
+
+    <list name="outboundSms" table="programinstance_outboundsms">
+      <key column="programinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.sms.outbound.OutboundSms"
+        column="outboundsmsid" />
+    </list>
+
+    <list name="messageConversations" table="programinstance_messageconversation">
+      <key column="programinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.message.MessageConversation"
+        column="messageconversationid" />
+    </list>
+
+    <list name="comments" table="programinstancecomments" cascade="all" lazy="false">
+      <key column="programinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many column="trackedentitycommentid" unique="true" class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
+    </list>
+
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_programinstance_organisationunitid" not-null="false" lazy="false" />
+
+  </class>
+
+</hibernate-mapping>

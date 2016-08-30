@@ -1,0 +1,25 @@
+
+<script type="text/javascript">
+$( document ).ready( function() {
+	jQuery( "#interpretationArea" ).autogrow();
+} );
+
+var i18n_share_your_interpretation = '$encoder.jsEscape( $i18n.getString( "share_your_interpretation" ), "'")';
+var i18n_interpretation_was_shared = '$encoder.jsEscape( $i18n.getString( "interpretation_was_shared" ), "'")';
+</script>
+
+<div style="margin-bottom:10px">
+<input type="button" value="$i18n.getString( 'get_report_as_xls' )" onclick="exportReport( 'xls', '$!{uid}', '$!{pe}', '$!{ou}' )" style="width:140px">
+<input type="button" value="$i18n.getString( 'get_report_as_csv' )" onclick="exportReport( 'csv', '$!{uid}', '$!{pe}', '$!{ou}' )" style="width:140px">
+<input type="button" value="$i18n.getString( 'get_report_as_pdf' )" onclick="exportReport( 'pdf', '$!{uid}', '$!{pe}', '$!{ou}' )" style="width:140px">
+<input type="button" value="$i18n.getString( 'get_report_as_jasper' )" onclick="exportReport( 'jasper', '$!{uid}', '$!{pe}', '$!{ou}' )" style="width:140px">
+<input type="button" value="$i18n.getString( 'get_report_as_jrxml' )" onclick="exportReport( 'jrxml', '$!{uid}', '$!{pe}', '$!{ou}' )" style="width:140px">
+<input type="button" value="$i18n.getString( 'back' )" onclick="javascript:window.location.href='displayManageTableForm.action'" style="width:140px">
+</div>
+
+<div id="shareForm">
+<textarea id="interpretationArea" class="interpretationArea" placeholder="$i18n.getString( 'write_your_interpretation' )"></textarea><br>
+<input type="button" value="$i18n.getString( 'share' )" onclick="shareInterpretation( '${uid}', '$!{pe}', '$!{ou}' )" style="width:120px">
+</div>
+
+#parse( "dhis-web-commons/ajax/htmlGrid.vm" )

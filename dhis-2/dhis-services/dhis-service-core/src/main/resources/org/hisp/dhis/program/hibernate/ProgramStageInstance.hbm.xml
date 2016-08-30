@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramStageInstance" table="programstageinstance">
+
+    <id name="id" column="programstageinstanceid">
+      <generator class="native" />
+    </id>
+
+    <property name="uid" column="uid" unique="true" length="11" />
+
+    <property name="created" type="timestamp" not-null="true" />
+
+    <property name="lastUpdated" type="timestamp" not-null="true" />
+
+    <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
+      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
+
+    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+      column="attributeoptioncomboid" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
+
+    <property name="storedBy" />
+
+    <property name="dueDate" column="duedate" />
+
+    <property name="executionDate" column="executiondate" type="timestamp" index="programstageinstance_executiondate" />
+
+    <many-to-one name="organisationUnit"
+      class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
+
+    <list name="outboundSms" table="programstageinstance_outboundsms">
+      <key column="programstageinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.sms.outbound.OutboundSms"
+        column="outboundsmsid" />
+    </list>
+
+    <list name="messageConversations" table="programstageinstance_messageconversation">
+      <key column="programstageinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.message.MessageConversation"
+        column="messageconversationid" />
+    </list>
+
+    <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
+
+    <property name="longitude" />
+
+    <property name="latitude" />
+
+    <property name="completedBy" />
+
+    <property name="completedDate" />
+
+    <list name="comments" table="programstageinstancecomments" cascade="all">
+      <key column="programstageinstanceid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many column="trackedentitycommentid" unique="true" class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
+    </list>
+
+  </class>
+
+</hibernate-mapping>

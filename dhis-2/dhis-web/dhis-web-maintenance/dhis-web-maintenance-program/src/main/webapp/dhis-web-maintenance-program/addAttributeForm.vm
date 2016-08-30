@@ -1,0 +1,221 @@
+<script>
+  jQuery(document).ready(	function(){
+  	validation2( 'addAttributeForm', function( form )
+  	{
+  		form.submit();
+  	}, {
+  		'rules' : getValidationRules( "trackedEntityAttribute" ),
+      'beforeValidateHandler' : function() {
+        #tblDynamicAttributesJavascript()
+      }
+  	} );
+
+  	checkValueIsExist( "name", "validateAttribute.action");
+  	checkValueIsExist( "shortName", "validateAttribute.action");
+  	checkValueIsExist( "code", "validateAttribute.action");
+        checkValueIsExist( "pattern", "validateAttribute.action");
+  });
+</script>
+<h3>$i18n.getString( "create_new_tracked_entity_attribute" ) #openHelp( "tracked_entity_attribute_information" )</h3>
+
+#sharingCreateNotification( "trackedEntityAttribute" )
+
+<form id="addAttributeForm" name="addAttributeForm" action="addAttribute.action" method="post" class="inputForm">
+
+<table id="attrTable"> 
+	<thead>
+		<tr><th colspan="2">$i18n.getString( "tracked_entity_attribute_details" )</th></tr>
+    </thead>
+	
+    <tbody>
+    <tr>
+        <td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name" /></td>
+        <td></td>
+    </tr>   
+    
+    <tr>
+        <td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="shortName" name="shortName" /></td>
+        <td></td>
+    </tr>
+    
+    <tr>
+        <td><label for="code">$i18n.getString( "code" )</label></td>
+        <td><input type="text" id="code" name="code"></td>
+        <td></td>
+    </tr>
+    
+    <tr>
+        <td><label for="description">$i18n.getString( "description" )</label></td>
+        <td><textarea id="description" name="description"></textarea></td>
+        <td></td>
+    </tr>
+	
+	<!--
+	<tr>
+		<td><label for="searchScope">$i18n.getString( "search_scope" ) <br /></label></td>
+		<td>
+            <select id="searchScope" name="searchScope" >
+				<option value='SEARCH_ORG_UNITS'>$i18n.getString('across_search_orgunits')</option>				
+				<option value='DATA_CAPTURE_ORG_UNITS'>$i18n.getString('across_data_capture_orgunits')</option>
+				<option value='ALL_ORG_UNITS'>$i18n.getString('across_all_orgunits')</option>
+				<option value='NOT_SEARCHABLE'>$i18n.getString('not_searchable')</option>
+			</select>
+		</td>
+		<td></td>
+	</tr>
+	-->
+	
+	<tr>
+		<td><label for="optionSetId">$i18n.getString( "option_set" )</label></td>
+		<td><select id="optionSetId" name="optionSetId" onchange="optionSetChanged()">
+		    <option value="0">[$i18n.getString('please_select')]</option>
+			#foreach($optionSet in $optionSets)
+				<option data-valuetype="$!optionSet.valueType" value="$optionSet.id">$encoder.htmlEncode($optionSet.name)</option>
+			#end
+			</select>
+		</td>
+	</tr>
+	
+    <tr>
+      <td><label for="valueType">$i18n.getString( "value_type" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td>
+        <select id="valueType" name="valueType" onchange="typeOnChange();">
+		  <option value="INTEGER" selected="selected">$i18n.getString( "integer" )</option>
+		  <option value="INTEGER_POSITIVE">$i18n.getString( "positive_integer" )</option>
+		  <option value="INTEGER_NEGATIVE">$i18n.getString( "negative_integer" )</option>
+		  <option value="INTEGER_ZERO_OR_POSITIVE">$i18n.getString( "zero_positive_int" )</option>	
+          <option value="NUMBER">$i18n.getString( "number" )</option>
+          <option value="TEXT">$i18n.getString( "text" )</option>
+          <option value="LONG_TEXT">$i18n.getString( "long_text" )</option>
+          <option value="LETTER">$i18n.getString( "letter_only" )</option>
+          <option value="BOOLEAN">$i18n.getString( "yes_no" )</option>
+          <option value="TRUE_ONLY">$i18n.getString( "yes_only" )</option>
+          <option value="DATE">$i18n.getString( "date" )</option>
+          <option value="PHONE_NUMBER">$i18n.getString( "phone_number" )</option>
+          <option value="EMAIL">$i18n.getString( "email" )</option>
+          <option value="TRACKER_ASSOCIATE">$i18n.getString( "tracker_associate" )</option>
+          <option value="USERNAME">$i18n.getString( "users" )</option>
+          <option value="OPTION_SET">$i18n.getString( "option_set" )</option>
+		  <option value="COORDINATE">$i18n.getString( "coordinate" )</option>
+		  <option value="ORGANISATION_UNIT">$i18n.getString( "organisation_unit" )</option>
+        </select>
+      </td>
+      <td></td>
+    </tr>
+
+    <tr>
+        <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
+        <td>
+            <select id="aggregationType" name="aggregationType">
+                <option value="AVERAGE">$i18n.getString( "average" )</option>
+                <option value="SUM">$i18n.getString( "sum" )</option>
+                <option value="COUNT">$i18n.getString( "count" )</option>
+                <option value="STDDEV">$i18n.getString( "stddev" )</option>
+                <option value="VARIANCE">$i18n.getString( "variance" )</option>
+                <option value="MIN">$i18n.getString( "min" )</option>
+                <option value="MAX">$i18n.getString( "max" )</option>
+            </select>
+        </td>
+    </tr>
+
+	<tr id="trackedEntityRow" class="hidden">
+		<td><label for="trackedEntityId">$i18n.getString( "tracked_entity" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><select id="trackedEntityId" name="trackedEntityId" class="{validate:{required:true}}" disabled>
+				#foreach( $trackedEntity in $trackedEntities )
+					<option value="$trackedEntity.id">$encoder.htmlEncode($trackedEntity.name)</option>
+				#end
+			</select>
+		</td>
+	</tr>
+
+    <tr>
+		<td><label for="unique">$i18n.getString( "unique" )</label></td>
+		<td>
+			<input type='checkbox' id="unique" name="unique" value='true' onchange='uniqueOnChange()'>
+			<span id='uniqueTR' name='uniqueTR' style='display:none;'> 
+				$i18n.getString('in')
+				<select id='scope' name='scope' style='width:275px;' onchange='uniqueOnChange()'>
+					<option value="">$i18n.getString("entire_system")</option>
+					<option value="1">$i18n.getString("orgunit")</option>
+					<!-- temporaily hidden, as the program scope is not supported properly yet: https://bugs.launchpad.net/dhis2/+bug/1569793
+					<option value="2">$i18n.getString("program")</option>
+					<option value="3">$i18n.getString("program_within_orgunit")</option> 
+					-->
+				</select>				
+			</span>
+		</td>			
+	</tr>
+	
+	<tr id="generatedTR" name="generatedTR" style="display:none;">
+		<td><label for="generated">$i18n.getString( "generated" )</label></td>
+		<td>
+			<input type="checkbox" id="generated" name="generated" value="true" onchange="generatedOnChange()">
+		</td>	
+	</tr>
+	
+	<tr id="generatedPatternTR" name="generatedPatternTR" style="display:none;">
+		<td>
+			<label for="generated">$i18n.getString( "generated_pattern" )</label><br>
+			<span class="tipText">($i18n.getString( "generated_pattern_tips" ))</span>
+		</td>
+		<td>
+			<input type="text" id="pattern" name="pattern"/>
+		</td>
+	</tr>
+			
+	<tr>
+		<td><label for="inherit">$i18n.getString( "inherit" )</label></td>
+		<td>
+			<input type='checkbox' id="inherit" name="inherit" value='true'>
+		</td>		
+		<td></td>				
+	</tr>
+	
+	<tr>
+		<td><label for="confidential">$i18n.getString( "confidential" ) <span class="tipText">($i18n.getString( "search_and_analytics_unavailable" ))</span></label></td>
+		<td>
+            #if( $encryptionAvailable )
+			    <input type='checkbox' id="confidential" name="confidential" value='true' onchange='applyConfidentialEffect();'>
+            #else
+                <p style="max-width: 312px">
+                    <b>$i18n.getString( "encryption_not_available" )</b>
+                </p>
+            #end
+		</td>
+		<td></td>
+	</tr>
+    
+    <tr>
+        <td><label for="legendSetId">$i18n.getString( 'legend_set' )</label></td>            
+        <td>
+            <select id="legendSetId" name="legendSetId">
+                <option>[$i18n.getString('please_select')]</option>
+                #foreach ( $legendSet in $legendSets )
+                <option value="$legendSet.id">$encoder.htmlEncode( $legendSet.name )</option>
+                #end
+            </select>
+        </td>
+    </tr>    
+    
+    </tbody>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<table>
+	<tr>
+		<td colspan="2" style="padding-top:15px">
+			<input type="submit" value="$i18n.getString( 'add' )" style="width:10em" />
+			<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='attribute.action'" style="width:10em" />
+		</td>
+	</tr>
+</table>
+<span id='message'></span>
+
+</form>   
+
+<script type="text/javascript">
+	var isSubmit = true;
+</script>

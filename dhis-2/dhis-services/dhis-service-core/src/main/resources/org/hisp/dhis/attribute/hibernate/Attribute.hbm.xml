@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping package="org.hisp.dhis.attribute">
+  <class name="Attribute" table="attribute">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="attributeid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="valueType" length="50" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.ValueType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="mandatory" not-null="true" />
+
+    <property name="unique" column="isunique" not-null="false" />
+
+    <property name="dataElementAttribute" not-null="true" />
+
+    <property name="dataElementGroupAttribute" not-null="false" />
+
+    <property name="indicatorAttribute" not-null="true" />
+
+    <property name="indicatorGroupAttribute" not-null="false" />
+
+    <property name="dataSetAttribute" not-null="false" />
+
+    <property name="organisationUnitAttribute" not-null="true" />
+
+    <property name="organisationUnitGroupAttribute" not-null="false" />
+
+    <property name="organisationUnitGroupSetAttribute" not-null="false" />
+
+    <property name="userAttribute" not-null="true" />
+
+    <property name="userGroupAttribute" not-null="false" />
+
+    <property name="programAttribute" not-null="false" />
+
+    <property name="programStageAttribute" not-null="false" />
+
+    <property name="trackedEntityAttribute" not-null="false" />
+
+    <property name="trackedEntityAttributeAttribute" not-null="false" />
+
+    <property name="categoryOptionAttribute" not-null="false" />
+
+    <property name="categoryOptionGroupAttribute" not-null="false" />
+
+    <property name="documentAttribute" not-null="false" />
+
+    <property name="optionAttribute" not-null="false" />
+
+    <property name="optionSetAttribute" not-null="false" />
+
+    <property name="constantAttribute" not-null="false" />
+
+    <property name="legendSetAttribute" not-null="false" />
+
+    <property name="programIndicatorAttribute" not-null="false" />
+
+    <property name="sqlViewAttribute" not-null="false" />
+
+    <property name="sectionAttribute" not-null="false" />
+
+    <property name="sortOrder" />
+
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
+      foreign-key="fk_attribute_optionsetid" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="attributetranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="attributeid" foreign-key="fk_objecttranslation_attributeid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

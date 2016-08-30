@@ -1,0 +1,165 @@
+= DHIS 2 API Guide
+Morten Olav Hansen <morten@dhis2.org>
+v2.24, 2015-05-02
+:doctype: book
+:icons: font
+:toc: left
+:toclevels: 4
+:sectlinks:
+:numbered:
+
+[[overview]]
+= Overview
+
+[[overview-http-verbs]]
+== HTTP verbs
+
+RESTful notes tries to adhere as closely as possible to standard HTTP and REST conventions in its
+use of HTTP verbs.
+
+|===
+| Verb | Usage
+
+| `GET`
+| Used to retrieve a resource
+
+| `POST`
+| Used to create a new resource
+
+| `PATCH`
+| Used to update an existing resource, including partial updates
+
+| `DELETE`
+| Used to delete an existing resource
+|===
+
+[[overview-http-status-codes]]
+== HTTP status codes
+
+RESTful notes tries to adhere as closely as possible to standard HTTP and REST conventions in its
+use of HTTP status codes.
+
+|===
+| Status code | Usage
+
+| `200 OK`
+| The request completed successfully
+
+| `201 Created`
+| A new resource has been created successfully. The resource's URI is available from the response's
+`Location` header
+
+| `204 No Content`
+| An update to an existing resource has been applied successfully
+
+| `400 Bad Request`
+| The request was malformed. The response body will include an error providing further information
+
+| `404 Not Found`
+| The requested resource did not exist
+|===
+
+[[resources]]
+= Resources
+
+include::dataelement.adoc[]
+
+include::event.adoc[]
+
+include::indicator.adoc[]
+
+include::legend.adoc[]
+
+include::organisationUnit.adoc[]
+
+include::color.adoc[]
+
+
+
+==  **LockException**
+Fields Description
+
+=== Listing
+
+==== List using filter
+A `GET` request will list all LockException with given filters
+
+Example request
+include::{snippets}/lockExceptions/get/curl-request.adoc[]
+
+Example response
+include::{snippets}/lockExceptions/get/http-response.adoc[]
+
+
+=== Create LockException
+
+Example request
+include::{snippets}/lockExceptions/add/curl-request.adoc[]
+
+Example response
+include::{snippets}/lockExceptions/add/http-response.adoc[]
+
+
+=== Delete LockException
+
+Example request
+include::{snippets}/lockExceptions/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/lockExceptions/delete/http-response.adoc[]
+
+
+==  **Attribute**
+Fields Description
+include::{snippets}/colors/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Attribute
+
+Response structure
+include::{snippets}/attributes/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/attributes/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/attributes/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Attribute or 404.
+
+Example request
+include::{snippets}/attributes/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/attributes/id/http-response.adoc[]
+
+=== Create Attribute
+
+Example request
+include::{snippets}/attributes/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/attributes/create/http-response.adoc[]
+
+
+=== Update Attribute
+
+Example request
+include::{snippets}/attributes/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/attributes/update/http-response.adoc[]
+
+
+=== Delete Attribute
+
+Example request
+include::{snippets}/attributes/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/attributes/delete/http-response.adoc[]
+

@@ -1,0 +1,11 @@
+<ul class="moduleList">
+    #introListImgItem( "$!helpPageLink", "help_center", "function-help-center" )
+    #introListImgItem( "../dhis-web-commons-about/software.action", "supportive_software", "function-supportive-software" )
+    #introListImgItem( "../dhis-web-commons-about/modules.action", "system_overview", "function-system-overview" )
+    #introListImgItem( "../api", "web_api", "function-web-api" )
+    #introListImgItem( "../dhis-web-commons-about/about.action", "about_dhis2", "function-about-dhis2" )
+    #introListImgItem( "../dhis-web-commons-about/userSettings.action", "settings", "function-settings" )
+    #introListImgItem( "../dhis-web-commons-about/showUpdateUserProfileForm.action", "profile", "function-profile" )
+    #introListImgItem( "../dhis-web-commons-about/showUpdateUserAccountForm.action", "account", "function-account" )
+    #introListImgItem( "../dhis-web-commons-security/logout.action", "log_out", "function-log-out" )
+</ul>

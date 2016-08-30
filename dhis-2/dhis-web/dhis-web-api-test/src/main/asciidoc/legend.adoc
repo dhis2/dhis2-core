@@ -1,0 +1,110 @@
+
+==  **Legend**
+Fields Description
+include::{snippets}/legends/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Legend
+
+Response structure
+include::{snippets}/legends/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/legends/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/legends/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Legend or 404.
+
+Example request
+include::{snippets}/legends/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/legends/id/http-response.adoc[]
+
+=== Create Legend
+
+Example request
+include::{snippets}/legends/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/legends/create/http-response.adoc[]
+
+
+=== Update Legend
+
+Example request
+include::{snippets}/legends/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/legends/update/http-response.adoc[]
+
+
+=== Delete Legend
+
+Example request
+include::{snippets}/legends/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/legends/delete/http-response.adoc[]
+
+
+==  **Legend Set**
+Fields Description
+include::{snippets}/legendSets/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Legend Set
+
+Response structure
+include::{snippets}/legendSets/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/legendSets/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/legendSets/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Legend Set or 404.
+
+Example request
+include::{snippets}/legendSets/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/legendSets/id/http-response.adoc[]
+
+=== Create Legend Set
+
+Example request
+include::{snippets}/legendSets/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/legendSets/create/http-response.adoc[]
+
+
+=== Update Legend Set
+
+Example request
+include::{snippets}/legendSets/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/legendSets/update/http-response.adoc[]
+
+
+=== Delete Legend Set
+
+Example request
+include::{snippets}/legendSets/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/legendSets/delete/http-response.adoc[]
+

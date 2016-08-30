@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>DHIS2 Event Visualizer</title>
+
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<link rel="stylesheet" type="text/css" href="../dhis-web-commons/javascripts/ext/resources/css/ext-all-gray.css"/>
+	<link rel="stylesheet" type="text/css" href="../dhis-web-commons/javascripts/jQuery/calendars/css/jquery.calendars.picker.css"/>
+	<link rel="stylesheet" type="text/css" href="styles/style.css" />
+</head>
+
+<body>
+    <div id="init">
+        <div><span class="brand">DHIS 2</span>EVENT VISUALIZER</div>
+        <div class="spinner"></div>
+    </div>
+    
+    <form id="exportForm" method="post">
+        <input type="hidden" id="svgField" name="svg"/>
+        <input type="hidden" id="filenameField" name="filename"/>
+    </form>
+    
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/ext-ux/layout/component/form/MultiSelect.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/ext-ux/form/MultiSelect.js"></script>
+
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.plugin.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.plus.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.picker.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.util.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/date.js"></script>
+    
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.idb.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.ss.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.memory.js"></script>
+    
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/simpleRegression.js"></script>
+	<script type="text/javascript" src="scripts/core.js"></script>
+	<script type="text/javascript" src="scripts/app.js"></script>
+</body>
+
+</html>

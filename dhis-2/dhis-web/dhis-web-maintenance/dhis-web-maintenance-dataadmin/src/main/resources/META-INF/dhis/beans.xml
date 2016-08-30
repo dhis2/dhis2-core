@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <!-- Statistics -->
+
+  <bean id="org.hisp.dhis.dataadmin.action.statistics.GetStatisticsAction"
+    class="org.hisp.dhis.dataadmin.action.statistics.GetStatisticsAction"
+    scope="prototype">
+    <property name="statisticsProvider" ref="org.hisp.dhis.statistics.StatisticsProvider" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+    <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
+  </bean>
+
+  <!-- I18nLocale -->
+
+  <bean id="org.hisp.dhis.dataadmin.action.locale.GetLocaleListAction"
+    class="org.hisp.dhis.dataadmin.action.locale.GetLocaleListAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dataadmin.action.locale.GetLocaleAction"
+    class="org.hisp.dhis.dataadmin.action.locale.GetLocaleAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dataadmin.action.locale.AddLocaleAction"
+    class="org.hisp.dhis.dataadmin.action.locale.AddLocaleAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dataadmin.action.locale.RemoveLocaleAction"
+    class="org.hisp.dhis.dataadmin.action.locale.RemoveLocaleAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dataadmin.action.locale.ShowAddLocaleFormAction"
+    class="org.hisp.dhis.dataadmin.action.locale.ShowAddLocaleFormAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dataadmin.action.locale.ValidateLocaleAction"
+    class="org.hisp.dhis.dataadmin.action.locale.ValidateLocaleAction"
+    scope="prototype" />
+
+  <!-- Min/Max validation -->
+
+  <bean id="org.hisp.dhis.dataadmin.action.minmaxvalidation.GetMinMaxValidationParamsAction"
+    class="org.hisp.dhis.dataadmin.action.minmaxvalidation.GetMinMaxValidationParamsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.minmaxvalidation.GenerateMinMaxValuesAction"
+    class="org.hisp.dhis.dataadmin.action.minmaxvalidation.GenerateMinMaxValuesAction">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="dataAnalysisService" ref="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" />
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <!-- Sql View -->
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.ShowAddSqlViewAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.ShowAddSqlViewAction"
+    scope="prototype">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.GetSqlViewObjectAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.GetSqlViewObjectAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.GetSqlViewListAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.GetSqlViewListAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.ValidateAddUpdateSqlViewAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.ValidateAddUpdateSqlViewAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.AddSqlViewAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.AddSqlViewAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.UpdateSqlViewAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.UpdateSqlViewAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.RemoveSqlViewAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.RemoveSqlViewAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.ExecuteSqlViewQueryAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.ExecuteSqlViewQueryAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.CheckViewTableExistenceAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.CheckViewTableExistenceAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.sqlview.ExportSqlViewResultAction"
+    class="org.hisp.dhis.dataadmin.action.sqlview.ExportSqlViewResultAction"
+    scope="prototype">
+    <property name="sqlViewService" ref="org.hisp.dhis.sqlview.SqlViewService" />
+  </bean>
+
+  <!-- DataSet LockExceptions -->
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionListAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionListAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.AddLockExceptionAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.AddLockExceptionAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionFormAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionFormAction"
+    scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.RemoveLockExceptionAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.RemoveLockExceptionAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.GetDataSetsAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.GetDataSetsAction"
+    scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.PrepareBatchRemovalAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.PrepareBatchRemovalAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataadmin.action.lockexception.BatchRemoveLockExceptionsAction"
+    class="org.hisp.dhis.dataadmin.action.lockexception.BatchRemoveLockExceptionsAction" scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <!-- Scheduling -->
+
+  <bean id="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction"
+    class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction"
+    scope="prototype" />
+
+</beans>

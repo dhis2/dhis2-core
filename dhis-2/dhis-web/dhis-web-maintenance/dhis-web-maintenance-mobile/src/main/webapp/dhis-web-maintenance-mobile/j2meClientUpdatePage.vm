@@ -1,0 +1,49 @@
+<script type="text/javascript">
+	jQuery(document).ready( function() {
+		validation2( "j2meClientUpdatePage", function( form ) {
+			checkIsAutoUpdate();
+			form.submit();
+		}, {
+			'rules': getValidationRules( 'autoUpdateClient' )
+		} );
+	} );
+	
+	function checkIsAutoUpdate() 
+	{
+		var aa = document.getElementById( 'j2meClientUpdatePage' );
+		for (var i = 0; i < aa.elements.length; i++) 
+		{
+			if ( aa.elements[i].checked && aa.elements[i].value == 1 )
+				document.getElementById( 'autoUpdate' ).value = "yes";
+			if ( aa.elements[i].checked && aa.elements[i].value == 0 )
+				document.getElementById( 'autoUpdate' ).value = "no";
+		}
+	};
+</script>
+<h3>$i18n.getString( 'j2me_client_update_config' )</h3>
+<form id="j2meClientUpdatePage" name="j2meClientUpdatePage" action="showJ2meClientUpdatePage.action" method="post">
+	<input type="hidden" name="autoUpdate" id="autoUpdate" value=""/>
+	<table>
+		<thead>
+		  <tr>
+			<th colspan="2">$i18n.getString("configuration")</th>
+		  </tr>
+		</thead>
+		<tbody id="autoUpdateClientDetail">
+			<tr>
+				<td>$i18n.getString( 'auto_update_client' ):</td>
+				<td>
+					<input type="radio" name="cbxAutoUpdate" value="1" #if( $!patientMobileSetting.autoUpdateClient == true ) checked #end/>Yes&nbsp;
+					<input type="radio" name="cbxAutoUpdate" value="0" #if( $!patientMobileSetting.autoUpdateClient == false ) checked #end/>No
+				</td>	
+			</tr>
+			<tr>
+				<td>$i18n.getString( 'client_older_than' ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="version" id="version" value="$!patientMobileSetting.versionToUpdate"/></td>
+			</tr>
+			<tr>
+				<td colspan="2" align="right"><input type="submit" value="$i18n.getString( 'save_settings' )" style="width:8em"/></td>
+			</tr>
+		</tbody>
+	</table>
+</form>

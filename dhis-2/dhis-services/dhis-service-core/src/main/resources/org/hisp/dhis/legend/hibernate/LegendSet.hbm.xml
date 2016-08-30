@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.legend.LegendSet" table="maplegendset">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="maplegendsetid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="symbolizer" column="symbolizer" />
+
+    <set name="legends" table="maplegendsetmaplegend" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="legendsetid" foreign-key="fk_maplegendsetmaplegend_legendsetid" />
+      <many-to-many column="maplegendid" class="org.hisp.dhis.legend.Legend" foreign-key="fk_maplegendset_maplegend" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="legendsetattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="legendsetid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="maplegendsettranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="maplegendsetid" foreign-key="fk_objecttranslation_maplegendsetid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

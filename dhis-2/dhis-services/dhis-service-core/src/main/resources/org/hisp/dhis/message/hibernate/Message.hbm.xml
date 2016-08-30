@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.message.Message" table="message">
+
+    <id name="id" column="messageid">
+      <generator class="native" />
+    </id>
+
+    <property name="uid" column="uid" length="11" />
+
+    <property name="created" type="timestamp"  not-null="true"/>
+
+    <property name="lastUpdated" type="timestamp"  not-null="true"/>
+
+    <property name="text" column="messagetext" type="text" />
+
+    <property name="internal" column="internal" type="boolean" />
+
+    <property name="metaData" column="metadata" />
+
+    <many-to-one name="sender" class="org.hisp.dhis.user.User" column="userid"
+      foreign-key="fk_message_userid" />
+
+  </class>
+
+</hibernate-mapping>

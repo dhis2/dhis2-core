@@ -1,0 +1,63 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+		selectionTreeSelection.setMultipleSelectionAllowed( false );
+		selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+	});
+
+	var i18n_select_group_set = '$encoder.jsEscape( $i18n.getString( "please_select_group_set" ) , "'")';
+	var i18n_select_org_unit = '$encoder.jsEscape( $i18n.getString( "please_select_org_unit" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "orgunit_distribution" ) #openHelp( "orgunit_distribution_reports" )</h3>
+
+<!-- Criteria -->
+
+<div id="criteria" class="inputCriteria" style="width:620px;height:240px;">
+<table>
+
+<col width="300">
+<col>
+
+<tr>
+<td>
+<label>$i18n.getString( "report_organisation_unit" )</label>
+</td>
+</tr>
+
+<tr>
+<td>
+<div id="selectionTree" style="width:280px; height:200px"></div>
+</td>
+
+<td valign="bottom">
+<select id="groupSetId" name="groupSetId" style="width:280px">
+<option value="0">[ $i18n.getString( "select_group_set" ) ]</option>
+#foreach( $groupSet in $groupSets )
+<option value="$groupSet.id"
+#if( $selectedGroupSet.id && $groupSet.id == $selectedGroupSet.id ) selected="selected"#end
+>$!encoder.htmlEncode( $groupSet.name )</option>
+#end
+</select><br><br>
+
+<input id="reportButton" type="button" value="$i18n.getString( 'get_report' )" style="width:135px" onclick="displayOrgUnitDistribution( 'html' )" />
+<input id="chartButton" type="button" value="$i18n.getString( 'get_chart' )" style="width:135px" onclick="displayOrgUnitDistributionChart()" /><br><br>
+
+<input type="button" value="$i18n.getString( 'get_report_as_pdf' )" style="width:135px" onclick="getOrgUnitDistribution( 'pdf' )" />
+<input type="button" value="$i18n.getString( 'get_report_as_xls' )" style="width:135px" onclick="getOrgUnitDistribution( 'xls' )" /><br>
+<input type="button" value="$i18n.getString( 'get_report_as_csv' )" style="width:135px" onclick="getOrgUnitDistribution( 'csv' )" />
+
+</td>
+</tr>
+
+</table>
+</div>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<!-- Table -->
+
+<div id="tableDiv" class="resultDiv" style="display:none"></div>
+
+<!-- Chart -->
+
+<div id="chartDiv" class="resultDiv" style="display:none"><img src="" id="chartImg"></div>

@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.programrule.ProgramRule" table="programrule">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programruleid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" length="230" />
+
+    <property name="description" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" foreign-key="fk_programrule_program" not-null="true" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" foreign-key="fk_programrule_programstage" />
+
+    <set name="programRuleActions" cascade="all">
+      <key column="programruleid" />
+      <one-to-many class="org.hisp.dhis.programrule.ProgramRuleAction" />
+    </set>
+
+    <property name="condition" column="rulecondition" type="text" not-null="false" />
+
+    <property name="priority" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="programruletranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programruleid" foreign-key="fk_objecttranslation_programruleid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

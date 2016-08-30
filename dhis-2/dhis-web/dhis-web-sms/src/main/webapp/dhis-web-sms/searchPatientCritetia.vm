@@ -1,0 +1,96 @@
+
+<table>
+	<tbody>
+		<tr>
+			<th colspan="5">$i18n.getString( "search_details" )</th>
+		</tr>
+		<tr>
+			<td><label>$i18n.getString( "registering_unit" )</label></td>
+			<td>
+				<input type="text" id='orgunitName' readonly="readonly" #if( $organisationUnit ) value="$encoder.htmlEncode( $organisationUnit.displayName )" #else value="[$i18n.getString( 'please_select_village' )]" #end >
+			</td>
+			<td rowspan='2' valign='bottom'>
+				<input type="button" class='large-button' id='listPatientBtn' value="$i18n.getString( 'list_all_patients' )" onclick='listAllPatient();'/>
+				<input type="button" class='large-button' id='advancedSearchBtn' value='$i18n.getString( "advance_search" )' onclick="jQuery('#advanced-search').toggle();" />
+			</td>
+		</tr>
+		<tr id='programAddPatientTR'>
+			<td>$i18n.getString('program')</td>
+			<td>
+				<select id='programIdAddPatient' name='programIdAddPatient' onchange='enableBtn();'>
+					<option value='' type='2' id='emptyProgramOption'>[$i18n.getString("please_select")]</option>
+					#foreach($program in $programs)
+						#if( $program.type!='3')
+						<option value="$program.id" type='$program.type'>$program.displayName</option>
+						#end
+					#end
+				</select>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<br>
+
+<div id="advanced-search" class='hidden advanced-search'>
+	<table>
+		#if( $auth.hasAccess( "dhis-web-sms", "searchAllFacilities" ) ) 
+			<tr id='searchBySelectedUnitTD'>
+				<td>
+					$i18n.getString('search_in_all_facilities') 
+					<input type='checkbox' id='searchInAllFacility' name='searchInAllFacility' />&nbsp;&nbsp;&nbsp;
+				</td>
+			</tr>
+		#else
+			<input type='checkbox' class='hidden' id='searchInAllFacility' name='searchInAllFacility' />
+		#end
+		
+		<tr>	       
+			<td id='searchingAttributeIdTD' class="hidden">
+				<select class='search-field' id="searchObjectId" name="searchObjectId" #if( $patientAttributes.size() == 0 ) disabled="disabled" #end onchange="searchObjectOnChange(this)">
+					<option value="iden">$i18n.getString( "search_by_name_identifier" )</option>
+					<option value="prg">$i18n.getString( "search_by_program" )</option>
+					<option value="fixedAttr_birthDate">$i18n.getString( "date_of_birth" )</option>
+					<option value="fixedAttr_age">$i18n.getString( "age_year" )</option>
+					<option value="fixedAttr_gender">$i18n.getString( "gender" )</option>
+					<option value="fixedAttr_phoneNumber">$i18n.getString( "phone_number" )</option>
+					#foreach( $attribute in $patientAttributes )
+					<option value="attr_$attribute.id" valueType='$attribute.valueType'>$encoder.htmlEncode( $attribute.displayName )</option>
+					#end
+				</select>
+				<em title="$i18n.getString( 'required' )" class="required">*</em></label>
+			</td>
+		</tr>
+		<tbody id='advancedSearchTB'>
+			<tr>
+				<td></td>
+				<td></td>
+				<td name='addAndSearchBtn' rowspan='2' valign='bottom'>
+					<input type="button" class='normal-button' value='$i18n.getString( "add" )' onclick='addAttributeOption();'>
+				</td>
+				<td name='addAndSearchBtn' rowspan='2' valign='bottom' align="right" >
+					<input type="button" class='normal-button' value='$i18n.getString( "search" )' onclick='validateAdvancedSearch();' id='searchPatientBtn'>
+				</td>
+			</tr>
+			<tr id='advSearchBox0'>	       
+				<td>
+				  <select class='search-field' id="searchObjectId" name="searchObjectId" #if( $patientAttributes.size() == 0 ) disabled="disabled" #end onchange="searchObjectOnChange(this)">
+					<option value="iden">$i18n.getString( "search_by_name_identifier" )</option>
+					<option value="prg">$i18n.getString( "search_by_program" )</option>
+					<option value="fixedAttr_birthDate">$i18n.getString( "date_of_birth" )</option>
+					<option value="fixedAttr_age">$i18n.getString( "age_year" )</option>
+					<option value="fixedAttr_gender">$i18n.getString( "gender" )</option>
+					<option value="fixedAttr_phoneNumber">$i18n.getString( "phone_number" )</option>
+					#foreach( $attribute in $patientAttributes )
+						<option value="attr_$attribute.id" valueType='$attribute.valueType'>$encoder.htmlEncode( $attribute.displayName )</option>
+					#end
+				  </select>
+				  <em title="$i18n.getString( 'required' )" class="required">*</em></label>
+				</td>		
+				<td>
+					<input type="text" id="searchText" name="searchText" value="$!searchText" onkeyup='searchPatientsOnKeyUp( event );' style='width:200px;'>
+					<input type="button" class='normal-button' name="clearSearchBtn" value='$i18n.getString( "clear" )' onclick="removeAttributeOption('advSearchBox0');" disabled>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>

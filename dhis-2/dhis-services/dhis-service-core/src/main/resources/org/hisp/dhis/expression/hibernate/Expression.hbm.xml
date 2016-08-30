@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.expression.Expression" table="expression">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="expressionid">
+      <generator class="native" />
+    </id>
+
+    <property name="description" />
+
+    <property name="expression" type="text" />
+
+    <property name="missingValueStrategy" column="missingvaluestrategy" length="100">
+		<type name="org.hibernate.type.EnumType">
+			<param name="enumClass">org.hisp.dhis.expression.MissingValueStrategy</param>
+      <param name="useNamed">true</param>
+			<param name="type">12</param>
+		</type> 
+	</property>
+
+    <set name="dataElementsInExpression" table="expressiondataelement">
+      <cache usage="read-write" />
+      <key column="expressionid" foreign-key="fk_expressiondataelement_expressionid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_expression_dataelementid" />
+    </set>
+
+    <set name="sampleElementsInExpression" table="expressionsampleelement">
+      <cache usage="read-write" />
+      <key column="expressionid" foreign-key="fk_expressionsampleelement_expressionid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_expression_sampleelementid" />
+    </set>
+
+  </class>
+</hibernate-mapping>

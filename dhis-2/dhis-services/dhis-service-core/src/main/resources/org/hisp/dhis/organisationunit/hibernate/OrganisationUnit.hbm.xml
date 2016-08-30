@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.organisationunit.OrganisationUnit" table="organisationunit">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="organisationunitid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
+
+    <set name="children" inverse="true">
+      <cache usage="read-write" />
+      <key column="parentid" />
+      <one-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" />
+    </set>
+
+    <many-to-one name="parent" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="parentid"
+      foreign-key="fk_parentid" index="in_parentid" />
+
+    <property name="path" column="path" access="property" unique="true" index="in_organisationunit_path" />
+    
+    <property name="hierarchyLevel" column="hierarchylevel" access="property" index="in_organisationunit_hierarchylevel" />
+
+    <property name="description" type="text" />
+
+    <property name="openingDate" column="openingdate" type="date" not-null="true" />
+
+    <property name="closedDate" column="closeddate" type="date" />
+
+    <property name="comment" type="text" />
+
+    <property name="featureType" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="coordinates" type="text" />
+
+    <property name="url" />
+
+    <set name="dataSets" table="datasetsource" inverse="true">
+      <cache usage="read-write" />
+      <key column="sourceid" />
+      <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
+    </set>
+
+    <set name="programs" table="program_organisationunits" inverse="true">
+      <cache usage="read-write" />
+      <key column="organisationunitid" />
+      <many-to-many class="org.hisp.dhis.program.Program" column="programid" />
+    </set>
+
+    <set name="groups" table="orgunitgroupmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="organisationunitid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroup" column="orgunitgroupid" />
+    </set>
+
+    <set name="users" table="usermembership" inverse="true">
+      <cache usage="read-write" />
+      <key column="organisationunitid" />
+      <many-to-many class="org.hisp.dhis.user.User" column="userinfoid" />
+    </set>
+
+    <set name="categoryOptions" table="categoryoption_organisationunits" inverse="true">
+      <cache usage="read-write" />
+      <key column="organisationunitid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOption" column="categoryoptionid" />
+    </set>
+
+    <!-- Contact info -->
+
+    <property name="contactPerson" length="255" />
+
+    <property name="address" length="255" />
+
+    <property name="email" length="150" />
+
+    <property name="phoneNumber" length="150" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="organisationunittranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="organisationunitid" foreign-key="fk_objecttranslation_organisationunitid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_organisationunit_userid" />
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="organisationunitattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="organisationunitid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,15 @@
+#foreach( $javascript in $javascripts )
+    <script type="text/javascript" src="$javascript"></script>
+#end
+
+#foreach ( $style in $stylesheets )
+	<link type="text/css" rel="stylesheet" href="$style">
+#end
+
+<div class="page">
+    #if( !$page )
+      <p>$i18n.getString( "no_page_specified" )</p>
+    #else
+      #parse( $page )
+    #end
+</div> 

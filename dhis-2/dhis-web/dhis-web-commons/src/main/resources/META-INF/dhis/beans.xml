@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <!-- Web Portal -->
+
+  <bean id="org.hisp.dhis.webportal.module.ModuleManager" class="org.hisp.dhis.webportal.module.DefaultModuleManager">
+    <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />
+    <property name="moduleComparator" ref="org.hisp.dhis.webportal.module.ConfigurableModuleComparator" />
+    <property name="defaultActionName" value="index" />
+    <property name="menuModuleExclusions">
+      <set>
+        <value>dhis-web-apps</value>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.webportal.module.ConfigurableModuleComparator"
+    class="org.hisp.dhis.webportal.module.ConfigurableModuleComparator">
+    <property name="order">
+      <list>
+        <value>dhis-web-dashboard-integration</value>
+        <value>dhis-web-pivot</value>
+        <value>dhis-web-visualizer</value>
+        <value>dhis-web-mapping</value>
+        <value>dhis-web-event-reports</value>
+        <value>dhis-web-event-visualizer</value>
+        <value>dhis-web-dataentry</value>
+        <value>dhis-web-event-capture</value>
+        <value>dhis-web-tracker-capture</value>
+        <value>dhis-web-maintenance-dataadmin</value>
+        <value>dhis-web-maintenance-dataset</value>
+        <value>dhis-web-importexport</value>
+        <value>dhis-web-maintenance-mobile</value>
+        <value>dhis-web-maintenance-organisationunit</value>
+        <value>dhis-web-maintenance-program</value>
+        <value>dhis-web-maintenance-settings</value>
+        <value>dhis-web-maintenance-user</value>
+        <value>dhis-web-validationrule</value>
+        <value>dhis-web-light</value>
+        <value>dhis-web-mobile</value>
+        <value>dhis-web-reporting</value>
+        <value>dhis-web-sms</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter" class="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter">
+    <property name="moduleManager">
+      <ref bean="org.hisp.dhis.webportal.module.ModuleManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor"
+    class="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor">
+    <property name="standardParams">
+      <set>
+        <value>page</value>
+        <value>menu</value>
+        <value>hideMenu</value>
+        <value>manifest</value>
+      </set>
+    </property>
+    <property name="commaSeparatedParams">
+      <set>
+        <value>javascripts</value>
+        <value>stylesheets</value>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalModuleInterceptor"
+    class="org.hisp.dhis.webportal.interceptor.XWorkPortalModuleInterceptor">
+    <property name="moduleManager">
+      <ref bean="org.hisp.dhis.webportal.module.ModuleManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.webportal.menu.MenuStateManager" class="org.hisp.dhis.webportal.menu.SessionMenuStateManager" />
+
+  <bean id="org.hisp.dhis.webportal.menu.action.SetMenuStateAction" class="org.hisp.dhis.webportal.menu.action.SetMenuStateAction"/>
+
+  <bean id="org.hisp.dhis.webportal.menu.action.GetModulesAction" class="org.hisp.dhis.webportal.menu.action.GetModulesAction" />
+
+  <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalMenuInterceptor"
+    class="org.hisp.dhis.webportal.interceptor.XWorkPortalMenuInterceptor">
+    <property name="menuStateManager">
+      <ref bean="org.hisp.dhis.webportal.menu.MenuStateManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor"
+    class="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.springframework.mobile.device.DeviceResolver" class="org.springframework.mobile.device.LiteDeviceResolver" />
+
+  <bean id="org.hisp.dhis.security.action.LoginAction" class="org.hisp.dhis.security.action.LoginAction" scope="prototype">
+    <property name="deviceResolver" ref="org.springframework.mobile.device.DeviceResolver" />
+  </bean>
+
+  <!-- Organisation Unit Web Tree -->
+
+  <bean id="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager"
+    class="org.hisp.dhis.ouwt.manager.DefaultOrganisationUnitSelectionManager">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.manager.TreeStateManager" class="org.hisp.dhis.ouwt.manager.DefaultTreeStateManager">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="collapseClosesAllSubtrees" value="false" />
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.interceptor.OrganisationUnitTreeInterceptor"
+    class="org.hisp.dhis.ouwt.interceptor.OrganisationUnitTreeInterceptor">
+    <property name="selectionManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    </property>
+    <property name="treeStateManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.ExpandSubtreeAction" class="org.hisp.dhis.ouwt.action.ExpandSubtreeAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="treeStateManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.CollapseSubtreeAction" class="org.hisp.dhis.ouwt.action.CollapseSubtreeAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="treeStateManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.GetExpandedTreeAction" class="org.hisp.dhis.ouwt.action.GetExpandedTreeAction"
+    scope="prototype">
+    <property name="selectionManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    </property>
+    <property name="treeStateManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.ClearSelectedOrganisationUnitsAction"
+    class="org.hisp.dhis.ouwt.action.ClearSelectedOrganisationUnitsAction"
+    scope="prototype">
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.SetSelectedOrganisationUnitAction" class="org.hisp.dhis.ouwt.action.SetSelectedOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.GetSelectedOrganisationUnitsAction"
+    class="org.hisp.dhis.ouwt.action.GetSelectedOrganisationUnitsAction"
+    scope="prototype">
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.AddSelectedOrganisationUnitAction" class="org.hisp.dhis.ouwt.action.AddSelectedOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.RemoveSelectedOrganisationUnitAction"
+    class="org.hisp.dhis.ouwt.action.RemoveSelectedOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionManager">
+      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.ouwt.action.GetOrganisationUnitsByNameAction" class="org.hisp.dhis.ouwt.action.GetOrganisationUnitsByNameAction"
+    scope="prototype" />
+
+  <!-- Organisation Unit Selection Tree -->
+
+  <bean id="org.hisp.dhis.oust.manager.SelectionTreeManager" class="org.hisp.dhis.oust.manager.DefaultSelectionTreeManager">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.ExpandSubtreeAction" class="org.hisp.dhis.oust.action.ExpandSubtreeAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.GetExpandedTreeAction" class="org.hisp.dhis.oust.action.GetExpandedTreeAction"
+    scope="prototype">
+    <property name="selectionTreeManager">
+      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.SetSelectedOrganisationUnitAction" class="org.hisp.dhis.oust.action.SetSelectedOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionTreeManager">
+      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.AddSelectedOrganisationUnitAction" class="org.hisp.dhis.oust.action.AddSelectedOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="selectionTreeManager">
+      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.RemoveSelectedOrganisationUnitAction"
+    class="org.hisp.dhis.oust.action.RemoveSelectedOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="selectionTreeManager">
+      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.SelectAllOrganisationUnitAction" class="org.hisp.dhis.oust.action.SelectAllOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionTreeManager">
+      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.ClearSelectedOrganisationUnitsAction"
+    class="org.hisp.dhis.oust.action.ClearSelectedOrganisationUnitsAction"
+    scope="prototype">
+    <property name="selectionTreeManager">
+      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.oust.action.GetUserCountAction" class="org.hisp.dhis.oust.action.GetUserCountAction" scope="prototype"/>
+
+  <!-- Security import -->
+  <import resource="security.xml" />
+
+  <!-- i18n -->
+
+  <bean id="org.hisp.dhis.i18n.action.I18nAction" class="org.hisp.dhis.i18n.action.I18nAction" scope="prototype">
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.i18n.action.GetTranslationsAction" class="org.hisp.dhis.i18n.action.GetTranslationsAction">
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.i18n.action.TranslateAction" class="org.hisp.dhis.i18n.action.TranslateAction">
+    <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.i18n.action.GetStringsFromLocaleAction" class="org.hisp.dhis.i18n.action.GetStringsFromLocaleAction"/>
+
+  <!-- About -->
+
+  <bean id="org.hisp.dhis.about.action.AboutAction" class="org.hisp.dhis.about.action.AboutAction" scope="prototype" />
+
+  <bean id="org.hisp.dhis.about.action.HelpAction" class="org.hisp.dhis.about.action.HelpAction" scope="prototype">
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.help.action.GetHelpContentAction" class="org.hisp.dhis.help.action.GetHelpContentAction"
+    scope="prototype">
+    <property name="helpManager" ref="org.hisp.dhis.help.HelpManager" />
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.about.action.RedirectAction" class="org.hisp.dhis.about.action.RedirectAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.help.action.GetHelpItemsAction" class="org.hisp.dhis.help.action.GetHelpItemsAction"
+    scope="prototype">
+    <property name="helpManager" ref="org.hisp.dhis.help.HelpManager" />
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+  </bean>
+
+  <!-- Common actions -->
+
+  <bean id="org.hisp.dhis.commons.action.GetUserAction" class="org.hisp.dhis.commons.action.GetUserAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetUserRolesAction" class="org.hisp.dhis.commons.action.GetUserRolesAction"
+    scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetUsersAction" class="org.hisp.dhis.commons.action.GetUsersAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetUserGroupsAction" class="org.hisp.dhis.commons.action.GetUserGroupsAction"
+    scope="prototype">
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetValidationRulesAction" class="org.hisp.dhis.commons.action.GetValidationRulesAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetCategoryOptionsAction" class="org.hisp.dhis.commons.action.GetCategoryOptionsAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.commons.action.GetCategoryOptionCombosAction" class="org.hisp.dhis.commons.action.GetCategoryOptionCombosAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementAction" class="org.hisp.dhis.commons.action.GetDataElementAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementGroupAction" class="org.hisp.dhis.commons.action.GetDataElementGroupAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementGroupsAction" class="org.hisp.dhis.commons.action.GetDataElementGroupsAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementsNotInGroupAction"
+    class="org.hisp.dhis.commons.action.GetDataElementsNotInGroupAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementGroupSetAction" class="org.hisp.dhis.commons.action.GetDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementGroupSetsAction" class="org.hisp.dhis.commons.action.GetDataElementGroupSetsAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementNameAction" class="org.hisp.dhis.commons.action.GetDataElementNameAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementsAction" class="org.hisp.dhis.commons.action.GetDataElementsAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetSectionDataElementsAction" class="org.hisp.dhis.commons.action.GetSectionDataElementsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.commons.action.GetSectionIndicatorsAction" class="org.hisp.dhis.commons.action.GetSectionIndicatorsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementCategoriesAction" class="org.hisp.dhis.commons.action.GetDataElementCategoriesAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataSetAction" class="org.hisp.dhis.commons.action.GetDataSetAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataSetsAction" class="org.hisp.dhis.commons.action.GetDataSetsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetProgramsAction" class="org.hisp.dhis.commons.action.GetProgramsAction"
+    scope="prototype">
+    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.commons.action.GetIndicatorAction" class="org.hisp.dhis.commons.action.GetIndicatorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetIndicatorGroupAction" class="org.hisp.dhis.commons.action.GetIndicatorGroupAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetIndicatorGroupsAction" class="org.hisp.dhis.commons.action.GetIndicatorGroupsAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetIndicatorGroupSetAction" class="org.hisp.dhis.commons.action.GetIndicatorGroupSetAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetIndicatorGroupSetsAction" class="org.hisp.dhis.commons.action.GetIndicatorGroupSetsAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetIndicatorsAction" class="org.hisp.dhis.commons.action.GetIndicatorsAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetDataElementOperandsAction" class="org.hisp.dhis.commons.action.GetDataElementOperandsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOperandsAction" class="org.hisp.dhis.commons.action.GetOperandsAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitAction" class="org.hisp.dhis.commons.action.GetOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitChildrenAction"
+    class="org.hisp.dhis.commons.action.GetOrganisationUnitChildrenAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitGroupsAction"
+    class="org.hisp.dhis.commons.action.GetOrganisationUnitGroupsAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitGroupsByGroupSetAction"
+    class="org.hisp.dhis.commons.action.GetOrganisationUnitGroupsByGroupSetAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitGroupSetsAction"
+    class="org.hisp.dhis.commons.action.GetOrganisationUnitGroupSetsAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitLevelsAction"
+    class="org.hisp.dhis.commons.action.GetOrganisationUnitLevelsAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitsAction" class="org.hisp.dhis.commons.action.GetOrganisationUnitsAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetOrganisationUnitTreeAction" class="org.hisp.dhis.commons.action.GetOrganisationUnitTreeAction"
+    scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetPeriodAction" class="org.hisp.dhis.commons.action.GetPeriodAction"
+    scope="prototype">
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetPeriodsAction" class="org.hisp.dhis.commons.action.GetPeriodsAction"
+    scope="prototype">
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetPeriodTypesAction" class="org.hisp.dhis.commons.action.GetPeriodTypesAction"
+    scope="prototype">
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetConstantsAction" class="org.hisp.dhis.commons.action.GetConstantsAction"
+    scope="prototype">
+    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.NoAction" class="org.hisp.dhis.commons.action.NoAction" />
+
+  <!-- Interceptor -->
+
+  <bean id="org.hisp.dhis.interceptor.ExceptionInterceptor" class="org.hisp.dhis.interceptor.ExceptionInterceptor">
+    <property name="showStackTrace" value="true" />
+    <property name="ignoredExceptions">
+      <list>
+        <value>org.apache.catalina.connector.ClientAbortException</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.interceptor.I18nInterceptor" class="org.hisp.dhis.interceptor.I18nInterceptor">
+    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.interceptor.SystemSettingInterceptor" class="org.hisp.dhis.interceptor.SystemSettingInterceptor">
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.interceptor.ContextInterceptor" class="org.hisp.dhis.interceptor.ContextInterceptor">
+    <property name="databaseInfoProvider" ref="databaseInfoProvider" />
+  </bean>
+
+  <bean id="org.hisp.dhis.interceptor.CacheInterceptor" class="org.hisp.dhis.interceptor.CacheInterceptor" />
+
+  <bean id="org.hisp.dhis.interceptor.UserSettingInterceptor" class="org.hisp.dhis.interceptor.UserSettingInterceptor">
+    <property name="styleManager" ref="org.hisp.dhis.setting.StyleManager" />
+  </bean>
+
+  <!-- User Account -->
+
+  <bean id="org.hisp.dhis.useraccount.action.ExpiredAccountAction" class="org.hisp.dhis.useraccount.action.ExpiredAccountAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.useraccount.action.GetCurrentUserAction" class="org.hisp.dhis.useraccount.action.GetCurrentUserAction"
+    scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.useraccount.action.UpdateUserAccountAction" class="org.hisp.dhis.useraccount.action.UpdateUserAccountAction"
+    scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="passwordManager" ref="org.hisp.dhis.security.PasswordManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.useraccount.action.UpdateUserProfileAction" class="org.hisp.dhis.useraccount.action.UpdateUserProfileAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.useraccount.action.IsSelfRegistrationAllowedAction"
+    class="org.hisp.dhis.useraccount.action.IsSelfRegistrationAllowedAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.useraccount.action.IsRestoreTokenValidAction" class="org.hisp.dhis.useraccount.action.IsRestoreTokenValidAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.useraccount.action.IsInviteTokenValidAction" class="org.hisp.dhis.useraccount.action.IsInviteTokenValidAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.useraccount.action.IsAccountRecoveryAllowedAction"
+    class="org.hisp.dhis.useraccount.action.IsAccountRecoveryAllowedAction"
+    scope="prototype" />
+
+  <!-- User settings -->
+
+  <bean id="org.hisp.dhis.settings.user.action.GetGeneralSettingsAction"
+    class="org.hisp.dhis.settings.user.action.GetGeneralSettingsAction"
+    scope="prototype">
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="styleManager" ref="org.hisp.dhis.setting.StyleManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.settings.user.action.SetGeneralSettingsAction"
+    class="org.hisp.dhis.settings.user.action.SetGeneralSettingsAction"
+    scope="prototype">
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="styleManager" ref="org.hisp.dhis.setting.StyleManager" />
+  </bean>
+
+  <!-- Others -->
+
+  <bean id="org.hisp.dhis.commons.action.GetPingAction" class="org.hisp.dhis.commons.action.GetPingAction">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.commons.action.GetAttributesAction" class="org.hisp.dhis.commons.action.GetAttributesAction">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.appcache.AppCacheAction" class="org.hisp.dhis.appcache.AppCacheAction" />
+
+  <bean id="org.hisp.dhis.appcache.CacheManifestAction" class="org.hisp.dhis.appcache.CacheManifestAction" />
+
+</beans>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>OAuth2 Confirm Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../dhis-web-commons/bootstrap/css/bootstrap.min.css">
+</head>
+
+<body style="padding-top: 70px;">
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container-fluid">
+
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">DHIS2 OAuth2</a>
+    </div>
+
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3">
+    <div class="row">
+      <h4>Do you authorize '$client_id' to access your protected resources?</h4>
+    </div>
+    <div class="row">
+      <form id="authorizeForm" action="authorize" method="POST">
+        <input name="user_oauth_approval" value="true" type="hidden"/>
+        <button type="submit" class="btn btn-primary btn-lg btn-block">Authorize</button>
+      </form>
+    </div>
+    <div class="row">
+      <form id="denyForm" action="authorize" method="POST">
+        <input name="user_oauth_approval" value="false" type="hidden"/>
+        <button type="submit" class="btn btn-default btn-lg btn-block">Deny</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+
+</html>

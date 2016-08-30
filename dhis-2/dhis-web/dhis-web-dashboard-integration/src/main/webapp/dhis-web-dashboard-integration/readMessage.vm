@@ -1,0 +1,118 @@
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $( "#prioritySelector" ).simpleDropDownMenu( {
+            btnLabel: "<span id='priorityButton'>$i18n.getString("Priority")</span>"
+        });
+        $( "#statusSelector" ).simpleDropDownMenu( {
+            btnLabel: "<span id='statusButton'>$i18n.getString("Status")</span>"
+        });
+
+        jQuery('#text').autogrow();
+
+        if (scrollIsRelevant() == false) {
+            jQuery('.scrollButton').hide();
+        }
+    });
+
+    var i18n_sender = '$encoder.jsEscape( $i18n.getString( "sender" ), "'")';
+    var i18n_enter_text = '$encoder.jsEscape( $i18n.getString( "enter_text" ), "'")';
+    var i18n_sending_message = '$encoder.jsEscape( $i18n.getString( "sending_message" ), "'")';
+</script>
+
+<input type="hidden" id="conversationId" value="${conversation.uid}"/>
+
+<div class="messageTopDiv horizontalMenu">
+    <ul>
+        <li><a class="greyButtonLink" href="unreadMessage.action?id=${conversation.id}">$i18n.getString(
+            'mark_unread' )</a></li>
+        <li><a class="greyButtonLink" href="removeMessageRedirect.action?id=${conversation.id}">$i18n.getString(
+            'remove' )</a></li>
+        #if($showTicketTools)
+            <li>
+                <select name="priority" id="message-priority" class="message-select" onchange="updatePriority('${conversation.uid}')">
+                    <option value="NONE" #if(${conversation.priority} == "NONE") selected #end>$i18n.getString( "priority" ): $i18n.getString( "none" )</option>
+                    <option value="LOW" #if(${conversation.priority} == "LOW") selected #end>$i18n.getString( "priority" ): $i18n.getString( "low" )</option>
+                    <option value="MEDIUM" #if(${conversation.priority} == "MEDIUM") selected #end>$i18n.getString( "priority" ): $i18n.getString( "medium" )
+                    </option>
+                    <option value="HIGH" #if(${conversation.priority} == "HIGH") selected #end>$i18n.getString( "priority" ): $i18n.getString( "high" )</option>
+                </select>
+            </li>
+            <li>
+                <select name="status" id="message-status" class="message-select" onchange="updateStatus('${conversation.uid}')">
+                    <option value="OPEN" #if(${conversation.status} == "OPEN") selected #end>Status: Open</option>
+                    <option value="PENDING" #if(${conversation.status} == "PENDING") selected #end>Status: Pending</option>
+                    <option value="INVALID" #if(${conversation.status} == "INVALID") selected #end>Status: Invalid</option>
+                    <option value="SOLVED" #if(${conversation.status} == "SOLVED") selected #end>Status: Solved</option>
+                </select>
+            </li>
+        #end
+        <li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( "back" )</a></li>
+        <li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToBottom()">$i18n.getString( "scroll_down" )</a></li>
+        <li><span style="padding-left: 10px; display:none;" id="savedMessage" class="tipText">$i18n.getString( "changes_saved" )</span></li>
+    </ul>
+</div>
+
+
+<h3>
+    <img id="followUp${conversation.id}" style="padding-right:8px; cursor:pointer;"
+         onclick="toggleFollowUp( '${conversation.id}' )"#if( $conversation.followUp ) src="../images/marked.png"#else
+         src="../images/unmarked.png"#end>
+
+    $!encoder.htmlEncode( $conversation.subject )
+</h3>
+
+<div class="recipientsDiv tipText">
+    $i18n.getString( "to" )
+    #set( $recSize = $conversation.topRecipients.size() )
+    #foreach( $user in $conversation.topRecipients )
+        <a class="userLink" href="profile.action?id=${user.uid}">${user.name}</a>#if( $velocityCount < $recSize ), #end
+    #end
+    #if( $conversation.bottomRecipients > 0 ) $i18n.getString( "and" ) $conversation.bottomRecipients $i18n.getString(
+        "more" )#end
+
+</div>
+
+#foreach( $message in $messages )
+<div class="messageSymbol"><img src="../images/mail_small.png" onclick="toggleMetaData( '${message.id}' )"></div>
+<div class="messageDiv #if( $message.internal ) internalMessage #end">
+    #if( $message.sender )
+        <a class="bold userLink"
+           href="profile.action?id=${message.sender.uid}">$encoder.htmlEncode( $message.sender.name )</a>
+    #else
+        <span class="bold">$i18n.getString( "system_notification" )</span>
+    #end
+    <span class="grey">&nbsp;&nbsp;$!format.formatDate( $message.lastUpdated )</span>
+    #if( $message.internal )
+        <span style="float: right; padding-right: 5px; color: #777">$i18n.getString( 'internalMessage' )</span>
+    #end
+
+    <div class="messageText">$!dhisTextUtils.htmlify( $encoder.htmlEncode( $message.text ) )</div>
+    <div id="metaData${message.id}" class="messageMetaData">$!encoder.htmlEncode( $message.metaData )</div>
+</div>
+#end
+
+<div class="replyDiv">
+    <textarea id="text" name="text" class="replyArea"></textarea>
+
+    <div style="margin-top:10px">
+        <a class="blueButtonLink" href="javascript:sendReply()">$i18n.getString( 'reply' )</a> &nbsp;
+        #if( $showTicketTools )
+            <a class="internalMessageButtonLink" href="javascript:sendInternalReply()">$i18n.getString(
+                'internalReply' )</a>
+        #end
+    </div>
+</div>
+
+<div class="messageBottomDiv horizontalMenu">
+    <ul>
+        <li><a class="greyButtonLink" href="unreadMessage.action?id=${conversation.id}">$i18n.getString(
+            'mark_unread' )</a></li>
+        <li><a class="greyButtonLink" href="removeMessageRedirect.action?id=${conversation.id}">$i18n.getString(
+            'remove' )</a></li>
+        <li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( 'back' )</a>
+        </li>
+        <li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToTop()">$i18n.getString(
+            'scroll_up' )</a></li>
+    </ul>
+</div>

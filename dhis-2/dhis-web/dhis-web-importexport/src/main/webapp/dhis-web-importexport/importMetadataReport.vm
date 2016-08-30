@@ -1,0 +1,59 @@
+<h3>$i18n.getString( "import_summary" )</h3>
+
+#if( $importReport ) ## ImportSummary can be null on failed GML import (pre-processing fails)
+<h4>$i18n.getString( "import_count" )</h4>
+
+  $importReport.stats.created Created<br/>
+  $importReport.stats.updated Updated<br/>
+  $importReport.stats.ignored Ignored<br/>
+
+<h4>$i18n.getString( "import_type_report" )</h4>
+
+<table>
+  <thead>
+  <tr>
+    <td>Type</td>
+    <td>Created</td>
+    <td>Updated</td>
+    <td>Ignored</td>
+  </tr>
+  </thead>
+  <tbody>
+    #foreach( $typeReport in $importReport.typeReports )
+    <tr>
+      <td>$typeReport.klass.simpleName</td>
+      <td>$typeReport.stats.created</td>
+      <td>$typeReport.stats.updated</td>
+      <td>$typeReport.stats.ignored</td>
+      #if( !$typeReport.errorReports.isEmpty())
+        #set( $haveConflicts = true )
+      #end
+    </tr>
+    #end
+  </tbody>
+</table>
+
+<h4>$i18n.getString( "conflicts" )</h4>
+  #if( $haveConflicts )
+  <table>
+    <col width="140">
+    <col width="140">
+    <tr>
+      <th>$i18n.getString( "main_type" )</th>
+      <th>$i18n.getString( "error_type" )</th>
+      <th>$i18n.getString( "description" )</th>
+    </tr>
+    #foreach( $errorReport in $importReport.errorReports )
+      <tr>
+        <td>${errorReport.mainKlass.simpleName}</td>
+        <td>${errorReport.errorKlass.simpleName}</td>
+        <td>$encoder.htmlEncode( $errorReport.message )</td>
+      </tr>
+    #end
+  </table>
+  #else
+  <p>$i18n.getString( "no_conflicts_found" )</p>
+  #end
+#else
+  $i18n.getString( "no_import_report_available" )
+#end

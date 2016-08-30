@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.user.User" lazy="false" table="userinfo">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="userinfoid">
+      <generator class="native" />
+    </id>
+
+    <property name="uid" column="uid" length="11" />
+
+    <property name="code" column="code" not-null="false" unique="true" length="50" />
+
+    <property name="lastUpdated" type="timestamp" not-null="true" />
+
+    <property name="created" type="timestamp"  not-null="true" />
+
+    <property name="surname" not-null="true" length="160" />
+
+    <property name="firstName" not-null="true" length="160" />
+
+    <property name="email" length="160" />
+
+    <property name="phoneNumber" length="80" />
+
+    <property name="jobTitle" length="160" />
+
+    <property name="introduction" type="text" />
+
+    <property name="gender" length="50" />
+
+    <property name="birthday" type="date" />
+
+    <property name="nationality" length="160" />
+
+    <property name="employer" length="160" />
+
+    <property name="education" type="text" />
+
+    <property name="interests" type="text" />
+
+    <property name="languages" type="text" />
+
+    <property name="lastCheckedInterpretations" type="timestamp" />
+
+    <one-to-one name="userCredentials" class="org.hisp.dhis.user.UserCredentials" foreign-key="fk_userinfo_userid" />
+
+    <set name="groups" table="usergroupmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="userid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" />
+    </set>
+
+    <set name="organisationUnits" table="usermembership">
+      <cache usage="read-write" />
+      <key column="userinfoid" foreign-key="fk_usermembership_userinfoid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+        foreign-key="fk_userinfo_organisationunitid" />
+    </set>
+
+    <set name="dataViewOrganisationUnits" table="userdatavieworgunits">
+      <cache usage="read-write" />
+      <key column="userinfoid" foreign-key="fk_userdatavieworgunits_userinfoid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+        foreign-key="fk_userdatavieworgunits_organisationunitid" />
+    </set>
+
+    <set name="teiSearchOrganisationUnits" table="userteisearchorgunits">
+      <cache usage="read-write" />
+      <key column="userinfoid" foreign-key="fk_userteisearchorgunits_userinfoid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+        foreign-key="fk_userteisearchorgunits_organisationunitid" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="userattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="userinfoid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <list name="apps" table="userapps">
+      <cache usage="read-write" />
+      <key column="userinfoid" foreign-key="fk_userapps_userinfoid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="app" />
+    </list>
+
+  </class>
+
+</hibernate-mapping>

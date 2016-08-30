@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.mapping.MapView" table="mapview">
+
+    <id name="id" column="mapviewid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+    
+    <property name="description" type="text" />
+
+    <property name="layer" not-null="true" />
+
+    <!-- AnalyticalObject -->
+
+    <list name="dataDimensionItems" table="mapview_datadimensionitems" cascade="all, delete-orphan">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_mapview_datadimensionitems_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="datadimensionitemid" class="org.hisp.dhis.common.DataDimensionItem"
+        foreign-key="fk_mapview_datadimensionitems_datadimensionitemid" />
+    </list>
+
+    <list name="organisationUnits" table="mapview_organisationunits">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_mapview_organisationunits_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="organisationunitid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+        foreign-key="fk_mapview_organisationunits_organisationunitid" />
+    </list>
+
+    <list name="periods" table="mapview_periods">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_mapview_periods_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
+        foreign-key="fk_mapview_periods_periodid" />
+    </list>
+
+    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+      cascade="all-delete-orphan" foreign-key="fk_mapview_relativeperiodsid" />
+
+    <list name="organisationUnitLevels" table="mapview_orgunitlevels">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_mapview_orgunitlevels_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <element column="orgunitlevel" type="integer" />
+    </list>
+
+    <list name="itemOrganisationUnitGroups" table="mapview_itemorgunitgroups">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_mapview_itemorgunitunitgroups_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
+        foreign-key="fk_mapview_itemorgunitgroups_orgunitgroupid" />
+    </list>
+    
+    <!-- EventAnalyticalObject -->
+    
+    <list name="attributeDimensions" table="mapview_attributedimensions" cascade="all, delete-orphan">
+      <key column="mapviewid" foreign-key="fk_mapview_attributedimensions_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="trackedentityattributedimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension"
+        foreign-key="fk_mapview_attributedimensions_attributedimensionid" />
+    </list>
+
+    <list name="dataElementDimensions" table="mapview_dataelementdimensions" cascade="all, delete-orphan">
+      <key column="mapviewid" foreign-key="fk_mapview_dataelementdimensions_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
+        foreign-key="fk_mapview_dataelementdimensions_dataelementdimensionid" />
+    </list>    
+
+    <list name="columnDimensions" table="mapview_columns">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_mapview_columns_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />
+    </list>
+    
+    <property name="userOrganisationUnit" />
+
+    <property name="userOrganisationUnitChildren" />
+
+    <property name="userOrganisationUnitGrandChildren" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" foreign-key="fk_mapview_programid" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" foreign-key="fk_mapview_programstageid" />
+
+    <property name="startDate" column="startdate" />
+
+    <property name="endDate" column="enddate" />
+
+    <property name="method" />
+
+    <property name="classes" />
+
+    <property name="colorLow" />
+
+    <property name="colorHigh" />
+    
+    <property name="colorScale" />
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_mapview_maplegendsetid" />
+
+    <property name="radiusLow" />
+
+    <property name="radiusHigh" />
+
+    <property name="opacity" />
+
+    <many-to-one name="organisationUnitGroupSet" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet"
+      column="orgunitgroupsetid" foreign-key="fk_mapview_orgunitgroupsetid" />
+
+    <property name="areaRadius" />
+
+    <property name="hidden" />
+
+    <property name="labels" />
+
+    <property name="labelFontSize" />
+
+    <property name="labelFontWeight" />
+
+    <property name="labelFontStyle" />
+
+    <property name="labelFontColor" />
+    
+    <property name="eventClustering" />
+    
+    <property name="eventPointColor" />
+    
+    <property name="eventPointRadius" />
+    
+    <property name="config" type="text" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="mapviewtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_objecttranslation_mapviewid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

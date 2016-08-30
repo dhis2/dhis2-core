@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" table="categoryoptioncombo">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="categoryoptioncomboid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" access="property" unique="false" not-null="false" type="text" />
+
+    <set name="categoryOptions" table="categoryoptioncombos_categoryoptions">
+      <cache usage="read-write" />
+      <key column="categoryoptioncomboid" foreign-key="fk_categoryoptioncombos_categoryoptions_categoryoptioncomboid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOption" column="categoryoptionid"
+        foreign-key="fk_categoryoptioncombo_categoryoptionid" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="categoryoptioncombotranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="categoryoptioncomboid" foreign-key="fk_objecttranslation_categoryoptioncomboid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <property name="ignoreApproval" column="ignoreapproval" />
+
+    <join table="categorycombos_optioncombos">
+      <key column="categoryoptioncomboid" />
+      <many-to-one name="categoryCombo" column="categorycomboid" not-null="true" />
+    </join>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

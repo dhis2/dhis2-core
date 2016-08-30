@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]>
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.pushanalysis.PushAnalysis" table="pushanalysis">
+
+        <cache usage="read-write"/>
+
+        <id name="id" column="pushanalysisid">
+            <generator class="native"/>
+        </id>
+        &identifiableProperties;
+
+        <property name="name" column="name" type="string" length="255" not-null="true" unique="false" />
+        <property name="message" column="message" type="string" length="255" not-null="false" unique="false" />
+        <property name="enabled" column="enabled" type="boolean" not-null="true" />
+        <property name="lastRun" column="lastrun" type="date" not-null="false" />
+        <many-to-one name="dashboard" column="dashboard" class="org.hisp.dhis.dashboard.Dashboard" not-null="true"/>
+
+        <set name="receivingUserGroups" table="pushanalysisusergroups" >
+            <cache usage="read-write"/>
+            <key column="usergroupid"/>
+            <many-to-many class="org.hisp.dhis.user.UserGroup" foreign-key="fk_pushanalysis_receivingusergroups"/>
+        </set>
+
+    </class>
+</hibernate-mapping>

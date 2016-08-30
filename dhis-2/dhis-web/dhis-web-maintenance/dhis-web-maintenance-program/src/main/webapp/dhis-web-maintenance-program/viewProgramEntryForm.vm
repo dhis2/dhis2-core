@@ -1,0 +1,208 @@
+<link href="../dhis-web-commons/css/widgets.css" media="screen" rel="stylesheet" type="text/css">
+<link href="../dhis-web-commons/css/print.css" media="print" rel="stylesheet" type="text/css">
+<link href="../favicon.ico" rel="shortcut icon">
+
+<script type="text/javascript">
+  
+	jQuery(document).ready(	function()
+	{
+		validation( 'saveDataEntryForm', function( form )
+		{
+			validateDataEntryForm(form);
+		} );
+			
+		jQuery('#designTextarea').ckeditor();
+
+		jQuery("#designTextarea").ckeditor().editor.setData('$!encoder.jsEscape( $program.dataEntryForm.htmlCode , "'" )');
+	});
+
+    var i18n_dataelement_is_inserted = '$encoder.jsEscape( $i18n.getString( "dataelement_is_inserted" ) , "'" )';
+	var i18n_specify_dataelememt = '$encoder.jsEscape( $i18n.getString( "specify_dataelememt" ) , "'" )';
+    var i18n_choose_existing_dataentry ='$encoder.jsEscape( $i18n.getString( "choose_existing_dataentry" ) , "'" )';
+	var i18n_dataelement = '$encoder.jsEscape( $i18n.getString( "dataelement" ) , "'" )';
+	var i18n_dataelement_of_orther_program_stage = "$i18n.getString( 'dataelement_of_orther_program_stage' )";
+	var i18n_save_success = '$encoder.jsEscape( $i18n.getString( "save_success" ) , "'" )';
+	var i18n_enter_a_name = '$encoder.jsEscape( $i18n.getString( "enter_a_name" ) , "'" )';
+	var autoSave=${autoSave};
+	var previousName = '';
+</script>
+
+<style type="text/css">
+.ui-state-active2, .ui-widget-content .ui-state-active2, .ui-widget-header .ui-state-active2 {
+	border: 1px solid #79b7e7;
+	background: #f5f8f9;
+	font-weight: bold;
+	color: #e17009;
+}
+
+.ui-dialog .ui-dialog-content {
+	padding: 2px;
+}
+
+#attributesSelector, #programSelector {
+	padding: 2px;
+}
+
+#attributeTab,programAttrTab {
+	width: 100%;
+}
+</style>
+
+<form id="saveDataEntryForm" name="saveDataEntryForm" action="saveProgramEntryForm.action" method="get" class="inputForm">
+
+<input type="hidden" name="programId" id="programId" value="$!program.id"/>
+<input type="hidden" name="dataEntryFormId" id="dataEntryFormId" value="$!program.dataEntryForm.id"/>
+
+<h3>$i18n.getString( "program_registration_form" )</h3>
+<h4>$program.displayName</h4>
+
+<div class="container" >
+	<table id="detailsList" width="100%">
+		<col/>
+		<tr>
+			<th colspan='3'>$i18n.getString( "prorgam_entry_form_details" )</th>
+		</tr>
+		<tr>
+			<td>
+				<label>$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label>
+			</td>
+			<td>
+				<input type="text" id="name" value="$!encoder.htmlEncode($program.dataEntryForm.name)" name="name" class="{validate:{required:true,rangelength:[4,150],alphanumericwithbasicpuncspaces:true,firstletteralphabet:false}}" style="width:30em;" >
+			</td>			
+		</tr>
+		<tr>
+			<td>&nbsp;</td>
+		</tr>		
+	</table>  
+	
+	<table width="100%">
+		<tr>
+			<th>
+				$i18n.getString( "design_prorgam_entry_form_form" )
+			</th>
+		</tr>
+		<tr>
+			<td>
+	        	<div>
+	        		<textarea id="designTextarea" name="designTextarea"></textarea>
+	        	</div>
+			</td>
+		</tr>
+	</table>
+</div>
+
+<table width="100%">	
+    <tr>
+        <td>
+		    <button type="button" id="saveButton" onclick="isSave='true';validateDataEntryForm();">$i18n.getString( 'save' )</button>
+            <button type="submit" id="saveAndCloseButton" onclick="isSave='false';"/>$i18n.getString( 'save_and_close' )</button>
+            <button type="button" id="cancelButton" onclick="window.location='program.action'">$i18n.getString( 'cancel' )</button>
+			&nbsp;&nbsp;<span style="color:#606060">|</span>&nbsp;
+		    <button type="button" id="propertiesButton" onclick="openPropertiesSelector()"/>$i18n.getString( 'insert_properties' )</button>			
+			<button type="button" id="insertImagesButton">$i18n.getString( 'insert_images' )</button>
+			&nbsp;&nbsp;<span style="color:#606060">|</span>&nbsp;
+		    <button type="button" id="deleteButton" #if($!program.dataEntryForm) #else style='display:none;' #end onclick="javascript:deleteProgramEntryForm($program.id,'$program.displayName');"  />$i18n.getString( 'delete_this_form' )</button>
+			<input type="checkbox" id="autoSave" name="autoSave" value='$!autoSave' #if($autoSave && $autoSave=="true") checked #end onchange="setAutoSaveRegistrationSetting(this.checked)" />$i18n.getString( 'auto_save_prorgam_entry_form_forms' )
+        </td>		
+    </tr>
+</table>
+  
+</form>
+
+<div id='selectionDialog' class='hidden'>
+  
+    <table id="attributeTab">
+   		<tr>
+   			<td>
+   				<input type='text' id='attributeFilter' placeholder="$i18n.getString('filter')" style="width:380px;" onchange="filterList( this.value, 'attributesSelector' )">
+			</td>
+			<td>
+   				<input type='button' value="$i18n.getString('filter')" style="width:80px;" onclick="filterList( getFieldValue('attributeFilter'), 'attributesSelector' )">
+				<input type='button' value="$i18n.getString('clear')" style="width:80px;" onclick="setFieldValue('attributeFilter','');filterList( '', 'attributesSelector' )">
+   			</td>
+   		</tr>
+   		<tr>
+   			<td colspan='2'>
+   				<select id="attributesSelector" multiple="multiple" style="height:200px;width:100%;" ondblclick="insertElement( 'attr' )">
+   				#foreach( $attribute in $attributes )
+   					<option value="$attribute.uid" mandatory='false'>$encoder.htmlEncode($attribute.displayName)</option>
+   				#end
+				#foreach( $programAttribute in $programAttributes )
+   					<option value="$programAttribute.attribute.uid" mandatory='programAttribute.mandatory'>$encoder.htmlEncode($programAttribute.attribute.displayName) #if($programAttribute.mandatory=='true') * #end</option>
+   				#end
+   				</select>
+   			</td>
+   		</tr>
+   	</table>
+
+	#if($!program)
+	<table id="programAttrTab" class='hidden'>
+		<tr>
+			<td>
+				<input type='text' id='programAttrKey' placeholder="$i18n.getString('filter')" style="width:400px;" onchange="filterList( this.value, 'programAttrSelector' )">
+			</td>
+			<td>
+				<input type='button' value="$i18n.getString('filter')" style="width:80px;" onclick="filterList( getFieldValue('programAttrKey'), 'programAttrSelector' )">
+				<input type='button' value="$i18n.getString('clear')" style="width:80px;" onclick="setFieldValue('programAttrKey','');filterList( '', 'programAttrSelector' )">
+			</td>
+		</tr>
+		<tr>
+			<td colspan='2'>
+				<select id="programAttrSelector" multiple="multiple" style="height:200px;width:100%;" ondblclick="insertElement( 'prg' )">
+					<option value="enrollmentDate" >$encoder.htmlEncode($program.enrollmentDateLabel)</option>
+					#if($program.displayIncidentDate=='true')
+					<option value="incidentDate" >$encoder.htmlEncode($program.incidentDateLabel)</option>
+					#end
+				</select>
+			</td>
+		</tr>
+	</table>
+	#end
+
+	<table>
+		<tr>
+			<td>
+				<button type="button" id="labelsButton" onclick="insertElement( 'lbl' )"/>$i18n.getString( 'insert_label' )</button>
+                <button type="button" id="attributesButton" onclick="attributesOnClick()">$i18n.getString( "attributes" )</button>				
+				#if($!program)
+					<button type="button" id="programAttrButton" onclick="programAttrOnClick()">$i18n.getString( "program" )</button>
+				#end
+            </td>
+		</tr>
+	</table>
+
+	<span id='message' style="width: 436px;"></span>
+
+</div>
+
+<div id="imageDialog" title="$i18n.getString( 'insert_images' )" class='hidden'>
+	<div style="margin:4px">
+		<div>
+			<select id="imageSelector" multiple="multiple" style="height:200px;width:100%;" ondblclick='insertImage();'>
+			#foreach( $flag in $flags )
+			<option value="../dhis-web-commons/flags/${flag}.png">$i18n.getString( ${flag} )</option>
+			#end
+			</select>
+		</div>
+		<div style="margin-top:6px"><button type="button" id="insertImageButton">$i18n.getString( "insert" )</button></div>
+	</div>
+</div>
+
+<div id="validateDiv"></div>
+
+<script>
+	var i18n_delete_program_data_entry_confirm = '$encoder.jsEscape( $i18n.getString( "delete_program_data_entry_confirm" ) , "'" )';
+	var i18n_label_is_assigned_to = '$encoder.jsEscape( $i18n.getString( "label_is_assigned_to" ) , "'" )';
+	var i18n_property_is_inserted = '$encoder.jsEscape( $i18n.getString( "property_is_inserted" ) , "'" )';
+	var i18n_please_insert_all_required_fields = '$encoder.jsEscape( $i18n.getString( "please_insert_all_required_fields" ) , "'" )';
+	var i18n_required_fields_valivation = '$encoder.jsEscape( $i18n.getString( "required_fields_valivation" ) , "'" )';
+	var i18n_full_name = '$encoder.jsEscape( $i18n.getString( "full_name" ) , "'" )';
+	var i18n_properties = '$encoder.jsEscape( $i18n.getString( "properties" ) , "'" )';
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_prorgam_entry_form_form" ) , "'" )';
+	var i18n_save_unsuccess_please_insert_all_required_fields = '$encoder.jsEscape( $i18n.getString( "save_unsuccess" ) , "'" )' + '. ' + '$encoder.jsEscape( $i18n.getString( "please_insert_all_required_fields" ) , "'" )';
+	var i18n_validate_success = '$encoder.jsEscape( $i18n.getString( "validate_success" ) , "'" )';
+	var i18n_name_exists = '$encoder.jsEscape( $i18n.getString( "name_exists" ) , "'" )';
+	jQuery(document).ready(	function(){
+		openPropertiesSelector();
+	});
+</script>

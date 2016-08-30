@@ -1,0 +1,312 @@
+<!-- Expression -->
+
+<table style="margin-top:10px">
+	<tr>
+		<th>$i18n.getString( "expression" )</th>
+	</tr>
+	<tr>
+		<td><div class="message message-info" style="margin-top:10px">The expression defines how the indicator is calculated.</div></td> 
+	</tr>
+	<tr>
+		<td>
+	
+		<div id="expression-tabs" style="width:670px">
+			<ul>
+				<li><a href="#expression-tab1">$i18n.getString("data_elements")</a></li>
+				#if($program.programType=='WITH_REGISTRATION')
+					<li><a href="#expression-tab2">$i18n.getString("attributes")</a></li>
+				#end
+				<li><a href="#expression-tab3">$i18n.getString("variables")</a></li>
+				<li><a href="#expression-tab4">$i18n.getString("constants")</a></li>
+			</ul>	
+			
+			<div id="expression-tab1">
+			  <table style="width:100%">
+		        <tr>
+					<td>
+						<select id="expression-program-stage" onChange="getTrackedEntityDataElements('expression');" style="width:35%;margin-right:20px;">
+							<option value='' >[ $i18n.getString('select_program_stage') ]</option>
+							#foreach( $programStage in $program.programStages )
+								<option value='$programStage.uid'>$programStage.displayName</option>
+							#end
+						</select>
+						<input type='text' id='expression-de-search' onKeyUp="filterExpressionSelect(event, this.value, 'expression-data-elements');" placeholder="$i18n.getString('filter')" />
+						<input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('expression-de-search', '');" />
+						
+					</td>
+		        </tr>
+		        <tr>
+					<td>
+						<select multiple id="expression-data-elements" name="expression-data-elements" size="7" style="width:100%" ondblclick="insertDataElement('expression');"></select>
+					</td>
+				</tr>
+		      </table>
+			</div>
+			
+			#if($program.programType=='WITH_REGISTRATION')
+		
+			<div id="expression-tab2">
+				<table style="width:100%">
+		        <tr>
+					<td>
+						<input type='text' id='expression-attr-search' onKeyUp="filterExpressionSelect(event, this.value, 'expression-attributes');" placeholder="$i18n.getString('filter')" />
+						<input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('expression-attr-search', '');" />			
+					</td>
+		        </tr>
+		        <tr>
+					<td>
+						<select multiple id="expression-attributes" name="expression-attributes" size="7" style="width:100%" ondblclick="insertAttribute('expression');">
+							#foreach( $programAttribute in $expressionAttributes )
+								<option value='$programAttribute.uid'>$encoder.htmlEncode($programAttribute.displayName)</option>
+							#end
+						</select>
+					</td>
+				</tr>
+		      </table>
+			</div>
+			
+			#end
+			
+			<div id="expression-tab3">
+				<table style="width:100%">
+				  <tr>
+				    <td>
+					  <input type='text' id='expression-var-search' onKeyUp="filterExpressionSelect(event, this.value, 'expression-variables');" placeholder="$i18n.getString('filter')" />
+					  <input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('expression-var-search', '');" />			
+					</td>
+		        </tr>
+				<tr>
+					<td>
+						<select multiple id="expression-variables" name="expression-variables" size="7" style="width:100%" ondblclick="insertVariable('expression');" >
+							<option value="execution_date">$i18n.getString( "execution_date" )</option>
+							<option value="due_date">$i18n.getString( "due_date" )</option>
+							<option value="incident_date">$i18n.getString( "incident_date" )</option>
+							<option value="enrollment_date">$i18n.getString( "enrollment_date" )</option>
+							<option value="current_date">$i18n.getString( "current_date" )</option>
+							<option value="value_count">$i18n.getString( "value_count" )</option>
+							<option value="zero_pos_value_count">$i18n.getString( "zero_pos_value_count" )</option>
+							<option value="event_count">$i18n.getString( "event_count" )</option>
+							<option value="enrollment_count">$i18n.getString( "enrollment_count" )</option>
+							<option value="tei_count">$i18n.getString( "tei_count" )</option>
+						</select>
+					</td>
+				</tr>
+				</table>
+			</div>
+		
+			<div id="expression-tab4">
+				<table style="width:100%">
+		        <tr>
+					<td>
+						<input type='text' id='expression-const-search' onKeyUp="filterExpressionSelect(event, this.value, 'expression-constants');" placeholder="$i18n.getString('filter')" />
+						<input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('expression-const-search', '');" />			
+					</td>
+		        </tr>
+		        <tr>
+					<td>
+						<select multiple id="expression-constants" name="expression-constants" size="7" style="width:100%" ondblclick="insertConstant('expression');">
+							#foreach( $constant in $constants )
+								<option value='$constant.uid'>$encoder.htmlEncode($constant.displayName)</option>
+							#end
+						</select>
+					</td>
+				</tr>
+		      </table>
+			</div>
+			
+		</div>
+		
+		</td>
+	</tr>
+	<tr>
+        <th style="padding-top:15px">$i18n.getString( "expression" ) <span class="tipText">Tip: use d2:condition('bool-expr',true-val,false-val) d2:daysBetween(date,date) d2:zing(x) d2:oizp(x)</span></th>
+    </tr>
+	<tr>
+		<td>
+			<textarea style="width:665px" id="expression" name="expression" onkeyup="getExpressionDescription('expression')">$!encoder.htmlEncode($!programIndicator.expression)</textarea>
+		</td>
+	</tr>
+	<tr>
+		<td style="padding-top:4px">
+			<a class="greyButtonLink" href="javascript:insertOperator( 'expression', '(' )" title="$i18n.getString( 'left_brackets' )">&#40;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'expression', ')' )" title="$i18n.getString( 'right_brackets' )">&#41;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'expression', '*' )" title="$i18n.getString( 'multiply' )">&#42;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'expression', '/' )" title="$i18n.getString( 'divide' )">&#47;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'expression', '+' )" title="$i18n.getString( 'plus' )">&#43;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'expression', '-' )" title="$i18n.getString( 'minus' )">&#45;</a>
+			<span class="tipText" style="margin-left:10px">Count of</span>
+			<a href="javascript:setExpressionCount('psi')" title="Set expression to count of events">events</a>&nbsp;<span class="tipText">&#124;</span>&nbsp;
+			<a href="javascript:setExpressionCount('pi')" title="Set expression to count of enrollments">enrollments</a>&nbsp;<span class="tipText">&#124;</span>&nbsp;
+			<a href="javascript:setExpressionCount('tei')" title="Set expression to count of tracked entity instances">tracked entity instances</a>
+			<br><br>
+		</td>
+	</tr>
+	<tr>
+        <th style="padding-top:4px">$i18n.getString( "expression_description" )</th>
+    </tr>	
+	<tr>
+		<td>
+			<div id='expression-description' style="padding: 5px 0 20px 0" class="{validate:{required:true}}">$!encoder.htmlEncode($!expressionDescription)</div>
+		</td>
+	</tr>
+</table>
+
+<!-- Filter -->
+
+<table style="margin-top:20px">
+	<tr>
+		<th>$i18n.getString( "filter" )</th>
+	</tr>
+	<tr>
+		<td><div class="message message-info" style="margin-top:10px">The filter is applied to events and filters the data source used for the calculation of the indicator.
+			The filter must evaluate to either true or false. Use single quotes for text values. Use option codes for option set references.</div></td> 
+	</tr>	
+	<tr>
+		<td>
+	
+		<div id="filter-tabs" style="width:670px">
+			<ul>
+				<li><a href="#filter-tab1">$i18n.getString("data_elements")</a></li>
+				#if($program.programType=='WITH_REGISTRATION')
+					<li><a href="#filter-tab2">$i18n.getString("attributes")</a></li>
+				#end
+				<li><a href="#filter-tab3">$i18n.getString("variables")</a></li>
+				<li><a href="#filter-tab4">$i18n.getString("constants")</a></li>
+			</ul>	
+			
+			<div id="filter-tab1">
+			  <table style="width:100%">
+		        <tr>
+					<td>
+						<select id="filter-program-stage" onChange="getTrackedEntityDataElements('filter');" style="width:35%;margin-right:20px;">
+							<option value=''>[ $i18n.getString('select_program_stage') ]</option>
+							#foreach( $programStage in $program.programStages )
+								<option value='$programStage.uid'>$programStage.displayName</option>
+							#end
+						</select>
+						<input type='text' id='filter-de-search' onKeyUp="filterExpressionSelect(event, this.value, 'filter-data-elements');" placeholder="$i18n.getString('filter')" />
+						<input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('filter-de-search', '');" />			
+					</td>
+		        </tr>
+		        <tr>
+					<td>
+						<select multiple id="filter-data-elements" name="filter-data-elements" size="7" style="width:100%" ondblclick="insertDataElement('filter');"></select>
+					</td>
+				</tr>
+		      </table>
+			</div>
+			
+			#if($program.programType=='WITH_REGISTRATION')
+		
+			<div id="filter-tab2">
+				<table style="width:100%">
+		        <tr>
+					<td>
+						<input type='text' id='filter-attr-search' onKeyUp="filterExpressionSelect(event, this.value, 'filter-attributes');" placeholder="$i18n.getString('filter')" />
+						<input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('filter-attr-search', '');" />			
+					</td>
+		        </tr>
+		        <tr>
+					<td>
+						<select multiple id="filter-attributes" name="filter-attributes" size="7" style="width:100%" ondblclick="insertAttribute('filter');">
+							#foreach( $programAttribute in $program.programAttributes )
+								<option value='$programAttribute.attribute.uid'>$encoder.htmlEncode($programAttribute.attribute.displayName)</option>
+							#end
+						</select>
+					</td>
+				</tr>
+		      </table>
+			</div>
+			
+			#end
+			
+			<div id="filter-tab3">
+				<table style="width:100%">
+				  <tr>
+				    <td>
+					  <input type='text' id='filter-var-search' onKeyUp="filterExpressionSelect(event, this.value, 'filter-variables');" placeholder="$i18n.getString('filter')" />
+					  <input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('filter-var-search', '');" />			
+					</td>
+		        </tr>
+				<tr>
+					<td>
+						<select multiple id="filter-variables" name="filter-variables" size="7" style="width:100%" ondblclick="insertVariable('filter');" >
+							<option value="execution_date">$i18n.getString( "execution_date" )</option>
+							<option value="due_date">$i18n.getString( "due_date" )</option>
+							<option value="incident_date">$i18n.getString( "incident_date" )</option>
+							<option value="enrollment_date">$i18n.getString( "enrollment_date" )</option>
+							<option value="current_date">$i18n.getString( "current_date" )</option>
+							<option value="value_count">$i18n.getString( "value_count" )</option>
+							<option value="zero_pos_value_count">$i18n.getString( "zero_pos_value_count" )</option>
+						</select>
+					</td>
+				</tr>
+				</table>
+			</div>
+		
+			<div id="filter-tab4">
+				<table style="width:100%">
+		        <tr>
+					<td>
+						<input type='text' id='filter-const-search' onKeyUp="filterExpressionSelect(event, this.value, 'filter-constants');" placeholder="$i18n.getString('filter')" />
+						<input type='button' value='$i18n.getString("clear")' onClick="setFieldValue('filter-const-search', '');" />			
+					</td>
+		        </tr>
+		        <tr>
+					<td>
+						<select multiple id="filter-constants" name="filter-constants" size="7" style="width:100%" ondblclick="insertConstant('filter')">
+							#foreach( $constant in $constants )
+								<option value='$constant.uid'>$encoder.htmlEncode($constant.displayName)</option>
+							#end
+						</select>
+					</td>
+				</tr>
+		      </table>
+			</div>
+			
+		</div>
+		
+		</td>
+	</tr>
+	<tr>
+        <th style="padding-top:15px">$i18n.getString( "filter" ) <span class="tipText">Tip: use d2:condition('bool-expr',true-val,false-val) d2:daysBetween(date,date) d2:zing(x) d2:oizp(x)</span></th>
+    </tr>	
+	<tr>
+		<td>
+			<textarea style="width:665px" id="filter" name="filter" onkeyup="getExpressionDescription('filter')">$!encoder.htmlEncode($!programIndicator.filter)</textarea>
+		</td>
+	</tr>	
+	<tr>
+		<td style="padding-top:4px">
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '(' )" title="$i18n.getString( 'left_brackets' )">&#40;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', ')' )" title="$i18n.getString( 'right_brackets' )">&#41;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '*' )" title="$i18n.getString( 'multiply' )">&#42;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '/' )" title="$i18n.getString( 'divide' )">&#47;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '+' )" title="$i18n.getString( 'plus' )">&#43;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '-' )" title="$i18n.getString( 'minus' )">&#45;</a>&nbsp;&#124;&nbsp;
+			
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', 'and' )" title="$i18n.getString( 'and_title' )">$i18n.getString( 'and_title' )</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', 'or' )" title="$i18n.getString( 'or_title' )">$i18n.getString( 'or_title' )</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '&#61;&#61;' )" title="$i18n.getString( 'equal_to_title' )">&#61;&#61;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '&#33&#61;' )" title="$i18n.getString( 'not_equal_to_title' )">&#33;&#61;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '&#60;' )" title="$i18n.getString( 'less_than_title' )">&#60;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '&#60;&#61;' )" title="$i18n.getString( 'less_than_or_equal_to_title' )">&#60;&#61;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '&#62;' )" title="$i18n.getString( 'greater_than_title' )">&#62;</a>
+			<a class="greyButtonLink" href="javascript:insertOperator( 'filter', '&#62;&#61;' )" title="$i18n.getString( 'greater_than_or_equal_to_title' )">&#62;&#61;</a>
+			<br><br>
+		</td>
+	</tr>	
+	<tr>
+        <th style="padding-top:4px">$i18n.getString( "filter_description" )</th>
+    </tr>	
+	<tr>
+		<td>
+			<div id='filter-description' style="padding: 5px 0 20px 0">$!encoder.htmlEncode($!filterDescription)</div>
+		</td>
+	</tr>
+</table>
+
+<script type="text/javascript">
+	$('#expression-tabs').tabs();
+	$('#filter-tabs').tabs();
+</script>

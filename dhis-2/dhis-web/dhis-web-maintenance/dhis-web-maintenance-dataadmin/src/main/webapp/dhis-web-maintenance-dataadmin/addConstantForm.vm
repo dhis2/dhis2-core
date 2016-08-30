@@ -1,0 +1,64 @@
+<script type="text/javascript">
+	jQuery(document).ready(	function(){
+
+		var rules = getValidationRules("constant");
+		rules['value'].custome_regex = [ /^-?(0|[1-9]\d*)(\.\d+)?$/, i18n_value_must_be_double ];
+		
+		validation2( 'addConstantForm', function( form )
+		{
+		    #tblDynamicAttributesJavascript()
+		    form.submit();
+		},
+		{
+			'rules': rules
+		});
+
+		checkValueIsExist( "name", "validateConstant.action" );
+		checkValueIsExist( "shortName", "validateConstant.action" );	
+		checkValueIsExist( "code", "validateConstant.action" );	
+	});
+	
+	var i18n_value_must_be_double = '$encoder.jsEscape( $i18n.getString( "value_must_be_double" ) , "'")';
+	
+</script>
+
+<h3>$i18n.getString( "create_new_constant" )</h3>
+
+<form id="addConstantForm" action="addConstant.action" method="post" class="inputForm">
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name"></td>
+	</tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" )</label></td>
+		<td><input type="text" id="shortName" name="shortName"></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code"></td>
+	</tr>
+	<tr>
+		<td><label for="description">$i18n.getString( "description" )</label></td>
+		<td><textarea id="description" name="description"></textarea></td>
+	</tr>
+	<tr>
+		<td><label for="name">$i18n.getString( "value" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="value" name="value"></td>
+	</tr>
+</table>
+	#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+<table>
+	<tr>
+		<td></td>
+		<td><input type="submit" value="$i18n.getString( 'add' )" style="width:10em"/>
+		<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='constant.action'" style="width:10em"/></td>
+	</tr>
+</table>
+
+
+</form>

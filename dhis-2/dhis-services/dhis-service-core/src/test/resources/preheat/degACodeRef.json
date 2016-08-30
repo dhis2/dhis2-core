@@ -1,0 +1,17 @@
+{
+  "name": "DataElementGroupA",
+  "user": {
+    "code": "UserCodeA"
+  },
+  "dataElements": [
+    {
+      "code": "DataElementCodeA"
+    },
+    {
+      "code": "DataElementCodeB"
+    },
+    {
+      "code": "DataElementCodeC"
+    }
+  ]
+}

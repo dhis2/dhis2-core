@@ -1,0 +1,17 @@
+{
+  "name": "DataElementGroupA",
+  "user": {
+    "id": "INVALID_USER"
+  },
+  "dataElements": [
+    {
+      "id": "deabcdefghA"
+    },
+    {
+      "id": "INVALID_DATAELEMENT_1"
+    },
+    {
+      "id": "INVALID_DATAELEMENT_2"
+    }
+  ]
+}

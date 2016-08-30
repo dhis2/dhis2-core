@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.eventreport.EventReport" table="eventreport">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="eventreportid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+    
+    <property name="description" type="text" />
+
+    <list name="organisationUnits" table="eventreport_organisationunits">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_organisationunits_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="organisationunitid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+        foreign-key="fk_eventreport_organisationunits_organisationunitid" />
+    </list>
+
+    <list name="periods" table="eventreport_periods">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_periods_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
+        foreign-key="fk_eventreport_periods_periodid" />
+    </list>
+
+    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+      cascade="all-delete-orphan" foreign-key="fk_eventreport_relativeperiodsid" />
+
+    <list name="organisationUnitGroups" table="eventreport_orgunitgroups">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_orgunitunitgroups_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
+        foreign-key="fk_eventreport_orgunitgroups_orgunitgroupid" />
+    </list>
+
+    <list name="organisationUnitLevels" table="eventreport_orgunitlevels">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_orgunitlevels_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <element column="orgunitlevel" type="integer" />
+    </list>
+
+    <list name="itemOrganisationUnitGroups" table="eventreport_itemorgunitgroups">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_itemorgunitunitgroups_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
+        foreign-key="fk_eventreport_itemorgunitgroups_orgunitgroupid" />
+    </list>
+
+    <list name="attributeDimensions" table="eventreport_attributedimensions" cascade="all, delete-orphan">
+      <key column="eventreportid" foreign-key="fk_eventreport_attributedimensions_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="trackedentityattributedimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension"
+        foreign-key="fk_eventreport_attributedimensions_attributedimensionid" />
+    </list>
+
+    <list name="dataElementDimensions" table="eventreport_dataelementdimensions" cascade="all, delete-orphan">
+      <key column="eventreportid" foreign-key="fk_eventreport_dataelementdimensions_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
+        foreign-key="fk_eventreport_dataelementdimensions_dataelementdimensionid" />
+    </list>
+
+    <list name="programIndicatorDimensions" table="eventreport_programindicatordimensions" cascade="all, delete-orphan">
+      <key column="eventreportid" foreign-key="fk_eventreport_programindicatordimensions_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="trackedentityprogramindicatordimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension"
+        foreign-key="fk_eventreport_prindicatordimensions_prindicatordimensionid" />
+    </list>
+
+    <property name="userOrganisationUnit" />
+
+    <property name="userOrganisationUnitChildren" />
+
+    <property name="userOrganisationUnitGrandChildren" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" not-null="true" foreign-key="fk_eventreport_programid" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" foreign-key="fk_eventreport_programstageid" />
+
+    <property name="startDate" />
+
+    <property name="endDate" />
+
+    <many-to-one name="dataElementValueDimension" class="org.hisp.dhis.dataelement.DataElement"
+      column="dataelementvaluedimensionid" foreign-key="fk_eventreport_dataelementvaluedimensionid" />
+
+    <many-to-one name="attributeValueDimension" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+      column="attributevaluedimensionid" foreign-key="fk_eventreport_attributevaluedimensionid" />
+
+    <property name="aggregationType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="completedOnly" column="completedonly" />
+
+    <property name="dataType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.EventDataType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <list name="columnDimensions" table="eventreport_columns">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_columns_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />
+    </list>
+
+    <list name="rowDimensions" table="eventreport_rows">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_rows_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />
+    </list>
+
+    <list name="filterDimensions" table="eventreport_filters">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_eventreport_filters_eventreportid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />
+    </list>
+
+    <property name="rowTotals" />
+
+    <property name="colTotals" />
+
+    <property name="rowSubTotals" />
+
+    <property name="colSubTotals" />
+
+    <property name="hideEmptyRows" />
+
+    <property name="hideNaData" />
+
+    <property name="showHierarchy" />
+
+    <property name="outputType" length="30">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.EventOutputType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="collapseDataDimensions" />
+
+    <property name="showDimensionLabels" />
+
+    <property name="digitGroupSeparator" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.DigitGroupSeparator</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="displayDensity" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.DisplayDensity</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="fontSize" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.FontSize</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="sortOrder" />
+
+    <property name="topLimit" />
+
+    <!-- Access properties -->
+    <property name="externalAccess" />
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_eventreport_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="eventreportusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="eventreportid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="eventreporttranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="eventreportid" foreign-key="fk_objecttranslation_eventreportid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

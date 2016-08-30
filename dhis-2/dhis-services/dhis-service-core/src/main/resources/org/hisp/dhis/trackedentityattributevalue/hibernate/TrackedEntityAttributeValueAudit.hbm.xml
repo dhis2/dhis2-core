@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit"
+           table="trackedentityattributevalueaudit">
+
+        <id name="id" column="trackedentityattributevalueauditid">
+            <generator class="native"/>
+        </id>
+
+        <many-to-one name="entityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+                     column="trackedentityinstanceid"
+                     foreign-key="fk_attributevalueaudit_trackedentityinstanceid"/>
+
+        <many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+                     column="trackedentityattributeid"
+                     foreign-key="fk_attributevalueaudit_trackedentityattributeid"/>
+
+        <property name="plainValue" column="value" access="property" length="50000"/>
+
+        <property name="encryptedValue" length="50000" column="encryptedvalue" access="property"
+                  type="AESEncryptedString"/>
+
+        <property name="created" type="timestamp"/>
+
+        <property name="modifiedBy"/>
+
+        <property name="auditType" column="audittype" length="100" not-null="true">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.common.AuditType</param>
+              <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+    </class>
+</hibernate-mapping>

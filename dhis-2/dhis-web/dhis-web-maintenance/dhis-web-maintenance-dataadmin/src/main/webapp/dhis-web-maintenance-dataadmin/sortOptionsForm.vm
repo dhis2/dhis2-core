@@ -1,0 +1,39 @@
+
+<h3>$i18n.getString( "sort_options" )</h3>
+									
+<h4>$optionSet.displayName</h4>
+									
+<form id="sortOptionsForm" name="sortOptionsForm" action="sortOptions.action" method="get" class="inputForm" onsubmit="selectAllById('optionIds');">
+<input type="hidden" id="optionSetId" name="optionSetId" value="$optionSet.id" />
+
+<table>
+	<colgroup>
+		<col style='width:500px'/>
+	</colgroup>
+	<tr>
+		<th colspan='2'>$i18n.getString( "available_options" )</th>
+	</tr>
+	
+	<tr>
+		<td>
+			<select style="height: 200px; width: 100%;" multiple="multiple" id="optionIds" name="optionIds" >
+				#foreach( $option in $optionSet.options )
+					<option value="$option.id">$encoder.htmlEncode( $!option.displayName )</option>
+				#end
+			</select>
+		</td>
+		<td>
+			<a href="javascript:moveUpSelectedOption( 'optionIds')" title="$i18n.getString( 'move_up' )"><img src="../images/move_up.png" alt="$i18n.getString( 'move_up' )"/></a><br/><br/>
+			<a href="javascript:moveDownSelectedOption( 'optionIds' )" title="$i18n.getString( 'move_down' )"><img src="../images/move_down.png" alt="$i18n.getString( 'move_up' )"/></a>
+		</td>
+	</tr>  
+	<tr>
+		<td colspan='2'>
+			<input type="submit" value="$i18n.getString( 'save' )" style="width:10em" />
+			<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='option.action?optionSetId=$optionSet.id'" style="width:10em" />
+		</td>
+	</tr>
+</table>
+
+</form>
+

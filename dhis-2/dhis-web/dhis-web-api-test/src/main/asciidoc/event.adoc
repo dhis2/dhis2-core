@@ -1,0 +1,220 @@
+
+==  **Program**
+Fields Description
+include::{snippets}/programs/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Program
+
+Response structure
+include::{snippets}/programs/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/programs/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/programs/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Program or 404.
+
+Example request
+include::{snippets}/programs/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/programs/id/http-response.adoc[]
+
+=== Create Program
+
+Example request
+include::{snippets}/programs/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/programs/create/http-response.adoc[]
+
+
+=== Update Program
+
+Example request
+include::{snippets}/programs/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/programs/update/http-response.adoc[]
+
+
+=== Delete Program
+
+Example request
+include::{snippets}/programs/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/programs/delete/http-response.adoc[]
+
+
+==  **Program Indicator**
+Fields Description
+include::{snippets}/programIndicators/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Program Indicator
+
+Response structure
+include::{snippets}/programIndicators/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/programIndicators/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/programIndicators/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Program Indicator or 404.
+
+Example request
+include::{snippets}/programIndicators/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/programIndicators/id/http-response.adoc[]
+
+=== Create Program Indicator
+
+Example request
+include::{snippets}/programIndicators/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/programIndicators/create/http-response.adoc[]
+
+
+=== Update Program Indicator
+
+Example request
+include::{snippets}/programIndicators/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/programIndicators/update/http-response.adoc[]
+
+
+=== Delete Program Indicator
+
+Example request
+include::{snippets}/programIndicators/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/programIndicators/delete/http-response.adoc[]
+
+
+==  **Event Chart**
+Fields Description
+include::{snippets}/eventCharts/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Event Chart
+
+Response structure
+include::{snippets}/eventCharts/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/eventCharts/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventCharts/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Event Chart or 404.
+
+Example request
+include::{snippets}/eventCharts/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventCharts/id/http-response.adoc[]
+
+=== Create Event Chart
+
+Example request
+include::{snippets}/eventCharts/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventCharts/create/http-response.adoc[]
+
+
+=== Update Event Chart
+
+Example request
+include::{snippets}/eventCharts/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventCharts/update/http-response.adoc[]
+
+
+=== Delete Event Chart
+
+Example request
+include::{snippets}/eventCharts/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventCharts/delete/http-response.adoc[]
+
+
+==  **Event Report**
+Fields Description
+include::{snippets}/eventReports/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Event Report
+
+Response structure
+include::{snippets}/eventReports/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/eventReports/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventReports/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Event Report or 404.
+
+Example request
+include::{snippets}/eventReports/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventReports/id/http-response.adoc[]
+
+=== Create Event Report
+
+Example request
+include::{snippets}/eventReports/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventReports/create/http-response.adoc[]
+
+
+=== Update Event Report
+
+Example request
+include::{snippets}/eventReports/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventReports/update/http-response.adoc[]
+
+
+=== Delete Event Report
+
+Example request
+include::{snippets}/eventReports/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/eventReports/delete/http-response.adoc[]
+

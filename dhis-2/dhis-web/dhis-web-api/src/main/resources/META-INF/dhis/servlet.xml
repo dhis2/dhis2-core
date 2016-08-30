@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:sec="http://www.springframework.org/schema/security"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+
+  <sec:global-method-security pre-post-annotations="enabled" />
+
+  <context:component-scan base-package="org.hisp.dhis.webapi" />
+
+  <context:annotation-config />
+
+  <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+
+  <bean id="renderServiceMessageConverter"
+    class="org.hisp.dhis.webapi.messageconverter.RenderServiceMessageConverter" />
+
+  <bean id="requestMappingHandlerMapping" class="org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping">
+    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+  </bean>
+
+  <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
+
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" />
+
+  <bean class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
+
+  <bean class="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" />
+
+  <bean class="org.springframework.util.AntPathMatcher" />
+
+  <bean class="org.springframework.web.util.UrlPathHelper" />
+
+  <bean id="jsonMessageConverter" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+    <constructor-arg name="compression" value="NONE" />
+  </bean>
+
+  <bean id="jsonMessageConverterGZIP" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+    <constructor-arg name="compression" value="GZIP" />
+  </bean>
+
+  <bean id="jsonMessageConverterZIP" class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+    <constructor-arg name="compression" value="ZIP" />
+  </bean>
+
+  <bean id="xmlMessageConverter" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+    <constructor-arg name="compression" value="NONE" />
+  </bean>
+
+  <bean id="xmlMessageConverterGZIP" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+    <constructor-arg name="compression" value="GZIP" />
+  </bean>
+
+  <bean id="xmlMessageConverterZIP" class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+    <constructor-arg name="compression" value="ZIP" />
+  </bean>
+
+  <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.messageconverter.JsonPMessageConverter" />
+
+  <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter" />
+
+  <bean id="byteArrayHttpMessageConverter" class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+
+  <bean id="formHttpMessageConverter" class="org.springframework.http.converter.FormHttpMessageConverter" />
+
+  <bean id="dataStreamSerializableMessageConverter" class="org.hisp.dhis.api.mobile.support.DataStreamSerializableMessageConverter" />
+
+  <bean id="responseStatusExceptionResolver" class="org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" />
+
+  <bean id="defaultHandlerExceptionResolver" class="org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver" />
+
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver">
+    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+    <property name="messageConverters">
+      <list>
+        <ref bean="jsonMessageConverter" />
+        <ref bean="jsonMessageConverterGZIP" />
+        <ref bean="jsonMessageConverterZIP" />
+        <ref bean="xmlMessageConverter" />
+        <ref bean="xmlMessageConverterGZIP" />
+        <ref bean="xmlMessageConverterZIP" />
+        <ref bean="jsonPMessageConverter" />
+        <ref bean="csvMessageConverter" />
+        <ref bean="pdfMessageConverter" />
+        <ref bean="excelMessageConverter" />
+        <ref bean="stringHttpMessageConverter" />
+        <ref bean="byteArrayHttpMessageConverter" />
+        <ref bean="formHttpMessageConverter" />
+        <ref bean="dataStreamSerializableMessageConverter" />
+        <ref bean="renderServiceMessageConverter" />
+      </list>
+    </property>
+  </bean>
+
+  <bean class="org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter" />
+
+  <bean class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter" />
+
+  <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+    <property name="webBindingInitializer">
+      <bean class="org.springframework.web.bind.support.ConfigurableWebBindingInitializer">
+        <property name="conversionService" ref="conversionService" />
+      </bean>
+    </property>
+    <property name="messageConverters">
+      <list>
+        <ref bean="jsonMessageConverter" />
+        <ref bean="jsonMessageConverterGZIP" />
+        <ref bean="jsonMessageConverterZIP" />
+        <ref bean="xmlMessageConverter" />
+        <ref bean="xmlMessageConverterGZIP" />
+        <ref bean="xmlMessageConverterZIP" />
+        <ref bean="jsonPMessageConverter" />
+        <ref bean="csvMessageConverter" />
+        <ref bean="pdfMessageConverter" />
+        <ref bean="excelMessageConverter" />
+        <ref bean="stringHttpMessageConverter" />
+        <ref bean="byteArrayHttpMessageConverter" />
+        <ref bean="formHttpMessageConverter" />
+        <ref bean="dataStreamSerializableMessageConverter" />
+        <ref bean="renderServiceMessageConverter" />
+      </list>
+    </property>
+  </bean>
+
+  <!-- Old MVC config, don't delete for now
+  <mvc:annotation-driven content-negotiation-manager="contentNegotiationManager">
+    <mvc:message-converters register-defaults="false">
+      <bean class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+        <constructor-arg name="compressed" value="false" />
+      </bean>
+
+      <bean class="org.hisp.dhis.webapi.messageconverter.JsonMessageConverter">
+        <constructor-arg name="compressed" value="true" />
+      </bean>
+
+      <bean class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+        <constructor-arg name="compressed" value="false" />
+      </bean>
+
+      <bean class="org.hisp.dhis.webapi.messageconverter.XmlMessageConverter">
+        <constructor-arg name="compressed" value="true" />
+      </bean>
+
+      <ref bean="jsonPMessageConverter" />
+      <ref bean="csvMessageConverter" />
+      <ref bean="pdfMessageConverter" />
+      <ref bean="excelMessageConverter" />
+      <bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+      <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+      <bean class="org.springframework.http.converter.FormHttpMessageConverter" />
+      <bean class="org.hisp.dhis.api.mobile.support.DataStreamSerializableMessageConverter" />
+      <ref bean="org.hisp.dhis.webapi.utils.RenderServiceMessageConverter" />
+    </mvc:message-converters>
+  </mvc:annotation-driven>
+  -->
+
+  <bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManager">
+    <constructor-arg>
+      <list>
+        <ref bean="customPathExtensionContentNegotiationStrategy" />
+        <ref bean="parameterContentNegotiationStrategy" />
+        <ref bean="headerContentNegotiationStrategy" />
+        <ref bean="fixedContentNegotiationStrategy" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="customPathExtensionContentNegotiationStrategy" class="org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy">
+    <constructor-arg name="mediaTypes">
+      <map>
+        <entry key="json" value="application/json" />
+        <entry key="json.gz" value="application/json+gzip" />
+        <entry key="json.zip" value="application/json+zip" />
+        <entry key="jsonp" value="application/javascript" />
+        <entry key="xml" value="application/xml" />
+        <entry key="xml.gz" value="application/xml+gzip" />
+        <entry key="xml.zip" value="application/xml+zip" />
+        <entry key="png" value="image/png" />
+        <entry key="pdf" value="application/pdf" />
+        <entry key="xls" value="application/vnd.ms-excel" />
+        <entry key="xlsx" value="application/vnd.ms-excel" />
+        <entry key="csv" value="application/csv" />
+        <entry key="csv.gz" value="application/csv+gzip" />
+        <entry key="geojson" value="application/json+geojson" />
+      </map>
+    </constructor-arg>
+    <property name="useJaf" value="false" />
+  </bean>
+
+  <bean id="parameterContentNegotiationStrategy" class="org.springframework.web.accept.ParameterContentNegotiationStrategy">
+    <constructor-arg name="mediaTypes">
+      <map>
+        <entry key="json" value="application/json" />
+        <entry key="jsonp" value="application/javascript" />
+        <entry key="xml" value="application/xml" />
+        <entry key="png" value="image/png" />
+        <entry key="pdf" value="application/pdf" />
+        <entry key="xls" value="application/vnd.ms-excel" />
+        <entry key="csv" value="application/csv" />
+      </map>
+    </constructor-arg>
+  </bean>
+
+  <bean id="headerContentNegotiationStrategy" class="org.springframework.web.accept.HeaderContentNegotiationStrategy" />
+
+  <bean id="fixedContentNegotiationStrategy" class="org.springframework.web.accept.FixedContentNegotiationStrategy">
+    <constructor-arg type="org.springframework.http.MediaType" value="application/json" />
+  </bean>
+
+  <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+    <property name="order" value="1" />
+    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+
+    <property name="defaultViews">
+      <list>
+        <bean class="org.hisp.dhis.webapi.view.PdfGridView" />
+
+        <bean class="org.hisp.dhis.webapi.view.ExcelGridView" />
+
+        <bean class="org.hisp.dhis.webapi.view.CsvGridView" />
+      </list>
+    </property>
+  </bean>
+</beans>

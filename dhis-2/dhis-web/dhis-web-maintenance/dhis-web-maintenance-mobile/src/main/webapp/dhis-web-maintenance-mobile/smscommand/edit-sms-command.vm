@@ -1,0 +1,418 @@
+#parse("/dhis-web-maintenance-mobile/smscommand/validate_javascript.vm")
+
+<script language="Javascript">
+
+    function prepSubmit(){
+	
+		//validation( "updateSMSCommandForm" );
+		
+		var selectedDataOptions = '{"codes":[';      
+
+		for (var i=1; i<=jQuery('.trDataElementCode').length; i++ )
+		{
+			selectedDataOptions += '{"dataElementId" :' + document.getElementById('codeId'+i).value.split('.')[0] +  ','; 
+			selectedDataOptions += '"optionId" :' + document.getElementById('codeId'+i).value.split('.')[1] +  ','; 
+			selectedDataOptions += '"code" :"' + document.getElementById('codeValue'+i).value + '",';
+			selectedDataOptions += '"formula" :"' + document.getElementById('formula'+i).value + '"}';
+
+		    if ( i < jQuery('.trDataElementCode').length )
+		    {
+		        selectedDataOptions += ',';
+		    }
+		}
+		selectedDataOptions += ']}';
+		$("#codeDataelementOption").val(selectedDataOptions);
+
+		//get special characters' data
+		var speCharName = jQuery("#speCharName");
+		speCharName.empty();
+		jQuery(".name").each( function( i, item ){
+			speCharName.append( "<option value='" + item.value + "' selected='true'>" + item.value + "</option>" );
+		});
+		
+		var speCharValue = jQuery("#speCharValue");
+		speCharValue.empty();
+		jQuery(".value").each( function( i, item ){
+			speCharValue.append( "<option value='" + item.value + "' selected='true'>" + item.value + "</option>" );
+		});
+
+		var specialCharactersInfo = '{"specialCharacters":[';
+		for (var i=0; i<jQuery('.trSpecialCharacter').length; i++)
+		{ 
+			specialCharactersInfo += '{"name" :"'+document.getElementById("speCharName").options[i].value+'",';
+			specialCharactersInfo += '"value" :"'+document.getElementById("speCharValue").options[i].value+'"}';
+			if ( i < jQuery('.trSpecialCharacter').length - 1 )
+            {
+                specialCharactersInfo += ',';
+            }
+		}
+		specialCharactersInfo += ']}';
+		$("#specialCharactersInfo").val(specialCharactersInfo);
+		
+		var trackedEntityAttributeCodes = '{"trackedEntityAttributeCodes":[';
+		
+		for (var i=1; i<= jQuery('.trackedEntityAttribute').length; i++)
+		{ 
+			trackedEntityAttributeCodes += '{"trackedEntityAttributeId" :"'+document.getElementById("attId"+i).value+'",';
+			trackedEntityAttributeCodes += '"code" :"'+document.getElementById("attCode"+i).value+'"},';	
+		}
+		trackedEntityAttributeCodes += ']}';
+		$("#trackedEntityAttributeCodes").val(trackedEntityAttributeCodes);
+		
+		
+		
+		
+		var programStageDataElementCodes = '{"programStageDataElementCodes":[';	
+		
+		for (var i=1; i<= jQuery('.programStageDataElement').length; i++)
+		{ 
+			programStageDataElementCodes += '{"programStageDataElementId" :"'+document.getElementById("attId"+i).value+'",';
+			programStageDataElementCodes += '"compulsory" : "'+document.getElementById("attreq"+i).value+'",';
+			programStageDataElementCodes += '"code" :"'+document.getElementById("attCode"+i).value+'"},';	
+		}
+		
+		programStageDataElementCodes = programStageDataElementCodes.slice(0,programStageDataElementCodes.length-1);
+		programStageDataElementCodes += ']}';
+		$("#programStageDataElementCodes").val(programStageDataElementCodes);		
+		
+		
+		$("#updateSMSCommandForm").submit();
+    };
+	
+	function checkDuplicatedCode( value, index )
+	{
+		for (var i=1; i<=jQuery('.trDataElementCode').length; i++ )
+		{
+			if ( i != index )
+			{
+				var otherValue = document.getElementById('codeValue'+i).value;
+				if( value!='' && value == otherValue )
+				{
+					markInvalid( 'codeValue'+index, 'Duplicated Code' );
+					break;
+				}
+				else
+				{
+					markValid( 'codeValue'+index );
+				}
+			} 
+		}
+	};
+	
+	function checkDuplicatedSpeCharName( value, index )
+	{
+		for (var i=1; i<=jQuery('.trSpecialCharacter').length; i++ )
+		{
+			if ( i != index )
+			{
+				var otherValue = document.getElementById('name'+i).value;
+				if( value!='' && value == otherValue )
+				{
+					markInvalid( 'name'+index, 'Duplicated Name' );
+					break;
+				}
+				else
+				{
+					markValid( 'name'+index );
+				}
+			}
+		}
+	};
+	
+	function checkDuplicatedSpeCharValue( value, index )
+	{
+		for (var i=1; i<=jQuery('.trSpecialCharacter').length; i++ )
+		{
+			if ( i != index )
+			{
+				var otherValue = document.getElementById('value'+i).value;
+				if( value!='' && value == otherValue )
+				{
+					markInvalid( 'value'+index, 'Duplicated Value' );
+					break;
+				}
+				else
+				{
+					markValid( 'value'+index );
+				}
+			}
+		}
+	};
+	var i18_special_characters = '$encoder.jsEscape( $i18n.getString( "special_characters" ) , "'" )';
+	var i18_value = '$encoder.jsEscape( $i18n.getString( "value" ) , "'" )';
+	
+	jQuery(document).ready(function() {
+		changeParserType( getFieldValue( 'parserType' ) );
+		validation( "updateSMSCommandForm" );
+		checkValueIsExist( "name", "validateSMSCommand.action", {id:"$selectedCommandID"});
+		
+		$("#targetDataElement").change( function() {
+			$("#selectedTargetDataElement").html($("#targetDataElement option:selected").text());
+		});
+		
+	});
+	
+
+	
+</script>
+
+<h3>$i18n.getString( "edit_command" )</h3>
+
+<form id="updateSMSCommandForm" name="updateSMSCommandForm" action="saveEditSMSCommandForm.action" method="post">
+	<select id='speCharName' name="speCharName" multiple="multiple" class="hidden"></select>
+	<select id='speCharValue' name="speCharValue" multiple="multiple" class="hidden"></select>
+	<table>
+		<thead>
+		  <tr>
+			<th colspan="2">$i18n.getString( "command_details" )</th>
+		  </tr>
+		</thead>
+		<tr>
+			<td></td>
+			<td>
+				<input type="hidden" value="$selectedCommandID" name="selectedCommandID" />
+			</td>
+		</tr>
+		<tr>
+			<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td><input type="text" name="name" id="name" value="$smsCommand.name" class="{validate:{required:true}}" /></td>
+		</tr>
+		<tr>
+			<td><label for="parser">$i18n.getString( "parser" )</label></td>
+			<td>#if($smsCommand.parserType) $i18n.getString( "$smsCommand.parserType" ) #end</td>
+		</tr>
+		
+		#if( $smsCommand.parserType == 'KEY_VALUE_PARSER' || $smsCommand.parserType == 'J2ME_PARSER' || $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' || $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER')
+		<tbody id="codes">
+		<tr>
+			<td><label for="dataset">$i18n.getString( "dataset" )</label></td>
+			<td>#if($smsCommand.dataset.name) $smsCommand.dataset.name #end</td>
+		</tr>
+		<tr>
+			<td><label for="completenessMethod">$i18n.getString( "completeness_method" )</label></td>
+			<td>
+				<select id="completenessMethod" name="completenessMethod">
+					<option value="1" #if($smsCommand.completenessMethod == 1) selected #end>$i18n.getString( "receive_all_datavalue" )</option>
+					<option value="2" #if($smsCommand.completenessMethod == 2) selected #end>$i18n.getString( "receive_at_least_one_datavalue" )</option>
+					<option value="3" #if($smsCommand.completenessMethod == 3) selected #end>$i18n.getString( "do_not_mark_complete" )</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+	       <td><label for="currentPeriodUsedForReporting">Use current period for reporting</label></td>
+		   <td><input type="checkbox" id='currentPeriodUsedForReporting' name="currentPeriodUsedForReporting" #if($smsCommand.currentPeriodUsedForReporting) checked #end /></td>
+		</tr>   
+
+        <tr>
+			<td><label for="separator">$i18n.getString( "code_value_separator" )</label></td>
+			<td>
+				<input type="text" #if($smsCommand.separator) value="$smsCommand.separator" #end id="separator" name="separator" class="validate" />
+			</td>
+		</tr>
+		
+		<tr>
+            <td><label for="defaultMessage">$i18n.getString( "no_codes_message" )</label></td>
+            <td><textarea cols="35" type="text" id="defaultMessage" name="defaultMessage">#if($smsCommand.defaultMessage)$smsCommand.defaultMessage#end</textarea></td>
+        </tr>
+        <tr>
+            <td><label for="wrongFormatMessage">$i18n.getString( "wrong_format_message" )</label></td>
+            <td><textarea cols="35" type="text" id="wrongFormatMessage" name="wrongFormatMessage">#if($smsCommand.wrongFormatMessage)$smsCommand.wrongFormatMessage#end</textarea></td>
+        </tr>
+        <tr>
+            <td><label for="noUserMessage">$i18n.getString( "no_user_message" )</label></td>
+            <td><textarea cols="35" type="text" name="noUserMessage">#if($smsCommand.noUserMessage)$smsCommand.noUserMessage#end</textarea></td>
+        </tr>
+        
+		<tr>
+            <td><label for="moreThanOneOrgUnitMessage">$i18n.getString( "more_than_one_orgunit_message" )</label></td>
+            <td><textarea cols="35" type="text" id="moreThanOneOrgUnitMessage" name="moreThanOneOrgUnitMessage">#if($smsCommand.moreThanOneOrgUnitMessage)$smsCommand.moreThanOneOrgUnitMessage#end</textarea></td>
+        </tr>
+        
+        <tr>
+            <td><label for="successMessage">$i18n.getString( "success_message" )</label></td>
+            <td><textarea cols="35" type="text" id="successMessage" name="successMessage">#if($smsCommand.successMessage)$smsCommand.successMessage#end</textarea></td>
+        </tr>
+		 
+		#elseif( $smsCommand.parserType == 'ALERT_PARSER' || $smsCommand.parserType == 'UNREGISTERED_PARSER' )
+		<tr>
+			<td><label for="userGroupID">$i18n.getString( "userGroup" )</label></td>
+			<td>
+				<select id="userGroupID" name="userGroupID" >
+				#foreach( $userGroup in $userGroupList )
+					<option value="$userGroup.id" #if($smsCommand.userGroup == $userGroup) selected #end>$userGroup.name</option>
+				#end
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="receivedMessage">$i18n.getString("confirm_message")</label></td>
+			<td><textarea cols="35" type="text" id="receivedMessage" name="receivedMessage">#if($smsCommand.receivedMessage)$smsCommand.receivedMessage#end</textarea></td>
+		</tr>
+		#end
+        
+	#if( $smsCommand.parserType == 'KEY_VALUE_PARSER' || $smsCommand.parserType == 'J2ME_PARSER' )
+    <tr>
+		<th colspan='2'>$i18n.getString( "data_element_category_combination")</th>
+	</tr>
+		#set($index = 0)
+        #foreach( $dataElement in $dataElements)
+			#set($index = $index + 1)
+            #if ($dataElement.categoryCombo && $dataElement.categoryCombo.sortedOptionCombos)
+				#set ($index = $index - 1)
+				#foreach($x in $dataElement.categoryCombo.sortedOptionCombos)
+					#set ($index = $index + 1)
+					
+					#set ($str = ""+$dataElement.id+""+$x.id)
+                       <tr class="trDataElementCode">
+                           <td><label for="codeId$index">$dataElement.name $x.name</label>
+                           </td>
+                           <td>
+								<input type="hidden" id="codeId$index" name="codeId$index" value="$dataElement.id.$x.id"/>
+								<input type="text" id="codeValue$index" name="codeValue$index" class="{validate:{required:true}}" value='$!codes[$str]' onblur="checkDuplicatedCode(this.value, $index)"/>
+						   </td>
+						   <td>
+								#if( $dataElement.valueType.isNumeric() )
+									#if ($formulas[$str])
+										<input type="button" name="addFormula$index" id="addFormula$index" value="Edit Formula" onclick="openFormulaForm('$dataElement.name $x.name', '$index')"/>
+									#else
+										<input type="button" name="addFormula$index" id="addFormula$index" value="Add Formula" onclick="openFormulaForm('$dataElement.name $x.name', '$index')"/>
+									#end
+								#end
+								<input type="hidden" id="formula$index" value='$!formulas[$str]'/>
+						   </td>
+                       </tr>
+				#end
+            #else
+            <tr class="dataElementCode">
+               <td><label for="$dataElement.id">$dataElement.name</label></td>
+               <td><input type="text" id="$dataElement.id" name="$dataElement.id"></td>   
+            </tr>         
+            #end  
+         #end
+	</tbody>	 
+    <tr>
+        <th colspan='2'>$i18n.getString( "special_characters" )</th>
+      </tr>
+    </thead>
+	<tbody id="specialCharacters">
+		#foreach( $specialCharacters in $smsCommand.specialCharacters )
+			<tr id="trSpecialCharacter$velocityCount" name="trSpecialCharacter$velocityCount" class="trSpecialCharacter">
+				<td><input type="text" id="name$velocityCount" name="name$velocityCount" class="name {validate:{required:true}}" value="$specialCharacters.name" onblur="checkDuplicatedSpeCharName(this.value, $velocityCount)" placeholder='$i18n.getString( "special_characters" )'/></td>
+				<td><input type="text" id="value$velocityCount" name="value$velocityCount" class="value {validate:{required:true}}" value="$specialCharacters.value" onblur="checkDuplicatedSpeCharValue(this.value, $velocityCount)" placeholder='$i18n.getString( "value" )'/></td>
+				<td><input type="button" value="remove" onclick="removeSpecialCharactersForm($velocityCount)"/></input>
+			</tr>
+		#end
+	</tbody>
+	<tr>
+		<td col="2"><input type="button" value="$i18n.getString('add_more')" onclick="generateSpecialCharactersForm()"/><td>
+	</tr>    #end
+    
+    #if( $smsCommand.parserType == 'TRACKED_ENTITY_REGISTRATION_PARSER' )
+    	<tbody id="codes">
+	      <tr>
+	        <th colspan='2'>$i18n.getString( "tracked_entity_attribute")</th>
+	      </tr>
+	    </thead>
+	    #set($index = 0)
+    	#foreach($attribute in $trackedEntityAttributeList)
+    		
+	    #set ($index = $index + 1)
+	    
+    		 <tr class="trackedEntityAttribute">
+               <td>
+				   <label for="attCode$index">$attribute.name</label>
+				   <input type="hidden" id="attId$index" name="attId$index" value="$attribute.id"/>
+			   </td>
+               <td><input type="text" name="attCode$index" id="attCode$index" class="{validate:{required:true}}" value='$!codes["$attribute.id"]'></td>   
+            </tr>      
+	    #end
+    #end
+    
+    
+    
+    
+     #if( $smsCommand.parserType == 'EVENT_REGISTRATION_PARSER' )
+    	<tbody id="codes">
+	      <tr>
+	        <th colspan='2'>$i18n.getString( "program_stage_data_elements")</th>
+	      </tr>
+	    </thead>
+	    #set($index = 0)
+    	#foreach($attribute in $programStageDataElementList)
+    		
+	    #set ($index = $index + 1)
+	    
+    		 <tr class="programStageDataElement">
+               <td>
+				   <label for="attCode$index">$attribute.dataElement.name</label>
+				   <input type="hidden" id="attId$index" name="attId$index" value="$attribute.dataElement.id"/>
+				   
+				   <input type="hidden" id="attreq$index" name="attreq$index" value="$attribute.compulsory"/>
+				   
+			   </td>
+               <td><input type="text" name="attCode$index" id="attCode$index" class="{validate:{required:true}}" value='$!codes["$attribute.dataElement.id"]'></td>   
+            </tr>      
+	    #end
+    #end
+    
+    
+    
+    
+    
+    
+    
+
+</table>
+
+	<br/>	
+    <input type="hidden" name="codeDataelementOption" id="codeDataelementOption" />
+	<input type="hidden" name="specialCharactersInfo" id="specialCharactersInfo" />
+	<input type="hidden" name="trackedEntityAttributeCodes" id="trackedEntityAttributeCodes" />
+	<input type="hidden" name="programStageDataElementCodes" id="programStageDataElementCodes" />
+	
+	
+    <input type="button" style="width: 100px" onclick="prepSubmit()" value="$i18n.getString( 'save' )" />
+    <input type="button" id="btnBack" name="btnBack" value="$i18n.getString('cancel')" style="width:8em" onclick="window.location.href='SMSCommands.action'"/>
+</form>
+
+<script type="text/javascript">
+var i18n_no_constant_to_select = '$encoder.jsEscape( $i18n.getString( "no_constant_to_select" ) , "'")';
+var i18n_no_dataelement_to_select = '$encoder.jsEscape( $i18n.getString( "no_dataelement_to_select" ) , "'")';
+var i18n_edit_numerator = '$encoder.jsEscape( $i18n.getString( "edit_numerator" ) , "'")';
+var i18n_edit_denominator = '$encoder.jsEscape( $i18n.getString( "edit_denominator" ) , "'")';
+
+jQuery( document ).ready( function(){
+
+	dialog = jQuery("#formula-form-container").dialog({
+		modal: true,
+		autoOpen: false,
+		minWidth: 500,
+		width: 500
+	});
+});
+</script>
+
+<div id="formula-form-container">
+	<select id="targetDataElement">
+		<option value="">Please select</option>
+		#foreach( $dataElement in $dataElements)
+			#if($dataElement.valueType.isNumeric() )
+				<option value="$dataElement.id">$dataElement.name</option>
+			#end
+		#end
+	<select/><br>
+	= <br>
+	<label id="selectedTargetDataElement"></label><br>
+	<select name="operator" id="operator">
+		<option value="">Please select</option>
+		<option value="+">+</option>
+		<option value="-">-</option>
+	<select><br>
+	<label id="displayName"></label><br>
+	<input type="hidden" id="index"/>
+	<div>
+		<input type="button" value="$i18n.getString( 'save' )" style="width:125px" onclick="collectFormula()"/>
+		<input type="button" value="$i18n.getString( 'cancel' )" style="width:125px" onclick="closeFormulaForm()"/>
+		<input type="button" name="removeButton" id="removeButton" value="$i18n.getString( 'remove' )" style="width:125px" onclick="closeAndFormulaForm()"/>
+	</div>
+</div>

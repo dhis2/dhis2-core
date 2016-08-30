@@ -1,0 +1,79 @@
+<script type="text/javascript">
+	jQuery(document).ready(function(){
+		datePickerInRange( 'startDate' , 'endDate' );
+
+		selectionTreeSelection.setMultipleSelectionAllowed( false );
+		selectionTreeSelection.setListenerFunction( organisationUnitSelected );
+		selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+	});
+	
+	var i18n_analysing_please_wait = '$encoder.jsEscape( $i18n.getString( "analysing_please_wait" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "run_validation" ) #openHelp( "validationRuleAnalysis" )</h3>
+
+<div id="analysisInput">
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( 'select_parameters' )</th>
+	</tr>
+    <tr>
+    	<td>
+        	<label for="startDate">$i18n.getString( 'start_date' )</label>
+        </td>
+        <td>
+        	<input type="text" id="startDate" name="startDate" style="width:20em">        	
+    	</td>
+    </tr>
+    <tr>    	
+        <td>
+        	<label for="endDate">$i18n.getString( 'end_date' )</label>
+        </td>
+        <td>
+        	<input type="text" id="endDate" name="endDate" style="width:20em">        	
+    	</td>
+    </tr>
+    <tr>
+    	<td>
+    		<label for="validationRuleGroup">$i18n.getString( "validation_rule_group" )</label>
+	    </td>
+	    <td>
+	    	<select id="validationRuleGroupId" name="validationRuleGroupId" style="width:20em">
+	    		<option value="-1">[ $i18n.getString( "all_validation_rules" ) ]</option>
+	    		#foreach( $group in $validationRuleGroups )
+	    			<option value="$group.id">$encoder.htmlEncode( $!group.displayName )</option>
+		    	#end
+            </select>
+    	</td>
+    </tr>
+    <tr>
+    	<td>
+    		<label for="sendAlerts">$i18n.getString( "send_alerts" )</label>
+    	</td>
+    	<td>
+    		<input type="checkbox" id="sendAlerts" name="sendAlerts">
+	    </td>
+    </tr>
+    <tr>
+    	<td colspan="2" style="height:20px"></td>
+    </tr>
+    <tr>
+        <th colspan="2">$i18n.getString( "select_parent_organisation_unit" )</th>
+    </tr>
+    <tr>
+        <td colspan="2">
+    		<div id="selectionTree" style="width:400px;height:260px;overflow:auto;border:1px solid #cccccc"></div>
+    	</td>
+    </tr>
+    <tr>
+    	<td>
+    		<input id="validateButton" type="button" value="$i18n.getString( 'validate' )" style="width:10em" onclick="validateRunValidation()">
+    	</td>
+    	<td></td>
+    </tr>
+</table>
+
+</div>
+
+<div id="analysisResult"></div>

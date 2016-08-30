@@ -1,0 +1,13 @@
+#set( $size = $constants.size() )
+{ "constants": [
+#foreach( $constant in $constants )
+  {
+    "constantId": "$!{constant.id}",
+    "constantName": "$!encoder.jsonEncode( ${constant.name} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

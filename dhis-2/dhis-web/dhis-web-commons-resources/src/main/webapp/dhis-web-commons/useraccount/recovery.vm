@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>$encoder.htmlEncode( $applicationTitle )</title>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="../javascripts/useraccount/recovery.js"></script>
+    <link type="text/css" rel="stylesheet" href="../css/account.css">
+</head>
+<body>
+
+<div id="accountHeader"></div>
+
+<div id="accountContainer">
+
+<div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
+
+<div id="accountInput">
+
+<h3><span id="accountRecovery">$i18n.getString( "account_recovery" )</span></h3>
+
+<form id="recoveryForm">
+
+<table>
+    <tr>
+        <td style="width:100px"><label id="labelUsername" for="username">$i18n.getString( "user_name" )</label></td>
+        <td><input type="text" id="username" name="username" autocomplete="off"></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><input id="recoveryButton" type="button" value="$i18n.getString( 'recover' )" style="width:10em" onclick="recoverAccount()"></td>
+    </tr>
+</table>
+
+</form>
+
+<div id="recoverySuccessMessage" style="display:none">$i18n.getString( 'recover_success_message' )</div>
+
+<div id="recoveryErrorMessage" style="display:none">$i18n.getString( 'recover_error_message' )</div>
+
+
+</div>
+
+</div>
+
+</body>
+</htm>

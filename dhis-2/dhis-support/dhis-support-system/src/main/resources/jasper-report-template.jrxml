@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report1" pageWidth="612" pageHeight="792" whenNoDataType="AllSectionsNoDetail" columnWidth="572" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="df48aa2c-3795-40ea-8bb4-7e8988796c80">
+    <property name="ireport.zoom" value="1.3310000000000004"/>
+    <property name="ireport.x" value="0"/>
+    <property name="ireport.y" value="0"/>
+    <parameter name="periods" class="java.lang.String"/>
+    <parameter name="periods_iso" class="java.lang.String"/>
+    <parameter name="period_name" class="java.lang.String"/>
+    <parameter name="organisationunits" class="java.lang.String"/>
+    <parameter name="organisationunits_uid" class="java.lang.String"/>
+    <parameter name="organisationunit_name" class="java.lang.String"/>
+    <parameter name="organisationunit_level" class="java.lang.Integer"/>
+    <parameter name="organisationunit_level_column" class="java.lang.String"/>
+    <parameter name="organisationunit_uid_level_column" class="java.lang.String"/>
+    <background>
+        <band splitType="Stretch"/>
+    </background>
+    <title>
+        <band height="335" splitType="Stretch">
+            <staticText>
+                <reportElement uuid="ac60f476-8e83-423f-b4a9-626128dc5563" x="0" y="14" width="558" height="37"/>
+                <textElement>
+                    <font size="11" isBold="true"/>
+                </textElement>
+                <text><![CDATA[This template contains a set of parameters which you can use directly in SQL to make dynamic reports]]></text>
+            </staticText>
+            <staticText>
+                <reportElement uuid="b9814cb8-49b5-46c1-a31a-b9e0b3c38b91" x="0" y="73" width="366" height="20"/>
+                <textElement/>
+                <text><![CDATA[periods: string of comma-separated db ids of selected relative period]]></text>
+            </staticText>
+            <staticText>
+                <reportElement uuid="97dcf9d1-0d3b-4573-86b9-3b6349187063" x="0" y="136" width="366" height="20"/>
+                <textElement/>
+                <text><![CDATA[organisationunits: db id of selected organisation unit]]></text>
+            </staticText>
+            <staticText>
+                <reportElement uuid="22c8da34-3b81-43c0-ac15-733ae130ea6c" x="0" y="178" width="366" height="20"/>
+                <textElement/>
+                <text><![CDATA[organisationunit_name: name of selected organisation unit]]></text>
+            </staticText>
+            <staticText>
+                <reportElement uuid="c43ce8d1-73fe-47aa-9005-e8ff1ef77865" x="0" y="199" width="366" height="20"/>
+                <textElement/>
+                <text><![CDATA[organisationunit_level: level of selected organisation unit]]></text>
+            </staticText>
+            <staticText>
+                <reportElement uuid="f5e4800f-0f16-4ea4-ac58-985b46b32373" x="0" y="220" width="366" height="33"/>
+                <textElement/>
+                <text><![CDATA[organisationunit_level_column: name of the corresponding id column in _orgunitstructure resource table]]></text>
+            </staticText>
+            <textField>
+                <reportElement uuid="83d8575f-02ee-4a79-b438-86d4047cef2c" x="367" y="73" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{periods}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement uuid="78bd3c7a-312a-49a5-9ec6-aa1a6a054620" x="367" y="136" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{organisationunits}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement uuid="ced2e65b-fbd3-415f-b621-a32c2d747515" x="367" y="178" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{organisationunit_name}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement uuid="99fc81bf-ac4a-445a-9864-eafe0b7f8d40" x="367" y="199" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{organisationunit_level}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement uuid="671106c8-b073-447f-ae80-5d616d191836" x="367" y="220" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{organisationunit_level_column}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement uuid="b9814cb8-49b5-46c1-a31a-b9e0b3c38b91" x="0" y="115" width="366" height="20"/>
+                <textElement/>
+                <text><![CDATA[period_name: name of selected period]]></text>
+            </staticText>
+            <textField>
+                <reportElement uuid="066345c4-7cac-4e08-8d46-7d2cfbaa8b9e" x="367" y="115" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{period_name}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement uuid="b9814cb8-49b5-46c1-a31a-b9e0b3c38b91" x="0" y="94" width="366" height="20"/>
+                <textElement/>
+                <text><![CDATA[periods_iso: string of comma-separated iso ids of selected relative period]]></text>
+            </staticText>
+            <textField>
+                <reportElement uuid="83d8575f-02ee-4a79-b438-86d4047cef2c" x="367" y="94" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{periods_iso}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement uuid="97dcf9d1-0d3b-4573-86b9-3b6349187063" x="0" y="157" width="366" height="20"/>
+                <textElement/>
+                <text><![CDATA[organisationunits_uid: uid of selected organisation unit]]></text>
+            </staticText>
+            <textField>
+                <reportElement uuid="78bd3c7a-312a-49a5-9ec6-aa1a6a054620" x="367" y="157" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{organisationunits_uid}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement uuid="f5e4800f-0f16-4ea4-ac58-985b46b32373" x="1" y="255" width="366" height="33"/>
+                <textElement/>
+                <text><![CDATA[organisationunit_level_uid_column: name of the corresponding id column in _orgunitstructure resource table]]></text>
+            </staticText>
+            <textField>
+                <reportElement uuid="671106c8-b073-447f-ae80-5d616d191836" x="368" y="255" width="205" height="20"/>
+                <textElement/>
+                <textFieldExpression><![CDATA[$P{organisationunit_uid_level_column}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement uuid="0cd878e0-db70-494c-9b8a-0011618db404" x="1" y="303" width="571" height="19"/>
+                <textElement/>
+                <text><![CDATA[Tip: To make params render as text in SQL queries, put a "!" after $P in the parameter syntax. ]]></text>
+            </staticText>
+        </band>
+    </title>
+    <pageHeader>
+        <band height="35" splitType="Stretch"/>
+    </pageHeader>
+    <columnHeader>
+        <band height="39" splitType="Stretch"/>
+    </columnHeader>
+    <detail>
+        <band height="44" splitType="Stretch"/>
+    </detail>
+    <columnFooter>
+        <band height="45" splitType="Stretch"/>
+    </columnFooter>
+    <pageFooter>
+        <band height="42" splitType="Stretch"/>
+    </pageFooter>
+    <summary>
+        <band height="38" splitType="Stretch"/>
+    </summary>
+</jasperReport>

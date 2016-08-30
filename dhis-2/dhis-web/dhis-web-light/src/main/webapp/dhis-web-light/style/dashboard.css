@@ -1,0 +1,174 @@
+
+/*----------------------------------------------------------------------------*/
+/* Dashboard                                                                  */
+/*----------------------------------------------------------------------------*/
+
+body {
+  margin: 0px;
+  padding: 0px;
+  font-family: sans-serif;
+  background-color: #35699f;
+  color: #ffffff;
+}
+
+table th {
+  text-align: left;
+  white-space: nowrap;
+}
+  
+h3 {
+  margin-left: 10px;
+}
+
+h5 {
+  margin-left: 10px;
+}
+
+.headerDiv {
+  position: relative;
+  width: 100%;
+  font-size: 1em;
+  background-color: #000000;
+  padding-top: 0.6em;
+  padding-bottom: 0.6em;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+}
+
+.header {
+  margin: 1em;
+}
+
+.contentDiv {
+  position: relative;
+  width: 100%;
+}
+
+.contentChartDiv {
+  margin-top: 1em;
+  padding-top: 1.5em;
+  padding-bottom: 1.5em;
+  margin-bottom: 1em;
+  background-color: #ffffff;
+}
+
+.contentItemDiv {
+  font-size: 1em;
+  padding: 1.2em;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+}
+
+.labelDiv {
+  font-size: 1em;
+  margin-top: 0.9em;
+  margin-bottom: 0.4em;
+  margin-left: 0.3em;
+}
+
+.pageDiv { 
+  margin-left: 0.3em;
+}
+
+/*----------------------------------------------------------------------------*/
+/* List table                                                                 */
+/*----------------------------------------------------------------------------*/
+
+.listTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.listTable th {
+  background-color: #000000;
+  color: #ffffff;
+  padding-top: 0.2em;
+  padding-bottom: 0.2em;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #cad5e5;
+}
+
+.listTable td {
+  padding: 0.2em;
+  white-space: nowrap;
+}
+
+.listRow {
+  border-bottom: 1px solid #cad5e5;
+}
+
+.listAlternateRow {
+  border-bottom: 1px solid #cad5e5;
+  background-color: #ebf0f6;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Organisation Unit Selection Tree                                           */
+/*----------------------------------------------------------------------------*/
+
+div#selectionTree 
+{
+  font-size: 1em;
+  background-color: white;
+  overflow:auto;
+  border:1px solid #cccccc;   
+}
+
+div#selectionTree ul 
+{
+  padding: 0em;
+  margin: 0em;
+}
+
+div#selectionTree li 
+{
+  margin: 0em 0em 0em 1.1em;
+  list-style-type: none;
+  white-space: nowrap;
+}
+
+div#selectionTree span.toggle 
+{
+  font-family: courier new, monospace;
+  font-size: 1em;
+  cursor: pointer;
+}
+
+div#selectionTree a 
+{
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+div#selectionTree a:hover 
+{
+  color: #808080;
+}
+
+div#selectionTree a.selected 
+{
+  color: orange;
+}
+
+div#selectionTree a.locked 
+{
+  color: green;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Message                                                                    */
+/*----------------------------------------------------------------------------*/
+
+span#message 
+{
+  display: none;
+  padding: 0.9em;
+  margin: 0.3em;
+  background-color: #ffffbf;
+  border: 1px solid #cccc00;
+  width: 272px;
+  color: #000000;
+}

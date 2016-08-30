@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.programrule.ProgramRuleAction" table="programruleaction">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programruleactionid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <many-to-one name="programRule" class="org.hisp.dhis.programrule.ProgramRule"
+      column="programruleid" foreign-key="fk_programruleaction_programrule" />
+
+    <property name="programRuleActionType" column="actiontype" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.programrule.ProgramRuleActionType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+      column="dataelementid" foreign-key="fk_programruleaction_dataelement" />
+
+    <many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+      column="trackedentityattributeid" foreign-key="fk_programruleaction_trackedentityattribute" />
+
+    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator"
+      column="programindicatorid" foreign-key="fk_programruleaction_programindicator" />
+
+    <many-to-one name="programStageSection" class="org.hisp.dhis.program.ProgramStageSection"
+      column="programstagesectionid" foreign-key="fk_programruleaction_programstagesection" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" foreign-key="fk_programruleaction_programstage" />
+
+    <property name="location" />
+
+    <property name="content" type="text" />
+
+    <property name="data" type="text" />
+
+  </class>
+
+</hibernate-mapping>

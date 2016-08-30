@@ -1,0 +1,54 @@
+<script>
+	jQuery(document).ready(	function(){
+		validation2( 'updateTrackedEntityForm', function( form )
+		{
+			form.submit();
+		},{
+			'rules' : getValidationRules( "trackedEntity" ),
+      'beforeValidateHandler' : function() {
+        #tblDynamicAttributesJavascript()
+      }
+		});
+		
+		checkValueIsExist( "name", "validateTrackedEntity.action", {id:getFieldValue('id')});
+	});	
+</script>
+
+<h3>$i18n.getString( "edit_tracked_entity" )</h3>
+<form id="updateTrackedEntityForm" action="updateTrackedEntity.action" method="post" class="inputForm">
+
+<input type='hidden' id='id' name='id' value='$trackedEntity.id'/>
+
+  <table id="attrTable">
+	<thead>
+		<tr><th colspan="2">$i18n.getString( "tracked_entity_details" )</th></tr>
+    </thead>
+	
+    <tbody>
+		<tr>
+			<td style="width:200px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td><input type="text" id="name" name="name" class="{validate:{required:true,rangelength:[2,160]}}" value='$encoder.htmlEncode($trackedEntity.name)' /></td>
+			<td></td>
+		</tr>   
+		
+		<tr>
+			<td><label for="description">$i18n.getString( "description" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td><input type="text" id="description" name="description" class="{validate:{required:true,minlength:2}}" value='$encoder.htmlEncode($trackedEntity.description)' /></td>
+			<td></td>
+		</tr>
+    </tbody>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<table>
+  <tr>
+		<td></td>
+		<td>
+			<input type="submit" value="$i18n.getString( 'update' )" style="width:10em"/>
+			<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='trackedEntity.action'" style="width:10em"/>
+		</td>
+	</tr>
+</table>
+
+</form>   

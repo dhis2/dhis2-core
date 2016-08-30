@@ -1,0 +1,82 @@
+{
+  "dataElements": [
+    {
+      "lastUpdated": "2016-01-15T15:44:11.475+0000",
+      "aggregationLevels": [],
+      "name": "Birth certificate",
+      "created": "2016-01-15T11:13:32.416+0000",
+      "shortName": "Birth certificate",
+      "domainType": "TRACKER",
+      "aggregationType": "SUM",
+      "id": "uf3svrmp8Oj",
+      "valueType": "FILE_RESOURCE",
+      "userGroupAccesses": [],
+      "publicAccess": "rw------",
+      "user": {
+        "id": "GOLswS44mh8"
+      },
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "p0KPaWEg3cf"
+      },
+      "attributeValues": []
+    },
+    {
+      "aggregationType": "SUM",
+      "publicAccess": "rw------",
+      "userGroupAccesses": [],
+      "valueType": "FILE_RESOURCE",
+      "id": "ulD2zW0TIy2",
+      "attributeValues": [],
+      "categoryCombo": {
+        "id": "p0KPaWEg3cf"
+      },
+      "user": {
+        "id": "GOLswS44mh8"
+      },
+      "zeroIsSignificant": false,
+      "name": "Documentation",
+      "lastUpdated": "2016-01-15T15:44:11.475+0000",
+      "aggregationLevels": [],
+      "created": "2016-01-15T11:13:00.541+0000",
+      "shortName": "Documentation",
+      "domainType": "TRACKER"
+    },
+    {
+      "id": "cNkTt6mJQyO",
+      "userGroupAccesses": [],
+      "user": {
+        "id": "GOLswS44mh8"
+      },
+      "description": "Yebo",
+      "zeroIsSignificant": false,
+      "attributeValues": [
+        {
+          "lastUpdated": "2016-01-12T04:53:21.853+0000",
+          "attribute": {
+            "id": "Z4X3J7jMLYV"
+          },
+          "created": "2016-01-12T04:53:21.454+0000",
+          "value": "ACTIVITY"
+        }
+      ],
+      "shortName": "Yebo",
+      "lastUpdated": "2016-01-12T04:53:21.840+0000",
+      "created": "2016-01-12T04:53:21.826+0000",
+      "optionSet": {
+        "id": "pQYCiuosBnZ"
+      },
+      "valueType": "NUMBER",
+      "publicAccess": "rw------",
+      "formName": "Yebo",
+      "categoryCombo": {
+        "id": "p0KPaWEg3cf"
+      },
+      "code": "Yebo",
+      "aggregationType": "SUM",
+      "domainType": "TRACKER",
+      "aggregationLevels": [],
+      "name": "Yebo"
+    }
+  ]
+}

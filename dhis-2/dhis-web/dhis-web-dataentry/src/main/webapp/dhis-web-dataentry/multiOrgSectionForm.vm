@@ -1,0 +1,248 @@
+#set( $marker = 0 )
+#set( $tabIndex = 1 )
+#set( $hasAccess = $auth.hasAccess( "dhis-web-dataentry", "saveValue" ) )
+
+#foreach( $section in $sections )
+
+#if( $marker == 1 )
+  #set( $marker = 0 )
+#else
+  #set( $marker = 1 )
+#end
+
+#if( !$dataSet.renderHorizontally ) ## Render horizontally
+<table class="formSection" data-multiorg="true" style="margin-bottom: 20px;">
+<tr>
+  <td>
+    <div class="cent"><h3>$encoder.htmlEncode( $section.displayName )</h3></div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div>
+    <table cellspacing="0">
+    #set( $categoryComboId = $sectionCombos.get( $section.id ) )
+    #set( $colCount = $numberOfTotalColumns.get( $categoryComboId ) )
+    #set( $categories = $orderedCategories.get( $categoryComboId ) )
+    #set( $optionsMap = $orderedOptionsMap.get( $categoryComboId ) )
+    #set( $colRepeat = $catColRepeat.get( $categoryComboId ) )
+    #set( $isDefaultCategory = $categories.get( 0 ).name == "default" )
+
+    #if( $isDefaultCategory )
+        #set( $rowSpan = $optionsMap.size() )
+    #else
+        #set( $rowSpan = $optionsMap.size() + 1)
+    #end
+
+    <tr>
+        <td rowspan="$rowSpan"></td>
+        #foreach( $dataElement in $section.dataElements )
+        <th colspan="$colCount">$dataElement.getFormNameFallback()</th>
+        #end
+    </tr>
+
+    #if( !$isDefaultCategory )
+        #foreach( $category in $categories )
+            #set( $categoryOptions1 = $optionsMap.get( $category.id ) )
+            #set( $colCount = $colCount / $categoryOptions1.size() )
+            <tr colspan="$colCount">
+            #set( $cols = $colRepeat.get( $category.id ) )
+
+            #foreach( $dataElement in $section.dataElements )
+                #foreach( $col in $cols )
+                    #foreach( $categoryOption in $categoryOptions1 )
+                        <th colspan="$colCount"><span align="center">${encoder.htmlEncode( $categoryOption.displayName )}</span></th>
+                    #end
+                #end
+            #end
+            </tr>
+        #end
+    #end
+
+    #set( $count = 0 )
+    #set( $mark = 0 )
+    #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
+    #foreach( $optionCombo in $optionCombos )<span id="${optionCombo.uid}-optioncombo" class="hidden">${encoder.htmlEncode( $optionCombo.displayName )}</span>#end
+
+    #foreach( $organisationUnit in $organisationUnits )
+        #if( $mark == 1 )
+        #set( $mark = 0 )
+        #else
+        #set( $mark = 1 )
+        #end
+        #set( $count = $count + 1 )
+        #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
+        <tr>
+            <td #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $organisationUnit.displayName )}</td>
+
+            #foreach( $dataElement in $section.dataElements )
+                <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
+                #foreach( $optionCombo in $optionCombos )
+                #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
+                #set( $greyedField = false )
+                #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
+                #if( $dataElement.valueType == "BOOLEAN" )
+                <td><select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                  <option value="">[$i18n.getString( "no_value" )]</option>
+                  <option value="true">$i18n.getString( "yes" )</option>
+                  <option value="false">$i18n.getString( "no" )</option>
+                </select></td>
+                #elseif( $dataElement.valueType == 'TRUE_ONLY' )
+                    <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                #elseif( $dataElement.valueType == "TIME" )
+                    <td><input type="time" class="entrytime" name="entrytime" id="$dataEntryId" tabindex="$tabIndex"/> </td>
+                #else
+                    #if( $dataElement.optionSet )
+                        <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                    #else
+                        <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                    #end
+                #end
+                </td>
+                #set( $tabIndex = $tabIndex + 1 )
+                #end
+           #end
+        </tr>
+    #end
+	</table>
+    </div>
+    </td>
+  </tr>
+</table>
+#else ## Render vertically
+<table class="formSection" data-multiorg="true" style="margin-bottom: 20px;">
+<tr>
+  <td>
+    <div class="cent"><h3>$encoder.htmlEncode( $section.displayName )</h3></div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div>
+    <table cellspacing="0">
+    #set( $categoryComboId = $sectionCombos.get( $section.id ) )
+    #set( $colCount = $numberOfTotalColumns.get( $categoryComboId ) )
+    #set( $categories = $orderedCategories.get( $categoryComboId ) )
+    #set( $optionsMap = $orderedOptionsMap.get( $categoryComboId ) )
+    #set( $colRepeat = $catColRepeat.get( $categoryComboId ) )
+    #set( $isDefaultCategory = $categories.get( 0 ).name == "default" )
+
+    #if( $isDefaultCategory )
+        #set( $colSpan = 1 )
+        #set( $rowSpan = $optionsMap.size() )
+    #else
+        #set( $colSpan = ( $colCount / 2) + 1 )
+        #set( $rowSpan = $optionsMap.size() + 1)
+    #end
+
+    <tr>
+        <td colspan="$colSpan"></td>
+        #foreach( $organisationUnit in $organisationUnits )
+        <th><span align="center">${encoder.htmlEncode( $organisationUnit.displayName )}</span></th>
+        #end
+    </tr>
+
+    #set( $count = 0 )
+    #set( $mark = 0 )
+    #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
+    #foreach( $optionCombo in $optionCombos )<span id="${optionCombo.uid}-optioncombo" class="hidden">${encoder.htmlEncode( $optionCombo.displayName )}</span>#end
+
+    #foreach( $dataElement in $section.dataElements )
+        #if( $mark == 1 )
+        #set( $mark = 0 )
+        #else
+        #set( $mark = 1 )
+        #end
+        #set( $count = $count + 1 )
+        #if( $isDefaultCategory )
+        <tr>
+            <td rowspan="$colCount" #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</td>
+
+            #foreach( $organisationUnit in $organisationUnits )
+                <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
+                #foreach( $optionCombo in $optionCombos )
+                    #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
+                    #set( $greyedField = false )
+                    #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
+                    #if( $dataElement.valueType == "BOOLEAN" )
+                    <td><select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                      <option value="">[$i18n.getString( "no_value" )]</option>
+                      <option value="true">$i18n.getString( "yes" )</option>
+                      <option value="false">$i18n.getString( "no" )</option>
+                    </select></td>
+                    #elseif( $dataElement.valueType == 'TRUE_ONLY' )
+                        <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                    #elseif( $dataElement.valueType == "TIME" )
+                        <td><input type="time" class="entrytime" name="entrytime" id="$dataEntryId" tabindex="$tabIndex"/> </td>
+                    #else
+                        #if( $dataElement.optionSet )
+                            <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                        #else
+                            <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                        #end
+                    #end
+                    </td>
+                    #set( $tabIndex = $tabIndex + 1 )
+                #end
+            #end
+        </tr>
+        #else
+        #set( $catIndex = 0 )
+        #foreach( $optionCombo in $optionCombos )
+        #set( $velocityCount0 = $velocityCount - 1 )
+        #set( $catPart = $velocityCount0 % $categories.size() )
+        #if( $catPart == 0 ) #set( $catIndex = $catIndex + 1 ) #end
+        #set( $catCount = $catIndex - 1)
+        #set( $category1 = $categories.get( 0 ) )
+        #set( $category2 = $categories.get( 1 ) )
+        #set( $categoryOptions1 = $optionsMap.get( $category1.id ) )
+        #set( $categoryOptions2 = $optionsMap.get( $category2.id ) )
+        <tr>
+            #if( $velocityCount == 1 )
+                <td rowspan="$colCount" #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</td>
+            #end
+
+            #set( $catRowSpan = $colCount / 2)
+
+            #if( ($velocityCount % $catRowSpan) != 0 )
+                <td rowspan="$catRowSpan" #if( $mark == 1 )class="alt"#else class="reg"#end>$categoryOptions1.get( $catCount ).displayName</td>
+            #end
+
+            <td #if( $mark == 1 )class="alt"#else class="reg"#end>$categoryOptions2.get( $catPart ).displayName</td>
+
+            #foreach( $organisationUnit in $organisationUnits )
+                <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
+                #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
+                #set( $greyedField = false )
+                #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )
+                #if( $dataElement.valueType == "BOOLEAN" )
+                <td><select name="entryselect" class="entryselect" id="$dataEntryId" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end>
+                  <option value="">[$i18n.getString( "no_value" )]</option>
+                  <option value="true">$i18n.getString( "yes" )</option>
+                  <option value="false">$i18n.getString( "no" )</option>
+                </select></td>
+                #elseif( $dataElement.valueType == 'TRUE_ONLY' )
+                    <td><input name="entrytrueonly" class="entrytrueonly" id="$dataEntryId" type="checkbox" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                #elseif( $dataElement.valueType == "TIME" )
+                    <td><input type="time" class="entrytime" name="entrytime" id="$dataEntryId" tabindex="$tabIndex"/> </td>
+                #else
+                    #if( $dataElement.optionSet )
+                        <td><input name="entryoptionset" class="entryoptionset" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                    #else
+                        <td><input name="entryfield" class="entryfield" id="$dataEntryId" type="text" tabindex="$tabIndex"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
+                    #end
+                #end
+                </td>
+                #set( $tabIndex = $tabIndex + 1 )
+            #end
+        </tr>
+        #end
+        #end
+    #end
+	</table>
+    </div>
+    </td>
+  </tr>
+</table>
+#end
+#end

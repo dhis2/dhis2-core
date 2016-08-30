@@ -1,0 +1,373 @@
+<script>
+	var program_stage_SMS_reminder_form ="<select type='text' id='userGroup$index' name='userGroup$index' class='userGroup'>";
+	#foreach( $group in $userGroups )
+		program_stage_SMS_reminder_form += "<option value='$group.id'>$i18n.getString($group.name)</option>";
+	#end
+	program_stage_SMS_reminder_form +="</select>";
+</script>
+
+<script>
+  $(document).ready(function() {
+    validation2('addProgramStageForm', function( form ) {
+      form.submit();
+    }, {
+      'beforeValidateHandler': function() {
+        #tblDynamicAttributesJavascript()
+
+        var selectedDataElementsValidator = jQuery("#selectedDataElementsValidator");
+        selectedDataElementsValidator.empty();
+
+        var compulsories = jQuery("#compulsories");
+        compulsories.empty();
+
+        var displayInReports = jQuery("#displayInReports");
+        displayInReports.empty();
+
+        var daysAllowedSendMessages = jQuery("#daysAllowedSendMessages");
+        daysAllowedSendMessages.empty();
+
+        var allowFutureDates = jQuery("#allowFutureDates");
+        allowFutureDates.empty();
+
+        var templateMessages = jQuery("#templateMessages");
+        templateMessages.empty();
+
+        var allowProvidedElsewhere = jQuery("#allowProvidedElsewhere");
+        allowProvidedElsewhere.empty();
+
+        var sendTo = jQuery("#sendTo");
+        sendTo.empty();
+
+        var whenToSend = jQuery("#whenToSend");
+        whenToSend.empty();
+
+        var userGroup = jQuery("#userGroup");
+        userGroup.empty();
+
+        var messageType = jQuery("#messageType");
+        messageType.empty();
+
+        jQuery("#selectedList").find("tr").each(function( i, item ) {
+
+          selectedDataElementsValidator.append("<option value='" + item.id + "' selected='true'>" + item.id + "</option>");
+
+          var compulsory = jQuery(item).find("input[name='compulsory']:first");
+          var checked = compulsory.attr('checked') ? true : false;
+          compulsories.append("<option value='" + checked + "' selected='true'>" + checked + "</option>");
+
+          var allowProvided = jQuery(item).find("input[name='allowProvided']:first");
+          checked = allowProvided.attr('checked') ? true : false;
+          allowProvidedElsewhere.append("<option value='" + checked + "' selected='true'>" + checked + "</option>");
+
+          var displayInReport = jQuery(item).find("input[name='displayInReport']:first");
+          checked = displayInReport.attr('checked') ? true : false;
+          displayInReports.append("<option value='" + checked + "' selected='true'><" + checked + "/option>");
+
+          var allowFutureDate = jQuery(item).find("input[name='allowFutureDate']:first");
+          checked = allowFutureDate.attr('checked') ? true : false;
+          allowFutureDates.append("<option value='" + checked + "' selected='true'>" + checked + "</option>");
+        });
+        jQuery(".daysAllowedSendMessage").each(function( i, item ) {
+          var days = (jQuery(item).attr('realvalue') == undefined) ? 0 : jQuery(item).attr('realvalue');
+          daysAllowedSendMessages.append("<option value='" + days + "' selected='true'>" + days + "</option>");
+        });
+        jQuery(".templateMessage").each(function( i, item ) {
+          templateMessages.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
+        });
+        jQuery(".sendTo").each(function( i, item ) {
+          sendTo.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
+        });
+        jQuery(".whenToSend").each(function( i, item ) {
+          whenToSend.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
+        });
+        jQuery(".messageType").each(function( i, item ) {
+          messageType.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
+        });
+        jQuery(".userGroup").each(function( i, item ) {
+          userGroup.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
+        });
+      },
+      'rules': getValidationRules("programStage")
+    });
+  });
+</script>
+<script type="text/javascript" src="javascript/addProgramStageForm.js"></script>
+
+<h3>$i18n.getString( "create_new_program_stage" ) #openHelp( "program_stage_information" )</h3>
+
+<h4>$program.displayName</h4>
+		
+<form id="addProgramStageForm" name="addProgramStageForm" action="addProgramStage.action" method="get" class="inputForm">
+	<input type="hidden" id="programId" name="programId" value="$program.id"/>
+	<input type='hidden' id="id" name="id" value="$program.id"/>
+<table>
+	<thead>
+		<tr><th colspan="2">$i18n.getString( "program_stage_details" )</th></tr>
+	</thead>
+		
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" /></td>
+	</tr>	
+	
+	<tr>
+		<td><label for="description">$i18n.getString( "description" )</label></td>
+		<td><textarea id="description" name="description"></textarea></td>
+	</tr>
+	
+	#if( $program.programType.value=="with_registration" )
+	<tr>
+		<td><label for="minDaysFromStart">$i18n.getString( "scheduled_days_from_start" )</label></td>
+		<td><input type="text" id="minDaysFromStart" name="minDaysFromStart" value="0" /></td>
+	</tr>
+	
+	<tr><th colspan="2">$i18n.getString( "repeatable_program_stage_details" )</th></tr>
+	
+	<tr>
+		<td><label for="repeatable">$i18n.getString( "repeatable" )</label></td>
+		<td><input type="checkbox" id="repeatable" name="repeatable" value='true' onchange='repeatableOnChange();' /></td>
+	</tr>
+	
+	<tr>
+		<td><label for="periodTypeName">$i18n.getString( "period_type" )</label></td>
+		<td>
+			<select id="periodTypeName" name="periodTypeName" disabled onchange='periodTypeOnChange();'>
+				<option value="">[$i18n.getString("please_select")]</option>
+				#foreach( $periodType in $periodTypes )
+					  <option value="$periodType.name">$i18n.getString( $periodType.name )</option>
+				#end
+			</select>
+		</td>
+	</tr>
+      	
+	<tr>
+		<td><label for="standardInterval">$i18n.getString( "standard_interval_days" )</label></td>
+		<td><input type="text" id="standardInterval" name="standardInterval" disabled /></td>
+	</tr>
+	
+	<tr>
+		<td><label for="displayGenerateEventBox">$i18n.getString( "display_generate_event_box_after_completed" )</label></td>
+		<td><input type="checkbox" id="displayGenerateEventBox" name="displayGenerateEventBox" value='true' checked disabled /></td>
+	</tr>
+	
+	#end
+	
+	<tr><th colspan="2">$i18n.getString( "form_details" )</th></tr>
+	
+	#set($openAfterEnrollment = '' )
+	#foreach($ps in $program.programStages )
+		#if( $ps.openAfterEnrollment=='true')
+			#set($openAfterEnrollment = $ps.displayName )
+		#end
+	#end
+	
+	<tr>
+		<td><label for="autoGenerateEvent">$i18n.getString( "auto_generate_event" )</label></td>
+		<td><input type="checkbox" id="autoGenerateEvent" name="autoGenerateEvent" value='true' checked onchange='autoGenerateEventOnChange("$openAfterEnrollment")' /></td>
+	</tr>
+	
+	#if($program.programType.value=="with_registration")
+	
+		#if($openAfterEnrollment!='' ) 
+		<tr>
+			<td colspan='2' style="color:grey;font-style:italic">$i18n.getString('the_properties_to_open_data_entry_form_after_enrolment_is_active_in_the_stage'): $openAfterEnrollment</td>
+			<td></td>
+		</tr>
+		#end
+		
+		<tr>
+			<td><label for="openAfterEnrollment">$i18n.getString( "open_data_entry_form_after_enrolment" )</label></td>
+			<td><input type="checkbox" id="openAfterEnrollment" name="openAfterEnrollment" value='true' 
+				onchange="openAfterEnrollmentOnchange();" 
+				#if($openAfterEnrollment!='') disabled #end>
+			</td>
+			<td></td>
+		</tr>
+		
+		<tr>
+			<td><label for="reportDateToUse">$i18n.getString( "report_date_to_use" )</label></td>
+			<td>
+				<select id="reportDateToUse" name="reportDateToUse" disabled>
+					<option value=''>[$i18n.getString('please_select')]</option>
+					<option value='incidentDate'>$i18n.getString("date_of_incident")</option>
+					<option value='enrollmentDate'>$i18n.getString("date_of_enrollment")</option>
+				</select>
+			</td>
+			<td></td>
+		</tr>
+	#end
+	
+	<tr>
+		<td><label for="blockEntryForm">$i18n.getString( "block_entry_form_after_completed" )</label></td>
+		<td><input type="checkbox" id="blockEntryForm" name="blockEntryForm" value='true'></td>
+		<td></td>
+	</tr>
+	
+	#if($program.programType.value=="with_registration")
+	<tr>
+		<td><label for="remindCompleted">$i18n.getString( "ask_user_to_complete_program_when_stage_complete" )</label></td>
+		<td><input type="checkbox" id="remindCompleted" name="remindCompleted" value='true' ></td>
+		<td></td>
+	</tr>
+	
+	<tr>
+		<td><label for="allowGenerateNextVisit">$i18n.getString( "ask_user_to_create_new_event_when_stage_complete" )</label></td>
+		<td><input type="checkbox" id="allowGenerateNextVisit" name="allowGenerateNextVisit" value='true' ></td>
+		<td></td>
+	</tr>
+	
+	<tr>
+		<td><label for="generatedByEnrollmentDate">$i18n.getString( "generate_events_based_on_enrollment_date" ) <span class="tipText">($i18n.getString( "not_incident_date" ))</label></td>
+		<td><input type="checkbox" id="generatedByEnrollmentDate" name="generatedByEnrollmentDate" value='true'></td>
+		<td></td>
+	</tr>
+	
+	<tr>
+		<td><label for="hideDueDate">$i18n.getString( "hide_due_date" )</label></td>
+		<td><input type="checkbox" id="hideDueDate" name="hideDueDate" value='true' ></td>
+		<td></td>
+	</tr>
+	#end
+	
+	<tr>
+		<td><label for="captureCoordinates">$i18n.getString( "capture_coordinates" )</label></td>
+		<td><input type="checkbox" id="captureCoordinates" name="captureCoordinates" value="true" /></td>
+	</tr>
+	
+	<tr>
+		<td><label for="validCompleteOnly">$i18n.getString( "complete_allowed_only_if_validation_passes" )</label></td>
+		<td><input type="checkbox" id="validCompleteOnly" name="validCompleteOnly" value="true" /></td>
+	</tr>
+	
+	<tr>
+		<td><label for="preGenerateUID">$i18n.getString( "pre_generate_event_uid" )</label></td>
+		<td><input type="checkbox" id="preGenerateUID" name="preGenerateUID" value="true" /></td>
+	</tr>
+	
+	<tr>
+		<td><label for="excecutionDateLabel">$i18n.getString( "report_date_description" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="excecutionDateLabel" name="excecutionDateLabel" value="$i18n.getString( 'report_date' )" /></td>
+	</tr>
+	
+	<tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+	
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<table id="programStageMembersArea">
+    <colgroup>
+		<col style="width:550px;"/>
+		<col/>
+		<col style="width:500px;"/>
+	</colgroup>
+	<thead>
+      <tr>        
+        <th>$i18n.getString( "available_data_elements" )</th>
+        <th></th>
+        <th>$i18n.getString( "selected_data_elements" )							
+			<select id="selectedDataElementsValidator" name='selectedDataElementsValidator' multiple="multiple" class="hidden" ></select>
+			<select id="compulsories" name='compulsories' multiple="multiple" class="hidden"></select>     
+			<select id="allowProvidedElsewhere" name='allowProvidedElsewhere' multiple="multiple" class="hidden"></select>     
+			<select id="displayInReports" name='displayInReports' multiple="multiple" class="hidden"></select>     
+			<select id="allowFutureDates" name='allowFutureDates' multiple="multiple" class="hidden"></select>   
+		</th>
+      </tr>
+    </thead>
+  
+    <tbody>
+      <tr>
+        <td>
+            <select style='width:100%' size="15" id="availableList" name='availableList' multiple="multiple" ondblclick="selectDataElements()">
+            </select>
+        </td>
+        
+		<td style="text-align:center">
+        	<input type="button" value="&gt;" class='filterButton' onclick="selectDataElements();"/><br/>
+            <input type="button" value="&lt;" class='filterButton' onclick="unSelectDataElements();"/><br/>
+			<input type="button" value="&gt;&gt;" class='filterButton' onclick="selectAllDataElements();"/><br/>
+			<input type="button" value="&lt;&lt;" class='filterButton' onclick="unSelectAllDataElements();"/>
+		</td>
+		
+		<td>
+			<div class="dataElementDiv">
+				<table>
+					<colgroup>
+						<col/>
+						<col style="width:20px;"/>
+						<col style="width:20px;"/>
+						<col style="width:20px;"/>
+					</colgroup>
+					<thead>
+						<tr>
+							<th>$i18n.getString( "dataelement" )</th>
+							<th>$i18n.getString( "compulsory" )</th>
+							<th>$i18n.getString( "allow_provided_elsewhere" )</th>
+							<th>$i18n.getString( "display_in_reports" )</th>
+							<th>$i18n.getString( "date_in_future" )</th>
+					</thead>
+					<tbody id="selectedList"></tbody>
+				</table>
+			</div>
+			</td>
+			
+		<td>
+            <a href="javascript:moveUpDataElement()"><img src="../images/move_up.png"/></a><br/><br/>
+            <a href="javascript:moveDownDataElement()"><img src="../images/move_down.png"/></a><br/><br/>
+        </td>  
+		</tr>
+    </tbody>
+</table>
+
+<p>
+	<input type="submit" value="$i18n.getString( 'add' )" style="width:10em"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='programStage.action?id=$program.id'" style="width:10em"/>
+</p>
+
+</form> 	
+
+<script type="text/javascript">    
+    var i18n_invalid_min_max_days = '$encoder.jsEscape( $i18n.getString( "invalid_min_max_days" ) , "'")';
+    var i18n_value_must_positive = '$encoder.jsEscape( $i18n.getString( "value_must_positive" ) , "'")';
+    var i18n_value_must_integer = '$encoder.jsEscape( $i18n.getString( "value_must_integer" ) , "'")';
+    var i18n_compulsory_checkbox_title = '$encoder.jsEscape( $i18n.getString( "compulsory_checkbox_title" ) , "'")';   	
+	var i18n_reminder = '$encoder.jsEscape( $i18n.getString( "reminder" ) , "'")';   
+	var i18n_remove_reminder = '$encoder.jsEscape( $i18n.getString( "remove_reminder" ) , "'")';   
+	var i18n_params = '$encoder.jsEscape( $i18n.getString( "params" ) , "'")';   
+	var i18n_program_name = '$encoder.jsEscape( $i18n.getString( "program_name" ) , "'")';   
+	var i18n_program_stage_name = '$encoder.jsEscape( $i18n.getString( "program_stage_name" ) , "'")';   
+	var i18n_due_date = '$encoder.jsEscape( $i18n.getString( "due_date" ) , "'")';   
+	var i18n_orgunit_name = '$encoder.jsEscape( $i18n.getString( "orgunit_name" ) , "'")';   
+	var i18n_days_since_due_date = '$encoder.jsEscape( $i18n.getString( "days_since_due_date" ) , "'")';   
+	var i18n_message = '$encoder.jsEscape( $i18n.getString( "message" ) , "'")';   
+	var i18n_name_exists = '$encoder.jsEscape( $i18n.getString( "name_exists" ) , "'")'; 
+	var i18n_recipients = '$encoder.jsEscape( $i18n.getString( "recipients" ) , "'")'; 
+	var i18n_tracked_entity_sms_only = '$encoder.jsEscape( $i18n.getString( "tracked_entity_sms_only" ) , "'")'; 
+	var i18n_attribute_users = '$encoder.jsEscape( $i18n.getString( "attribute_users" ) , "'")'; 
+	var i18n_orgunit_phone_number_sms_only = '$encoder.jsEscape( $i18n.getString( "orgunit_phone_number_sms_only" ) , "'")'; 
+	var i18n_all_users_at_orgunit = '$encoder.jsEscape( $i18n.getString( "all_users_at_orgunit" ) , "'")'; 
+	var i18n_send_when_to = '$encoder.jsEscape( $i18n.getString( "send_base_on" ) , "'")';
+	var i18n_days_scheduled = '$encoder.jsEscape( $i18n.getString( "days_scheduled" ) , "'")';
+	var i18n_complete_event = '$encoder.jsEscape( $i18n.getString( "complete_event" ) , "'")';
+	var i18n_user_group = '$encoder.jsEscape( $i18n.getString( "user_group" ) , "'")';
+	var i18n_characters_without_params = '$encoder.jsEscape( $i18n.getString( "characters_without_params" ) , "'")';
+	var i18n_send_message = '$encoder.jsEscape( $i18n.getString( "send_message" ) , "'")';
+	var i18n_days = '$encoder.jsEscape( $i18n.getString( "days" ) , "'")';
+	var i18n_before = '$encoder.jsEscape( $i18n.getString( "before" ) , "'")';
+	var i18n_after = '$encoder.jsEscape( $i18n.getString( "after" ) , "'")';
+	var i18n_scheduled_date = '$encoder.jsEscape( $i18n.getString( "scheduled_date" ) , "'")';
+	var i18n_message_type = '$encoder.jsEscape( $i18n.getString( "message_type" ) , "'")';
+	var i18n_direct_sms = '$encoder.jsEscape( $i18n.getString( "direct_sms" ) , "'")';
+	var i18n_message = '$encoder.jsEscape( $i18n.getString( "message" ) , "'")';
+	var i18n_both = '$encoder.jsEscape( $i18n.getString( "both" ) , "'")';
+	
+	var programStageList = new Array();
+	#foreach($programStage in $program.programStages)
+		programStageList.push("$programStage.displayName");
+	#end
+	
+	var attrOptions = "";
+	#foreach($programAttribute in $program.programAttributes)
+		attrOptions+="<option value={attributeid=$programAttribute.attribute.uid}>$programAttribute.attribute.displayName</option>";
+	#end
+</script>

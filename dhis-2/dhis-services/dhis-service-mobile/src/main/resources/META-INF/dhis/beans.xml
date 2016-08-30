@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<!-- Services -->
+
+	<bean id="org.hisp.dhis.mobile.api.FacilityReportingService"
+		class="org.hisp.dhis.mobile.service.FacilityReportingServiceImpl">
+		<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+		<property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+		<property name="categoryService"
+			ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+		<property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+		<property name="registrationService"
+			ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
+		<property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+		<property name="oUnitService"
+			ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.api.ActivityReportingService"
+		class="org.hisp.dhis.mobile.service.ActivityReportingServiceImpl">
+		<property name="attValueService"
+			ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService" />
+		<property name="programStageInstanceService"
+			ref="org.hisp.dhis.program.ProgramStageInstanceService" />
+		<property name="programStageSectionService"
+			ref="org.hisp.dhis.program.ProgramStageSectionService" />
+		<property name="entityInstanceService"
+			ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceService" />
+		<property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+		<property name="relationshipService"
+			ref="org.hisp.dhis.relationship.RelationshipService" />
+		<property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+		<property name="dataValueService"
+			ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
+		<property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+		<property name="attributeService"
+			ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
+		<property name="relationshipTypeService"
+			ref="org.hisp.dhis.relationship.RelationshipTypeService" />
+		<property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+		<property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+		<property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+		<property name="smsSender" ref="smsMessageSender" />
+		<property name="userService" ref="org.hisp.dhis.user.UserService" />
+		<property name="interpretationService" ref="org.hisp.dhis.interpretation.InterpretationService" />
+		<property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
+		<property name="trackedEntityService" ref="org.hisp.dhis.trackedentity.TrackedEntityService" />
+		<property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+		<property name="reminderService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
+
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.api.IProgramService" class="org.hisp.dhis.mobile.service.DefaultProgramService">
+		<property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+	</bean>
+
+</beans>

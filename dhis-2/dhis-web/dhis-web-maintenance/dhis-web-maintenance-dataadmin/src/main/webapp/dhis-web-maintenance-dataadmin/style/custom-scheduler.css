@@ -1,0 +1,65 @@
+
+.radioButtonGroup {
+  display: inline-block;
+  float: left;
+  margin-top: 15px;
+}
+
+.radioButton input[type='radio'] {
+  margin-bottom: 5px;
+}
+
+.schedulerHeader {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.dateTimePicker{
+  display: inline-block;
+  padding-left: 60px;
+
+}
+
+.schedulerWrapper {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  min-height: 130px;
+  max-height: 220px;
+}
+
+.inline{
+  display: inline-block !important;
+}
+
+.customScheduling {
+  height: 30px;
+  padding: 6px;
+  width: 12em !important;
+  display: block;
+}
+
+.timePicker {
+  width: 12em !important;
+  display: block;
+  margin-top: 10px;
+}
+
+.datePicker {
+  width: 11em !important;
+  margin-top: 10px;
+}
+
+.syncStartButton {
+  margin-top: 20px;
+}
+
+.syncActionWrapper {
+  height: 111px;
+}
+
+.schedulerLabel {
+  width: 60px;
+  font-weight: 600;
+}

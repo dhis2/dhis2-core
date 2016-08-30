@@ -1,0 +1,128 @@
+<script>
+jQuery( document ).ready( function()
+{
+	validation2( 'programIndicatorForm', function( form )
+	{
+		#tblDynamicAttributesJavascript()
+		form.submit();
+	},{
+		'beforeValidateHandler' : function()
+		{
+			
+		},
+		'rules' : getValidationRules( "programIndicator" )
+	});
+	
+	checkValueIsExist( "name", "validateProgramIndicator.action",{id:getFieldValue('id')} );	
+	checkValueIsExist( "shortName", "validateProgramIndicator.action",{id:getFieldValue('id')} );	
+	checkValueIsExist( "code", "validateProgramIndicator.action",{id:getFieldValue('id')} );
+});
+</script>
+
+<h3>$i18n.getString( "update_program_indicator" ) #openHelp( "program_indicator" )</h3>
+		
+<h4>$encoder.htmlEncode($program.displayName)</h4>
+							
+<form id="programIndicatorForm" action="updateProgramIndicator.action" method="post" class="inputForm">
+<input type='hidden' id='programId' name='programId' value='$program.id'>
+<input type='hidden' id='id' name='id' value='$programIndicator.id'>
+
+<table>	 
+	<thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "program_indicator_details" )</th>
+      </tr>
+    </thead>
+	<tr>
+		<td style="width:140px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value='$encoder.htmlEncode($programIndicator.name)'></td>
+	</tr>	
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td><input type="text" id="shortName" name="shortName" value='$encoder.htmlEncode($programIndicator.shortName)'></td>
+	</tr>	
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" value='$!encoder.htmlEncode($programIndicator.code)'></td>
+	</tr>	
+	<tr>
+		<td><label for="description">$i18n.getString( "description" ) </label></td>
+		<td><textarea type="text" id="description" name="description">$!encoder.htmlEncode($programIndicator.description)</textarea></td>
+	</tr>
+	<tr>
+		<td><label for="decimals">$i18n.getString( "decimals_in_data_output" )</label></td>
+		<td>
+			<select id="decimals" name="decimals">
+				<option>[$i18n.getString( "default" )]</option>
+				<option value="0"#if( $programIndicator.decimals == 0 ) selected="selected"#end>0</option>
+				<option value="1"#if( $programIndicator.decimals == 1 ) selected="selected"#end>1</option>
+				<option value="2"#if( $programIndicator.decimals == 2 ) selected="selected"#end>2</option>
+				<option value="3"#if( $programIndicator.decimals == 3 ) selected="selected"#end>3</option>
+				<option value="4"#if( $programIndicator.decimals == 4 ) selected="selected"#end>4</option>
+				<option value="5"#if( $programIndicator.decimals == 5 ) selected="selected"#end>5</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+        <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
+        <td>
+          <select id="aggregationType" name="aggregationType">
+            <option value="AVERAGE"#if( $programIndicator.aggregationType == 'AVERAGE' ) selected="selected"#end>$i18n.getString( "average" )</option>
+            <option value="SUM"#if( $programIndicator.aggregationType == 'SUM' ) selected="selected"#end>$i18n.getString( "sum" )</option>
+            <option value="COUNT"#if( $programIndicator.aggregationType == 'COUNT' ) selected="selected"#end>$i18n.getString( "count" )</option>
+            <option value="STDDEV"#if( $programIndicator.aggregationType == 'STDDEV' ) selected="selected"#end>$i18n.getString( "stddev" )</option>
+            <option value="VARIANCE"#if( $programIndicator.aggregationType == 'VARIANCE' ) selected="selected"#end>$i18n.getString( "variance" )</option>
+            <option value="MIN"#if( $programIndicator.aggregationType == 'MIN' ) selected="selected"#end>$i18n.getString( "min" )</option>
+            <option value="MAX"#if( $programIndicator.aggregationType == 'MAX' ) selected="selected"#end>$i18n.getString( "max" )</option>
+            <option value="CUSTOM"#if( $programIndicator.aggregationType == 'CUSTOM' ) selected="selected"#end>$i18n.getString( "custom" )</option>
+          </select>
+		</td>
+    </tr>
+    <tr>
+        <td><label>$i18n.getString( 'legend_set' )</label></td>            
+        <td>
+            <select id="legendSetId" name="legendSetId">
+                <option value="0">[$i18n.getString('please_select')]</option>
+                #foreach ( $legendSet in $legendSets )
+                <option value="$legendSet.id"#if( $legendSet.id == $programIndicator.legendSet.id ) selected="selected"#end>$!encoder.htmlEncode( $legendSet.displayName )</option>
+                #end
+            </select>
+        </td>
+    </tr>
+	<tr>
+		<td><label for="displayInForm">$i18n.getString( "display_in_form" )</label></td>
+		<td><input type="checkbox" id="displayInForm" name="displayInForm" value="true"#if( $programIndicator.displayInForm ) checked="checked"#end></td>
+	</tr>
+</table>
+<br>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<br>
+	
+#parse( "/dhis-web-maintenance-program/programIndicatorForm.vm" )
+
+
+
+<div style="margin-top:25px">
+	<input type="submit" value="$i18n.getString( 'update' )" style="width:10em">
+	<input type="button" value="$i18n.getString( 'cancel' )" style="width:10em" onclick="window.location.href='programIndicator.action?programId=$programIndicator.program.id'" >
+</div>
+
+</form>
+
+<script>
+	var i18n_reminder = '$encoder.jsEscape( $i18n.getString( "reminder" ) , "'")';   
+	var i18n_remove_reminder = '$encoder.jsEscape( $i18n.getString( "remove_reminder" ) , "'")';   
+	var i18n_days_before_after_comparison_date = '$encoder.jsEscape( $i18n.getString( "days_before_after_comparison_date" ) , "'")';   
+	var i18n_params = '$encoder.jsEscape( $i18n.getString( "params" ) , "'")';   
+	var i18n_tracked_entity_name = '$encoder.jsEscape( $i18n.getString( "tracked_entity_name" ) , "'")';   
+	var i18n_program_name = '$encoder.jsEscape( $i18n.getString( "program_name" ) , "'")';   
+	var i18n_days_since_incident_date = '$encoder.jsEscape( $i18n.getString( "days_since_incident_date" ) , "'")';   
+	var i18n_orgunit_name = '$encoder.jsEscape( $i18n.getString( "orgunit_name" ) , "'")';   
+	var i18n_enrollment_date = '$encoder.jsEscape( $i18n.getString( "enrollement_date" ) , "'")';   
+	var i18n_days_since_enrollment_date = '$encoder.jsEscape( $i18n.getString( "days_since_enrollment_date" ) , "'")';   
+	var i18n_message = '$encoder.jsEscape( $i18n.getString( "message" ) , "'")';   
+	var i18n_name_exists = '$encoder.jsEscape( $i18n.getString( "name_exists" ) , "'")';   
+	var i18n_date_to_compare = '$encoder.jsEscape( $i18n.getString( "date_to_compare" ) , "'")'; 
+</script>

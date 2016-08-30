@@ -1,0 +1,9 @@
+{ "organisationUnitLevels": [
+#foreach ( $level in $levels )
+  {
+    "id": $!{level.id},
+    "level": $!{level.level},
+    "name": "$!{level.displayName}"
+  },
+#end
+] }

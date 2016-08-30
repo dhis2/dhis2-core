@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<units>
+#foreach( $unit in $collapsedUnits )
+	<unit>$encoder.xmlEncode( $unit.uid )</unit>
+#end
+</units>

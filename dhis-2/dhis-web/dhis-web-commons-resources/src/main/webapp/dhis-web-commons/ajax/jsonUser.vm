@@ -1,0 +1,24 @@
+{ "user":
+  {
+    "id": "$!{user.id}",
+    "uid": "$!{user.uid}",
+    "surname": "$!encoder.jsonEncode( ${user.surname} )",
+    "firstName": "$!encoder.jsonEncode( ${user.firstName} )",
+    "username": "$!encoder.jsonEncode( ${user.userCredentials.username} )",
+    "email": "$!encoder.jsonEncode( ${user.email} )",
+    "phoneNumber": "$!encoder.jsonEncode( ${user.phoneNumber} )",
+    "lastLogin": "$!format.formatDate( ${user.userCredentials.lastLogin} )",	
+    "created": "$!format.formatDate( ${user.userCredentials.created} )",
+    "disabled": "$!{user.userCredentials.disabled}",
+    #set( $size = ${user.organisationUnits.size()} )
+    "organisationUnits": [
+    #foreach( $unit in $user.organisationUnits )
+      { "name": "$!{unit.name}" }#if( $velocityCount < $size ),#end
+    #end ],
+    #set( $size = ${user.userCredentials.userAuthorityGroups.size()} )
+    "roles": [
+    #foreach( $role in $user.userCredentials.userAuthorityGroups )
+      { "name": "$!{role.name}" }#if( $velocityCount < $size ),#end
+    #end ]
+  }
+}

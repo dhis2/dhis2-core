@@ -1,0 +1,1 @@
+<a href="$!{object.responseUrl}" target="_top">$object.i18n.getString( "respond_to_this_message" )</a>

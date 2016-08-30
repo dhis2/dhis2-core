@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.datastatistics.DataStatisticsEvent" table="datastatisticsevent">
+
+    <id name="id" column="eventid">
+      <generator class="native" />
+    </id>
+
+    <property name="eventType" column="eventtype">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.datastatistics.DataStatisticsEventType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="timestamp" column="timestamp" type="timestamp" />
+    <property name="username" column="username" />
+    <property name="favoriteUid" column="favoriteuid" />
+    
+  </class>
+</hibernate-mapping>

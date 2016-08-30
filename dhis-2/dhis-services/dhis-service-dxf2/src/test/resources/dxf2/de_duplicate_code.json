@@ -1,0 +1,48 @@
+{
+  "dataElements": [
+    {
+      "attributeValues": [ ],
+      "userGroupAccesses": [ ],
+      "valueType": "TEXT",
+      "aggregationType": "SUM",
+      "created": "2016-02-17T06:15:06.079+0000",
+      "shortName": "DataElementShortA",
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "aggregationLevels": [ ],
+      "id": "SG4HuKlNEFH",
+      "domainType": "AGGREGATE",
+      "lastUpdated": "2016-02-17T06:15:59.378+0000",
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "zeroIsSignificant": false,
+      "publicAccess": "rw------",
+      "code": "DataElementCodeA",
+      "name": "DataElementA"
+    },
+    {
+      "code": "DataElementCodeA",
+      "publicAccess": "rw------",
+      "name": "DataElementB",
+      "attributeValues": [ ],
+      "userGroupAccesses": [ ],
+      "valueType": "TEXT",
+      "aggregationType": "SUM",
+      "shortName": "DataElementShortB",
+      "created": "2016-02-17T06:15:49.487+0000",
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "id": "CCwk5Yx440o",
+      "aggregationLevels": [ ],
+      "domainType": "AGGREGATE",
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "lastUpdated": "2016-02-17T06:16:08.180+0000",
+      "zeroIsSignificant": false
+    }
+  ]
+}

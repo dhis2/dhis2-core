@@ -1,0 +1,79 @@
+<script type="text/javascript">	
+	jQuery(document).ready(function() {
+		jQuery("input[type=button]").click(function() {
+			jQuery.postJSON( 'setUserSettings.action', {
+				currentLocale: getFieldValue( 'currentLocale' ),
+				currentLocaleDb: getFieldValue( 'currentLocaleDb' ),
+				currentStyle: getFieldValue( 'currentStyle' ),
+				analysisDisplayProperty: getFieldValue( 'analysisDisplayProperty' ),
+                messageEmailNotification: jQuery( '#messageEmailNotification' ).is(':checked' ),
+                messageSmsNotification: jQuery( '#messageSmsNotification' ).is(':checked' )
+			}, function ( json ) {
+				if ( json.response == "success" )
+				{	
+					setHeaderDelayMessage( json.message );
+					setTimeout( "refreshPage()", 4000);
+				}
+			});
+		});
+	});
+	
+	function refreshPage()
+	{
+		window.location = "userSettings.action";
+	};
+	
+</script>
+<h3>$i18n.getString( "settings" ) #openHelp( "userGeneralSettings" )</h3>
+
+<div class="settingLabel">$i18n.getString( "language" )</div>
+
+<div class="setting">
+<select id="currentLocale" name="currentLocale">
+#foreach( $locale in $availableLocales )
+	<option value="$locale.toString()" #if( $locale == $currentLocale )selected="selected"#end>$locale.getDisplayName()</option>
+#end
+</select>
+</div>
+
+<div class="settingLabel">$i18n.getString( "db_language" )</div>
+
+<div class="setting">
+<select id="currentLocaleDb" name="currentLocaleDb">
+	<option value="">[$i18n.getString( "use_db_locale_no_translation" )]</option>
+#foreach( $locale in $availableLocalesDb )
+	<option value="$locale.toString()" #if( $locale == $currentLocaleDb )selected="selected"#end>$locale.getDisplayName()</option>
+#end
+</select>
+</div>
+
+<div class="settingLabel">$i18n.getString( "interface_style" )</div>
+
+<div class="setting">
+<select id="currentStyle" name="currentStyle">
+#foreach( $style in $styles )
+	<option value="$style.path" #if( $style.path == $currentStyle )selected="selected"#end>$encoder.htmlEncode( $style.name )</option>
+#end
+</select>
+</div>
+
+<div class="settingLabel">$i18n.getString( "property_to_display_in_analysis_modules" )</div>
+
+<div class="setting">
+<select id="analysisDisplayProperty" name="analysisDisplayProperty">
+	<option value="name" #if( "name" == $analysisDisplayProperty )selected="selected"#end>$i18n.getString( "translation_label_name" )</option>
+	<option value="shortName" #if( "shortName" == $analysisDisplayProperty )selected="selected"#end>$i18n.getString( "translation_label_shortName" )</option>
+</select>
+</div>
+
+<div class="setting">
+	<input type="checkbox" id="messageEmailNotification" name="messageEmailNotification" #if( $messageEmailNotification ) checked="checked"#end/>
+	<label for="messageEmailNotification">$i18n.getString( "enable_message_email_notifications" )</label>
+</div>
+
+<div class="setting">
+	<input type="checkbox" id="messageSmsNotification" name="messageSmsNotification" #if( $messageSmsNotification ) checked="checked"#end/>
+	<label for="messageSmsNotification">$i18n.getString( "enable_message_sms_notifications" )</label>
+</div>
+
+<div class="setting"><input type="button" value="$i18n.getString( 'save' )" style="width:10em"/></div>

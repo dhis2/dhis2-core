@@ -1,0 +1,75 @@
+
+#if( $dataSet.alternativeName )
+    #set( $dataSetName = $dataSet.alternativeName )
+#else
+    #set( $dataSetName = $dataSet.displayName )
+#end
+
+<div class="header-box" align="center">
+    <h3 style="text-align: left; background-color: #719953; border-color: #719953; color: white;">$organisationUnit.name</h3>
+    <p style="text-align: left;">
+        $dataSetName <br />
+        $period.name
+    </p>
+</div>
+
+#if( $validated == true )
+<div class="header-box" align="center">
+    <h3 style="text-align: left; background-color: #719953; border-color: #719953; color: white;">$i18n.getString( "saved_section" )</h3>
+    <p style="text-align: left;">
+        $sectionName
+    </p>
+</div>
+#end
+
+<h2>$i18n.getString( "sections" )</h2>
+
+<p>
+    <ul>
+    #if( $dataSet.sections.size() > 0 )
+        #foreach( $section in $dataSet.sections )
+            <li>
+                <a href="dataEntrySection.action?organisationUnitId=$organisationUnitId&dataSetId=$dataSetId&isoPeriod=$isoPeriod&sectionId=$section.id">$i18n.getString( $section.displayName )</a>
+            </li>
+        #end
+    #else
+        <a href="dataEntrySection.action?organisationUnitId=$organisationUnitId&dataSetId=$dataSetId&isoPeriod=$isoPeriod">$i18n.getString( "Default" )</a>
+    #end
+    </ul>
+</p>
+
+<form method="GET" action=#if($completed == true) "inComplete.action" #else "markComplete.action" #end>
+<input type="hidden" id="organisationUnitId" name="organisationUnitId" value="$organisationUnitId" />
+<input type="hidden" id="dataSetId" name="dataSetId" value="$dataSetId" />
+<input type="hidden" id="isoPeriod" name="isoPeriod" value="$isoPeriod" />
+<div class="header-box" align="center">
+    <p>
+        <input type="hidden" name="formComplete" value="true" />
+        <input type="submit" style="width: 100%;" value="#if($completed == true) $i18n.getString('form_in_complete') #else $i18n.getString('form_complete') #end" />
+    </p>
+</div>
+
+</form>
+
+<div id="footer">
+    <h2>$i18n.getString( "navigate_to" )</h2>
+    <ul>
+        <li><a href="selectPeriod.action?organisationUnitId=$organisationUnitId&dataSetId=$dataSetId&periodId=$periodId">$i18n.getString("available_periods")</a></li>
+        <li><a href="index.action">$i18n.getString("home")</a></li>
+    </ul>
+</div>
+
+#* This might get reactivated later, as configurable setting? *#
+
+#*
+#if( $validationRuleViolations.size() > 0 )
+<div class="header-box" align="center">
+    <h3 style="text-align: left; background-color: #990000; color: white;">$i18n.getString("validation_rule_violation_warnings")</h3>
+    <p style="text-align: left;">
+        #foreach( $validationRuleViolation in $validationRuleViolations )
+            $validationRuleViolation <br />
+        #end
+    </p>
+</div>
+#end
+*#

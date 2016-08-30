@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>dhis-support</artifactId>
+    <groupId>org.hisp.dhis</groupId>
+    <version>2.25-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dhis-support-commons</artifactId>
+  <packaging>jar</packaging>
+  <name>DHIS Support Commons</name>
+
+  <description>
+    DHIS Support Commons is intended to be a lightweight library with very few and
+    no heavy dependencies, as well as no internal dependencies (DHIS modules).
+    This includes not depending on the dhis-support-test package, meaning any unit
+    tests must be added to an external package (dhis-support-system is a reasonable
+    choice).
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-jexl</artifactId>
+    </dependency>
+    
+    <!-- Test -->
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    
+  </dependencies>
+  
+  <!-- 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+  -->
+
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
+</project>

@@ -1,0 +1,14 @@
+#set( $size = $organisationUnitGroupSets.size() )
+{ "organisationUnitGroupSets": [
+#foreach( $groupSet in $organisationUnitGroupSets )
+  {
+    "id": "$groupSet.id",
+    "name": "$!encoder.jsonEncode( ${groupSet.displayName} )"
+  }#if( $velocityCount < $size ),#end    
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+
+}

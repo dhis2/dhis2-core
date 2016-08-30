@@ -1,0 +1,154 @@
+<script type="text/javascript" src="javascript/allUser.js"></script>
+<script type="text/javascript">
+    var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_user" ) , "'")';
+    var i18n_none = '$encoder.jsEscape( $i18n.getString( "none" ) , "'")';
+    var i18n_yes = '$encoder.jsEscape( $i18n.getString( "yes" ) , "'")';
+    var i18n_no = '$encoder.jsEscape( $i18n.getString( "no" ) , "'")';
+	var i18n_edit = '$encoder.jsEscape( $i18n.getString( "edit" ) , "'")';
+	var i18n_remove = '$encoder.jsEscape( $i18n.getString( "remove" ) , "'")';
+	var i18n_show_details = '$encoder.jsEscape( $i18n.getString( "show_details" ) , "'")';
+	var i18n_username = '$encoder.jsEscape( $i18n.getString( "username" ) , "'")';
+	var i18n_name = '$encoder.jsEscape( $i18n.getString( "name" ) , "'")';
+	var i18n_operations = '$encoder.jsEscape( $i18n.getString( "operations" ) , "'")';
+	var i18n_invitation_sent = '$encoder.jsEscape( $i18n.getString( "invitation_sent" ) , "'")';
+	var currentUserName = '$currentUsername';
+	var i18n_search_orgunit = '$encoder.jsEscape( $i18n.getString( "search_orgunit" ) , "'" )';
+	var i18n_save_button_label = '$encoder.jsEscape( $i18n.getString( "save" ) , "'" )';
+	var i18n_close_button_label = '$encoder.jsEscape( $i18n.getString( "close" ) , "'" )';
+	var i18n_success= '$encoder.jsEscape( $i18n.getString( "success" ) , "'" )';
+</script>
+
+#set( $canReplicate = $currentUser.getUserCredentials().isAuthorized( 'F_REPLICATE_USER' ) )
+
+<h3>$i18n.getString( "user_management" ) #openHelp( "user_management" )</h3>
+
+<div id="contextMenu" class="contextMenu" style="width: 210px;">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="showUserProfile"><i class="fa fa-user"></i>&nbsp;&nbsp;$i18n.getString( "profile" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateUserForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+	<li data-enabled="canUpdate"><a data-target-fn="showAssignOrgUnitsToUser"><i class="fa fa-plus"></i>&nbsp;&nbsp;$i18n.getString( "assign_search_orgunit" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeUser"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li data-enabled="canReplicate"><a data-target-fn="showReplicateUserDialog"><i class="fa fa-copy"></i>&nbsp;&nbsp;$i18n.getString( "replicate" )</a></li>
+    <li data-enabled="canReinvite"><a data-target-fn="resendInvitation"><i class="fa fa-repeat"></i>&nbsp;&nbsp;$i18n.getString( "resend_invitation" )</a></li>
+    <li><a data-target-fn="showUserDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+    <li data-enabled="userEnabled"><a data-target-fn="disableUser"><i class="fa fa-ban"></i>&nbsp;&nbsp;$i18n.getString( "disable")</a></li>
+    <li data-enabled="userDisabled"><a data-target-fn="enableUser"><i class="fa fa-ban"></i>&nbsp;&nbsp;$i18n.getString( "enable" )</a></li>
+  </ul>
+</div>
+
+<table style="width:100%">
+	<tr>
+		<td style="vertical-align:top">
+			<table width="100%">
+				<tr>
+					<td>
+						#filterDiv( "alluser" )
+					</td>
+					<td colspan="3" style="text-align:right">
+						<input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddUserForm.action'"/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<select id="months" style="width:155px" onchange="filterUsers()">
+							<option value="">[$i18n.getString( "show_by_inactivity" )]</option>
+							<option value="1"#if( $months == 1 ) selected="selected"#end>1 $i18n.getString( "month" )</option>
+							#foreach( $m in [2..12] )
+							<option value="${m}"#if( $$months == $m ) selected="selected"#end>${m} $i18n.getString( "months" )</option>
+							#end
+						</select>
+						<select id="selfRegistered" style="width:155px" onchange="filterUsers()">
+							<option value="false">[$i18n.getString( "show_self_registrations" )]</option>
+							<option value="true"#if( $selfRegistered == true ) selected="selected"#end>$i18n.getString( "self_registered_users" )</option>
+						</select>
+						<select id="invitationStatus" style="width:155px" onchange="filterUsers()">
+							<option value="">[$i18n.getString( "show_invitations" )]</option>
+							<option value="all"#if( $invitationStatus == "all" ) selected="selected"#end>$i18n.getString( "all_invitations" )</option>
+							<option value="expired"#if( $invitationStatus == "expired" ) selected="selected"#end>$i18n.getString( "expired_invitations" )</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+			<table class="listTable" id="userList" width='100%'>
+				<thead>
+				<tr>
+					<th>$i18n.getString( "name" )</th>
+					<th>$i18n.getString( "username" )</th>
+				</tr>
+				</thead>
+				<tbody id="list">
+				#foreach( $user in $users )
+				<tr id="tr${user.id}" data-id="$!user.id" data-uid="$!user.uid" data-type="UserCredentials"
+                    data-name="$encoder.htmlEncode( $!user.displayName )"
+                    data-username="$encoder.htmlEncode( $!user.userCredentials.username )"
+				    data-can-manage="$security.canManage( $user.userCredentials )"
+				    data-can-update="$security.canUpdate( $user.userCredentials )"
+				    data-can-delete="$security.canDelete( $user.userCredentials )"
+				    data-can-reinvite="#if( $user.userCredentials.isInvitation() && $security.canUpdate( $user.userCredentials ) )true#{else}false#end"
+				    data-can-replicate="$canReplicate"
+                    data-user-enabled="#if( !$user.userCredentials.disabled )true#{else}false#end"
+                    data-user-disabled="$user.userCredentials.disabled">
+				    <td>$encoder.htmlEncode( $!user.surname ), $encoder.htmlEncode( $!user.firstName )</td>
+				    <td>$encoder.htmlEncode( $!user.userCredentials.username )</td>
+                </tr>
+				#end
+				</tbody>
+			</table>
+			<p></p>
+	  		<div class="paging-container">
+				#parse( "/dhis-web-commons/paging/paging.vm" )
+			</div>
+		</td>
+
+		<td id="detailsData">
+        
+        	<div id="detailsArea">
+        		<div id="hideDetailsArea">
+          			<a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+				</div>
+				<p><label>$i18n.getString( "username" ):</label><br><span id="usernameField"></span></p>
+				<p><label>$i18n.getString( "fullname" ):</label><br><span id="fullNameField"></span></p>
+				<p><label>$i18n.getString( "email" ):</label><br><span id="emailField"></span></p>
+                <p><label>$i18n.getString( "phone_number" ):</label><br><span id="phoneNumberField"></span></p>
+				<p><label>$i18n.getString( "last_login"):</label><br><span id="lastLoginField"></span></p>
+				<p><label>$i18n.getString( "created" ):</label><br><span id="createdField"></span></p>
+                <p><label>$i18n.getString( "disabled" ):</label><br><span id="disabledField"></span></p>
+				<p><label>$i18n.getString( "organisation_units" ):</label><br/><span id="assignedOrgunitField"></span></p>
+				<p><label>$i18n.getString( "roles" ):</label><br/><span id="roleField"></span></p>
+				<p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+			</div>
+			
+			<div id="warningArea">
+				<div id="hideDetailsArea">
+					<a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+				</div>
+				<p><span id="warningField"></span></p>
+			</div>
+
+		</td>
+	</tr>
+</table>
+
+<div id="replicateUserForm" class="inputForm" style="display:none">
+	<table>
+		<tr>
+	        <td><label>$i18n.getString( "username" )</label></td>
+			<td><input type="text" id="replicaUsername" autocomplete="off"></td>
+		</tr>
+		<tr>
+			<td><label>$i18n.getString( "password" )</label></td>
+			<td><input type="password" id="replicaPassword" autocomplete="off"></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td>
+				<input type="button" value="$i18n.getString( "replicate" )" onclick="replicateUser()" style="width:100px">
+				<input type="button" value="$i18n.getString( "cancel" )" onclick="cancelReplicateUser()" style="width:100px">
+				<input type="hidden" id="replicaId">
+		</tr>
+	</table>
+</div>
+
+<div id="searchOrgUnitForm" style="display:none;"></div>
+
+

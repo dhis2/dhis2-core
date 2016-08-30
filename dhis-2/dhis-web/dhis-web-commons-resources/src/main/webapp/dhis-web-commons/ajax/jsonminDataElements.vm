@@ -1,0 +1,2 @@
+#set( $size = $dataElements.size() )
+{"dataElements":[#foreach( $dataElement in $dataElements ){"id":"$!{dataElement.uid}","name":"$!encoder.jsonEncode( ${dataElement.displayShortName} )"}#if( $velocityCount < $size ),#end#end]}

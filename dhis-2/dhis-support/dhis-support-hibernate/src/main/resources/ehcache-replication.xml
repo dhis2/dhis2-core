@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache>
+  
+  <defaultCache maxElementsInMemory="800000" eternal="false" timeToIdleSeconds="360" timeToLiveSeconds="720"
+    overflowToDisk="false" diskPersistent="false">
+    
+    <cacheEventListenerFactory class="net.sf.ehcache.distribution.RMICacheReplicatorFactory"
+      properties="replicateAsynchronously=true,replicatePuts=false,replicateUpdates=true,replicateUpdatesViaCopy=false,replicateRemovals=true" />
+      
+  </defaultCache>
+
+  <!-- Hibernate query cache -->
+
+  <cache name="org.hibernate.cache.internal.StandardQueryCache" maxElementsInMemory="250000" />
+
+  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" maxElementsInMemory="3000" />
+  
+  <!-- RMI replication -->
+  
+  <cacheManagerPeerProviderFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerProviderFactory"
+    properties="peerDiscovery=manual,rmiUrls=${ehcache.peer.provider.rmi.urls}" />
+  
+  <cacheManagerPeerListenerFactory class="net.sf.ehcache.distribution.RMICacheManagerPeerListenerFactory"
+    properties="hostName=${ehcache.peer.listener.hostname},port=${ehcache.peer.listener.port},socketTimeoutMillis=2000" />
+    
+</ehcache>

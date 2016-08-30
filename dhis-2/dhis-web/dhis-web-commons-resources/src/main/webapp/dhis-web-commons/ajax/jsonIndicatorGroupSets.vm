@@ -1,0 +1,13 @@
+#set( $size = $indicatorGroupSets.size() )
+{ "indicatorGroupSets": [
+#foreach( $indicatorGroupSet in $indicatorGroupSets )
+  {
+    "id": $!{indicatorGroupSet.id},
+    "name": "$!encoder.jsonEncode( ${indicatorGroupSet.displayName} )"    
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

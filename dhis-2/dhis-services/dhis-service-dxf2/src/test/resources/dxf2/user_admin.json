@@ -1,0 +1,42 @@
+{
+  "users": [
+    {
+      "firstName": "admin",
+      "teiSearchOrganisationUnits": [ ],
+      "surname": "surname",
+      "lastUpdated": "2016-03-31T05:13:29.821+0000",
+      "dataViewOrganisationUnits": [ ],
+      "id": "M5zQapPyTZI",
+      "organisationUnits": [ ],
+      "userCredentials": {
+        "externalAuth": false,
+        "code": "admin",
+        "invitation": false,
+        "lastLogin": "2016-03-31T05:06:45.456+0000",
+        "username": "admin",
+        "user": {
+          "id": "M5zQapPyTZI"
+        },
+        "catDimensionConstraints": [ ],
+        "lastUpdated": "2016-03-31T05:13:29.817+0000",
+        "id": "KvMx6c1eoYo",
+        "passwordLastUpdated": "2016-03-31T05:06:45.457+0000",
+        "disabled": false,
+        "created": "2016-03-31T05:06:45.456+0000",
+        "selfRegistered": false,
+        "userRoles": [
+          {
+            "id": "yrB6vc5Ip3r"
+          }
+        ],
+        "cogsDimensionConstraints": [ ],
+        "userInfo": {
+          "id": "M5zQapPyTZI"
+        }
+      },
+      "code": "admin",
+      "created": "2016-03-31T05:06:45.422+0000",
+      "attributeValues": [ ]
+    }
+  ]
+}

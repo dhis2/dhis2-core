@@ -1,0 +1,712 @@
+package org.hisp.dhis.mapping;
+
+/*
+ * Copyright (c) 2004-2016, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableList;
+import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.user.User;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+
+/**
+ * For analytical data, organisation units and indicators/data elements are
+ * dimensions, and period is filter.
+ *
+ * @author Jan Henrik Overland
+ */
+@JacksonXmlRootElement( localName = "mapView", namespace = DxfNamespaces.DXF_2_0 )
+public class MapView
+    extends BaseAnalyticalObject
+    implements EventAnalyticalObject
+{
+    public static final String LAYER_BOUNDARY = "boundary";
+    public static final String LAYER_FACILITY = "facility";
+    public static final String LAYER_SYMBOL = "symbol";
+    public static final String LAYER_EVENT = "event";
+    public static final String LAYER_THEMATIC1 = "thematic1";
+    public static final String LAYER_THEMATIC2 = "thematic2";
+    public static final String LAYER_THEMATIC3 = "thematic3";
+    public static final String LAYER_THEMATIC4 = "thematic4";
+    public static final String LAYER_EARTH_ENGINE = "earthEngine";
+
+    public static final Integer METHOD_EQUAL_INTERVALS = 2;
+    public static final Integer METHOD_EQUAL_COUNTS = 3;
+
+    public static final ImmutableList<String> DATA_LAYERS = ImmutableList.<String>builder().add(
+        LAYER_THEMATIC1, LAYER_THEMATIC2, LAYER_THEMATIC3, LAYER_THEMATIC4 ).build();
+
+    /**
+     * Program. Required.
+     */
+    private Program program;
+
+    /**
+     * Program stage.
+     */
+    private ProgramStage programStage;
+
+    /**
+     * Start date.
+     */
+    private Date startDate;
+
+    /**
+     * End date.
+     */
+    private Date endDate;
+
+    /**
+     * Dimensions to use as columns.
+     */
+    private List<String> columnDimensions = new ArrayList<>();
+
+    private String layer;
+
+    private Integer method;
+
+    private Integer classes;
+
+    private String colorLow;
+
+    private String colorHigh;
+
+    /**
+     * Comma-separated value of hex colors.
+     */
+    private String colorScale;
+
+    private LegendSet legendSet;
+
+    private Integer radiusLow;
+
+    private Integer radiusHigh;
+
+    private Double opacity;
+
+    private OrganisationUnitGroupSet organisationUnitGroupSet;
+
+    private Integer areaRadius;
+
+    private Boolean hidden;
+
+    private Boolean labels;
+
+    private String labelFontSize;
+
+    private String labelFontWeight;
+
+    private String labelFontStyle;
+
+    private String labelFontColor;
+
+    private boolean eventClustering;
+
+    private String eventPointColor;
+
+    private int eventPointRadius;
+
+    /**
+     * General configuration property for JSON values used to store information
+     * for layers with arbitrary configuration needs.
+     */
+    private String config;
+
+    // -------------------------------------------------------------------------
+    // Transient properties
+    // -------------------------------------------------------------------------
+
+    private transient I18nFormat format;
+
+    private transient String parentGraph;
+
+    private transient int parentLevel;
+
+    private transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
+
+    private transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
+
+    public MapView()
+    {
+    }
+
+    public MapView( String layer )
+    {
+        this.layer = layer;
+    }
+
+    // -------------------------------------------------------------------------
+    // AnalyticalObject
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void init( User user, Date date, OrganisationUnit organisationUnit,
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
+    {
+        this.user = user;
+        this.relativePeriodDate = date;
+        this.relativeOrganisationUnit = organisationUnit;
+        this.organisationUnitsAtLevel = organisationUnitsAtLevel;
+        this.organisationUnitsInGroups = organisationUnitsInGroups;
+    }
+
+    @Override
+    public void populateAnalyticalProperties()
+    {
+        for ( String column : columnDimensions )
+        {
+            columns.add( getDimensionalObject( column ) );
+        }
+
+        rows.add( getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID ) );
+
+        if ( !periods.isEmpty() || hasRelativePeriods() )
+        {
+            filters.add( getDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
+        }
+    }
+
+    @Override
+    protected void clearTransientStateProperties()
+    {
+        format = null;
+        parentGraph = null;
+        parentLevel = 0;
+        organisationUnitsAtLevel = new ArrayList<>();
+        organisationUnitsInGroups = new ArrayList<>();
+    }
+
+    public List<OrganisationUnit> getAllOrganisationUnits()
+    {
+        DimensionalObject object = getDimensionalObject( ORGUNIT_DIM_ID, relativePeriodDate, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format );
+
+        return object != null ? DimensionalObjectUtils.asTypedList( object.getItems() ) : null;
+    }
+
+    public boolean hasLegendSet()
+    {
+        return legendSet != null;
+    }
+
+    public boolean hasColors()
+    {
+        return colorLow != null && !colorLow.trim().isEmpty() && colorHigh != null && !colorHigh.trim().isEmpty();
+    }
+
+    public boolean isDataLayer()
+    {
+        return DATA_LAYERS.contains( layer );
+    }
+
+    public boolean isEventLayer()
+    {
+        return LAYER_EVENT.equals( layer );
+    }
+
+    @Override
+    public boolean haveUniqueNames()
+    {
+        return false;
+    }
+
+    @Override
+    public String getName()
+    {
+        if ( !dataDimensionItems.isEmpty() && dataDimensionItems.get( 0 ).getDimensionalItemObject() != null )
+        {
+            return dataDimensionItems.get( 0 ).getDimensionalItemObject().getName();
+        }
+
+        return uid;
+    }
+
+    // -------------------------------------------------------------------------
+    // EventAnalyticalObject
+    // -------------------------------------------------------------------------
+
+    public EventOutputType getOutputType()
+    {
+        return EventOutputType.EVENT;
+    }
+
+    public DimensionalItemObject getValue()
+    {
+        return null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Program getProgram()
+    {
+        return program;
+    }
+
+    public void setProgram( Program program )
+    {
+        this.program = program;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "columnDimensions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "columnDimension", namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getColumnDimensions()
+    {
+        return columnDimensions;
+    }
+
+    public void setColumnDimensions( List<String> columnDimensions )
+    {
+        this.columnDimensions = columnDimensions;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLayer()
+    {
+        return layer;
+    }
+
+    public void setLayer( String layer )
+    {
+        this.layer = layer;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getMethod()
+    {
+        return method;
+    }
+
+    public void setMethod( Integer method )
+    {
+        this.method = method;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getClasses()
+    {
+        return classes;
+    }
+
+    public void setClasses( Integer classes )
+    {
+        this.classes = classes;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.COLOR )
+    public String getColorLow()
+    {
+        return colorLow;
+    }
+
+    public void setColorLow( String colorLow )
+    {
+        this.colorLow = colorLow;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.COLOR )
+    public String getColorHigh()
+    {
+        return colorHigh;
+    }
+
+    public void setColorHigh( String colorHigh )
+    {
+        this.colorHigh = colorHigh;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getColorScale()
+    {
+        return colorScale;
+    }
+
+    public void setColorScale( String colorScale )
+    {
+        this.colorScale = colorScale;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSet getLegendSet()
+    {
+        return legendSet;
+    }
+
+    public void setLegendSet( LegendSet legendSet )
+    {
+        this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getRadiusLow()
+    {
+        return radiusLow;
+    }
+
+    public void setRadiusLow( Integer radiusLow )
+    {
+        this.radiusLow = radiusLow;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getRadiusHigh()
+    {
+        return radiusHigh;
+    }
+
+    public void setRadiusHigh( Integer radiusHigh )
+    {
+        this.radiusHigh = radiusHigh;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Double getOpacity()
+    {
+        return opacity;
+    }
+
+    public void setOpacity( Double opacity )
+    {
+        this.opacity = opacity;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitGroupSet getOrganisationUnitGroupSet()
+    {
+        return organisationUnitGroupSet;
+    }
+
+    public void setOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
+    {
+        this.organisationUnitGroupSet = organisationUnitGroupSet;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getAreaRadius()
+    {
+        return areaRadius;
+    }
+
+    public void setAreaRadius( Integer areaRadius )
+    {
+        this.areaRadius = areaRadius;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getHidden()
+    {
+        return hidden;
+    }
+
+    public void setLabels( Boolean labels )
+    {
+        this.labels = labels;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getLabels()
+    {
+        return labels;
+    }
+
+    public void setHidden( Boolean hidden )
+    {
+        this.hidden = hidden;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLabelFontSize()
+    {
+        return labelFontSize;
+    }
+
+    public void setLabelFontSize( String labelFontSize )
+    {
+        this.labelFontSize = labelFontSize;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLabelFontWeight()
+    {
+        return labelFontWeight;
+    }
+
+    public void setLabelFontWeight( String labelFontWeight )
+    {
+        this.labelFontWeight = labelFontWeight;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLabelFontStyle()
+    {
+        return labelFontStyle;
+    }
+
+    public void setLabelFontStyle( String labelFontStyle )
+    {
+        this.labelFontStyle = labelFontStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLabelFontColor()
+    {
+        return labelFontColor;
+    }
+
+    public void setLabelFontColor( String labelFontColor )
+    {
+        this.labelFontColor = labelFontColor;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEventClustering()
+    {
+        return eventClustering;
+    }
+
+    public void setEventClustering( boolean eventClustering )
+    {
+        this.eventClustering = eventClustering;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getEventPointColor()
+    {
+        return eventPointColor;
+    }
+
+    public void setEventPointColor( String eventPointColor )
+    {
+        this.eventPointColor = eventPointColor;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getEventPointRadius()
+    {
+        return eventPointRadius;
+    }
+
+    public void setEventPointRadius( int eventPointRadius )
+    {
+        this.eventPointRadius = eventPointRadius;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getConfig()
+    {
+        return config;
+    }
+
+    public void setConfig( String config )
+    {
+        this.config = config;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getParentGraph()
+    {
+        return parentGraph;
+    }
+
+    public void setParentGraph( String parentGraph )
+    {
+        this.parentGraph = parentGraph;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getParentLevel()
+    {
+        return parentLevel;
+    }
+
+    public void setParentLevel( int parentLevel )
+    {
+        this.parentLevel = parentLevel;
+    }
+
+    @Override
+    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    {
+        super.mergeWith( other, mergeMode );
+
+        if ( other.getClass().isInstance( this ) )
+        {
+            MapView mapView = (MapView) other;
+
+            if ( mergeMode.isReplace() )
+            {
+                layer = mapView.getLayer();
+                method = mapView.getMethod();
+                classes = mapView.getClasses();
+                colorLow = mapView.getColorLow();
+                colorHigh = mapView.getColorHigh();
+                colorScale = mapView.getColorScale();
+                legendSet = mapView.getLegendSet();
+                radiusLow = mapView.getRadiusLow();
+                radiusHigh = mapView.getRadiusHigh();
+                opacity = mapView.getOpacity();
+                organisationUnitGroupSet = mapView.getOrganisationUnitGroupSet();
+                areaRadius = mapView.getAreaRadius();
+                hidden = mapView.getHidden();
+                labels = mapView.getLabels();
+                labelFontSize = mapView.getLabelFontSize();
+                labelFontWeight = mapView.getLabelFontWeight();
+                labelFontStyle = mapView.getLabelFontStyle();
+                labelFontColor = mapView.getLabelFontColor();
+                eventClustering = mapView.isEventClustering();
+                eventPointColor = mapView.getEventPointColor();
+                eventPointRadius = mapView.getEventPointRadius();
+                config = mapView.getConfig();
+            }
+            else if ( mergeMode.isMerge() )
+            {
+                layer = mapView.getLayer() == null ? layer : mapView.getLayer();
+                method = mapView.getMethod() == null ? method : mapView.getMethod();
+                classes = mapView.getClasses() == null ? classes : mapView.getClasses();
+                colorLow = mapView.getColorLow() == null ? colorLow : mapView.getColorLow();
+                colorHigh = mapView.getColorHigh() == null ? colorHigh : mapView.getColorHigh();
+                colorScale = mapView.getColorScale() == null ? colorScale : mapView.getColorScale();
+                legendSet = mapView.getLegendSet() == null ? legendSet : mapView.getLegendSet();
+                radiusLow = mapView.getRadiusLow() == null ? radiusLow : mapView.getRadiusLow();
+                radiusHigh = mapView.getRadiusHigh() == null ? radiusHigh : mapView.getRadiusHigh();
+                opacity = mapView.getOpacity() == null ? opacity : mapView.getOpacity();
+                organisationUnitGroupSet = mapView.getOrganisationUnitGroupSet() == null ? organisationUnitGroupSet : mapView.getOrganisationUnitGroupSet();
+                areaRadius = mapView.getAreaRadius() == null ? areaRadius : mapView.getAreaRadius();
+                hidden = mapView.getHidden() == null ? hidden : mapView.getHidden();
+                labels = mapView.getLabels() == null ? labels : mapView.getLabels();
+                labelFontSize = mapView.getLabelFontSize() == null ? labelFontSize : mapView.getLabelFontSize();
+                labelFontWeight = mapView.getLabelFontWeight() == null ? labelFontWeight : mapView.getLabelFontWeight();
+                labelFontStyle = mapView.getLabelFontStyle() == null ? labelFontStyle : mapView.getLabelFontStyle();
+                labelFontColor = mapView.getLabelFontColor() == null ? labelFontColor : mapView.getLabelFontColor();
+                eventClustering = mapView.isEventClustering();
+                eventPointColor = mapView.getEventPointColor() == null ? eventPointColor : mapView.getEventPointColor();
+                eventPointRadius = mapView.getEventPointRadius();
+                config = mapView.getConfig() == null ? config : mapView.getConfig();
+            }
+        }
+    }
+}

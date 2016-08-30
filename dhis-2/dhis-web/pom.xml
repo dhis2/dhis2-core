@@ -1,0 +1,106 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.hisp.dhis</groupId>
+    <artifactId>dhis</artifactId>
+    <version>2.25-SNAPSHOT</version>
+  </parent>
+  <artifactId>dhis-web</artifactId>
+  <packaging>pom</packaging>
+  <name>DHIS Web Modules Project</name>
+  <description>This project is a web based GUI for the DHIS 2 system.</description>
+
+  <modules>
+    <module>dhis-web-commons</module>
+    <module>dhis-web-commons-resources</module>
+    <module>dhis-web-api-mobile</module>
+    <module>dhis-web-api</module>
+    <module>dhis-web-api-test</module>
+    <module>dhis-web-ohie</module>
+    <module>dhis-web-uaa</module>
+    <module>dhis-web-maintenance</module>
+    <module>dhis-web-dataentry</module>
+    <module>dhis-web-importexport</module>
+    <module>dhis-web-validationrule</module>
+    <module>dhis-web-reporting</module>
+    <module>dhis-web-dashboard-integration</module>
+    <module>dhis-web-light</module>
+    <module>dhis-web-mobile</module>
+    <module>dhis-web-sms</module>
+    <module>dhis-web-apps</module>
+    <module>dhis-web-portal</module>
+  </modules>
+
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <useWarCompression>false</useWarCompression>
+      </properties>
+    </profile>
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archiveClasses>true</archiveClasses>
+          <dependentWarExcludes>**/web.xml</dependentWarExcludes>
+          <archive>
+            <compress>${useWarCompression}</compress>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.3.8.v20160314</version>
+        <configuration>
+          <systemProperties>
+            <systemProperty>
+              <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
+              <value>10000000</value>
+            </systemProperty>
+          </systemProperties>
+          <webAppConfig>
+            <contextPath>/</contextPath>
+          </webAppConfig>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-commons</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-commons-resources</artifactId>
+        <version>${project.version}</version>
+        <type>war</type>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-web-api-mobile</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <properties>
+    <rootDir>../</rootDir>
+    <useWarCompression>true</useWarCompression>
+  </properties>
+</project>

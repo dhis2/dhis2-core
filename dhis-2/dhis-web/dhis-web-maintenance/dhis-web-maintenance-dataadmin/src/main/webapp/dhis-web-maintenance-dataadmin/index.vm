@@ -1,0 +1,13 @@
+<h3>$i18n.getString( "data_administration" )</h3>
+
+<ul class="introList">
+    #introListImgItem( "dataIntegrity.action" "data_integrity" "dataintegrity" )
+    #introListImgItem( "displayMaintenanceForm.action" "maintenance" "maintenance" )
+    #introListImgItem( "displayResourceTableForm.action" "resource_table" "resourcetable" )
+    #introListImgItem( "locale.action" "locale" "datadictionary" )
+    #introListImgItem( "sqlView.action" "sql_view" "sqlview" )
+    #introListImgItem( "viewStatistics.action" "data_statistics" "datastatistics" )
+    #introListImgItem( "lockException.action" "lock_exception" "datalocking" )
+    #introListImgItem( "getMinMaxValidationParams.action" "min_max_value_generation" "minmaxvaluegeneration" )
+    #introListImgItem( "viewScheduledTasks.action" "scheduling" "scheduling" )
+</ul>

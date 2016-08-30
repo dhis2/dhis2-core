@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue"
+           table="trackedentityattributevalue">
+
+        <composite-id>
+            <key-many-to-one name="entityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+                             column="trackedentityinstanceid"
+                             foreign-key="fk_attributevalue_trackedentityinstanceid"/>
+            <key-many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+                             column="trackedentityattributeid"
+                             foreign-key="fk_attributevalue_trackedentityattributeid"/>
+        </composite-id>
+
+        <property name="created" type="timestamp" not-null="true" />
+
+        <property name="lastUpdated" type="timestamp" not-null="true" />
+
+        <property name="plainValue" column="value" access="property" length="50000"/>
+
+        <property name="encryptedValue" column="encryptedvalue" access="property" type="AESEncryptedString"
+                  length="50000"/>
+
+    </class>
+</hibernate-mapping>

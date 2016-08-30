@@ -1,0 +1,14 @@
+
+<h2>$i18n.getString( "data_administration" )&nbsp;</h2>
+
+<ul>
+    <li><a href="dataIntegrity.action">$i18n.getString( "data_integrity" )&nbsp;</a></li>
+    <li><a href="displayMaintenanceForm.action">$i18n.getString( "maintenance" )&nbsp;</a></li>
+    <li><a href="displayResourceTableForm.action">$i18n.getString( "resource_table" )&nbsp;</a></li>
+    <li><a href="locale.action">$i18n.getString( "locale" )&nbsp;</a></li>
+    <li><a href="sqlView.action">$i18n.getString( "sql_view" )&nbsp;</a></li>
+    <li><a href="viewStatistics.action">$i18n.getString( "data_statistics" )&nbsp;</a></li>
+    <li><a href="lockException.action">$i18n.getString( "lock_exception" )&nbsp;</a></li>
+    <li><a href="getMinMaxValidationParams.action">$i18n.getString( "min_max_value_generation")&nbsp;</a></li>
+    <li><a href="viewScheduledTasks.action">$i18n.getString( "scheduling" )</a></li>
+</ul>

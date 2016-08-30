@@ -1,0 +1,363 @@
+<script>
+    var selected = {};
+
+    function displaySelected()
+    {
+        $('#selection-list').children().remove();
+        $('form[role="search"] input:text').val('');
+
+        $('#selection-list').append('<li id="organisation-unit-list" data-role="list-divider">Organisation Units</li>')
+        $('#selection-list').append('<li id="user-list" data-role="list-divider">Users</li>')
+        $('#selection-list').append('<li id="user-group-list" data-role="list-divider">Users Groups</li>')
+
+        var ou_count = 0;
+        var u_count = 0;
+        var ug_count = 0;
+
+        _( _(selected).keys() ).each(function(item)
+        {
+            if( item.indexOf( 'ou:') != -1 )
+            {
+                ou_count++;
+                $('<li onclick="removeRecipient(this);" data-icon="delete" data-key="' + item + '"><a href="#">' + selected[item] + '</a></li>').insertAfter('#organisation-unit-list');
+            }
+            else if( item.indexOf( 'u:') != -1 )
+            {
+                u_count++;
+                $('<li onclick="removeRecipient(this);" data-icon="delete" data-key="' + item + '"><a href="#">' + selected[item] + '</a></li>').insertAfter('#user-list');
+            }
+            else if( item.indexOf( 'ug:') != -1 )
+            {
+                ug_count++;
+                $('<li onclick="removeRecipient(this);" data-icon="delete" data-key="' + item + '"><a href="#">' + selected[item] + '</a></li>').insertAfter('#user-group-list');
+            }
+        });
+
+        if( ou_count == 0)
+        {
+            $('<li>None selected.</li>').insertAfter('#organisation-unit-list');
+        }
+
+        if( u_count == 0)
+        {
+            $('<li>None selected.</li>').insertAfter('#user-list');
+        }
+
+        if( ug_count == 0)
+        {
+            $('<li>None selected.</li>').insertAfter('#user-group-list');
+        }
+
+        $('#selection-list').listview('refresh');
+    }
+
+    function updateRecipientCounter()
+    {
+        $('#message-recipient-counter').html( _(selected).keys().length );
+    }
+
+    function addRecipient(e)
+    {
+        var prefix = $(e).jqmData('prefix');
+        var id = $(e).jqmData('id');
+
+        if( prefix === undefined || id === undefined )
+        {
+            return;
+        }
+
+        selected[prefix + ':' + id] = $(e).find('a').html();
+
+        $.mobile.changePage('#manage-recipients-page');
+    }
+
+    function removeRecipient(e)
+    {
+        var key = $(e).jqmData('key');
+        delete selected[key];
+
+        displaySelected();
+    }
+
+    function manageRecipientsPage()
+    {
+        var searchField = $('form[role="search"] input:text');
+        var clearSearchButton = $('form[role="search"]').find('a[data-icon="delete"]');
+
+        var clearSearchFn = $._data(clearSearchButton[0], ('events'))['click'][0];
+        clearSearchButton.unbind('click');
+        clearSearchButton.bind('click', displaySelected );
+        clearSearchButton.bind('click', clearSearchFn );
+
+        var fn1 = $._data(searchField[0], ('events'))['keyup'][1];
+        searchField.unbind('keyup');
+
+        searchField.bind('keyup', function () {
+            var search = $('form[role="search"] input:text').val();
+
+            if( search.length == 0)
+            {
+                displaySelected();
+                return;
+            }
+
+            $('#selection-list').children().remove();
+
+            if ( search.length < 3 )
+            {
+                return;
+            }
+
+            $.mobile.loading( 'show' );
+
+            $.ajax({
+                url  : '$contextPath/api/currentUser/recipients',
+                type : 'get',
+                dataType: 'json',
+                data : {
+                    'filter' : search
+                }
+            }).success(function ( data ) {
+                var organisationUnits = data.organisationUnits;
+                var users = data.users;
+                var userGroups = data.userGroups;
+
+                // filter away already selected recipients
+                _( selected ).each(function( val, key ) {
+                    if( key.indexOf( 'ou:') != -1 )
+                    {
+                        var id = key.substring(3);
+
+                        _( organisationUnits ).each(function(n, idx) {
+                            if( n.id == id ) {
+                                dhis2.array.remove( organisationUnits, idx, idx );
+                            }
+                        });
+                    }
+                    else if( key.indexOf( 'u:') != -1 )
+                    {
+                        var id = key.substring(2);
+
+                        _( users ).each(function(n, idx) {
+                            if( n.id == id ) {
+                                dhis2.array.remove( users, idx, idx );
+                            }
+                        });
+                    }
+                    else if( key.indexOf( 'ug:') != -1 )
+                    {
+                        var id = key.substring(3);
+
+                        _( userGroups ).each(function(n, idx) {
+                            if( n.id == id ) {
+                                dhis2.array.remove( userGroups, idx, idx );
+                            }
+                        });
+                    }
+                });
+
+                if( organisationUnits && organisationUnits.length > 0)
+                {
+                    $('#selection-list').append('<li id="organisation-unit-list" data-role="list-divider">Organisation Units</li>')
+
+                    _(organisationUnits).each(function(organisationUnit) {
+                        $('#selection-list').append('<li onclick="addRecipient(this);" data-prefix="ou" data-icon="plus" data-id="' + organisationUnit.id + '"><a href="#">' + organisationUnit.name + '</a></li>');
+                    });
+                }
+
+                if( users && users.length > 0 )
+                {
+                    $('#selection-list').append('<li id="user-list" data-role="list-divider">Users</li>')
+
+                    _(users).each(function(user) {
+                        $('#selection-list').append('<li onclick="addRecipient(this);" data-prefix="u" data-icon="plus" data-id="' + user.id + '"><a href="#">' + user.name + '</a></li>');
+                    });
+                }
+
+                if( userGroups && userGroups.length > 0 )
+                {
+                    $('#selection-list').append('<li id="user-group-list" data-role="list-divider">Users Groups</li>')
+
+                    _(userGroups).each(function(userGroup) {
+                        $('#selection-list').append('<li onclick="addRecipient(this);" data-prefix="ug" data-icon="plus" data-id="' + userGroup.id + '"><a href="#">' + userGroup.name + '</a></li>');
+                    });
+                }
+
+                $('#selection-list').listview('refresh');
+                $.mobile.hidePageLoadingMsg();
+            }).error(function() {
+                $.mobile.loading( 'show', {
+                    html: '<h1>Unable to search, please try again later</h1>',
+                    textVisible: true
+                });
+
+                setTimeout( function() {
+                    $.mobile.loading( 'hide' );
+                }, 1500);
+            });
+
+            $('form[role="search"] input:text').bind('keyup', fn1);
+        });
+
+        displaySelected();
+    }
+
+    function sendMessage(e) {
+        var subject = jQuery('#new-message-subject').val();
+        var text = jQuery('#new-message-text').val();
+
+        var message = {};
+        message.subject = subject;
+        message.text = text;
+        message.organisationUnits = [];
+        message.users = [];
+        message.userGroups = [];
+
+        if( !message.subject.length > 0 ) {
+            $.mobile.loading( 'show', {
+                html: '<h1>Please fill in subject</h1>',
+                textVisible: true
+            });
+
+            setTimeout( function() {
+                $.mobile.loading( 'hide' );
+            }, 1500);
+
+            return false;
+        }
+
+        if( !message.text.length > 0 ) {
+            $.mobile.loading( 'show', {
+                html: '<h1>Please fill in text</h1>',
+                textVisible: true
+            });
+
+            setTimeout( function() {
+                $.mobile.loading( 'hide' );
+            }, 1500);
+
+            return false;
+        }
+
+        $.mobile.loading( 'show' );
+
+        _(_(selected).keys()).each(function(key) {
+            if( key.indexOf('ou:') != -1 )
+            {
+                message.organisationUnits.push( { "id": key.substring(3) } );
+            }
+            else if( key.indexOf('u:') != -1 )
+            {
+                message.users.push( { "id": key.substring(2) } );
+            }
+            else if( key.indexOf('ug:') != -1 )
+            {
+                message.userGroups.push( { "id": key.substring(3) } );
+            }
+        });
+
+        if( !( message.organisationUnits.length > 0 || message.users.length > 0 || message.userGroups.length > 0 ) ) {
+            $.mobile.loading( 'show', {
+                html: '<h1>Please add at least one recipient</h1>',
+                textVisible: true
+            });
+
+            setTimeout( function() {
+                $.mobile.loading( 'hide' );
+            }, 1500);
+
+            return false;
+        }
+
+        $.ajax({
+           url: "$contextPath/api/messageConversations",
+           type: 'POST',
+           contentType: 'application/json',
+           data: JSON.stringify(message),
+           async: false
+        }).success(function() {
+            $.mobile.loading( 'hide' );
+            window.location.href = '../messages';
+        }).error(function() {
+            $.mobile.loading( 'show', {
+                html: '<h1>Unable to send message, please try again later</h1>',
+                textVisible: true
+            });
+
+            setTimeout( function() {
+                $.mobile.loading( 'hide' );
+            }, 1500);
+        });
+
+        e.preventDefault();
+    }
+
+    function newMessagePage()
+    {
+        $('#new-message-form input:submit').unbind('click');
+        $('#new-message-form input:submit').bind('click', sendMessage );
+        updateRecipientCounter();
+    }
+
+    jQuery(document).bind('pagechange', function (event, data) {
+        var pageId = data.toPage.attr('id');
+
+        if( pageId == 'manage-recipients-page')
+        {
+            manageRecipientsPage();
+        }
+        else if( pageId == 'new-message-page')
+        {
+            newMessagePage();
+        }
+    });
+
+</script>
+
+<section data-role="page" id="new-message-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="../messages" data-icon="delete" class="ui-btn-right">Discard</a>
+    </header>
+
+	<section data-role='content'>
+        <ul data-role="listview" data-inset="true">
+            <li>
+                <form id="new-message-form">
+                    <label for='new-message-subject'>Subject</label>
+                    <input type="text" id='new-message-subject' />
+                    <label for='new-message-text'>Text</label>
+                    <textarea id='new-message-text'></textarea>
+                    <input type="submit" value="Send message" />
+                </form>
+
+            </li>
+            <li data-icon="gear"><a href="#manage-recipients-page">Manage recipients</a> <span id="message-recipient-counter" class='ui-li-count'>0</span></li>
+        </ul>
+
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>
+
+<section data-role="page" id="manage-recipients-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="#new-message-page" data-icon="delete" class="ui-btn-right">Finish</a>
+    </header>
+
+	<section data-role="content">
+        <ul id="selection-list" data-role="listview" data-inset="true" data-filter="true" data-filter-placeholder="Enter 3 or more characters to search">
+        </ul>
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>

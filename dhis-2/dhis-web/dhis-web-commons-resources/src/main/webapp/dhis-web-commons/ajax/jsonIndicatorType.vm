@@ -1,0 +1,8 @@
+{ "indicatorType":
+  {
+	"id": "$!{indicatorType.id}",
+	"uid": "$!{indicatorType.uid}",
+	"name": "$encoder.jsonEncode( $!{indicatorType.name} )",
+	"factor": "$!indicatorType.factor"
+  }
+}

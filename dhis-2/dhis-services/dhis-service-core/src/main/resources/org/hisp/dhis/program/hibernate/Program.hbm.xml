@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.Program" table="program">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" length="230" />
+    
+    <property name="shortName" column="shortname" unique="true" length="50" />
+
+    <property name="description" type="text" />
+
+    <property name="version" />
+
+    <property name="enrollmentDateLabel" column="enrollmentdatelabel" type="text" />
+
+    <property name="incidentDateLabel" column="incidentdatelabel" type="text" />
+
+    <set name="programStages" order-by="sortOrder" cascade="all">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStage" />
+    </set>
+
+    <set name="organisationUnits" table="program_organisationunits">
+      <cache usage="read-write" />
+      <key column="programid" foreign-key="fk_program_organisationunits_programid" />
+      <many-to-many column="organisationunitid"
+        class="org.hisp.dhis.organisationunit.OrganisationUnit" foreign-key="fk_program_organisationunits_organisationunitid" />
+    </set>
+
+    <set name="validationCriteria" table="program_criteria">
+      <key column="programid" foreign-key="fk_program_criteria_programid" />
+      <many-to-many column="validationcriteriaid"
+        class="org.hisp.dhis.validation.ValidationCriteria" foreign-key="fk_program_criteria_validationcriteriaid" />
+    </set>
+
+    <property name="programType" column="type" type="org.hisp.dhis.program.ProgramTypeUserType" not-null="true"  />
+
+    <property name="displayIncidentDate" />
+
+    <property name="onlyEnrollOnce" />
+    
+    <property name="skipOffline" not-null="true" />
+    
+    <property name="displayFrontPageList" column="displayfrontpagelist" />
+    
+    <property name="useFirstStageDuringRegistration" />
+    
+    <property name="captureCoordinates" />
+
+    <list name="programAttributes" cascade="all">
+      <key column="programid" />
+      <list-index column="sort_order" base="1" />
+      <one-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" />
+    </list>
+
+    <property name="ignoreOverdueEvents" />
+
+    <set name="userRoles" table="program_userroles" inverse="true">
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.user.UserAuthorityGroup"
+        column="userroleid" foreign-key="fk_program_userroles" />
+    </set>
+
+    <set name="programIndicators" inverse="true">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
+    </set>
+
+    <set name="instanceReminders" order-by="daysAllowedSendMessage" cascade="all">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
+    </set>
+
+    <property name="selectEnrollmentDatesInFuture" />
+
+    <property name="selectIncidentDatesInFuture" />
+
+    <property name="relationshipText" />
+
+    <many-to-one name="relationshipType" class="org.hisp.dhis.relationship.RelationshipType"
+      column="relationshiptypeid" foreign-key="fk_program_relationshipid" />
+
+    <property name="relationshipFromA" />
+
+    <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
+      column="relatedprogramid" foreign-key="fk_program_relatedprogram" />
+
+    <property name="dataEntryMethod" />
+
+	<many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+      column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid" />
+      
+    <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+      column="trackedentityid" foreign-key="fk_program_trackedentityid" />
+
+    <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
+      column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all" />
+
+    <many-to-one name="workflow" lazy="false" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid"
+                 foreign-key="fk_program_workflowid" />
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="programattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="programtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programid" foreign-key="fk_objecttranslation_programid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <!-- Access properties -->
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User"
+      column="userid" foreign-key="fk_program_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="programusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="programid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess"
+        column="usergroupaccessid" unique="true" />
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

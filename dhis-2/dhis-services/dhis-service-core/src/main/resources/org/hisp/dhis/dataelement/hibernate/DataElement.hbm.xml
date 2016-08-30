@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataelement.DataElement" table="dataelement">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="dataelementid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
+
+    <property name="description" type="text" />
+
+    <property name="formName" length="230" />
+
+    <property name="valueType" length="50" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.ValueType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="domainType" column="domainType" type="org.hisp.dhis.dataelement.DataElementDomainUserType" not-null="true" />
+
+    <property name="aggregationType" length="50" column="aggregationtype" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo"
+      column="categorycomboid" not-null="true" foreign-key="fk_dataelement_categorycomboid" />
+
+    <property name="url" />
+
+    <set name="groups" table="dataelementgroupmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <many-to-many class="org.hisp.dhis.dataelement.DataElementGroup" column="dataelementgroupid" />
+    </set>
+
+    <set name="dataSets" table="datasetmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
+    </set>
+
+    <list name="aggregationLevels" table="dataelementaggregationlevels">
+      <key column="dataelementid" foreign-key="fk_dataelementaggregationlevels_dataelementid" />
+      <list-index column="sort_order" base="0" />
+      <element column="aggregationlevel" type="integer" />
+    </list>
+
+    <property name="zeroIsSignificant" not-null="true" />
+
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
+      foreign-key="fk_dataelement_optionsetid" />
+
+    <many-to-one name="commentOptionSet" class="org.hisp.dhis.option.OptionSet" column="commentoptionsetid"
+      foreign-key="fk_dataelement_commentoptionsetid" />
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_dataelement_legendset" />
+
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="dataelementattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="dataelementtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataelementid" foreign-key="fk_objecttranslation_dataelementid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataelement_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="dataelementusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+</hibernate-mapping>

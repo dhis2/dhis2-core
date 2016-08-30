@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<programStage>
+  <dataElements>
+    #foreach( $dataElement in $dataElementList )
+		<dataElement>
+			<id>$dataElement.id</id>
+			<uid>$encoder.xmlEncode( $dataElement.uid )</uid>
+			<name>$encoder.xmlEncode( $dataElement.name )</name>
+			<code>$!encoder.xmlEncode( $dataElement.code )</code>
+			<shortName>$encoder.xmlEncode( $dataElement.shortName )</shortName>
+			<valueType>$dataElement.valueType</valueType>
+			#set($deJSON = '{' + '"id"' + ":" + $dataElement.id + "," + '"uid"' + ':"' + $dataElement.uid + '",' + '"name"' + ':"' + "$dataElement.name" + '",' + '"shortName"' + ':"' + "$dataElement.shortName" + '",' + '"type"' + ':"' + "$dataElement.getDetailedTextType()"  + '"}' )
+			<json>$deJSON</json>
+			<optionCombos> 
+			#foreach( $optionCombo in $dataElement.categoryCombo.optionCombos)
+				<optionCombo>
+					<optionComboid>$optionCombo.id</optionComboid>
+					<optionComboname>$encoder.xmlEncode($optionCombo.name)</optionComboname>
+				</optionCombo>
+			#end
+			</optionCombos>
+		</dataElement>      
+    #end
+  </dataElements>
+</programStage>

@@ -1,0 +1,378 @@
+{
+  "categoryOptions": [
+    {
+      "userGroupAccesses": [ ],
+      "publicAccess": "--------",
+      "name": "default",
+      "lastUpdated": "2016-03-10T04:59:27.887+0000",
+      "attributeValues": [ ],
+      "created": "2016-03-10T04:59:27.872+0000",
+      "id": "SCLqnaPwVHY",
+      "shortName": "default",
+      "organisationUnits": [ ]
+    }
+  ],
+  "dataElements": [
+    {
+      "valueType": "NUMBER",
+      "code": "DataElementCodeA",
+      "aggregationType": "SUM",
+      "user": {
+        "id": "ZK1wkC59FCw"
+      },
+      "aggregationLevels": [ ],
+      "shortName": "DataElementShortA",
+      "attributeValues": [ ],
+      "description": "DataElementDescriptionA",
+      "zeroIsSignificant": false,
+      "created": "2016-03-10T05:02:18.868+0000",
+      "id": "jocQSivF2ry",
+      "categoryCombo": {
+        "id": "SI0XITt9Oh4"
+      },
+      "domainType": "AGGREGATE",
+      "lastUpdated": "2016-03-10T05:02:18.871+0000",
+      "name": "DataElementA",
+      "userGroupAccesses": [ ],
+      "publicAccess": "rw------"
+    },
+    {
+      "aggregationType": "SUM",
+      "valueType": "NUMBER",
+      "code": "DataElementCodeB",
+      "user": {
+        "id": "ZK1wkC59FCw"
+      },
+      "aggregationLevels": [ ],
+      "categoryCombo": {
+        "id": "SI0XITt9Oh4"
+      },
+      "domainType": "AGGREGATE",
+      "shortName": "DataElementShortB",
+      "attributeValues": [ ],
+      "description": "DataElementDescriptionB",
+      "zeroIsSignificant": false,
+      "id": "X0ypiOyoDbw",
+      "created": "2016-03-10T05:02:47.023+0000",
+      "lastUpdated": "2016-03-10T05:02:47.024+0000",
+      "publicAccess": "rw------",
+      "userGroupAccesses": [ ],
+      "name": "DataElementB"
+    },
+    {
+      "user": {
+        "id": "ZK1wkC59FCw"
+      },
+      "aggregationLevels": [ ],
+      "aggregationType": "SUM",
+      "code": "DataElementCodeC",
+      "valueType": "NUMBER",
+      "userGroupAccesses": [ ],
+      "name": "DataElementC",
+      "publicAccess": "rw------",
+      "lastUpdated": "2016-03-10T05:04:44.334+0000",
+      "domainType": "AGGREGATE",
+      "categoryCombo": {
+        "id": "SI0XITt9Oh4"
+      },
+      "attributeValues": [ ],
+      "description": "DataElementDescriptionC",
+      "zeroIsSignificant": false,
+      "id": "vAczVs4mxna",
+      "created": "2016-03-10T05:04:44.329+0000",
+      "shortName": "DataElementShortC"
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "lastUpdated": "2016-03-10T04:59:27.884+0000",
+      "categoryCombo": {
+        "id": "SI0XITt9Oh4"
+      },
+      "name": "default",
+      "ignoreApproval": false,
+      "categoryOptions": [
+        {
+          "id": "SCLqnaPwVHY"
+        }
+      ],
+      "id": "NQigT2ThzgD",
+      "created": "2016-03-10T04:59:27.884+0000"
+    }
+  ],
+  "trackedEntities": [
+    {
+      "name": "Person",
+      "id": "uh6tOHZTlG0",
+      "attributeValues": [ ],
+      "description": "Person",
+      "created": "2016-03-09T09:56:10.596+0000",
+      "lastUpdated": "2016-03-09T09:56:10.597+0000"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "user": {
+        "id": "ZK1wkC59FCw"
+      },
+      "uuid": "b8b03f02-6a01-4786-9343-937692400cec",
+      "path": "/SR705r4KVRu",
+      "lastUpdated": "2016-03-10T05:01:10.717+0000",
+      "name": "Country",
+      "featureType": "NONE",
+      "shortName": "Country",
+      "description": "",
+      "attributeValues": [ ],
+      "created": "2016-03-10T05:01:10.702+0000",
+      "openingDate": "2016-03-10",
+      "id": "SR705r4KVRu"
+    }
+  ],
+  "users": [
+    {
+      "teiSearchOrganisationUnits": [ ],
+      "dataViewOrganisationUnits": [ ],
+      "lastUpdated": "2016-03-10T05:01:28.993+0000",
+      "userCredentials": {
+        "id": "m3ww4DWJtMf",
+        "username": "admin",
+        "disabled": false,
+        "passwordLastUpdated": "2016-03-10T05:00:11.791+0000",
+        "created": "2016-03-10T05:00:11.882+0000",
+        "selfRegistered": false,
+        "invitation": false,
+        "catDimensionConstraints": [ ],
+        "cogsDimensionConstraints": [ ],
+        "externalAuth": false,
+        "user": {
+          "id": "ZK1wkC59FCw"
+        },
+        "userRoles": [
+          {
+            "id": "VIkpd2KHCb1"
+          }
+        ],
+        "lastLogin": "2016-03-10T05:00:11.791+0000",
+        "userInfo": {
+          "id": "ZK1wkC59FCw"
+        }
+      },
+      "surname": "admin",
+      "attributeValues": [ ],
+      "created": "2016-03-10T05:00:11.766+0000",
+      "id": "ZK1wkC59FCw",
+      "firstName": "admin",
+      "organisationUnits": [
+        {
+          "id": "SR705r4KVRu"
+        }
+      ]
+    }
+  ],
+  "organisationUnitLevels": [
+    {
+      "lastUpdated": "2016-03-10T05:01:14.582+0000",
+      "name": "Level 1",
+      "level": 1,
+      "created": "2016-03-10T05:01:14.581+0000",
+      "id": "fMEk5rewunw"
+    }
+  ],
+  "categories": [
+    {
+      "dataDimension": true,
+      "created": "2016-03-10T04:59:27.881+0000",
+      "id": "f66ygHaFS1v",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryOptions": [
+        {
+          "id": "SCLqnaPwVHY"
+        }
+      ],
+      "publicAccess": "--------",
+      "name": "default",
+      "userGroupAccesses": [ ],
+      "lastUpdated": "2016-03-10T04:59:28.064+0000"
+    }
+  ],
+  "categoryCombos": [
+    {
+      "lastUpdated": "2016-03-10T04:59:27.886+0000",
+      "name": "default",
+      "userGroupAccesses": [ ],
+      "publicAccess": "--------",
+      "dataDimensionType": "DISAGGREGATION",
+      "id": "SI0XITt9Oh4",
+      "created": "2016-03-10T04:59:27.883+0000",
+      "categories": [
+        {
+          "id": "f66ygHaFS1v"
+        }
+      ],
+      "skipTotal": false
+    }
+  ],
+  "userRoles": [
+    {
+      "dataSets": [ ],
+      "name": "Superuser",
+      "userGroupAccesses": [ ],
+      "publicAccess": "--------",
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_MAP_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_PROGRAM_ENROLLMENT",
+        "F_REPORTTABLE_EXTERNAL",
+        "F_SQLVIEW_EXTERNAL",
+        "F_GIS_ADMIN",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_CHART_PUBLIC_ADD",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_CHART_EXTERNAL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_MAP_EXTERNAL",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+      ],
+      "programs": [ ],
+      "lastUpdated": "2016-03-10T05:00:11.778+0000",
+      "id": "VIkpd2KHCb1",
+      "created": "2016-03-10T05:00:11.778+0000"
+    }
+  ],
+  "date": "2016-03-10T05:11:08.778+0000",
+  "dataSets": [
+    {
+      "version": 1,
+      "user": {
+        "id": "ZK1wkC59FCw"
+      },
+      "noValueRequiresComment": false,
+      "openFuturePeriods": 0,
+      "dataElementDecoration": false,
+      "validCompleteOnly": false,
+      "code": "DataSetCodeA",
+      "renderHorizontally": false,
+      "timelyDays": 15,
+      "mobile": false,
+      "indicators": [ ],
+      "compulsoryDataElementOperands": [ ],
+      "name": "DataSetA",
+      "userGroupAccesses": [ ],
+      "publicAccess": "rw------",
+      "notifyCompletingUser": false,
+      "lastUpdated": "2016-03-10T05:05:15.994+0000",
+      "skipOffline": false,
+      "renderAsTabs": false,
+      "created": "2016-03-10T05:05:10.398+0000",
+      "periodType": "Monthly",
+      "id": "NGblLqp6Cyu",
+      "attributeValues": [ ],
+      "expiryDays": 0,
+      "shortName": "DataSetShortA",
+      "dataElements": [
+        {
+          "id": "jocQSivF2ry"
+        },
+        {
+          "id": "X0ypiOyoDbw"
+        },
+        {
+          "id": "vAczVs4mxna"
+        }
+      ],
+      "fieldCombinationRequired": false,
+      "organisationUnits": [
+        {
+          "id": "SR705r4KVRu"
+        }
+      ],
+      "categoryCombo": {
+        "id": "SI0XITt9Oh4"
+      }
+    }
+  ],
+  "validationRules": [
+    {
+      "leftSide": {
+        "description": "Left Side",
+        "expression": "#{jocQSivF2ry.NQigT2ThzgD}",
+        "dataElements": [
+          {
+            "id": "jocQSivF2ry"
+          }
+        ],
+        "missingValueStrategy": "SKIP_IF_ANY_VALUE_MISSING"
+      },
+      "importance": "MEDIUM",
+      "rightSide": {
+        "description": "Right Side",
+        "expression": "#{X0ypiOyoDbw.NQigT2ThzgD}",
+        "dataElements": [
+          {
+            "id": "X0ypiOyoDbw"
+          }
+        ],
+        "missingValueStrategy": "SKIP_IF_ANY_VALUE_MISSING"
+      },
+      "name": "ValidationRuleA",
+      "lastUpdated": "2016-03-10T05:09:40.689+0000",
+      "periodType": "Monthly",
+      "id": "ztzsVjSIWg7",
+      "created": "2016-03-10T05:09:40.688+0000",
+      "description": "ValidationRuleA",
+      "operator": "equal_to",
+      "ruleType": "VALIDATION"
+    },
+    {
+      "leftSide": {
+        "description": "Left Side",
+        "expression": "#{jocQSivF2ry.NQigT2ThzgD}",
+        "dataElements": [
+          {
+            "id": "jocQSivF2ry"
+          }
+        ],
+        "missingValueStrategy": "SKIP_IF_ANY_VALUE_MISSING"
+      },
+      "importance": "MEDIUM",
+      "rightSide": {
+        "description": "Right Side",
+        "expression": "#{X0ypiOyoDbw.NQigT2ThzgD}",
+        "dataElements": [
+          {
+            "id": "X0ypiOyoDbw"
+          }
+        ],
+        "missingValueStrategy": "SKIP_IF_ANY_VALUE_MISSING"
+      },
+      "name": "ValidationRuleB",
+      "lastUpdated": "2016-03-10T05:09:40.689+0000",
+      "periodType": "Monthly",
+      "id": "TGvH4Hiyduc",
+      "created": "2016-03-10T05:09:40.688+0000",
+      "description": "ValidationRuleB",
+      "operator": "equal_to",
+      "ruleType": "VALIDATION"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+"-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+"http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-dataentry" extends="dhis-web-commons" namespace="/dhis-web-dataentry">
+
+    <action name="index" class="org.hisp.dhis.de.action.PageInitAction">
+      <interceptor-ref name="organisationUnitTreeStack" />
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-dataentry/select.vm</param>
+      <param name="menu">/dhis-web-dataentry/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/ouwt/ouwt.js,javascript/form.js,javascript/entry.js,javascript/history.js,javascript/entry.fileresource.js,../dhis-web-commons/javascripts/floatThead/jquery.floatThead.min.js</param>
+      <param name="stylesheets">style/dhis-web-dataentry.css</param>
+      <param name="manifest">../dhis-web-commons/cacheManifest.action</param>
+    </action>
+
+    <action name="getMetaData" class="org.hisp.dhis.de.action.GetMetaDataAction">
+      <result name="success" type="velocity-json">/dhis-web-dataentry/responseMetaData.vm</result>
+    </action>
+    
+    <action name="getDataSetAssociations" class="org.hisp.dhis.de.action.GetDataSetAssociationsAction">
+      <result name="success" type="velocity-json">/dhis-web-dataentry/responseDataSetAssociations.vm</result>
+    </action>
+
+    <action name="getDataValues" class="org.hisp.dhis.de.action.GetDataValuesForDataSetAction">
+      <result name="success" type="velocity-json">/dhis-web-dataentry/responseDataValues.vm</result>
+    </action>
+
+    <action name="loadForm" class="org.hisp.dhis.de.action.LoadFormAction">
+      <result name="CUSTOM" type="velocity">/dhis-web-dataentry/customForm.vm</result>
+      <result name="SECTION" type="velocity">/dhis-web-dataentry/sectionForm.vm</result>
+      <result name="SECTION_MULTIORG" type="velocity">/dhis-web-dataentry/multiOrgSectionForm.vm</result>
+      <result name="input" type="velocity">/dhis-web-dataentry/responseVoid.vm</result>
+    </action>
+
+    <action name="saveValue" class="org.hisp.dhis.commons.action.NoAction">
+      <param name="requiredAuthorities">F_DATAVALUE_ADD</param>
+    </action>
+
+    <action name="deleteValue" class="org.hisp.dhis.commons.action.NoAction">
+      <param name="requiredAuthorities">F_DATAVALUE_DELETE</param>
+    </action>
+
+    <action name="saveMinMaxLimits" class="org.hisp.dhis.de.action.SaveMinMaxLimitsAction">
+      <result name="success" type="velocity-json">/dhis-web-dataentry/status.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_DATAELEMENT_MINMAX_ADD</param>
+    </action>
+
+    <action name="removeMinMaxLimits" class="org.hisp.dhis.de.action.RemoveMinMaxLimitsAction">
+      <result name="success" type="httpheader">
+        <param name="status">204</param>
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_DATAELEMENT_MINMAX_DELETE</param>
+    </action>
+
+    <action name="viewHistory" class="org.hisp.dhis.de.action.GetHistoryAction">
+      <result name="success" type="velocity">/dhis-web-dataentry/history.vm</result>
+    </action>
+
+    <action name="getValidationViolations" class="org.hisp.dhis.de.action.ValidationAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="input" type="velocity-json">../dhis-web-commons/ajax/jsonResponseInput.vm</result>
+    </action>
+
+    <action name="validate" class="org.hisp.dhis.de.action.ValidationAction">
+      <result name="success" type="outputStreamResult"></result>
+      <result name="input" type="velocity">/dhis-web-dataentry/validationResult.vm</result>
+    </action>
+
+  </package>
+</struts>

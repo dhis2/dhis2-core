@@ -1,0 +1,22 @@
+<div class="modal-header page">
+    <h3>{{'org_unit'| translate}}</h3>
+</div>
+<div class="modal-body page">
+    <div class="org-unit-tree" data-stop-propagation="true">
+        <script type="text/ng-template" id="orgUnitTree.html">
+            <span class="org-unit-tree-button" ng-click="expandCollapse(orgUnit)" ng-show="orgUnit.show && orgUnit.children.length > 0"><i class="fa fa-minus-square-o"></i></span>
+            <span class="org-unit-tree-button" ng-click="expandCollapse(orgUnit)" ng-show="(!orgUnit.show && orgUnit.children.length > 0) || (!orgUnit.show && orgUnit.hasChildren)"><i class="fa fa-plus-square-o"></i></span>
+            <span class="org-unit-tree-button" ng-click="setSelectedOrgUnit(orgUnit.id)" ng-class="{'selected-org-unit' : orgUnit.id === model.selectedOrgUnitId}">{{orgUnit.displayName}}</span>
+            <ul class="tree" id="tree" ng-show="orgUnit.show">
+                <li ng-repeat="orgUnit in orgUnit.children | orderBy:'displayName'" ng-include="'orgUnitTree.html'"></li>
+            </ul>
+        </script>
+        <ul class="tree" id="tree">
+            <li ng-repeat="orgUnit in orgUnits | orderBy:'displayName'" ng-include="'orgUnitTree.html'"></li>
+        </ul>
+    </div>
+</div>
+<div class="modal-footer page">
+    <button class="btn btn-primary" data-ng-click="select()">{{'select'| translate}}</button>
+    <button class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
+</div>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://dhis2.org/schema/dxf/2.0">
+  <dataElements>
+    <dataElement id="deabcdefghA" name="DataElementA" />
+    <dataElement id="deabcdefghB" name="DataElementB" />
+    <dataElement id="deabcdefghC" name="DataElementC" />
+  </dataElements>
+</metadata>

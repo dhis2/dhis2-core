@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.indicator.Indicator" table="indicator">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="indicatorid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
+
+    <property name="description" type="text" />
+
+    <property name="annualized" column="annualized" not-null="true" />
+    
+    <property name="decimals" />
+
+    <many-to-one name="indicatorType" class="org.hisp.dhis.indicator.IndicatorType" column="indicatortypeid"
+      foreign-key="fk_indicator_indicatortypeid" not-null="true" />
+
+    <property name="numerator" column="numerator" type="text" not-null="true" />
+
+    <property name="numeratorDescription" column="numeratordescription" type="text" />
+
+    <property name="denominator" column="denominator" type="text" not-null="true" />
+
+    <property name="denominatorDescription" column="denominatordescription" type="text" />
+
+    <property name="url" />
+
+    <set name="groups" table="indicatorgroupmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="indicatorid" />
+      <many-to-many class="org.hisp.dhis.indicator.IndicatorGroup" column="indicatorgroupid" />
+    </set>
+
+    <set name="dataSets" table="datasetindicators" inverse="true">
+      <cache usage="read-write" />
+      <key column="indicatorid" />
+      <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicator_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="indicatorusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="indicatorid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="indicatorattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_indicator_legendset" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="indicatortranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorid" foreign-key="fk_objecttranslation_indicatorid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,25 @@
+{ "organisationUnit": 
+  {
+  "id": "$!{organisationUnit.id}",
+  "uid": "$!encoder.jsonEncode( ${organisationUnit.uid} )",
+  "name": "$!encoder.jsonEncode( ${organisationUnit.name} )",
+  "shortName": "$!encoder.jsonEncode( ${organisationUnit.shortName} )",
+  "description": "$!encoder.jsonEncode( ${organisationUnit.description} )",
+  "code": "$!encoder.jsonEncode( ${organisationUnit.code} )",
+  "openingDate": "$!{organisationUnit.openingDate}",
+  "closedDate": "$!{organisationUnit.closedDate}",
+  "active": "$!{organisationUnit.active}",
+  "comment": "$!encoder.jsonEncode( ${organisationUnit.comment} )",
+  "geoCode": "$!{organisationUnit.geoCode}",
+  "featureType": "$!encoder.jsonEncode( ${organisationUnit.featureType} )",
+  "coordinates": "$!encoder.jsonEncode( ${organisationUnit.coordinates} )",
+  "latitude": "$!{organisationUnit.latitude}",
+  "longitude": "$!{organisationUnit.longitude}",
+  "hasChild": $!{organisationUnit.hasChild()},
+  "user": {
+		"uid": "$!organisationUnit.user.uid",
+		"name":"$!encoder.jsonEncode( ${organisationUnit.user.name} )"
+	}
+  }
+   
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+  <class name="org.hisp.dhis.message.UserMessage" table="usermessage">
+
+    <id name="id" column="usermessageid">
+      <generator class="native" />
+    </id>
+
+    <property name="key" column="usermessagekey"/>
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" 
+	  foreign-key="fk_usermessage_user" not-null="true" index="usermessage_userid" />
+
+    <property name="read" column="isread" not-null="true" index="usermessage_isread" />
+
+	<property name="followUp" column="isfollowup" not-null="false" />
+
+  </class>
+
+</hibernate-mapping>

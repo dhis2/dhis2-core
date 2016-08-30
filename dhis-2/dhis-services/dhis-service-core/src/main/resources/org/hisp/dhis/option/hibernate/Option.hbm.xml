@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.option.Option" table="optionvalue">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="optionvalueid">
+      <generator class="native" />
+    </id>
+
+    <property name="uid" column="uid" unique="true" length="11" not-null="true" />
+    <property name="code" column="code" not-null="false" unique="false" length="230" />
+    <property name="name" column="name" not-null="true" length="230" />
+    <property name="created" type="timestamp" not-null="true" />
+    <property name="lastUpdated" type="timestamp" not-null="true"/>
+
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
+
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="optionattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="optionvalueid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="optionvaluetranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="optionvalueid" foreign-key="fk_objecttranslation_optionvalueid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

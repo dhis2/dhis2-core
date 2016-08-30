@@ -1,0 +1,35 @@
+<script type="text/javascript">
+    function submitForm()
+    {
+        selectAllById( "filters" );
+        document.getElementById( "sortOrderForm" ).submit();
+    }
+</script>
+
+##@author Ovidiu Rosu <rosu.ovi@gmail.com>
+
+<h3>$i18n.getString( "filter_sort_order" )</h3>
+
+<form id="sortOrderForm" action="saveFilterListSortOrder.action" method="post">
+
+    <p>
+        <input type="button" value="$i18n.getString( 'move_up' )" style="width:130px" onclick="moveUpSelectedOption( 'filters' )"/>
+        <input type="button" value="$i18n.getString( 'move_down' )" style="width:130px" onclick="moveDownSelectedOption( 'filters' )"/>
+        <input type="button" value="$i18n.getString( 'move_to_top' )" style="width:130px" onclick="moveSelectedOptionToTop( 'filters' )"/>
+        <input type="button" value="$i18n.getString( 'move_to_bottom' )" style="width:130px" onclick="moveSelectedOptionToBottom( 'filters' )"/>
+    </p>
+
+    <p>
+        <select multiple id="filters" name="filters" size="25" style="width:680px">
+            #foreach ( $filter in $filters )
+                <option value="$filter.id">$filter.name</option>
+            #end
+        </select>
+    </p>
+
+    <p>
+        <input type="button" value="$i18n.getString( 'save' )" style="width:130px" onclick="submitForm()"/>
+        <input type="button" value="$i18n.getString( 'cancel' )" style="width:130px" onclick="window.history.back();"/>
+    </p>
+
+</form>

@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.datavalue.DataValueAudit" table="datavalueaudit">
+
+    <id name="id" column="datavalueauditid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+      foreign-key="fk_datavalueaudit_dataelementid" not-null="true" />
+
+    <many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid"
+      foreign-key="fk_datavalueaudit_periodid" not-null="true" />
+
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_datavalueaudit_organisationunitid" not-null="true" />
+
+    <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
+      foreign-key="fk_datavalueaudit_categoryoptioncomboid" not-null="true" />
+
+    <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="attributeoptioncomboid"
+      foreign-key="fk_datavalueaudit_attributeoptioncomboid" />
+
+    <property name="value" length="50000" />
+
+    <property name="created" column="created" type="timestamp" not-null="false" index="id_datavalueaudit_created" />
+
+    <property name="modifiedBy" column="modifiedby" length="100" />
+
+    <property name="auditType" column="audittype" length="100" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.AuditType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+  </class>
+</hibernate-mapping>

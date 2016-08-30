@@ -1,0 +1,2 @@
+#set( $size = $dataSets.size() )
+{"dataSets":[#foreach( $dataSet in $dataSets ){"id":"$!{dataSet.uid}","name":"$!encoder.jsonEncode( ${dataSet.displayShortName} )"}#if( $velocityCount < $size ),#end#end]}

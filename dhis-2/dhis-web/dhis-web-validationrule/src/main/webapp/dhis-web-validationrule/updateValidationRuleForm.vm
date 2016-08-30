@@ -1,0 +1,122 @@
+<script type="text/javascript">
+	var i18n_description_not_null = '$encoder.jsEscape( $i18n.getString( "description_not_null" ) , "'")';
+	var i18n_expression_not_null = '$encoder.jsEscape( $i18n.getString( "expression_not_null" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "edit_validation_rule" )</h3>
+
+<form id="updateValidationRuleForm" action="updateValidationRule.action" method="POST" onsubmit="enable('periodTypeName') & enable('ruleType');" class="inputForm">
+
+<div>
+	<input type="hidden" id="id" name="id" value="$!validationRule.id">
+</div>
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td style="width:120px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$!encoder.htmlEncode( $validationRule.name )"></td>
+	</tr>
+	<tr>
+		<td><label for="description">$i18n.getString( "description" ) <span class="tipText">($i18n.getString( "visible_in_validation_alerts" ))</span></label></td>
+		<td><textarea name="description">$!encoder.htmlEncode( $validationRule.description )</textarea></td>
+	</tr>
+    <tr>
+        <td><label for="instruction">$i18n.getString( "instruction" ) <span class="tipText">($i18n.getString( "visible_when_rule_is_violated" ))</span></label></td>
+        <td><textarea name="instruction">$!encoder.htmlEncode( $validationRule.instruction )</textarea></td>
+    </tr>
+	<tr>
+		<td><label for="importance">$i18n.getString( "importance" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td>
+			<select type="text" id="importance" name="importance">
+				<option value="LOW" #if( $validationRule.importance == 'LOW' ) selected #end>$encoder.htmlEncode( $i18n.getString( "low" ) )</option>
+				<option value="MEDIUM" #if( $validationRule.importance == 'MEDIUM' ) selected #end>$encoder.htmlEncode( $i18n.getString( "medium" ) )</option>
+				<option value="HIGH" #if( $validationRule.importance == 'HIGH' ) selected #end>$encoder.htmlEncode( $i18n.getString( "high" ) )</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td><label for="ruleType">$i18n.getString( "rule_type" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td>
+			<select type="text" id="ruleType" name="ruleType" onchange="changeRuleType()" disabled="disabled">
+				<option value="VALIDATION" #if( $validationRule.ruleType == 'VALIDATION' ) selected #end>$encoder.htmlEncode( $i18n.getString( "validation" ) )</option>
+				<option value="SURVEILLANCE" #if( $validationRule.ruleType == 'SURVEILLANCE' ) selected #end>$encoder.htmlEncode( $i18n.getString( "surveillance" ) )</option>
+			</select>
+			<img title="$i18n.getString( 'clear_expression' )" onclick="clearRuleExpression()" src="../images/edit-clear.png" style="width: 20px; cursor:pointer;" />
+		</td>
+	</tr>
+	<tr id="organisationUnitLevelTR" #if( $!validationRule.ruleType != 'SURVEILLANCE' ) style="display:none;" #end>
+		<td><label for="organisationUnitLevel">$i18n.getString( "organisation_unit_level" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td>
+			<select type="text" id="organisationUnitLevel" name="organisationUnitLevel">
+				#foreach( $level in $organisationUnitLevels )
+				<option value="${level.level}"#if( $validationRule.organisationUnitLevel == "${level.level}" ) selected="selected"#end>${level.level} $!encoder.htmlEncode( $level.name )</option>
+			    #end
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td><label for="periodType">$i18n.getString( "period_type" )</label></td>
+		<td><select type="text" id="periodTypeName" name="periodTypeName" disabled="disabled">
+				#foreach ( $periodType in $periodTypes )
+             	<option value="$periodType.name" #if( $validationRule.periodType.name.equals($periodType.name ) ) selected #end>$encoder.htmlEncode( $i18n.getString( $periodType.name ) )</option>
+            	#end						
+			</select>
+			<img title="$i18n.getString( 'clear_expression' )" onclick="clearRuleExpression()" src="../images/edit-clear.png" style="width: 20px; cursor:pointer;" />
+		</td>
+	</tr>
+	<tr id="sequentialSampleCountTR">
+		<td><label for="sequentialSampleCount">$i18n.getString( "sequential_sample_count" )</label></td>
+		<td><input type="text" id="sequentialSampleCount" name="sequentialSampleCount" value="$!validationRule.sequentialSampleCount"></td>
+	</tr>
+	<tr id="annualSampleCountTR">
+		<td><label for="annualSampleCount">$i18n.getString( "annual_sample_count" )</label></td>
+		<td><input type="text" id="annualSampleCount" name="annualSampleCount" value="$!validationRule.annualSampleCount"></td>
+	</tr>
+	<tr id="sequentialSkipCountTR">
+		<td><label for="sequentialSkipCount">$i18n.getString( "sequential_skip_count" )</label></td>
+		<td><input type="text" id="sequentialSkipCount" name="sequentialSkipCount" value="$!validationRule.sequentialSkipCount"></td>
+	</tr>
+	<tr>
+		<td><label for="operatorId">$i18n.getString( "operator" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td>
+			<select id="operator" name="operator">
+                <option value="" id="select_operator" style='display:none;'>[ $i18n.getString( "select_operator" ) ]</option>
+				<option value="equal_to" #if ( $validationRule.operator == 'equal_to' )selected="selected"#end>$i18n.getString( "equal_to" )</option>
+				<option value="not_equal_to" #if ( $validationRule.operator == 'not_equal_to' )selected="selected"#end>$i18n.getString( "not_equal_to" )</option>
+				<option value="greater_than" #if ( $validationRule.operator == 'greater_than' )selected="selected"#end>$i18n.getString( "greater_than" )</option>
+				<option value="greater_than_or_equal_to" #if ( $validationRule.operator == 'greater_than_or_equal_to' )selected="selected"#end>$i18n.getString( "greater_than_or_equal_to" )</option>
+				<option value="less_than" #if ( $validationRule.operator == 'less_than' )selected="selected"#end>$i18n.getString( "less_than" )</option>
+				<option value="less_than_or_equal_to" #if ( $validationRule.operator == 'less_than_or_equal_to' )selected="selected"#end>$i18n.getString( "less_than_or_equal_to" )</option>
+                <option value="compulsory_pair" id="compulsory_pair" #if ( $validationRule.operator == 'compulsory_pair' )selected="selected"#end>$i18n.getString( "compulsory_pair" )</option>
+                <option value="exclusive_pair" id="exclusive_pair" #if ( $validationRule.operator == 'exclusive_pair' )selected="selected"#end>$i18n.getString( "exclusive_pair" )</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>
+			<input type="button" value="$i18n.getString( 'edit_left_side' )" style="width:10em" onclick="editLeftExpression();">
+				<input type="hidden" id="leftSideDescription" name="leftSideDescription" value="$!validationRule.leftSide.description">
+				<input type="hidden" id="leftSideExpression" name="leftSideExpression" value="$!validationRule.leftSide.expression">
+				<input type="hidden" id="leftSideTextualExpression" name="leftSideTextualExpression" value="$!leftSideTextualExpression">
+				<input type="hidden" id="leftSideMissingValueStrategy" name="leftSideMissingValueStrategy" value="$!validationRule.leftSide.missingValueStrategy">
+				
+				<input type="button" value="$i18n.getString( 'edit_right_side' )" style="width:10em" onclick="editRightExpression();">
+				<input type="hidden" id="rightSideDescription" name="rightSideDescription" value="$!validationRule.rightSide.description">
+				<input type="hidden" id="rightSideExpression" name="rightSideExpression" value="$!validationRule.rightSide.expression">
+				<input type="hidden" id="rightSideTextualExpression" name="rightSideTextualExpression" value="$!rightSideTextualExpression">
+				<input type="hidden" id="rightSideMissingValueStrategy" name="rightSideMissingValueStrategy" value="$!validationRule.rightSide.missingValueStrategy">
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td><input type="submit" value="$i18n.getString( 'save' )" style="width:10em">
+		    <input type="button" value="$i18n.getString( 'cancel' )" id="cancel" name="cancel" onclick="dhis2.commons.redirectCurrentPage( 'validationRule.action' )" style="width:10em"></td>		
+	</tr>
+</table>
+</form>
+
+#parse( "/dhis-web-validationrule/expressionBuilderForm.vm" )

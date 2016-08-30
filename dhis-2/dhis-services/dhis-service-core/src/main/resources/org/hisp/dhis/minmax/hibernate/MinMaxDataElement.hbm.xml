@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.minmax.MinMaxDataElement" table="minmaxdataelement">
+
+    <id name="id" column="minmaxdataelementid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid" foreign-key="fk_minmaxdataelement_organisationunitid"
+      index="index_minmaxdataelement" />
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+      foreign-key="fk_minmaxdataelement_dataelementid" index="index_minmaxdataelement" />
+    <many-to-one name="optionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
+      foreign-key="fk_minmaxdataelement_categoryoptioncomboid" index="index_minmaxdataelement" />
+
+    <property name="min" column="minimumvalue" not-null="true" />
+    <property name="max" column="maximumvalue" not-null="true" />
+    <property name="generated" column="generatedvalue" />
+
+  </class>
+</hibernate-mapping>

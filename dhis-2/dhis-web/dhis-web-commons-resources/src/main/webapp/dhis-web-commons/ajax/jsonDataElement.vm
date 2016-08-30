@@ -1,0 +1,27 @@
+{ "dataElement":
+  {
+    "id": "$!{dataElement.id}",
+    "uid": "$!dataElement.uid",
+    "name": "$!encoder.jsonEncode( ${dataElement.displayName} )",
+    "alternativeName": "$!encoder.jsonEncode( ${dataElement.alternativeNamee} )",
+    "shortName": "$!encoder.jsonEncode( ${dataElement.displayShortName} )",
+    "code": "$!encoder.jsonEncode( ${dataElement.code} )",
+    "description": "$!encoder.jsonEncode( ${dataElement.displayDescription} )",
+    "valueType": "$!{dataElement.valueType}",
+    "domainType": "${dataElement.getDomainTypeNullSafe()}",
+    "aggregationType": "$!{dataElement.aggregationType}",
+    "categoryCombo": "$!encoder.xmlEncode( ${dataElement.categoryCombo.name} )",
+    "url": "$!encoder.xmlEncode( ${dataElement.url} )",
+    "lastUpdated": "$!format.formatDate( ${dataElement.lastUpdated} )",
+    "approveData": "$!{dataElement.approveData}",
+
+    #set( $size = ${dataElement.dataSets.size()} )
+    "dataSets": [
+    #foreach( $ds in ${dataElement.dataSets} )
+    {
+    "name": "$!encoder.xmlEncode( ${ds.name} )"
+    }#if( $velocityCount < $size ),#end
+    #end
+    ]
+  }
+}

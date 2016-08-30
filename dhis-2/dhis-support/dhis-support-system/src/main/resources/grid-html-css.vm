@@ -1,0 +1,22 @@
+<style type="text/css">
+.gridDiv {
+  font-family: sans-serif, arial;
+}
+
+table.gridTable {
+  border-collapse: collapse;
+  font-size: 11pt;
+}
+
+.gridTable th, .gridTable td {
+  padding: 8px 4px 7px 4px;
+  border: 1px solid #e7e7e7;
+}
+
+.gridTable th {
+  background-color: #f3f3f3;
+  font-weight: bold;
+}
+</style>
+
+#parse( "grid-html.vm" )

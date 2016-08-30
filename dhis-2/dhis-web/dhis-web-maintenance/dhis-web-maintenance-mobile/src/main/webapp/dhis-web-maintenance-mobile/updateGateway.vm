@@ -1,0 +1,160 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+	 
+		validation2( "addGateWayConfigForm", function( form ) {
+			saveGatewayConfig();
+		}, {
+			'rules' : getValidationRulesGateway()
+		} );
+		
+		changeValueType( getFieldValue( 'gatewayType' ) );
+    });
+    function checkDuplicatedKeyName( value, index )
+    {
+        for (var i=1; i<=jQuery('.trNewParam').length; i++ )
+        {
+            if ( i != index )
+            {
+                var otherValue = document.getElementById('name'+i).value;
+                if( value!='' && value == otherValue )
+                {
+                    markInvalid( 'name'+index, 'Duplicated Name' );
+                    break;
+                }
+                else
+                {
+                    markValid( 'name'+index );
+                }
+            }
+        }
+        for (var i=1; i<=jQuery('.trOldParam').length; i++ )
+        {
+           
+                var otherValue = document.getElementById('oldVName'+i).value;
+                if( value!='' && value == otherValue )
+                {
+                    markInvalid( 'name'+index, 'Duplicated Name' );
+                    break;
+                }
+                else
+                {
+                    markValid( 'name'+index );
+                }
+            
+        }
+    };
+	
+	var i18n_add_update_success = '$encoder.jsEscape( $i18n.getString( "add_update_gateway_success" ) , "'")';
+	var i18n_required_data_error = '$encoder.jsEscape( $i18n.getString( "required_data_error" ) , "'" )';
+    var i18_new_key = '$encoder.jsEscape( $i18n.getString( "new_key" ) , "'" )';
+    var i18_value = '$encoder.jsEscape( $i18n.getString( "value" ) , "'" )';
+    var i18_text = '$encoder.jsEscape( $i18n.getString( "text" ) , "'" )';
+    var i18_password = '$encoder.jsEscape( $i18n.getString( "password" ) , "'" )';
+
+
+</script>
+<h3>$i18n.getString( "add_update_gateway_management" )</h3>
+<form id="addGateWayConfigForm" name="addGateWayConfigForm">
+	<table id="detailsList">
+		<tr>
+			<th colspan="2">$i18n.getString( "gateway_type" )</th>
+		</tr>
+		<tr>
+			<td>$i18n.getString( "type" ):</td>
+			<td>
+				<select id="gatewayType" style="width: 28em" onchange="changeValueType( this.value )">
+					<option value="bulksms" #if ( $!index == $!bulkIndex ) selected='selected' #end>$i18n.getString( "bulk_gw" )</option>
+					<option value="clickatell" #if ( $!index == $!clickatellIndex ) selected='selected' #end>$i18n.getString( "clickatell_gw" )</option>
+					<option value="http" #if ( $!index == $!httpIndex ) selected='selected' #end>$i18n.getString( "generic_http_gw" )</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th colspan="2">$i18n.getString( "gateway_configuration" )</th>
+		</tr>
+		#set( $bulkGateway = $!gatewayConfigMap.get( $bulkIndex ) )
+		<tbody id="bulksmsFields">
+			<tr>
+				<td>$i18n.getString( "gateway_name" ):</td>
+				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!bulkGateway.name )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "username" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="username" id="username" style="width: 28em" value="$!bulkGateway.username"/></td>
+			</tr> 
+			<tr>
+				<td>$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="password" name="password" id="password" style="width: 28em" value="$!bulkGateway.password"/></td>
+			</tr>
+		</tbody>
+
+		#set( $clickatellGateway = $!gatewayConfigMap.get( $clickatellIndex ) )
+		<tbody id="clickatellFields">
+			<tr>
+				<td>$i18n.getString( "gateway_name" ):</td>
+				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!clickatellGateway.name )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "username" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="username" id="username" style="width: 28em" value="$!clickatellGateway.username"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="password" name="password" id="password" style="width: 28em" value="$!clickatellGateway.password"/></td>
+			</tr>	
+			<tr>
+				<td>$i18n.getString( "authToken" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="password" name="authToken" id="authToken" style="width: 28em" value="$!encoder.htmlEncode( $!clickatellGateway.authToken )"/></td>
+			</tr>
+			
+		</tbody>
+		
+		#set( $httpGateway = $!gatewayConfigMap.get( $httpIndex ) )
+		<tbody id="genericHTTPFields">
+			<tr>
+				<td>$i18n.getString( "gateway_name" ):</td>
+				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.name )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "messageParameter" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="messageParameter" id="messageParameter" style="width: 28em" value="$!httpGateway.messageParameter"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "recipientParameter" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="recipientParameter" id="recipientParameter" style="width: 28em" value="$!httpGateway.recipientParameter"/></td>
+			</tr>
+			
+			<tr>
+				<td>$i18n.getString( "url_template" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="urlTemplate" id="urlTemplate" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.urlTemplate )"/></td>
+			</tr>
+						
+			#set ($rowId = 0)
+			#foreach ($param in $httpGateway.parameters)
+  				#if($param)
+  				#set ($rowId = $rowId + 1)
+			      <tr id="trOldParam$rowId" name="trOldParam$rowId" class="trOldParam">
+			     	 <td><input type="text" name="oldVName$rowId" id="oldVName$rowId" style="width:9em" value="$!encoder.htmlEncode( $!param.key )"/></td>
+			     	 <td>		     	 
+			     	 #if($param.classified)
+			     	 	 <input type="password" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value="$!encoder.htmlEncode( $!param.value )"/> 
+			     	 #else	     	 
+			     		 <input type="text" name="oldValue$rowId" id="oldValue$rowId" style="width:10em" value="$!encoder.htmlEncode( $!param.value )"/> 
+			     	 #end	     	
+			     		<input type="hidden" name="oldHidden$rowId" id="oldHidden$rowId" value="$!encoder.htmlEncode( $!param.classified )"/> 	      
+			     	 	<input style="margin-left: 13em" type="button" value="remove" onclick="removeOldParamForm('$rowId')"/>
+			     	 </td>
+			      </tr>
+			    #end
+			#end
+		</tbody>
+		<tr>
+			<td colspan="2" align="right">
+				<input id="addmore" type="button" value="$i18n.getString('add_more')" onclick="generateaddKeyValueParamForm()"/>
+				<input id="savesettings" type="submit" value="$i18n.getString( 'save_settings' )" style="width:8em"/>
+				<input type="button" value="$i18n.getString( 'back' )" onclick="window.location.href='showSMSConfigureForm.action'" style="width:8em"/>
+			</td>
+		</tr>
+	</table>
+</form>
+

@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramIndicator" table="programindicator">
+
+    <cache usage="read-write" />
+	
+    <id name="id" column="programindicatorid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="shortName" />
+
+    <property name="description" type="text" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" foreign-key="fk_programindicator_program" not-null="true" />
+
+    <property name="expression" type="text" />
+
+    <property name="filter" type="text" />
+
+    <property name="aggregationType" length="40">
+		<type name="org.hibernate.type.EnumType">
+			<param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+      <param name="useNamed">true</param>
+			<param name="type">12</param>
+		</type> 
+	</property>
+    
+    <property name="decimals" />
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_programindicator_legendset" />
+
+    <property name="displayInForm" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="programindicatortranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programindicatorid" foreign-key="fk_objecttranslation_programindicatorid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+    
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programindicator_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="programindicatorusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="programindicatorattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,78 @@
+{ "metaData": {
+
+#if( $emptyOrganisationUnits )
+"emptyOrganisationUnits": $emptyOrganisationUnits,
+#end
+
+"significantZeros": [
+#set( $size = $significantZeros.size() )
+#foreach( $dataElement in $significantZeros )
+"${dataElement.uid}"#if( $velocityCount < $size ),#end
+#end ],
+
+"dataElements": {
+#set( $size = $dataElements.size() )
+#foreach( $dataElement in $dataElements )
+"${dataElement.uid}":"${dataElement.getValueType()}"#if( $velocityCount < $size ),#end
+#end },
+
+"optionSets": {
+#set( $size = $dataElementsWithOptionSet.size() )
+#foreach( $dataElement in $dataElementsWithOptionSet )
+#set( $size2 = $dataElement.categoryCombo.getSortedOptionCombos().size() )
+#foreach( $option in $dataElement.categoryCombo.getSortedOptionCombos() )"${dataElement.uid}-${option.uid}":{"uid":"$encoder.jsonEncode( ${dataElement.optionSet.uid} )","v":${dataElement.optionSet.version}}#if( $velocityCount < $size2 ),#end#end #if( $velocityCount < $size ),#end
+#end },
+
+"indicatorFormulas": {
+#set( $size = $indicators.size() )
+#foreach( $indicator in $indicators )
+#set( $formula = "($!{indicator.explodedNumerator})/($!{indicator.explodedDenominator})*($!{indicator.indicatorType.factor})" )
+"${indicator.uid}":"$encoder.jsonEncode( $formula )"#if( $velocityCount < $size ),#end
+#end },
+
+"dataSets": {
+#set( $size = $dataSets.size() )
+#foreach( $dataSet in $dataSets )
+"${dataSet.uid}":{"name":"$encoder.jsonEncode( ${dataSet.displayName} )","periodType":"$encoder.jsonEncode( ${dataSet.periodType.name} )","categoryCombo":"${dataSet.categoryCombo.uid}","version":"${dataSet.version}",
+"type":"${dataSet.getFormType()}","expiryDays":"${dataSet.expiryDays}",
+#if( ${dataSet.startDate} )
+"startDate":"${dataSet.startDate}",
+#end
+#if( ${dataSet.endDate} )
+"endDate":"${dataSet.endDate}",
+#end
+"openFuturePeriods":${dataSet.openFuturePeriods},"fieldCombinationRequired":${dataSet.fieldCombinationRequired},
+"validCompleteOnly":${dataSet.validCompleteOnly},"skipOffline":${dataSet.skipOffline}, "renderAsTabs":${dataSet.renderAsTabs}, "renderHorizontally":${dataSet.renderHorizontally}}#if( $velocityCount < $size ),#end
+#end },
+
+"defaultCategoryCombo":"${defaultCategoryCombo.uid}",
+
+"categoryCombos": {
+#set( $size1 = $categoryCombos.size() )
+#foreach( $categoryCombo in $categoryCombos )
+"${categoryCombo.uid}":{"id":"${categoryCombo.uid}","name":"$encoder.jsonEncode( ${categoryCombo.displayName} )","categories":[
+#set( $size2 = $categoryCombo.categories.size() )
+#foreach( $category in $categoryCombo.categories )
+"${category.uid}"#if( $velocityCount < $size2 ),#end
+#end ] }#if( $velocityCount < $size1 ),#end
+#end
+},
+
+"categories": {
+#set( $size1 = $categories.size() )
+#foreach( $category in $categories )
+"${category.uid}":{"id":"${category.uid}","name":"$encoder.jsonEncode( ${category.displayName} )","options":[
+#set( $categoryOptions = $categoryOptionMap.get( $category.uid ) )
+#set( $size2 = $categoryOptions.size() )
+#foreach( $option in $categoryOptions )
+{"id":"${option.uid}","name":"$encoder.jsonEncode( ${option.displayName} )"#if( ${option.startDate} ),"start":"${option.startDate}"#end
+#if( ${option.endDate} ),"end":"${option.endDate}"#end
+#if( ${option.organisationUnits.size()} > 0 ),"ous":[
+#set( $size3 = $option.organisationUnits.size() )
+#foreach( $orgUnit in $option.organisationUnits )
+"${orgUnit.uid}"#if( $velocityCount < $size3 ),#end
+#end ] #end}
+#if( $velocityCount < $size2 ),#end
+#end ] }#if( $velocityCount < $size1 ),#end
+#end }
+} }

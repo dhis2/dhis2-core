@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+
+
+  <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
+    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
+    <property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
+    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+    <property name="messageSender" ref="emailMessageSender" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
+  </bean>
+
+  <!-- DataStatistics -->
+
+  <bean id="org.hisp.dhis.datastatistics.DataStatisticsEventStore" class="org.hisp.dhis.datastatistics.hibernate.HibernateDataStatisticsEventStore">
+    <property name="clazz" value="org.hisp.dhis.datastatistics.DataStatisticsEvent" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.datastatistics.DataStatisticsService" class="org.hisp.dhis.datastatistics.DefaultDataStatisticsService">
+  </bean>
+
+  <bean id="org.hisp.dhis.datastatistics.DataStatisticsStore" class="org.hisp.dhis.datastatistics.hibernate.HibernateDataStatisticsStore">
+    <property name="clazz" value="org.hisp.dhis.datastatistics.DataStatistics"/>
+    <property name="sessionFactory" ref="sessionFactory"/>
+  </bean>
+
+  <bean id="dataStatisticsTask" class="org.hisp.dhis.datastatistics.DataStatisticsTask" scope="prototype"/>
+
+  <!-- ReportTable -->
+
+  <bean id="org.hisp.dhis.reporttable.ReportTableService" class="org.hisp.dhis.reporttable.impl.DefaultReportTableService">
+    <property name="analyticsService" ref="org.hisp.dhis.analytics.AnalyticsService" />
+    <property name="reportTableStore" ref="org.hisp.dhis.reporttable.ReportTableStore" />
+    <property name="reportStore" ref="org.hisp.dhis.report.ReportStore" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+  </bean>
+
+  <!-- Report -->
+
+  <bean id="org.hisp.dhis.report.ReportService" class="org.hisp.dhis.report.impl.DefaultReportService">
+    <property name="reportStore" ref="org.hisp.dhis.report.ReportStore" />
+    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
+    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+    <property name="dataSource" ref="dataSource" />
+  </bean>
+
+  <!-- Chart -->
+
+  <bean id="org.hisp.dhis.chart.ChartService" class="org.hisp.dhis.chart.impl.DefaultChartService">
+    <property name="chartStore" ref="org.hisp.dhis.chart.ChartStore" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="analyticsService" ref="org.hisp.dhis.analytics.AnalyticsService" />
+    <property name="eventAnalyticsService" ref="org.hisp.dhis.analytics.event.EventAnalyticsService" />
+  </bean>
+
+  <!-- Document -->
+
+  <bean id="org.hisp.dhis.document.DocumentService" class="org.hisp.dhis.document.impl.DefaultDocumentService">
+    <property name="documentStore" ref="org.hisp.dhis.document.DocumentStore" />
+  </bean>
+
+  <!-- DataSetCompleteness -->
+
+  <bean id="dataCompletenessServiceProvider" class="org.hisp.dhis.common.ServiceProvider">
+    <property name="services">
+      <map>
+        <entry key="registration" value-ref="registrationDataCompletenessService" />
+        <entry key="compulsory" value-ref="compulsoryDataCompletenessService" />
+      </map>
+    </property>
+  </bean>
+
+  <bean id="compulsoryDataCompletenessService" class="org.hisp.dhis.completeness.impl.CompulsoryDataSetCompletenessService">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="completenessStore" ref="org.hisp.dhis.completeness.DataSetCompletenessStore" />
+    <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+  </bean>
+
+  <bean id="registrationDataCompletenessService" class="org.hisp.dhis.completeness.impl.RegistrationDataSetCompletenessService"
+    parent="compulsoryDataCompletenessService">
+  </bean>
+
+  <bean id="org.hisp.dhis.completeness.DataSetCompletenessStore" class="org.hisp.dhis.completeness.jdbc.JDBCDataSetCompletenessStore">
+    <property name="statementManager" ref="statementManager" />
+    <property name="statementBuilder" ref="statementBuilder" />
+  </bean>
+
+  <!-- DataSetReport -->
+
+  <bean id="org.hisp.dhis.datasetreport.DataSetReportService" class="org.hisp.dhis.datasetreport.impl.DefaultDataSetReportService">
+    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+    <property name="dataSetReportStore" ref="org.hisp.dhis.datasetreport.DataSetReportStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.datasetreport.DataSetReportStore" class="org.hisp.dhis.datasetreport.jdbc.AnalyticsDataSetReportStore" />
+
+  <!-- Dashboard -->
+
+  <bean id="org.hisp.dhis.dashboard.DashboardService" class="org.hisp.dhis.dashboard.impl.DefaultDashboardService">
+    <property name="dashboardStore" ref="org.hisp.dhis.dashboard.DashboardStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.impl.DashboardItemDeletionHandler" class="org.hisp.dhis.dashboard.DashboardItemDeletionHandler" />
+
+  <!-- Organisation Unit Distribution -->
+
+  <bean id="org.hisp.dhis.orgunitdistribution.OrgUnitDistributionService"
+    class="org.hisp.dhis.orgunitdistribution.impl.DefaultOrgUnitDistributionService">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
+  </bean>
+
+  <!-- Interpretation -->
+
+  <bean id="org.hisp.dhis.interpretation.InterpretationService" class="org.hisp.dhis.interpretation.impl.DefaultInterpretationService">
+    <property name="interpretationStore" ref="org.hisp.dhis.interpretation.InterpretationStore" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <!-- Data element history -->
+
+  <bean id="org.hisp.dhis.dataelementhistory.HistoryRetriever" class="org.hisp.dhis.dataelementhistory.DefaultHistoryRetriever">
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <!-- Map generation -->
+
+  <bean id="org.hisp.dhis.mapgeneration.MapGenerationService" class="org.hisp.dhis.mapgeneration.GeoToolsMapGenerationService">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="analyticsService" ref="org.hisp.dhis.analytics.AnalyticsService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+  </bean>
+
+  <!-- Scheduling -->
+
+  <bean id="org.hisp.dhis.scheduling.SchedulingManager" class="org.hisp.dhis.scheduling.DefaultSchedulingManager">
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="scheduler" ref="scheduler" />
+    <property name="tasks">
+      <map>
+        <entry key="dataStatisticsTask" value-ref="dataStatisticsTask"/>
+        <entry key="resourceTableTask" value-ref="resourceTableTask" />
+        <entry key="resourceTable15MinTask" value-ref="resourceTable15MinTask" />
+        <entry key="analyticsAllTask" value-ref="analyticsAllTask" />
+        <entry key="analyticsLast3YearsTask" value-ref="analyticsLast3YearsTask" />
+        <entry key="monitoringLastDayTask" value-ref="monitoringLastDayTask" />
+        <entry key="dataSynchTask" value-ref="dataSynchTask" />
+        <entry key="metadataSyncTask" value-ref="metadataSyncTask" />
+        <entry key="smsSchedulerTask" value-ref="smsSchedulerTask" />
+        <entry key="sendScheduledMessageTask" value-ref="sendScheduledMessageTask" />
+        <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
+      </map>
+    </property>
+  </bean>
+
+  <!-- Startup routine definitions -->
+
+  <bean id="org.hisp.dhis.common.ReportingIdentityPopulator" class="org.hisp.dhis.common.IdentityPopulator">
+    <property name="name" value="ReportingIdentityPopulator" />
+    <property name="runlevel" value="4" />
+    <property name="skipInTests" value="true" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="tables">
+      <list>
+        <value>reporttable</value>
+        <value>chart</value>
+        <value>map</value>
+        <value>mapview</value>
+        <value>maplegend</value>
+        <value>maplegendset</value>
+        <value>report</value>
+        <value>messageconversation</value>
+        <value>message</value>
+        <value>document</value>
+        <value>dashboard</value>
+        <value>dashboarditem</value>
+        <value>interpretation</value>
+        <value>interpretationcomment</value>
+      </list>
+    </property>
+  </bean>
+
+  <!-- DeletionHandler -->
+
+  <bean id="org.hisp.dhis.report.ReportDeletionHandler" class="org.hisp.dhis.report.ReportDeletionHandler">
+    <property name="reportService" ref="org.hisp.dhis.report.ReportService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reporttable.ReportTableDeletionHandler" class="org.hisp.dhis.reporttable.ReportTableDeletionHandler">
+    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.chart.ChartDeletionHandler" class="org.hisp.dhis.chart.ChartDeletionHandler">
+    <property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.interpretation.InterpretationDeletionHandler"
+    class="org.hisp.dhis.interpretation.InterpretationDeletionHandler" />
+
+  <!-- AOP definitions -->
+
+  <aop:config>
+
+    <aop:aspect ref="deletionInterceptor">
+      <aop:before pointcut="execution( * org.hisp.dhis.reporttable.ReportTableService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.report.ReportService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.chart.ChartService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.document.DocumentService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.interpretation.InterpretationService.delete*(..) )" method="intercept" />
+    </aop:aspect>
+
+    <aop:aspect ref="statementInterceptor">
+      <aop:around pointcut="execution( * org.hisp.dhis.completeness.DataSetCompletenessService.getDataSetCompleteness(..) )" method="intercept" />
+    </aop:aspect>
+
+  </aop:config>
+
+</beans>

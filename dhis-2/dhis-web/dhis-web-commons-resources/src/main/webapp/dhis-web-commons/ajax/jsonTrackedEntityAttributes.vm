@@ -1,0 +1,10 @@
+#set( $size = $!{attributes.size()} )
+{ "attributes": [
+  #foreach( $attribute in $!{attributes} )
+  {
+    "id": "${attribute.id}",
+	"name": "$!encoder.jsonEncode( ${attribute.name} )"
+  }#if( $velocityCount < $size ),#end
+  #end
+  ]
+}

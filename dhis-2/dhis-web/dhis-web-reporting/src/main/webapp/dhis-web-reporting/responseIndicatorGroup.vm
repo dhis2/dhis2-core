@@ -1,0 +1,8 @@
+{ "indicatorGroups": [
+#foreach ( $group in $indicatorGroups )
+  {
+    "id": $!{group.id},
+    "name": "$!{group.name}"
+  },
+#end
+] }

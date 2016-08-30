@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.message.ProgramMessage" table="programmessage">
+
+    <id name="id" column="id">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="text" column="text" not-null="true" unique="false" length="500" />
+    <property name="subject" column="subject" not-null="false" unique="false" length="200" />
+    <property name="processedDate" column= "processeddate" type="timestamp" not-null="false"/>
+    
+    <set name="deliveryChannels" table="programmessage_deliverychannels" fetch="select">
+      <key column="programmessagedeliverychannelsid" />
+      <element column="deliverychannel">
+        <type name="org.hibernate.type.EnumType">
+          <param name="enumClass">org.hisp.dhis.program.message.DeliveryChannel</param>
+          <param name="useNamed">true</param>
+          <param name="type">12</param>
+        </type>
+        </element>
+    </set>
+       
+     <property name="messageStatus" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.message.ProgramMessageStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <component name="recipients" class="org.hisp.dhis.program.message.ProgramMessageRecipients">
+
+     <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+      column="trackedEntityInstanceId" foreign-key="fk_programmessage_trackedentityinstanceid" not-null="false" />
+     
+     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+      column="organisationUnitId" foreign-key="fk_programmessage_organisationunitid" not-null="false" />
+
+     <set name="phoneNumbers" table="programmessage_phonenumbers" fetch="join">
+      <key column="programmessagephonenumberid" />
+      <element type="text"  column="phoneNumber" />
+     </set>
+    
+     <set name="emailAddresses" table="programmessage_emailAddresses" fetch="join">
+      <key column="programmessageemailAddressid" />
+      <element type="text" column="email" />
+     </set>
+
+    </component>
+       
+    <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
+      column="programinstanceid" foreign-key="fk_programmessage_programinstanceid" not-null="false" />
+
+    <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
+      column="programstageinstanceid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="programmessagetranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="id" foreign-key="fk_objecttranslation_programmessageid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

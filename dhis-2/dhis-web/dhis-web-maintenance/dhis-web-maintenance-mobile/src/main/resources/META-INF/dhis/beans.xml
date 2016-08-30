@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+	<bean id="org.hisp.dhis.mobile.action.incoming.ReimportSMSAction"
+		class="org.hisp.dhis.mobile.action.incoming.ReimportSMSAction"
+		scope="prototype">
+		<property name="incomingSmsService"
+			ref="org.hisp.dhis.sms.incoming.IncomingSmsService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.caseentry.state.SelectedStateManager"
+		class="org.hisp.dhis.mobile.caseentry.state.DefaultSelectedStateManager"
+        scope="prototype">
+		<property name="trackedEntityInstanceService" ref="org.hisp.dhis.tracker.TrackedEntityInstanceService" />
+		<property name="selectionManager"
+			ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+		<property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+		<property name="programStageInstanceService"
+			ref="org.hisp.dhis.program.ProgramStageInstanceService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.NoAction" class="org.hisp.dhis.mobile.action.NoAction"
+		scope="prototype" />
+		
+	<bean id="org.hisp.dhis.mobile.action.incoming.ReceivingSMSAction"
+		class="org.hisp.dhis.mobile.action.incoming.ReceivingSMSAction" 
+		scope="prototype">
+		<property name="incomingSmsService"
+			ref="org.hisp.dhis.sms.incoming.IncomingSmsService" />
+		<property name="userService" ref="org.hisp.dhis.user.UserService" />
+		<property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.incoming.DeleteReceiveSMSAction"
+		class="org.hisp.dhis.mobile.action.incoming.DeleteReceiveSMSAction"
+		scope="prototype">
+		<property name="incomingSmsService"
+			ref="org.hisp.dhis.sms.incoming.IncomingSmsService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.DeleteSentSMSAction" 
+	    class="org.hisp.dhis.mobile.action.DeleteSentSMSAction"
+		scope="prototype">
+		<property name="outboundSmsService"
+			ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.incoming.UpdateReceiveSMSAction"
+		class="org.hisp.dhis.mobile.action.incoming.UpdateReceiveSMSAction"
+		scope="prototype">
+		<property name="incomingSmsService"
+			ref="org.hisp.dhis.sms.incoming.IncomingSmsService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.ShowSentSMSAction" 
+	    class="org.hisp.dhis.mobile.action.ShowSentSMSAction"
+		scope="prototype">
+		<property name="outboundSmsService"
+			ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
+		<property name="userService" ref="org.hisp.dhis.user.UserService" />
+	</bean>
+	
+	<!-- SMS Service Configuration -->
+
+	<bean id="org.hisp.dhis.mobile.action.GetSmsConfigurationAction"
+		class="org.hisp.dhis.mobile.action.GetSmsConfigurationAction" 
+		scope="prototype" />
+
+	<bean id="org.hisp.dhis.mobile.action.SaveSmsConfigurationAction"
+		class="org.hisp.dhis.mobile.action.SaveSmsConfigurationAction" 
+		scope="prototype" />
+
+	<bean id="org.hisp.dhis.mobile.action.UpdateBulkGateWayConfigAction"
+		class="org.hisp.dhis.mobile.action.UpdateBulkGateWayConfigAction"
+		scope="prototype" />
+
+	<bean id="org.hisp.dhis.mobile.action.UpdateClickatellGateWayConfigAction"
+		class="org.hisp.dhis.mobile.action.UpdateClickatellGateWayConfigAction"
+		scope="prototype" />
+
+	<bean
+		id="org.hisp.dhis.mobile.action.UpdateGenericHTTPGateWayConfigAction"
+		class="org.hisp.dhis.mobile.action.UpdateGenericHTTPGateWayConfigAction"
+		scope="prototype" />
+
+	<bean id="org.hisp.dhis.mobile.action.UpdateDefaultGatewayAction"
+		class="org.hisp.dhis.mobile.action.UpdateDefaultGatewayAction" 
+		scope="prototype" />
+
+	<bean id="org.hisp.dhis.mobile.action.RemoveGatewayConfigAction"
+		class="org.hisp.dhis.mobile.action.RemoveGatewayConfigAction" 
+		scope="prototype" />
+
+	<bean id="org.hisp.dhis.mobile.action.smscommand.SMSCommandAction"
+		class="org.hisp.dhis.mobile.action.smscommand.SMSCommandAction" 
+		scope="prototype">
+		<property name="smsCommandService" ref="org.hisp.dhis.sms.command.SMSCommandService" />
+		<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+		<property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+		<property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.smscommand.EditSMSCommandForm"
+		class="org.hisp.dhis.mobile.action.smscommand.EditSMSCommandForm"
+		scope="prototype">
+		<property name="smsCommandService" ref="org.hisp.dhis.sms.command.SMSCommandService" />
+		<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+		<property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+		<property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+		<property name="trackedEntityAttributeService" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.smscommand.CreateSMSCommandForm"
+		class="org.hisp.dhis.mobile.action.smscommand.CreateSMSCommandForm"
+		scope="prototype">
+		<property name="smsCommandService" ref="org.hisp.dhis.sms.command.SMSCommandService" />
+		<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+		<property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+		<property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.smscommand.DeleteSMSCommandAction"
+		class="org.hisp.dhis.mobile.action.smscommand.DeleteSMSCommandAction"
+		scope="prototype">
+		<property name="smsCommandService" ref="org.hisp.dhis.sms.command.SMSCommandService" />
+	</bean>
+
+	<bean id="org.hisp.dhis.mobile.action.J2meClientUpdateAction"
+		class="org.hisp.dhis.mobile.action.J2meClientUpdateAction" 
+		scope="prototype"/>
+
+	
+	<bean id="org.hisp.dhis.mobile.action.incoming.ProcessingSendQuickSMSAction"
+        class="org.hisp.dhis.mobile.action.incoming.ProcessingSendQuickSMSAction" 
+        scope="prototype"/>
+        
+	<bean id="org.hisp.dhis.mobile.action.smscommand.ValidateSMSCommandAction"
+		class="org.hisp.dhis.mobile.action.smscommand.ValidateSMSCommandAction"
+		scope="prototype">
+		<property name="smsCommandService" ref="org.hisp.dhis.sms.command.SMSCommandService" />
+	</bean>
+	
+</beans>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]>
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue" table="userkeyjsonvalue">
+
+    <cache usage="read-write"/>
+
+    <id name="id" column="userkeyjsonvalueid">
+      <generator class="native"/>
+    </id>
+    &identifiableProperties;
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid"
+      foreign-key="fk_userkeyjsonvalue_user" not-null="true" index="userkeyjsonvalue_user"
+      unique-key="userkeyjsonvalue_unique_key_on_user_and_namespace"/>
+
+    <property name="namespace" column="namespace" type="string" not-null="true" length="255" unique-key="userkeyjsonvalue_unique_key_on_user_and_namespace" />
+
+    <property name="key" column="userkey" type="string" not-null="true" length="255"
+      unique-key="userkeyjsonvalue_unique_key_on_user_and_namespace"/>
+    <!-- set not-null -->
+
+    <property name="plainValue" column="value" type="text" access="property"/>
+
+    <property name="encryptedValue" column="encrypted_value" type="AESEncryptedString" access="property"/>
+
+    <property name="encrypted" column="encrypted" type="boolean" not-null="false" />
+
+  </class>
+</hibernate-mapping>

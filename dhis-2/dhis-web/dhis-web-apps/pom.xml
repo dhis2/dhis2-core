@@ -1,0 +1,188 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.hisp.dhis</groupId>
+    <artifactId>dhis-web</artifactId>
+    <version>2.25-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dhis-web-apps</artifactId>
+  <packaging>war</packaging>
+  <name>DHIS Web Apps</name>
+
+  <build>
+    <finalName>dhis-web-apps</finalName>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.10</version>
+        <executions>
+          <execution>
+            <id>unpack</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <!-- Settings -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-settings</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-settings</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Maintenance -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-maintenance</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-maintenance</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- App management -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-app-management</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-app-management</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Pivot -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-pivot</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-pivot</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Visualizer -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-visualizer</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-visualizer</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Mapping -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-mapping</artifactId>
+                  <!-- <version>${apps.version}</version> -->
+                  <version>2.24-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-mapping</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!-- Usage analytics -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-usage-analytics</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-usage-analytics</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!--  Tracker capture -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-tracker-capture</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-tracker-capture</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!--  Event capture -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-event-capture</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-event-capture</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!--  Cache cleaner -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-cache-cleaner</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-cache-cleaner</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+                <!--  Menu management -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-menu-management</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-menu-management</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+
+    <!-- DHIS -->
+
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-web-commons</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-web-commons-resources</artifactId>
+      <type>war</type>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-web-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-reporting</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-analytics</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <properties>
+    <rootDir>../../</rootDir>
+    <apps.version>2.25-SNAPSHOT</apps.version>
+  </properties>
+</project>

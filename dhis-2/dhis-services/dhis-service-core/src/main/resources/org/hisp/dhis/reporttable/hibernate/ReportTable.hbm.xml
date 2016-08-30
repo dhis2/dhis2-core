@@ -1,0 +1,221 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.reporttable.ReportTable" table="reporttable">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="reporttableid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+    
+    <property name="description" type="text" />
+
+    <property name="regression" />
+
+    <property name="cumulative" />
+
+    <list name="dataDimensionItems" table="reporttable_datadimensionitems" cascade="all, delete-orphan">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_datadimensionitems_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="datadimensionitemid" class="org.hisp.dhis.common.DataDimensionItem"
+        foreign-key="fk_reporttable_datadimensionitems_datadimensionitemid" />
+    </list>
+
+    <list name="organisationUnits" table="reporttable_organisationunits">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_organisationunits_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="organisationunitid" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+        foreign-key="fk_reporttable_organisationunits_organisationunitid" />
+    </list>
+
+    <list name="periods" table="reporttable_periods">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_periods_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="periodid" class="org.hisp.dhis.period.Period"
+        foreign-key="fk_reporttable_periods_periodid" />
+    </list>
+
+    <many-to-one name="relatives" unique="true" class="org.hisp.dhis.period.RelativePeriods" column="relativeperiodsid"
+      cascade="all-delete-orphan" foreign-key="fk_reporttable_relativeperiodsid" />
+
+    <list name="categoryDimensions" table="reporttable_categorydimensions" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_categorydimensions_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="categorydimensionid" class="org.hisp.dhis.dataelement.DataElementCategoryDimension"
+        foreign-key="fk_reporttable_categorydimensions_categorydimensionid" />
+    </list>
+
+    <list name="dataElementGroups" table="reporttable_dataelementgroups">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_dataelementgroups_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="dataelementgroupid" class="org.hisp.dhis.dataelement.DataElementGroup"
+        foreign-key="fk_reporttable_dataelementgroups_dataelementgroupid" />
+    </list>
+
+    <list name="organisationUnitGroups" table="reporttable_orgunitgroups">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_orgunitunitgroups_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
+        foreign-key="fk_reporttable_orgunitgroups_orgunitgroupid" />
+    </list>
+
+    <list name="categoryOptionGroups" table="reporttable_categoryoptiongroups">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_categoryoptiongroups_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="categoryoptiongroupid" class="org.hisp.dhis.dataelement.CategoryOptionGroup"
+        foreign-key="fk_reporttable_categoryoptiongroups_categoryoptiongroupid" />
+    </list>
+
+    <list name="organisationUnitLevels" table="reporttable_orgunitlevels">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_orgunitlevels_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <element column="orgunitlevel" type="integer" />
+    </list>
+
+    <list name="itemOrganisationUnitGroups" table="reporttable_itemorgunitgroups">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_itemorgunitunitgroups_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="orgunitgroupid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroup"
+        foreign-key="fk_reporttable_itemorgunitgroups_orgunitgroupid" />
+    </list>
+
+    <list name="columnDimensions" table="reporttable_columns">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_columns_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />
+    </list>
+
+    <list name="rowDimensions" table="reporttable_rows">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_rows_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />
+    </list>
+
+    <list name="filterDimensions" table="reporttable_filters">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_reporttable_filters_reporttableid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />
+    </list>
+
+    <component name="reportParams">
+      <property name="paramReportingMonth" />
+      <property name="paramGrandParentOrganisationUnit" />
+      <property name="paramParentOrganisationUnit" />
+      <property name="paramOrganisationUnit" />
+    </component>
+
+    <property name="sortOrder" />
+
+    <property name="topLimit" />
+
+    <property name="rowTotals" />
+
+    <property name="colTotals" />
+
+    <property name="rowSubTotals" />
+
+    <property name="colSubTotals" />
+
+    <property name="hideEmptyRows" />
+
+    <property name="aggregationType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="completedOnly" column="completedonly" />
+
+    <property name="digitGroupSeparator" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.DigitGroupSeparator</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="displayDensity" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.DisplayDensity</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="fontSize" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.FontSize</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="userOrganisationUnit" />
+
+    <property name="userOrganisationUnitChildren" />
+
+    <property name="userOrganisationUnitGrandChildren" />
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_reporttable_legendsetid" />
+
+    <property name="showHierarchy" />
+
+    <property name="showDimensionLabels" />
+
+    <property name="skipRounding" />
+
+    <!-- Access properties -->
+    <property name="externalAccess" />
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_reporttable_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="reporttableusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="reporttableid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="reporttabletranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="reporttableid" foreign-key="fk_objecttranslation_reporttableid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.user.UserAuthorityGroup" table="userrole">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="userroleid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="description" />
+
+    <set name="members" table="userrolemembers" inverse="true">
+      <key column="userroleid" />
+      <many-to-many column="userid" class="org.hisp.dhis.user.UserCredentials" />
+    </set>
+
+    <set name="authorities" table="userroleauthorities">
+      <cache usage="read-write" />
+      <key column="userroleid" foreign-key="fk_userroleauthorities_userroleid" />
+      <element type="string" column="authority" />
+    </set>
+
+    <set name="dataSets" table="userroledataset">
+      <key column="userroleid" foreign-key="fk_userroledataset_userroleid" />
+      <many-to-many column="datasetid" class="org.hisp.dhis.dataset.DataSet" foreign-key="fk_userroledataset_datasetid" />
+    </set>
+
+    <set name="programs" table="program_userroles">
+      <key column="userroleid" foreign-key="fk_userroleprogram_userroleid" />
+      <many-to-many column="programid" class="org.hisp.dhis.program.Program" foreign-key="fk_userroleprogram_programid" />
+    </set>
+    
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_userrole_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="userroleusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="userroleid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+
+    <!-- Object Translation -->
+    <set name="translations" table="userroletranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="userroleid" foreign-key="fk_objecttranslation_userroleid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

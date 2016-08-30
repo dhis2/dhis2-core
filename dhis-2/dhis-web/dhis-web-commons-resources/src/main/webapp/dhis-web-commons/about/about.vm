@@ -1,0 +1,34 @@
+<h3>$i18n.getString( "about_dhis2" )</h3>
+
+<dl>
+  <dt>$i18n.getString( "web_api" ):</dt><dd><a href="../api">$i18n.getString( "browse_it_here" )</a></dd>
+  <dt>$i18n.getString( "current_user" ):</dt><dd>$!currentUsername</dd>
+  <dt>$i18n.getString( "version" ):</dt><dd>$!info.version</dd>
+  <dt>$i18n.getString( "build_revision" ):</dt><dd>$!info.revision</dd>
+  <dt>$i18n.getString( "build_date" ):</dt><dd>$format.formatDateTime( $!info.buildTime )</dd>
+  <dt>$i18n.getString( "jasper_reports_version" ):</dt><dd>$!info.jasperReportsVersion</dd>
+  <dt>$i18n.getString( "user_agent" ):</dt><dd>$!userAgent</dd>
+  <dt>$i18n.getString( "server_date" ):</dt><dd>$!format.formatDateTime( $!info.serverDate )</dd>
+  <dt>$i18n.getString( "last_analytics_table_generation" ):</dt><dd>$!format.formatDateTime( $!info.lastAnalyticsTableSuccess )</dd>
+  <dt>$i18n.getString( "time_since_last_analytics_table_generation" ):</dt><dd>$!info.intervalSinceLastAnalyticsTableSuccess</dd>
+  <dt>$i18n.getString( "last_analytics_table_runtime" ):</dt><dd>$!info.lastAnalyticsTableRuntime</dd>
+  <dt>$i18n.getString( "environment_variable" ):</dt><dd>$!info.environmentVariable</dd>
+  #if ( $currentUserIsSuper )
+  <dt>$i18n.getString( "external_configuration_directory" ):</dt><dd>$!info.externalDirectory</dd>
+  <dt>$i18n.getString( "file_store_provider" ):</dt><dd>$!info.fileStoreProvider</dd>
+  <dt>$i18n.getString( "database_type" ):</dt><dd>$!info.databaseInfo.type</dd>
+  <dt>$i18n.getString( "database_name" ):</dt><dd>$!info.databaseInfo.name</dd>
+  <dt>$i18n.getString( "database_user" ):</dt><dd>$!info.databaseInfo.user</dd>
+  <dt>$i18n.getString( "read_replica_count" ):</dt><dd>$info.readReplicaCount</dd>
+  <dt>$i18n.getString( "java_opts" ):</dt><dd>$!info.javaOpts</dd>
+  <dt>$i18n.getString( "java_version" ):</dt><dd>$!info.javaVersion</dd>
+  <dt>$i18n.getString( "java_vendor" ):</dt><dd>$!info.javaVendor</dd>
+  <dt>$i18n.getString( "os_name" ):</dt><dd>$!info.osName</dd>
+  <dt>$i18n.getString( "os_architecture" ):</dt><dd>$!info.osArchitecture</dd>
+  <dt>$i18n.getString( "os_version" ):</dt><dd>$!info.osVersion</dd>
+  <dt>$i18n.getString( "server_memory" ):</dt><dd>$!info.memoryInfo</dd>
+  <dt>$i18n.getString( "cpu_cores" ):</dt><dd>$!info.cpuCores</dd>
+  #end
+</dl>
+
+<div>$!{keyApplicationRightFooter}</div>

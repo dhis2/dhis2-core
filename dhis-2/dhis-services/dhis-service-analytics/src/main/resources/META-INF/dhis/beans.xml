@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <!-- Table -->
+
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcAnalyticsTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTableManager" class="org.hisp.dhis.analytics.table.JdbcCompletenessTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTargetTableManager" class="org.hisp.dhis.analytics.table.JdbcCompletenessTargetTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.OrgUnitTargetTableManager" class="org.hisp.dhis.analytics.table.JdbcOrgUnitTargetTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.EventAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager" />
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.AnalyticsTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.CompletenessTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.CompletenessTargetTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.CompletenessTargetTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.OrgUnitTargetTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.OrgUnitTargetTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.EventAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.EventAnalyticsTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.partition.PartitionManager" class="org.hisp.dhis.analytics.partition.JdbcPartitionManager" />
+    
+  <!-- Routine analytics -->
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsManager" class="org.hisp.dhis.analytics.data.JdbcAnalyticsManager" />
+  
+  <bean id="org.hisp.dhis.analytics.DataQueryService" class="org.hisp.dhis.analytics.data.DefaultDataQueryService" />
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsService" class="org.hisp.dhis.analytics.data.DefaultAnalyticsService" />
+  
+  <bean id="org.hisp.dhis.analytics.QueryPlanner" class="org.hisp.dhis.analytics.data.DefaultQueryPlanner" />
+
+  <bean id="org.hisp.dhis.analytics.AnalyticsSecurityManager" class="org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager" />
+
+  <!-- Event analytics -->
+
+  <bean id="org.hisp.dhis.analytics.event.EventAnalyticsManager" class="org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager" />
+
+  <bean id="org.hisp.dhis.analytics.event.EventDataQueryService" class="org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService" />
+
+  <bean id="org.hisp.dhis.analytics.event.EventAnalyticsService" class="org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService" />
+
+  <bean id="org.hisp.dhis.analytics.event.EventQueryPlanner" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryPlanner" />
+
+  <!-- Scheduled tasks -->
+  
+  <bean id="analyticsAllTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype" />
+  
+  <bean id="analyticsLast2YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype">
+    <property name="lastYears" value="2" />
+  </bean>
+
+  <bean id="analyticsLast3YearsTask" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableTask" scope="prototype">
+    <property name="lastYears" value="3" />
+  </bean>
+
+</beans>

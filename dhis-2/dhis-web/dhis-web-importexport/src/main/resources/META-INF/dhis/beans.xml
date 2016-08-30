@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <!-- Data value import -->
+
+  <bean id="org.hisp.dhis.importexport.action.datavalue.ImportDataValueAction"
+    class="org.hisp.dhis.importexport.action.datavalue.ImportDataValueAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.importexport.action.GetImportSummaryAction"
+    class="org.hisp.dhis.importexport.action.GetImportSummaryAction"
+    scope="prototype">
+    <property name="category" value="DATAVALUE_IMPORT" />
+  </bean>
+
+  <!-- Data value export -->
+
+  <bean id="org.hisp.dhis.importexport.action.datavalue.ExportDataValueAction"
+    class="org.hisp.dhis.importexport.action.datavalue.ExportDataValueAction"
+    scope="prototype" />
+
+  <!-- Events -->
+
+  <bean id="org.hisp.dhis.importexport.action.event.ImportEventAction"
+    class="org.hisp.dhis.importexport.action.event.ImportEventAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.importexport.action.event.ExportEventAction"
+    class="org.hisp.dhis.importexport.action.event.ExportEventAction"
+    scope="prototype" />
+
+  <!-- DXF2 MetaData import/export -->
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.MetaDataImportAction"
+    class="org.hisp.dhis.importexport.action.dxf2.MetaDataImportAction" />
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.GetImportSummaryAction"
+    class="org.hisp.dhis.importexport.action.dxf2.GetImportSummaryAction" scope="prototype">
+    <property name="category" value="METADATA_IMPORT" />
+  </bean>
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.GetImportReportAction"
+    class="org.hisp.dhis.importexport.action.dxf2.GetImportReportAction" scope="prototype">
+    <property name="category" value="METADATA_IMPORT" />
+  </bean>
+
+  <bean id="org.hisp.dhis.importexport.action.event.GetImportEventSummariesAction"
+    class="org.hisp.dhis.importexport.action.event.GetImportEventSummariesAction" scope="prototype">
+  </bean>
+
+</beans>

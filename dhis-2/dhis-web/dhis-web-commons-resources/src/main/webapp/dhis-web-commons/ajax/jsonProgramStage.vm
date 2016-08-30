@@ -1,0 +1,41 @@
+{ "programStage":
+  {
+    "id": "${programStage.id}",
+	"uid": "${programStage.uid}",
+	"name": "$!encoder.jsonEncode( ${programStage.name} )",
+	"description": "$!encoder.jsonEncode( ${programStage.description} )",
+	"minDaysFromStart": "${programStage.minDaysFromStart}",
+	"dataElementCount": "${programStageDataElements.size()}",
+	"standardInterval": "$!programStage.standardInterval",
+	"excecutionDateLabel": "$!encoder.jsonEncode( ${programStage.excecutionDateLabel} )",
+	"blockEntryForm": "$!programStage.blockEntryForm",
+	"remindCompleted": "$!programStage.remindCompleted",
+	"allowGenerateNextVisit": "$!programStage.allowGenerateNextVisit",
+	"generatedByEnrollmentDate": "$!programStage.generatedByEnrollmentDate",
+	"openAfterEnrollment": "$!programStage.openAfterEnrollment",
+	"preGenerateUID": "$!programStage.preGenerateUID",
+	"reportDateToUse": "$!programStage.reportDateToUse",
+	"reminders":[
+	#foreach($reminder in $programStage.reminders)
+	  {
+		"daysAllowedSendMessage": "$!reminder.daysAllowedSendMessage",
+		"templateMessage": "$!encoder.jsonEncode( ${reminder.templateMessage} )"
+	  }#if( $velocityCount < $programStage.reminders.size() ),#end
+	#end 
+	],
+	"repeatable": "$!programStage.repeatable",
+	"autoGenerateEvent": "$!programStage.autoGenerateEvent",
+	"validCompleteOnly": "$!programStage.validCompleteOnly",
+	"displayGenerateEventBox": "$!programStage.displayGenerateEventBox",
+	"captureCoordinates": "$!programStage.captureCoordinates",
+	#set( $size = ${programStageDataElements.size()} )
+	"dataElement": [
+	#foreach($d in $programStageDataElements)
+	  {
+		"id": "${d.dataElement.id}",
+		"name": "$!encoder.jsonEncode( ${d.dataElement.name} )"
+	  }#if( $velocityCount < $size ),#end
+	#end
+	]
+  }
+}

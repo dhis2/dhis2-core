@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataapproval.DataApprovalWorkflow" table="dataapprovalworkflow">
+
+    <cache usage="read-write" />
+    
+    <id name="id" column="workflowid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid" not-null="true" foreign-key="fk_dataapprovalworkflow_periodtypeid" />
+
+    <set name="levels" table="dataapprovalworkflowlevels">
+      <cache usage="read-write" />
+      <key column="workflowid" foreign-key="fk_dataapprovalworkflowlevels_workflowid" />
+      <many-to-many class="org.hisp.dhis.dataapproval.DataApprovalLevel" column="dataapprovallevelid" foreign-key="fk_dataapprovalworkflowlevels_levelid" />
+    </set>
+    
+    <set name="dataSets" inverse="true">
+      <key column="workflowid" />
+      <one-to-many class="org.hisp.dhis.dataset.DataSet" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="dataapprovalworkflowtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="workflowid" foreign-key="fk_objecttranslation_workflowid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataapprovalworkflow_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="dataapprovalworkflowusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="workflowid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

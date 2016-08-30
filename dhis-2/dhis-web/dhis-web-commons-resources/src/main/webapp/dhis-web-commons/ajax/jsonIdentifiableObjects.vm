@@ -1,0 +1,17 @@
+#set( $size = $objectMap.size() )
+{ "objects": [
+#foreach( $object in $objects )
+  {
+    "id": "$!{object.id}",
+    "uid": "$!{object.uid}",
+    "name": "$!encoder.jsonEncode( ${object.displayName} )",
+    "code": "$!encoder.jsonEncode( ${object.code} )",
+    "created": "$!encoder.jsonEncode( ${object.created} )",
+    "lastUpdated": "$!encoder.jsonEncode( ${object.lastUpdated} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+    "paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

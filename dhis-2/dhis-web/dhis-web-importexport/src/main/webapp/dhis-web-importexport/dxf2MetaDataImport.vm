@@ -1,0 +1,78 @@
+
+<h3>$i18n.getString( "metadata_import" )</h3>
+
+<div id="inputCriteria" class="inputCriteria" style="width: 380px">
+<form id="importForm" name="importForm" method="post" enctype="multipart/form-data" action="importMetaData.action">
+<table>
+<col width="160">
+<col>
+<tr>
+	<td>$i18n.getString( "file" )</td>
+	<td><input type="file" id="upload" name="upload" style="margin-left:0px"></td>
+</tr>
+<tr>
+    <td>$i18n.getString( "format" )</td>
+    <td>
+        <select id="importFormat" name="importFormat" style="width: 210px;" onchange="metaDataImportFormatChanged()">
+            <option value="json">JSON</option>
+            <option value="xml">XML</option>
+            <option value="csv">CSV</option>
+        </select>
+    </td>
+</tr>
+<tr id="csvImportTr" style="display:none">
+	<td>$i18n.getString( "object_type" )</td>
+	<td><select id="classKey" name="classKey" style="width:190px">
+        <option value="dataelement">$i18n.getString( "data_element" )</option>
+        <option value="dataelementgroup">$i18n.getString( "data_element_group" )</option>
+        <option value="categoryoption">$i18n.getString( "category_option" )</option>
+        <option value="categoryoptiongroup">$i18n.getString( "category_option_group" )</option>
+        <option value="organisationunit">$i18n.getString( "organisation_unit" )</option>
+        <option value="organisationunitgroup">$i18n.getString( "organisation_unit_group" )</option>
+        <option value="validationrule">$i18n.getString( "validation_rule" )</option>
+        <option value="optionset">$i18n.getString( "option_set" )</option>
+        <option value="translation">$i18n.getString( "translation" )</option>
+    </select></td>
+</tr>
+<tr>
+	<td>$i18n.getString( "dry_run" )</td>
+	<td><select id="dryRun" name="dryRun" style="width:210px">
+		<option value="false">$i18n.getString( "no" )</option>
+		<option value="true">$i18n.getString( "yes" )</option>
+    </select></td>
+</tr>
+<tr>
+	<td>$i18n.getString( "atomic_mode" )</td>
+	<td><select id="atomicMode" name="atomicMode" style="width:210px">
+		<option value="NONE">$i18n.getString( "atomic_mode_none" )</option>
+		<option value="ALL">$i18n.getString( "atomic_mode_all" )</option>
+    </select></td>
+</tr>
+<tr>
+	<td>$i18n.getString( "strategy" )</td>
+	<td><select id="strategy" name="strategy" style="width:210px">
+		<option value="NEW_AND_UPDATES">$i18n.getString( "new_and_updates" )</option>
+		<option value="NEW">$i18n.getString( "new_only" )</option>
+		<option value="UPDATES">$i18n.getString( "updates_only" )</option>
+    </select></td>
+</tr>
+<tr>
+	<td></td>
+	<td><a href="javascript:toggleOptions()">$i18n.getString( "more_options" )</a></td>
+</tr>
+<tr>
+	<td></td>
+	<td><input type="button" value="$i18n.getString( 'import' )" style="width:120px" onclick="importMetaData()"/></td>
+</tr>
+</table>
+</form>
+</div>
+
+<div id="notificationDiv">
+<table id="notificationTable" class="notificationTable" style="display:none">
+<col width="120">
+<col width="380">
+</table>
+</div>
+
+<div id="importSummaryDiv" class="page formSection" style="display:none; width:80%; padding-bottom:20px;"></div>

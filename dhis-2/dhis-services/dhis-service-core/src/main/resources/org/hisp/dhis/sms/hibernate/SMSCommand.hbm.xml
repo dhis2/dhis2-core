@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping package="org.hisp.dhis.sms.command">
+
+	<class name="SMSCommand" table="smscommands">
+
+		<id name="id" column="smscommandid">
+			<generator class="increment" />
+		</id>
+		<property name="name" type="text" />
+
+		<property name="parser" type="text" />
+
+		<property name="parserType">
+			<type name="org.hibernate.type.EnumType">
+				<param name="enumClass">org.hisp.dhis.sms.parse.ParserType</param>
+			</type>
+		</property>
+
+		<property name="separator" type="text" column="separatorkey" />
+		<property name="codeSeparator" type="text" />
+		<property name="defaultMessage" type="text" />
+		<property name="receivedMessage" type="text" />
+		<property name="wrongFormatMessage" type="text" />
+		<property name="noUserMessage" type="text" />
+		<property name="moreThanOneOrgUnitMessage" type="text" />
+		<property name="successMessage" type="text" />
+		<property name="currentPeriodUsedForReporting" type="boolean" />
+		<property name="completenessMethod" />
+
+		<many-to-one name="dataset" class="org.hisp.dhis.dataset.DataSet"
+			column="datasetid" foreign-key="fk_dataset_datasetid" />
+
+		<set name="codes" table="smscommandcodes">
+			<key column="id" />
+			<many-to-many class="org.hisp.dhis.sms.command.code.SMSCode"
+				column="codeid" unique="true" />
+		</set>
+
+		<set name="specialCharacters" table="smscommandspecialcharacters">
+			<key column="smscommandid" />
+			<many-to-many class="org.hisp.dhis.sms.command.SMSSpecialCharacter"
+				column="specialcharacterid" unique="true" />
+		</set>
+
+		<many-to-one name="userGroup" class="org.hisp.dhis.user.UserGroup"
+			column="usergroupid" foreign-key="fk_smscommand_usergroup" />
+		<many-to-one name="program" class="org.hisp.dhis.program.Program"
+			column="programid" foreign-key="fk_smscommand_program" />
+			
+		<many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+			column="programstageid" foreign-key="fk_smscommand_programstage" />
+
+	</class>
+
+</hibernate-mapping>

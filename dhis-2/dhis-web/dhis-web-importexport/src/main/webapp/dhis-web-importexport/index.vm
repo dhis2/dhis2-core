@@ -1,0 +1,25 @@
+<h3>$i18n.getString( "dhis-web-importexport" )</h3>
+
+<ul class="introList">
+	#if( $auth.hasAccess( "dhis-web-importexport", "dxf2MetaDataImport" ) )
+    #introListImgItem( "dxf2MetaDataImport.action" "metadata_import" "import" )
+    #end
+    #if( $auth.hasAccess( "dhis-web-importexport", "displayImportDataValueForm" ) )
+    #introListImgItem( "displayImportDataValueForm.action" "data_import" "import" )
+    #end
+    #if( $auth.hasAccess( "dhis-web-importexport", "gmlImport" ) )
+    #introListImgItem( "gmlImport.action" "gml_import" "import" )
+    #end
+    #if( $auth.hasAccess( "dhis-web-importexport", "displayEventImportForm" ) )
+    #introListImgItem( "displayEventImportForm.action" "event_import" "import" )
+    #end
+    #if( $auth.hasAccess( "dhis-web-importexport", "dxf2MetaDataExport" ) )
+    #introListImgItem( "dxf2MetaDataExport.action" "metadata_export" "export" )
+    #end
+    #if( $auth.hasAccess( "dhis-web-importexport", "displayDataValueExportForm" ) )
+    #introListImgItem( "displayDataValueExportForm.action" "data_export" "export" )
+    #end
+    #if( $auth.hasAccess( "dhis-web-importexport", "displayEventExportForm" ) )
+    #introListImgItem( "displayEventExportForm.action" "event_export" "export" )
+    #end
+</ul>

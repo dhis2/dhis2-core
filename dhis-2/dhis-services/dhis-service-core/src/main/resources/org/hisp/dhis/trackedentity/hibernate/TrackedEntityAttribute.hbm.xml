@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.trackedentity.TrackedEntityAttribute" table="trackedentityattribute">
+
+    <cache usage="read-write" />
+    
+    <id name="id" column="trackedentityattributeid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="shortName" column="shortname" not-null="false" unique="true" length="50" />
+
+    <property name="description" type="text" />
+
+    <property name="valueType" column="valuetype" length="36" access="property" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.ValueType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="aggregationType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="attributeGroup" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup"
+      column="trackedentityattributegroupid" foreign-key="fk_trackedentityattribute_attributegroupid" />
+
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet"
+      column="optionsetid" foreign-key="fk_trackedentityattribute_optionsetid" />
+
+    <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+      column="trackedentityid" foreign-key="fk_trackedentityattribute_trackedentityid" />
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_trackedentityattribute_legendset" />
+
+    <property name="inherit" column="inherit" />
+
+    <property name="expression" column="expression" />
+
+    <property name="displayOnVisitSchedule" />
+
+    <property name="sortOrderInVisitSchedule" />
+
+    <property name="displayInListNoProgram" />
+
+    <property name="sortOrderInListNoProgram" />
+
+    <property name="confidential" />
+
+    <property name="unique" column="uniquefield" />
+    
+    <property name="generated" />
+    
+    <property name="pattern" />
+
+    <property name="orgunitScope" />
+
+    <property name="programScope" />
+    
+    <property name="searchScope" length="40" column="searchscope">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.trackedentity.TrackedEntityAttributeSearchScope</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User"
+      column="userid" foreign-key="fk_trackedentityattribute_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="trackedentityattributeusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="trackedentityattributeid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="trackedentityattributeattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentityattributeid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="trackedentityattributetranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentityattributeid" foreign-key="fk_objecttranslation_trackedentityattributeid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

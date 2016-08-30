@@ -1,0 +1,62 @@
+<script type="text/javascript">
+	var i18n_select_options = '$encoder.jsEscape( $i18n.getString( "select_options" ), "'" )';
+	var i18n_performing_maintenance = '$encoder.jsEscape( $i18n.getString( "performing_maintenance" ), "'" )';
+	var i18n_maintenance_performed = '$encoder.jsEscape( $i18n.getString( "maintenance_performed" ), "'" )';
+</script>
+
+<h3>$i18n.getString( "maintenance" ) #openHelp( "maintenance" )</h3>
+
+<p>
+    <input type="checkbox" id="clearAnalytics"/>
+    <label for="clearAnalytics">$i18n.getString( "clear_analytics_tables" )</label>
+</p>
+
+<p>
+	<input type="checkbox" id="zeroValues"/>
+	<label for="zeroValues">$i18n.getString( "clear_zero_values" )</label>
+</p>
+
+<p>
+	<input type="checkbox" id="prunePeriods"/>
+	<label for="prunePeriods">$i18n.getString( "prune_periods" )</label>
+</p>
+
+<p>
+	<input type="checkbox" id="removeExpiredInvitations"/>
+	<label for="removeExpiredInvitations">$i18n.getString( "remove_expired_invitations" )</label>
+</p>
+
+<p>
+	<input type="checkbox" id="dropSqlViews"/>
+	<label for="dropSqlViews">$i18n.getString( "drop_sql_views" )</label>
+</p>
+
+<p>
+	<input type="checkbox" id="createSqlViews"/>
+	<label for="createSqlViews">$i18n.getString( "create_sql_views" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="updateCategoryOptionCombos"/>
+    <label for="updateCategoryOptionCombos">$i18n.getString( "update_category_option_combos" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="updateOrganisationUnitPaths"/>
+    <label for="updateOrganisationUnitPaths">$i18n.getString( "update_organisation_unit_paths" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="clearApplicationCache"/>
+    <label for="clearApplicationCache">$i18n.getString( "clear_application_cache" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="reloadApps"/>
+    <label for="reloadApps">$i18n.getString( "reload_apps" )</label>
+</p>
+
+<p>
+	<input type="button" value="$i18n.getString( 'perform_maintenance' )" onclick="performMaintenance()" style="width:170px"/>
+</p>
+

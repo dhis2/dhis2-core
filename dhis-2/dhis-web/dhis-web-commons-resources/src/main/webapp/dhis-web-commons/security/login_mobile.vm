@@ -1,0 +1,74 @@
+<html>
+
+<head>
+<title>DHIS 2</title>
+
+<meta name="viewport" content="width=device-width, user-scalable=no" />
+<link rel="stylesheet" href="../css/login_mobile.css" />
+
+</head>
+
+<body>
+
+<div id="wrap">
+
+<div id="header">
+	<a href="login.action" tabindex="-1"><img src="logo_mobile.png" width="88" height="24" alt="DHIS 2"></a>
+</div>
+
+<div id="content" align="center" style="text-align: left;">
+
+#if( $failed == true )
+<div class="header-box" align="center">
+	<h3 style="text-align: left; background-color: red; color: black;">Wrong username or password</h3>
+</div>
+#end
+
+<form id='loginForm' action="../../dhis-web-commons-security/login.action" method="POST">
+
+<div class="header-box" align="center">
+	<h3 style="text-align: left;">Login</h3>
+	<p style="text-align: left;">
+		<label for="j_username">Username</label> <input type="text" id="j_username" name="j_username" size="24"> <br />
+		<label for="j_password">Password</label> <input type="password" id="j_password" name="j_password" size="24"> <br /> <br />
+        <label for="mobileVersion">Mobile Version</label><br />
+        <select id="mobileVersion" name="mobileVersion" style="width: 100%;">
+            <option value="basic">Basic</option>
+            <option value="smartphone">Smartphone</option>
+            <option value="desktop">Desktop</option>
+        </select>
+	</p>
+</div>
+
+<div class="header-box" align="center">
+	<p>
+		<input type="submit" style="width: 48%;" value="Login"/>
+		<input type="reset" style="width: 48%;" value="Reset"/>
+	</p>
+</div>
+
+#if ( $keyConfig.selfRegistrationAllowed() )
+<div class="header-box" align="center"><a href="account.action">Create an account</a></div>
+#end
+
+</form>
+</div>
+</div>
+
+#* Seems we can't access macros.vm from login.vm/login_mobile.vm so we include the full script here *#
+#if( $googleAnalyticsUA && $googleAnalyticsUA != '' )
+<script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', '$encoder.jsEncode($googleAnalyticsUA)']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+#end
+
+</body>
+</html>

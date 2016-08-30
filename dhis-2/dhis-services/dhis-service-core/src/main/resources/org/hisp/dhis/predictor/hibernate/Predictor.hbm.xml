@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.predictor.Predictor" table="predictor">
+
+    <id name="id" column="predictorid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="description" type="text" />
+
+    <many-to-one name="generator" column="generatorexpressionid" class="org.hisp.dhis.expression.Expression"
+      cascade="none" foreign-key="fk_predictor_generatorexpressionid" />
+
+    <many-to-one name="output" column="generatoroutput" class="org.hisp.dhis.dataelement.DataElement"
+		 foreign-key="fk_predictor_outputdataelementid" />
+
+    <many-to-one name="sampleSkipTest" column="skiptestexpressionid" class="org.hisp.dhis.expression.Expression"
+      cascade="all" foreign-key="fk_validationrule_skiptestexpressionid" />
+
+    <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
+      foreign-key="fk_validationrule_periodtypeid" not-null="true" />
+
+    <set name="organisationUnitLevels" table="predictororgunitlevels">
+      <key column="predictorid" foreign-key="fk_predictororgunitlevels_predictorid" />
+      <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitLevel" column="orgunitlevelid"
+        foreign-key="fk_predictororgunitlevels_orgunitlevelid" />
+    </set>
+
+    <property name="sequentialSampleCount" column="sequentialsamplecount" />
+
+    <property name="annualSampleCount" column="annualsamplecount" />
+
+    <property name="sequentialSkipCount" column="sequentialskipcount" />
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

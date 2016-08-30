@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd">
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.IdentifiableObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.AnalyticalObjectObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OrganisationUnitObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramStageObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataApprovalWorkflowObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserRoleObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SectionObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ValidationRuleObjectBundleHook" />
+
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.PredictorObjectBundleHook" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleValidationService" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.MetadataExportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataExportService" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.MetadataImportService" class="org.hisp.dhis.dxf2.metadata.DefaultMetadataImportService" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.MergeService" class="org.hisp.dhis.dxf2.metadata.DefaultMergeService" />
+
+  <bean id="org.hisp.dhis.dxf2.gml.GmlImportService" class="org.hisp.dhis.dxf2.gml.DefaultGmlImportService" />
+
+  <bean id="org.hisp.dhis.dxf2.events.event.csv.CsvEventService" class="org.hisp.dhis.dxf2.events.event.csv.DefaultCsvEventService" />
+
+  <bean id="org.hisp.dhis.dxf2.csv.CsvImportService" class="org.hisp.dhis.dxf2.csv.DefaultCsvImportService" />
+
+  <bean id="org.hisp.dhis.dxf2.datavalueset.DataValueSetService"
+    class="org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService" />
+
+  <bean id="org.hisp.dhis.dxf2.datavalueset.DataValueSetStore"
+    class="org.hisp.dhis.dxf2.datavalueset.SpringDataValueSetStore" />
+
+  <bean id="org.hisp.dhis.dxf2.events.event.EventStore" class="org.hisp.dhis.dxf2.events.event.JdbcEventStore" />
+
+  <bean id="org.hisp.dhis.dxf2.events.event.EventService" class="org.hisp.dhis.dxf2.events.event.JacksonEventService" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
+
+  <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"
+    class="org.hisp.dhis.dxf2.events.trackedentity.JacksonTrackedEntityInstanceService" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dxf2.events.enrollment.EnrollmentService"
+    class="org.hisp.dhis.dxf2.events.enrollment.JacksonEnrollmentService" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean id="pdfDataEntryFormService" class="org.hisp.dhis.dxf2.pdfform.DefaultPdfDataEntryFormService" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dxf2.synch.SynchronizationManager" class="org.hisp.dhis.dxf2.synch.DefaultSynchronizationManager" />
+
+  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" scope="prototype" />
+
+  <bean id="dataSynchTask" class="org.hisp.dhis.dxf2.synch.DataSynchronizationTask" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService" scope="prototype" />
+
+  <bean id="metadataSyncTask" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask" scope="prototype" />
+
+  <bean id="metadataRetryContext" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataRetryContext" scope="prototype" />
+
+  <bean id="metadataSyncPreProcessor" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor" scope="prototype" />
+
+  <bean id="metadataSyncPostProcessor" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" class="org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncImportHandler" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype" />
+
+  <bean id="retryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
+    <property name="maxAttempts" ref="maxAttempts" />
+  </bean>
+
+  <bean id="backOffPolicy" class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+    <property name="initialInterval" ref="initialInterval" />
+  </bean>
+
+  <bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
+    <property name="backOffPolicy" ref="backOffPolicy" />
+    <property name="retryPolicy" ref="retryPolicy" />
+  </bean>
+
+  <bean id="inputUtils" class="org.hisp.dhis.dxf2.utils.InputUtils" />
+
+  <bean id="org.hisp.dhis.dxf2.AdxDataService" class="org.hisp.dhis.dxf2.adx.DefaultAdxDataService" />
+
+</beans>

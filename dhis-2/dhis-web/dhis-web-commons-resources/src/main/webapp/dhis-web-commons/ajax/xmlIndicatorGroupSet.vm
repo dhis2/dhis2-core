@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<indicatorGroupSet>
+	<id>$indicatorGroupSet.id</id>
+	<name>$encoder.xmlEncode( $indicatorGroupSet.displayName )</name>
+	<memberCount>$indicatorGroupSet.members.size()</memberCount>	
+</indicatorGroupSet>

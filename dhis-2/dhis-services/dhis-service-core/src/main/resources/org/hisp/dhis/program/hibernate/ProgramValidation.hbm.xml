@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramValidation" table="programvalidation">
+
+    <id name="id" column="programvalidationid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <many-to-one name="leftSide" class="org.hisp.dhis.program.ProgramExpression" cascade="all"
+      column="leftprogramexpressionid" foreign-key="fk_programvalidation_leftprogramexpressionid" />
+
+    <property name="operator" type="org.hisp.dhis.expression.OperatorUserType">
+      <column name="operator" unique="false" />
+    </property>
+
+    <many-to-one name="rightSide" class="org.hisp.dhis.program.ProgramExpression" cascade="all"
+      column="rightprogramexpressionid" foreign-key="fk_programvalidation_rightprogramexpressionid" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program" not-null="true" 
+      column="programid" foreign-key="fk_programvalidation_programid" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="programvalidationtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programvalidationid" foreign-key="fk_objecttranslation_programvalidationid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

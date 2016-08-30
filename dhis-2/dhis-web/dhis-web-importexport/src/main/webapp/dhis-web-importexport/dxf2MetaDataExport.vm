@@ -1,0 +1,44 @@
+<h3>$i18n.getString( "metadata_export" )</h3>
+
+<form id="exportForm" name="exportForm">
+  <fieldset id="metadata" style="width: 80%; border: 1px solid #ccc; padding: 15px;"></fieldset>
+
+  <br/>
+
+  <table>
+    <tr>
+      <td colspan="2">
+        <input type="button" value="$i18n.getString( 'select_all' )" style="width:100px;" onclick="selectAll();"/>
+        <input type="button" value="$i18n.getString( 'select_none' )" style="width:100px;" onclick="selectNone();"/>
+      </td>
+    </tr>
+
+    <tr>
+      <td colspan="2">
+        <select id="format" style="width: 204px;">
+          <option value="json">JSON</option>
+          <option value="xml">XML</option>
+        </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td colspan="2">
+        <select id="compression" style="width: 204px;">
+          <option value="zip">$i18n.getString( 'compression_zip' )</option>
+          <option value="gz">$i18n.getString( 'compression_gzip' )</option>
+          <option value="uncompressed">$i18n.getString( 'uncompressed' )</option>
+        </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td colspan="2">
+        <input type="button" value="$i18n.getString( 'export' )" style="width:204px;" onclick="exportMetaData();"/>
+      </td>
+    </tr>
+
+  </table>
+</form>
+
+<span id="message"></span>

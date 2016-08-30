@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:sec="http://www.springframework.org/schema/security" xmlns:oauth="http://www.springframework.org/schema/security/oauth2"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd http://www.springframework.org/schema/security/oauth2 http://www.springframework.org/schema/security/spring-security-oauth2.xsd">
+
+  <!-- OAuth2 -->
+
+  <bean id="oauthAuthenticationEntryPoint"
+    class="org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint">
+    <property name="realmName" value="dhis2/oauth2" />
+  </bean>
+
+  <bean id="oauthAccessDeniedHandler" class="org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler" />
+
+  <bean id="clientCredentialsTokenEndpointFilter" class="org.springframework.security.oauth2.provider.client.ClientCredentialsTokenEndpointFilter">
+    <property name="authenticationManager" ref="clientAuthenticationManager" />
+  </bean>
+
+  <oauth:resource-server id="resourceServerFilter" token-services-ref="tokenServices" entry-point-ref="oauthAuthenticationEntryPoint" />
+
+  <sec:http pattern="/uaa/oauth/token/**" create-session="stateless" authentication-manager-ref="clientAuthenticationManager" disable-url-rewriting="true">
+    <sec:intercept-url pattern="/uaa/oauth/token/**" access="IS_AUTHENTICATED_FULLY" />
+    <sec:anonymous enabled="false" />
+    <sec:http-basic entry-point-ref="oauthAuthenticationEntryPoint" />
+    <sec:custom-filter ref="clientCredentialsTokenEndpointFilter" before="BASIC_AUTH_FILTER" />
+    <sec:access-denied-handler ref="oauthAccessDeniedHandler" />
+  </sec:http>
+
+  <sec:http pattern="/uaa/oauth/authorize/**" authentication-manager-ref="authenticationManager" disable-url-rewriting="true">
+    <sec:intercept-url pattern="/uaa/oauth/authorize/**" access="IS_AUTHENTICATED_FULLY" />
+    <sec:http-basic />
+    <sec:anonymous />
+
+    <sec:form-login authentication-failure-url="/dhis-web-commons/security/login.action?failed=true"
+      username-parameter="j_username" password-parameter="j_password"
+      login-page="/dhis-web-commons/security/login.action"
+      login-processing-url="/dhis-web-commons-security/login.action" />
+
+  </sec:http>
+
+  <bean id="mappedRedirectStrategy" class="org.hisp.dhis.security.MappedRedirectStrategy">
+    <property name="redirectMap">
+      <map>
+        <entry key="/dhis-web-commons-stream/ping.action" value="/" />
+      </map>
+    </property>
+    <property name="deviceResolver" ref="org.springframework.mobile.device.DeviceResolver" />
+  </bean>
+
+  <bean id="defaultAuthenticationSuccessHandler" class="org.hisp.dhis.security.DefaultAuthenticationSuccessHandler">
+    <property name="redirectStrategy" ref="mappedRedirectStrategy" />
+  </bean>
+
+  <bean id="customAuthenticationFilter" class="org.hisp.dhis.security.filter.CustomAuthenticationFilter" />
+
+  <bean id="corsFilter" class="org.hisp.dhis.security.filter.CorsFilter" />
+
+  <bean id="appCacheFilter" class="org.hisp.dhis.servlet.filter.AppCacheFilter" />
+
+  <sec:http pattern="/dhis-web-commons/javascripts/**" security="none" />
+  <sec:http pattern="/dhis-web-commons/css/**" security="none" />
+  <sec:http pattern="/dhis-web-commons/flags/**" security="none" />
+  <sec:http pattern="/dhis-web-commons/fonts/**" security="none" />
+  <sec:http pattern="/api/files/style/external" security="none" />
+  <sec:http pattern="/external-static/**" security="none" />
+  <sec:http pattern="/favicon.ico" security="none" />
+
+  <!-- Disabled for now, we need to properly handle "Basic Auth" dialog box popping up on browsers
+  <sec:http access-decision-manager-ref="accessDecisionManager" use-expressions="true" realm="DHIS2" pattern="/api/**">
+    <sec:http-basic />
+
+    <sec:headers>
+      <sec:content-type-options />
+      <sec:frame-options />
+      <sec:xss-protection />
+    </sec:headers>
+
+    <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
+    <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
+    <sec:intercept-url pattern="/api/account/username" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/recovery" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account" access="permitAll()" />
+    <sec:intercept-url pattern="/api/**" access="isAuthenticated()" />
+  </sec:http>
+  -->
+
+  <sec:http access-decision-manager-ref="accessDecisionManager" use-expressions="true" realm="DHIS2" disable-url-rewriting="true">
+    <sec:openid-login user-service-ref="userDetailsService" default-target-url="/" always-use-default-target="false"
+      authentication-failure-handler-ref="securityExceptionTranslationHandler"
+      login-processing-url="/dhis-web-commons-security/openid.action"
+      authentication-success-handler-ref="defaultAuthenticationSuccessHandler" />
+
+    <sec:form-login default-target-url="/" always-use-default-target="false"
+      username-parameter="j_username" password-parameter="j_password"
+      authentication-failure-handler-ref="securityExceptionTranslationHandler"
+      login-processing-url="/dhis-web-commons-security/login.action"
+      login-page="/dhis-web-commons/security/login.action"
+      authentication-success-handler-ref="defaultAuthenticationSuccessHandler" />
+
+    <sec:headers>
+      <sec:content-type-options />
+      <sec:frame-options policy="SAMEORIGIN" />
+      <sec:xss-protection />
+    </sec:headers>
+
+    <sec:http-basic />
+    <sec:logout logout-url="/dhis-web-commons-security/logout.action" />
+    <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
+    <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/username" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/recovery" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account" access="permitAll()" />
+    <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()"/>
+    <sec:intercept-url pattern="/**" access="isAuthenticated()" />
+    <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
+    <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
+    <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
+    <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
+  </sec:http>
+
+  <bean id="securityExceptionTranslationHandler"
+    class="org.hisp.dhis.security.CustomExceptionMappingAuthenticationFailureHandler">
+    <property name="exceptionMappings">
+      <props>
+        <prop key="org.springframework.security.authentication.CredentialsExpiredException">/dhis-web-commons/security/expired.action</prop>
+      </props>
+    </property>
+    <property name="defaultFailureUrl" value="/dhis-web-commons/security/login.action?failed=true" />
+  </bean>
+
+  <!-- Security : Action -->
+
+  <bean id="restrictOrganisationUnitsAction" class="org.hisp.dhis.security.action.RestrictOrganisationUnitsAction"
+    scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+  <bean id="automaticAccessFilter" class="org.hisp.dhis.security.filter.AutomaticAccessFilter">
+    <property name="accessProviders">
+      <map>
+        <entry key="databaseAdmin" value-ref="databaseAutomaticAccessProvider" />
+        <entry key="ghostAdmin" value-ref="ghostAutomaticAccessProvider" />
+      </map>
+    </property>
+  </bean>
+
+  <!-- Security : Listener -->
+
+  <bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
+
+  <!-- Security : AccessProvider -->
+
+  <bean id="databaseAutomaticAccessProvider" class="org.hisp.dhis.security.DatabaseAutomaticAccessProvider">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="systemAuthoritiesProvider" ref="simpleSystemAuthoritiesProvider" />
+  </bean>
+
+  <bean id="ghostAutomaticAccessProvider" class="org.hisp.dhis.security.GhostAutomaticAccessProvider">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="systemAuthoritiesProvider" ref="simpleSystemAuthoritiesProvider" />
+  </bean>
+
+  <!-- Security : AccessDecision/Voter -->
+
+  <bean id="scopeVoter" class="org.springframework.security.oauth2.provider.vote.ScopeVoter" />
+  <bean id="authenticatedVoter" class="org.springframework.security.access.vote.AuthenticatedVoter" />
+  <bean id="webExpressionVoter" class="org.springframework.security.web.access.expression.WebExpressionVoter" />
+  <bean id="externalAccessVoter" class="org.hisp.dhis.security.vote.ExternalAccessVoter" />
+
+  <bean id="accessDecisionManager" class="org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager">
+    <property name="accessDecisionManagers">
+      <list>
+        <!-- <ref bean="scopeAccessDecisionVoting" /> We don't use scopes right now-->
+        <ref bean="adminAccessDecisionVoting" />
+        <ref bean="regularAccessDecisionVoting" />
+        <ref bean="webAccessDecisionVoting" />
+        <ref bean="externalAccessDecisionVoting" />
+      </list>
+    </property>
+  </bean>
+
+  <bean id="scopeAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
+      <list>
+        <ref bean="scopeVoter" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="adminAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
+      <list>
+        <ref bean="adminAccessVoter" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="adminAccessVoter" class="org.hisp.dhis.security.vote.SimpleAccessVoter">
+    <property name="requiredAuthority" value="ALL" />
+  </bean>
+
+  <bean id="webAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
+      <list>
+        <ref bean="webExpressionVoter" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="externalAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
+      <list>
+        <ref bean="externalAccessVoter" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="regularAccessDecisionVoting" class="org.springframework.security.access.vote.UnanimousBased">
+    <constructor-arg name="decisionVoters">
+      <list>
+        <ref bean="actionAccessVoter" />
+        <ref bean="moduleAccessVoter" />
+        <ref bean="authenticatedVoter" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean id="actionAccessVoter" class="org.hisp.dhis.security.vote.ActionAccessVoter">
+    <property name="attributePrefix" value="F_" />
+    <property name="requiredAuthoritiesKey" value="requiredAuthorities" />
+    <property name="anyAuthoritiesKey" value="anyAuthorities" />
+  </bean>
+
+  <bean id="moduleAccessVoter" class="org.hisp.dhis.security.vote.ModuleAccessVoter">
+    <property name="attributePrefix" value="M_" />
+    <property name="alwaysAccessible">
+      <set>
+        <value>dhis-web-commons-menu</value>
+        <value>dhis-web-commons-oust</value>
+        <value>dhis-web-commons-ouwt</value>
+        <value>dhis-web-commons-security</value>
+        <value>dhis-web-commons-i18n</value>
+        <value>dhis-web-commons-ajax</value>
+        <value>dhis-web-commons-ajax-json</value>
+        <value>dhis-web-commons-ajax-html</value>
+        <value>dhis-web-commons-stream</value>
+        <value>dhis-web-commons-help</value>
+        <value>dhis-web-commons-about</value>
+        <value>dhis-web-apps</value>
+        <value>dhis-web-api-mobile</value>
+        <value>dhis-web-portal</value>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.security.ActionAccessResolver"
+    class="org.hisp.dhis.security.SpringSecurityActionAccessResolver">
+    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />
+    <property name="accessDecisionManager" ref="accessDecisionManager" />
+  </bean>
+
+  <!-- Security : Interceptor -->
+
+  <bean id="org.hisp.dhis.security.intercept.LoginInterceptor" class="org.hisp.dhis.security.intercept.LoginInterceptor">
+    <property name="actions">
+      <list>
+        <ref bean="restrictOrganisationUnitsAction" />
+      </list>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor"
+    class="org.hisp.dhis.security.intercept.XWorkSecurityInterceptor">
+    <property name="accessDecisionManager" ref="accessDecisionManager" />
+    <property name="authenticationManager" ref="authenticationManager" />
+    <property name="validateConfigAttributes" value="false" />
+    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />
+    <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />
+    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />
+  </bean>
+
+  <!-- Security : AuthorityProvider -->
+
+  <bean id="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider"
+    class="org.hisp.dhis.security.authority.DefaultRequiredAuthoritiesProvider">
+    <property name="requiredAuthoritiesKey" value="requiredAuthorities" />
+    <property name="anyAuthoritiesKey" value="anyAuthorities" />
+    <property name="globalAttributes">
+      <set>
+        <value>M_MODULE_ACCESS_VOTER_ENABLED</value>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.security.authority.SystemAuthoritiesProvider"
+    class="org.hisp.dhis.security.authority.CompositeSystemAuthoritiesProvider">
+    <property name="sources">
+      <set>
+        <bean class="org.hisp.dhis.security.authority.CachingSystemAuthoritiesProvider">
+          <property name="source" ref="detectingSystemAuthoritiesProvider" />
+        </bean>
+        <bean class="org.hisp.dhis.security.authority.CachingSystemAuthoritiesProvider">
+          <property name="source" ref="moduleSystemAuthoritiesProvider" />
+        </bean>
+        <bean class="org.hisp.dhis.security.authority.CachingSystemAuthoritiesProvider">
+          <property name="source" ref="simpleSystemAuthoritiesProvider" />
+        </bean>
+        <ref bean="appsSystemAuthoritiesProvider" />
+      </set>
+    </property>
+  </bean>
+
+  <bean id="detectingSystemAuthoritiesProvider"
+    class="org.hisp.dhis.security.authority.DetectingSystemAuthoritiesProvider">
+    <property name="requiredAuthoritiesProvider" ref="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider" />
+  </bean>
+
+  <bean id="moduleSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.ModuleSystemAuthoritiesProvider">
+    <property name="authorityPrefix" value="M_" />
+    <property name="moduleManager" ref="org.hisp.dhis.webportal.module.ModuleManager" />
+    <property name="excludes">
+      <set>
+        <value>dhis-web-commons-menu</value>
+        <value>dhis-web-commons-oust</value>
+        <value>dhis-web-commons-ouwt</value>
+        <value>dhis-web-commons-security</value>
+        <value>dhis-web-commons-i18n</value>
+        <value>dhis-web-commons-ajax</value>
+        <value>dhis-web-commons-ajax-json</value>
+        <value>dhis-web-commons-ajax-html</value>
+        <value>dhis-web-commons-stream</value>
+        <value>dhis-web-commons-help</value>
+        <value>dhis-web-commons-about</value>
+        <value>dhis-web-apps</value>
+        <value>dhis-web-api-mobile</value>
+        <value>dhis-web-portal</value>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="simpleSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider">
+    <property name="authorities">
+      <set>
+        <value>ALL</value>
+        <value>F_DASHBOARD_PUBLIC_ADD</value>
+        <value>F_METADATA_MANAGE</value>
+        <value>F_CHART_PUBLIC_ADD</value>
+        <value>F_MAP_PUBLIC_ADD</value>
+        <value>F_USERGROUP_PUBLIC_ADD</value>
+        <value>F_REPORTTABLE_PUBLIC_ADD</value>
+        <value>F_MAP_EXTERNAL</value>
+        <value>F_CHART_EXTERNAL</value>
+        <value>F_SQLVIEW_EXTERNAL</value>
+        <value>F_REPORTTABLE_EXTERNAL</value>
+        <value>F_METADATA_EXPORT</value>
+        <value>F_METADATA_IMPORT</value>
+        <value>F_APPROVE_DATA</value>
+        <value>F_APPROVE_DATA_LOWER_LEVELS</value>
+        <value>F_ACCEPT_DATA_LOWER_LEVELS</value>
+        <value>F_INSERT_CUSTOM_JS_CSS</value>
+        <value>F_VIEW_UNAPPROVED_DATA</value>
+        <value>F_REPLICATE_USER</value>
+        <value>F_USERGROUP_MANAGING_RELATIONSHIPS_ADD</value>
+        <value>F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW</value>
+        <value>F_USER_ADD_WITHIN_MANAGED_GROUP</value>
+        <value>F_USER_GROUPS_READ_ONLY_ADD_MEMBERS</value>
+        <value>F_OAUTH2_CLIENT_MANAGE</value>
+        <value>F_PROGRAM_DASHBOARD_CONFIG_ADMIN</value>
+        <value>F_GIS_ADMIN</value>
+        <value>F_LEGEND_SET_ADD</value>
+        <value>F_LEGEND_SET_DELETE</value>
+        <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
+        <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
+        <value>F_TRACKED_ENTITY_INSTANCE_SEARCH</value>
+        <value>F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS</value>
+        <value>F_TRACKED_ENTITY_INSTANCE_ADD</value>
+        <value>F_TRACKED_ENTITY_INSTANCE_DELETE</value>
+        <value>F_PROGRAM_ENROLLMENT</value>
+        <value>F_PROGRAM_UNENROLLMENT</value>
+        <value>F_DATAELEMENT_PUBLIC_ADD</value>
+        <value>F_DATAELEMENT_PRIVATE_ADD</value>
+        <value>F_DATAELEMENT_DELETE</value>
+        <value>F_DATAELEMENTGROUP_PUBLIC_ADD</value>
+        <value>F_DATAELEMENTGROUP_PRIVATE_ADD</value>
+        <value>F_DATAELEMENTGROUP_DELETE</value>
+        <value>F_DATAELEMENTGROUPSET_PUBLIC_ADD</value>
+        <value>F_DATAELEMENTGROUPSET_PRIVATE_ADD</value>
+        <value>F_DATAELEMENTGROUPSET_DELETE</value>
+        <value>F_INDICATOR_PUBLIC_ADD</value>
+        <value>F_INDICATOR_PRIVATE_ADD</value>
+        <value>F_INDICATOR_DELETE</value>
+        <value>F_INDICATORGROUP_PUBLIC_ADD</value>
+        <value>F_INDICATORGROUP_PRIVATE_ADD</value>
+        <value>F_INDICATORGROUP_DELETE</value>
+        <value>F_INDICATORGROUPSET_PUBLIC_ADD</value>
+        <value>F_INDICATORGROUPSET_PRIVATE_ADD</value>
+        <value>F_INDICATORGROUPSET_DELETE</value>
+        <value>F_INDICATORTYPE_ADD</value>
+        <value>F_INDICATORTYPE_DELETE</value>
+        <value>F_CATEGORY_PUBLIC_ADD</value>
+        <value>F_CATEGORY_PRIVATE_ADD</value>
+        <value>F_CATEGORY_DELETE</value>
+        <value>F_CATEGORY_OPTION_PUBLIC_ADD</value>
+        <value>F_CATEGORY_OPTION_PRIVATE_ADD</value>
+        <value>F_CATEGORY_OPTION_DELETE</value>
+        <value>F_CATEGORY_COMBO_PUBLIC_ADD</value>
+        <value>F_CATEGORY_COMBO_PRIVATE_ADD</value>
+        <value>F_CATEGORY_COMBO_DELETE</value>
+        <value>F_CATEGORY_OPTION_GROUP_PUBLIC_ADD</value>
+        <value>F_CATEGORY_OPTION_GROUP_PRIVATE_ADD</value>
+        <value>F_CATEGORY_OPTION_GROUP_DELETE</value>
+        <value>F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD</value>
+        <value>F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD</value>
+        <value>F_CATEGORY_OPTION_GROUP_SET_DELETE</value>
+        <value>F_ORGANISATIONUNIT_ADD</value>
+        <value>F_ORGANISATIONUNIT_DELETE</value>
+        <value>F_ORGUNITGROUP_PUBLIC_ADD</value>
+        <value>F_ORGUNITGROUP_PRIVATE_ADD</value>
+        <value>F_ORGUNITGROUP_DELETE</value>
+        <value>F_ORGUNITGROUPSET_PUBLIC_ADD</value>
+        <value>F_ORGUNITGROUPSET_PRIVATE_ADD</value>
+        <value>F_ORGUNITGROUPSET_DELETE</value>
+        <value>F_ORGANISATIONUNITLEVEL_UPDATE</value>
+        <value>F_ORGANISATIONUNIT_MOVE</value>
+        <value>F_PREDICTOR_ADD</value>
+        <value>F_PREDICTOR_DELETE</value>
+        <value>F_CONSTANT_ADD</value>
+        <value>F_CONSTANT_DELETE</value>
+        <value>F_ATTRIBUTE_ADD</value>
+        <value>F_ATTRIBUTE_DELETE</value>
+        <value>F_OPTIONSET_PUBLIC_ADD</value>
+        <value>F_OPTIONSET_PRIVATE_ADD</value>
+        <value>F_OPTIONSET_DELETE</value>
+      </set>
+    </property>
+  </bean>
+
+  <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
+
+</beans>

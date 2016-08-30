@@ -1,0 +1,13 @@
+#set( $size = $userGroups.size() )
+{ "userGroups": [
+#foreach( $userGroup in $userGroups )
+  {
+    "id": $!{userGroup.id},
+    "name": "$!encoder.jsonEncode( ${userGroup.name} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}
