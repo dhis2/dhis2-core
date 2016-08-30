@@ -1,11 +1,14 @@
+sudo: required
+dist: trusty
 language: java
-
 jdk:
   - oraclejdk8
-
 addons:
   apt:
     packages:
       - oracle-java8-installer
+cache:
+  directories:
+    - $HOME/.m2
 script:
  - mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
