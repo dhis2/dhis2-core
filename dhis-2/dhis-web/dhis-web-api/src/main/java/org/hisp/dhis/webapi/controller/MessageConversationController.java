@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -94,8 +93,7 @@ public class MessageConversationController
     private UserGroupService userGroupService;
 
     @Override
-    protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
-        Map<String, String> parameters, TranslateParams translateParams )
+    protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
         throws Exception
     {
         Boolean markRead = Boolean.parseBoolean( parameters.get( "markRead" ) );
@@ -108,8 +106,7 @@ public class MessageConversationController
     }
 
     @Override
-    public RootNode getObject( @PathVariable String uid, Map<String, String> rpParameters,
-        TranslateParams translateParams, HttpServletRequest request, HttpServletResponse response )
+    public RootNode getObject( @PathVariable String uid, Map<String, String> rpParameters, HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         org.hisp.dhis.message.MessageConversation messageConversation = messageService.getMessageConversation( uid );
@@ -127,12 +124,12 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to access this conversation." );
         }
 
-        return super.getObject( uid, rpParameters, translateParams, request, response );
+        return super.getObject( uid, rpParameters, request, response );
     }
 
     @Override
     protected List<org.hisp.dhis.message.MessageConversation> getEntityList( WebMetadata metadata, WebOptions options,
-        List<String> filters, List<Order> orders, TranslateParams translateParams )
+        List<String> filters, List<Order> orders )
         throws QueryParserException
     {
         List<org.hisp.dhis.message.MessageConversation> entityList;

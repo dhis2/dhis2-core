@@ -34,7 +34,6 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardSearchResult;
 import org.hisp.dhis.dashboard.DashboardService;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -301,7 +300,7 @@ public class DashboardController
     // -------------------------------------------------------------------------
 
     @Override
-    protected void postProcessEntity( Dashboard entity, WebOptions options, Map<String, String> parameters, TranslateParams translateParams ) throws Exception
+    protected void postProcessEntity( Dashboard entity, WebOptions options, Map<String, String> parameters ) throws Exception
     {
         for ( DashboardItem item : entity.getItems() )
         {

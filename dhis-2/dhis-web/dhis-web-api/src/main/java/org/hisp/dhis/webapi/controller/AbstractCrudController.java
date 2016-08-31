@@ -180,8 +180,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectList(
-        @RequestParam Map<String, String> rpParameters,
-        TranslateParams translateParams, OrderParams orderParams,
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, HttpServletRequest request ) throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -189,7 +188,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<Order> orders = orderParams.getOrders( getSchema() );
 
         User user = currentUserService.getCurrentUser();
-        setUserContext( user, translateParams );
 
         if ( fields.isEmpty() )
         {
@@ -204,7 +202,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
 
-        List<T> entities = getEntityList( metadata, options, filters, orders, translateParams );
+        List<T> entities = getEntityList( metadata, options, filters, orders );
         Pager pager = metadata.getPager();
 
         if ( options.hasPaging() && pager == null )
@@ -214,7 +212,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         postProcessEntities( entities );
-        postProcessEntities( entities, options, rpParameters, translateParams );
+        postProcessEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false, user );
 
@@ -237,11 +235,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public @ResponseBody RootNode getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
-        TranslateParams translateParams,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         User user = currentUserService.getCurrentUser();
-        setUserContext( user, translateParams );
 
         if ( !aclService.canRead( user, getEntityClass() ) )
         {
@@ -256,7 +252,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             fields.add( ":all" );
         }
 
-        return getObjectInternal( pvUid, rpParameters, filters, fields, translateParams, user );
+        return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
@@ -271,6 +267,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( !"translations".equals( pvProperty ) )
         {
             setUserContext( user, translateParams );
+        }
+        else
+        {
+            setUserContext( null, new TranslateParams( false ) );
         }
 
         if ( !aclService.canRead( user, getEntityClass() ) )
@@ -287,7 +287,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
 
-        return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + fieldFilter ), translateParams, user );
+        return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + fieldFilter ), user );
     }
 
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
@@ -449,7 +449,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @SuppressWarnings( "unchecked" )
     private RootNode getObjectInternal( String uid, Map<String, String> parameters,
-        List<String> filters, List<String> fields, TranslateParams translateParams, User user ) throws Exception
+        List<String> filters, List<String> fields, User user ) throws Exception
     {
         WebOptions options = new WebOptions( parameters );
         List<T> entities = getEntity( uid, options );
@@ -470,7 +470,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         for ( T entity : entities )
         {
             postProcessEntity( entity );
-            postProcessEntity( entity, options, parameters, translateParams );
+            postProcessEntity( entity, options, parameters );
         }
 
         CollectionNode collectionNode = fieldFilterService.filter( getEntityClass(), entities, fields );
@@ -736,7 +736,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
 
-        RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + "[:all]" ), translateParams, user );
+        RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + "[:all]" ), user );
 
         // TODO optimize this using field filter (collection filtering)
         if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
@@ -967,7 +967,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Override to process entities after it has been retrieved from
      * storage and before it is returned to the view. Entities is null-safe.
      */
-    protected void postProcessEntities( List<T> entityList, WebOptions options, Map<String, String> parameters, TranslateParams translateParams )
+    protected void postProcessEntities( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
     }
 
@@ -991,7 +991,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Override to process a single entity after it has been retrieved from
      * storage and before it is returned to the view. Entity is null-safe.
      */
-    protected void postProcessEntity( T entity, WebOptions options, Map<String, String> parameters, TranslateParams translateParams ) throws Exception
+    protected void postProcessEntity( T entity, WebOptions options, Map<String, String> parameters ) throws Exception
     {
     }
 
@@ -1042,8 +1042,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @SuppressWarnings( "unchecked" )
-    protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders, TranslateParams translateParams ) throws QueryParserException
+    protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         List<T> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );

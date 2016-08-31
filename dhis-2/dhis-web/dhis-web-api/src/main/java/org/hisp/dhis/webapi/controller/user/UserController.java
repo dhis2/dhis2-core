@@ -35,7 +35,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.Status;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -118,7 +117,7 @@ public class UserController
     @Override
     @SuppressWarnings( "unchecked" )
     protected List<User> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders, TranslateParams translateParams ) throws QueryParserException
+        List<Order> orders ) throws QueryParserException
     {
         UserQueryParams params = new UserQueryParams();
         params.setQuery( options.get( "query" ) );

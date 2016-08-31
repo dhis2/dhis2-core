@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Order;
@@ -57,8 +56,8 @@ public class ProgramDataElementController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<ProgramDataElement> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders, TranslateParams translateParams ) throws QueryParserException
+    protected List<ProgramDataElement> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         List<ProgramDataElement> programDataElements;
         Query query = queryService.getQueryFromUrl( ProgramDataElement.class, filters, orders, options.getRootJunction() );

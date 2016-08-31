@@ -34,7 +34,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
@@ -89,8 +88,8 @@ public class DimensionController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected @ResponseBody List<DimensionalObject> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders, TranslateParams translateParams ) throws QueryParserException
+    protected @ResponseBody List<DimensionalObject> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         List<DimensionalObject> dimensionalObjects;
         Query query = queryService.getQueryFromUrl( DimensionalObject.class, filters, orders, options.getRootJunction() );
@@ -109,8 +108,8 @@ public class DimensionController
 
     @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/items", method = RequestMethod.GET )
-    public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters,
-        TranslateParams translateParams, Model model, HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
+    public @ResponseBody RootNode getItems( @PathVariable String uid, @RequestParam Map<String, String> parameters, Model model,
+        HttpServletRequest request, HttpServletResponse response ) throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
@@ -119,8 +118,6 @@ public class DimensionController
         {
             fields.addAll( Preset.defaultPreset().getFields() );
         }
-
-        setUserContext( translateParams );
 
         List<DimensionalItemObject> items = dimensionService.getCanReadDimensionItems( uid );
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>() );

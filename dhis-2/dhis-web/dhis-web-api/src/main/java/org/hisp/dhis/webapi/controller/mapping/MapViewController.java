@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.mapping;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.MapView;
@@ -120,8 +119,8 @@ public class MapViewController
     //--------------------------------------------------------------------------
 
     @Override
-    protected List<MapView> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders, TranslateParams translateParams ) throws QueryParserException
+    protected List<MapView> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         List<MapView> entityList;
 

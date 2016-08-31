@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.validation;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,53 +28,55 @@ package org.hisp.dhis.webapi.controller.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.schema.descriptors.ValidationRuleSchemaDescriptor;
-import org.hisp.dhis.validation.ValidationRule;
-import org.hisp.dhis.validation.ValidationRuleService;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Locale;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = ValidationRuleSchemaDescriptor.API_ENDPOINT )
-public class ValidationRuleController
-    extends AbstractCrudController<ValidationRule>
+public class TranslationInterceptor extends HandlerInterceptorAdapter
 {
-    @Autowired
-    private DataSetService dataSetService;
+    private static String PARAM_TRANSLATE = "translate";
+    private static String PARAM_LOCALE = "locale";
 
     @Autowired
-    private ValidationRuleService validationRuleService;
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     @Override
-    protected List<ValidationRule> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
-        throws QueryParserException
+    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler ) throws Exception
     {
-        if ( options.contains( "dataSet" ) )
-        {
-            DataSet ds = dataSetService.getDataSet( options.get( "dataSet" ) );
+        boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
+        String locale = request.getParameter( PARAM_LOCALE );
 
-            if ( ds == null )
-            {
-                return null;
-            }
+        User user = currentUserService.getCurrentUser();
+        setUserContext( user, new TranslateParams( translate, locale ) );
 
-            return Lists.newArrayList( validationRuleService.getValidationRulesByDataElements( ds.getDataElements() ) );
-        }
+        return true;
+    }
 
-        return super.getEntityList( metadata, options, filters, orders );
+    private void setUserContext( User user, TranslateParams translateParams )
+    {
+        Locale dbLocale = getLocaleWithDefault( translateParams );
+        UserContext.setUser( user );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+    }
+
+    private Locale getLocaleWithDefault( TranslateParams translateParams )
+    {
+        return translateParams.isTranslate() ?
+            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 }

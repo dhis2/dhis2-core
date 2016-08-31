@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.node.types.RootNode;
@@ -93,8 +92,8 @@ public class ProgramController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders, TranslateParams translateParams ) throws QueryParserException
+    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         Boolean userFilter = Boolean.parseBoolean( options.getOptions().get( "userFilter" ) );
 
