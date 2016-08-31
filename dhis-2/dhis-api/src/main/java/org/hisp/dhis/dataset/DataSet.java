@@ -606,7 +606,6 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = Double.MIN_VALUE, max = Double.MAX_VALUE )
     public int getExpiryDays()
     {
         return expiryDays;
