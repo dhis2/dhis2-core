@@ -8,5 +8,5 @@
 
   <cache name="org.hibernate.cache.internal.StandardQueryCache" maxElementsInMemory="250000" />
 
-  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" maxElementsInMemory="3000" />
+  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" maxElementsInMemory="2000" />
 </ehcache>
