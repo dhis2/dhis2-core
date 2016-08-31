@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+
+<head>
+    <title>DHIS2 GIS Plugin</title>
+
+<!--
+    <link rel="stylesheet" type="text/css" href="//localhost:8080/dhis-web-commons/javascripts/ext/resources/css/ext-all-gray.css"/>
+-->
+
+    <script src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
+    <script src="//maps.google.com/maps/api/js?v=3.22&sensor=false"></script>
+    <script src="//localhost:8080/dhis-web-commons/javascripts/openlayers/OpenLayers.js"></script>
+    <script src="scripts/map.js"></script>
+
+    <style>
+        h1 {
+            font-size: 20px;
+            padding: 20px 0 10px;
+        }
+
+        #map1, #map2 {
+            width: 700px;
+            height: 400px;
+            margin-bottom: 30px;
+        }
+    </style>
+
+    <script>
+		Ext.onReady(function() {
+			var url = "http://localhost:8080";
+
+			GIS.plugin.getMap({
+				url: url,
+				el: "map1",
+				id: "zDP78aJU8nX",
+                crossDomain: true,
+                username: 'admin',
+                password: 'district',
+                dashboard: true
+			});
+
+			GIS.plugin.getMap({
+				url: url,
+				el: "map2",
+                crossDomain: true,
+                username: 'admin',
+                password: 'district',
+                dashboard: true,
+				hideLegend: true,
+                baseLayer: 'none',
+				mapViews: [
+					{
+						layer: 'boundary',
+						rows: [{dimension: 'ou', items: [{id: 'LEVEL-2'}, {id: 'ImspTQPwCqd'}]}],
+						labels: {
+							fontSize: 14,
+							color: '#00f'
+						}
+					}
+				]
+			});
+		});
+
+	</script>
+</head>
+
+<body style="margin:10px 0 0 30px; font-family:arial,sans-serif">
+
+	<h1>MAP BY UID</h1>
+	<div id="map1"></div>
+
+	<h1>MAP BY CONFIG</h1>
+	<div id="map2"></div>
+
+</body>
+
+</html>

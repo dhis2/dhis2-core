@@ -1,0 +1,180 @@
+<script>
+	var i18n_reminder = '$encoder.jsEscape( $i18n.getString( "reminder" ) , "'")';   
+	var i18n_remove_reminder = '$encoder.jsEscape( $i18n.getString( "remove_reminder" ) , "'")';   
+	var i18n_days_before_after_comparison_date = '$encoder.jsEscape( $i18n.getString( "days_before_after_comparison_date" ) , "'")';   
+	var i18n_params = '$encoder.jsEscape( $i18n.getString( "params" ) , "'")';   
+	var i18n_program_name = '$encoder.jsEscape( $i18n.getString( "program_name" ) , "'")';   
+	var i18n_days_since_incident_date = '$encoder.jsEscape( $i18n.getString( "days_since_incident_date" ) , "'")';   
+	var i18n_orgunit_name = '$encoder.jsEscape( $i18n.getString( "orgunit_name" ) , "'")';   
+	var i18n_enrollment_date = '$encoder.jsEscape( $i18n.getString( "enrollement_date" ) , "'")';   
+	var i18n_days_since_enrollment_date = '$encoder.jsEscape( $i18n.getString( "days_since_enrollment_date" ) , "'")';   
+	var i18n_name_exists = '$encoder.jsEscape( $i18n.getString( "name_exists" ) , "'")';
+	var i18n_date_to_compare = '$encoder.jsEscape( $i18n.getString( "date_to_compare" ) , "'")'; 
+	var i18n_recipients = '$encoder.jsEscape( $i18n.getString( "recipients" ) , "'")'; 
+	var i18n_tracked_entity_sms_only = '$encoder.jsEscape( $i18n.getString( "tracked_entity_sms_only" ) , "'")'; 
+	var i18n_attribute_users = '$encoder.jsEscape( $i18n.getString( "attribute_users" ) , "'")'; 
+	var i18n_orgunit_phone_number_sms_only = '$encoder.jsEscape( $i18n.getString( "orgunit_phone_number_sms_only" ) , "'")'; 
+	var i18n_all_users_at_orgunit = '$encoder.jsEscape( $i18n.getString( "all_users_at_orgunit" ) , "'")'; 
+	var i18n_send_when_to = '$encoder.jsEscape( $i18n.getString( "send_base_on" ) , "'")';
+	var i18n_days_scheduled = '$encoder.jsEscape( $i18n.getString( "days_scheduled" ) , "'")';
+	var i18n_complete_program = '$encoder.jsEscape( $i18n.getString( "complete_program" ) , "'")';
+	var i18n_program_enrollment = '$encoder.jsEscape( $i18n.getString( "program_enrollment" ) , "'")';
+	var i18n_user_group = '$encoder.jsEscape( $i18n.getString( "user_group" ) , "'")';
+	var i18n_characters_without_params = '$encoder.jsEscape( $i18n.getString( "characters_without_params" ) , "'")';
+	var i18n_days = '$encoder.jsEscape( $i18n.getString( "days" ) , "'")';
+	var i18n_before = '$encoder.jsEscape( $i18n.getString( "before" ) , "'")';
+	var i18n_after = '$encoder.jsEscape( $i18n.getString( "after" ) , "'")';
+	var i18n_scheduled_date = '$encoder.jsEscape( $i18n.getString( "scheduled_date" ) , "'")';
+	var i18n_message_type = '$encoder.jsEscape( $i18n.getString( "message_type" ) , "'")';
+	var i18n_direct_sms = '$encoder.jsEscape( $i18n.getString( "direct_sms" ) , "'")';
+	var i18n_message = '$encoder.jsEscape( $i18n.getString( "message" ) , "'")';
+    var i18n_send_message = '$encoder.jsEscape( $i18n.getString( "send_message" ) , "'")';
+	var i18n_both = '$encoder.jsEscape( $i18n.getString( "both" ) , "'")';
+
+	jQuery( document ).ready( function()
+	{
+		showHideUserGroup();
+		
+		validation2( 'updateReminderForm', function( form )
+		{
+			form.submit();
+		},{
+			'beforeValidateHandler' : function()
+			{
+				enable('messageType');
+			},
+			'rules' : getValidationRules( "trackedEntityInstanceReminder" )
+		});
+		checkValueIsExist( "name", "validateReminder.action",{id:getFieldValue('id')} );
+	});
+
+</script>
+
+<h3>$i18n.getString( "edit_reminder_message_template" ) #openHelp( "program_template_reminder" )</h3>
+<h5>$encoder.htmlEncode($program.displayName)</h5>
+
+<form id="updateReminderForm" name="updateReminderForm" action="updateProgramReminder.action" method="get" onsubmit="selectAllById('selectedPropertyIds');" class="inputForm">
+
+  <input type="hidden" id="programId" name="programId" value="$program.id">
+  <input type="hidden" id="id" name="id" value="$reminder.id">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2" style="width: 590px;">$i18n.getString( "reminder_message_template_details" )</th>
+      </tr>
+    </thead>
+    <tbody>
+		<tr>
+			<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+			<td><input type="text" id="name" name="name" value="$encoder.htmlEncode( $reminder.name )" ></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td><label for="whenToSend">$i18n.getString( "send_base_on" )</label></td>
+			<td>
+				<select type="text" id="whenToSend" name="whenToSend" onchange='whenToSendOnChange()'>
+					<option value="" >$i18n.getString("days_scheduled")</option>
+					<option value="3" #if($!reminder.whenToSend==3) selected #end >$i18n.getString("complete_program")</option>
+					<option value="1" #if($!reminder.whenToSend==1) selected #end >$i18n.getString("program_enrollment")</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="datesToCompare">$i18n.getString( "date_to_compare")</label></td>
+			<td>
+				<select id='datesToCompare' name='datesToCompare' #if($!reminder.whenToSend==3) disabled #end />
+					<option value="enrollmentdate" #if($!reminder.dateToCompare=='enrollmentdate') selected #end>$i18n.getString( "enrollment_date" )</option>
+					<option value="incidentDate" #if($!reminder.dateToCompare=='incidentDate') selected #end>$i18n.getString( "incident_date" )</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			#set($value=$!reminder.daysAllowedSendMessage)
+			#set($time = '1')
+			#if($!value && $value<0)
+				#set($time = '-1')
+				#set($value=-1 * $value)
+			#end
+			<td><label for="days">$i18n.getString( "send_message" )</label></td>
+			<td><input type="text" id="days" name="days" value="$!value"
+				onkeyup='setRealDays();' style="width:100px;"
+				#if($!reminder.whenToSend==1 || $!reminder.whenToSend==3 ) disabled #end />
+				$i18n.getString('days')
+				<select id='time' name='time' onchange='setRealDays();' style="width:100px;"
+					#if($!reminder.whenToSend==1 || $!reminder.whenToSend==3 ) disabled #end  >
+					<option value='-1' #if($time=='-1') selected #end >$i18n.getString('before')</option>
+					<option value='1' #if($time=='1') selected #end  >$i18n.getString('after')</option>
+				</select>
+				$i18n.getString('scheduled_date')
+				<input type="hidden" id="daysAllowedSendMessage" name="daysAllowedSendMessage" value="$!reminder.daysAllowedSendMessage" />
+			</td>
+		</tr>
+		<tr>
+			<td><label for="sendTo">$i18n.getString( "recipients" )</label></td>
+			<td>
+				<select type="text" id="sendTo" name="sendTo" onchange="onchangeUserGroup()">
+					<option value="1" #if($!reminder.sendTo==1) selected #end >$i18n.getString("tracked_entity_sms_only")</option>
+					<option value="3" #if($!reminder.sendTo==3) selected #end >$i18n.getString("orgunit_phone_number_sms_only")</option>
+					<option value="2" #if($!reminder.sendTo==2) selected #end >$i18n.getString("attribute_users")</option>
+					<option value="4" #if($!reminder.sendTo==4) selected #end >$i18n.getString("all_users_in_orgunit_registered")</option>
+					<option value="5" #if($!reminder.sendTo==5) selected #end >$i18n.getString("user_group")</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="userGroup">$i18n.getString( "user_group" )</label></td>
+			<td>
+				<select type="text" id="userGroup" name="userGroup" class="userGroup" #if($!reminder.sendTo!=5) disabled #end >
+					<option value="">[$i18n.getString("please_select")]</option>
+					#foreach($eachGroup in $userGroups)
+					<option value="$eachGroup.id" #if($!reminder.userGroup.id==$eachGroup.id) selected #end>$i18n.getString($eachGroup.name)</option>
+					#end	
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="messageType">$i18n.getString( "message_type" )</label></td>
+			<td>
+				<select type="text" id="messageType" name="messageType" #if($!reminder.sendTo==1 || $!reminder.sendTo==3) disabled #end class="messageType" >
+					<option value="1" #if($!reminder.messageType==1) selected #end >$i18n.getString("direct_sms")</option>
+					<option value="2" #if($!reminder.messageType==2) selected #end >$i18n.getString("message")</option>
+					<option value="3" #if($!reminder.messageType==3) selected #end >$i18n.getString("both")</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>$i18n.getString( "params" )</td>
+			<td>
+				<select multiple size='4' ondblclick="insertParams(this.value);">
+					<option value="{program-name}">$i18n.getString("program_name")</option>
+					<option value="{incident-date}">$i18n.getString("incident_date")</option>
+					<option value="{days-since-incident-date}">$i18n.getString("days_since_incident_date")</option>
+					<option value="{enrollement-date}">$i18n.getString("enrollement_date")</option>
+					<option value="{days-since-enrollement-date}">$i18n.getString("days_since_enrollment_date")</option>
+					<option value="{orgunit-name}">$i18n.getString("orgunit_name")</option>
+					#foreach($attribute in $attributes)
+						<option value={attributeid=$attribute.uid}>$encoder.htmlEncode($attribute.displayName)</option>
+					#end
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="templateMessage">$i18n.getString( "message" )</label></td>
+			<td><textarea onkeyup="getMessageLength()" id="templateMessage" name="templateMessage" class="templateMessage">$encoder.htmlEncode($reminder.templateMessage)</textarea></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td id='messageLengthTD'></td>
+			<script>getMessageLength()</script>
+		</tr>
+		<tr>
+			<td></td>
+			<td>
+				<input type="submit" value="$i18n.getString( 'update' )" style="width:10em">
+				<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='programReminder.action?id=$program.id'" style="width:10em">
+			</td>
+		 </tr>
+  </table>
+</form>
+
+

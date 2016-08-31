@@ -1,0 +1,73 @@
+<h3>$i18n.getString( "program_indicator_management_form" )</h3>
+
+#sharingDialog()
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+		<li data-enabled="canManage"><a data-target-fn="showSharingDialogWithContext"><i class="fa fa-share"></i>&nbsp;&nbsp;$i18n.getString( "sharing_settings" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateProgramIndicator"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeIndicator"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showProgramIndicatorDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<h4>$encoder.htmlEncode($program.displayName)</h4>
+
+<input type='hidden' id='id' name='id' value='$program.id'>
+
+<table class="mainPageTable">
+	<tr>
+		<td style="text-align:right">
+			<input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddProgramIndicator.action?programId=$program.id'" style="width:100px"><br>
+			<input type="button" value="$i18n.getString( 'back' )" onclick="window.location.href='program.action'" style="width:100px">
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top" colspan=2>    
+			<table class="listTable" id="listTable">
+				<col>
+				<col>     
+				<thead>
+					<tr>            
+						<th>$i18n.getString( "name" )</th>
+						<th>$i18n.getString( "description" )</th>
+					</tr>
+				</thead>
+				
+				<tbody id="list">
+					#set( $mark = false )
+					#foreach( $programIndicator in $programIndicators )
+						<tr id="tr${programIndicator.id}" data-id="$!programIndicator.id" data-uid="$!programIndicator.uid" data-type="ProgramIndicator"
+							data-name="$encoder.htmlEncode( $!programIndicator.displayName )"
+						    data-can-manage="$security.canManage( $programIndicator )"
+						    data-can-update="$security.canUpdate( $programIndicator )"
+						    data-can-delete="$security.canDelete( $programIndicator )">
+						    <td>$!encoder.htmlEncode( $programIndicator.displayName )</td>
+						    <td>$!encoder.htmlEncode( $programIndicator.description )</td>
+						</tr>
+					#end
+				</tbody>
+			</table>
+		</td>
+		
+		<td id="detailsData">
+      <div id="detailsArea">
+        <div id="hideDetailsArea">
+				<a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"></a>
+		</div>				
+			<p><label class="bold">$i18n.getString( "name" ):</label><br><span id="nameField"></span></p>
+			<p><label class="bold">$i18n.getString( "code" ):</label><br><span id="codeField"></span></p>				
+			<p><label class="bold">$i18n.getString( "description" ):</label><br><span id="descriptionField"></span></p>
+			<p><label class="bold">$i18n.getString( "value_type" ):</label><br><span id="valueTypeField"></span></p>
+			<p><label class="bold">$i18n.getString( "expression" ):</label><br><span id="expressionField"></span></p>
+			<p><label class="bold">$i18n.getString( "filter" ):</label><br><span id="filterField"></span></p>
+			<p><label class="bold">$i18n.getString( "id" ):</label><br><span id="idField"></span></p>
+		</div>
+		</td>
+	</tr>
+</table>
+
+<script type="text/javascript">
+   var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_prorgam_indicator" ) , "'" )';
+</script>

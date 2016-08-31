@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.message.MessageConversation" table="messageconversation">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="messageconversationid">
+      <generator class="native" />
+    </id>
+
+    <property name="uid" column="uid" length="11" />
+
+    <property name="created" type="timestamp" />
+
+    <property name="lastUpdated" type="timestamp" />
+
+    <property name="subject" column="subject" not-null="true" />
+
+    <set name="userMessages" table="messageconversation_usermessages" cascade="all,delete-orphan">
+      <key column="messageconversationid" foreign-key="fk_messageconversation_usermessages_messageconversationid" />
+      <many-to-many class="org.hisp.dhis.message.UserMessage" column="usermessageid"
+        unique="true" foreign-key="fk_messageconversation_usermessages_usermessageid" />
+    </set>
+
+    <list name="messages" table="messageconversation_messages" cascade="all,delete-orphan">
+      <key column="messageconversationid" foreign-key="fk_messageconversation_messages_messageconversationid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.message.Message" column="messageid"
+        unique="true" foreign-key="fk_messageconversation_messages_messageid" />
+    </list>
+
+    <many-to-one name="lastSender" class="org.hisp.dhis.user.User" column="lastsenderid"
+      foreign-key="fk_messageconversation_lastsender_userid" />
+
+    <property name="lastMessage" column="lastmessage" index="messageconversation_lastmessage" />
+
+	<many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" 
+	  foreign-key="fk_messageconversation_user_userid" />
+	
+  </class>
+</hibernate-mapping>

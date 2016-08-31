@@ -1,0 +1,88 @@
+<script type="text/javascript">
+  jQuery(document).ready(function() {
+    tableSorter('listTable');
+
+    dhis2.contextmenu.makeContextMenu({
+      menuId: 'contextMenu',
+      menuItemActiveClass: 'contextMenuItemActive'
+    });
+  });
+
+  var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_lock_exception" ) , "'")';
+
+  function removeLockException( context ) {
+    removeItem(context.id, context.name, i18n_confirm_delete, 'removeLockException.action');
+  }
+
+  function showLockExceptionDetails( context ) {
+    jQuery.post('getLockException.action', { id: context.id },
+      function( json ) {
+        setInnerHTML('organisationUnitField', json.lockException.organisationUnit);
+        setInnerHTML('dataSetField', json.lockException.dataSet);
+        setInnerHTML('periodField', json.lockException.period);
+        setInnerHTML('idField', json.lockException.uid);
+        showDetails();
+      });
+  }
+</script>
+
+<h3>$i18n.getString( "lock_exception_management" ) #openHelp( "lockException" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="removeLockException"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showLockExceptionDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+	<tr>
+		<td style="vertical-align:top">
+			<table width="100%">
+				<tr>
+					<td colspan="4" style="text-align:right">
+            <input type="button" value="$i18n.getString( 'batch_delete' )" onclick="window.location.href='showLockExceptionBatchRemoval.action'" style="width:100px"/>
+            <input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddLockExceptionForm.action'" style="width:80px"/>
+					</td>
+				</tr>
+			</table>
+			<table class="listTable" id="listTable">
+				<col/>
+        <thead>
+				<tr>
+					<th>$i18n.getString( "name" )</th>
+				</tr>
+        </thead>
+				<tbody id="list">
+				#foreach( $lockException in $lockExceptions )
+				<tr id="tr${lockException.id}">
+          <td data-id="$!lockException.id" data-uid="$!lockException.uid" data-type="LockException" data-name="$encoder.htmlEncode( $!lockException.name )">
+            $encoder.htmlEncode( $!lockException.name )
+          </td>
+				</tr>
+				#end
+				</tbody>
+			</table>
+			<p></p>
+			#parse( "/dhis-web-commons/paging/paging.vm" )
+
+		  </td>
+        <td style="width:20em; padding-left:2em; vertical-align:top">
+            <div id="detailsArea" style="display:none">
+                <div style="float:right">
+                    <a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+                </div>
+                <p><label>$i18n.getString( "organisation_unit" ):</label><br/><span id="organisationUnitField"></span></p>
+                <p><label>$i18n.getString( "data_set" ):</label><br/><span id="dataSetField"></span></p>
+                <p><label>$i18n.getString( "period" ):</label><br/><span id="periodField"></span></p>
+            </div>
+
+           <div id="warningArea" style="position:fixed;right:10px;top:200px;display:none">
+              <div style="float:right">
+                  <a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+              </div>
+              <p><span id="warningField"></span></p>
+          </div>
+        </td>
+	</tr>
+</table>

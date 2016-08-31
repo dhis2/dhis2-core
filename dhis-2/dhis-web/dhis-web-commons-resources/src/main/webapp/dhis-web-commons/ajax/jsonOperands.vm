@@ -1,0 +1,15 @@
+#set( $size = $operands.size() )
+{ "operands": [
+#foreach( $operand in $operands )
+  {
+    "dataElementId": "$!{operand.dataElementId}",
+    "optionComboId": "$!{operand.optionComboId}",
+    "operandId": "$!{operand.operandId}",
+    "operandName": "$!encoder.jsonEncode( ${operand.operandName} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

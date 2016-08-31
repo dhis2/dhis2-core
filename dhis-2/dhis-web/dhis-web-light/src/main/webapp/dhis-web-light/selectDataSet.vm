@@ -1,0 +1,24 @@
+
+<div class="header-box" align="center">
+    <h3 style="text-align: left; background-color: #719953; border-color: #719953; color: white;">$organisationUnit.name</h3>
+    <p style="text-align: left;">
+    </p>
+</div>
+
+<h2>$i18n.getString( "available_datasets" )</h2>
+
+<p>
+	<ul>
+		#foreach( $dataSet in $dataSets )
+			<li><a href="selectPeriod.action?organisationUnitId=$organisationUnitId&dataSetId=$dataSet.id">$!encoder.htmlEncode( ${dataSet.name} )</a></li>
+		#end
+	</ul>
+</p>
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+	<li><a href="selectOrganisationUnit.action">$i18n.getString("available_organisation_units")</a></li>
+	<li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>
+</div>

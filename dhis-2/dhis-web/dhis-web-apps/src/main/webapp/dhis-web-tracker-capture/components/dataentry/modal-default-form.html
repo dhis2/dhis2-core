@@ -1,0 +1,124 @@
+<div style='padding:10px'>
+    
+    <ng-form name="modalForm" novalidate>
+    <!-- event dates/scheduling begin -->
+        <div class="row" ng-if="!currentStage.periodType">
+
+            <div class="col-md-6">
+                {{currentEvent.excecutionDateLabel}}
+                <input type="text"
+                       placeholder="{{dhis2CalendarFormat.keyDateFormat}}"
+                       class="form-control" 
+                       ng-class="{'input-success': eventDateSaved}"
+                       d2-date 
+                       max-date="0"
+                       min-date=""
+                       ng-model="currentEvent.eventDate"
+                       ng-disabled="currentEvent.status === 'SKIPPED' || currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"    
+                       ng-required="true"
+                       blur-or-change="saveEventDate()"/>
+                <span ng-if="invalidDate === currentEvent.event" class="error">{{'date_required'| translate}}</span>
+            </div>
+            <div ng-if="!currentEvent.eventDate && currentEvent.status !== 'SKIPPED'"  class="col-md-6">
+                <span ng-if="currentEvent.eventDate || currentEvent.status === 'SKIPPED' || currentEvent.dueDate">
+                    {{'due_date'| translate}}
+                </span>
+                <span ng-if="!currentEvent.eventDate && currentEvent.status !== 'SKIPPED' && !selectedEntity.inactive">
+                    <a href ng-click="enableRescheduling()" title="{{ schedulingEnabled ? 'disable_rescheduling' : 'enable_rescheduling' | translate}}"><span class="text-primary bold">{{'reschedule_duedate'| translate}}</span></a>                        
+                </span>                    
+                <input type="text" 
+                       placeholder="{{dhis2CalendarFormat.keyDateFormat}}"
+                       class="form-control"
+                       ng-class="{'input-success': dueDateSaved}"
+                       d2-date                                
+                       ng-model="currentEvent.dueDate"
+                       blur-or-change="saveDueDate()" 
+                       ng-disabled="currentEvent.eventDate || !schedulingEnabled || currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"/>
+                <span ng-if="invalidDueDate === currentEvent.event" class="error">{{'date_required'| translate}}</span>
+            </div>  
+        </div>
+        <!-- event dates/scheduling end -->
+
+        <!-- coordinates begin -->
+
+        <div class="row" ng-if="currentStage.captureCoordinates && currentEvent.eventDate">
+            <div class="col-md-6">
+                {{'latitude'| translate}}<span><a href ng-click="showMap(currentEvent)" title="{{'get_from_map'| translate}}"><i class="fa fa-map-marker fa-2x"></i></a></span>
+                <input type="number"
+                       ng-model="currentEvent.coordinate.latitude"     
+                       class="form-control" 
+                       ng-class="{'input-success': latitudeSaved}" 
+                       name="latitude"
+                       d2-coordinate-validator
+                       ng-blur="saveCoordinate('LAT')"
+                       ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"    
+                       ng-required="false"/>
+                <div ng-messages="outerForm.latitude.$error" ng-if="interacted(outerForm.latitude)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html">                        
+                </div>
+            </div>
+            <div class="col-md-6">
+                {{'longitude'| translate}}<span><a href ng-click="showMap(currentEvent)" title="{{'get_from_map'| translate}}"><i class="fa fa-map-marker fa-2x"></i></a></span>                    
+                <input type="number"  
+                       ng-model="currentEvent.coordinate.longitude"     
+                       class="form-control" 
+                       ng-class="{'input-success': longitudeSaved}"
+                       name="longitude" 
+                       d2-coordinate-validator
+                       ng-blur="saveCoordinate('LNG')"
+                       ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed" 
+                       ng-required="false"/>
+                <div ng-messages="outerForm.longitude.$error" ng-if="interacted(outerForm.longitude)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html">
+                </div>
+            </div>
+        </div>
+
+        <br/>
+        <div ng-if="currentEvent.eventDate">
+            <div ng-include="'components/dataentry/default-form.html'"></div>
+        <!-- data entry/event buttons begins -->   
+        </div>
+        <div>
+            <div class="form-group" ng-controller='ModalDefaultFormController'>
+
+                <div><hr></div>
+                <!--show error messsages-->        
+                <div ng-if='requestError'>
+                    <alert type='danger'>{{requestError}}</alert>
+                </div>
+
+                <!---->
+                
+                <a href ng-click="completeIncompleteEventModal()" 
+                   class="btn btn-warning" 
+                   ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed || currentEvent.orgUnit !== selectedOrgUnit.id"
+                   ng-if="currentEvent.eventDate && (currentEvent.status === 'SCHEDULE' || currentEvent.status === 'ACTIVE' || currentEvent.status === 'VISITED')">{{'complete'| translate}}</a>
+               
+                <a href ng-click="completeIncompleteEventModal()" 
+                   class="btn btn-warning"
+                   ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed && currentEvent.status !== 'COMPLETED' || currentEvent.orgUnit !== selectedOrgUnit.id"
+                   ng-if="currentEvent.eventDate && currentEvent.status === 'COMPLETED'">{{'incomplete'| translate}}</a>                       
+                            
+                <a href ng-click="skipUnskipEventModal()" 
+                   class="btn btn-warning" 
+                   ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed || currentEvent.orgUnit !== selectedOrgUnit.id"
+                   ng-if="!currentEvent.eventDate && currentEvent.status !== 'SKIPPED'">{{'skip'| translate}}</a>
+                
+                <a href ng-click="skipUnskipEventModal()" 
+                   class="btn btn-warning" 
+                   ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed || currentEvent.orgUnit !== selectedOrgUnit.id"
+                   ng-if="currentEvent.status === 'SKIPPED'">{{'unskip' | translate}}</a>
+                
+                
+                <a href ng-click="deleteEventModal()" 
+                   ng-disabled="currentEvent.enrollmentStatus === 'COMPLETED' || currentEvent.editingNotAllowed || currentEvent.orgUnit !== selectedOrgUnit.id"
+                   class="btn btn-danger">{{'delete'| translate}}</a>
+                
+                <a href ng-click="closeEventModal()"                    
+                   class="btn btn-default">{{'close'| translate}}</a>
+                   
+                <!--<a href class="btn btn-primary" ng-click="printDiv('divForPrint');">{{'print_form'| translate}}</a>-->
+            </div>
+        </div>
+    </ng-form>
+<!-- data entry/event buttons ends -->
+</div>

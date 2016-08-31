@@ -1,0 +1,107 @@
+<style type="text/css">
+div#drillDownMenu
+{
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    box-shadow: 0 1px 1px 0 #ccc;
+    color: #000;
+    font-size: 9pt;
+    max-height: 610px;
+    opacity: 0.98;
+    overflow-y: auto;
+    padding-left: 4px;
+    padding-right: 4px;
+    position: absolute;
+    width: 189px;
+    z-index: 9;
+	display:none;
+}
+
+th.formatLabel
+{
+  text-align: center;
+}
+
+.menuDropDownBox
+{
+    margin: 10px 0;
+    padding: 0;
+}
+
+.menuDropDownBox li
+{
+  cursor:pointer;  
+  padding: 10px 10px;
+  border-radius: 3px;
+}
+
+.menuDropDownBox li:hover
+{
+  text-decoration: none;
+  background-color: #eee;
+}
+</style>
+
+<script type="text/javascript">
+jQuery( document ).ready( function()
+{
+  setTableStyles();
+  loadListeners();
+} );
+</script>
+
+#if ( $grid.getHeight() == 0 || $grid.getWidth() == 0 )
+<br/><br/>$i18n.getString( "no_data_found" )
+#else
+
+<div id="content">
+	<table id="drillDownGrid" class="listTable" border="1">
+		<thead>
+			<tr>
+				#foreach( $header in $grid.getVisibleHeaders() )
+				<th #if( $header.meta )style="text-align:left"#else style="text-align:center"#end>$!encoder.htmlEncode( $header.name )</th>
+				#end
+			</tr>
+		</thead>
+
+		<tbody id="list">
+			#foreach( $meta in $!MetaValues )
+			#set( $list = $!MetaValueMaps.get( $meta.id ) )
+			<tr>
+				#if ( $mode=="OU" && !$parent && $meta.id )
+				#set ( $URL = "?mode=OU&periodTypeId=$periodTypeId&fromDate=$fromDate&toDate=$toDate&showZeroCheckBox=$!showZeroCheckBox&selectedUnitChanger=$meta.id" )
+				<td style="min-width:200px;cursor:pointer" onclick="viewDrillDownMenu( '$URL', '$meta.id' );" title="$i18n.getString('click_on_this_orgunit')">$meta.name</td>
+				
+				#elseif ( !$parent && $meta.id )
+				<td style="min-width:200px"><a href="?mode=$mode&periodTypeId=$periodTypeId&fromDate=$fromDate&toDate=$toDate&showZeroCheckBox=$!showZeroCheckBox&parent=$meta.id">$meta.name</a></td>
+				
+				#else
+				<td style="min-width:200px">$meta.name</td>
+				#end
+				
+				#foreach( $item in $list )
+				<td style="min-width:80px;text-align:right" title="$title">
+				#if ( $!item == "0" )<span style="color:red">$!item</span> 
+				#else<span style="color:blue;">$!item</span>#end
+				</td>
+				#end
+			</tr>
+			#end
+		</tbody>
+	</table>
+	<p></p>
+</div>
+#parse( "/dhis-web-commons/paging/paging.vm" )
+
+<!-- Drill-down menu -->
+
+<div id="drillDownMenu" class="menuDropDownArea">
+  <ul class="menuDropDownBox">
+	<li onclick="viewDrillDownData( 'descendant_level' )">$i18n.getString( "view_data_at_descendant_levels" )&nbsp;</li>
+	<li onclick="viewDrillDownData( 'current_level' )">$i18n.getString( "view_data_at_this_level" )&nbsp;</li>
+  </ul>
+</div>
+
+#end

@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+  "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-maintenance-dataadmin" extends="dhis-web-commons" namespace="/dhis-web-maintenance-dataadmin">
+
+    <action name="index" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/index.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+    </action>
+
+    <!-- Maintenance -->
+
+    <action name="displayMaintenanceForm" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/maintenanceForm.vm
+      </param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/maintenance.js</param>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <action name="performMaintenance" class="org.hisp.dhis.dataadmin.action.maintenance.PerformMaintenanceAction">
+      <result name="success" type="velocity-xml">
+        /dhis-web-maintenance-dataadmin/responseSuccess.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <!-- Resource table -->
+
+    <action name="displayResourceTableForm" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/resourceTableForm.vm
+      </param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/resourceTable.js</param>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <action name="generateResourceTable" class="org.hisp.dhis.dataadmin.action.resourcetable.GenerateResourceTableAction">
+      <result name="success" type="velocity-xml">/dhis-web-maintenance-dataadmin/responseSuccess.vm</result>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <!-- Locale -->
+
+    <action name="locale"
+      class="org.hisp.dhis.dataadmin.action.locale.GetLocaleListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/localeList.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/locale.js</param>
+    </action>
+
+    <action name="getLocale"
+      class="org.hisp.dhis.dataadmin.action.locale.GetLocaleAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-maintenance-dataadmin/jsonLocale.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeLocale"
+      class="org.hisp.dhis.dataadmin.action.locale.RemoveLocaleAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="requiredAuthorities">F_LOCALE_DELETE</param>
+    </action>
+
+    <action name="addLocale"
+      class="org.hisp.dhis.dataadmin.action.locale.AddLocaleAction">
+      <result name="success" type="redirect">locale.action
+      </result>
+      <param name="requiredAuthorities">F_LOCALE_ADD</param>
+    </action>
+
+    <action name="showAddLocaleForm"
+      class="org.hisp.dhis.dataadmin.action.locale.ShowAddLocaleFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/addLocaleForm.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/localeForm.js</param>
+      <param name="requiredAuthorities">F_LOCALE_ADD</param>
+    </action>
+
+    <action name="validateLocale" class="org.hisp.dhis.dataadmin.action.locale.ValidateLocaleAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- Cache -->
+
+    <action name="showCache" class="org.hisp.dhis.dataadmin.action.cache.ShowCacheAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/showcache.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <action name="clearCache" class="org.hisp.dhis.dataadmin.action.cache.ClearCacheAction">
+      <result name="success" type="redirect">showCache.action</result>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <!-- Data integrity -->
+
+    <action name="dataIntegrity" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/dataIntegrity.vm</param>
+      <param name="javascripts">javascript/dataIntegrity.js</param>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <!-- Statistics -->
+
+    <action name="viewStatistics" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/viewStatistics.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/statistics.js</param>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <action name="getStatistics" class="org.hisp.dhis.dataadmin.action.statistics.GetStatisticsAction">
+      <result name="success" type="velocity">/dhis-web-maintenance-dataadmin/responseStatistics.vm</result>
+      <param name="requiredAuthorities">F_PERFORM_MAINTENANCE</param>
+    </action>
+
+    <!-- Databrowser -->
+
+    <action name="displayDataBrowserForm" class="org.hisp.dhis.dataadmin.action.databrowser.GetPeriodTypesAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/dataBrowserForm.vm
+      </param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,
+        javascript/dataBrowser.js,
+        javascript/dataBrowserForm.js
+      </param>
+      <param name="requiredAuthorities">F_VIEW_DATABROWSER</param>
+    </action>
+
+    <action name="searchResult" class="org.hisp.dhis.dataadmin.action.databrowser.DataBrowserAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <result name="error" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/dataBrowserResult.vm
+      </param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/dataBrowser.js</param>
+      <param name="requiredAuthorities">F_VIEW_DATABROWSER</param>
+    </action>
+
+    <action name="searchResultByAjax" class="org.hisp.dhis.dataadmin.action.databrowser.DataBrowserAction">
+      <result name="success" type="velocity">/content.vm</result>
+      <result name="error" type="velocity">/content.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/dataBrowserGrid.vm</param>
+    </action>
+
+    <action name="error" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-commons/oust/selectedOrgunitError.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+    </action>
+
+    <action name="exportResult" class="org.hisp.dhis.dataadmin.action.databrowser.ExportResultAction">
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+      <param name="requiredAuthorities">F_VIEW_DATABROWSER</param>
+    </action>
+
+    <!-- Min/Max validation -->
+
+    <action name="generateMinMaxValue" class="org.hisp.dhis.dataadmin.action.minmaxvalidation.GenerateMinMaxValuesAction">
+      <result name="success" type="velocity-xml">/dhis-web-maintenance-dataadmin/responseSuccess.vm</result>
+      <result name="input" type="velocity-xml">/dhis-web-maintenance-dataadmin/responseError.vm</result>
+      <param name="requiredAuthorities">F_GENERATE_MIN_MAX_VALUES</param>
+    </action>
+
+    <action name="getMinMaxValidationParams" class="org.hisp.dhis.dataadmin.action.minmaxvalidation.GetMinMaxValidationParamsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/minMaxValidation.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/minMaxValidation.js</param>
+      <param name="requiredAuthorities">F_GENERATE_MIN_MAX_VALUES</param>
+    </action>
+
+    <!-- Sql View -->
+
+    <action name="getSqlView" class="org.hisp.dhis.dataadmin.action.sqlview.GetSqlViewObjectAction">
+      <result name="success" type="velocity-json">/dhis-web-maintenance-dataadmin/jsonSqlView.vm</result>
+      <param name="requiredAuthorities">F_SQLVIEW_MANAGEMENT</param>
+    </action>
+
+    <action name="sqlView" class="org.hisp.dhis.dataadmin.action.sqlview.GetSqlViewListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/sqlView.vm</param>
+      <param name="javascripts">javascript/sqlView.js</param>
+      <param name="requiredAuthorities">F_SQLVIEW_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddSqlViewForm" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/addSqlViewForm.vm</param>
+      <param name="javascripts">javascript/sqlView.js, javascript/addSqlViewForm.js</param>
+      <param name="anyAuthorities">F_SQLVIEW_PUBLIC_ADD, F_SQLVIEW_PRIVATE_ADD</param>
+    </action>
+
+    <action name="validateAddUpdateSqlView" class="org.hisp.dhis.dataadmin.action.sqlview.ValidateAddUpdateSqlViewAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="addSqlView" class="org.hisp.dhis.dataadmin.action.sqlview.AddSqlViewAction">
+      <result name="success" type="redirect">sqlView.action</result>
+      <param name="anyAuthorities">F_SQLVIEW_PUBLIC_ADD, F_SQLVIEW_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateSqlViewForm" class="org.hisp.dhis.dataadmin.action.sqlview.GetSqlViewObjectAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/updateSqlViewForm.vm</param>
+      <param name="javascripts">javascript/sqlView.js, javascript/updateSqlViewForm.js</param>
+      <param name="anyAuthorities">F_SQLVIEW_PUBLIC_ADD, F_SQLVIEW_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateSqlViewInstance" class="org.hisp.dhis.dataadmin.action.sqlview.UpdateSqlViewAction">
+      <result name="success" type="redirect">sqlView.action</result>
+      <param name="anyAuthorities">F_SQLVIEW_PUBLIC_ADD, F_SQLVIEW_PRIVATE_ADD</param>
+    </action>
+
+    <action name="removeSqlViewObject" class="org.hisp.dhis.dataadmin.action.sqlview.RemoveSqlViewAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="requiredAuthorities">F_SQLVIEW_DELETE</param>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="executeSqlViewQuery" class="org.hisp.dhis.dataadmin.action.sqlview.ExecuteSqlViewQueryAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="requiredAuthorities">F_SQLVIEW_EXECUTE</param>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="checkViewTableExistence" class="org.hisp.dhis.dataadmin.action.sqlview.CheckViewTableExistenceAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="requiredAuthorities">F_SQLVIEW_MANAGEMENT</param>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="exportSqlView" class="org.hisp.dhis.dataadmin.action.sqlview.ExportSqlViewResultAction">
+      <result name="html" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/showDataSqlViewForm.vm
+      </param>
+      <param name="javascripts">javascript/sqlView.js</param>
+      <param name="requiredAuthorities">F_SQLVIEW_MANAGEMENT</param>
+    </action>
+
+    <action name="showDataSqlViewByAjax" class="org.hisp.dhis.dataadmin.action.sqlview.ExportSqlViewResultAction">
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+      <result name="html" type="velocity">/content.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/showDataSqlViewGrid.vm
+      </param>
+      <param name="javascripts">javascript/sqlView.js</param>
+      <param name="requiredAuthorities">F_SQLVIEW_MANAGEMENT</param>
+    </action>
+
+    <!-- Constant Name -->
+
+    <action name="getConstant" class="org.hisp.dhis.dataadmin.action.constant.GetConstantAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-maintenance-dataadmin/jsonConstant.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_CONSTANT_MANAGEMENT</param>
+    </action>
+
+    <action name="constant" class="org.hisp.dhis.dataadmin.action.constant.GetConstantListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/constant.vm
+      </param>
+      <param name="javascripts">javascript/constant.js</param>
+      <param name="requiredAuthorities">F_CONSTANT_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddConstantForm" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/addConstantForm.vm
+      </param>
+      <param name="requiredAuthorities">F_CONSTANT_ADD</param>
+    </action>
+
+    <action name="addConstant" class="org.hisp.dhis.dataadmin.action.constant.AddConstantAction">
+      <result name="success" type="redirect">constant.action</result>
+      <result name="error" type="redirect">index.action</result>
+      <param name="requiredAuthorities">F_CONSTANT_ADD</param>
+    </action>
+
+    <action name="showUpdateConstantForm" class="org.hisp.dhis.dataadmin.action.constant.GetConstantAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">
+        /dhis-web-maintenance-dataadmin/updateConstantForm.vm
+      </param>
+      <param name="requiredAuthorities">F_CONSTANT_ADD</param>
+    </action>
+
+    <action name="updateConstant" class="org.hisp.dhis.dataadmin.action.constant.UpdateConstantAction">
+      <result name="success" type="redirect">constant.action</result>
+      <result name="error" type="redirect">index.action</result>
+      <param name="requiredAuthorities">F_CONSTANT_ADD</param>
+    </action>
+
+    <action name="validateConstant" class="org.hisp.dhis.dataadmin.action.constant.ValidateConstantAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeConstant" class="org.hisp.dhis.dataadmin.action.constant.RemoveConstantAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_CONSTANT_DELETE</param>
+    </action>
+
+    <!-- DataSet LockExceptions -->
+
+    <action name="lockException" class="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/lockException.vm</param>
+    </action>
+
+    <action name="showAddLockExceptionForm" class="org.hisp.dhis.dataadmin.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/addLockExceptionForm.vm</param>      
+      <param name="javascripts">javascript/dataArchive.js</param>
+      <param name="anyAuthorities">F_DATASET_PUBLIC_ADD, F_DATASET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="addLockException" class="org.hisp.dhis.dataadmin.action.lockexception.AddLockExceptionAction">
+      <result name="success" type="redirect">lockException.action</result>
+      <result name="error" type="redirect">index.action</result>
+      <param name="anyAuthorities">F_DATASET_PUBLIC_ADD, F_DATASET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="getDataSets" class="org.hisp.dhis.dataadmin.action.lockexception.GetDataSetsAction">
+      <result name="success" type="velocity-json">jsonDataSets.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getLockException" class="org.hisp.dhis.dataadmin.action.lockexception.GetLockExceptionAction">
+      <result name="success" type="velocity-json">jsonLockException.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showLockExceptionBatchRemoval" class="org.hisp.dhis.dataadmin.action.lockexception.PrepareBatchRemovalAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/removeLockExceptionBatch.vm</param>
+      <param name="requiredAuthorities">F_DATASET_DELETE</param>
+    </action>
+
+    <action name="removeLockException" class="org.hisp.dhis.dataadmin.action.lockexception.RemoveLockExceptionAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_DATASET_DELETE</param>
+    </action>
+
+    <action name="batchRemoveLockException" class="org.hisp.dhis.dataadmin.action.lockexception.BatchRemoveLockExceptionsAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_DATASET_DELETE</param>
+    </action>
+
+    <!-- Dynamic Attributes -->
+
+    <action name="attribute" class="org.hisp.dhis.dataadmin.action.attribute.GetAttributeListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/attribute.vm</param>
+      <param name="javascripts">javascript/attribute.js</param>
+    </action>
+
+    <action name="showAddAttributeForm" class="org.hisp.dhis.dataadmin.action.attribute.ShowAddUpdateAttributeAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/addAttributeForm.vm</param>
+      <param name="requiredAuthorities">F_ATTRIBUTE_ADD</param>
+    </action>
+
+    <action name="showUpdateAttributeForm" class="org.hisp.dhis.dataadmin.action.attribute.ShowAddUpdateAttributeAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="page">/dhis-web-maintenance-dataadmin/updateAttributeForm.vm</param>
+      <param name="requiredAuthorities">F_ATTRIBUTE_ADD</param>
+    </action>
+
+    <action name="showSortAttributeForm" class="org.hisp.dhis.dataadmin.action.attribute.GetAttributeListSortOrderAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/sortAttributeForm.vm</param>
+    </action>
+
+    <action name="addAttribute" class="org.hisp.dhis.dataadmin.action.attribute.AddAttributeAction">
+      <result name="success" type="redirect">attribute.action</result>
+      <result name="error" type="redirect">index.action</result>
+      <param name="requiredAuthorities">F_ATTRIBUTE_ADD</param>
+    </action>
+
+    <action name="saveAttributeSortOrder" class="org.hisp.dhis.dataadmin.action.attribute.SaveAttributeSortOrderAction">
+      <result name="success" type="redirect">attribute.action</result>
+      <param name="requiredAuthorities">F_ATTRIBUTE_ADD</param>
+    </action>
+
+    <action name="updateAttribute" class="org.hisp.dhis.dataadmin.action.attribute.UpdateAttributeAction">
+      <result name="success" type="redirect">attribute.action</result>
+      <result name="error" type="redirect">index.action</result>
+      <param name="requiredAuthorities">F_ATTRIBUTE_ADD</param>
+    </action>
+
+    <action name="removeAttribute" class="org.hisp.dhis.dataadmin.action.attribute.RemoveAttributeAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_ATTRIBUTE_DELETE</param>
+    </action>
+
+    <action name="getAttribute" class="org.hisp.dhis.dataadmin.action.attribute.GetAttributeAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-maintenance-dataadmin/jsonAttribute.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="validateAttribute" class="org.hisp.dhis.dataadmin.action.attribute.ValidateAttributeAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- Scheduling -->
+
+    <action name="viewScheduledTasks" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/viewScheduledTasks.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/scheduling.js</param>
+      <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
+    </action>
+
+    <action name="scheduleTasks" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/viewScheduledTasks.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/scheduling.js</param>
+      <param name="schedule">true</param>
+      <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
+    </action>
+
+    <!-- OptionSet -->
+
+    <action name="optionSet" class="org.hisp.dhis.dataadmin.action.option.GetOptionSetListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/optionSet.vm</param>
+      <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+      <param name="javascripts">javascript/optionSet.js</param>
+      <param name="requiredAuthorities">F_OPTIONSET_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddOptionSetForm" class="org.hisp.dhis.dataadmin.action.option.ShowAddOptionSetAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/addOptionSetForm.vm</param>
+      <param name="javascripts">javascript/optionSet.js</param>
+      <param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="addOptionSet" class="org.hisp.dhis.dataadmin.action.option.AddOptionSetAction">
+      <result name="success" type="redirect">optionSet.action</result>
+      <param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateOptionSetForm" class="org.hisp.dhis.dataadmin.action.option.GetOptionSetAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-dataadmin/updateOptionSetForm.vm</param>
+      <param name="javascripts">javascript/optionSet.js</param>
+      <param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateOptionSet" class="org.hisp.dhis.dataadmin.action.option.UpdateOptionSetAction">
+      <result name="success" type="redirect">optionSet.action</result>
+      <param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="removeOptionSet" class="org.hisp.dhis.dataadmin.action.option.RemoveOptionSetAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="requiredAuthorities">F_OPTIONSET_DELETE</param>
+    </action>
+
+    <action name="validateOptionSet" class="org.hisp.dhis.dataadmin.action.option.ValidateOptionSetAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getOptionSet" class="org.hisp.dhis.dataadmin.action.option.GetOptionSetAction">
+      <result name="success" type="velocity-json">/dhis-web-maintenance-dataadmin/jsonOptionSet.vm</result>
+    </action>
+
+	<!-- Option -->
+
+	<action name="option"
+		class="org.hisp.dhis.dataadmin.action.option.GetOptionListAction">
+		<result name="success" type="velocity">/main.vm</result>
+		<param name="page">/dhis-web-maintenance-dataadmin/option.vm</param>
+		<param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
+		<param name="javascripts">javascript/option.js</param>
+		<param name="requiredAuthorities">F_OPTIONSET_MANAGEMENT</param>
+	</action>
+
+	<action name="showAddOptionForm" class="org.hisp.dhis.dataadmin.action.option.ShowAddOptionAction">
+		<result name="success" type="velocity">/main.vm</result>
+		<param name="page">/dhis-web-maintenance-dataadmin/addOptionForm.vm</param>
+		<param name="javascripts">javascript/option.js</param>
+		<param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+	</action>
+
+	<action name="addOption"
+		class="org.hisp.dhis.dataadmin.action.option.AddOptionAction">
+		<result name="success" type="redirect">option.action?optionSetId=${optionSetId}</result>
+		<param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+	</action>
+
+	<action name="showUpdateOptionForm"
+		class="org.hisp.dhis.dataadmin.action.option.GetOptionAction">
+		<result name="success" type="velocity">/main.vm</result>
+		<param name="page">/dhis-web-maintenance-dataadmin/updateOptionForm.vm</param>
+		<param name="javascripts">javascript/option.js</param>
+		<param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+	</action>
+
+	<action name="updateOption"
+		class="org.hisp.dhis.dataadmin.action.option.UpdateOptionAction">
+		<result name="success" type="redirect">option.action?optionSetId=${optionSetId}</result>
+		<param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+	</action>
+
+	<action name="removeOption"
+		class="org.hisp.dhis.dataadmin.action.option.RemoveOptionAction">
+		<result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm
+		</result>
+		<result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm
+		</result>
+		<param name="requiredAuthorities">F_OPTIONSET_DELETE</param>
+	</action>
+
+	<action name="validateOption"
+		class="org.hisp.dhis.dataadmin.action.option.ValidateOptionAction">
+		<result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm
+		</result>
+		<result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm
+		</result>
+		<param name="onExceptionReturn">plainTextError</param>
+	</action>
+    
+    <action name="sortOptionsForm" class="org.hisp.dhis.dataadmin.action.option.GetOptionSetAction">
+		<result name="success" type="velocity">/main.vm</result>
+		<param name="page">/dhis-web-maintenance-dataadmin/sortOptionsForm.vm</param>
+		<param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+	</action>
+	
+	<action name="sortOptions" class="org.hisp.dhis.dataadmin.action.option.SortOptionsAction">
+		<result name="success" type="redirect">option.action?optionSetId=${optionSetId}</result>
+		<param name="anyAuthorities">F_OPTIONSET_PUBLIC_ADD, F_OPTIONSET_PRIVATE_ADD</param>
+	</action>
+
+	<action name="getOptionList"
+		class="org.hisp.dhis.dataadmin.action.option.GetOptionListAction">
+		<result name="success" type="redirect">option.action?id=${optionSetId}</result>
+		<param name="anyAuthorities">F_OPTIONSET_MANAGEMENT</param>
+	</action>
+	
+    <action name="getOption" class="org.hisp.dhis.dataadmin.action.option.GetOptionAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonOption.vm</result>
+    </action>
+    
+  </package>
+</struts>

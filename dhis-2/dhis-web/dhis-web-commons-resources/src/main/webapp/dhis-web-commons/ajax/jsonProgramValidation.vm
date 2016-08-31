@@ -1,0 +1,13 @@
+{ "validation":
+  {
+    "id": "${validation.id}",
+	"uid": "${validation.uid}",
+	"description": "$!encoder.htmlEncode( ${validation.name} )",
+	"operator": "$!encoder.htmlEncode( ${validation.operator} )",
+	"leftSideDescription": "$!encoder.htmlEncode( ${validation.leftSide.description} )",
+	"leftSideExpression": "$!encoder.htmlEncode( ${validation.leftSide.expression} )",
+	"rightSideDescription": "$!encoder.htmlEncode( ${validation.rightSide.description} )",
+	"rightSideExpression": "$!encoder.htmlEncode( ${validation.leftSide.expression} )",
+	"program": "$!encoder.htmlEncode( ${validation.program.name} )"
+  }
+}

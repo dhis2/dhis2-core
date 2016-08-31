@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html ng-app="cacheCleaner">
+    <head>
+        <title>Cache Cleaner</title>
+
+        <meta name="description" content="DHIS 2">
+        <meta name="keywords" content="DHIS 2">        
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/ui/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.plugin.min.js"></script>
+
+        <script type="text/javascript" src="../dhis-web-commons/bootstrap/js/bootstrap.min.js"></script>     
+        <link type="text/css" rel="stylesheet"  href="../dhis-web-commons/bootstrap/css/bootstrap.min.css">      
+
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-resource.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-route.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-cookies.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-sanitize.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-animate.js"></script>  
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/ui-bootstrap.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.util.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/commons.js"></script>
+
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/plugins/angularLocalStorage.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/plugins/angular-translate.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.services.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.controllers.js"></script>
+
+        <script type="text/javascript" src="scripts/app.js"></script>        
+        <script type="text/javascript" src="scripts/services.js"></script>
+        <script type="text/javascript" src="scripts/directives.js"></script>
+        <script type="text/javascript" src="scripts/controllers.js"></script>
+        <script type="text/javascript" src="scripts/filters.js"></script>
+
+        <!-- Menu scripts -->
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.translate.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.menu.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.menu.ui.js"></script>
+
+        <link type="text/css" rel="stylesheet" href="../dhis-web-commons/font-awesome/css/font-awesome.min.css"/>
+        <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/css/widgets.css"/>
+        <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/css/menu.css">
+
+        <link type="text/css" rel="stylesheet" href="styles/style.css">
+
+    </head>
+
+    <body>
+    <d2-header-bar></d2-header-bar>
+
+    <div id="leftBar"></div>
+    <div class="page" id="mainPage" ng-controller="MainController">
+
+        <!-- top bar begins -->
+        <div class="row top-bar">        
+            <div class="col-sm-12">            
+                {{'clearing_dhis2_browser_cache'| translate}}
+            </div>        
+        </div>
+        <!-- top bar ends -->
+
+        <div class="row" ng-if="ssCacheExists || lsCacheExists || idCacheExists">
+            <div class="col-sm-6"><h3 ng-if="ssCacheExists">{{'session_storage'| translate}}</h3>
+                <table class="table table-bordered table-striped" ng-if="ssCacheExists">
+                    <tr ng-repeat="ssKey in ssKeys">
+                        <td>
+                            {{ssKey.id}}
+                        </td>
+                        <td>
+                            <input type="checkbox" ng-model="ssKey.remove">
+                        </td>
+                    </tr>                                    
+                </table>
+
+                <h3 ng-if="lsCacheExists">{{'local_storage'| translate}}</h3>
+                <table class="table table-bordered table-striped" ng-if="lsCacheExists">
+                    <tr ng-repeat="lsKey in lsKeys">
+                        <td>
+                            {{lsKey.id}}
+                        </td>
+                        <td>
+                            <input type="checkbox" ng-model="lsKey.remove">
+                        </td>
+                    </tr>                                    
+                </table>
+
+                <h3 ng-if="idCacheExists">{{'indexed_db'| translate}}</h3>
+                <table class="table table-bordered table-striped" ng-if="idCacheExists">
+                    <tr ng-repeat="dbKey in dbKeys">
+                        <td>
+                            {{dbKey.id}}
+                        </td>
+                        <td>
+                            <input type="checkbox" ng-model="dbKey.remove">
+                        </td>
+                    </tr>                                    
+                </table>
+                
+                <!--<span class="alert alert-warning">{{'clears_local_cache'| translate}}</span>-->
+                <button type="button" class="btn btn-danger" ng-click="clearCache()">{{'clear'| translate}}</button>
+                <button type="button" class="btn btn-primary" ng-click="selectAll()">{{ (ssKeys | filter: {remove: true}).length > 0 || (lsKeys | filter: {remove: true}).length > 0 || (dbKeys | filter: {remove: true}).length > 0 ? 'unselect_all' : 'select_all' | translate}}</button>                
+
+            </div>
+
+        </div>
+
+        <div class="row col-sm-6 vertical-spacing" ng-if="!lsCacheExists && !idCacheExists">
+            <div class="alert alert-info">{{ afterClearing ? 'cache_cleared' : 'nothing_to_clear' | translate}}</div>                
+        </div>
+
+    </div>
+
+</body>
+</html>

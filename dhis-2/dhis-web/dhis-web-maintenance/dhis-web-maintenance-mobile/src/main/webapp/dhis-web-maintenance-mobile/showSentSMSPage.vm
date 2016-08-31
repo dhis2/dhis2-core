@@ -1,0 +1,127 @@
+
+<script type="text/javascript">
+	function deleteChecked()
+	{
+		var aa = document.getElementById( 'sentSMSPage' );
+		var result = "";
+		for (var i = 0; i < aa.elements.length; i++) 
+		{
+			if ( aa.elements[i].checked )
+			{
+				result += "ids=" + aa.elements[i].value + "&";
+			}
+		}
+		result = result.substring(0 , result.length - 1);
+		
+		if( result != "")
+		{
+			var confirmation = window.confirm( "$i18n.getString( 'confirm_delete_items' )" );
+			if ( confirmation )
+			{
+				jQuery.get( 'deleteSentSMS.action?' + result, {},
+					function ( json ) {
+						if ( json.response == "success" ) {
+							window.location = "showSentPage.action";
+						} else {
+							showMessage( json.message );
+						}
+					});	
+			}
+		}
+		else
+		{
+			showErrorMessage( "$i18n.getString( 'error_delete' )", 7000 );
+		}
+	};
+	checked = false;
+	function checkAll()
+	{
+		var aa = document.getElementById( 'sentSMSPage' );
+		if (checked == false)
+		{
+			checked = true
+		}
+		else
+		{
+			checked = false
+		}
+		for (var i = 0; i < aa.elements.length; i++) 
+		{
+		 aa.elements[i].checked = checked;
+		}
+	};
+	
+	function removeSingleItem( key, name )
+	{
+		removeItem( key, name, i18n_confirm_delete, "deleteSentSMS.action" );
+	};
+	
+	function filterByStatus(value)
+	{
+		window.location.href='showSentPage.action?filterStatusType='+value;
+	};
+	
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_sms" ) , "'")';
+</script>
+<h3>$i18n.getString( 'list_sent_SMS' )</h3>
+<form id="sentSMSPage" name="sentSMSPage" action="showSentPage.action" method="post"> 
+	<table border="0px" style="width:100%">
+		<tr>
+			<td style="width:90px">$i18n.getString('filter_by_status'):</td>
+			<td>
+				<select id="statusType" onchange="filterByStatus(this.value)">
+					<option value="0" #if ( $!filterStatusType == 0 ) selected='selected' #end>$i18n.getString('outbound')</option>
+					<option value="1" #if ( $!filterStatusType == 1 ) selected='selected' #end>$i18n.getString('sent')</option>
+					<option value="2" #if ( $!filterStatusType == 2 ) selected='selected' #end>$i18n.getString('error')</option>
+					<option value="3" #if ( $!filterStatusType == 3 ) selected='selected' #end>$i18n.getString('all')</option>
+				</select>
+			</td>
+			<td style="text-align:right">
+				<input type="button" name="btnDelete" value="$i18n.getString( 'delete_checked_option' )" onclick="deleteChecked()"/>
+			</td>
+		</tr>
+		<tr>
+			<td style="width:130px">$i18n.getString( "total_number_of_result" ):</td>
+			<td style="text-align:left" colspan="2">$total</td>
+		</tr>
+	</table>
+	<br/>
+	<table id="detailsSentSMSList" class="listTable" style="width:100%" border="0px">
+		<thead>
+			<th style="text-align:center"><a href="#" onclick="checkAll()" title="$i18n.getString( 'check_all' )"><img src="../images/check.png"/></a></th>			
+			<th style="text-align:center">$i18n.getString( "no." )</th>
+			<th>$i18n.getString( "message" )</th>
+			<th>$i18n.getString( "phone_number" )</th>
+			<th>$i18n.getString( "receipient" )</th>
+			<th>$i18n.getString( "status" )</th>
+			<th>$i18n.getString( "date" )</th>
+			<th style="text-align:center">$i18n.getString( "delete" )</th>
+		</thead>
+		<tbody id="sentSMS">
+			#foreach( $outboundSms in $listOutboundSMS)
+			#set($numb=$velocityCount-1)
+			<tr id="tr${outboundSms.id}" height="40">
+				<td style="text-align:center"><input type="checkbox" name="mycheck" value="$outboundSms.id"/></td>
+				<td style="text-align:center">
+					#set( $nr = ( ( $paging.getCurrentPage() - 1  ) * $paging.pageSize ) + $velocityCount )
+					$nr
+				</td>
+				<td>$outboundSms.message</td>
+				<td>$outboundSms.recipients</td>
+				<td>$recipientNames.get($velocityCount)</td>
+				<td>$outboundSms.status</td>
+				<td>$outboundSms.date.toLocaleString()</td>
+				<td style="text-align:center"><a href="javascript:removeSingleItem( '$outboundSms.id', '$outboundSms.message' )" title="$i18n.getString( 'remove' )"><img src="../images/delete.png" alt="$i18n.getString( 'remove' )"/></td>
+			</tr>
+			#end
+			<tr>
+				<td colspan="8">
+					<p></p>
+					<div class="paging-container">
+						#parse( "/dhis-web-commons/paging/paging.vm" )
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>

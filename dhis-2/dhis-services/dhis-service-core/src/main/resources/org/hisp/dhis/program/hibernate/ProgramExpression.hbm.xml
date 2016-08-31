@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramExpression" table="programexpression">
+
+    <id name="id" column="programexpressionid">
+      <generator class="native" />
+    </id>
+
+    <property name="description" />
+
+    <property name="expression" type="text" />
+
+  </class>
+</hibernate-mapping>

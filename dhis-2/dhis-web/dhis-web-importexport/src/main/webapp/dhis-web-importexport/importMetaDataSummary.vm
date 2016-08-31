@@ -1,0 +1,61 @@
+<h3>$i18n.getString( "import_summary" )</h3>
+
+#if( $summary ) ## ImportSummary can be null on failed GML import (pre-processing fails)
+<h4>$i18n.getString( "import_count" )</h4>
+
+$summary.importCount.imported Imported<br/>
+$summary.importCount.updated Updated<br/>
+$summary.importCount.ignored Ignored<br/>
+
+<h4>Type Summary</h4>
+
+<table>
+    <thead>
+    <tr>
+        <td>Type</td>
+        <td>Imported</td>
+        <td>Updated</td>
+        <td>Ignored</td>
+    </tr>
+    </thead>
+    <tbody>
+        #foreach( $typeSummary in $summary.importTypeSummaries )
+        <tr>
+            <td>$typeSummary.type</td>
+            <td>$typeSummary.importCount.imported</td>
+            <td>$typeSummary.importCount.updated</td>
+            <td>$typeSummary.importCount.ignored</td>
+            #if( !$typeSummary.importConflicts.isEmpty())
+                #set( $haveConflicts = true )
+            #end
+        </tr>
+        #end
+    </tbody>
+</table>
+
+<h4>$i18n.getString( "conflicts" )</h4>
+#if( $haveConflicts )
+<table>
+    <col width="110">
+    <col width="110">
+    <tr>
+        <th>$i18n.getString( "type" )</th>
+        <th>$i18n.getString( "element" )</th>
+        <th>$i18n.getString( "description" )</th>
+    </tr>
+    #foreach( $typeSummary in $summary.importTypeSummaries )
+        #foreach( $conflict in $typeSummary.importConflicts )
+            <tr>
+                <td>${typeSummary.type}</td>
+                <td>${conflict.object}</td>
+                <td>$encoder.htmlEncode( $conflict.value )</td>
+            </tr>
+        #end
+    #end
+</table>
+#else
+<p>$i18n.getString( "no_conflicts_found" )</p>
+#end
+#else
+    $i18n.getString( "no_import_summary_available" )
+#end

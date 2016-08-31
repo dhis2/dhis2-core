@@ -1,0 +1,259 @@
+<script type="text/javascript">
+  jQuery(function() {
+    validation2('addDataSetForm', function( form ) {
+      form.submit();
+    }, {
+      'beforeValidateHandler': function() {
+        $("#deSelected").find("option").attr("selected", "selected");
+        $("#inSelected").find("option").attr("selected", "selected");
+          #tblDynamicAttributesJavascript()
+      },
+      'rules': getValidationRules("dataSet")
+    });
+
+    checkValueIsExist("code", "validateDataSet.action");
+
+    $('#deAvailable').selected({
+      url: '../api/dataElements.json?filter=domainType:eq:AGGREGATE',
+      target: $('#deSelected'),
+      search: $('#deAvailableSearch'),
+      iterator: 'dataElements'
+    });
+
+    $('#inAvailable').selected({
+      url: '../api/indicators.json',
+      target: $('#inSelected'),
+      search: $('#inAvailableSearch'),
+      iterator: 'indicators'
+    });
+  });
+
+  var previousName = '';
+</script>
+
+<h3>$i18n.getString( "add_dataset" )</h3>
+
+#sharingCreateNotification( "dataSet" )
+
+<form id="addDataSetForm" name="addDataSetForm" action="addDataSet.action" method="post" class="inputForm">
+  <table style="width: 600px">
+    <col style="width: 400px">
+    <col>
+    <thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "dataset_details" )</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name" onchange="nameChanged()"></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="shortName" name="shortName"></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "code" )</label></td>
+        <td><input type="text" id="code" name="code"></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "description" )</label></td>
+        <td><textarea id="description" name="description"></textarea></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "expiry_days" )</label></td>
+        <td><input type="text" id="expiryDays" name="expiryDays" value="0"></td>
+      </tr>
+      <tr>
+      	<td><label>$i18n.getString( "open_future_periods_for_data_entry" )</label></td>
+        <td><input type="text" id="openFuturePeriods" name="openFuturePeriods" value="0"></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "timely_days" )</label></td>
+        <td><input type="text" id="timelyDays" name="timelyDays" value="15"></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "frequency" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td>
+          <select id="frequencySelect" name="frequencySelect" onchange="frequencyChanged()">
+            #foreach( $periodType in $periodTypes )
+              <option value="$periodType.name">$i18n.getString( $periodType.name )</option>
+            #end
+          </select>
+        </td>
+      </tr>
+      <tr>
+      	<td><label>$i18n.getString( "category_combo" )</label></td>
+      	<td>
+      	  <select id="categoryComboId" name="categoryComboId">
+      	  	#foreach( $categoryCombo in $categoryCombos )
+      	  	  <option value="$categoryCombo.id" #if( $categoryCombo.isDefault() ) selected="selected"#end>$encoder.htmlEncode( $categoryCombo.displayName )</option>
+	  	    #end
+  	      </select>
+	    </td>
+      </tr>
+      <tr>
+      	<td><label>$i18n.getString( "notification_recipients" )</label></td>
+      	<td>
+      	  <select id="notificationRecipients" name="notificationRecipients">
+      	  	<option value="-1">[ $i18n.getString( "none" ) ]</option>
+      	  	#foreach( $group in $userGroups )
+      	  	  <option value="$group.id">$encoder.htmlEncode( $group.name )</option>
+	  	    #end
+  	      </select>
+	    </td>  
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "notify_completing_user" )</label></td>
+        <td>
+          <select id="notifyCompletingUser" name="notifyCompletingUser">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "data_approval_workflow" )</label></td>
+        <td>
+          <select id="workflowId" name="workflowId">
+            <option value="-1">[ $i18n.getString( "none" ) ]</option>
+            #foreach( $workflow in $workflows )
+              <option value="$workflow.id">$encoder.htmlEncode( $workflow.name ) ($i18n.getString( $workflow.periodType.name ))</option>
+            #end
+          </select>
+        </td>
+      </tr>
+	  <tr>
+      	<td><label>$i18n.getString( "enable_for_java_mobile_client" )</label></td>
+      	<td>
+      	  <select id="mobile" name="mobile">
+      	  	<option value="false">$i18n.getString( "no" )</option>
+      	  	<option value="true">$i18n.getString( "yes" )</option>
+  	      </select>
+	      </td>
+      </tr>
+    </tbody>
+  </table>
+
+  #tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+  <table style="width: 600px">
+    <col style="width: 400px">
+    <col>
+    <thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "form_details" )</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+      	<td><label>$i18n.getString( "all_fields_for_data_element_required" )</label></td>
+      	<td>
+      	  <select id="fieldCombinationRequired" name="fieldCombinationRequired">
+      	  	<option value="false">$i18n.getString( "no" )</option>
+      	  	<option value="true">$i18n.getString( "yes" )</option>
+  	      </select>
+	    </td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "complete_allowed_only_if_validation_passes" )</label></td>
+        <td>
+          <select id="validCompleteOnly" name="validCompleteOnly">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "no_value_requires_comment" )</label></td>
+        <td>
+          <select id="noValueRequiresComment" name="noValueRequiresComment">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( 'legend_set' )</label></td>
+        <td>
+          <select id="selectedLegendSetId" name="selectedLegendSetId">
+            <option value="0">[$i18n.getString('please_select')]</option>
+            #foreach ( $legendSet in $legendSets )
+              <option value="$legendSet.id">$encoder.htmlEncode( $legendSet.name )</option>
+            #end
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "skip_offline" )</label></td>
+        <td>
+          <select id="skipOffline" name="skipOffline">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "dataelementdecoration" )</label></td>
+        <td>
+          <select id="dataElementDecoration" name="dataElementDecoration">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>      
+      <tr>
+        <td><label>$i18n.getString( "render_as_tabs" )</label></td>
+        <td>
+          <select id="renderAsTabs" name="renderAsTabs">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table id="multiOrgDetailsList" style="width: 600px; padding-bottom: 15px;">
+    <col style="width: 400px;"/> ## Labels
+    <col/> ## Input
+    <thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "multiorg_dataset_details" )</th>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "render_horizontally" )</label></td>
+        <td>
+          <select id="renderHorizontally" name="renderHorizontally">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>
+    </thead>
+  </table>
+
+#jqSelected({
+  "prefix": "de",
+  "i18n_available": "available_data_elements",
+  "i18n_selected": "selected_data_elements"
+})
+
+#jqSelected({
+  "prefix": "in",
+  "i18n_available": "available_indicators",
+  "i18n_selected": "selected_indicators"
+})
+
+<table>
+<tr>
+  <td colspan="3">
+    <input type="submit" value="$i18n.getString( 'save' )" style="width:120px" />
+    <input type="button" onclick="dhis2.commons.redirectCurrentPage( 'dataSet.action' )" value="$i18n.getString( 'cancel' )" style="width:120px" />
+  </td>
+</tr>
+</table>
+
+</form>

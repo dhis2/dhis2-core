@@ -1,0 +1,70 @@
+<h3>$i18n.getString( "tracked_entity_attribute_group_management" ) #openHelp( "tracked_entity_attribute_group" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="showUpdateAttributeGroupForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li><a data-target-fn="removeAttributeGroup"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showAttributeGroupDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+  <tr>
+    <td style="vertical-align:top">
+		<table width="100%">
+			<tr valign="bottom">
+				<td>
+					#filterDiv( "attributeGroup" )
+				</td>
+				<td colspan="3" style="text-align:right"><input type="button" value="$i18n.getString( "add_new" )" onclick="window.location.href='showAddAttributeGroupForm.action'" style="width:70px"></td>				
+			</tr>
+		</table>
+
+    <table class="listTable">
+      <col>
+      <thead>
+        <tr>
+          <th>$i18n.getString( "name" )</th>
+        </tr>
+      </thead>
+      <tbody id="list">
+        #foreach( $attributeGroup in $attributeGroups )
+          <tr id="tr${attributeGroup.id}" data-id="$!attributeGroup.id" 
+			  data-uid="$!attributeGroup.uid" data-type="TrackedEntityAttributeGroup" 
+			  data-name="$encoder.htmlEncode( $!attributeGroup.displayName )"
+              data-can-manage="$security.canManage( $attributeGroup )"
+              data-can-update="$security.canUpdate( $attributeGroup )"
+              data-can-delete="$security.canDelete( $attributeGroup )">
+              <td>$encoder.htmlEncode( $!attributeGroup.displayName )</td>
+          </tr>
+        #end
+      </tbody>
+      </table>
+		<p></p>
+		#parse( "/dhis-web-commons/paging/paging.vm" )
+    </td>
+		<td id="detailsData">
+      <div id="detailsArea">
+        <div id="hideDetailsArea">
+          <a href="javascript:hideDetails()" title="$i18n.getString( "hide_details" )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"></a>
+			</div>
+				<p><label class="bold">$i18n.getString( "name" )</label><br><span id="nameField"></span></p>
+				<p><label class="bold">$i18n.getString( "description" ):</label><br><span id="descriptionField"></span></p>
+				<p><label class="bold">$i18n.getString( "number_of_attribute" ):</label><br><span id="noAttributeField"></span></p>
+				<p><label class="bold">$i18n.getString( "id" ):</label><br><span id="idField"></span></p>
+			</div>
+		</td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_tracked_entity_attribute" ) , "'" )';
+	var i18n_none = '$encoder.jsEscape( $i18n.getString( "none" ), "'")';	
+    var i18n_yes = '$encoder.jsEscape( $i18n.getString( "yes" ) , "'")';
+    var i18n_no = '$encoder.jsEscape( $i18n.getString( "no" ) , "'")';
+    var i18n_number = '$encoder.jsEscape( $i18n.getString( "number" ) , "'")';
+    var i18n_yes_no = '$encoder.jsEscape( $i18n.getString( "yes_no" ) , "'")';
+    var i18n_text = '$encoder.jsEscape( $i18n.getString( "text" ) , "'")';
+    var i18n_date = '$encoder.jsEscape( $i18n.getString( "date" ) , "'")';
+</script>

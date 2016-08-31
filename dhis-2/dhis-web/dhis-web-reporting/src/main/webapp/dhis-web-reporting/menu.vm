@@ -1,0 +1,18 @@
+
+<h2>$i18n.getString( "report" )&nbsp;</h2>
+<ul>
+	<li><a href="displayViewReportForm.action">$i18n.getString( "standard_report" )&nbsp;</a></li>
+	<li><a href="showDataSetReportForm.action">$i18n.getString( "dataset_report" )&nbsp;</a></li>
+	<li><a href="displayViewDataCompletenessForm.action">$i18n.getString( "reporting_rate_summary" )&nbsp;</a></li>
+    <li><a href="displayViewDocumentForm.action">$i18n.getString( "resource" )&nbsp;</a></li>
+    <li><a href="displayOrgUnitDistribution.action">$i18n.getString( "organisation_unit_report" )&nbsp;</a></li>
+    <li><a href="showDataApprovalForm.action">$i18n.getString( "data_approval" )&nbsp;</a></li>
+	<li><a href="displayManageTableForm.action">$i18n.getString( "report_table" )&nbsp;</a></li>
+</ul>
+
+#if( $auth.hasAccess( "dhis-web-reporting", "displayDataMartForm" ) )
+<h2>$i18n.getString( "analytics" )&nbsp;</h2>
+<ul>
+	<li><a href="displayDataMartForm.action">$i18n.getString( "analytics" )&nbsp;</a></li>
+</ul>
+#end

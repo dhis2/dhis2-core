@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<indicatorGroups>
+	#foreach( $indicatorGroup in $indicatorGroups )
+	<indicatorGroup>
+		<id>$indicatorGroup.id</id>
+		<name>$encoder.xmlEncode( $indicatorGroup.displayName )</name>
+	</indicatorGroup>
+	#end
+</indicatorGroups>

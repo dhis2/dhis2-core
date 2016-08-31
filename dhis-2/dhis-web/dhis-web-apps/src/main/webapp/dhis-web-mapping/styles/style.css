@@ -1,0 +1,1350 @@
+/* General
+ * OpenLayers
+ *
+ * Combobox
+ * GIS Combobox
+ *
+ * Panel
+ *
+ * GIS form
+ *
+ * Button
+ * GIS Button
+ *
+ * Toolbar
+ *
+ * Menu
+ * GIS Menu
+ *
+ * GIS Treepanel
+ *
+ * Colorpicker
+ *
+ * GIS Window
+ *
+ * GIS Grid
+ *
+ * GIS TextField
+ *
+ * GIS TextArea
+ *
+ * Checkbox
+ *
+ * GIS NumberField
+ *
+ * GIS Label
+ *
+ * Tooltip
+ *
+ * GIS Accordion
+*/
+
+
+/*----------------------------------------------------------------------------
+ * General
+ *--------------------------------------------------------------------------*/
+
+.calendars-popup {
+    z-index: 999999 !important;
+}
+
+html * {
+	font-family: arial, sans-serif, liberation sans, consolas !important;
+}
+
+#init {
+    display: table;
+    margin: 300px auto;
+    font-size: 13px;
+    color: #444;
+}
+
+#init .brand {
+    font-weight: 600;
+    padding-right: 5px;
+}
+
+	/* Scrollbar Webkit */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 7px;
+    border: 0 none;
+}
+
+::-webkit-scrollbar-track:horizontal {
+    background-color: #ddd;
+    margin: 0 2px;
+    border-bottom: 1px solid white;
+}
+::-webkit-scrollbar-thumb:horizontal {
+	background-color: #bbb;
+    border-bottom: 1px solid white;
+}
+
+::-webkit-scrollbar-track:vertical {
+    background-color: #e1e1e1;
+    margin: 2px 0;
+    border-right: 2px solid white;
+}
+::-webkit-scrollbar-thumb:vertical {
+	background-color: #bbb;
+    border-right: 2px solid white;
+}
+
+	/* Scrollbar */
+.x-scroller-vertical {
+	border: 0 none;
+}
+
+	/* Disabled icons */
+.disabled {
+	opacity: 0.4;
+	cursor: default !important;
+}
+
+table.padding1 td {
+	padding: 1px;
+}
+
+.el-opacity-1 {
+	opacity: 1 !important;
+}
+.el-border-0, .el-border-0 .x-panel-body {
+	border: 0 none !important;
+}
+.el-fontsize-10 {
+	font-size: 10px !important;
+}
+
+.gis-container-default .x-window-body {
+	padding: 5px;
+	background: #fff;
+}
+.gis-container-inner .x-panel-body {
+	border: 0 none;
+}
+.gis-panel-html {
+	border: 0 none;
+}
+.gis-panel-html-title {
+	font-weight: bold;
+}
+.gis-panel-html-separator {
+	padding-top: 5px;
+}
+.gis-panel-html-label .x-panel-body {
+	height: 22px;
+	line-height: 18px;
+    padding-right: 5px;
+    padding-left: 4px;
+}
+
+.x-splitter-collapsed .x-layout-split-bottom { /* Hide expand arrow when east panel is collapsed */
+	display: none;
+}
+
+.gis-form-item-label-top {
+	padding-left: 2px;
+	float: none;
+	clear: none;
+	display: block;
+	margin-bottom: 2px !important;
+    font-size: 11px;
+}
+
+.x-panel-body, .x-window-body {
+    font-size: 11px;
+}
+
+.text-medium {
+    font-weight: 600;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Spinner
+ *--------------------------------------------------------------------------*/
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    margin: 50px auto;
+    background-color: #aaa;
+
+    border-radius: 100%;
+    -webkit-animation: sk-scaleout 0.8s infinite ease-in-out;
+    animation: sk-scaleout 0.8s infinite ease-in-out;
+}
+
+@-webkit-keyframes sk-scaleout {
+    0% {
+        -webkit-transform: scale(0)
+    }
+    100% {
+        -webkit-transform: scale(1.0);
+        opacity: 0;
+    }
+}
+
+@keyframes sk-scaleout {
+    0% {
+        -webkit-transform: scale(0);
+        transform: scale(0);
+    }
+    100% {
+        -webkit-transform: scale(1.0);
+        transform: scale(1.0);
+        opacity: 0;
+    }
+}
+
+
+/*----------------------------------------------------------------------------
+ * Openlayers
+ *--------------------------------------------------------------------------*/
+
+.olControlPanel { /* Control panel */
+	position: absolute;
+	top: 0;
+	right: 0;
+    border: 0 none;
+}
+.olControlButtonItemActive {
+    background: #556;
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    opacity: 0.75;
+    filter: alpha(opacity=75);
+	-ms-filter: "alpha(opacity=75)";
+    cursor: pointer;
+    cursor: hand;
+    text-align: center;
+    font-size: 21px !important;
+    text-shadow: 0 0 1px #ddd;
+}
+
+/*
+.olControlPanel.zoomIn {
+	right: 72px;
+}
+.olControlPanel.zoomIn .olControlButtonItemActive {
+	border-bottom-left-radius: 2px;
+}
+
+.olControlPanel.zoomOut {
+	right: 48px;
+}
+
+.olControlPanel.zoomVisible {
+	right: 24px;
+}
+*/
+
+.olControlPanel.zoomIn {
+	right: 75px;
+    top: 4px;
+}
+.olControlPanel.zoomIn .olControlButtonItemActive {
+	border-top-left-radius: 3px;
+	border-bottom-left-radius: 3px;
+}
+
+.olControlPanel.zoomOut {
+	right: 51px;
+    top: 4px;
+}
+
+.olControlPanel.zoomVisible {
+	right: 27px;
+    top: 4px;
+}
+
+.olControlPanel.measure {
+	right: 3px;
+    top: 4px;
+}
+.olControlPanel.measure .olControlButtonItemActive {
+	border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+
+
+.olControlPermalink { /* Perma link */
+	display: none !important;
+}
+
+.olControlMousePosition { /* Mouse position */
+	background: #fff !important;
+	opacity: 0.8 !important;
+    filter: alpha(opacity=80) !important;
+	-ms-filter: "alpha(opacity=80)" !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	border-top-left-radius: 2px !important;
+	padding: 2px 2px 2px 5px !important;
+	color: #000 !important;
+	-webkit-text-stroke-width: 0.2px;
+	-webkit-text-stroke-color: #555;
+}
+.olControlMousePosition * {
+	font-size: 10px !important;
+}
+.text-mouseposition-lonlat { /* Mouse position text */
+	color: #555;
+}
+
+.olLayerGoogleCopyright, .olLayerGoogleV3.olLayerGooglePoweredBy {
+	display: none;
+}
+
+#google-logo {
+	background: url('../images/google-logo.png') no-repeat;
+	width: 40px;
+	height: 13px;
+	margin-left: 6px;
+	display: inline-block;
+	vertical-align: bottom;
+	cursor: pointer;
+	cursor: hand;
+}
+
+/* ScaleLine */
+.olControlScaleLine {
+	left: 5px !important;
+	bottom: 5px !important;
+}
+.olControlScaleLineBottom {
+	display: none;
+}
+.olControlScaleLineTop {
+	font-weight: bold;
+}
+
+
+/*----------------------------------------------------------------------------
+ * jQuery calendar
+ *--------------------------------------------------------------------------*/
+
+.calendars-popup {
+    z-index: 100000;
+}
+
+
+/*----------------------------------------------------------------------------
+ * NS Accordion
+ *--------------------------------------------------------------------------*/
+
+	/* accordion title bar, shared */
+.ns-accordion .x-accordion-item .x-accordion-hd {
+	padding: 6px 5px 4px 8px;
+	border: 0 none;
+	cursor: pointer;
+	border-radius: 0;
+    background-image: none;
+    background-color: #e0e0e0;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dedede), color-stop(100%, #e6e6e6)) !important;
+    background-image: -webkit-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -moz-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -o-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -ms-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: linear-gradient(top, #dddddd, #e6e6e6) !important;
+}
+	/* accordion title dock, default, collapsed */
+.ns-accordion .collapsed .x-accordion-hd {
+	padding-bottom: 5px !important;
+}
+
+	/* accordion title dock outer, shared */
+.ns-accordion .x-accordion-item {
+	border-radius: 1px;
+}
+	/* accordion title dock outer, default */
+.ns-accordion .x-accordion-item {
+	border: 1px solid #c5c5c5;
+	border-bottom: 0 none;
+}
+	/* accordion title dock outer, last */
+.ns-accordion .ns-accordion-last {
+	border: 1px solid #c5c5c5;
+}
+
+	/* accordion title dock text, shared */
+.ns-accordion .x-accordion-hd .x-panel-header-text {
+	font-weight: bold;
+	cursor: pointer;
+}
+
+	/* accordion item body */
+.ns-accordion .x-accordion-body {
+	padding: 1px;
+	border-top: 1px solid #c5c5c5 !important;
+}
+
+.ns-accordion .x-accordion-hd-sibling-expanded {
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	-o-box-shadow: none;
+	box-shadow: none;
+}
+
+.ns-accordion .ns-toolbar-multiselect-left, .ns-accordion .ns-toolbar-multiselect-right {
+	margin-bottom: 0;
+}
+
+	/* accordion combo box */
+.ns-accordion .ns-combo .x-form-text, .ns-accordion .ns-combo .x-form-trigger {
+	height: 24px;
+	padding-top: 1px;
+}
+	/* accordion combo box label */
+.ns-accordion .ns-combo .x-form-item-label {
+	padding: 4px 0 0;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Combobox
+ *--------------------------------------------------------------------------*/
+
+	/* Combobox text position*/
+.x-webkit .x-form-empty-field {
+    line-height: 14px;
+}
+
+	/* Combobox font size */
+.x-form-text, textarea.x-form-field {
+    font-size: 10px;
+}
+
+	/* Combobox field label font */
+.x-form-item-label {
+    font-size: 11px;
+    color: #111;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Combobox
+ *--------------------------------------------------------------------------*/
+
+.gis-combo {
+    margin-bottom: 1px;
+}
+
+    /* Form label */
+.gis-combo .x-form-item-label-left {
+    padding-top: 4px;
+    padding-left: 4px;
+}
+
+	/* Combobox text position*/
+.gis-combo .x-form-text {
+    padding-left: 5px;
+}
+.gis-combo .small .x-form-field {
+	padding-top: 2px;
+}
+
+	/* Combobox border-radius */
+.gis-combo input {
+    border-radius: 1px 0px 0px 0px;
+    font-size: 10px !important;
+}
+
+.gis-combo .x-form-text, .gis-combo .x-form-trigger {
+	height: 24px;
+	padding-top: 1px;
+}
+gis-combo .x-form-item-label {
+	padding: 4px 0 0;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Multiselect
+ *--------------------------------------------------------------------------*/
+
+	/* Inner border */
+.x-fit-item {
+    border-style: none;
+}
+
+	/* Boundlist (multiselect, comboboxlist etc) */
+.x-boundlist-item {
+    color: #333;
+    padding: 3px 2px 3px 4px;
+    font-size: 10px;
+    border: 1px solid transparent;
+}
+.x-boundlist-item-over {
+    background-color: #e1e1e1;
+    border-color: #e1e1e1;
+}
+.x-boundlist-selected {
+    background-color: #d3d3d3;
+    border-color: #d3d3d3;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Multiselect
+ *--------------------------------------------------------------------------*/
+
+.ns-multiselect {
+    color: #111;
+}
+
+.ns-toolbar-multiselect-left .x-docked-top {
+	border-top-left-radius: 1px;
+}
+.ns-toolbar-multiselect-right .x-docked-top {
+	border-top-right-radius: 1px;
+}
+.ns-toolbar-multiselect-leftright .x-docked-top {
+	border-top-left-radius: 1px;
+	border-top-right-radius: 1px;
+}
+
+	/* Multiselect docked bar font size */
+.ns-toolbar-multiselect-left .ns-toolbar-multiselect-left-label,
+.ns-toolbar-multiselect-right .ns-toolbar-multiselect-right-label,
+.ns-toolbar-multiselect-leftright .ns-toolbar-multiselect-leftright-label {
+    font-size: 11px;
+    color: #000;
+}
+.ns-toolbar-multiselect-left .ns-toolbar-multiselect-left-label {
+	padding-left: 6px;
+}
+.ns-toolbar-multiselect-right .ns-toolbar-multiselect-right-label {
+    padding-right: 7px;
+}
+.ns-toolbar-multiselect-leftright .ns-toolbar-multiselect-leftright-label {
+    padding-left: 4px;
+}
+
+	/* Multiselect boundlist */
+.ns-toolbar-multiselect-left .x-boundlist-item-over,
+.ns-toolbar-multiselect-right .x-boundlist-item-over {
+    background-color: transparent;
+    border-color: transparent;
+}
+.ns-toolbar-multiselect-left .x-boundlist-selected,
+.ns-toolbar-multiselect-right .x-boundlist-selected {
+    background-color: #e5e5e5;
+    border-color: #e5e5e5;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Panel
+ *--------------------------------------------------------------------------*/
+
+.x-panel-header	{ /* Panel header */
+/*
+    height: 30px;
+*/
+	padding: 7px 4px 7px 7px;
+    border: 0 none;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Panel
+ *--------------------------------------------------------------------------*/
+
+.gis-panel-title-data,
+.gis-panel-title-period,
+.gis-panel-title-organisationunit {
+	background-repeat: no-repeat;
+	padding-left: 20px;
+    font-weight: bold;
+    height: 17px;
+}
+
+.gis-panel-title-data {
+	background-image: url(../images/data.png);
+}
+.gis-panel-title-period {
+	background-image: url(../images/period.png);
+}
+.gis-panel-title-organisationunit {
+	background-image: url(../images/organisationunit.png);
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS form
+ *--------------------------------------------------------------------------*/
+
+.gis-form-subtitle,
+.gis-form-subtitle-first { /* Subtitle panel */
+	margin-bottom: 3px;
+}
+.gis-form-subtitle {
+	margin-top: 6px;
+}
+.gis-form-subtitle .x-panel-body,
+.gis-form-subtitle-first .x-panel-body { /* Subtitle */
+	font-weight: bold;
+}
+
+.gis-form-widget .x-form-item-label-left { /* (Combo) label */
+	padding-left: 4px;
+	color: #444;
+}
+.gis-form-widget .x-form-text { /* Combo text */
+	font-size: 10px !important;
+	padding: 3px 1px 1px 4px;
+	border-top-left-radius: 1px;
+	border-bottom-left-radius: 1px;
+}
+.x-boundlist-item { /* Combo list text */
+	font-size: 10px !important;
+}
+.gis-form-widget .x-form-item { /* (Combo) spacing */
+	margin-bottom: 3px;
+}
+
+.gis-form-widget .x-btn-default-small { /* Button */
+	border-radius: 1px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Button
+ *--------------------------------------------------------------------------*/
+
+.x-btn-arrow {
+	background-image: url('../images/arrow.png') !important;
+}
+
+.x-btn-default-toolbar-small,
+.x-btn-default-toolbar-small-over,
+.x-btn-default-toolbar-small-pressed {
+	border-radius: 1px;
+}
+.x-btn-default-toolbar-small-over,
+.x-btn-default-toolbar-small-pressed {
+	border-color: #bbb;
+}
+
+.x-btn-default-small {
+	border-radius: 1px;
+}
+
+.x-btn-default-toolbar-small-pressed {
+	border-color: #bbb;
+    background-image: none;
+    background-color: #d6d6d6;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #d1d1d1), color-stop(100%, #e5e5e5));
+    background-image: -webkit-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: -moz-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: -o-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: -ms-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: linear-gradient(top, #d1d1d1,#e5e5e5);
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Button
+ *--------------------------------------------------------------------------*/
+
+.gis-button-icon-gear {
+	width: 22px !important;
+	height: 22px !important;
+	background: url('../images/gear_18.png') no-repeat;
+}
+
+.gis-button-icon-table {
+	background: url('../images/table_14.png') no-repeat;
+}
+.gis-button-icon-chart {
+	background: url('../images/chart_14.png') no-repeat;
+}
+.gis-button-icon-map {
+	background: url('../images/map_14.png') no-repeat;
+}
+
+.gis-button-organisationunitselection .x-btn-center {
+	width: 18px !important;
+}
+
+.gis-button-combotrigger {
+    background-image: url('../images/trigger.gif');
+    background-position: 0 0;
+    width: 17px;
+    border-top-right-radius: 2px;
+}
+.gis-button-combotrigger-disabled,
+.gis-button-combotrigger-disabled * {
+    opacity: 0.8;
+    cursor: default !important;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Toolbar
+ *--------------------------------------------------------------------------*/
+
+.x-toolbar-default {
+	background-image: none;
+	background-color: #F3F3F3;
+	background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #F1F1F1), color-stop(100%, whiteSmoke));
+	background-image: -webkit-linear-gradient(top, #F1F1F1, whiteSmoke);
+	background-image: -moz-linear-gradient(top, #F1F1F1, whiteSmoke);
+	background-image: -o-linear-gradient(top, #F1F1F1, whiteSmoke);
+	background-image: -ms-linear-gradient(top, #F1F1F1, whiteSmoke);
+	background-image: linear-gradient(top, #F1F1F1, whiteSmoke);
+}
+
+	/* Toolbar btn */
+	.x-toolbar .x-btn-default-toolbar-small-icon button,
+	.x-toolbar .gis-btn-icon-facility,
+	.x-toolbar .gis-btn-icon-event,
+	.x-toolbar .gis-btn-icon-boundary,
+	.x-toolbar .gis-btn-icon-thematic1,
+	.x-toolbar .gis-btn-icon-thematic2,
+	.x-toolbar .gis-btn-icon-thematic3,
+	.x-toolbar .gis-btn-icon-thematic4 {
+		width: 24px !important;
+		height: 24px !important;
+	}
+	.x-toolbar .gis-btn-icon-facility {
+		background: url('../images/facility_20.png') no-repeat;
+	}
+	.x-toolbar .gis-btn-icon-event {
+		background: url('../images/event_20.png') no-repeat;
+	}
+	.x-toolbar .gis-btn-icon-boundary {
+		background: url('../images/boundary_20.png') no-repeat;
+	}
+	.x-toolbar .gis-btn-icon-thematic1 {
+		background: url('../images/thematic1_20.png') no-repeat;
+	}
+	.x-toolbar .gis-btn-icon-thematic2 {
+		background: url('../images/thematic2_20.png') no-repeat;
+	}
+	.x-toolbar .gis-btn-icon-thematic3 {
+		background: url('../images/thematic3_20.png') no-repeat;
+	}
+	.x-toolbar .gis-btn-icon-thematic4 {
+		background: url('../images/thematic4_20.png') no-repeat;
+	}
+
+		/* Toolbar btn menu */
+		.gis-toolbar-btn-menu { /* Align menu */
+			margin-top: 4px;
+		}
+		.gis-toolbar-btn-menu .x-panel-body-default { /* Menu border */
+			border-radius: 2px;
+		}
+
+
+/*----------------------------------------------------------------------------
+ * Menu
+ *--------------------------------------------------------------------------*/
+
+.x-menu-body {
+    border-color: #bbb;
+    border-radius: 2px;
+}
+.x-menu-item-active .x-menu-item-link {
+	border-radius: 0;
+	border-color: #e1e1e1;
+	background-color: #e1e1e1;
+	background-image: none;
+}
+.x-menu-body {
+	padding: 0;
+}
+.x-menu-body .x-box-inner {
+	background-color: #fafafa;
+}
+
+	/* Menu item */
+.x-menu-item {
+	background-color: #fafafa;
+}
+
+.x-menu-item-link {
+    padding: 4px 5px 4px 26px;
+}
+	/* Menu item color */
+.x-menu-item-text {
+    color: #111;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Menu
+ *--------------------------------------------------------------------------*/
+
+.gis-menu-item-noicon .x-menu-item-link {
+	padding-left: 10px;
+}
+
+.gis-toolbar-btn-menu-first { /* Boundary layer menu spacing from viewport */
+	left: 2px !important;
+}
+
+	.gis-menu-item-icon-edit,
+	.gis-menu-item-icon-clear,
+	.gis-menu-item-icon-labels,
+	.gis-menu-item-icon-filter,
+	.gis-menu-item-icon-search,
+
+	.gis-menu-item-icon-drill,
+	.gis-menu-item-icon-float,
+	.gis-menu-item-icon-information,
+	.gis-menu-item-icon-relocate,
+
+	.gis-menu-item-icon-favorite {
+		left: 6px;
+	}
+
+	.gis-menu-item-icon-edit {
+		background: url('../images/edit_16.png') no-repeat;
+	}
+	.gis-menu-item-icon-clear {
+		background: url('../images/clear_16.png') no-repeat;
+	}
+	.gis-menu-item-icon-labels {
+		background: url('../images/labels_16.png') no-repeat;
+	}
+	.gis-menu-item-icon-filter {
+		background: url('../images/filter_16.png') no-repeat;
+	}
+	.gis-menu-item-icon-search {
+		background: url('../images/search_16.png') no-repeat;
+	}
+
+	.gis-menu-item-icon-drill {
+		background: url('../images/drill_16.png') no-repeat;
+	}
+	.gis-menu-item-icon-float {
+		background: url('../images/float_16.png') no-repeat;
+	}
+	.gis-menu-item-icon-information {
+		background: url('../images/information_16.png') no-repeat;
+	}
+	.gis-menu-item-icon-relocate {
+		background: url('../images/relocate_16.png') no-repeat;
+	}
+
+	.gis-menu-item-icon-favorite {
+		background: url('../images/favorite_16.png') no-repeat;
+	}
+
+	.x-menu-item-separator {
+		height: 1px;
+	}
+	.x-menu-item-text {
+	}
+
+.gis-menu-item-selected {
+    background-image:url('../images/check.png');
+    padding-left: 18px;
+}
+.gis-menu-item-unselected {
+    background-image:url('../images/check-un.png');
+    padding-left: 18px;
+}
+
+.gis-menu-item-tablelayout {
+    background-image:url('../images/dl_tablelayout.png');
+    padding-left: 18px;
+}
+.gis-menu-item-datasource {
+    background-image:url('../images/dl_datasource.png');
+    padding-left: 18px;
+}
+
+	/* Menu align */
+.gis-btn-menu {
+	margin-top: 2px;
+}
+
+	/* Popup menu */
+.gis-popupmenu {
+    border: 1px solid #aaa;
+    border-radius: 2px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Treepanel
+ *--------------------------------------------------------------------------*/
+
+
+.x-tree-icon-leaf {
+	background-image: url('../images/leaf.gif');
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Treepanel
+ *--------------------------------------------------------------------------*/
+
+	/* Node height */
+.gis-tree.x-tree-panel .x-grid-row .x-grid-cell-inner {
+    height: 17px;
+    font-size: 10px !important;
+}
+
+	/* Selected row background */
+.gis-tree .x-grid-row-selected .x-grid-cell,
+.gis-tree .x-grid-row-selected .x-grid-rowwrap-div {
+    background-color: #e0e0e0;
+    border-radius: 2px 2px 2px 2px;
+}
+
+	/* Hover row background */
+.gis-tree .x-grid-cell {
+    border-radius: 2px 2px 2px 2px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Color picker
+ *--------------------------------------------------------------------------*/
+
+.x-color-picker a { /* Square spacing */
+	padding: 0;
+}
+.x-color-picker em span { /* Square size */
+	width: 14px;
+	height: 14px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Window
+ *--------------------------------------------------------------------------*/
+
+.gis-window-widget-feature {
+	padding: 0;
+	border: 0 none;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+.gis-window-widget-feature .x-window-body-default {
+	border: 0 none;
+	background: transparent;
+}
+.gis-window-widget-feature .x-window-body-default .x-panel-body-default {
+	border: 0 none;
+	background: #556;
+	opacity: 0.92;
+	filter: alpha(opacity=92);
+	-ms-filter: "alpha(opacity=92)";
+	padding: 6px 8px 6px 8px;
+	border-radius: 3px;
+	color: #fff;
+	font-weight: bold;
+	letter-spacing: 1px;
+}
+
+.gis-window-title-icon-facility {
+	background: url('../images/facility_14.png') no-repeat;
+}
+.gis-window-title-icon-event {
+	background: url('../images/event_14.png') no-repeat;
+}
+.gis-window-title-icon-boundary {
+	background: url('../images/boundary_14.png') no-repeat;
+}
+.gis-window-title-icon-thematic1 {
+	background: url('../images/thematic1_14.png') no-repeat;
+}
+.gis-window-title-icon-thematic2 {
+	background: url('../images/thematic2_14.png') no-repeat;
+}
+.gis-window-title-icon-thematic3 {
+	background: url('../images/thematic3_14.png') no-repeat;
+}
+.gis-window-title-icon-thematic4 {
+	background: url('../images/thematic4_14.png') no-repeat;
+}
+
+.gis-window-title-icon-labels {
+	background: url('../images/labels_14.png') no-repeat;
+}
+.gis-window-title-icon-filter {
+	background: url('../images/filter_14.png') no-repeat;
+}
+.gis-window-title-icon-search {
+	background: url('../images/search_14.png') no-repeat;
+}
+
+.gis-window-title-icon-relocate {
+	background: url('../images/relocate_14.png') no-repeat;
+}
+.gis-window-title-icon-information {
+	background: url('../images/information_14.png') no-repeat;
+}
+
+
+.gis-window-title-icon-favorite {
+	background: url('../images/favorite_14.png') no-repeat;
+}
+.gis-window-title-icon-legendset {
+	background: url('../images/legendset_14.png') no-repeat;
+}
+.gis-window-title-icon-download {
+	background: url('../images/download_14.png') no-repeat;
+}
+.gis-window-title-icon-interpretation {
+	background: url('../images/interpretation_14.png') no-repeat;
+}
+.gis-window-title-icon-measure {
+	background: url('../images/measure_14.png') no-repeat;
+}
+
+.gis-window-title-messagebox {
+    padding-left: 16px;
+    background-position-y: 1px;
+}
+.gis-window-title-messagebox.error {
+    background-image: url('../images/error_m.png');
+}
+.gis-window-title-messagebox.warning {
+    background-image: url('../images/warning.png');
+}
+
+/*----------------------------------------------------------------------------
+ * GIS Grid
+ *--------------------------------------------------------------------------*/
+
+.gis-grid-row-icon-edit,
+.gis-grid-row-icon-overwrite,
+.gis-grid-row-icon-sharing,
+.gis-grid-row-icon-dashboard,
+.gis-grid-row-icon-delete {
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+}
+.gis-grid-row-icon-edit {
+	background: url('../images/grid-edit_16.png') no-repeat;
+}
+.gis-grid-row-icon-overwrite {
+	background: url('../images/grid-save_16.png') no-repeat;
+	margin-left: 4px;
+}
+.gis-grid-row-icon-sharing {
+	background: url('../images/grid-sharing_16.png') no-repeat;
+	margin-left: 4px;
+}
+.gis-grid-row-icon-dashboard {
+	background: url('../images/grid-dashboard_16.png') no-repeat;
+	margin-left: 4px;
+}
+.gis-grid-row-icon-delete {
+	background: url('../images/grid-delete_16.png') no-repeat;
+	margin-left: 4px;
+}
+.gis-grid-row-icon-disabled img.gis-grid-row-icon-edit,
+.gis-grid-row-icon-disabled img.gis-grid-row-icon-overwrite,
+.gis-grid-row-icon-disabled img.gis-grid-row-icon-delete {
+	opacity: 0;
+	filter:Alpha(opacity=0);
+}
+.gis-grid-row-icon-disabled * {
+	cursor: default !important;
+}
+.gis-grid-row-icon-disabled img.gis-grid-row-icon-sharing,
+.gis-grid-row-icon-disabled img.gis-grid-row-icon-dashboard {
+	cursor: pointer !important;
+}
+
+.gis-grid .x-grid-cell-inner {
+	padding-top: 3px;
+	padding-bottom: 3px;
+    font-size: 10px;
+}
+
+.gis-grid .x-column-header-text {
+	color: #333;
+}
+.gis-grid .x-grid-header-ct {
+	border-bottom-width: 1px !important;
+	border-bottom-color: #d0d0d0;
+}
+.gis-grid .x-grid-body {
+	border-top: 0 none !important;
+}
+
+.gis-grid .x-grid-dirty-cell { /* hide red "dirty" icon */
+	background-image: none;
+}
+.gis-grid .x-grid-row { /* middle align text in row with image */
+	vertical-align: middle;
+}
+.gis-grid .x-grid-row .x-grid-cell { /* remove blurry borders */
+	border-top: 0 none;
+}
+.gis-grid.plain .x-grid-row .x-grid-cell {
+	border-style: none;
+}
+
+.gis-grid .link,
+.gis-grid .link * {
+	cursor: pointer;
+	cursor: hand;
+	color: blue;
+	text-decoration: underline;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Textfield
+ *--------------------------------------------------------------------------*/
+
+.gis-textfield {
+    margin-bottom: 1px;
+}
+
+.gis-textfield input.x-form-text {
+	border-radius: 1px;
+	height: 24px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Textarea
+ *--------------------------------------------------------------------------*/
+
+.gis-textarea .x-form-field {
+	font-size: 11px;
+}
+
+.gis-textarea.monospaced textarea {
+	font-family: monospace, consolas, courier new !important;
+	padding: 4px;
+	border: 0 none;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Checkbox
+ *--------------------------------------------------------------------------*/
+
+.x-form-checkbox {
+    background-image: url('../images/checkbox.gif');
+    cursor: pointer;
+    cursor: hand;
+}
+label.x-form-cb-label {
+    cursor: pointer;
+    cursor: hand;
+}
+
+.x-form-cb-wrap {
+	padding-top: 4px;
+}
+.x-form-checkbox {
+	vertical-align: 0;
+}
+
+	/* Alternative boxlabel cls */
+label.x-form-cb-label-alt1 {
+    position: relative;
+    top: -2px;
+    padding-left: 4px;
+    font-size: 11px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Checkbox
+ *--------------------------------------------------------------------------*/
+
+.gis-checkbox {
+    margin-bottom: 1px;
+}
+
+    /* Form label */
+.gis-checkbox .x-form-item-label-left {
+    padding-top: 4px;
+    padding-left: 4px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Numberfield
+ *--------------------------------------------------------------------------*/
+
+.gis-numberfield {
+    margin-bottom: 1px;
+}
+
+    /* Form label */
+.gis-numberfield .x-form-item-label-left {
+    padding-top: 4px;
+    padding-left: 4px;
+}
+
+.gis-numberfield .x-form-field {
+    height: 24px !important;
+}
+
+.gis-numberfield .x-form-spinner-up,
+.gis-numberfield .x-form-spinner-down {
+    height: 12px !important;
+    background-image: url('../images/spinner_24.png');
+}
+
+.gis-numberfield .x-form-spinner-down {
+    background-position: 0 -12px;
+}
+.gis-numberfield .x-form-spinner-down-over {
+    background-position: -17px -12px;
+}
+.gis-numberfield .x-form-spinner-down-click {
+    background-position: -34px -12px;
+}
+
+/*----------------------------------------------------------------------------
+ * GIS Label
+ *--------------------------------------------------------------------------*/
+
+.gis-label-info {
+	font-size: 10px !important;
+	color: #666;
+	padding-left: 4px;
+	height: 22px;
+	line-height: 21px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Tooltip
+ *--------------------------------------------------------------------------*/
+.x-tip {
+    border-radius: 2px;
+    padding: 1px 4px;
+    border: 1px solid #111;
+    background-color: #111;
+}
+
+.x-tip .x-tip-body {
+	font-size: 10px;
+	color: #fff;
+	-webkit-text-stroke: 0.2px #fff;
+}
+
+.x-tip-anchor {
+	border-top-color: #111;
+}
+
+
+/*----------------------------------------------------------------------------
+ * LoadMask
+ *--------------------------------------------------------------------------*/
+
+.x-mask-msg {
+	padding: 0;
+	border: 0 none;
+	background-image: none;
+	background-color: transparent;
+}
+.x-mask-msg div {
+    background-position: 11px center;
+}
+.x-mask-msg .x-mask-loading {
+	border: 0 none;
+	background-color: #000;
+	color: #fff;
+	border-radius: 2px;
+	padding: 12px 14px 12px 30px;
+	opacity: 0.65;
+}
+
+
+/*----------------------------------------------------------------------------
+ * GIS Accordion
+ *--------------------------------------------------------------------------*/
+
+	/* accordion title bar, shared */
+.gis-accordion .x-accordion-item .x-accordion-hd {
+	padding: 6px 5px 4px 8px;
+	border: 0 none;
+	cursor: pointer;
+	border-radius: 0;
+    background-image: none;
+    background-color: #e0e0e0;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dedede), color-stop(100%, #e6e6e6)) !important;
+    background-image: -webkit-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -moz-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -o-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -ms-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: linear-gradient(top, #dddddd, #e6e6e6) !important;
+}
+	/* accordion title dock, default, collapsed */
+.gis-accordion .collapsed .x-accordion-hd {
+	padding-bottom: 5px !important;
+}
+
+	/* accordion title dock outer, shared */
+.gis-accordion .x-accordion-item {
+	border-radius: 1px;
+}
+	/* accordion title dock outer, default */
+.gis-accordion .x-accordion-item {
+	border: 1px solid #c5c5c5;
+	border-bottom: 0 none;
+}
+	/* accordion title dock outer, last */
+.gis-accordion .gis-accordion-last {
+	border: 1px solid #c5c5c5;
+}
+
+	/* accordion title dock text, shared */
+.gis-accordion .x-accordion-hd .x-panel-header-text {
+	font-weight: normal;
+	cursor: pointer;
+}
+
+	/* accordion item body */
+.gis-accordion .x-accordion-body {
+	padding: 2px 2px 0px;
+	border-top: 1px solid #c5c5c5 !important;
+}
+
+.gis-accordion .x-accordion-hd-sibling-expanded {
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	-o-box-shadow: none;
+	box-shadow: none;
+}
+
+.gis-accordion .gis-toolbar-multiselect-left, .gis-accordion .gis-toolbar-multiselect-right {
+	margin-bottom: 0;
+}
+
+	/* accordion combo box */
+.gis-accordion .gis-combo .x-form-text, .gis-accordion .gis-combo .x-form-trigger {
+	height: 24px;
+	padding-top: 1px;
+}
+	/* accordion combo box label */
+.gis-accordion .gis-combo .x-form-item-label {
+	padding: 4px 0 0;
+}
+
+
+/*----------------------------------------------------------------------------
+ * NS Textarea
+ *--------------------------------------------------------------------------*/
+
+.ns-textarea .x-form-field {
+	font-size: 11px;
+}
+
+.ns-textarea.monospaced textarea {
+	font-family: monospace, consolas, courier new !important;
+	padding: 4px;
+	border: 0 none;
+}

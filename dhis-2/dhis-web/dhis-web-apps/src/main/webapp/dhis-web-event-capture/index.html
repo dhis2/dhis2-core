@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html manifest="cacheManifest.action" ng-app="eventCapture">
+    <head>
+        <title>Event Capture</title>
+
+        <meta name="description" content="DHIS 2">
+        <meta name="keywords" content="DHIS 2">        
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+       
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/ui/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.plugin.min.js"></script>
+        
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.picker.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.plus.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.picker.ext.js"></script>
+        
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.coptic.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.ethiopian.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.islamic.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.julian.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.nepali.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.thai.min.js"></script>      
+
+        <link type="text/css" rel="stylesheet" href="../dhis-web-commons/javascripts/jQuery/ui/css/redmond/jquery-ui.css">
+        <link type="text/css" rel="stylesheet" href="../dhis-web-commons/javascripts/jQuery/calendars/css/ui.calendars.picker.css">
+        <link type="text/css" rel="stylesheet" href="../dhis-web-commons/javascripts/jQuery/calendars/css/ui-redmond.calendars.picker.css">        
+        
+        <script type="text/javascript" src="../dhis-web-commons/bootstrap/js/bootstrap.min.js"></script>
+        <link type="text/css" rel="stylesheet"  href="../dhis-web-commons/bootstrap/css/bootstrap.min.css">
+                
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-resource.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-route.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-cookies.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-animate.js"></script>  
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-sanitize.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/angular-messages.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/ui-bootstrap.js"></script>
+       
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/moment/moment-with-langs.min.js"></script>       
+
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/underscore.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.util.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/commons.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/commons.ajax.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.availability.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.trigger.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.validation.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.ss.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.ls.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.idb.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.memory.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.contextmenu.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.appcache.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/ouwt/ouwt.js"></script>
+        <script src="../dhis-web-commons/javascripts/dhis2/dhis2.tracker.metadata.js"></script>
+        <script type="text/javascript" src="scripts/event-capture.js"></script>
+        
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/plugins/angularLocalStorage.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/plugins/angular-translate.min.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/angular/plugins/select.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.directives.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.map.directive.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.services.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.filters.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.validations.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.angular.controllers.js"></script>
+        
+        <script type="text/javascript" src="scripts/app.js"></script>
+        <script type="text/javascript" src="scripts/services.js"></script>
+        <script type="text/javascript" src="scripts/directives.js"></script>        
+        <script type="text/javascript" src="scripts/controllers.js"></script>        
+        <script type="text/javascript" src="scripts/notes-controller.js"></script>        
+        <script type="text/javascript" src="scripts/filters.js"></script>
+
+        <!-- Menu scripts -->
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.translate.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.menu.js"></script>
+        <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.menu.ui.js"></script>
+        <script type="text/javascript" src="../main.js"></script>
+
+        <link type="text/css" rel="stylesheet" href="../dhis-web-commons/font-awesome/css/font-awesome.min.css"/>
+        <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/css/widgets.css"/>
+        <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/css/menu.css">
+        <link type="text/css" rel="stylesheet" media="print" href="../dhis-web-commons/css/print.css">        
+        <link type="text/css" rel="stylesheet" href="../dhis-web-commons/javascripts/angular/plugins/select.css">
+        <link type="text/css" rel="stylesheet" href="../dhis-web-commons/javascripts/angular/plugins/select2.css">
+        
+        <link type="text/css" rel="stylesheet" href="styles/style.css">
+        
+        <!-- Custom user styles and scripts -->
+        <link type="text/css" rel="stylesheet" href="../api/files/style" />
+        <script type="text/javascript" src="../api/files/script"></script>
+
+    </head>
+
+    <body>
+        <d2-header-bar></d2-header-bar>
+        
+        <div ng-view></div>
+        
+    </body>
+</html>

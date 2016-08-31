@@ -1,0 +1,7 @@
+<div class="headerDiv"><span class="header">$i18n.getString("dashboard_reports")</span></div>
+
+<div class="contentDiv">
+#foreach( $table in $reportTables )
+<div class="contentItemDiv" id="reportTable${table.id}" onclick="getReportParams( '${table.id}' )">$encoder.htmlEncode( $table.name )</div>
+#end
+</div>

@@ -1,0 +1,128 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+		jQuery("#availableValidationRules").dhisAjaxSelect({
+			source: "../dhis-web-commons-ajax-json/getValidationRules.action",
+			iterator: "validationRules",
+			connectedTo: 'groupMembers',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+
+		jQuery("#availableUserGroupsToAlert").dhisAjaxSelect({
+			source: "../dhis-web-commons-ajax-json/getUserGroups.action",
+			iterator: "userGroups",
+			connectedTo: 'userGroupsToAlert',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+	});
+</script>
+
+<h3>$i18n.getString( "create_new_validation_rule_group" )</h3>
+
+#sharingCreateNotification( "validationRuleGroup" )
+
+<form id="addValidationRuleGroupForm" action="addValidationRuleGroup.action" method="post" class="inputForm">
+
+<table>
+	<colgroup>
+      <col style="width: 120px">
+      <col>
+    </colgroup>
+    <tr>
+        <th colspan="2">$i18n.getString( "details" )</th>
+    </tr>
+    <tr>
+        <td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name"></td>
+    </tr>
+    <tr>
+        <td><label for="description">$i18n.getString( "description" )</label></td>
+        <td><textarea name="description"></textarea></td>
+    </tr>
+</table>
+
+<table style="margin-top: 15px;">
+    <colgroup>
+      <col style="width: 120px">
+      <col style="width: 500px;">
+      <col>
+      <col style="width: 500px;">
+    </colgroup>
+
+    <tr>
+        <th></th>
+        <th>$i18n.getString( "available" )</th>
+        <th></th>
+        <th>$i18n.getString( "selected" )</th>
+    </tr>
+
+    <tr>
+		<td><label>$i18n.getString( "validation_rules" )</label></td>		
+    	<td>
+            <select id="availableValidationRules" name="availableValidationRules" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        </td>
+
+        <td style="text-align:center">
+        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableValidationRules' );"/><br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'groupMembers' );"/><br/>
+			<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableValidationRules' );"/><br/>
+			<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'groupMembers' );"/>
+        </td>
+
+        <td>
+            <select id="groupMembers" name="groupMembers" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px" />
+        </td>      
+    </tr>
+
+    <tr>
+		<td><label>$i18n.getString( "user_groups_to_alert" )</label></td>
+    	<td>
+            <select id="availableUserGroupsToAlert" name="availableUserGroupsToAlert" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        </td>
+
+        <td style="text-align:center">
+        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableUserGroupsToAlert' );"/><br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'userGroupsToAlert' );"/><br/>
+			<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableUserGroupsToAlert' );"/><br/>
+			<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'userGroupsToAlert' );"/>
+        </td>
+
+        <td>
+            <select id="userGroupsToAlert" name="userGroupsToAlert" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px" />
+        </td>      
+    </tr>
+</table>
+
+<table>
+	<colgroup>
+      <col style="width: 120px">
+      <col>
+    </colgroup>
+    <tr>
+        <td><label for="alertByOrgUnits">$i18n.getString( "alert_by_org_units" )</label></td>
+        <td>
+            <select type="text" id="alertByOrgUnits" name="alertByOrgUnits">
+                <option value="false">$i18n.getString( "no" )</option>
+                <option value="true">$i18n.getString( "yes" )</option>
+            </select>
+        </td>
+    </tr>
+</table>
+
+    <p>
+	<input type="submit" value="$i18n.getString( "add" )" style="width:10em" />
+	<input type="button" value="$i18n.getString( "cancel" )" onclick="window.location.href='validationRuleGroup.action'" style="width:10em" />
+</p>
+
+</form>

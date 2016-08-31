@@ -1,0 +1,50 @@
+<div class="panel panel-info" ng-controller="DataEntryController">
+    <div ng-include="'components/dataentry/dataentry-print.html'">
+    </div>
+    <div class="panel-heading handle bold">
+        {{dataentryWidget.title| translate}}
+        <!--<span class="nav-pills" ng-if="stageNeedsEvent(currentStage)">
+            | <a href ng-click="showCreateEvent(currentStage, eventCreationActions.add)" title="{{'add_new_event'| translate}}"><span ng-class="{true: 'widget - link - active', false: 'widget - link'} [!editingDisabled]">{{'add_new_event'| translate}}</span></a>
+        </span>-->
+        <span class="pull-right widget-link">            
+            <a href ng-click="toggleLegend()" title="{{'event_color_legend'| translate}}" class="small-horizonal-spacing"><i class="fa fa-info-circle vertical-center"></i></a>
+            <a href ng-click="toggleEventsTableDisplay()" title="{{showEventsAsTables ? 'toggle_table_view_off' : 'toggle_table_view_on'| translate}}" ng-show="stagesCanBeShownAsTable"><span ng-if="!showEventsAsTables"><i class="fa fa-bars vertical-center"></i></span><span ng-if="showEventsAsTables"><i class="fa fa-square vertical-center"></i></span></a>
+            <a class="small-horizonal-spacing" href ng-click="expandCollapse(dataentryWidget)">
+                <span ng-show="dataentryWidget.expand"><i class="fa fa-chevron-up vertical-center" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!dataentryWidget.expand"><i class="fa fa-chevron-down vertical-center" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizonal-spacing" href ng-click="removeWidget(dataentryWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle vertical-center"></i></a>            
+        </span>
+    </div>
+
+    <div ng-show="dataentryWidget.expand" class="panel-body dashboard-widget-container">
+
+        <div ng-if="!dashboardReady">
+            <img id="ouwt_loader" src="../images/ajax-loader-bar.gif" alt="{{'loading'| translate}}"/>
+        </div>
+        <div ng-if="dashboardReady"> 
+            <div ng-if="showEventColors">
+                <span class='bold'>{{'legend'| translate}}</span>
+                <table class="table table-bordered" style="width: 100%;">
+                    <tr>
+                        <td ng-class="eventColor.color" ng-repeat="eventColor in eventColors">
+                            <span class="bold">{{eventColor.description| translate}}</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="hideInPrint" ng-if="selectedEnrollment && selectedEnrollment.enrollment">
+                <div ng-include="'components/dataentry/event-layout.html'"></div>
+            </div>
+
+            <div ng-if="!selectedEnrollment || !selectedEnrollment.enrollment" class="alert alert-danger">{{notEnrolledLabel}}</div>
+
+            <div ng-include="'components/dataentry/main-dataentry-form.html'"></div>
+            
+            <div ng-if="displayCustomForm !== 'TABLE'">
+                <div ng-include="'components/dataentry/dataentry-notes.html'"></div>
+            </div>
+        </div>
+    </div> 
+</div>

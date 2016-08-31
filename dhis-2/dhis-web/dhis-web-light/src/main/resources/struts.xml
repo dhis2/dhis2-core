@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+	<include file="dhis-web-commons.xml" />
+
+	<package name="dhis-web-light" extends="dhis-web-commons"
+		namespace="/light">
+
+		<action name="index" class="org.hisp.dhis.light.action.MenuAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/menu.vm</param>
+		</action>
+
+		<!-- <action name="viewChart" class="org.hisp.dhis.light.chart.action.GetDataSetInfoForChartAction"> 
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result> <param 
+			name="page">/dhis-web-light/chart/viewChartInfo.vm</param> </action> -->
+
+		<!-- data entry -->
+
+		<action name="selectOrganisationUnit"
+			class="org.hisp.dhis.light.dataentry.action.GetOrganisationUnitsAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/selectOrganisationUnit.vm</param>
+			<result name="selectDataSet" type="redirect">
+				/light/selectDataSet.action?organisationUnitId=${organisationUnitId}
+			</result>
+			<result name="selectPeriod" type="redirect">
+				/light/selectPeriod.action?organisationUnitId=${organisationUnitId}&amp;dataSetId=${dataSetId}
+			</result>
+			<param name="requiredAuthorities">F_DATAVALUE_ADD</param>
+		</action>
+
+		<action name="selectDataSet"
+			class="org.hisp.dhis.light.dataentry.action.GetDataSetsAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/selectDataSet.vm</param>
+			<result name="selectPeriod" type="redirect">
+				/light/selectPeriod.action?organisationUnitId=${organisationUnitId}&amp;dataSetId=${dataSetId}
+			</result>
+		</action>
+
+		<action name="selectPeriod"
+			class="org.hisp.dhis.light.dataentry.action.GetPeriodsAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/selectPeriod.vm</param>
+		</action>
+
+		<action name="dataEntry"
+			class="org.hisp.dhis.light.dataentry.action.GetDataSetOverviewAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/dataEntryOverview.vm</param>
+			<param name="requiredAuthorities">F_DATAVALUE_ADD</param>
+		</action>
+
+		<action name="dataEntrySection"
+			class="org.hisp.dhis.light.dataentry.action.GetSectionFormAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/dataEntrySection.vm</param>
+		</action>
+
+		<action name="saveSectionForm"
+			class="org.hisp.dhis.light.dataentry.action.SaveSectionFormAction">
+			<result name="success" type="redirect">
+				/light/dataEntry.action?organisationUnitId=${organisationUnitId}&amp;dataSetId=${dataSetId}&amp;isoPeriod=${isoPeriod}&amp;sectionId=${sectionId}&amp;validated=${validated}
+			</result>
+			<result name="error" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/dataEntrySection.vm</param>
+			<param name="requiredAuthorities">F_DATAVALUE_ADD,F_DATAVALUE_DELETE</param>
+		</action>
+
+		<action name="markComplete"
+			class="org.hisp.dhis.light.dataentry.action.MarkComplete">
+			<result name="success" type="redirect">
+				/light/index.action?organisationUnitId=${organisationUnitId}&amp;dataSetId=${dataSetId}&amp;isoPeriod=${isoPeriod}&amp;complete=true
+			</result>
+			<param name="requiredAuthorities">F_DATAVALUE_ADD</param>
+		</action>
+
+		<action name="inComplete"
+			class="org.hisp.dhis.light.dataentry.action.UndoCompleteAction">
+			<result name="success" type="redirect">
+				/light/dataEntry.action?organisationUnitId=${organisationUnitId}&amp;dataSetId=${dataSetId}&amp;isoPeriod=${isoPeriod}
+			</result>
+			<param name="requiredAuthorities">F_DATAVALUE_DELETE</param>
+		</action>
+
+		<!-- Namebased Data Entry -->
+
+	
+
+		
+		<!-- Beneficiary Registration -->
+
+		
+
+		<!-- Beneficiary Enrollment -->
+
+		<!-- Reports -->
+
+		<action name="reports"
+			class="org.hisp.dhis.light.dashboard.action.ProvideContentAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/reports.vm</param>
+		</action>
+
+		<action name="dashboard-charts"
+			class="org.hisp.dhis.light.dashboard.action.ProvideContentAction">
+			<result name="success" type="velocity">/dhis-web-light/dashboard_page.vm
+			</result>
+			<param name="page">/dhis-web-light/dashboard_charts.vm</param>
+		</action>
+
+		<action name="dashboard-reports"
+			class="org.hisp.dhis.light.dashboard.action.ProvideContentAction">
+			<result name="success" type="velocity">/dhis-web-light/dashboard_page.vm
+			</result>
+			<param name="page">/dhis-web-light/dashboard_reports.vm</param>
+		</action>
+
+		<action name="dashboard-documents"
+			class="org.hisp.dhis.light.dashboard.action.ProvideContentAction">
+			<result name="success" type="velocity">/dhis-web-light/dashboard_page.vm
+			</result>
+			<param name="page">/dhis-web-light/dashboard_documents.vm</param>
+		</action>
+
+		<action name="getReport"
+			class="org.hisp.dhis.light.dashboard.action.GetReportAction">
+			<result name="success" type="velocity">/dhis-web-light/dashboard_page.vm
+			</result>
+			<param name="page">/dhis-web-commons/ajax/htmlGrid.vm</param>
+		</action>
+
+		<action name="getReportParams"
+			class="org.hisp.dhis.light.dashboard.action.GetReportParamsAction">
+			<result name="success" type="velocity">/dhis-web-light/dashboard_page.vm
+			</result>
+			<param name="page">/dhis-web-light/inputReportParamsForm.vm</param>
+		</action>
+
+		<action name="getChart"
+			class="org.hisp.dhis.light.dashboard.action.GetChartAction">
+			<result name="success" type="chart">
+				<param name="width">480</param>
+				<param name="height">800</param>
+			</result>
+		</action>
+
+		<action name="getDashboardChart"
+			class="org.hisp.dhis.light.dashboard.action.GetDashboardChartAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/dashboard_chart.vm</param>
+		</action>
+
+		<!-- Settings -->
+
+		<action name="settings"
+			class="org.hisp.dhis.light.settings.action.GetSettingsAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/settings.vm</param>
+		</action>
+
+		<action name="saveSettingsForm"
+			class="org.hisp.dhis.light.settings.action.SaveSettingsFormAction">
+			<result name="success" type="redirect">/light/index.action</result>
+		</action>
+
+		<!-- Messages -->
+		
+		<action name="message" class="org.hisp.dhis.light.action.NoAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/sendMessageOnMobile2.vm</param>
+		</action>
+
+		<action name="messages"
+			class="org.hisp.dhis.light.message.action.GetMessagesAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/messages.vm</param>
+		</action>
+
+		<action name="reply"
+			class="org.hisp.dhis.light.message.action.GetMessageAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/message.vm</param>
+		</action>
+
+		<action name="sendReply"
+			class="org.hisp.dhis.light.message.action.SendReplyAction">
+			<result name="success" type="redirect">/light/messages.action</result>
+		</action>
+
+		<action name="feedback" class="org.hisp.dhis.light.action.NoAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/feedback.vm</param>
+		</action>
+
+		<action name="sendFeedback"
+			class="org.hisp.dhis.light.message.action.SendFeedbackAction">
+			<result name="success" type="redirect">/light/index.action</result>
+		</action>
+
+		<action name="searchUser"
+			class="org.hisp.dhis.light.messaging.action.FindUserAction">
+			<result name="redirect" type="redirect">showUserList.action?userId=${userId}
+			</result>
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/sendMessageOnMobile2.vm</param>
+		</action>
+
+		<action name="addRecipient"
+			class="org.hisp.dhis.light.message.action.AddRecipientAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/sendMessageOnMobile2.vm</param>
+		</action>
+
+		<action name="showUserList"
+			class="org.hisp.dhis.light.messaging.action.GetMessageRecipientsAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/sendMessageOnMobile2.vm</param>
+		</action>
+
+		<action name="sendMessage"
+			class="org.hisp.dhis.light.messaging.action.SendMessagesAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/menu.vm</param>
+		</action>
+
+		<action name="recipients"
+			class="org.hisp.dhis.light.messaging.action.GetLastRecipientsAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/messages.vm</param>
+		</action>
+
+
+		<!-- Interpretations -->
+		
+		<action name="getInterpretations"
+			class="org.hisp.dhis.light.interpretation.action.GetInterpretations">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/interpretation/interpretations.vm</param>
+		</action>
+
+		<action name="getInterpretation"
+			class="org.hisp.dhis.light.interpretation.action.GetInterpretation">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/interpretation/interpretation.vm</param>
+		</action>
+
+		<action name="postInterpretationComment"
+			class="org.hisp.dhis.light.interpretation.action.PostInterpretationComment">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/interpretation/interpretation.vm</param>
+		</action>
+
+		<action name="postInterpretation"
+			class="org.hisp.dhis.light.interpretation.action.PostInterpretation">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/menu.vm</param>
+		</action>
+
+		<!-- Anonymous -->
+
+		<!-- <action name="selectAnonymousOrgUnit" class="org.hisp.dhis.light.beneficiaryregistration.action.GetBeneficiaryRegistrationOrganisationUnitAction"> -->
+
+		<action name="selectAnonymousOrgUnit"
+			class="org.hisp.dhis.light.anonymous.action.SearchOrgUnitAction">
+			<result name="redirect" type="redirect">/light/anonymous.action?orgUnitId=${orgUnitId}
+			</result>
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/anonymous/selectAnonymousOrgUnit.vm</param>
+		</action>
+
+		<action name="anonymous"
+			class="org.hisp.dhis.light.anonymous.action.GetAllAnonymousProgramAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/anonymous/anonymousProgramSelection.vm</param>
+		</action>
+
+		<action name="showAnonymousForm"
+			class="org.hisp.dhis.light.anonymous.action.ShowAnonymousFormAction">
+			<result name="success" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/anonymous/anonymousProgramForm.vm</param>
+			<param name="requiredAuthorities">F_TRACKED_ENTITY_DATAVALUE_ADD,F_TRACKED_ENTITY_DATAVALUE_DELETE</param>
+		</action>
+
+		<action name="saveAnonymousForm"
+			class="org.hisp.dhis.light.anonymous.action.SaveAnonymousProgramAction">
+			<result name="success" type="redirect">/light/anonymous.action?validated=true&amp;orgUnitId=${orgUnitId}
+			</result>
+			<result name="error" type="velocity">/dhis-web-light/main.vm</result>
+			<param name="page">/dhis-web-light/anonymous/anonymousProgramForm.vm</param>
+			<param name="requiredAuthorities">F_TRACKED_ENTITY_DATAVALUE_ADD,F_TRACKED_ENTITY_DATAVALUE_DELETE</param>
+		</action>
+
+	</package>
+</struts>

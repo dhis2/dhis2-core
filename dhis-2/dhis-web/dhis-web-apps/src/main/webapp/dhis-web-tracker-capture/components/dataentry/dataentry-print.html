@@ -1,0 +1,55 @@
+<div id="print-div" class="not-for-screen">
+
+    <div class="col-sm-12">
+        <h3>{{'profile'| translate}}</h3>
+    </div>    
+    <table class="dhis2-list-table-striped dhis2-table-hover">
+        <tbody>
+            <tr ng-repeat="attribute in selectedTei.attributes" ng-show="attribute.show">
+                <td class="col-sm-6">
+                    {{attribute.displayName}}
+                </td>
+                <td class="col-sm-6">
+                    <input type="text" value={{attribute.value}} class="form-control">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="col-sm-12">
+        <h3>{{'enrollment'| translate}}</h3>
+    </div>    
+    <table class="dhis2-list-table-striped dhis2-table-hover">
+        <tbody>
+            <tr>
+                <td class="col-sm-6">
+                    {{'enrolling_orgunit'| translate}}
+                </td>
+                <td class="col-sm-6">
+                    <input type="text" value={{selectedEnrollment.orgUnitName}} class="form-control">
+                </td>
+            </tr>
+            <tr>
+                <td class="col-sm-6">
+                    {{selectedProgram.enrollmentDateLabel}}
+                </td>
+                <td class="col-sm-6">
+                    <input type="text" value= {{selectedEnrollment.enrollmentDate}} class="form-control">
+                </td>
+            </tr>
+            <tr>
+                <td class="col-sm-6">
+                    {{selectedProgram.incidentDateLabel}}
+                </td>
+                <td class="col-sm-6">
+                    <input type="text" value={{selectedEnrollment.incidentDate}} class="form-control">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="col-sm-12">
+        <h3>{{'dataentry'| translate}}</h3>
+        <div ng-include="'components/dataentry/main-dataentry-form.html'"></div>
+    </div>
+</div>

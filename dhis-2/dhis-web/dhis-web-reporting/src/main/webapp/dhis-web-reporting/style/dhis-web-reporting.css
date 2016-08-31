@@ -1,0 +1,82 @@
+
+.interpretationArea
+{
+  height: 40px;
+  width: 455px;
+  border: 1px solid #c0c0c0;
+  resize: none;
+  overflow: auto;
+  padding: 4px 0 0px 6px;
+}
+
+#shareForm
+{
+  margin: 0 0 10px 0;
+}
+
+.resultDiv
+{
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 20px;
+}
+
+#approvalNotification
+{
+  width: auto;
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 10px;
+}
+
+#attributeOptionComboTable
+{
+  border-collapse: collapse;
+  width: 97%;
+}
+
+#attributeOptionComboTable th
+{
+  padding: 2px 3px 2px 3px;
+}
+
+#attributeOptionComboTable td
+{
+  padding: 5px 3px 6px 3px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+#attributeOptionComboItemDiv
+{
+  height: 460px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+#attributeOptionComboButtonDiv
+{
+  padding: 10px 0;
+}
+
+@media print
+{
+	div#control 
+    {
+	  display: none;
+	}
+	
+	h3#dataSetReportHeader
+    {
+	  display: none;
+	}
+		
+	#shareForm 
+    {
+	  display: none;
+	}  
+	
+	.gridTable 
+    {
+	    width: 100%;
+	}
+}

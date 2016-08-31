@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataset.CompleteDataSetRegistration" table="completedatasetregistration">
+
+    <composite-id>
+      <key-many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
+        foreign-key="fk_datasetcompleteregistration_datasetid" />
+      <key-many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid"
+        foreign-key="fk_datasetcompleteregistration_periodid" />
+      <key-many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid"
+        foreign-key="fk_completedatasetregistration_organisationunitid" />
+      <key-many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
+        column="attributeoptioncomboid"
+        foreign-key="fk_completedatasetregistration_attributeoptioncomboid" />
+    </composite-id>
+
+    <property name="date" column="date" type="timestamp" />
+    <property name="storedBy" column="storedby" />
+
+  </class>
+</hibernate-mapping>

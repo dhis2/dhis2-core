@@ -1,0 +1,156 @@
+<script type="text/javascript">
+var i18n_select_data_set = '$encoder.jsEscape( $i18n.getString( "select_data_set" ) , "'")';
+var i18n_select_period = '$encoder.jsEscape( $i18n.getString( "select_period" ) , "'")';
+var i18n_select_option = '$encoder.jsEscape( $i18n.getString( "select_option" ) , "'")';
+var i18n_register_complete_dataset_success = '$encoder.jsEscape( $i18n.getString( "register_complete_dataset_success" ) , "'")';
+var i18n_register_complete_dataset_failed = '$encoder.jsEscape( $i18n.getString( "register_complete_dataset_failed" ) , "'")';
+var i18n_undo_register_complete_dataset_success = '$encoder.jsEscape( $i18n.getString( "undo_register_complete_dataset_success" ) , "'")';
+var i18n_value_of_data_element_less = '$encoder.jsEscape( $i18n.getString( "value_of_data_element_less" ) , "'")';
+var i18n_value_of_data_element_greater = '$encoder.jsEscape( $i18n.getString( "value_of_data_element_greater" ) , "'")';
+var i18n_value_too_long = '$encoder.jsEscape( $i18n.getString( "value_is_too_long" ) , "'")';
+var i18n_value_must_integer = '$encoder.jsEscape( $i18n.getString( "value_must_integer" ) , "'")';
+var i18n_value_must_number = '$encoder.jsEscape( $i18n.getString( "value_must_number" ) , "'")';
+var i18n_value_must_positive_integer = '$encoder.jsEscape( $i18n.getString( "value_must_positive_integer" ) , "'")';
+var i18n_value_must_zero_or_positive_integer = '$encoder.jsEscape( $i18n.getString( "value_must_zero_or_positive_integer" ) , "'")';
+var i18n_value_must_coordinate = '$encoder.jsEscape( $i18n.getString( "value_must_coordinate" ) , "'")';
+var i18n_value_must_negative_integer = '$encoder.jsEscape( $i18n.getString( "value_must_negative_integer" ) , "'")';
+var i18n_value_must_unit_interval = '$encoder.jsEscape( $i18n.getString( "value_must_unit_interval" ) , "'")';
+var i18n_value_must_percentage = '$encoder.jsEscape( $i18n.getString( "value_must_percentage" ) , "'")';
+var i18n_field_unallowed_save_zero = '$encoder.jsEscape( $i18n.getString( "field_unallowed_save_zero" ) , "'")';
+var i18n_saving_value_failed_status_code = '$encoder.jsEscape( $i18n.getString( "saving_value_failed_status_code" ) , "'")';
+var i18n_saving_value_failed_dataset_is_locked = '$encoder.jsEscape( $i18n.getString( "saving_value_failed_dataset_is_locked" ) , "'")';
+var i18n_saving_comment_failed_status_code = '$encoder.jsEscape( $i18n.getString( "saving_comment_failed_status_code" ) , "'")';
+var i18n_saving_minmax_failed_error_code = '$encoder.jsEscape( $i18n.getString( "saving_minmax_failed_error_code" ) , "'")';
+var i18n_confirm_complete = '$encoder.jsEscape( $i18n.getString( "confirm_complete" ) , "'")';
+var i18n_confirm_undo = '$encoder.jsEscape( $i18n.getString( "confirm_undo" ) , "'")';
+var i18n_no_response_from_server = '$encoder.jsEscape( $i18n.getString( "no_response_from_server" ) , "'")';
+var i18n_enter_digits = '$encoder.jsEscape( $i18n.getString( "enter_digits" ) , "'")';
+var i18n_max_must_be_greater_than_min = '$encoder.jsEscape( $i18n.getString( "max_must_be_greater_than_min" ) , "'")';
+var i18n_mark_value_for_followup = '$encoder.jsEscape( $i18n.getString( "mark_value_for_followup" ) , "'")';
+var i18n_unmark_value_for_followup = '$encoder.jsEscape( $i18n.getString( "unmark_value_for_followup" ) , "'")';
+var i18n_operation_not_available_offline = '$encoder.jsEscape( $i18n.getString( "operation_not_available_offline" ) , "'")';
+var i18n_online_notification = '$encoder.jsEscape( $i18n.getString( "online_notification" ) , "'")';
+var i18n_offline_notification = '$encoder.jsEscape( $i18n.getString( "offline_notification" ) , "'")';
+var i18n_need_to_sync_notification = '$encoder.jsEscape( $i18n.getString( "need_to_sync_notification" ) , "'")';
+var i18n_sync_now = '$encoder.jsEscape( $i18n.getString( "sync_now" ) , "'")';
+var i18n_discard = '$encoder.jsEscape( $i18n.getString( "discard" ) , "'")';
+var i18n_remove_local_data = '$encoder.jsEscape( $i18n.getString( "remove_local_data" ) , "'")';
+var i18n_sync_success = '$encoder.jsEscape( $i18n.getString( "sync_success" ) , "'")';
+var i18n_sync_failed = '$encoder.jsEscape( $i18n.getString( "sync_failed" ) , "'")';
+var i18n_uploading_data_notification = '$encoder.jsEscape( $i18n.getString( "uploading_data_notification" ) , "'")';
+var i18n_ajax_login_failed = '$encoder.jsEscape( $i18n.getString( "ajax_login_failed" ) , "'")';
+var i18n_no_dataelement_selected = '$encoder.jsEscape( $i18n.getString( "no_dataelement_selected" ) , "'")';
+var i18n_dataset_is_locked = '$encoder.jsEscape( $i18n.getString( "dataset_is_locked" ) , "'")';
+var i18n_register_complete_failed_dataset_is_locked = '$encoder.jsEscape( $i18n.getString( "register_complete_failed_dataset_is_locked" ) , "'")';
+var i18n_unregister_complete_failed_dataset_is_locked = '$encoder.jsEscape( $i18n.getString( "unregister_complete_failed_dataset_is_locked" ) , "'")';
+var i18n_show_all_sections = '$encoder.jsEscape( $i18n.getString( "show_all_sections" ) , "'")';
+var i18n_show_all_items = '$encoder.jsEscape( $i18n.getString( "show_all_items" ) , "'")';
+var i18n_all_values_for_data_element_must_be_filled = '$encoder.jsEscape( $i18n.getString( "all_values_for_data_element_must_be_filled" ) , "'")';
+var i18n_validation_result = '$encoder.jsEscape( $i18n.getString( "validation_result" ) , "'")';
+var i18n_successful_validation = '$encoder.jsEscape( $i18n.getString( "successful_validation" ) , "'")';
+var i18n_no_organisationunit_selected = '$encoder.jsEscape( $i18n.getString( "no_organisationunit_selected" ) , "'")';
+var i18n_childrens_forms = '$encoder.jsEscape( $i18n.getString( "childrens_forms" ) , "'")';
+var i18n_no_periods_click_prev_year_button = '$encoder.jsEscape( $i18n.getString( "no_periods_click_prev_year_button" ) , "'")';
+var i18n_view_comment = '$encoder.jsEscape( $i18n.getString( "view_comment" ) , "'")';
+var i18n_no_orgunits = '$encoder.jsEscape( $i18n.getString( "no_orgunits" ) , "'")';
+var i18n_confirm_deletion = '$encoder.jsEscape( $i18n.getString( "confirm_deletion" ), "'" )';
+var i18n_file_upload_failed = '$encoder.jsEscape( $i18n.getString( "file_upload_failed" ), "'" )';
+var i18n_loading_file_info_failed = '$encoder.jsEscape( $i18n.getString( "loading_file_info_failed" ), "'" )';
+</script>
+
+<style type="text/css" media="print">
+#moduleHeader, #currentSelection, #actions, #selectionBox, #completenessDiv, .ui-helper-hidden-accessible {
+    display: none;
+}
+</style>
+
+<h3 id="moduleHeader">$i18n.getString( "data_entry" ) #openHelp( "dataEntry" )</h3>
+
+<div id="currentSelection">
+    <span id="closeCurrentSelection"><img src="../images/hide.png" title="$i18n.getString( 'close' )" onclick="closeCurrentSelection()"></span>
+    <span id="currentOrganisationUnit">$i18n.getString( "no_organisationunit_selected" )</span> - <span id="currentPeriod">$i18n.getString( "no_period_selected" )</span/> -
+    <span id="currentDataElement">$i18n.getString( "no_dataelement_selected" )</span>
+</div>
+
+<div id="actions">	
+    <input type="button" value="$i18n.getString( 'run_validation' )" onclick="dhis2.de.validate( false )" id="validationButton" style="width:120px; margin-bottom: 3px;" disabled="disabled"/><br>
+    <input type="button" value="$i18n.getString( 'print_form' )" onclick="window.print()" id="printButton" style="width:120px; margin-bottom: 3px;"/><br>
+    <input type="button" value="$i18n.getString( 'print_blank_form' )" onclick="printBlankForm()" style="width:120px; margin-bottom: 3px;"/><br>
+</div>
+
+<div id="selectionBox" class="inputCriteria" style="width:564px">
+<div class="selectionBoxRow">
+    <div class="selectionLabel">$i18n.getString( "organisation_unit" )</div>
+    <input type="text" id="selectedOrganisationUnit" readonly="readonly" value="[ $i18n.getString( 'select_from_tree' ) ]" style="width: 394px; padding: 3px;">
+</div>
+<div class="selectionBoxRow">
+	<div class="selectionLabel">$i18n.getString( "data_set" )</div>
+	<select id="selectedDataSetId" name="selectedDataSetId" class="selectionBoxSelect" onchange="dataSetSelected()" disabled="disabled"></select>
+    <span id="loaderSpan" style="display:none"><img src='../images/ajax-loader-bar.gif'></span>
+</div>
+<div class="selectionBoxRow">
+    <div class="selectionLabel">$i18n.getString( "period" )</div>
+    <select id="selectedPeriodId" name="selectedPeriodId" style="width:225px" onchange="periodSelected()" disabled="disabled"></select>
+    <input type="button" id="prevButton" style="width:85px" value="$i18n.getString( 'prev_year' )" title="$i18n.getString('earlier_periods')" onclick="previousPeriodsSelected()" disabled="disabled">
+   	<input type="button" id="nextButton" style="width:85px" value="$i18n.getString( 'next_year' )" title="$i18n.getString('later_periods')" onclick="nextPeriodsSelected()" disabled="disabled">
+</div>
+<div id="attributeComboDiv"></div>
+<div id="filterDataSetSectionDiv" class="selectionBoxRow" style="display:none">
+    <div class="selectionLabel">$i18n.getString( "filter_on_section" )</div>
+    <select id="filterDataSetSection" name="filterDataSetSection" class="selectionBoxSelect" onchange="dhis2.de.filterOnSection()"></select>
+</div>
+</div>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<div id="contentDiv" class="page"></div>
+
+<div id="historyDiv" class="page"></div>
+
+<div id="validationDiv" class="page"></div>
+
+<div id="completenessDiv" class="page inputCriteria">
+<input type="button" id="completeButton" name="completeButton" value="$i18n.getString( 'complete' )" onclick="registerCompleteDataSet()" style="width:120px">
+<input type="button" id="undoButton" name="undoButton" value="$i18n.getString( 'incomplete' )" onclick="undoCompleteDataSet()" style="width:120px">
+<span class="separator">&#124;</span>
+<input type="button" id="validateButton" value="$i18n.getString( 'run_validation' )" onclick="dhis2.de.validate( false )" style="width:120px">
+</div>
+
+<div id="infoDiv" class="page inputCriteria">
+<span class="tipText">$i18n.getString( "completed_by" ): </span><span id="completedBy"></span>
+<span class="tipText"> $i18n.getString( "at" ): </span><span id="completedDate"></span>
+<a href="javascript:displayUserDetails()">$i18n.getString( "see_details" )</a>
+</div>
+
+
+<div id="completedByDiv" class="page">
+<h3><span id="userFullName"></span></h3>
+<table>
+        <tr>
+        <td><label>$i18n.getString( "username" ):</label></td>
+        <td><span id="userUsername"></span></td>
+    </tr>
+    <tr>
+        <td><label>$i18n.getString( "email" ):</label></td>
+        <td><span id="userEmail"></span></td>
+    </tr>
+    <tr>
+        <td><label>$i18n.getString( "phone_number" ):</label></td>
+        <td><span id="userPhoneNumber"></span></td>
+    </tr>
+    <tr>
+        <td><label>$i18n.getString( "organisation_units" ):</label></td>
+        <td><span id="userOrganisationUnits"></span></td>
+    </tr>
+    <tr>
+        <td><label>$i18n.getString( "user_roles" ):</label></td>
+        <td><span id="userUserRoles"></span></td>
+    </tr>
+</table>
+</div>
+
+<div id="fileDeleteConfirmationDialog">
+    <div class="confirm-dialog-content">
+        <span class="fa fa-exclamation-triangle fa-lg"></span><span>$i18n.getString( "are_you_sure_you_want_to_delete_this_file" )</span>
+    </div>
+</div>

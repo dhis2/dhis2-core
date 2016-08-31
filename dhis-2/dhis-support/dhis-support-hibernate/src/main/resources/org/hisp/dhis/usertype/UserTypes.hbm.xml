@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <!-- Deprecated, do not use -->
+  <typedef name="encryptedString" class="org.jasypt.hibernate4.type.EncryptedStringType">
+    <param name="encryptorRegisteredName">strongHibernateStringEncryptor</param>
+  </typedef>
+
+  <!-- New, stronger encryption -->
+  <typedef class="org.jasypt.hibernate4.type.EncryptedStringType" name="AESEncryptedString">
+    <param name="encryptorRegisteredName">strongStringEncryptor</param>
+  </typedef>
+</hibernate-mapping>

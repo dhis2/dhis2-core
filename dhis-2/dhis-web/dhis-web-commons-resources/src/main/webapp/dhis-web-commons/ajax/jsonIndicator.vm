@@ -1,0 +1,27 @@
+{ "indicator": 
+  {
+    "id": $!{indicator.id},
+    "uid": "${indicator.uid}",
+    "name": "$!encoder.jsonEncode( ${indicator.displayName} )",
+    "alternativeName": "$!encoder.jsonEncode( ${indicator.alternativeNamee} )",
+    "shortName": "$!encoder.jsonEncode( ${indicator.displayShortName} )",
+    "code": "$!encoder.jsonEncode( ${indicator.code} )",
+	"description": "$!encoder.xmlEncode( ${indicator.displayDescription} )",
+    "annualized": "${indicator.annualized}",
+    "indicatorTypeId": "$!{indicator.indicatorType.id}",
+	"indicatorTypeName": "$!encoder.xmlEncode( $!{indicator.indicatorType.name} )",
+    "numerator": "$!{indicator.numerator}",
+    "numeratorDescription": "$!encoder.jsonEncode( ${indicator.numeratorDescription} )",
+    "denominator": "$!{indicator.denominator}",
+    "denominatorDescription": "$!encoder.jsonEncode( ${indicator.denominatorDescription} )",
+	
+	#set( $size = ${indicator.dataSets.size()} )
+	"dataSets": [
+	#foreach( $ds in ${indicator.dataSets} )
+	  {
+		"name": "$!encoder.xmlEncode( ${ds.name} )"
+	  }#if( $velocityCount < $size ),#end
+	#end
+	]
+  }
+}

@@ -1,0 +1,76 @@
+
+#sharingDialog()
+
+<script type="text/javascript" src="javascript/allRole.js"></script>
+<script type="text/javascript">
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_role" ) , "'")';
+	var i18n_none = '$encoder.jsEscape( $i18n.getString( "none" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "user_role_management" ) #openHelp( "user_user_roles" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canManage"><a data-target-fn="showSharingDialogWithContext"><i class="fa fa-share"></i>&nbsp;&nbsp;$i18n.getString( "sharing_settings" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateRoleForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeRole"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showRoleDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table style="width:100%">
+	<tr>
+		<td style="vertical-align:top">
+			<table width="100%">
+				<tr>
+					<td>#filterDiv( "allRole" )</td>					
+					<td colspan="4" style="text-align:right"><input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddRoleForm.action'"/></td>
+				</tr>
+			</table>
+			<table class="listTable" id="listTable">  				
+                <thead>
+				<tr>
+					<th>$i18n.getString( "role" )</th>
+					<th>$i18n.getString( "description" )</th>
+				</tr>
+				</thead>
+				<tbody id="list">
+				#foreach( $userAuthorityGroup in $userAuthorityGroups )
+				<tr id="tr${userAuthorityGroup.id}" data-id="$!userAuthorityGroup.id" data-uid="$!userAuthorityGroup.uid" data-type="UserRole" data-name="$encoder.htmlEncode( $!userAuthorityGroup.displayName )"
+				    data-can-manage="$security.canManage( $userAuthorityGroup )"
+				    data-can-update="$security.canUpdate( $userAuthorityGroup )"
+				    data-can-delete="$security.canDelete( $userAuthorityGroup )">
+				    <td>$!encoder.htmlEncode( $userAuthorityGroup.displayName )</td>
+				    <td>$!encoder.htmlEncode( $userAuthorityGroup.description )</td>
+				</tr>
+				#end
+				</tbody>
+			</table>
+			<p></p>
+	  		<div class="paging-container">
+				#parse( "/dhis-web-commons/paging/paging.vm" )
+			</div>
+			
+		</td>
+		<td id="detailsData">
+      <div id="detailsArea">
+        <div id="hideDetailsArea">
+          <a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+        </div>
+        <p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+        <p><label>$i18n.getString( "members" ):</label><br/><span id="membersField"></span></p>
+        <p><label>$i18n.getString( "data_sets" ):</label><br/><span id="dataSetsField"></span></p>
+        <p><label>$i18n.getString( "programs" ):</label><br/><span id="programssField"></span></p>
+        <p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+      </div>
+			
+			<div id="warningArea">
+				<div id="hideDetailsArea">
+					<a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+				</div>
+				<p><span id="warningField"></span></p>
+			</div>
+
+    </td>
+	</tr>
+</table>

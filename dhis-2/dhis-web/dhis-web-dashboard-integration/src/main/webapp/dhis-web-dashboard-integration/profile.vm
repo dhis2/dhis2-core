@@ -1,0 +1,38 @@
+<script type="text/javascript">
+jQuery( document ).ready( function() {
+    showProfileIntro();
+} );
+</script>
+
+<style type="text/css">
+#mainPage
+{
+  margin-left: 234px;
+}
+</style>
+
+<div id="userHeader">$!encoder.htmlEncode( $user.firstName ) $!encoder.htmlEncode( $user.surname  )</div>
+#if( $user.id == $currentUser.id )
+<div id="userProfileLink"><a class="blueButtonLink" href="../dhis-web-commons-about/showUpdateUserProfileForm.action">$i18n.getString( "edit_profile" )</a></div>
+#else
+<div id="userProfileLink"><a class="blueButtonLink" href="showSendMessage.action?id=${user.uid}">$i18n.getString( "send_message" )</a></div>
+#end
+
+<div id="userCover"><img src="images/profile_cover.jpg" style="border: none; border-bottom-right-radius: 5px;"></div>
+
+<div id="userInfo">
+<div class="userRow"><div class="userLabel">$i18n.getString( "introduction" )</div><div class="userValue">$!encoder.htmlEncode( $user.introduction )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "works_as" )</div><div class="userValue">$!encoder.htmlEncode( $user.jobTitle )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "employed_at" )</div><div class="userValue">$!encoder.htmlEncode( $user.employer )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "education" )</div><div class="userValue">$!encoder.htmlEncode( $user.education )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "interested_in" )</div><div class="userValue">$!encoder.htmlEncode( $user.interests )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "nationality" )</div><div class="userValue">$!encoder.htmlEncode( $user.nationality )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "birthday" )</div><div class="userValue">$!format.formatDate( $user.birthday )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "gender" )</div><div class="userValue">#if( $user.gender )$i18n.getString( $user.gender )#end</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "speaks" )</div><div class="userValue">$!encoder.htmlEncode( $user.languages )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "email" )</div><div class="userValue">$!encoder.htmlEncode( $user.email )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "phone_number" )</div><div class="userValue">$!encoder.htmlEncode( $user.phoneNumber )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "org_units" )</div><div class="userValue">$!encoder.htmlEncode( $user.getOrganisationUnitsName() )</div></div>
+<div class="userRow"><div class="userLabel">$i18n.getString( "user_roles" )</div><div class="userValue">$!encoder.htmlEncode( $user.userCredentials.getUserAuthorityGroupsName() )</div></div>
+</div>
+<div id="userInfoLink"><a class="bold" href="javascript:showFullProfile()">$i18n.getString( "view_full_profile" )</a></div>

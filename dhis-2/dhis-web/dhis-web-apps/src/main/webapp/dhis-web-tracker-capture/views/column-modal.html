@@ -1,0 +1,18 @@
+<div class="modal-header page">
+    <h3>{{'select_columns_to_show'| translate}}</h3>
+</div>
+<div class="modal-body page">   
+    <table class="listTable dhis2-table-striped-border">
+        <tr ng-repeat="gridColumn in gridColumns">
+            <td ng-click="gridColumn.show = !gridColumn.show">
+                {{gridColumn.name}}
+            </td>
+            <td>
+                <input type="checkbox" ng-model="gridColumn.show" ng-change="showHideColumns(gridColumn)">
+            </td>
+        </tr>                                    
+    </table>    
+</div>
+<div class="modal-footer page">        
+    <button class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
+</div> 

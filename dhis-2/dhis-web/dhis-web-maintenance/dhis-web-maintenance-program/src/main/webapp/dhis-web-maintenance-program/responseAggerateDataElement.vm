@@ -1,0 +1,15 @@
+#set( $size = $dataElements.size() )
+{ 
+	"dataElements": [
+		#foreach( $dataElement in $dataElements )
+			#set( $subSize = $dataElement.categoryCombo.optionCombos.size() )
+			#foreach ( $optionCombo in $dataElement.categoryCombo.optionCombos )
+			{
+				#set( $name="${dataElement.name} ${optionCombo.name}")
+				"id":  "${dataElement.id}.${optionCombo.id}",
+				"name": "$!encoder.jsonEncode( $name )"
+			}#if( $velocityCount < $subSize ),#end
+			#end#if( $velocityCount < $size ),#end
+		#end
+	]
+}

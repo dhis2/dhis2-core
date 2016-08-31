@@ -1,0 +1,2 @@
+#set( $size = $organisationUnits.size() )
+[#foreach( $unit in $organisationUnits ){"value":"$encoder.jsonEncode( $unit.name )"}#if( $velocityCount < $size ),#end#end]

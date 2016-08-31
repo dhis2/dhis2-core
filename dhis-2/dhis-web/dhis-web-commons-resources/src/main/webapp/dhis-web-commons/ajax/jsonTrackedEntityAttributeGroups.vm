@@ -1,0 +1,10 @@
+#set( $size = ${attributeGroups.size} )
+{ "attributeGroups": [
+  #foreach( ${group} in $!{attributeGroups} )
+  {
+	"id": "${group.id}",
+	"name": "$!encoder.jsonEncode( ${group.name} )"
+  }#if( $velocityCount < $size ),#end
+  #end
+  ]
+}

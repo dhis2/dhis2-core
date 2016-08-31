@@ -1,0 +1,481 @@
+
+/*----------------------------------------------------------------------------*/
+/* General                                                                    */
+/*----------------------------------------------------------------------------*/
+
+* 
+{
+  font-family: LiberationSans, arial, sans-serif;
+  line-height: 140%;
+}
+
+html,body 
+{
+  margin: 0px;
+  padding: 0px;
+  background-color: white;
+}
+
+img 
+{
+  border: 0;
+}
+
+ul,ol 
+{
+  padding: 0px;
+}
+
+a
+{
+  text-decoration: none;
+  color: #3b73b8;
+}
+
+select
+{
+  padding: 1px;
+}
+
+a:hover
+{
+  text-decoration: underline;
+}
+
+input[type=text],input[type=password],input[type=email],textarea
+{
+  border: 1px solid #aaa;
+  padding: 5px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Header                                                                     */
+/*----------------------------------------------------------------------------*/
+
+#header
+{
+  background-color: #b40303;
+  height: 44px;
+  position: fixed;
+  z-index: 15;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  box-shadow: 0 0 3px #222;
+}
+
+#headerBanner
+{
+  position: absolute;
+  top: 13px;
+  left: 55px;
+}
+
+#headerText
+{
+  position: absolute;
+  top: 12px;
+  left: 175px;
+  font-weight: bold;
+  color: #fff;
+  font-size: 16px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* DropDown Menu                                                              */
+/*----------------------------------------------------------------------------*/
+
+.gearDropDown 
+{
+  background-color : #f7f7f7;
+  float            : right;
+  border           : 1px solid #eaeaea;
+  padding          : 4px 10px;
+  cursor           : pointer;
+  border-top-left-radius  : 3px;
+  border-top-right-radius : 3px;
+}
+
+.gearDropDown.active 
+{
+  background-color : #ddd;
+}
+
+.dropDown 
+{
+  position                   : absolute;
+  display                    : none;
+  font-size                  : 9pt;
+  color                      : #000;
+  border                     : 1px solid #ddd;
+  padding-left               : 2px;
+  padding-right              : 2px;
+  width                      : 70px;
+  max-height                 : 610px;
+  overflow-y                 : auto;
+  background-color           : #f7f7f7;
+  z-index                    : 9;
+  border-bottom-left-radius  : 3px;
+  border-bottom-right-radius : 3px;
+  box-shadow                 : #ccc 0 1px 1px 0;
+}
+
+.dropDown > ul 
+{
+  margin: 6px 0;
+}
+
+.dropDown > ul > li 
+{
+  list-style-type : none;
+  padding         : 0;
+  margin          : 0;
+}
+
+.dropDown > ul > li > a 
+{
+  display       : block;
+  padding       : 8px 5px;
+  color         : #000;
+  border-radius : 3px;
+  cursor        : pointer;
+}
+
+.dropDown > ul > li > a:hover 
+{
+  text-decoration  : none;
+  background-color : #eee;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Context Menu                                                               */
+/*----------------------------------------------------------------------------*/
+
+.contextMenu 
+{
+  position                   : absolute;
+  font-size                  : 9pt;
+  color                      : #000;
+  border                     : 1px solid #ddd;
+  padding-left               : 4px;
+  padding-right              : 4px;
+  width                      : 189px;
+  max-height                 : 610px;
+  overflow-y                 : auto;
+  background-color           : #f7f7f7;
+  display                    : none;
+  z-index                    : 9;
+  filter                     : alpha(opacity=94);
+  opacity                    : 0.94;
+  border-bottom-left-radius  : 3px;
+  border-bottom-right-radius : 3px;
+  box-shadow                 : #ccc 0px 1px 1px 0px;
+}
+
+.contextMenuItems 
+{
+  list-style-type : none;
+  padding         : 0;
+  margin          : 10px 0;
+}
+
+.contextMenuItems a 
+{
+  display       : block;
+  padding       : 10px 10px;
+  color         : #000;
+  border-radius : 3px;
+  cursor        : pointer;
+}
+
+.contextMenuItems a:hover 
+{
+  text-decoration  : none;
+  background-color : #eee;
+}
+
+.contextMenuItemActive 
+{
+  background-color: #246BA1 !important;
+  color: #fff !important;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Left bar                                                                   */
+/*----------------------------------------------------------------------------*/
+
+#leftBar
+{
+  height: 100%;
+  background-color: #f7f7f7;
+  width: 235px;
+  position: fixed;
+  top: 44px;
+  left: 0px;
+  padding-top: 7px;
+  border-right: 1px solid #e1e1e1;
+  z-index: 10;
+}
+
+#leftBarContents
+{
+  font-size: 9pt;
+}
+
+#leftBarContents h2
+{
+  font-size: 9pt;
+  margin: 16px 20px 2px 20px;
+  padding: 7px 0 7px 0;
+  font-weight: normal;
+  font-weight: bold;
+}
+
+#leftBarContents ul
+{
+  list-style-type: none;
+  padding: 0;
+  margin: 0 8px;
+}
+
+#leftBarContents ul a
+{
+  display: block;
+  color: #303030;
+  text-decoration: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+}
+
+#leftBarContents a:hover
+{
+  text-decoration: none;
+  background-color: #eee;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Main page                                                                  */
+/*----------------------------------------------------------------------------*/
+
+.mainPageTable 
+{
+  width: 100%;
+}
+
+.page 
+{
+  font-size: 9pt;
+}
+
+.page h1 
+{
+  font-size: 16pt;
+  font-weight: normal;
+  color: #606060;
+}
+
+.page h2 
+{
+  font-size: 15pt;
+  font-weight: normal;
+  color: #606060;
+}
+
+.page h3 
+{
+  font-size: 14pt;
+  font-weight: normal;
+  color: #606060;
+}
+
+.page h4 
+{
+  font-size: 13pt;
+  font-weight: normal;
+  color: #606060;
+}
+
+.page h5 
+{
+  font-size: 12pt;
+  font-weight: normal;
+  color: #606060;
+}
+
+.page h6 
+{
+  font-size: 11pt;
+  font-weight: normal;
+  color: #606060;
+}
+
+.page p,.page td,.page th,.page input,.page select,.page textarea 
+{
+  font-size: 9pt;
+}
+
+.page th, thead tr, .tabHead
+{
+  background-color: #cbddeb;
+  background-repeat: repeat-x;
+  text-align: left;
+  color: #39547d;
+  padding:3px 0px 2px 6px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #c8dbea;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+#mainPage 
+{
+  margin: 69px 10px 10px 270px;
+}
+
+.required 
+{
+  font-style: normal;
+  color: #ff0000;
+}
+
+.listTable
+{
+  width: 100%;
+  border-collapse: collapse;
+  padding-top: 10px;
+  cursor: pointer;
+}
+
+.listTable th
+{
+  background-color: rgba( 0, 0, 0, 0 );
+  border-bottom: 1px solid #cad5e5;
+  padding: 6px 5px 3px 5px;
+  text-align: center;
+}
+
+.listTable td
+{
+  padding: 11px 5px 10px 5px;
+}
+
+.listRow
+{
+  border-bottom: 1px solid #cad5e5;
+}
+
+.listAlternateRow
+{
+  border-bottom: 1px solid #cad5e5;
+  background-color: #ebf0f6;
+}
+
+.listHoverRow
+{
+  background-color: #dfe9f4;
+}
+
+.bold, .bold td
+{
+  font-weight: bold;
+}
+
+.normal
+{
+  font-weight: normal;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Intro                                                                      */
+/*----------------------------------------------------------------------------*/
+
+.introList
+{
+  list-style-type:none;
+  width: 100%;
+  max-width: 1100px;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  color: #444;
+}
+
+.moduleList
+{
+  list-style-type:none;
+  width: 100%;
+  max-width: 1100px;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  color: #444;
+}
+
+.introList li
+{
+  width: 435px;
+  margin-right: 30px;
+}
+
+.moduleList li
+{
+  width: 305px;
+  margin-right: 20px;
+}
+
+.introIcon
+{
+  float: left;
+}
+
+.introItem
+{
+  padding: 15px;
+  cursor: pointer;
+  min-height: 44px;
+  border-bottom: 1px solid #e0e0e0;
+  float: left;
+}
+
+.introItem:hover
+{
+  background-color: #edf2f2;
+}
+
+.introItemHeader
+{
+  font-weight: bold;
+  color: #3F693F;
+  font-size: 13px;
+}
+
+.introItemText
+{
+  margin-left: 73px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* @font-face                                                                 */
+/*----------------------------------------------------------------------------*/
+
+@font-face {
+    font-family: 'LiberationSans';
+    src: url('../../fonts/LiberationSans-Regular-webfont.eot');
+    src: url('../../fonts/LiberationSans-Regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../../fonts/LiberationSans-Regular-webfont.woff') format('woff'),
+         url('../../fonts/LiberationSans-Regular-webfont.ttf') format('truetype'),
+         url('../../fonts/LiberationSans-Regular-webfont.svg#webfontc8rbNdBe') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'LiberationSans';
+    src: url('../../fonts/LiberationSans-Bold-webfont.eot');
+    src: url('../../fonts/LiberationSans-Bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../../fonts/LiberationSans-Bold-webfont.woff') format('woff'),
+         url('../../fonts/LiberationSans-Bold-webfont.ttf') format('truetype'),
+         url('../../fonts/LiberationSans-Bold-webfont.svg#webfontHyWb8e07') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}

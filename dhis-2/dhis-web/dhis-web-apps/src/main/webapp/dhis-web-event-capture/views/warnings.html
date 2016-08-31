@@ -1,0 +1,14 @@
+<div class="panel panel-warning">
+    <div class="panel-heading bold">
+        {{'validation_warnings'| translate}}
+    </div>
+    <div class="panel-body">
+        <table class="dhis2-list-table-striped">
+            <tr ng-repeat="msg in warningMessages">
+                <td class="warning-message-label">
+                    {{msg}}
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

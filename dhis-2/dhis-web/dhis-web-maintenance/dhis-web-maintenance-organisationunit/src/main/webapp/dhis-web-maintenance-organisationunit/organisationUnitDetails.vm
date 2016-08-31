@@ -1,0 +1,66 @@
+
+<h3>$encoder.htmlEncode( $organisationUnit.displayName )</h3>
+
+<table>
+
+<tr>
+<td><label>$i18n.getString( "short_name" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.shortName )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "code" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.code )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "opening_date" ):</label></td>
+<td>$!format.formatDate( $organisationUnit.openingDate )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "closed_date" ):</label></td>
+<td>$!format.formatDate( $organisationUnit.closedDate )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "active" ):</label></td>
+<td>#formatBool( $organisationUnit.active )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "comment" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.comment )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "url" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.url )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "last_updated" ):</label></td>
+<td>$!format.formateDate( $organisationUnit.lastUpdated )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "contact_person" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.contactPerson )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "address" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.address )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "email" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.email )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "phone_number" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.phoneNumber )</td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "hierarchy" ):</label></td>
+<td>$!encoder.htmlEncode( $organisationUnit.ancestorNames )</td>
+</tr>
+
+#foreach( $groupSet in $groupSets )
+<tr>
+<td><label>$!encoder.htmlEncode( $groupSet.displayName ):</label></td>
+<td>$!encoder.htmlEncode( $!organisationUnit.getGroupNameInGroupSet( $groupSet ) )</td>
+</tr>
+#end
+
+</table>

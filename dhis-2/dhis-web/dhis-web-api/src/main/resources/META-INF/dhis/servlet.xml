@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.springframework.org/schema/beans"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:mvc="http://www.springframework.org/schema/mvc"
+  xmlns:sec="http://www.springframework.org/schema/security"
+  xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+    http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+  <sec:global-method-security pre-post-annotations="enabled" />
+
+  <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+
+  <bean id="org.hisp.dhis.webapi.utils.RenderServiceMessageConverter"
+    class="org.hisp.dhis.webapi.messageconverter.RenderServiceMessageConverter">
+    <constructor-arg name="supportedMediaTypes">
+      <list>
+        <value>application/json</value>
+        <value>application/xml</value>
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <mvc:annotation-driven content-negotiation-manager="contentNegotiationManager">
+    <mvc:message-converters register-defaults="false">
+      <ref bean="jsonMessageConverter" />
+      <ref bean="jsonPMessageConverter" />
+      <ref bean="xmlMessageConverter" />
+      <ref bean="csvMessageConverter" />
+      <ref bean="pdfMessageConverter" />
+      <ref bean="excelMessageConverter" />
+      <bean class="org.springframework.http.converter.StringHttpMessageConverter" />
+      <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+      <bean class="org.springframework.http.converter.FormHttpMessageConverter" />
+      <bean class="org.hisp.dhis.api.mobile.support.DataStreamSerializableMessageConverter" />
+      <ref bean="org.hisp.dhis.webapi.utils.RenderServiceMessageConverter" />
+    </mvc:message-converters>
+  </mvc:annotation-driven>
+
+  <context:component-scan base-package="org.hisp.dhis.webapi" />
+
+  <context:annotation-config />
+
+  <bean id="fixedContentNegotiationStrategy" class="org.springframework.web.accept.FixedContentNegotiationStrategy">
+    <constructor-arg name="defaultContentType" value="application/json" />
+  </bean>
+
+  <bean id="headerContentNegotiationStrategy" class="org.springframework.web.accept.HeaderContentNegotiationStrategy" />
+
+  <bean id="customPathExtensionContentNegotiationStrategy" class="org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy">
+    <constructor-arg name="mediaTypes">
+      <map>
+        <entry key="json" value="application/json" />
+        <entry key="json.gz" value="application/json+gzip" />
+        <entry key="jsonp" value="application/javascript" />
+        <entry key="xml" value="application/xml" />
+        <entry key="xml.gz" value="application/xml+gzip" />
+        <entry key="png" value="image/png" />
+        <entry key="pdf" value="application/pdf" />
+        <entry key="xls" value="application/vnd.ms-excel" />
+        <entry key="xlsx" value="application/vnd.ms-excel" />
+        <entry key="csv" value="application/csv" />
+        <entry key="csv.gz" value="application/csv+gzip" />
+        <entry key="geojson" value="application/json+geojson" />
+      </map>
+    </constructor-arg>
+    <property name="useJaf" value="false" />
+  </bean>
+
+  <bean id="parameterContentNegotiationStrategy" class="org.springframework.web.accept.ParameterContentNegotiationStrategy">
+    <constructor-arg name="mediaTypes">
+      <map>
+        <entry key="json" value="application/json" />
+        <entry key="jsonp" value="application/javascript" />
+        <entry key="xml" value="application/xml" />
+        <entry key="png" value="image/png" />
+        <entry key="pdf" value="application/pdf" />
+        <entry key="xls" value="application/vnd.ms-excel" />
+        <entry key="csv" value="application/csv" />
+      </map>
+    </constructor-arg>
+  </bean>
+
+  <bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManager">
+    <constructor-arg>
+      <list>
+        <ref bean="customPathExtensionContentNegotiationStrategy" />
+        <ref bean="parameterContentNegotiationStrategy" />
+        <ref bean="headerContentNegotiationStrategy" />
+        <ref bean="fixedContentNegotiationStrategy" />
+      </list>
+    </constructor-arg>
+  </bean>
+
+  <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+    <property name="order" value="1" />
+    <property name="contentNegotiationManager" ref="contentNegotiationManager" />
+
+    <property name="defaultViews">
+      <list>
+        <bean class="org.hisp.dhis.webapi.view.JacksonXmlView">
+          <constructor-arg name="withCompression" value="false" />
+        </bean>
+
+        <bean class="org.hisp.dhis.webapi.view.JacksonXmlView">
+          <constructor-arg name="withCompression" value="true" />
+        </bean>
+
+        <bean class="org.hisp.dhis.webapi.view.JacksonJsonView">
+          <constructor-arg name="withPadding" value="false" />
+          <constructor-arg name="withCompression" value="false" />
+        </bean>
+
+        <bean class="org.hisp.dhis.webapi.view.JacksonJsonView">
+          <constructor-arg name="withPadding" value="false" />
+          <constructor-arg name="withCompression" value="true" />
+        </bean>
+
+        <bean class="org.hisp.dhis.webapi.view.JacksonJsonView">
+          <constructor-arg name="withPadding" value="true" />
+          <constructor-arg name="withCompression" value="false" />
+        </bean>
+
+        <bean class="org.hisp.dhis.webapi.view.JacksonJsonView">
+          <constructor-arg name="withPadding" value="true" />
+          <constructor-arg name="withCompression" value="true" />
+        </bean>
+
+        <bean class="org.hisp.dhis.webapi.view.PdfGridView" />
+
+        <bean class="org.hisp.dhis.webapi.view.ExcelGridView" />
+
+        <bean class="org.hisp.dhis.webapi.view.CsvGridView" />
+      </list>
+    </property>
+  </bean>
+</beans>

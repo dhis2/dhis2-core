@@ -1,0 +1,85 @@
+<script type="text/javascript">
+	jQuery(document).ready(	function(){
+		validation( 'documentForm', function( form ){			
+			form.submit();
+		},function(){
+        #tblDynamicAttributesJavascript()
+		});
+
+		toggleExternal();
+	});	
+	
+	function checkUploadFile(){
+		
+	}
+</script>
+
+<h3>$i18n.getString( 'create_new_resource' )</h3>
+
+#sharingCreateNotification( "document" )
+
+<form id="documentForm" action="saveDocument.action" method="post" enctype="multipart/form-data" class="inputForm">
+<input type='hidden' id='id' name='id' value='$!document.id'/>
+<table>
+    <tr>
+        <th colspan="2">$i18n.getString( "details" )</th>
+    </tr>
+    <tr>
+        <td style="width:70px"><label for="name">$i18n.getString( "name" )<em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name" value="$!document.name" class="{validate:{required:true,minlength:2,maxlength:160}}"></td>
+    </tr>
+    <tr>
+    	<td><label for="external">$i18n.getString( "type" )</label></td>
+    	<td>
+			<select id="external" name="external" onchange="toggleExternal()">
+				#if( $!document && !$!document.external )
+				<option value="false">$i18n.getString( "upload_file" )</option>
+				#elseif( $!document)
+				<option value="true">$i18n.getString( "external_url" )</option>
+				#else
+				<option value="false" onclick="checkUploadFile();">$i18n.getString( "upload_file" )</option>
+				<option value="true">$i18n.getString( "external_url" )</option>
+				#end
+			</select>
+	    </td>
+    </tr>
+</table>
+
+<div id="fileDiv">
+<table>
+    <tr>
+      <td style="width:70px"><label for="attachment">$i18n.getString( "attachment" )</label></td>
+      <td><input type="checkbox" id="attachment" name="attachment" value="true" #if($!document.attachment) checked="checked" #end size="30" ></td>
+    </tr>
+    <tr>
+        <td style="width:70px"><label for="upload">$i18n.getString( "file" )<em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="file" id="upload" name="upload" size="30" ></td>
+    </tr>
+</table>
+</div>
+
+<div id="urlDiv">
+<table>
+    <tr>
+        <td style="width:70px"><label for="url">$i18n.getString( "url" )<em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="url" name="url" #if($!document) value="$!document.url" #else value="http://" #end ></td>
+    </tr>
+</table>
+</div>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<table>
+    <tr>
+        <td colspan="2" height="7px"></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>
+        	<input type="submit" value="$i18n.getString( 'save' )" style="width:10em" />
+        	<input type="button" value="$i18n.getString( 'cancel' )" style="width:10em" onclick="window.location.href='displayViewDocumentForm.action'" />
+        </td>
+    </tr>
+</table>
+
+</form>

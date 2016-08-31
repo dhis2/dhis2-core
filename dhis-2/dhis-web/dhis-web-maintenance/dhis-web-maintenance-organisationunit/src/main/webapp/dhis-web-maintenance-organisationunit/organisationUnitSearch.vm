@@ -1,0 +1,113 @@
+<script type="text/javascript">
+	var i18n_all = '$encoder.jsEscape( $i18n.getString( "all" ) , "'" )';
+	var i18n_please_wait_while_downloading = '$encoder.jsEscape( $i18n.getString( "please_wait_while_downloading" ) , "'" )';
+	var i18n_please_wait_while_searching = '$encoder.jsEscape( $i18n.getString( "please_wait_while_searching" ) , "'" )';
+</script>
+
+#if( $selectedOrganisationUnit )
+#set( $orgUnitText = "[ $!encoder.htmlEncode( $selectedOrganisationUnit.displayName ) ]" )
+#else
+#set( $orgUnitText = $i18n.getString( 'please_select_from_tree' ) )
+#end
+
+<h3>$i18n.getString( "org_unit_search_management" )</h3>
+
+<form id="searchForm" action="organisationUnitSearch.action" method="post">
+<input type="hidden" id="type" name="type"/>
+
+<table>
+	<tr>
+		<th>$i18n.getString( "criteria" )</th>
+		<th>$i18n.getString( "options" )</th>
+	</tr>
+	<tr>
+		<td>$i18n.getString( "organisation_unit" )</td>
+		<td><input type="text" id="selectedOrganisationUnit" style="width:360px" readonly="true" value="${orgUnitText}"/></td>
+	</tr>
+	<tr>
+		<td>$i18n.getString( "name_code_identifier" )</th>
+		<td><input type="text" name="name" style="width:360px" value="$!{name}"/></td>
+	</tr>
+	#foreach( $groupSet in $groupSets )
+	<tr>
+		<td>$encoder.htmlEncode( $groupSet.name )</td>
+		<td>
+			<select name="groupId" style="width:360px">
+				<option value="0">[ $i18n.getString( "all" ) $encoder.htmlEncode( $groupSet.name ) ]</option>
+				#foreach( $group in $groupSet.getSortedGroups() )
+				<option value="$group.id"
+				#if( $groupId && $groupId.contains( $group.id ) )selected="selected"#end>$encoder.htmlEncode( $group.name )</option>
+				#end
+			</select>
+		</td>
+	</tr>
+	#end
+	<tr>
+		<td style="height:10px" colspan="2"></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>
+			<input type="button" value="$i18n.getString( 'search' )" style="width:120px" onclick="download( '' )"/>
+		    <input type="button" onclick="window.location.href='organisationUnitSearch.action?skipSearch=true'" value="$i18n.getString( 'clear' )" style="width:120px"/>
+		</td>
+	</tr>
+	<tr>
+		<td style="height:2px" colspan="2"></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>
+			<input type="button" value="$i18n.getString( 'get_report_as_pdf' )" style="width:120px" onclick="download( 'pdf' )"/>
+			<input type="button" value="$i18n.getString( 'get_report_as_xls' )" style="width:120px" onclick="download( 'xls' )"/>
+			<input type="button" value="$i18n.getString( 'get_report_as_csv' )" style="width:120px" onclick="download( 'csv' )"/>
+		</td>
+	</tr>
+
+	<tr>
+		<td style="height:15px" colspan="2"></td>
+	</tr>
+
+</table>
+</form>
+
+<span id="message"></span>
+
+#if ( $organisationUnits )
+
+<h4>$i18n.getString( "found" ) $organisationUnits.size() $i18n.getString( "organisation_units" ) (max 500)</h4>
+
+<table class="listTable" style="width:95%">
+	<thead>
+		<tr>
+            <th style="width:100px">$i18n.getString( "identifier" )</th>
+			<th style="width:100px">$i18n.getString( "code" )</th>
+			<th style="min-width:300px">$i18n.getString( "name" )</th>
+			#foreach( $groupSet in $groupSets )
+			<th>$encoder.htmlEncode( $groupSet.name )</th>
+			#end
+			<th class="{sorter: false}" style="width:60px"></th>
+		</tr>
+	</thead>
+
+	<tbody id="list">
+		#foreach( $unit in $organisationUnits )
+		<tr>
+            <td>$!encoder.htmlEncode( $unit.uid )</td>
+			<td>$!encoder.htmlEncode( $unit.code )</td>
+			<td>$!encoder.htmlEncode( $unit.name )</td>
+			#foreach( $groupSet in $groupSets )
+			<td>$!unit.getGroupNameInGroupSet( $groupSet )</td>
+			#end
+			<td style="text-align:right">
+				<a href="showUpdateOrganisationUnitForm.action?id=$unit.id" title="$i18n.getString( 'edit' )"><img src="../images/edit.png" alt="$i18n.getString( 'edit' )"/></a>
+				<a href="#" onclick="showOrgUnitDetails( '${unit.id}' )"><img src="../images/information.png" alt="$i18n.getString( 'show_details' )"/></a>
+			</td>
+		</tr>
+		#end
+	</tbody>
+</table>
+
+#end
+
+<div id="organisationUnitDetails" class="page"></div>

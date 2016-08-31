@@ -1,0 +1,105 @@
+<div class="row">
+    <div ng-class="{'col-sm-9': showStageTasks, 'col-xs-6': showStageTasks, 'col-sm-11': !showStageTasks, 'col-xs-10': !showStageTasks}">
+        <div ng-repeat="dhis2Event in allEventsSorted.slice(eventPagingStart, eventPagingEnd)">            
+            <div class="event-container" ng-click="getEventPage('BACKWARD')" ng-if="$index === 0 && eventPagingStart > 0">
+                {{'previous'| translate}}
+            </div>
+            <div class="event-container" title="[{{'org_unit' | translate}}: {{dhis2Event.orgUnitName}}, {{'program_stage' | translate}}: {{dhis2Event.name}}]" ng-class="getEventStyle(dhis2Event)" ng-click="showDataEntry(dhis2Event, false)">                
+                <div class="event-container-item">
+                    {{dhis2Event.sortingDate}}
+                </div>
+                <div class="event-container-item">
+                    {{dhis2Event.orgUnitName}}
+                </div>
+                <div class="event-container-item">
+                    {{dhis2Event.name}}
+                </div>              
+            </div>
+            <div class="arrow-container" ng-if="$index + 1 < eventPageSize && $index + 1 + eventPagingStart < allEventsSorted.length">
+                <i class="fa fa-arrow-right"></i>
+            </div>
+            <div class="event-container" ng-click="getEventPage('FORWARD')" ng-if="$index + 1 === eventPageSize && eventPagingEnd < allEventsSorted.length">
+                {{'next'| translate}}
+            </div>
+        </div>
+        <div ng-if="allEventsSorted.length < 1">
+            <div class="alert alert-warning">{{'no_events_exist'| translate}}</div> 
+        </div>
+    </div>
+    <div ng-class="{'col-sm-3': showStageTasks, 'col-xs-6': showStageTasks, 'col-sm-1': !showStageTasks, 'col-xs-2': !showStageTasks}">
+        <div ng-if="showStageTasks && eventsLoaded" class="panel panel-info">
+            <div class="panel-heading">{{'new_event' | translate}}
+                <span class="pull-right">
+                    <a class="small-horizonal-spacing" href ng-click="toggleShowStageTasks()">
+                    <span><i class="fa fa-chevron-right vertical-center" title="{{'hide_menu' | translate}}"></i></span>                    
+                    </a>
+                </span>
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row row-alternate" style="font-size: 12px" ng-repeat="stage in creatableStages = (programStages | filter:displayStageTasksInTopLine)" ng-if="selectedEnrollment.status === 'ACTIVE'">
+                        <div class="col-sm-12">{{stage.name}}</div>
+                        <div class="col-sm-12">
+
+                            <span>
+                                <a href title="{{'create_new_event'| translate}}" ng-click="showCreateEvent(stage,eventCreationActions.add)" style="vertical-align:middle">
+                                    {{'add'|translate}}
+                                </a>
+                            </span>
+                            <span ng-if="!stage.hideDueDate">
+                                |
+                                <a href title="{{'schedule_new_event'| translate}}" ng-click="showCreateEvent(stage,eventCreationActions.schedule)" style="vertical-align:middle">
+                                    {{'schedule'|translate}}
+                                </a>                                
+                            </span>
+                            <!-- hides referral in trunk
+                            <span>                                
+                                |
+                                <a href title="{{'make_referral' | translate}}" ng-click="showCreateEvent(stage, eventCreationActions.referral)" style="vertical-align: middle" ng-if="showReferral">
+                                    {{'referral'|translate}}
+                                </a>
+                                
+                            </span>
+                            -->
+                        </div>
+                    </div>
+                </div>
+                <div ng-if="!creatableStagesExist(creatableStages)" class="alert alert-warning">{{'no_stages_available'| translate}}</div> 
+            </div>
+        </div>       
+        <div ng-if="!showStageTasks" class="pull-right">
+            <div>
+                <a href ng-click="toggleShowStageTasks()" title="{{'show_new_event_menu' | translate}}">
+                    <span class="badge stage-tasks-badge">                                     
+                        <span><i class="fa fa-chevron-left vertical-center"></i></span>                
+                    </span>
+                </a>
+            </div>
+            <div>
+                <a href class="disable-link-effects" ng-click="showCreateEvent(null, eventCreationActions.add)" title="{{'add_new_event'| translate}}">
+                    <span class="badge stage-tasks-badge">                                     
+                        <span><i class="fa fa-plus vertical-center"></i></span>                
+                    </span>
+                </a>                
+            </div>
+            <div>
+                <a href class="disable-link-effects" ng-click="showCreateEvent(null, eventCreationActions.schedule)" title="{{'schedule_new_event'| translate}}">
+                    <span class="badge stage-tasks-badge">                                     
+                        <span><i class="fa fa-clock-o vertical-center"></i></span>                
+                    </span>
+                </a>                
+            </div>
+            <!-- hides referral in trunk
+            <div>
+                <a href class="disable-link-effects" ng-click="showCreateEvent(null, eventCreationActions.referral)" title="{{'make_referral' | translate}}">
+                    <span class="badge stage-tasks-badge">                                     
+                                <span><i class="fa fa-hospital-o vertical-center"></i></span>                
+                    </span>
+                </a>                
+            </div>                 
+            -->
+        </div>
+    </div>    
+</div>
+
+<hr>

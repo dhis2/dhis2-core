@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.caseaggregation.CaseAggregationCondition" table="caseaggregationcondition">
+
+    <id name="id" column="caseaggregationconditionid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="operator" not-null="true" />
+
+    <property name="aggregationExpression" not-null="true" />
+
+    <many-to-one name="aggregationDataElement" class="org.hisp.dhis.dataelement.DataElement" column="aggregationDataElementid"
+      foreign-key="fk_caseaggregationcondition_dataelement" />
+
+    <many-to-one name="optionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="optionComboid"
+      foreign-key="fk_caseaggregationcondition_categoryoptioncomboid" />
+
+    <many-to-one name="deSum" class="org.hisp.dhis.dataelement.DataElement" column="deSum"
+      foreign-key="fk_caseaggregationcondition_deSum" />
+
+  </class>
+</hibernate-mapping>

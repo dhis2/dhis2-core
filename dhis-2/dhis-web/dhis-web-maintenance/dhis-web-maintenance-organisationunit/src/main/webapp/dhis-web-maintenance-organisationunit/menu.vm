@@ -1,0 +1,11 @@
+
+<h2>$i18n.getString( "organisation_unit" )&nbsp;</h2>
+
+<ul>
+	#if( $security.canView( "organisationUnit" ) )<li><a href="organisationUnit.action">$i18n.getString( "org_unit" )&nbsp;</a></li>#end
+	#if( $security.canView( "organisationUnitGroup" ) )<li><a href="organisationUnitGroup.action">$i18n.getString( "org_unit_group" )&nbsp;</a></li>#end
+	#if( $security.canView( "organisationUnitGroupSet" ) )<li><a href="organisationUnitGroupSet.action">$i18n.getString( "org_unit_group_set" )&nbsp;</a></li>#end
+    #if( $currentUser.isAuthorized( "F_ORGANISATIONUNITLEVEL_UPDATE" ) )<li><a href="organisationUnitLevel.action">$i18n.getString( "org_unit_level" )&nbsp;</a></li>#end
+    <li><a href="organisationUnitSearch.action?skipSearch=true">$i18n.getString( "org_unit_search" )&nbsp;</a></li>
+	#if( $currentUser.isAuthorized( "F_ORGANISATIONUNIT_MOVE" ) )<li><a href="hierarchyOperations.action">$i18n.getString( "hierarchy_operations_menu" )&nbsp;</a></li>#end
+</ul>

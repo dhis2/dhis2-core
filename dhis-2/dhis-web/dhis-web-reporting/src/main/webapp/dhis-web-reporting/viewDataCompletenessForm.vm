@@ -1,0 +1,77 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+		selectionTreeSelection.setMultipleSelectionAllowed( false );
+		selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+	});
+
+	var i18n_please_select_org_unit = '$encoder.jsEscape( $i18n.getString( "please_select_org_unit" ) , "'")';
+    var i18n_please_select_period = '$encoder.jsEscape( $i18n.getString( "please_select_period" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "reporting_rate_summary" ) #openHelp( "reporting_reporting_rate_summary" )</h3>
+
+<div id="critiera" class="inputCriteria" style="width:660px; height:auto; padding:20px;">
+<div style="width:320px; float:left;">
+	<label>$i18n.getString( "organisation_unit" )</label>
+	<div id="selectionTree" style="width:290px; height:202px"></div>
+</div>
+<div>
+    <input type="radio" name="criteria" id="registrationRadio" value="registration" checked="checked"/>
+    <label for="registrationRadio">$i18n.getString( 'based_on_registration' )</label><br/>
+    <input type="radio" name="criteria" id="compulsoryRadio" value="compulsory" />
+    <label for="compulsoryRadio">$i18n.getString( 'based_on_compulsory' )</label><br/><br/>
+    
+    <!-- DataSet -->
+    
+	<select id="dataSetId" name="dataSetId" style="width:330px">
+	<option value="0">[ $i18n.getString( "select_dataset_all" ) ]</option>
+	#foreach( $dataSet in $dataSets )
+		<option value="$dataSet.id">$dataSet.displayName</option>
+	#end
+	</select><br><br>
+    
+    <!-- PeriodType -->
+
+	<select id="periodTypeId" style="width:174px" onchange="displayPeriods()">
+		<option value="0">[ $i18n.getString( "select_period_type" ) ]</option>
+		#foreach ( $type in $periodTypes )
+			<option value="$type.name">$i18n.getString( $type.name )</option>
+		#end
+	</select>
+
+	<input type="button" style="width:75px" value="$i18n.getString( 'prev_year' )" onclick="displayPreviousPeriods()" />
+	<input type="button" style="width:75px" value="$i18n.getString( 'next_year' )" onclick="displayNextPeriods()" /><br>
+
+	<!-- Period -->
+	
+    <select id="periodId" name="periodId" style="width:330px" disabled="disabled">
+    </select><br><br>
+    
+    <!-- Org unit group sets -->
+    
+    <span id="advancedOptions" style="display:none">
+    #foreach( $groupSet in $groupSets )
+    <select name="groupId" style="width:330px" class="advanced">
+    	<option value="-1">[ $i18n.getString( "select" ) $encoder.htmlEncode( $groupSet.name ) / $i18n.getString( "view_all" ) ]</option>
+        #foreach( $group in $groupSet.organisationUnitGroups )
+    	<option value="${group.id}">$encoder.htmlEncode( $group.name )</option>
+        #end
+    </select><br>
+    #end <br></span>
+    
+    <!-- Get report -->
+    
+    <input id="reportButton" type="button" value="$i18n.getString( 'get_report' )" style="width:135px" onclick="displayCompleteness()"/> &nbsp;
+    <a id="advancedOptionsLink" href="javascript:showAdvancedOptions()">$i18n.getString( "show_more_options" )</a><br><br>
+    
+    <!-- Export -->
+    
+	<input type="button" value="$i18n.getString( 'get_report_as_pdf' )" style="width:135px" onclick="getCompleteness( 'pdf' )"/>
+    <input type="button" value="$i18n.getString( 'get_report_as_xls' )" style="width:135px" onclick="getCompleteness( 'xls' )"/><br>
+	<input type="button" value="$i18n.getString( 'get_report_as_csv' )" style="width:135px" onclick="getCompleteness( 'csv' )"/>
+</div>
+</div>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<div id="contentDiv" class="resultDiv" style="display:none"></div>

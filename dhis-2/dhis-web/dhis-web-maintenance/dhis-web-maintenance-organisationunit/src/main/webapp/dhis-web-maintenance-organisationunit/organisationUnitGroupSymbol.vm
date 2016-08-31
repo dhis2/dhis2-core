@@ -1,0 +1,77 @@
+
+<style type="text/css">
+.symbolTable img
+{
+  padding: 12px;
+  cursor: pointer;
+}
+
+.symbolTable img:hover
+{
+  background-color: #ececec;
+}
+</style>
+
+<div id="symbolDiv" style="display:none" class="page">
+
+#set( $base = "../images/orgunitgroup/" )
+
+<table class="symbolTable">
+    <tr>
+        <td><img src="${base}01.png" onclick="selectSymbol( '01.png' )"></td>
+        <td><img src="${base}02.png" onclick="selectSymbol( '02.png' )"></td>
+        <td><img src="${base}03.png" onclick="selectSymbol( '03.png' )"></td>
+        <td><img src="${base}04.png" onclick="selectSymbol( '04.png' )"></td>
+        <td><img src="${base}05.png" onclick="selectSymbol( '05.png' )"></td>
+    </tr>
+    <tr>
+        <td><img src="${base}06.png" onclick="selectSymbol( '06.png' )"></td>
+        <td><img src="${base}07.png" onclick="selectSymbol( '07.png' )"></td>
+        <td><img src="${base}08.png" onclick="selectSymbol( '08.png' )"></td>
+        <td><img src="${base}09.png" onclick="selectSymbol( '09.png' )"></td>
+        <td><img src="${base}10.png" onclick="selectSymbol( '10.png' )"></td>
+    </tr>
+    <tr>
+        <td><img src="${base}11.png" onclick="selectSymbol( '11.png' )"></td>
+        <td><img src="${base}12.png" onclick="selectSymbol( '12.png' )"></td>
+        <td><img src="${base}13.png" onclick="selectSymbol( '13.png' )"></td>
+        <td><img src="${base}14.png" onclick="selectSymbol( '14.png' )"></td>
+        <td><img src="${base}15.png" onclick="selectSymbol( '15.png' )"></td>
+    </tr>
+    <tr>
+        <td><img src="${base}16.png" onclick="selectSymbol( '16.png' )"></td>
+        <td><img src="${base}17.png" onclick="selectSymbol( '17.png' )"></td>
+        <td><img src="${base}18.png" onclick="selectSymbol( '18.png' )"></td>
+        <td><img src="${base}19.png" onclick="selectSymbol( '19.png' )"></td>
+        <td><img src="${base}20.png" onclick="selectSymbol( '20.png' )"></td>
+    </tr>
+    <tr>
+        <td><img src="${base}21.png" onclick="selectSymbol( '21.png' )"></td>
+        <td><img src="${base}22.png" onclick="selectSymbol( '22.png' )"></td>
+        <td><img src="${base}23.png" onclick="selectSymbol( '23.png' )"></td>
+        <td><img src="${base}24.png" onclick="selectSymbol( '24.png' )"></td>
+        <td><img src="${base}25.png" onclick="selectSymbol( '25.png' )"></td>
+    </tr>
+    <tr>
+        <td><img src="${base}26.svg" onclick="selectSymbol( '26.svg' )"></td>
+        <td><img src="${base}27.svg" onclick="selectSymbol( '27.svg' )"></td>
+        <td><img src="${base}28.svg" onclick="selectSymbol( '28.svg' )"></td>
+        <td><img src="${base}29.svg" onclick="selectSymbol( '29.svg' )"></td>
+        <td><img src="${base}30.svg" onclick="selectSymbol( '30.svg' )"></td>
+    </tr>
+        <tr>
+        <td><img src="${base}31.svg" onclick="selectSymbol( '31.svg' )"></td>
+        <td><img src="${base}32.svg" onclick="selectSymbol( '32.svg' )"></td>
+        <td><img src="${base}33.svg" onclick="selectSymbol( '33.svg' )"></td>
+        <td><img src="${base}34.svg" onclick="selectSymbol( '34.svg' )"></td>
+        <td><img src="${base}35.svg" onclick="selectSymbol( '35.svg' )"></td>
+    </tr>
+    <tr>
+        <td><img src="${base}36.svg" onclick="selectSymbol( '36.svg' )"></td>
+        <td><img src="${base}37.svg" onclick="selectSymbol( '37.svg' )"></td>
+        <td><img src="${base}38.svg" onclick="selectSymbol( '38.svg' )"></td>
+        <td><img src="${base}39.svg" onclick="selectSymbol( '39.svg' )"></td>
+        <td><img src="${base}40.svg" onclick="selectSymbol( '40.svg' )"></td>
+</table>
+
+</div>

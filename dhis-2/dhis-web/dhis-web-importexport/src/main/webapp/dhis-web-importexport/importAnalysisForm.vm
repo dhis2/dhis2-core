@@ -1,0 +1,48 @@
+
+<h3>$i18n.getString( "import_analysis" )</h3>
+
+<h4>$i18n.getString( "unique_constraint_violations" )</h4>
+
+<table class="listTable" style="width:60%">
+	<tr>
+		<th style="min-width:120px">$i18n.getString( "entity" )</th>
+		<th style="min-width:120px">$i18n.getString( "property" )</th>
+		<th style="min-width:200px">$i18n.getString( "value" )</th>
+	</tr>
+	#set( $mark = false )
+    #foreach( $violation in $analysis.uniqueConstraintViolations )
+	    <tr>
+            <td#alternate( $mark )>$!violation.entity</td>
+            <td#alternate( $mark )>$!violation.property</td>
+            <td#alternate( $mark )>$!violation.value</td>
+        </tr>
+        #if( $mark )
+            #set( $mark = false )
+        #else
+            #set( $mark = true )
+        #end
+    #end
+</table>
+
+<h4>$i18n.getString( "non_existing_data_element_identifiers" )</h4>
+
+<table class="listTable" style="width:60%">
+    <tr>
+        <th style="min-width:120px">$i18n.getString( "indicator" )</th>
+        <th style="min-width:120px">$i18n.getString( "formula" )</th>
+        <th style="min-width:200px">$i18n.getString( "identifier" )</th>
+    </tr>
+    #set( $mark = false )
+    #foreach( $identifier in $analysis.nonExistingDataElementIdentifiers )
+        <tr>
+            <td#alternate( $mark )>$!identifier.indicator</td>
+            <td#alternate( $mark )>$!i18n.getString( $identifier.formula )</td>
+            <td#alternate( $mark )>$!identifier.identifier</td>
+        </tr>
+        #if( $mark )
+            #set( $mark = false )
+        #else
+            #set( $mark = true )
+        #end
+    #end
+</table>

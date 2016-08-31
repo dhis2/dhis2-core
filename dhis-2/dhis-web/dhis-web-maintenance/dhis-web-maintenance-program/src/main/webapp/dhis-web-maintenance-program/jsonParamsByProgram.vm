@@ -1,0 +1,25 @@
+{ #set( $size = $!{programStages.size()} )
+  "programStages": [
+	  #foreach( ${programStage} in $!{programStages} )
+	  {
+		"id": "${programStage.id}",
+		"name": "$!encoder.jsonEncode( ${programStage.displayName} )"
+	  }#if( $velocityCount < $size ),#end
+	  #end
+  ],
+  "attributes":[
+	#set( $size = $!{attributes.size()} )
+	#foreach( $attribute in $!{attributes} )
+	{
+		"id": "[CA:${attribute.id}]",
+		"name": "$!encoder.jsonEncode( ${attribute.name} )",
+		"optionSet": #if( $!dataElement.optionSet)
+						"$!dataElement.optionSet.uid"
+					 #else
+						""
+					 #end
+		
+	}#if( $velocityCount < $size ),#end
+	#end
+  ]
+}

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+		
+	<!-- Section -->
+
+  <bean id="org.hisp.dhis.dataset.action.section.GetSectionAction" class="org.hisp.dhis.dataset.action.section.GetSectionAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.AddSectionAction" class="org.hisp.dhis.dataset.action.section.AddSectionAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.GetSectionOptionsAction" class="org.hisp.dhis.dataset.action.section.GetSectionOptionsAction"
+    scope="prototype">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.ValidateSectionAction" class="org.hisp.dhis.dataset.action.section.ValidateSectionAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.EditSectionAction" class="org.hisp.dhis.dataset.action.section.EditSectionAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.UpdateSectionAction" class="org.hisp.dhis.dataset.action.section.UpdateSectionAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.RemoveSectionAction" class="org.hisp.dhis.dataset.action.section.RemoveSectionAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.SectionListAction" class="org.hisp.dhis.dataset.action.section.SectionListAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.GreySectionAction" class="org.hisp.dhis.dataset.action.section.GreySectionAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.SaveSectionGreyStatusAction" class="org.hisp.dhis.dataset.action.section.SaveSectionGreyStatusAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="dataElementOperandService" ref="org.hisp.dhis.dataelement.DataElementOperandService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+	<property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.SaveSectionSortOrderAction" class="org.hisp.dhis.dataset.action.section.SaveSectionSortOrderAction"
+    scope="prototype">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.section.GetSectionListSortOrderAction" class="org.hisp.dhis.dataset.action.section.GetSectionListSortOrderAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>		
+	
+	<!-- DataSet -->
+
+  <bean id="org.hisp.dhis.dataset.action.DefineDataSetAssociationsAction" class="org.hisp.dhis.dataset.action.DefineDataSetAssociationsAction"
+    scope="prototype">
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+	
+  <bean id="org.hisp.dhis.dataset.action.ValidateDataSetAction" class="org.hisp.dhis.dataset.action.ValidateDataSetAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.dataset.action.DataSetListAction" class="org.hisp.dhis.dataset.action.DataSetListAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.EditDataSetFormAction" class="org.hisp.dhis.dataset.action.EditDataSetFormAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="workflowService" ref="org.hisp.dhis.dataapproval.DataApprovalWorkflowService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.AddDataSetAction" class="org.hisp.dhis.dataset.action.AddDataSetAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="workflowService" ref="org.hisp.dhis.dataapproval.DataApprovalWorkflowService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.UpdateDataSetAction" class="org.hisp.dhis.dataset.action.UpdateDataSetAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="workflowService" ref="org.hisp.dhis.dataapproval.DataApprovalWorkflowService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.GetDataSetAction" class="org.hisp.dhis.dataset.action.GetDataSetAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.DelDataSetAction" class="org.hisp.dhis.dataset.action.DelDataSetAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+	
+	<!-- DataEntryForm -->
+
+  <bean id="org.hisp.dhis.dataset.action.dataentryform.AutoSaveDataEntryFormAction" class="org.hisp.dhis.dataset.action.dataentryform.AutoSaveDataEntryFormAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.dataentryform.ViewDataEntryFormAction" class="org.hisp.dhis.dataset.action.dataentryform.ViewDataEntryFormAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.dataentryform.SaveDataEntryFormAction" class="org.hisp.dhis.dataset.action.dataentryform.SaveDataEntryFormAction"
+    scope="prototype">
+    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.dataentryform.ValidateDataEntryFormAction" class="org.hisp.dhis.dataset.action.dataentryform.ValidateDataEntryFormAction"
+    scope="prototype">
+    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.dataentryform.DelDataEntryFormAction" class="org.hisp.dhis.dataset.action.dataentryform.DelDataEntryFormAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.dataentryform.GetSelectedDataElementsAction" class="org.hisp.dhis.dataset.action.dataentryform.GetSelectedDataElementsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+		
+  <bean id="org.hisp.dhis.dataset.action.dataentryform.SetAutoSaveSettingAction" class="org.hisp.dhis.dataset.action.dataentryform.SetAutoSaveSettingAction"
+    scope="prototype">
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+  </bean>
+		
+	<!-- Compulsory data elements -->
+
+  <bean id="org.hisp.dhis.dataset.action.compulsory.GetCompulsoryDataElementsAction" class="org.hisp.dhis.dataset.action.compulsory.GetCompulsoryDataElementsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.compulsory.SaveCompulsoryDataElementsAction" class="org.hisp.dhis.dataset.action.compulsory.SaveCompulsoryDataElementsAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.editor.ShowedAssociationsEditorAction" class="org.hisp.dhis.dataset.action.editor.ShowedAssociationsEditorAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.editor.DefinedAssociationEditorAction" class="org.hisp.dhis.dataset.action.editor.DefinedAssociationEditorAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.action.editor.DefinedMultiAssociationsEditorAction" class="org.hisp.dhis.dataset.action.editor.DefinedMultiAssociationsEditorAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+</beans>

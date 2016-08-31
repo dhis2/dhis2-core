@@ -1,0 +1,91 @@
+<script type="text/javascript">
+	var i18n_drilldown_earliest_selected = '$encoder.jsEscape( $i18n.getString("earliest_date_used_if_no_date_selected"), "'" )';
+	var i18n_drilldown_latest_selected = '$encoder.jsEscape( $i18n.getString("latest_date_used_if_no_date_selected"), "'" )';
+	var i18n_drilldown_choose_period_type = '$encoder.jsEscape( $i18n.getString("drilldown_choose_period_type"), "'" )';
+	var i18n_drilldown_fromdate_invalid = '$encoder.jsEscape( $i18n.getString("drilldown_fromdate_invalid"), "'" )';
+	var i18n_drilldown_enddate_invalid = '$encoder.jsEscape( $i18n.getString("drilldown_enddate_invalid"), "'" )';
+	var i18n_drilldown_fromdate_is_later_tdan_todate = '$encoder.jsEscape( $i18n.getString("drilldown_fromdate_is_later_tdan_todate"), "'" )';
+	var i18n_drilldown_select_browse_mode = '$encoder.jsEscape( $i18n.getString("drilldown_select_browse_mode"), "'" )';	
+	var i18n_please_select_org_unit = '$encoder.jsEscape( $i18n.getString("drilldown_select_org_unit"), "'" )';	
+</script>
+
+<h3>$i18n.getString( "data_browser" ) #openHelp( "dataBrowser" )</h3> 
+
+<form id="databrowser" name="databrowser" method="get" action="searchResult.action">
+	<table>	
+		<tr>
+			<td>$i18n.getString( "period_type" )</td>
+			<td>
+				<select id="periodTypeId" name="periodTypeId" style="min-width:200px">
+					<option value="">[ $i18n.getString( "select_period_type" ) ]</option>
+					#foreach ( $type in $periodTypes )
+						<option value="$type.name" #if( $currentPeriodTypeId == $type.name ) selected="selected"#end>$i18n.getString( $type.name )</option>
+					#end
+				</select>
+			</td>
+		</tr>  
+		<tr>
+			<td colspan="2" style="height:10px"></td>
+		</tr>
+		<tr>
+			<td>$i18n.getString( "from_date" )</td>
+			<td>
+				<input type="text" id="fromDate" name="fromDate" title="$i18n.getString( 'i18n_drilldown_earliest_selected' )"/>			
+			</td>		
+		</tr>
+		<tr>
+			<td colspan="2" style="height:10px"></td>
+		</tr>
+		<tr>		
+			<td>$i18n.getString( "to_date" )</td>
+			<td>
+				<input type="text" id="toDate" name="toDate" title="$i18n.getString( 'i18n_drilldown_latest_selected' )"/>			
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" style="height:10px"></td>
+		</tr>
+		<tr>
+			<td>$i18n.getString( "browse_by" )</td>
+			<td>
+				<select id="mode" name="mode" style="min-width:200px" onchange="modeHandler()">
+					<option value ="">[ $i18n.getString( "select_mode" ) ]</option>
+					<option value ="DS">$i18n.getString( "data_sets" )</option>
+					<option value ="DEG">$i18n.getString( "data_element_groups" )</option>
+					<option value ="OUG">$i18n.getString( "organisation_unit_groups" )</option>
+					<option value ="OU">$i18n.getString( "organisation_units" )</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" style="height:10px"></td>
+		</tr>		
+		<tr>
+			<td>$i18n.getString( "allow_show_zero" )</td>
+			<td><input type="checkbox" id="showZeroCheckBox" name="showZeroCheckBox"/></td>
+		</tr>	
+	</table>
+
+	<div id="organisationUnitSection" style="display:none">	
+		<table>		
+			<tr>
+				<td style="height:15px; min-widtd:325px;"></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "select_parent_organisation_unit" )</td>
+			</tr>
+			<tr>
+				<td><div id="selectionTree" style="width:325px; height:270px"></div></td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="drillDownCheckBoxDiv" style="display:none">
+		<input type="checkbox" id="drillDownCheckBox" name="drillDownCheckBox"/> $i18n.getString( "browse_data_at_this_level" )
+	</div>
+	
+	<br/><input type="submit" value="$i18n.getString( 'browse' )"/>
+
+</form>
+
+<span id="message"></span>

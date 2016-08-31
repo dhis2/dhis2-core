@@ -1,0 +1,2 @@
+<img #if ( $assigned ) src="../images/edit_add.png" #else src="../images/cancel.png" #end onclick="changeAssociatedStatus( $orgUnitId, $dataSetId, $assigned )" style="cursor:pointer" title="$title"/>
+<input type="hidden" value="$assigned"/>

@@ -1,0 +1,173 @@
+<script type="text/javascript">
+  var previousName = '';
+  var adding_the_org_unit_failed = '$encoder.jsEscape( $i18n.getString( "adding_the_org_unit_failed" ) , "'" )';
+
+  jQuery(document).ready(function() {
+    validation2('addOrganisationUnitForm', function( form ) {
+      $.ajax({
+        url: '../dhis-web-commons/ouwt/getselected.action',
+        dataType: 'json'
+      }).done(function( data ) {
+        console.log(data);
+        if( data.selectedUnits.length == 0 ) {
+          if( confirm('$i18n.getString( "create_new_root" )') ) {
+            selectAllById("dataSets");
+            form.submit();
+          }
+        } else {
+          selectAllById("dataSets");
+          form.submit();
+        }
+      });
+    }, {
+      'beforeValidateHandler': function() {
+          #tblDynamicAttributesJavascript()
+      },
+      'rules': getValidationRules("organisationUnit")
+    });
+
+    checkValueIsExistWarning("name", "validateOrganisationUnit.action");
+    checkValueIsExist("code", "validateOrganisationUnit.action");
+
+    jQuery("div[id=dynamicAttributesContainer] table tr td:first-child").attr("style", "width: 120px");
+    jQuery("div[id=dynamicAttributesContainer] table tr td:last-child *").attr("style", "");
+
+    jQuery("#name").focus();
+
+    dhis2.period.picker.createInstance('#openingDate');
+  });
+</script>
+
+<h3>$i18n.getString( "create_new_org_unit" ) #openHelp( "ou_edit" )</h3>
+
+<form id="addOrganisationUnitForm" name="addOrganisationUnitForm" action="addOrganisationUnit.action" method="post" class="inputForm">
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td style="width:120px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" onchange="nameChanged()"></td>
+	</tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="shortName" name="shortName"></td>
+	</tr>
+	<tr>
+		<td><label for="description">$i18n.getString( "description" )</label></td>
+		<td><textarea id="description" name="description"></textarea></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code"></td>
+	</tr>
+	<tr>
+		<td><label for="openingDate">$i18n.getString( "opening_date" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="openingDate" name="openingDate" value="$defaultDate"></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td><label for="comment">$i18n.getString( "comment" )</label></td>
+		<td><textarea id="comment" name="comment"></textarea></td>
+	</tr>
+	<tr>
+		<td><label for="longitude">$i18n.getString( "longitude" )</label></td>
+		<td><input type="text" id="longitude" name="longitude"></td>
+	</tr>
+	<tr>
+		<td><label for="latitude">$i18n.getString( "latitude" )</label></td>
+		<td><input type="text" id="latitude" name="latitude"></td>
+	</tr>
+    <tr>
+        <td><label for="url">$i18n.getString( "url" )</label></td>
+        <td><input type="text" id="url" name="url"></td>
+    </tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes } )
+
+<table>
+	<tr>
+		<td style="height:15px" colspan="2">
+	</tr>
+
+    <tr>
+		<th colspan="2">$i18n.getString( "contact_details" )</th>
+    </tr>
+	<tr>
+		<td style="width:120px"><label for="contactPerson">$i18n.getString( "contact_person" ) </label></td>
+		<td><input type="text" id="contactPerson" name="contactPerson"></td>
+	</tr>
+	<tr>
+		<td><label for="address">$i18n.getString( "address" ) </label></td>
+		<td><input type="text" id="address" name="address"></td>
+	</tr>
+	<tr>
+		<td><label for="email">$i18n.getString( "email" )</label></td>
+		<td><input type="text" id="email" name="email"></td>
+	</tr>
+    <tr>
+        <td><label for="phoneNumber">$i18n.getString( "phone_number" )</label></td>
+        <td><input type="text" id="phoneNumber" name="phoneNumber"></td>
+    </tr>
+
+	<tr>
+		<td style="height:15px" colspan="2">
+	</tr>
+</table>
+
+#if( $keyAllowObjectAssignment )
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "data_sets" )</th>
+    </tr>
+    <tr>
+    	<td style="width:120px"><label for="availableDataSets">$i18n.getString( "available_data_sets" )</label></td>
+    	<td><select multiple id="availableDataSets" size="5" ondblclick="moveSelectedById( 'availableDataSets', 'dataSets' )">
+    	#foreach( $dataSet in $dataSets )
+    	<option value="${dataSet.id}">$encoder.htmlEncode( $dataSet.displayName )</option>
+	    #end
+    	</select></td>
+    </tr>
+    <tr>
+    	<td></td>
+    	<td>
+    		<input type="button" value="$i18n.getString( 'add' )" style="width:120px" onclick="moveSelectedById( 'availableDataSets', 'dataSets' )"/>
+    		<input type="button" value="$i18n.getString( 'remove' )" style="width:120px" onclick="moveSelectedById( 'dataSets', 'availableDataSets' )"/>
+    	</td>
+    </tr>
+
+    <tr>
+    	<td><label for="dataSets">$i18n.getString( "selected_data_sets" )</label></td>
+    	<td><select multiple id="dataSets" name="dataSets" size="5" ondblclick="moveSelectedById( 'dataSets', 'availableDataSets' )"></select></td>
+    </tr>
+
+	<tr>
+		<td style="height:15px" colspan="2">
+	</tr>
+
+    <tr>
+		<th colspan="2">$i18n.getString( "organisation_unit_groups" )</th>
+    </tr>
+	#foreach ( $groupSet in $groupSets )
+    <tr>
+		<td><label>$encoder.htmlEncode( $groupSet.name )</label></td>
+		<td>
+			<select id="selectedGroups" name="selectedGroups">
+				<option value="-1">[ $i18n.getString( "select_group" ) ]</option>
+				#foreach ( $group in $groupSet.getSortedGroups() )
+				<option value="$group.id">$group.name</option>
+				#end
+			</select>
+		</td>
+    </tr>
+	#end
+</table>
+#end
+
+<p>
+	<input type="submit" name="save" value="$i18n.getString( 'add' )" style="width: 10em;" />
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='organisationUnit.action'" style="width: 10em;" />
+</p>
+
+</form>

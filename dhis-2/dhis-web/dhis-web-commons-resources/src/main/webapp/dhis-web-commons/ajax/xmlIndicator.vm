@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<indicator>
+	<id>$indicator.id</id>
+    <name>$!encoder.xmlEncode( $indicator.displayName )</name>
+    <shortName>$!encoder.xmlEncode( $indicator.displayShortName )</shortName>
+    <alternativeName>$!encoder.xmlEncode( $indicator.alternativeName )</alternativeName>
+    <code>$!encoder.xmlEncode( $indicator.code )</code>
+    <description>$!encoder.xmlEncode( $indicator.displayDescription )</description>
+    <annualized>$indicator.isAnnualized()</annualized>
+    <indicatorTypeId>$indicator.indicatorType.id</indicatorTypeId>
+    <indicatorTypeName>$!encoder.xmlEncode( $indicator.indicatorType.name )</indicatorTypeName>
+    <numerator>$!encoder.xmlEncode( $indicator.numerator )</numerator>
+    <numeratorDescription>$!encoder.xmlEncode( $indicator.numeratorDescription )</numeratorDescription>
+    <denominator>$!encoder.xmlEncode( $indicator.denominator )</denominator>
+    <denominatorDescription>$!encoder.xmlEncode( $indicator.denominatorDescription )</denominatorDescription>
+    <url>$!encoder.xmlEncode( $indicator.url )</url>
+	<lastUpdated>$!format.formatDate( $indicator.lastUpdated )</lastUpdated>
+</indicator>

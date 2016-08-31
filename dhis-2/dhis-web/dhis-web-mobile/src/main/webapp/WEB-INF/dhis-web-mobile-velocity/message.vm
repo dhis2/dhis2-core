@@ -1,0 +1,110 @@
+
+<script>
+    function getDate( isoDate ) {
+        var d = new Date( isoDate ).toDateString();
+
+        if( d == "Invalid Date" )
+        {
+            d = isoDate.substring(0, 10);
+        }
+
+        return d;
+    }
+
+    function bindSubmitHandler() {
+        $('#reply-form input:submit').bind('click', function ( e ) {
+            var msg = jQuery('#reply-text').val();
+
+            if ( msg.length == 0 ) {
+                e.preventDefault();
+                return;
+            }
+
+            $.mobile.loading( 'show' );
+
+            $.ajax({
+                url         : '$contextPath/api/messageConversations/${messageId}',
+                type        : 'post',
+                contentType : 'text/plain; charset=UTF-8',
+                data        : msg
+            }).success(function () {
+                $.mobile.hidePageLoadingMsg();
+                location.reload(true);
+            }).error(function () {
+                $.mobile.loading( 'show', {
+                    html: '<h1>$i18n.getString("unable_to_send_reply")</h1>',
+                    textVisible: true
+                });
+
+                setTimeout( function() {
+                    $.mobile.loading( 'hide' );
+                }, 1500);
+            });
+
+            e.preventDefault();
+        });
+    }
+
+    $(document).bind('pageinit', function() {
+        $.ajax({
+            url   : '$contextPath/api/messageConversations/${messageId}?markRead=true',
+            dataType: 'json'
+        }).success(function ( data ) {
+            var tmpl = jQuery('#message-template').html();
+
+            $('section[data-role="content"]').html(
+                _.template(tmpl, data)
+            );
+
+            $('section[data-role="content"]').trigger('create');
+            bindSubmitHandler();
+        }).error(function () {
+            $.mobile.loading( 'show', {
+                html: '<h1>$i18n.getString("unable_to_send_reply")</h1>',
+                textVisible: true
+            });
+
+            setTimeout( function() {
+                $.mobile.loading( 'hide' );
+            }, 1500);
+        });
+    });
+</script>
+
+<script id="message-template" type="text/template">
+    <ul data-role="listview" data-inset="true">
+        <li data-role="list-divider"><%= subject %></li>
+        <% _( _( messages ).reverse() ).each( function(message, idx) { %>
+        <% var d = getDate( message.lastUpdated ); %>
+        <li>
+            <h3><%= message.sender.name %></h3>
+            <p style="white-space: normal !important"><%= message.name %></p>
+            <p class="ui-li-aside"><strong><%= d %></strong></p>
+        </li>
+        <% if( idx == 0 ) { %>
+        <li>
+        <form id='reply-form'>
+            <textarea id='reply-text'></textarea>
+            <input type="submit" value="$i18n.getString("reply")" />
+        </form>
+        </li>
+        <% } %>
+        <% }); %>
+    </ul>
+</script>
+
+<section data-role="page" id="message-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="../messages" data-icon="back">$i18n.getString("back")</a>
+	</header>
+
+	<section data-role="content">
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>

@@ -1,0 +1,38 @@
+#set( $size1 = $dataValues.size() )
+#set( $size2 = $minMaxDataElements.size() )
+{ "dataValues": [
+  #foreach( $value in $dataValues )
+  {
+    #if( $multiOrganisationUnit )
+    "id":"${value.source.uid}-${value.dataElement.uid}-${value.optionCombo.uid}",
+    #else
+    "id":"${value.dataElement.uid}-${value.optionCombo.uid}",
+    #end
+    #if( $dataValueFileResourceMap.containsKey( $!{value.value} ) )
+      #set( $fr = $dataValueFileResourceMap.get( $!{value.value} ) )
+    "fileMeta":{
+      "name":"$!encoder.jsonEncode( $!{fr.name} )",
+      "size":${fr.contentLength}
+    },
+    #end
+    "val":"$!encoder.jsonEncode( ${value.value} )",
+    "com":"${value.hasComment()}"
+  }#if( $velocityCount < $size1 ),#end
+  #end ],
+  "minMaxDataElements": [
+  #foreach( $element in $minMaxDataElements )
+  {
+    #if( $multiOrganisationUnit )
+    "id":"${element.source.uid}-${element.dataElement.uid}-${element.optionCombo.uid}",
+    #else
+    "id":"${element.dataElement.uid}-${element.optionCombo.uid}",
+    #end
+    "min":"${element.min}",
+    "max":"${element.max}"
+  }#if( $velocityCount < $size2 ),#end
+  #end ],
+  "locked":${locked},
+  "complete":${complete},
+  "date":"$!format.formatDate( $date )",
+  "storedBy":"$!encoder.jsonEncode( ${storedBy} )"
+}

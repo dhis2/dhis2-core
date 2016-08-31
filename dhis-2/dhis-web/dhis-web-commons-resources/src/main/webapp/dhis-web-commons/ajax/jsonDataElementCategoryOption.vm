@@ -1,0 +1,24 @@
+{ "dataElementCategoryOption":
+  {
+    "id":  "${dataElementCategoryOption.id}" ,
+    "uid":  "${dataElementCategoryOption.uid}" ,
+    "name": "$!encoder.jsonEncode( ${dataElementCategoryOption.name} )",
+    "shortName": "$!encoder.jsonEncode( ${dataElementCategoryOption.shortName} )",
+    "startDate": "$!format.formatDate( ${dataElementCategoryOption.startDate} )",
+    "endDate": "$!format.formatDate( ${dataElementCategoryOption.endDate} )",
+    "categories": [
+			#if( $dataElementCategoryOption.categories )
+				#set( $size = $dataElementCategoryOption.categories.size() )
+				#set( $categories = "" )
+				#foreach( $category in $dataElementCategoryOption.categories)
+					{
+						"id": "$category.id",
+						"uid": "$category.uid",
+						"name" : "$!encoder.jsonEncode( ${category.name} )"
+					}#if( $velocityCount < $size ),#end
+				#end
+			#end
+		]
+	
+  }
+}

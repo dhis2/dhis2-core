@@ -1,0 +1,166 @@
+<script>
+    $(".search-dropdown-button").on('click', function () {
+        $("#searchDropDown").width($("#searchDropDownParent").width());
+    });
+    $('#searchDropDown').on('click', "[data-stop-propagation]", function (e) {
+        e.stopPropagation();
+    });
+
+    //stop date picker's event bubling
+    $(document).on('click.dropdown touchstart.dropdown.data-api', '#ui-datepicker-div', function (e) {
+        e.stopPropagation();
+    });
+
+    $(window).resize(function () {
+        $("#searchDropDown").width($("#searchDropDownParent").width());
+    });
+</script>
+
+<span id="showLeftBar" class="hideInPrint">
+    <a href="javascript:dhis2.leftBar.showAnimated()" title="$i18n.getString('show_menu' )"><i class="fa fa-arrow-right leftBarIcon"></i></a>
+</span>
+
+<div id="leftBar">
+    
+    <d2-left-bar></d2-left-bar>
+    
+    <div id="orgUnitTree">
+        <ul>
+        </ul>
+    </div>
+    
+    <img id="ouwt_loader" src="../images/ajax-loader-bar.gif" alt="{{'in_progress'| translate}}"/>
+    
+    <div class="small-horizonal-spacing" ng-if="!treeLoaded">
+        {{'loading_tree'| translate}}
+    </div>
+    
+</div>
+
+<div class="page" id="mainPage">
+
+    <!--- selected org unit begins -->
+    <input type="text" selected-org-unit ng-model="selectedOrgUnit.name" ng-hide=true>
+    <!--- selected org unit ends  -->
+        
+    <div ng-if="treeLoaded && !selectedOrgUnit">
+        <img src="../images/ajax-loader-bar.gif" alt="{{'in_progress'| translate}}"/><br>
+        {{'loading_metadata'| translate}}
+    </div> 
+
+    <div ng-show="selectedOrgUnit && selectedOrgUnit.id">
+        
+        <!-- top bar begins -->
+        <div class="row top-bar">        
+            <div class="col-sm-12">                
+                {{trackerCaptureLabel}}                
+            </div>        
+        </div>
+        <!-- top bar ends -->
+        
+        <!--- search and registration menu begins -->        
+        <div class="row">
+            
+            <!-- program selection begins -->
+            <div class="col-md-4 small-vertical-spacing hideInPrint">
+                <ui-select ng-model="model.selectedProgram" 
+                        theme="select2" 
+                        on-select="getProgramAttributes(model.selectedProgram)"
+                        style="width:100%;">
+                    <ui-select-match allow-clear="true" class="form-control-ui-select" placeholder="{{'select_or_search' | translate}}">{{$select.selected.name  || $select.selected}}</ui-select-match>
+                    <ui-select-choices  repeat="program in programs | orderBy: 'name' | filter: $select.search | limitTo:maxOptionSize">
+                        <span ng-bind-html="program.name | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </div>            
+            <!-- program selection ends -->
+
+            <!-- simple/advanced search begins -->
+            <div id="searchDropDownParent" class="input-group col-md-4 hideInPrint">
+                <input type="text" ng-if="selectedOrgUnit.id" placeholder="{{searchCriteriaLabel}}" ng-model="model.searchText" class="form-control expanded" d2-enter="search(searchMode.freeText)" ng-class="{true: 'invalid - input'} [!model.searchText && emptySearchText]" ng-focus="showHideSearch()" ng-disabled="showRegistrationDiv" d2-set-focus={{doSearch}}>
+                <div class="input-group-btn">
+                    <button class="btn btn-default search-dropdown-button trim" type="button" title="{{advancedSearchLabel}}" data-toggle="dropdown" ng-disabled="showRegistrationDiv"><i class="fa fa-caret-down"></i></button>
+                    <button class="btn btn-primary trim" type="button" title="{{searchLabel}}" ng-disabled="showRegistrationDiv" ng-click="search(searchMode.freeText)"><i class="fa fa-search"></i></button>
+                    <div id="searchDropDown" class="dropdown-menu dropdown-menu-right">
+                        <form name="searchForm">
+                            <div ng-include="'views/advanced-search.html'"></div>
+                        </form>
+                    </div>
+                </div>                
+            </div>
+            <!-- simple/advanced search ends -->
+
+            <!--search/registration buttons begin-->
+            <div class="col-md-4 trim hideInPrint">            
+                <button type="button" 
+                        class="btn btn-success"
+                        ng-if="selectedProgram && selectedProgram.displayFrontPageList"
+                        ng-disabled="showRegistrationDiv"
+                        ng-click="search(searchMode.listAll)">
+                    {{listAllLabel}}
+                </button>
+                <button type="button" 
+                        class="btn btn-primary"
+                        ng-click="showRegistration()">                    
+                    {{registerLabel}}
+                </button>
+                <button type="button"
+                        class="btn btn-info"
+                        ng-if="teiCount > 0"
+                        onclick="javascript:window.print()">
+                    {{printLabel}}
+                </button>
+            </div>
+            <!--search/registration buttons end-->
+        </div>
+        <!--- search and registration menu ends -->
+
+        <!--- Error display for search begins -->
+        <div class="vertical-spacing" ng-if="emptySearchAttribute || !model.searchText && emptySearchText">
+            <div class="alert alert-warning">{{'search_input_required'| translate}}</div>
+        </div>
+        <!--- Error display for search ends -->
+
+        <!--registration form begins -->
+        <div class="col-sm-8 bordered-div" ng-if="showRegistrationDiv" ng-include="'components/registration/registration.html'"></div>
+        <!-- registration form ends -->        
+
+        <!-- entity grid begins -->
+        <i ng-if="!teiFetched && showTrackedEntityDiv && enrollmentStatus!=='TODAY'" class="fa fa-spinner fa-spin fa-2x"></i>
+        <div class="row">
+            <div class="col-sm-12">
+                <span ng-if='!showRegistrationDiv'>
+                    <span class="btn-group" ng-if="selectedProgram && (teiFetched || enrollmentStatus==='TODAY')">
+                        <label class="btn btn-default" ng-model="enrollmentStatus" btn-radio="'TODAY'" title="{{todayLabel}}" ng-click='filterByEnrollmentStatus("TODAY")'><i class='fa fa-calendar-o mouse-pointer'></i></label>
+                        <label class="btn btn-default" ng-model="enrollmentStatus" btn-radio="'ALL'" title="{{allEnrollmentsLabel}}" ng-click='filterByEnrollmentStatus("ALL")'><i class="fa fa-list mouse-pointer"></i></label>
+                        <label class="btn btn-default" ng-model="enrollmentStatus" btn-radio="'ACTIVE'" title="{{activeEnrollmentsLabel}}" ng-click='filterByEnrollmentStatus("ACTIVE")'><i class="fa fa-circle-o mouse-pointer"></i></label>
+                        <label class="btn btn-default" ng-model="enrollmentStatus" btn-radio="'COMPLETED'" title="{{completedEnrollmentsLabel}}" ng-click='filterByEnrollmentStatus("COMPLETED")'><i class="fa fa-check mouse-pointer"></i></label>
+                        <label class="btn btn-default" ng-model="enrollmentStatus" btn-radio="'CANCELLED'" title="{{cancelledEnrollmentsLabel}}" ng-click='filterByEnrollmentStatus("CANCELLED")'><i class="fa fa-times mouse-pointer"></i></label>
+                    </span>
+                    <span ng-if="teiFetched && enrollmentStatus!== 'TODAY' &&pager.total">
+                        {{'total'| translate}}:  {{pager.total}}
+                    </span>
+                    <span ng-if="teiFetched && enrollmentStatus=== 'TODAY' && trackedEntityList">
+                        {{'total'| translate}}:  {{trackedEntityList.length}}
+                    </span>
+                </span>
+                
+                <div class="pull-right hideInPrint" ng-if="trackedEntityList.length > 0 && !showRegistrationDiv">
+                    <button class="btn btn-info"
+                            type="button"                             
+                            ng-click="showHideColumns()">
+                        {{showHideLabel}}
+                    </button>                    
+                </div>
+                
+            </div>
+        </div>
+        <div class="row">            
+            <div class="col-sm-12" ng-if="!showRegistrationDiv" ng-include="'views/tei.html'"></div>
+        </div>
+        <!-- entity grid ends -->
+    </div>
+
+</div>           
+
+

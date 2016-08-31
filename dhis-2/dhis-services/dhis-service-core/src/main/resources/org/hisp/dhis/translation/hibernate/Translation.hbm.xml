@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.translation.Translation" table="translation">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="translationid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="className" column="objectclass" length="127" unique-key="translation_composite_key" />
+    <property name="objectUid" column="objectUid" length="11" unique-key="translation_composite_key" />
+    <property name="locale" column="locale" length="15" unique-key="translation_composite_key" />
+    <property name="property" column="objectproperty" length="63" unique-key="translation_composite_key" index="translation_objectproperty_key" />
+
+    <property name="value" column="value" type="text" not-null="true" />
+
+  </class>
+</hibernate-mapping>

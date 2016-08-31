@@ -1,0 +1,229 @@
+<script type="text/javascript">
+  var ouwtSelected = [];
+
+  jQuery(function() {
+    var rules = getValidationRules("user");
+    rules["rawPassword"].required = false;
+    rules["retypePassword"].required = false;
+    rules["inviteEmail"].required = false;
+
+    validation2('updateUserForm', function(form) {
+      jQuery("#urSelected").children().attr("selected", "selected");
+      jQuery("#ugSelected").children().attr("selected", "selected");
+      jQuery("#dcSelected").children().attr("selected", "selected");
+
+      if( $('#orgUnitTree').find('.selected').size() == 0 ) {
+        setHeaderDelayMessage('$encoder.jsEncode( $i18n.getString( "data_capture_organisation_unit_required_for_user" ) )');
+      } else {
+        $('#ouwtSelected').val(ouwtSelected[0]);
+        selection.setSelected(ouwtSelected !== undefined ? ouwtSelected : []);
+        form.submit();
+      }
+    }, {
+      'beforeValidateHandler': function() {
+        listValidator('urValidator', 'urSelected');
+        #tblDynamicAttributesJavascript()
+      },
+      'rules': rules
+    });
+
+    checkValueIsExist("openId", "validateUser.action", { id: $userCredentials.id });
+
+    ouwtSelected = selection.getSelected();
+    selection.clearSelected(); // Sync ouwt from server
+    selection.setOfflineLevel(1);
+    selection.setMultipleSelectionAllowed(true);
+    selection.setUnselectAllowed(true);
+    selection.setAutoSelectRoot(false);
+
+    jQuery("#cancel").click(function() {
+      dhis2.commons.redirectCurrentPage('alluser.action');
+    });
+
+    selectionTreeSelection.setMultipleSelectionAllowed(true);
+    selectionTree.buildSelectionTree();
+    
+    externalAuthChanged();
+
+    $('#urAvailable').selected({
+      url: '../api/userRoles.json?canIssue=true',
+      target: $('#urSelected'),
+      search: $('#urAvailableSearch'),
+      iterator: 'userRoles'
+    });
+
+    $('#ugAvailable').selected({
+      url: '../api/userGroups.json',
+      target: $('#ugSelected'),
+      search: $('#ugAvailableSearch'),
+      iterator: 'userGroups'
+    });
+
+    $('#dcAvailable').selected({
+      url: '../api/dimensions/constraints.json',
+      target: $('#dcSelected'),
+      search: $('#dcAvailableSearch'),
+      iterator: 'dimensions'
+    });
+  });
+</script>
+
+<style type="text/css">
+  div#orgUnitTree {
+    width  : 495px;
+    border : 1px solid #ccc;
+  }
+</style>
+
+<h3>$i18n.getString( "edit_user" )</h3>
+
+<form id="updateUserForm" action="updateUser.action" method="post" class="inputForm">
+  <input type="hidden" id="ouwtSelected" name="ouwtSelected" value=""/>
+
+  <div><input type="hidden" id="id" name="id" value="$userCredentials.id"/></div>
+
+  <table>
+    <col style="width: 120px"/>
+    <col style="width: 350px"/>
+    <col/>
+    <col style="width: 350px"/>
+
+    <tr>
+      <th colspan="4">$i18n.getString( "details" )</th>
+    </tr>
+
+    <tr>
+      <td><label for="username">$i18n.getString( "username" )</label></td>
+      <td colspan="3"><input type="text" id="username" name="username" value="$encoder.htmlEncode( $userCredentials.username )" disabled="disabled" autocomplete="off"/></td>
+    </tr>
+
+    <tr class="account">
+		<td><label for="externalAuth">$i18n.getString( "external_authentication_only" ) (OpenID or LDAP)</label></td>
+		<td colspan="3"><input type="checkbox" id="externalAuth" name="externalAuth" value="true" onchange="javascript:externalAuthChanged()"#if( $!userCredentials.externalAuth ) checked="checked"#end></td>
+	</tr>
+
+    <tr>
+      <td><label for="rawPassword">$i18n.getString( "password" )</label></td>
+      <td colspan="3"><input type="password" id="rawPassword" name="rawPassword" autocomplete="off"></td>
+    </tr>
+
+    <tr>
+      <td><label for="retypePassword">$i18n.getString( "retype_password" ) </label></td>
+      <td colspan="3"><input type="password" id="retypePassword" name="retypePassword" autocomplete="off"></td>
+    </tr>
+
+    <tr>
+      <td><label for="surname">$i18n.getString( "surname" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td colspan="3"><input type="text" id="surname" name="surname" value="$encoder.htmlEncode( $userCredentials.userInfo.surname )"></td>
+    </tr>
+
+    <tr>
+      <td><label for="firstName">$i18n.getString( "firstName" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td colspan="3"><input type="text" id="firstName" name="firstName" value="$encoder.htmlEncode( $userCredentials.userInfo.firstName )"></td>
+    </tr>
+
+    <tr>
+      <td><label for="email">$i18n.getString( "email" )</label></td>
+      <td colspan="3"><input type="text" id="email" name="email" value="$!encoder.htmlEncode( $userCredentials.userInfo.email )"></td>
+    </tr>
+
+    <tr>
+      <td><label for="openId">$i18n.getString( "openid" )</label></td>
+      <td colspan="3"><input type="text" id="openId" name="openId" value="$!encoder.htmlEncode( $userCredentials.openId )"></td>
+    </tr>
+
+    <tr>
+      <td><label for="ldapId">$i18n.getString( "ldap_id" )</label></td>
+      <td colspan="3"><input type="text" id="ldapId" name="ldapId" value="$!encoder.htmlEncode( $userCredentials.ldapId )"></td>
+    </tr>
+
+    <tr>
+      <td><label for="phoneNumber">$i18n.getString( "phone_number" )</label></td>
+      <td colspan="3"><input type="text" id="phoneNumber" name="phoneNumber" value="$!encoder.htmlEncode( $userCredentials.userInfo.phoneNumber )"></td>
+    </tr>
+
+    <tr>
+      <td><label>$i18n.getString( "language" )</label></td>
+      <td>
+        <select id="localeUi" name="localeUi">
+          #foreach( $locale in $availableLocales )
+            <option value="$locale.toString()" #if( $locale == $currentLocale )selected="selected"#end>$locale.getDisplayName()</option>
+          #end
+        </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td><label>$i18n.getString( "db_language" )</label></td>
+      <td>
+        <select id="localeDb" name="localeDb">
+          <option value="">[$i18n.getString( "use_db_locale_no_translation" )]</option>
+          #foreach( $locale in $availableLocalesDb )
+            <option value="$locale.toString()" #if( $locale == $currentLocaleDb )selected="selected"#end>$locale.getDisplayName()</option>
+          #end
+        </select>
+      </td>
+    </tr>
+
+  </table>
+
+  #tblDynamicAttributes( {
+    "attributes": $attributes,
+    "attributeValues": $attributeValues
+  })
+
+  #jqSelected({
+    "prefix": "ur",
+    "required": true,
+    "i18n_available": "available_roles",
+    "i18n_selected": "selected_roles",
+    "objects": $userAuthorityGroups
+  })
+
+  <div style="padding: 5px 0" class="tipText">$i18n.getString( "selecting_org_unit_provides_access_to_sub_hierarchy" )</div>
+
+  <table style="margin-bottom: 20px;">
+    <tr>
+      <th>$i18n.getString( "data_capture_maintenance_org_units" )</th>
+      <th></th>
+      <th>$i18n.getString( "data_output_analysis_org_units" )</th>
+    </tr>
+    <tr>
+      <td>
+        #parse( "/dhis-web-commons/ouwt/orgunittree.vm" )
+      </td>
+      <td style="width: 26px"></td>
+      <td>
+        <div id="selectionTree"></div>
+      </td>
+    </tr>
+  </table>
+
+  <div id="showMoreOptions" style="margin-bottom: 20px;"><a href="javascript:showUserOptions()">$i18n.getString( "show_more_options" )</a></div>
+
+  <div id="moreOptions" style="display:none">
+
+    #jqSelected({
+      "prefix": "ug",
+      "i18n_available": "available_user_groups",
+      "i18n_selected": "selected_user_groups",
+      "objects": $userGroups
+    })
+
+    #jqSelected({
+      "prefix": "dc",
+      "i18n_available": "available_dimension_restrictions_for_data_analytics",
+      "i18n_selected": "selected_dimension_restrictions_for_data_analytics",
+      "objects": $dimensionConstraints
+    })
+
+    <div id="showFewerOptions" style="margin-bottom: 20px;"><a href="javascript:showUserOptions()">$i18n.getString( "show_fewer_options" )</a></div>
+
+  </div>
+
+  <p>
+    <input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/>
+    <input type="button" id="cancel" value="$i18n.getString( 'cancel' )" style="width:10em"/>
+  </p>
+
+</form>

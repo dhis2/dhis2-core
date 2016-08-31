@@ -1,0 +1,581 @@
+/**
+ * Bootstrap 3.0 box-sizing fix
+ */
+#menuLinkArea * {
+    box-sizing: content-box;
+    -webkit-box-sizing: content-box;
+    -moz-box-sizing:  content-box;
+    -o-box-sizing: content-box;
+    -m-box-sizing: content-box;
+}
+
+#menuLinkArea
+{
+    list-style-type: none;
+    max-width: 1200px;
+    margin: 0;
+    padding: 0 20px 0 0;
+}
+
+#menuLinkArea li
+{
+    float: right;
+}
+
+#menuLinkArea .app-menu-dropdown li {
+    float: left;
+}
+
+input.apps-search[type="text"] {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: content-box;
+    font-size: inherit;
+    outline: none;
+    padding: 4px 1px;
+    padding-right: 5px;
+    padding-left: 5px;
+    width: 348px;
+}
+
+.apps-search-wrap {
+    padding-bottom: 10px;
+    position: relative;
+    width: 360px;
+}
+
+.app-menu-dropdown .apps-search-clear {
+    color: #404040;
+    cursor: pointer;
+    display: none;
+    font-size: 15px;
+    height: 15px;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    right: 5px;
+    top: 18%;
+    width: 20px;
+}
+
+.menuDropDownBox
+{
+    list-style-type: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+.menuDropDownBox a
+{
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.menuDropDownBox a:hover
+{
+    text-decoration: none;
+    background-color: #f5f5f7;
+    color: #000;
+}
+
+.menuDropDownBox li.selected a {
+    background-color: #f5f5f7;
+}
+
+.app-menu:after
+{
+    clear: both;
+    content: "";
+}
+
+.app-menu ul,
+.app-menu li
+{
+    list-style: none;
+}
+
+.app-manager-header,
+.app-menu
+{
+    margin: 0 auto;
+    position: relative;
+    width: 535px;
+}
+
+.app-menu li
+{
+    float: left;
+    position: relative;
+}
+
+#menuOrderBy
+{
+    float: right;
+}
+
+.app-menu .app-menu-item,
+.app-menu .app-menu-placeholder
+{
+    margin: 10px;
+    display: block;
+    border: 1px solid #d0d0d0;
+    background-color: #fff;
+    width: 225px;
+    height: 56px;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.app-menu .app-menu-item img
+{
+    max-height: 36px;
+    max-width: 36px;
+    display: block;
+    left: 25px;
+    top: 29px;
+    position: absolute;
+}
+
+.app-menu .app-menu-item span
+{
+    font-size: 1.15em;
+    padding-left: 48px;
+    display: block;
+    padding-top: 19px;
+    color: #404040;
+}
+
+.app-menu .app-menu-placeholder,
+.app-menu .app-menu-item:hover
+{
+    border: 1px dashed #9ec5df;
+    background-color: #e9f5fb;
+    text-decoration: none;
+}
+
+.app-menu-item-description
+{
+    display: none;
+}
+
+.app-menu-item-description .fa.fa-arrows
+{
+    font-size: 1.3em;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
+
+/**
+ * When hovered display the description and hide the favorites icon
+ */
+.app-menu li:hover a .app-menu-item-description
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: #fff;
+    border: 1px solid #b0b0b0;
+    display: block;
+    margin: 10px;
+    padding: 10px 10px;
+    font-size: 1em;
+    color: #555;
+    border-radius: 5px;
+}
+
+.app-menu li.ui-sortable-helper:hover a .app-menu-item-description
+{
+    display: none;
+}
+
+.app-menu li.ui-sortable-helper:hover a
+{
+    background-color: rgba(255, 255, 255, 0.30);
+}
+
+.app-menu-item .app-menu-item-description span
+{
+    color: #444;
+    display: block;
+    font-size: 1.1em;
+    padding: 0;
+    padding-bottom: 5px;
+    margin: 0;
+}
+
+.app-menu-item .app-menu-item-description p
+{
+    height: 35px;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+}
+
+.app-menu li:hover a .fa.fa-bookmark
+{
+    display: none;
+}
+
+.app-menu a.app-menu-item .fa.fa-bookmark
+{
+    color: #276696;
+    font-size: 2em;
+    position: absolute;
+    right: 15px;
+    top: 10px;
+}
+
+/**
+ * IE8 hack to display all items after the 9th item differently
+ * TODO: When support for IE8 is dropped this can be changed to a nth style selector
+ */
+.app-menu li + li + li + li + li + li + li + li + li + li a.app-menu-item .fa.fa-bookmark
+{
+    display: none;
+}
+
+/**
+ * App menu item
+ */
+.menu-link {
+    color: #fff;
+    cursor: pointer;
+    font-size: 9pt;
+    height: 44px;
+    line-height: 44px;
+    text-align: center;
+    width: 105px;
+}
+
+.menu-link i.fa
+{
+    font-size: 2em;
+    padding-right: 10px;
+    position: relative;
+    top: 5px;
+}
+
+a.menu-link:hover
+{
+    color: #fff;
+    text-decoration: none;
+}
+
+/**
+ * App menu dropdown box
+ */
+.app-menu-dropdown
+{
+    background-color: #fff;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 8px 0px;
+    color: #000;
+    font-size: 9pt;
+    max-height: 610px;
+    overflow-y: inherit;
+    padding: 10px;
+    top: 10px;
+    position: relative;
+    width: 360px;
+    z-index: 100000; /* Quite high for any other elements that might have high z-indexes  */
+}
+
+.app-menu-dropdown-wrap {
+    position: absolute;
+    left: -9999px;
+}
+
+.app-menu-hide {
+    display: none;
+}
+
+.app-menu-dropdown ul
+{
+    margin: 0;
+    overflow: auto;
+}
+
+.app-menu-dropdown li
+{
+    float: left;
+}
+
+.app-menu-dropdown img
+{
+    padding-left: 36px;
+    padding-right: 36px;
+    padding-top: 15px;
+    padding-bottom: 5px;
+    max-height: 48px;
+    max-width: 48px;
+}
+
+.app-menu-dropdown span
+{
+    color: #404040;
+    display: block;
+    font-family: LiberationSans, arial, sans-serif;
+    height: 30px;
+    overflow: hidden;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    width: 100px;
+}
+
+.app-menu-dropdown .caret-up-background,
+.app-menu-dropdown .caret-up-border
+{
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.app-menu-dropdown .caret-up-background
+{
+    border-bottom: 10px solid #fff;
+    top: -9px;
+}
+
+.app-menu-dropdown .caret-up-border
+{
+    border-bottom: 10px solid #bbb;
+    top: -10px;
+}
+
+.app-menu-dropdown a.app-menu-item
+{
+    color: #000;
+    display: block;
+    height: 110px;
+    padding: 0;
+    text-decoration: none;
+    width: 120px;
+}
+
+.app-menu-dropdown a.app-menu-item:hover span
+{
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+    width:100px;
+}
+
+.apps-menu-bottom-button {
+    display: table;
+    height: 34px;
+    padding-top: 8px;
+    text-align: center;
+    margin-top: 5px;
+    float: left;
+}
+
+.apps-menu-bottom-button a {
+    color: #4A89BA;
+    border: 1px solid #ccc;
+    background-color: #f5f5f7;
+    border-radius: 5px;
+    display: table-cell;
+    vertical-align: middle;
+    text-decoration: none;
+}
+
+.apps-scroll {
+    width: 60px;
+    margin-left: 5px;
+}
+
+.app-menu-dropdown:after {
+    content: " "; /* Older browser do not support empty content */
+    visibility: hidden;
+    display: block;
+    height: 0;
+    clear: both;
+}
+
+.apps-menu-bottom-button a:hover
+{
+    color: #fff;
+    border: 1px solid #4A89BA;
+    background-color: #4A89BA;
+}
+
+.apps-menu-more
+{
+    width: 230px;
+}
+
+.apps-menu-more a
+{
+
+}
+
+.menu-placeholder
+{
+    width: 100%;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/**
+ * Overrides
+ * TODO: Merge these with the main stylesheet
+ */
+hr.app-separator
+{
+    border: none;
+    border-top: 1px solid #bbb;
+    height: 1px;
+    position: absolute;
+    top: 484px;
+    width: 100%;
+}
+
+.menu-drop-down-wrap
+{
+    overflow: hidden;
+    height: 375px;
+}
+
+.menu-drop-down-scroll
+{
+    height: 375px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 384px;
+}
+
+#appsMenuDropDown ul.menuDropDownBox {
+    height: 330px;
+}
+
+.caret-up-background,
+.caret-up-border
+{
+    left: 298px;
+}
+
+.drop-down-menu-link
+{
+    cursor: pointer;
+    display: block;
+    font-family: LiberationSans, arial, sans-serif;
+}
+
+.show-menu
+{
+    display: block;
+}
+
+.app-menu-help
+{
+    color: #444;
+    line-height: 1.75em;
+}
+
+.app-menu-help .fa
+{
+    font-size: 1.2em;
+}
+
+.app-menu-help .fa-bookmark
+{
+    color: #276696;
+    font-size: 1.5em;
+    padding-right: 5px;
+    position: relative;
+    top: 2px;
+}
+
+.app-menu-help .fa-arrows
+{
+    padding-right: 4px;
+}
+
+.app-menu-error
+{
+    background: darkred;
+    background: rgba(160, 0, 0, .70);
+    border: 1px solid darkred;
+    border-radius: 5px;
+    display: block;
+    padding: .5em 0;
+    text-align: center;
+    width: 358px;
+}
+
+.app-menu-error:hover
+{
+    background: rgba(160, 0, 0, .80);
+    cursor: pointer;
+}
+
+.app-menu-error a
+{
+    background-color: transparent;
+    color: white;
+}
+
+.app-menu-error a:hover
+{
+    background-color: transparent;
+    color: white;
+    text-decoration: none;
+}
+
+/*
+ * Media queries for the menu
+ */
+@media (max-width: 700px), (max-device-width: 700px)
+{
+    #headerText
+    {
+        display: none;
+    }
+}
+
+@media only screen and (min-width: 840px)
+{
+    .app-manager-header,
+    .app-menu
+    {
+        width: 808px;
+    }
+
+    hr.app-separator
+    {
+        top: 288px;
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+/* @font-face                                                                 */
+/*----------------------------------------------------------------------------*/
+/* TODO: Fonts are taken from light_blue.css therefore this is repeated  */
+@font-face {
+    font-family: 'LiberationSans';
+    src: url('../fonts/LiberationSans-Regular-webfont.eot');
+    src: url('../fonts/LiberationSans-Regular-webfont.eot?#iefix') format('eot'),
+    url('../fonts/LiberationSans-Regular-webfont.woff') format('woff'),
+    url('../fonts/LiberationSans-Regular-webfont.ttf') format('truetype'),
+    url('../fonts/LiberationSans-Regular-webfont.svg#webfontc8rbNdBe') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'LiberationSans';
+    src: url('../fonts/LiberationSans-Bold-webfont.eot');
+    src: url('../fonts/LiberationSans-Bold-webfont.eot?#iefix') format('eot'),
+    url('../fonts/LiberationSans-Bold-webfont.woff') format('woff'),
+    url('../fonts/LiberationSans-Bold-webfont.ttf') format('truetype'),
+    url('../fonts/LiberationSans-Bold-webfont.svg#webfontHyWb8e07') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}

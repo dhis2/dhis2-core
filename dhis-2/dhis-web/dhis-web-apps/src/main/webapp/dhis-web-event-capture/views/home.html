@@ -1,0 +1,152 @@
+<span id="showLeftBar" class="hideInPrint">
+    <a href="javascript:dhis2.leftBar.showAnimated()" title="$i18n.getString('show_menu' )"><i class="fa fa-arrow-right leftBarIcon"></i></a>
+</span>
+
+<div id="leftBar">
+    
+    <d2-left-bar></d2-left-bar>
+    
+    <div id="orgUnitTree">
+        <ul>
+        </ul>
+    </div>
+    
+    <img id="ouwt_loader" src="../images/ajax-loader-bar.gif" alt="{{'in_progress'| translate}}"/>
+    
+    <div class="small-horizonal-spacing" ng-if="!treeLoaded">
+        {{'loading_tree'| translate}}
+    </div>
+    
+</div>
+
+
+<div class="page" id="mainPage">
+    
+    <div ng-if="!selectedOrgUnit">
+        <img src="../images/ajax-loader-bar.gif" alt="{{'in_progress'| translate}}" ng-if="!selectedOrgUnit"/><br>
+        {{'loading_metadata'| translate}}
+    </div>
+    
+    <div ng-show="selectedOrgUnit && userAuthority.canAddOrUpdateEvent">
+        
+        <h3>
+            {{eventCaptureLabel}}
+        </h3>
+        
+        <!-- selection begins-->
+        <div class="row selectionGroup">
+            <div class="col-sm-6 selectionArea">
+                <div class="row">
+                    <div class="col-sm-4">
+                        {{registeringUnitLabel}}
+                    </div>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" selected-org-unit ng-model="selectedOrgUnit.name"
+                               value="{{selectedOrgUnit.name|| pleaseSelectLabel}}" disabled="">
+                    </div>
+                </div>
+                <div class="row small-vertical-spacing">
+                    <div class="col-sm-4">
+                        {{programLabel}}
+                    </div>
+                    <div class="col-sm-8">
+                        <select id="programId" 
+                                class="form-control"
+                                name="programId" 
+                                ng-model="selectedProgram" 
+                                ng-options="program as program.name for program in programs | orderBy: 'name'" 
+                                ng-change="getProgramDetails()"
+                                ng-disabled="eventRegistration || editingEventInFull || editingEventInGrid">
+                            <option value="">{{pleaseSelectLabel}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row small-vertical-spacing" ng-if="selectedProgram" ng-repeat="category in selectedCategories">
+                    <div class="col-sm-4">
+                        {{category.name}}
+                    </div>
+                    <div class="col-sm-8">
+                        <select class="form-control"
+                                name="option"                             
+                                ng-model="category.selectedOption"
+                                ng-options="option as option.name for option in category.categoryOptions"
+                                ng-change="getCategoryOptions()">
+                            <option value="">{{pleaseSelectLabel}}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row small-vertical-spacing" ng-if="selectedProgramStage && selectedProgramStage.programStageSections.length  && eventRegistration || editingEventInFull">
+                    <div class="col-sm-4">
+                        {{'section'| translate}}
+                    </div>
+                    <div class="col-sm-8">
+                        <select class="form-control"
+                                name="section"                             
+                                ng-model="selectedSection.id">
+                            <option value="ALL">{{'show_all'| translate}}</option>
+                            <option ng-if="!hiddenSections[section.id]" ng-repeat="section in selectedProgramStage.programStageSections" value={{section.id}}>{{section.name}}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 div-bottom-container" ng-if="selectedProgram.categoryCombo.isDefault || !selectedProgram.categoryCombo.isDefault && optionsReady">                
+                <div class="div-bottom">
+                    <button class="btn btn-success hideInPrint small-horizonal-spacing"
+                            type="button"
+                            ng-show="selectedProgramStage" 
+                            ng-click="showEventRegistration()" 
+                            ng-disabled="eventRegistration || editingEventInFull || editingEventInGrid">
+                        {{'register_event'| translate}}
+                    </button>
+                    <button class="btn btn-primary hideInPrint small-horizonal-spacing" 
+                            type="button" 
+                            ng-if="dhis2Events.length > 0 || eventRegistration || editingEventInFull"
+                            onclick="javascript:window.print()">
+                        <span ng-if="!eventRegistration && !editingEventInFull">{{'print_list'| translate}}</span>
+                        <span ng-if="eventRegistration">{{'print_form'| translate}}</span>
+                        <span ng-if="editingEventInFull">{{'print_details'| translate}}</span>
+                    </button>
+                </div>
+            </div>
+        </div>        
+        <!-- selection ends -->        
+        
+        <!-- event grid begins -->
+        <div ng-include="'views/eventList.html'"></div>
+        <!-- event grid ends -->
+
+        <!-- event update in full / registration begins-->
+        <form name="outerForm" novalidate>
+            <div ng-if="editingEventInFull || eventRegistration">
+                <h3>
+                    <span ng-if="editingEventInFull">{{'event_details'| translate}}</span>
+                    <span ng-if="eventRegistration">{{'new_event'| translate}}</span>
+                </h3>
+                <div class="col-sm-8">
+                    <div class="bordered-div">
+                        <div ng-if="displayCustomForm" ng-include="'views/ec-custom-form.html'"></div>  
+                        <div ng-if="!displayCustomForm" ng-include="'views/defaultForm.html'"></div>
+                        <div ng-include="'views/completedForm.html'"></div>
+
+                        <div ng-include="'views/comments-section.html'"></div>
+                        <div ng-include="'views/buttons-section.html'"></div>
+                    </div>                    
+                </div>
+                <div class="col-sm-4" ng-if="warningMessages.length > 0 || 
+                    (allProgramRules.programIndicators.rules && allProgramRules.programIndicators.rules.length > 0)">
+                    <div class="bordered-div">
+                        <div ng-if="allProgramRules.programIndicators.rules && allProgramRules.programIndicators.rules.length > 0" ng-include="'views/indicators.html'"></div>
+                        <div ng-if="warningMessages.length > 0" ng-include="'views/warnings.html'"></div>
+                    </div>                    
+                </div>
+            </div>
+        </form>
+        <!-- event update / registration ends -->
+        
+    </div>
+    
+    <div ng-if="selectedOrgUnit && !userAuthority.canAddOrUpdateEvent">
+        <h1>{{'lacking_required_authority_to_add_update_event' | translate}}</h1>
+    </div>
+    
+</div>

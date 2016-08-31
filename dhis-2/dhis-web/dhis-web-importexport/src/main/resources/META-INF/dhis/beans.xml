@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+  <!-- Data value import -->
+
+  <bean id="org.hisp.dhis.importexport.action.datavalue.ImportDataValueAction"
+    class="org.hisp.dhis.importexport.action.datavalue.ImportDataValueAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.importexport.action.GetImportSummaryAction"
+    class="org.hisp.dhis.importexport.action.GetImportSummaryAction"
+    scope="prototype">
+    <property name="category" value="DATAVALUE_IMPORT" />
+  </bean>
+
+  <!-- Data value export -->
+
+  <bean id="org.hisp.dhis.importexport.action.datavalue.ExportDataValueAction"
+    class="org.hisp.dhis.importexport.action.datavalue.ExportDataValueAction"
+    scope="prototype" />
+
+  <!-- Events -->
+
+  <bean id="org.hisp.dhis.importexport.action.event.ImportEventAction"
+    class="org.hisp.dhis.importexport.action.event.ImportEventAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.importexport.action.event.ExportEventAction"
+    class="org.hisp.dhis.importexport.action.event.ExportEventAction"
+    scope="prototype" />
+
+  <!-- DXF2 MetaData import/export -->
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.MetaDataExportFormAction"
+    class="org.hisp.dhis.importexport.action.dxf2.MetaDataExportFormAction" scope="prototype"/>
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.MetaDataImportAction"
+    class="org.hisp.dhis.importexport.action.dxf2.MetaDataImportAction" />
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.GetImportSummaryAction"
+    class="org.hisp.dhis.importexport.action.dxf2.GetImportSummaryAction" scope="prototype">
+    <property name="category" value="METADATA_IMPORT" />
+  </bean>
+
+  <bean id="org.hisp.dhis.importexport.action.event.GetImportEventSummariesAction"
+    class="org.hisp.dhis.importexport.action.event.GetImportEventSummariesAction" scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.FilterListAction"
+    class="org.hisp.dhis.importexport.action.dxf2.FilterListAction" scope="prototype">
+    <property name="metaDataFilterService" ref="org.hisp.dhis.common.filter.MetaDataFilterService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.GetFilterListSortOrderAction"
+    class="org.hisp.dhis.importexport.action.dxf2.GetFilterListSortOrderAction" scope="prototype">
+    <property name="metaDataFilterService" ref="org.hisp.dhis.common.filter.MetaDataFilterService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.SaveFilterListSortOrderAction"
+    class="org.hisp.dhis.importexport.action.dxf2.SaveFilterListSortOrderAction" scope="prototype">
+    <property name="metaDataFilterService" ref="org.hisp.dhis.common.filter.MetaDataFilterService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.importexport.action.dxf2.FilterExportFormAction"
+    class="org.hisp.dhis.importexport.action.dxf2.FilterExportFormAction" scope="prototype">
+  </bean>
+  
+  <bean id="org.hisp.dhis.importexport.action.dxf2.ShowUpdateFilterExportFormAction"
+    class="org.hisp.dhis.importexport.action.dxf2.ShowUpdateFilterExportFormAction" scope="prototype">
+    <property name="metaDataFilterService" ref="org.hisp.dhis.common.filter.MetaDataFilterService" />
+  </bean>
+  
+</beans>

@@ -1,0 +1,70 @@
+<script type="text/javascript">
+jQuery( document ).ready( function()
+{
+    validation2( 'addOrganisationUnitGroupForm', function( form )
+    {
+        form.submit();
+    }, {
+        'beforeValidateHandler' : function()
+        {
+            #tblDynamicAttributesJavascript()
+        },
+        'rules' : getValidationRules( "organisationUnitGroup" )
+    } );
+
+    checkValueIsExist( "name", "validateOrganisationUnitGroup.action" );
+	checkValueIsExist( "shortName", "validateOrganisationUnitGroup.action" );
+	checkValueIsExist( "code", "validateOrganisationUnitGroup.action" );
+		
+} );
+</script>
+
+<h3>$i18n.getString( "crease_new_org_unit_group" ) #openHelp( "ou_groups_edit" )</h3>
+
+#sharingCreateNotification( "organisationUnitGroup" )
+
+<form name="addOrganisationUnitGroupForm" id="addOrganisationUnitGroupForm" action="addOrganisationUnitGroup.action" method="post" class="inputForm">
+
+<input type="hidden" id="symbol" name="symbol">
+
+<table>
+    <tr>
+        <th colspan="3">$i18n.getString( "details" )</th>
+    </tr>
+    <tr>
+        <td style="width:120px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td colspan="2"><input type="text" id="name" name="name"></td>
+    </tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="shortName" name="shortName" /></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" /></td>
+	</tr>
+    <tr>
+    	<td style="height:35px"><label for="symbol">$i18n.getString( "symbol" )</td>
+    	<td><a href="javascript:openSymbolDialog()">$i18n.getString( "select_symbol" )</a>
+    	   <img id="symbolImg" style="margin-left: 30px;"></td>
+    </tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes } )
+
+<table>
+	<tr>
+		<td>
+			#organisationUnitSelectionTree( true true false )
+		</td>
+	</tr>
+</table>
+
+<p>
+	<input type="submit" name="save" value="$i18n.getString( 'save' )" style="width:10em"/>
+	<input type="button" onclick="window.location.href='organisationUnitGroup.action'" value="$i18n.getString( 'cancel' )" style="width:10em"/>
+</p>
+
+</form>
+
+#parse( "dhis-web-maintenance-organisationunit/organisationUnitGroupSymbol.vm" )

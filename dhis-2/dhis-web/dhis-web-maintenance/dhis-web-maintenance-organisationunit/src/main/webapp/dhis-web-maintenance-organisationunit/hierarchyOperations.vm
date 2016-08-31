@@ -1,0 +1,58 @@
+
+#if( $selectedOrganisationUnit )
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+		organisationUnitToMoveSelected( [$selectedOrganisationUnit.id] );
+	});
+
+	var verication_of_the_org_unit_to_move_failed = '$encoder.jsEscape( $i18n.getString( "verication_of_the_org_unit_to_move_failed" ) , "'" )';
+	var not_selected_moved_to_root_position = '$encoder.jsEscape( $i18n.getString( "not_selected_moved_to_root_position" ) , "'" )';
+	var verification_of_the_new_parent_org_unit_failed = '$encoder.jsEscape( $i18n.getString( "verification_of_the_new_parent_org_unit_failed" ) , "'" )';
+</script>
+#end
+
+<h3>$i18n.getString( "hierarchy_operations" ) #openHelp( "hierarchy_operations" )</h3>
+
+<form action="moveOrganisationUnit.action" method="post">
+<div style="inline">
+<input type="hidden" id="organisationUnitToMoveId" name="organisationUnitToMoveId"/>
+<input type="hidden" id="newParentOrganisationUnitId" name="newParentOrganisationUnitId"/>
+</div>
+<table>
+	<col style="width:2em"/>
+	<col/>
+	<tr>
+		<td rowspan="3" id="step1" style="text-align:center;background-color:#ccffcc">1.</td>
+		<th>$i18n.getString( "select_an_org_unit_to_move" )</th>
+	</tr>
+	<tr>
+		<td><span id="toMoveNameField">[$i18n.getString( "not_selected" )]</span></td>
+	</tr>
+	<tr>
+		<td><input id="confirmOrganisationUnitToMoveButton" type="button" value="$i18n.getString( 'confirm' )" onclick="organisationUnitToMoveConfirmed()" style="width:10em" disabled="disabled"/></td>
+	</tr>
+	<tr>
+		<td colspan="2">&nbsp;</td>
+	</tr>
+	<tr>
+		<td rowspan="3" id="step2" style="text-align:center">2.</td>
+		<th>$i18n.getString( "select_the_new_parent_org_unit_for_the_one_to_move" )</th>
+	</tr>
+	<tr>
+		<td><span id="newParentNameField">[$i18n.getString( "not_selected_moved_to_root_position" )]</span></td>
+	</tr>
+	<tr>
+		<td><input id="confirmNewParentOrganisationUnitButton" type="button" value="$i18n.getString( 'confirm' )" onclick="newParentOrganisationUnitConfirmed()" style="width:10em" disabled="disabled"/></td>
+	</tr>
+	<tr>
+		<td colspan="2">&nbsp;</td>
+	</tr>
+	<tr>
+		<td rowspan="2" id="step3" style="text-align:center">3.</td>
+		<th>$i18n.getString( "move" )</th>
+	</tr>
+	<tr>
+		<td><input id="submitButton" type="submit" value="$i18n.getString( 'move' )" style="width:10em" disabled="disabled"/><input type="button" value="$i18n.getString( 'reset' )" style="width:10em" onclick="window.location.href='hierarchyOperations.action'"/></td>
+	</tr>
+</table>
+</form>

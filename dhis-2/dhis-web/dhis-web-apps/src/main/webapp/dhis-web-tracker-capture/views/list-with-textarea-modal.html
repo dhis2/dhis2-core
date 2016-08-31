@@ -1,0 +1,29 @@
+<div class="modal-header">
+  <h3>{{modalOptions.headerText | translate}}</h3>
+</div>
+<div class="modal-body">
+    <div>{{modalOptions.bodyText | translate}}</div>
+    
+    <div class="container-fluid">
+        <div class="row row-striped null-margins" ng-repeat="item in modalOptions.bodyList">
+            
+            <div class="col-sm-12">{{item.value1}}</div>
+            <div class="col-sm-12">{{item.value2}}</div>            
+        </div> 
+    </div>  
+    <br/>
+    <ng-form name="textAreaModalForm">
+        <div ng-repeat="bodyTextArea in modalOptions.bodyTextAreas">
+            <textarea class="form-control ng-pristine ng-untouched ng-valid" rows="10" name="{{bodyTextArea.model}}" ng-model="textAreaValues[bodyTextArea.model]" placeholder="{{bodyTextArea.placeholder}}" ng-required="{{bodyTextArea.required}}" ng-show="{{bodyTextArea.show}}" style="resize:vertical"></textarea>      
+            <div ng-messages="textAreaModalForm[bodyTextArea.model].$error" ng-if="textAreaModalForm[bodyTextArea.model].$touched || formSubmitted">
+                <div ng-message="required" class="error">{{bodyTextArea.model}} is required</div>
+            </div>            
+        </div> 
+        <div style="text-align:right">
+            <button class="btn btn-default" ng-click="textAreaButtonClick()" ng-show="modalOptions.textAreaButtonShow">{{modalOptions.textAreaButtonText | translate}}</button>
+        </div>
+    </ng-form>    
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" data-ng-click="modalOptions.close()">{{modalOptions.closeButtonText | translate}}</button>  
+</div>

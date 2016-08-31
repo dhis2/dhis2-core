@@ -1,0 +1,10 @@
+
+#foreach( $aggregationCondition in $aggregationConditions )
+	<tr id="tr${aggregationCondition.id}" data-id="$!aggregationCondition.id" data-uid="$!aggregationCondition.uid" data-type="CaseAggregationCondition"
+      data-name="$encoder.htmlEncode( $!aggregationCondition.displayName )"
+	    data-can-manage="$security.canManage( $aggregationCondition )"
+	    data-can-update="$security.canUpdate( $aggregationCondition )"
+	    data-can-delete="$security.canDelete( $aggregationCondition )">
+	    <td>$encoder.htmlEncode( $!aggregationCondition.displayName )</td>
+	</tr>
+#end

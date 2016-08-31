@@ -1,0 +1,5 @@
+{
+  "response": "success",
+  "message": "$!encoder.jsonEncode( ${message} )"
+   #if( $statusCode ),"status": ${statusCode}#end
+}

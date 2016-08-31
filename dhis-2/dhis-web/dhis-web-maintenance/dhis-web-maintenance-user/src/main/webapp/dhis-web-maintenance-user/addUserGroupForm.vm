@@ -1,0 +1,71 @@
+<script type="text/javascript">
+  $(document).ready(function() {
+    validation2('addUserGroupForm', function(form) {
+      form.submit();
+    }, {
+      'beforeValidateHandler': function() {
+        $('#usersSelected').find('option').attr('selected', 'selected');
+        $('#userGroupsSelected').find('option').attr('selected', 'selected');
+        #tblDynamicAttributesJavascript()
+      },
+      'rules': getValidationRules('userGroup')
+    });
+
+    checkValueIsExist("name", "validateUserGroup.action");
+
+    $('#usersAvailable').selected({
+      url: '../api/users.json',
+      target: $('#usersSelected'),
+      search: $('#usersAvailableSearch'),
+      iterator: 'users'
+    });
+
+    $('#userGroupsAvailable').selected({
+      url: '../api/userGroups.json',
+      target: $('#userGroupsSelected'),
+      search: $('#userGroupsAvailableSearch'),
+      iterator: 'userGroups'
+    });
+  });
+</script>
+
+<h3>$i18n.getString( "add_user_group" )</h3>
+
+#sharingCreateNotification( "userGroup" )
+
+<form id="addUserGroupForm" name="addUserGroupForm" action="addUserGroup.action" method="get" class="inputForm">
+ 
+<table id="detailsList">
+    <col style="width: 120px"/>
+
+    <tr>
+        <th colspan="2">$i18n.getString( "user_group_details" )</th>
+    </tr>
+
+    <tr>
+        <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name"></td>
+    </tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+#jqSelected({
+    "prefix": "users",
+    "i18n_available": "available_users",
+    "i18n_selected": "group_members"
+})
+
+#jqSelected({
+  "prefix": "userGroups",
+  "i18n_available": "available_managed_user_groups",
+  "i18n_selected": "managed_user_groups"
+})
+
+
+<p>
+  <input type="submit" value="$i18n.getString( 'add' )" style="width:10em"/>
+  <input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'getAllUserGroups.action' )" style="width:10em"/>
+</p>
+
+</form>

@@ -1,0 +1,17 @@
+.top-bar {
+    font-size: 16pt;
+    font-weight: normal;
+    color: #585D61;
+}
+
+.vertical-spacing{
+    margin-top: 20px;    
+}
+
+table 
+{
+    font-size: 13px;
+    line-height: 24px;
+    table-layout: fixed;
+    margin-bottom: 10px;
+}

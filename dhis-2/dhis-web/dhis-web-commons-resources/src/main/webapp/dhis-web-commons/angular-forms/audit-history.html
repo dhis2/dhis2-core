@@ -1,0 +1,42 @@
+<div>
+    <div ng-if="itemList.length !== 0">
+        <div class="modal-header">
+            <h1>{{'audit_history'| translate}} for {{trackedEntity}}</h1>
+        </div>
+
+        <div class="modal-body">
+
+            <table class="listTable dhis2-table-striped-border">
+                <tr>
+                    <th colspan="4">{{'audit_date'| translate}}</th>
+                    <th colspan="3">{{'audit_value'| translate}}</th>
+                    <!--<th colspan="2">{{'audit_type'| translate}}</th>-->
+                    <th colspan="2">{{'audit_modified'| translate}}</th>
+                </tr>
+                <tr ng-repeat="item in itemList">
+                    <td colspan="4">
+                        {{item.created}}
+                    </td>
+                    <td colspan="3">
+                        {{item.value}}
+                    </td>
+                    <!--<td colspan="2">-->
+                        <!--{{item.auditType}}-->
+                    <!--</td>-->
+                    <td colspan="2">
+                        {{item.modifiedBy}}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
+        </div>
+    </div>
+    <div ng-if="itemList.length === 0">
+        <div class="modal-body">
+            <h3> {{trackedEntity}} {{'audit_history_unavailable'| translate}} </h3>
+            <button type="button" class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
+        </div>
+    </div>
+</div>

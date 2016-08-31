@@ -1,0 +1,59 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>DHIS 2</title>
+    <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/css/$stylesheet">
+    <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/css/widgets.css">
+	<link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/javascripts/jQuery/ui/css/redmond/jquery-ui-1.8.12.custom.css">
+    	
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.ext.js"></script>
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.metadata.js"></script>	
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.tablesorter.min.js"></script>		
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/ui/jquery-ui-1.8.12.custom.min.js"></script>
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.validate.js"></script>
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.validate.ext.js"></script>
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.cookie.js"></script>
+	<script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.tmpl.js"></script>
+	<script type="text/javascript" src="../dhis-web-commons/i18nJavaScript.action"></script>
+	<script type="text/javascript" src="../dhis-web-commons/messagesJavaScript.action"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/commons.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/commons.ajax.js"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/lists.js"></script>
+
+	
+	<script type="text/javascript" src="../request.js"></script>
+	
+    #foreach( $javascript in $javascripts )
+      <script type="text/javascript" src="$javascript"></script>
+	#end
+	#foreach( $stylesheet in $stylesheets )
+      <link rel="stylesheet" type="text/css" href="$stylesheet">
+	#end
+	
+	<script type="text/javascript">
+		var dateFormat = 'yy-mm-dd';
+	</script>  
+  </head>
+  
+  <body>
+    <div id="popupHeader">
+      <span id="popupHeaderText">
+      	#if ( $applicationTitle )
+      	  $applicationTitle
+	    #else
+      	  District Health Information Software 2
+      	#end
+      </span>
+    </div>
+    <div class="page" id="popupPage">
+      #if( !$page )
+        <p>$i18n.getString( "no_page_specified" )</p>
+      #else
+        #parse( $page )
+      #end
+    </div>
+  </body>
+</html>

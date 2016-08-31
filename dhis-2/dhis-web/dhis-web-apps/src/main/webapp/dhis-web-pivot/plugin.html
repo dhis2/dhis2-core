@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="//localhost:8080/dhis-web-commons/javascripts/ext/ext-all.js"></script>
+	<script src="scripts/table.js"></script>
+
+    <style type="text/css">
+		body {font-family:sans-serif; margin:0 60px;}
+		h1 {font-size:20px; margin:20px 0;}
+		#table1, #table2 {margin-bottom:40px;}
+    </style>
+
+	<script>
+		Ext.onReady(function() {
+			var url = 'http://localhost:8080',
+                username = 'admin',
+                password = 'district';
+
+			DHIS.getTable({
+				url: url,
+                crossDomain: true,
+                username: username,
+                password: password,
+				el: 'table1',
+				id: 'JYXVYKRYT61',
+                showDimensionLabels: true
+			});
+
+            //DHIS.getTable({
+                //url: url,
+                //el: 'table2',
+                //crossDomain: true,
+                //username: username,
+                //password: password,
+                //columns: [
+                    //{dimension: 'pe', items: [{id: 'LAST_12_MONTHS'}]}
+                //],
+                //rows: [
+                    //{dimension: 'ou', items: [{id: 'LEVEL-3'}, {id: 'fdc6uOvgoji'}]}
+                //],
+                //hideEmptyRows: true
+                ////userOrgUnit: ['fdc6uOvgoji', 'e1eIKM1GIF3']
+            //});
+		});
+	</script>
+</head>
+
+<body>
+    <h1>TABLE BY ID</h1>
+	<div id="table1"></div>
+
+    <h1>TABLE BY CONFIG</h1>
+	<div id="table2"></div>
+</body>
+</html>

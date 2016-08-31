@@ -1,0 +1,21 @@
+
+<h2>$i18n.getString( "conversations" )</h2>
+
+<p>
+<ul>
+    #foreach( $conversation in $conversations )
+        #if( $conversation.read == false )
+            <li><a href="reply.action?conversationId=$conversation.uid" style="font-weight: bold;">$conversation.subject</a></li>
+        #else
+            <li><a href="reply.action?conversationId=$conversation.uid">$conversation.subject</a></li>
+        #end
+    #end
+</ul>
+</p>
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+	<li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>
+</div>

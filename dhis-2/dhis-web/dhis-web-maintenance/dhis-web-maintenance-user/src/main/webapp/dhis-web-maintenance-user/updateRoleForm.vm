@@ -1,0 +1,158 @@
+<script type="text/javascript" src="javascript/updateRoleForm.js"></script>
+<script type="text/javascript">
+	jQuery(function() {
+		jQuery("#availableList").dhisAjaxSelect({
+			source: "../api/dataSets.json?paging=false&fields=id,displayName|rename(name)",
+			iterator: 'dataSets',
+			connectedTo: 'selectedList',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+		
+		jQuery("#availableProgramList").dhisAjaxSelect({
+			source: "../api/programs.json?paging=false&fields=id,displayName|rename(name),programType",
+			iterator: 'programs',
+			connectedTo: 'selectedProgramList',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+		
+		jQuery("#availableListAuthority").dhisAjaxSelect({
+			source: "getSystemAuthorities.action",
+			iterator: 'systemAuthorities',
+			connectedTo: 'selectedListAuthority',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+	});
+</script>
+
+<h3>$i18n.getString( "edit_user_role" )</h3>
+
+<form id="updateRoleForm" name="updateRoleForm" action="updateRole.action" method="post" class="inputForm">
+	<div>
+		<input type="hidden" id="id" name="id" value="$userAuthorityGroup.id"/>
+  	</div>
+
+  	<table>
+	  	<col style="width: 120px"/>
+	    <col style="width: 500px;"/>
+	    <col/>
+	    <col style="width: 500px;"/>
+
+		<tr>
+			<th colspan="2">$i18n.getString( "details" )</th>    
+            <td colspan="2"></td>    
+		</tr>
+
+		<tr>
+			<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td colspan="3"><input type="text" id="name" name="name" value="$!encoder.htmlEncode( $userAuthorityGroup.name )"></td>
+		</tr>
+
+		<tr>
+			<td><label for="description">$i18n.getString( "description" )</label></td>
+			<td colspan="3"><input type="text" id="description" name="description" value="$!encoder.htmlEncode( $userAuthorityGroup.description )"></td>
+		</tr>
+
+		<tr>
+			<td></td>
+			<th>$i18n.getString( "available" )</th>
+			<th></th>
+			<th>$i18n.getString( "selected" )</th>
+		</tr>
+
+		<tr>
+			<td><label>$i18n.getString( "data_sets" )</label></td>	
+
+			<td>
+	        	<select id="availableList" name="availableList" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        	</td>
+
+	        <td style="text-align:center">
+	        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableList' );"/><br/>
+	            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedList' );"/><br/>
+				<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableList' );"/><br/>
+				<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedList' );"/>
+	        </td>
+
+        	<td>
+				<select id="selectedList" name="selectedList" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px;">
+            	#foreach ( $selectedDataSet in $roleDataSets )
+              		<option value="$selectedDataSet.uid">$encoder.htmlEncode( $selectedDataSet.name )</option>
+            	#end
+				</select>
+        	</td>
+		</tr>
+		
+		<tr>
+			<td><label>$i18n.getString( "programs" )</label></td>		
+			<td>
+			  <select id="availableProgramList" name="availableProgramList" multiple="multiple" style="height: 200px; width: 100%;"></select>
+			</td>
+
+			<td style="text-align:center">
+				<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableProgramList' );"/><br/>
+				<input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedProgramList' );"/><br/>
+				<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableProgramList' );"/><br/>
+				<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedProgramList' );"/>
+			</td>
+
+			<td>
+				<select id="selectedProgramList" name="selectedProgramList" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px;">
+				#foreach ( $selectedProgram in $rolePrograms )
+					<option value="$selectedProgram.uid">$encoder.htmlEncode( $selectedProgram.name )</option>
+            	#end
+				</select>
+			</td>
+		</tr>
+		
+		<tr>
+			<td><label>$i18n.getString( "authorities" )</label></td>
+
+			<td>
+          		<select id="availableListAuthority" name="availableList" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        	</td>
+
+	        <td style="text-align:center">
+	        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableListAuthority' );"/><br/>
+	            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedListAuthority' );"/><br/>
+				<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableListAuthority' );"/><br/>
+				<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedListAuthority' );"/>
+	        </td>
+
+        	<td>
+          		<select id="selectedListAuthority" name="selectedListAuthority" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px;">
+            	#foreach ( $selectedAuthority in $roleAuthorities )
+								<option value="$selectedAuthority">$i18n.getString( $selectedAuthority )</option>
+            	#end
+          		</select>
+        	</td>
+		</tr>	
+
+		<tr>
+			<td></td>
+			<td valign="top">
+				<input type="submit" value="$i18n.getString( 'save' )" style="width:10em" />
+				<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'allRole.action' )" style="width:10em"/>
+			</td>
+			<td></td>
+			<td></td>
+		</tr>
+	</table>
+</form>

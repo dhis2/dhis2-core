@@ -1,0 +1,17 @@
+<form name="outerForm" novalidate>
+    <div ng-if="currentEvent">
+        <div ng-include="'components/dataentry/event-details.html'"></div>
+        <!-- data entry form begins -->
+        <div ng-if="currentEvent.eventDate">
+            <div class="clear vertical-spacing" ng-if="displayCustomForm === 'CUSTOM'" ng-include="'../dhis-web-commons/angular-forms/custom-form.html'"></div>
+            <div class="clear vertical-spacing" ng-if="displayCustomForm === 'DEFAULT'" ng-include="'components/dataentry/default-form.html'"></div>
+        </div>
+        <!-- the table form is insensitive to the event date being present. In this situation the eventdate is set inside the table form -->
+        <div class="clear vertical-spacing" ng-if="displayCustomForm === 'TABLE'" ng-include="'components/dataentry/table-entry-form.html'"></div>
+        <!-- data entry form ends -->
+
+        <!-- data entry/event buttons begins -->
+        <div ng-include="'components/dataentry/dataentry-buttons.html'"></div>
+        <!-- data entry/event buttons ends -->
+    </div>
+</form>

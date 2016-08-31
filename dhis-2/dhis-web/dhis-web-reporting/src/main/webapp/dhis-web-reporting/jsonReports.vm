@@ -1,0 +1,13 @@
+#set( $size = $reports.size() )
+{ "reports": [
+#foreach( $report in $reports )
+  {
+    "id": $!{report.id},
+    "name": "$!encoder.jsonEncode( ${report.name} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

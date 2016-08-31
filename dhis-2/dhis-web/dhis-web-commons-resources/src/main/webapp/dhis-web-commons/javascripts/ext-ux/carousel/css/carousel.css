@@ -1,0 +1,96 @@
+/*!
+ * Ext Core Library $version&#xD;&#xA;http://extjs.com/&#xD;&#xA;Copyright(c) 2006-2009, $author.&#xD;&#xA;&#xD;&#xA;The MIT License&#xD;&#xA;&#xD;&#xA;Permission is hereby granted, free of charge, to any person obtaining a copy&#xD;&#xA;of this software and associated documentation files (the &quot;Software&quot;), to deal&#xD;&#xA;in the Software without restriction, including without limitation the rights&#xD;&#xA;to use, copy, modify, merge, publish, distribute, sublicense, and/or sell&#xD;&#xA;copies of the Software, and to permit persons to whom the Software is&#xD;&#xA;furnished to do so, subject to the following conditions:&#xD;&#xA;&#xD;&#xA;The above copyright notice and this permission notice shall be included in&#xD;&#xA;all copies or substantial portions of the Software.&#xD;&#xA;&#xD;&#xA;THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR&#xD;&#xA;IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,&#xD;&#xA;FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE&#xD;&#xA;AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER&#xD;&#xA;LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,&#xD;&#xA;OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN&#xD;&#xA;THE SOFTWARE.&#xD;&#xA;
+ */
+.ux-carousel-container {
+    overflow: hidden;
+    position: relative;
+}
+
+.ux-carousel-slides-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.ux-carousel-slide {
+    float: left;
+    overflow: hidden;
+    text-align: center;
+}
+
+.ux-carousel-nav {
+    height: 24px;
+    width: 100%;
+    background-color: #d1d1d1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+    padding-right: 4px;
+}
+
+.ux-carousel-caption {
+    font-size: 16px;
+    float: left;
+    padding: 3px 5px;
+    margin: 0;
+    text-transform: none;
+    color: black;
+    overflow: hidden;
+    width: 100px;
+}
+
+.ux-carousel-nav-prev,
+.ux-carousel-nav-next,
+.ux-carousel-nav-play {
+    height: 16px;
+    display: block;
+    float: right;
+    margin: 4px 0;
+    background-position: 0 16px;
+}
+
+.ux-carousel-nav-next {
+    margin-right: 1px;
+}
+
+.ux-carousel-nav .ux-carousel-nav-prev {
+    background-image: url('../img/prev.png');
+    height: 16px;
+    width: 16px;
+}
+
+.ux-carousel-nav .ux-carousel-nav-next {
+    background-image: url('../img/next.png');
+    height: 16px;
+    width: 16px;
+}
+
+.ux-carousel-nav-play {
+    background-image: url('../img/play_pause.png');
+    height: 16px;
+    width: 16px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.ux-carousel-nav-play:hover {
+    background-position: 0 0;
+}
+.ux-carousel-nav-play.ux-carousel-playing {
+    background-position: 16px 0px;
+}
+.ux-carousel-nav-play.ux-carousel-playing:hover {
+    background-position: 16px 0;
+}
+
+.ux-carousel-nav-prev:hover,
+.ux-carousel-nav-next:hover {
+    background-position: 0 0px;
+}
+
+.ux-carousel-nav-prev.ux-carousel-nav-disabled,
+.ux-carousel-nav-next.ux-carousel-nav-disabled {
+    background-position: 0 0;
+}
