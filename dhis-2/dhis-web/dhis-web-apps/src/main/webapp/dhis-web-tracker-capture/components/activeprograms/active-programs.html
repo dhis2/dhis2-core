@@ -1,0 +1,27 @@
+<div class="panel panel-info" ng-controller="ActiveProgramsController">
+    <div class="panel-heading handle bold">
+        {{activeProgramsWidget.title| translate}}
+        <span class="pull-right widget-link">
+            <a class="small-horizonal-spacing" href ng-click="expandCollapse(activeProgramsWidget)">
+                <span ng-show="activeProgramsWidget.expand"><i class="fa fa-chevron-up" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!activeProgramsWidget.expand"><i class="fa fa-chevron-down" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizonal-spacing" href ng-click="removeWidget(activeProgramsWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>            
+        </span>        
+    </div>    
+    <div ng-show="activeProgramsWidget.expand" class="panel-body dashboard-widget-container">        
+        <div ng-show="activeEnrollments.length === 0" class="alert alert-warning">{{'no_active_programs_exist' | translate}}</div> 
+        <div ng-if="activeEnrollments.length > 0">
+            <table class="table table-striped dhis2-table-hover table-bordered">
+                <tr ng-repeat="activeEnrollment in activeEnrollments">
+                    <td ng-if="selectedProgram && selectedProgram.id !== activeEnrollment.program" title="{{'set_as_current'| translate}}" ng-click="changeProgram(activeEnrollment.program)">
+                        {{programNames[activeEnrollment.program].name}}
+                    </td>
+                    <td ng-if="selectedProgram && selectedProgram.id === activeEnrollment.program">
+                        <div class="this-active-program">{{programNames[activeEnrollment.program].name}}</div>
+                    </td>
+                </tr>
+            </table> 
+        </div>        
+    </div>
+</div>

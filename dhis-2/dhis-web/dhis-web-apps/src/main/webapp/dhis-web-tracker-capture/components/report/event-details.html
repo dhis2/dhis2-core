@@ -1,0 +1,74 @@
+<div class="modal-header">
+    <h2>{{'details'| translate}}</h2>
+</div>
+<div class="modal-body">
+    <div class='row' ng-if="reportMode === 'PROGRAM'">
+        <span class="bold">
+            {{entityName}}
+        </span>
+        <table class="table table-bordered table-compact">
+            <tr class="col-md-12" ng-repeat="gridColumn in gridColumns">
+                <td class="col-md-6">
+                    {{gridColumn.name}}
+                </td>
+                <td class="col-md-6">
+                    {{selectedTei[gridColumn.id]}}                      
+                </td>                
+            </tr>
+        </table>
+    </div>
+    <div class='row' ng-if='currentEvent'>      
+        <hr ng-if="reportMode === 'PROGRAM'">
+        <span class="bold">
+            <span ng-if="reportMode === 'TEI'">{{currentEvent.programName}}    |    </span>{{currentEvent.name}}    |    {{currentEvent.orgUnitName}}  |  {{currentEvent.eventDate}}
+        </span>
+        <table class="table table-bordered table-compact">
+            <thead>
+                <tr class="col-md-12">
+                    <th class="col-md-5">
+                        {{'data_element'| translate}}
+                    </th>
+                    <th class="col-md-5">
+                        {{'value'| translate}}
+                    </th>
+                    <th class="col-md-2" ng-if="allowProvidedElsewhereExists">
+                        {{'provided_elsewhere'| translate}}
+                    </th>
+                </tr>
+            </thead>
+            <tr class="col-md-12" ng-repeat="prStDe in currentStage.programStageDataElements">
+                <td class="col-md-5">
+                    {{prStDe.dataElement.formName ? prStDe.dataElement.formName : prStDe.dataElement.name}}
+                </td>
+                <td class="col-md-5">
+                    {{currentEvent[prStDe.dataElement.id].value}}
+                </td>
+                <td class="col-md-2" ng-if="allowProvidedElsewhereExists">                    
+                    <div class="align-center" ng-show="prStDe.allowProvidedElsewhere">
+                        <span ng-if="currentEvent[prStDe.dataElement.id].providedElsewhere"><i class="fa fa-check"></i></span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="row" ng-if='currentEvent.notes'>
+        <hr>
+        <table class="table-borderless table-striped">  
+            <tr>
+                <th>
+                    {{'notes' | translate}}
+                </th>
+            </tr>
+            <tr class="col-md-12" ng-repeat="note in currentEvent.notes">
+                <td class="col-md-12 over-flow-hidden" style="width:100%;">
+                    <p>{{note.value}}</p>
+                    <p><strong>{{'created_by' | translate}}: </strong>{{note.storedBy}}</p>
+                    <p><strong>{{'date' | translate}}: </strong>{{note.storedDate}}</p>                    
+                </td>                    
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
+</div>

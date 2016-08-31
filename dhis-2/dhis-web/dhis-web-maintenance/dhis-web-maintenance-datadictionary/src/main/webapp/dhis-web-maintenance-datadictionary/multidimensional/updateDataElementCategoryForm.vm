@@ -1,0 +1,76 @@
+<script type="text/javascript">
+	jQuery(document).ready(	function() {
+        $('#coAvailable').selected({
+          url: '../api/categoryOptions.json',
+          target: $('#coSelected'),
+          search: $('#coAvailableSearch'),
+          iterator: 'categoryOptions'
+        });
+
+		validation2( 'editDataElementCategoryForm', function( form ){ form.submit()}, 
+		{
+			'beforeValidateHandler': function() { 
+                $("#coSelected").find("option").attr("selected", "selected");
+			    listValidator( 'coValidator', 'coSelected' );
+			},
+			'rules': getValidationRules("dateElementCategory")
+		}); 
+
+		checkValueIsExist( "name", "validateDataElementCategory.action", {id: $dataElementCategory.id});		
+	});
+
+    var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_data_element_category_option" ) , "'")';
+    var i18n_specify_category_option_name = '$encoder.jsEscape( $i18n.getString( "specify_category_option_name" ) , "'")';
+    var i18n_category_option_name_already_exists = '$encoder.jsEscape( $i18n.getString( "category_option_name_already_exists" ) , "'")';
+	var i18n_option_rename_successfully = '$encoder.jsEscape( $i18n.getString( "option_rename_successfully" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "edit_data_element_category" )</h3>
+
+<form id="editDataElementCategoryForm" name="editDataElementCategoryForm" action="updateDataElementCategory.action" method="post" class="inputForm">
+  
+  <input type="hidden" id="id" name="id" value="$dataElementCategory.id"/>
+  
+  <table>
+    <tr>
+      <th colspan="2">$i18n.getString( "details" )</th>      
+    </tr>
+    <tr>
+      <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td><input type="text" id="name" name="name" value="$!encoder.htmlEncode( $dataElementCategory.name )"/></td>
+    </tr>	
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $dataElementCategory.code )"></td>
+	</tr>	
+    <tr>
+      <td><label for="dataDimension">$i18n.getString( "use_as_data_dimension" )</label></td>
+      <td><input type="checkbox" id="dataDimension" name="dataDimension" value="true"#if( $dataElementCategory.dataDimension ) checked="checked"#end/></td>
+    </tr>
+    <tr>
+      <td><label>$i18n.getString( "data_dimension_type" )</td>
+      <td>
+        <select id="dataDmensionType" name="dataDimensionType" disabled="disabled">
+          <option value="DISAGGREGATION"#if( "DISAGGREGATION" == $dataElementCategory.dataDimensionType ) selected="selected"#end>$i18n.getString( "disaggregation" )</option>
+          <option value="ATTRIBUTE"#if( "ATTRIBUTE" == $dataElementCategory.dataDimensionType ) selected="selected"#end>$i18n.getString( "attribute" )</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="height:15px"></td>
+    </tr>
+  </table>
+
+#jqSelected({
+   "prefix": "co",
+   "i18n_available": "available_category_options",
+   "i18n_selected": "selected_category_options",
+   "objects": $dataElementCategory.categoryOptions
+ })
+
+  <p>
+    <input type="submit" value="$i18n.getString( 'save' )" style="width:100px"/>
+    <input type="button" onclick="dhis2.commons.redirectCurrentPage( 'category.action' )" value="$i18n.getString( 'cancel' )" style="width:100px"/></p>
+  </p>
+        
+</form>

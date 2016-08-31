@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<period>
+    <id>$period.id</id>
+    <startDate>$!format.formatDate( $period.startDate )</startDate>
+    <endDate>$!format.formatDate( $period.endDate )</endDate>
+    <name>$!format.formatPeriod( $period )</name>
+</period>

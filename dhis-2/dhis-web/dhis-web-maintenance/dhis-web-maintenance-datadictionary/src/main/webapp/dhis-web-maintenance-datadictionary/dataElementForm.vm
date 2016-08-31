@@ -1,0 +1,263 @@
+<script type="text/javascript">
+  jQuery(document).ready(function() {
+		#if( $update )
+      validation2('updateDataElementForm', function(form)
+		#else
+        validation2( 'addDataElementForm', function(form)
+		#end
+  {
+    dhis2.select.selectAll(jQuery('#aggregationLevels'));
+    form.submit();
+  }
+      , {
+        'beforeValidateHandler': function() {
+          setFieldValue('submitCategoryComboId', getFieldValue('selectedCategoryComboId'));
+          setFieldValue('submitValueType', getFieldValue('valueType'));
+          enable('aggregationTypeSelect');
+					#tblDynamicAttributesJavascript()
+        },
+        'rules': getValidationRules("dataElement")
+      } );
+
+      #if( $update )
+      checkValueIsExist("name", "validateDataElement.action", { id: getFieldValue('id') });
+      checkValueIsExist("shortName", "validateDataElement.action", { id: getFieldValue('id') });
+      checkValueIsExist("code", "validateDataElement.action", { id: getFieldValue('id') });
+      updateAggreationOperation(getFieldValue('valueType'));
+      dataValueOptionSetChanged();
+      #else
+      checkValueIsExist("name", "validateDataElement.action");
+      checkValueIsExist("shortName", "validateDataElement.action");
+      checkValueIsExist("code", "validateDataElement.action");
+      #end
+  });
+
+  var previousName = '$!encoder.jsEscape( $!dataElement.name, "'" )';
+</script>
+
+#if( $update )
+<h3>$i18n.getString( "edit_data_element" )</h3>
+#else
+<h3>$i18n.getString( "create_new_data_element" )</h3>
+#sharingCreateNotification( "dataElement" )
+#end
+
+#if( $update )
+<form id="updateDataElementForm" action="updateDataElement.action" method="post" class="inputForm">
+<input type="hidden" id="id" name="id" value="$!dataElement.id"/>
+#else
+<form id="addDataElementForm" action="addDataElement.action" method="POST" class="inputForm">
+#end
+<input type="hidden" id="defaultCategoryCombo" value="$defaultCategoryCombo.id"/>
+<select name="factors" id="factorsSubmit" multiple="multiple" style="display:none"></select>
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$!encoder.htmlEncode( $!dataElement.name )" onchange="nameChanged()"></td>
+	</tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" )</label></td>
+		<td><input type="text" id="shortName" name="shortName" value="$!encoder.htmlEncode( $!dataElement.shortName )"></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $!dataElement.code )"></td>
+	</tr>
+	<tr>
+		<td><label for="description">$i18n.getString( "description" )</label></td>
+		<td><textarea id="description" name="description">$!encoder.htmlEncode( $!dataElement.description )</textarea></td>
+	</tr>
+	<tr>
+		<td><label for="formName">$i18n.getString( "form_name" )</label></td>
+		<td><input type="text" id="formName" name="formName" value="$!encoder.htmlEncode( $!dataElement.formName )"></td>
+	</tr>
+	<tr>
+		<td><label for="domainType">$i18n.getString( "domain_type" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>
+			<select id="domainType" name="domainType" onchange='domainTypeChange(this.value)'>
+				<option value="AGGREGATE" #if( $!dataElement.domainType == 'AGGREGATE' ) selected="selected" #end>$i18n.getString( "aggregate" )</option>
+				<option value="TRACKER" #if( $!dataElement.domainType == 'TRACKER' ) selected="selected" #end>$i18n.getString( "tracker" )</option>				
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td><label>$i18n.getString( 'option_set_for_data_values' )</label></td>			
+		<td>
+			<select id="selectedOptionSetId" name="selectedOptionSetId" onchange="dataValueOptionSetChanged()">
+				<option value="0">[$i18n.getString('please_select')]</option>
+				#foreach ( $optionSet in $optionSets )
+				<option data-valuetype="$!optionSet.valueType" value="$optionSet.id" #if( $!dataElement.optionSet && $!dataElement.optionSet.id == "$optionSet.id" ) selected #end>$!encoder.htmlEncode( $optionSet.displayName )</option>
+				#end
+			</select>
+		</td>
+    </tr>
+	<tr>
+		<td><label for="valueType">$i18n.getString( "value_type" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>
+			<select id="valueType" name="valueType" onchange="changeValueType( this.value )">
+				<option value="INTEGER" #if( $!dataElement.valueType == 'INTEGER' ) selected="selected" #end >$i18n.getString( "int" )</option>
+				<option value="INTEGER_POSITIVE" #if( $!dataElement.valueType == 'INTEGER_POSITIVE' ) selected="selected" #end >$i18n.getString( "positive_integer" )</option>
+				<option value="INTEGER_NEGATIVE" #if( $!dataElement.valueType == 'INTEGER_NEGATIVE' ) selected="selected" #end >$i18n.getString( "negative_integer" )</option>
+				<option value="INTEGER_ZERO_OR_POSITIVE" #if( $!dataElement.valueType == 'INTEGER_ZERO_OR_POSITIVE' ) selected="selected" #end >$i18n.getString( "zero_positive_int" )</option>
+				<option value="NUMBER" #if( $!dataElement.valueType == 'NUMBER' ) selected="selected" #end >$i18n.getString( "number" )</option>
+				<option value="UNIT_INTERVAL" #if( $!dataElement.valueType == 'UNIT_INTERVAL' ) selected="selected" #end >$i18n.getString( "unit_interval" )</option>
+				<option value="PERCENTAGE" #if( $!dataElement.valueType == 'PERCENTAGE' ) selected="selected" #end >$i18n.getString( "percentage" )</option>
+				<option value="COORDINATE" #if( $!dataElement.valueType == 'COORDINATE' ) selected="selected" #end >$i18n.getString( "coordinate" )</option>
+				<option value="TEXT" #if( $!dataElement.valueType == 'TEXT' ) selected="selected" #end >$i18n.getString( "text" )</option>
+				<option value="LONG_TEXT" #if( $!dataElement.valueType == 'LONG_TEXT' ) selected="selected" #end >$i18n.getString( "long_text" )</option>
+ 				<option value="FILE_RESOURCE" #if( $!dataElement.valueType == 'FILE_RESOURCE' ) selected="selected" #end>$i18n.getString( "file" )</option>
+				<option value="DATE" #if( $!dataElement.valueType == 'DATE' ) selected="selected" #end >$i18n.getString( "date" )</option>
+				<option value="USERNAME" #if( $!dataElement.valueType == 'USERNAME' ) selected="selected" #end >$i18n.getString( "user_name" )</option>
+				<option value="BOOLEAN" #if( $!dataElement.valueType == 'BOOLEAN' ) selected="selected" #end >$i18n.getString( "yes_no" )</option>
+				<option value="TRUE_ONLY" #if( $!dataElement.valueType == 'TRUE_ONLY' ) selected="selected" #end >$i18n.getString( "yes_only" )</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td><label for="aggregationTypeSelect" id="lblOperator">$i18n.getString( "aggregation_operator" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>
+			<select id="aggregationTypeSelect" name="aggregationType">
+				<option value="SUM" #if( $!dataElement.aggregationType == 'SUM' ) selected="selected" #end>$i18n.getString( "sum" )</option>
+				<option value="AVERAGE_SUM_ORG_UNIT" #if( $!dataElement.aggregationType == 'AVERAGE_SUM_ORG_UNIT' ) selected="selected" #end>$i18n.getString( "average_sum_in_org_unit_hierarchy" )</option>
+				<option value="AVERAGE" #if( $!dataElement.aggregationType == 'AVERAGE' ) selected="selected" #end>$i18n.getString( "average" )</option>
+				<option value="COUNT" #if( $!dataElement.aggregationType == 'COUNT' ) selected="selected" #end>$i18n.getString( "count" )</option>
+				<option value="STDDEV" #if( $!dataElement.aggregationType == 'STDDEV' ) selected="selected" #end>$i18n.getString( "stddev" )</option>
+				<option value="VARIANCE" #if( $!dataElement.aggregationType == 'VARIANCE' ) selected="selected" #end>$i18n.getString( "variance" )</option>
+				<option value="MIN" #if( $!dataElement.aggregationType == 'MIN' ) selected="selected" #end>$i18n.getString( "min" )</option>
+				<option value="MAX" #if( $!dataElement.aggregationType == 'MAX' ) selected="selected" #end>$i18n.getString( "max" )</option>
+				<option value="NONE" #if( $!dataElement.aggregationType == 'NONE' ) selected="selected" #end>$i18n.getString( "none" )</option>
+			</select>
+		</td>
+	</tr>
+    <tr>
+   		<td><label for="zeroIsSignificant ">$i18n.getString( "store_zero_data_values" )</label></td>
+   		<td>
+   			<select id="zeroIsSignificant" name="zeroIsSignificant">
+   				<option value="false">$i18n.getString( "no" )</option>
+   				<option value="true" #if( $!dataElement.zeroIsSignificant ) selected="selected" #end>$i18n.getString( "yes" )</option>
+   			</select>
+        </td>
+    </tr>
+    <tr>
+        <td><label for="url">$i18n.getString( "url" )</label></td>
+        <td><input type="text" id="url" name="url" value="$!encoder.htmlEncode( $!dataElement.url )"></td>
+    </tr>
+	<tr>	
+		<td><label for="selectedCategoryComboId">$i18n.getString( "category_combo" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>
+			<select id="selectedCategoryComboId" #if( $!dataElement.domainType == 'TRACKER' ) disabled #end>>
+            #foreach( $dataElementCategoryCombo in $!dataElementCategoryCombos )
+                <option value="$!dataElementCategoryCombo.id" #if( $!dataElementCategoryCombo.id == $!dataElement.categoryCombo.id ) selected="selected" #end>$!encoder.htmlEncode( $!dataElementCategoryCombo.displayName )</option>
+            #end
+			</select>
+			<input type="hidden" id="submitCategoryComboId" name="selectedCategoryComboId"/>
+		</td>
+	</tr>
+    <tr>
+        <td><label>$i18n.getString( 'option_set_for_comments' )</label></td>            
+        <td>
+            <select id="selectedCommentOptionSetId" name="selectedCommentOptionSetId">
+                <option value="0">[$i18n.getString('please_select')]</option>
+                #foreach ( $optionSet in $optionSets )
+                <option data-valuetype="$optionSet.valueType" value="$optionSet.id" #if( $!dataElement.commentOptionSet && $!dataElement.commentOptionSet.id == "$optionSet.id" ) selected #end>$!encoder.htmlEncode( $optionSet.displayName )</option>
+                #end
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td><label>$i18n.getString( 'legend_set' )</label></td>            
+        <td>
+            <select id="selectedLegendSetId" name="selectedLegendSetId">
+                <option value="0">[$i18n.getString('please_select')]</option>
+                #foreach ( $legendSet in $legendSets )
+                <option value="$legendSet.id" #if( $!dataElement.legendSet && $!dataElement.legendSet.id == "$legendSet.id" ) selected #end>$!encoder.htmlEncode( $legendSet.name )</option>
+                #end
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td style="width:200px"><label>$i18n.getString( "aggregation_levels" )</label></td>
+        <td><input type="checkbox" #if ( $!dataElement.hasAggregationLevels() )checked="checked"#end onclick="toggleById( 'aggregationLevelsContainer' )"/></td>
+    </tr>
+</table>
+
+<div id="aggregationLevelsContainer" style="border:1px solid #808080;padding:10px;width:465px;#if( !$!dataElement.hasAggregationLevels() ) display:none;#else display:block;#end">
+
+<table>
+    <tr>
+        <th style="width:450px">$i18n.getString( "available_aggregation_levels" )</th>
+    </tr>
+    <tr>
+        <td>
+            <select multiple size="4" id="organisationUnitLevels" style="width:450px" ondblclick="moveSelectedById( 'organisationUnitLevels', 'aggregationLevels' )">
+            #foreach( $level in $organisationUnitLevels )
+                <option value="$level.level">$level.displayName</option>
+            #end
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <input type="button" value="$i18n.getString( 'add_selected' )" title="$i18n.getString( 'add' )" style="width:120px" onclick="moveSelectedById( 'organisationUnitLevels', 'aggregationLevels' )"/><input 
+                   type="button" value="$i18n.getString( 'remove_selected' )" title="$i18n.getString( 'remove' )" style="width:120px" onclick="moveSelectedById( 'aggregationLevels', 'organisationUnitLevels' )"/>
+        </td>
+    </tr>
+    <tr>
+        <th style="width:450px">$i18n.getString( "selected_aggregation_levels" )</th>
+    </tr>
+    </tr>
+        <td>
+            <select multiple size="4" id="aggregationLevels" name="aggregationLevels" style="width:450px" ondblclick="moveSelectedById( 'aggregationLevels', 'organisationUnitLevels' )">
+            #foreach( $level in $aggregationLevels )
+            	<option value="$level.level">$level.displayName</option>
+            #end
+            </select>
+        </td>
+    </tr>
+</table>
+
+</div>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+#if( $groupSets.size() > 0 )
+<table>
+	<tr>
+		<td style="height:15px" colspan="2">
+	</tr>
+
+	<tr>
+		<th colspan="2">$i18n.getString( "data_element_groups" )</th>
+    </tr>
+    
+	#foreach ( $groupSet in $groupSets )
+    <tr>
+		<td><label>$!encoder.htmlEncode( $groupSet.name )</label></td>
+		<td>
+			<select id="dataElementGroups" name="dataElementGroups">
+				<option value="-1">[ $i18n.getString( "select_group" ) ]</option>
+				#foreach ( $group in $groupSet.getSortedGroups() )
+				<option value="$group.id" #if( $group.members.contains( $!dataElement ) ) selected="selected" #end>$group.name</option>
+				#end
+			</select>
+		</td>
+		<td><input type="hidden" name="dataElementGroupSets" value="$groupSet.id"/></td>
+    </tr>
+	#end
+</table>
+#end
+
+<p>
+  #if( $update )
+    <input type="submit" value="$i18n.getString( 'save' )" style="width:10em" />
+  #else
+    <input type="submit" value="$i18n.getString( 'add' )" style="width:10em" />
+  #end
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'dataElement.action' )" style="width:10em" />
+</p>
+
+</form>

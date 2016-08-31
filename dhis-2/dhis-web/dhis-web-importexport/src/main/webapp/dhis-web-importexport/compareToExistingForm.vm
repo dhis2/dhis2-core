@@ -1,0 +1,203 @@
+
+#macro( compare $value1 $value2 )
+#if ( ( $value1 && !$value2 ) || ( !$value1 && $value2 ) || ( $value1 != $value2 ) ) style="background-color:#CEEACC"#end
+#end
+
+#macro( compareProperty $value1 $value2 $key )
+<tr>
+<td#compare( ${value1} ${value2} )>$i18n.getString( "${key}" )</td>
+<td#compare( ${value1} ${value2} )>$!{value1}</td>
+<td#compare( ${value1} ${value2} )>$!{value2}</td>
+</tr>
+#end
+
+#macro( compareBoolProperty $value1 $value2 $key )
+<tr>
+<td#compare( ${value1} ${value2} )>$i18n.getString( "${key}" )</td>
+<td#compare( ${value1} ${value2} )>#formatBool( $!{value1} )</td>
+<td#compare( ${value1} ${value2} )>#formatBool( $!{value2} )</td>
+</tr>
+#end
+
+#macro( compareAggregationOperatorProperty $value1 $value2 $key )
+<tr>
+<td#compare( ${value1} ${value2} )>$i18n.getString( "${key}" )</td>
+<td#compare( ${value1} ${value2} )>#formatAggregationOperator( $!{value1} )</td>
+<td#compare( ${value1} ${value2} )>#formatAggregationOperator( $!{value2} )</td>
+</tr>
+#end
+
+<h3>$i18n.getString( 'compare_to_existing' )</h3>
+
+<form id="previewForm" name="previewForm" method="post" action="">
+
+<input type="hidden" id="objectType" name="objectType" value="$!objectType">
+<input type="hidden" id="objectId" name="objectId" value="$!importObject.id">
+<input type="hidden" id="existingObjectId" name="existingObjectId" value="$!importObject.compareObject.id">
+
+<table style="width:680px">
+
+	<tr>
+		<th style="width:30%">$i18n.getString( "property" )</th>
+		<th style="width:35%">$i18n.getString( "new_object" )</th>
+        <th style="width:35%">$i18n.getString( "existing_object" )</th>
+	</tr>
+	
+	#compareProperty( $importObject.object.name $importObject.compareObject.name "name" )
+	
+	#if ( $objectType == "DATAELEMENT" || $objectType == "CALCULATEDDATAELEMENT" )
+	
+	#compareProperty( $importObject.object.alternativeName $importObject.compareObject.alternativeName "alternative_name" )
+	#compareProperty( $importObject.object.shortName $importObject.compareObject.shortName "short_name" )
+	#compareProperty( $importObject.object.code $importObject.compareObject.code "code" )
+	#compareProperty( $importObject.object.description $importObject.compareObject.description "description" )
+	
+	<tr>
+		<td#compare( $importObject.object.type $importObject.compareObject.type )>$i18n.getString( "type" )</td>
+		<td#compare( $importObject.object.type $importObject.compareObject.type )>#formatType( $!importObject.object.type )</td>
+		<td#compare( $importObject.object.type $importObject.compareObject.type )>#formatType( $!importObject.compareObject.type )</td>
+	</tr>
+	
+	#compareAggregationOperatorProperty( $importObject.object.aggregationOperator $importObject.compareObject.aggregationOperator "aggregation_operator" )
+	
+	#end
+	
+	#if ( $objectType == "CALCULATEDDATAELEMENT" )
+		
+	#compareBoolProperty( $importObject.object.saved $importObject.compareObject.saved "saved" )
+	
+	#end
+	
+	#if ( $objectType == "INDICATORTYPE" )
+	
+	#compareProperty( $importObject.object.factor $importObject.compareObject.factor "factor" )
+	
+	#end
+	
+	#if ( $objectType == "INDICATOR" )
+	
+	#compareProperty( $importObject.object.alternativeName $importObject.compareObject.alternativeName "alternative_name" )
+	#compareProperty( $importObject.object.shortName $importObject.compareObject.shortName "short_name" )
+	#compareProperty( $importObject.object.code $importObject.compareObject.code "code" )
+	#compareProperty( $importObject.object.description $importObject.compareObject.description "description" )
+	#compareBoolProperty( $importObject.object.annualized $importObject.compareObject.annualized "annualized" )
+	
+	<tr>
+		<td>$i18n.getString( "numerator" )</td>
+		<td>$!importObject.object.numerator</td>
+        <td>$!importObject.compareObject.numerator</td>
+	</tr>
+	
+	#compareProperty( $importObject.object.numeratorDescription $importObject.compareObject.numeratorDescription "numerator_description" )	
+	#compareAggregationOperatorProperty( $importObject.object.numeratorAggregationOperator $importObject.compareObject.numeratorAggregationOperator "numerator_aggregation_operator" )
+	
+	<tr>
+		<td>$i18n.getString( "denominator" )</td>
+		<td>$!importObject.object.denominator</td>
+        <td>$!importObject.compareObject.denominator</td>
+	</tr>
+	
+	#compareProperty( $importObject.object.denominatorDescription $importObject.compareObject.denominatorDescription "denominator_description" )
+	#compareAggregationOperatorProperty( $importObject.object.denominatorAggregationOperator $importObject.compareObject.denominatorAggregationOperator "denominator_aggregation_operator" )
+			
+	#end
+		
+	#if ( $objectType == "ORGANISATIONUNIT" )
+	
+	#compareProperty( $importObject.object.shortName $importObject.compareObject.shortName "short_name" )
+	#compareProperty( $importObject.object.code $importObject.compareObject.code "code" )
+	#compareProperty( $importObject.object.comment $importObject.compareObject.comment "comment" )
+	#compareProperty( $importObject.object.geoCode $importObject.compareObject.geoCode "geo_code" )
+	
+	#end
+	
+	#if ( $objectType == "ORGANISATIONUNITLEVEL" )
+	
+	#compareProperty( $importObject.object.level $importObject.compareObject.level "level" )
+	
+	#end
+	
+	#if ( $objectType == "VALIDATIONRULE" )
+	
+	#compareProperty( $importObject.object.description $importObject.compareObject.description "description" )
+	#compareProperty( $importObject.object.operator $importObject.compareObject.operator "operator" )
+			
+	#end
+	
+	#if ( $objectType == "REPORT" )
+	
+	#compareProperty( $importObject.object.design $importObject.compareObject.description "design" )
+	#compareProperty( $importObject.object.type $importObject.compareObject.operator "type" )
+	
+	#end
+	
+    #if ( $objectType == "REPORTTABLE" )
+       
+	#compareProperty( $importObject.object.tableName $importObject.compareObject.tableName "table_name" )
+	#compareProperty( $importObject.object.mode $importObject.compareObject.mode "mode" )
+	#compareBoolProperty( $importObject.object.regression $importObject.compareObject.regression "regression" )
+	#compareBoolProperty( $importObject.object.doIndicators $importObject.compareObject.doIndicators "doIndicators" )
+	#compareBoolProperty( $importObject.object.doCategoryOptionCombos $importObject.compareObject.doCategoryOptionCombos "do_categoryoptioncombos" )
+	#compareBoolProperty( $importObject.object.doPeriods $importObject.compareObject.doPeriods "do_periods" )
+	#compareBoolProperty( $importObject.object.doUnits $importObject.compareObject.doUnits "do_units" )
+	
+	#compareBoolProperty( $importObject.object.reportingMonth $importObject.compareObject.reportingMonth "reporting_month" )
+	#compareBoolProperty( $importObject.object.last3Months $importObject.compareObject.last3Months "last_3_months" )
+	#compareBoolProperty( $importObject.object.last6Months $importObject.compareObject.last6Months "last_6_months" )
+	#compareBoolProperty( $importObject.object.last12Months $importObject.compareObject.last12Months "last_12_months" )
+	#compareBoolProperty( $importObject.object.last3Months $importObject.compareObject.last12Months "last_3_months" )
+	#compareBoolProperty( $importObject.object.soFarThisYear $importObject.compareObject.soFarThisYear "so_far_this_year" )
+	#compareBoolProperty( $importObject.object.last3To6Months $importObject.compareObject.last3To6Months "last_3_to_6_months" )
+	#compareBoolProperty( $importObject.object.last6To9Months $importObject.compareObject.last6To9Months "last_6_to_9_months" )
+	#compareBoolProperty( $importObject.object.last9To12Months $importObject.compareObject.last9To12Months "last_9_to_12_months" )
+	#compareBoolProperty( $importObject.object.last12IndividualMonths $importObject.compareObject.last12IndividualMonths "last_12_individual_months" )
+	#compareBoolProperty( $importObject.object.individualMonthsThisYear $importObject.compareObject.individualMonthsThisYear "individual_months_this_year" )
+	#compareBoolProperty( $importObject.object.individualQuartersThisYear $importObject.compareObject.individualQuartersThisYear "individual_quarters_this_year" )
+	
+	#compareBoolProperty( $importObject.object.paramReportingMonth $importObject.compareObject.paramReportingMonth "param_reporting_month" )
+	#compareBoolProperty( $importObject.object.paramParentOrganisationUnit $importObject.compareObject.paramParentOrganisationUnit "param_parent_organisation_unit" )
+	#compareBoolProperty( $importObject.object.paramOrganisationUnit $importObject.compareObject.paramOrganisationUnit "param_organisation_unit" )
+	        
+    #end
+    
+    #if ( $objectType == "CHART" )
+    
+	#compareProperty( $importObject.object.type $importObject.compareObject.type "type" )
+	#compareProperty( $importObject.object.size $importObject.compareObject.size "size" )
+	#compareProperty( $importObject.object.dimension $importObject.compareObject.dimension "dimension" )
+	#compareBoolProperty( $importObject.object.hideLegend $importObject.compareObject.hideLegend "hide_legend" )
+	#compareBoolProperty( $importObject.object.verticalLabels $importObject.compareObject.verticalLabels "vertical_labels" )
+	#compareBoolProperty( $importObject.object.horizontalPlotOrientation $importObject.compareObject.horizontalPlotOrientation "horizontal_plot_orientation" )
+	#compareBoolProperty( $importObject.object.regression $importObject.compareObject.regression "regression" )
+    	
+	#compareBoolProperty( $importObject.object.reportingMonth $importObject.compareObject.reportingMonth "reporting_month" )
+	#compareBoolProperty( $importObject.object.last3Months $importObject.compareObject.last3Months "last_3_months" )
+	#compareBoolProperty( $importObject.object.last6Months $importObject.compareObject.last6Months "last_6_months" )
+	#compareBoolProperty( $importObject.object.last12Months $importObject.compareObject.last12Months "last_12_months" )
+	#compareBoolProperty( $importObject.object.soFarThisYear $importObject.compareObject.soFarThisYear "so_far_this_year" )
+	#compareBoolProperty( $importObject.object.last3To6Months $importObject.compareObject.last3To6Months "last_3_to_6_months" )
+	#compareBoolProperty( $importObject.object.last6To9Months $importObject.compareObject.last6To9Months "last_6_to_9_months" )
+	#compareBoolProperty( $importObject.object.last9To12Months $importObject.compareObject.last9To12Months "last_9_to_12_months" )
+	#compareBoolProperty( $importObject.object.last12IndividualMonths $importObject.compareObject.last12IndividualMonths "last_12_individual_months" )
+	#compareBoolProperty( $importObject.object.individualMonthsThisYear $importObject.compareObject.individualMonthsThisYear "individual_months_this_year" )
+	#compareBoolProperty( $importObject.object.individualQuartersThisYear $importObject.compareObject.individualQuartersThisYear "individual_quarters_this_year" )
+	    
+    #end
+    
+	<tr>
+		<td colspan="2" style="height:15px"></td>
+	</tr>
+	
+	<!-- Actions -->
+	
+	<tr>
+		<td colspan="2">
+			<input type="button" value="$i18n.getString( 'back' )" style="width:25%" onclick="cancelObject()"><input
+			type="button" value="$i18n.getString( 'match_to_existing' )" style="width:25%" onclick="matchUpdateObject()"><input 
+			type="button" value="$i18n.getString( 'discard_update' )" style="width:25%" onclick="discardObject()">
+		</td>
+	</tr>
+	
+</table>
+
+</form>

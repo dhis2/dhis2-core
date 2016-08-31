@@ -1,0 +1,34 @@
+<script type="text/javascript">
+var i18n_enter_subject = '$encoder.jsEscape( $i18n.getString( "enter_subject" ), "'")';
+var i18n_enter_text = '$encoder.jsEscape( $i18n.getString( "enter_text" ), "'")';
+</script>
+
+<h3>$i18n.getString( "write_new_feedback" )</h3>
+
+<form id="messageForm" action="sendFeedback.action" method="post" onsubmit="return validateMessage()">
+
+<table>
+
+<tr>
+<td style="min-width:80px">$i18n.getString( "subject" )</td>
+<td><input type="text" id="subject" name="subject" style="width:619px;"></td>
+</tr>
+
+<tr>
+<td>$i18n.getString( "text" )</td>
+<td><textarea id="text" name="text" style="width:619px;height:220px"></textarea></td>
+</tr>
+
+<tr>
+<td colspan="2" style="height:10px"></td>
+</tr>
+
+<tr>
+<td></td>
+<td><a class="blueButtonLink" href="javascript:submitMessage()">$i18n.getString( 'send' )</a>
+<a class="greyButtonLink" href="message.action">$i18n.getString( 'discard' )</a></td>
+</tr>
+
+</table>
+
+</form>

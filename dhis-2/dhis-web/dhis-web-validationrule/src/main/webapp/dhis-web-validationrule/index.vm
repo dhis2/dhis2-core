@@ -1,0 +1,10 @@
+<h3>$i18n.getString( "dhis-web-validationrule" )</h3>
+
+<ul class="introList">
+    #if( $security.canView( "validationRule" ) )#introListImgItem( "validationRule.action" "validation_rule" "validationrule" )#end
+    #if( $security.canView( "validationRuleGroup" ) )#introListImgItem( "validationRuleGroup.action" "validation_rule_group" "validationrule" )#end
+    #introListImgItem( "showRunValidationForm.action" "validation_rule_analysis" "validationanalysis" )
+    #introListImgItem( "viewAnalysisForm.action?key=stddevoutlier" "stddevoutlier_analysis" "validationanalysis" )
+    #introListImgItem( "viewAnalysisForm.action?key=minmaxoutlier" "minmaxoutlier_analysis" "validationanalysis" )
+    #introListImgItem( "viewFollowupAnalysisForm.action" "followup_analysis" "validationanalysis" )
+</ul>

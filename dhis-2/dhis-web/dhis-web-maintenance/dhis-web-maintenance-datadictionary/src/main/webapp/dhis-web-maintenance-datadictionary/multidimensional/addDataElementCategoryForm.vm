@@ -1,0 +1,70 @@
+<script type="text/javascript">
+	jQuery(document).ready(	function() {
+        $('#coAvailable').selected({
+          url: '../api/categoryOptions.json',
+          target: $('#coSelected'),
+          search: $('#coAvailableSearch'),
+          iterator: 'categoryOptions'
+        });
+	
+		validation2( 'addDataElementCategoryForm', function( form ){ form.submit() }, {
+			'beforeValidateHandler': function() { 
+                $("#coSelected").find("option").attr("selected", "selected");
+			    listValidator( 'coValidator', 'coSelected' );
+			},
+			'rules': getValidationRules("dateElementCategory")
+		});
+
+		checkValueIsExist( "name", "validateDataElementCategory.action");	
+	});
+
+    var i18n_specify_category_option_name = '$encoder.jsEscape( $i18n.getString( "specify_category_option_name" ) , "'")';
+    var i18n_category_option_name_already_exists = '$encoder.jsEscape( $i18n.getString( "category_option_name_already_exists" ) , "'")';
+    var i18n_must_include_category_option = '$encoder.jsEscape( $i18n.getString( "must_include_category_option" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "create_new_data_element_category" )</h3>
+
+<form id="addDataElementCategoryForm" name="addDataElementCategoryForm" action="addDataElementCategory.action" method="post" class="inputForm">
+  <table>
+    <tr>
+      <th colspan="2">$i18n.getString( "details" )</th>      
+    </tr>
+    <tr>
+      <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+      <td><input type="text" id="name" name="name" /></td>
+    </tr>	
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" /></td>
+	</tr>	
+    <tr>
+      <td><label for="dataDimension">$i18n.getString( "use_as_data_dimension" )</label></td>
+      <td><input type="checkbox" id="dataDimension" name="dataDimension" value="true" /></td>
+    </tr>
+    <tr>
+      <td><label>$i18n.getString( "data_dimension_type" )</td>
+      <td>
+        <select id="dataDimensionType" name="dataDimensionType">
+          <option value="DISAGGREGATION" selected="selected">$i18n.getString( "disaggregation" )</option>
+          <option value="ATTRIBUTE">$i18n.getString( "attribute" )</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="height:15px"></td>
+    </tr>
+  </table>  
+
+  #jqSelected({
+    "prefix": "co",
+    "i18n_available": "available_category_options",
+    "i18n_selected": "selected_category_options"
+  })
+
+  <p>
+  	<input type="submit" value="$i18n.getString( 'add' )" style="width:100px">
+    <input type="button" onclick="dhis2.commons.redirectCurrentPage( 'category.action' )" value="$i18n.getString( 'cancel' )" style="width:100px"/>
+  </p>
+  
+</form>

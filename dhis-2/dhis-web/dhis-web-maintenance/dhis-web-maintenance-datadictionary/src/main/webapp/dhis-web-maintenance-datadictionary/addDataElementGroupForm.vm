@@ -1,0 +1,65 @@
+<script type="text/javascript">
+	jQuery(function() {
+        validation2('addDataElementGroupForm', function ( form ) {
+            form.submit();
+        }, {
+            'beforeValidateHandler' : function () {
+                beforeSubmit();
+                #tblDynamicAttributesJavascript()
+                $("#deSelected").find("option").attr("selected", "selected");
+            },
+            'rules' : getValidationRules("dataElementGroup")
+        });
+
+        checkValueIsExist("name", "validateDataElementGroup.action");
+		checkValueIsExist( "shortName", "validateDataElementGroup.action" );
+	    checkValueIsExist( "code", "validateDataElementGroup.action" );
+
+        $('#deAvailable').selected({
+          url: '../api/dataElements.json',
+          target: $('#deSelected'),
+          search: $('#deAvailableSearch'),
+          iterator: 'dataElements'
+        });
+	});
+</script>
+
+<h3>$i18n.getString( "create_new_data_element_group" )</h3>
+
+#sharingCreateNotification( "dataElementGroup" )
+
+<form id="addDataElementGroupForm" action="addDataElementGroup.action" method="post" class="inputForm">
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+
+	<tr>
+		<td style="width: 120px;"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name" /></td>
+    </tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="shortName" name="shortName" /></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" /></td>
+	</tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes } )
+
+#jqSelected({
+  "prefix": "de",
+  "i18n_available": "available_data_elements",
+  "i18n_selected": "selected_data_elements"
+})
+
+<p>
+	<input type="submit" value="$i18n.getString( 'add' )" style="width:10em"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'dataElementGroup.action' )" style="width:10em"/>
+</p>
+
+</form>

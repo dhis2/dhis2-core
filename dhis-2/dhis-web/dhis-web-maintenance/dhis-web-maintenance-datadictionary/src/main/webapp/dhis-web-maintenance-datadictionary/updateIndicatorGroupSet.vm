@@ -1,0 +1,58 @@
+<script type="text/javascript" src="javascript/updateIndicatorGroupSet.js"></script>
+<script type="text/javascript">
+	jQuery(document).ready(	function() {
+        $('#ingAvailable').selected({
+          url: '../api/indicatorGroups.json?filter=indicatorGroupSet:null',
+          target: $('#ingSelected'),
+          search: $('#ingAvailableSearch'),
+          iterator: 'indicatorGroups'
+        });
+	});
+</script>
+
+<h3>$i18n.getString( "update_indicatorgroupset" )</h3>
+
+<form id="updateIndicatorGroupSet" action="updateIndicatorGroupSet.action" method="post" class="inputForm">
+<input type=hidden id="id" name="id" value="$indicatorGroupSet.id"/>
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$encoder.htmlEncode( $indicatorGroupSet.name )"/></td>
+	</tr>
+
+	<tr>
+		<td><label for="description">$i18n.getString( "description" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td><input type="text" id="description" name="description" value="#if( $indicatorGroupSet.description)$encoder.htmlEncode( $indicatorGroupSet.description )#end"></td>
+	</tr>
+
+	<tr>
+		<td><label for="compulsory">$i18n.getString( "compulsory" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+		<td>
+			<select id="compulsory" name="compulsory" onchange="changeCompulsory( this.value )">
+				<option value="true" #if( $indicatorGroupSet.compulsory ) selected="selected" #end>$i18n.getString( "yes" )</option>
+				<option value="false" #if( !$indicatorGroupSet.compulsory ) selected="selected" #end>$i18n.getString( "no" )</option>
+			</select>
+		</td>
+	</tr>
+
+	<tr>
+		<td colspan="2" height="15px"></td>
+	</tr>
+</table>
+
+#jqSelected({
+  "prefix": "ing",
+  "i18n_available": "available_indicatorgroup",
+  "i18n_selected": "selected_indicatorgroup",
+  "objects": $indicatorGroups
+})
+
+<p>
+	<input type="submit" value="$i18n.getString( 'update' )" style="width:10em"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'indicatorGroupSet.action' )" style="width:10em"/>
+</p>
+
+</form>

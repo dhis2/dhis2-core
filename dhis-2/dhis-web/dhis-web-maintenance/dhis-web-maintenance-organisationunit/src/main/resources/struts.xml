@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+"-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+"http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-maintenance-organisationunit" extends="dhis-web-commons" namespace="/dhis-web-maintenance-organisationunit">
+
+    <action name="index" class="org.hisp.dhis.oum.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/index.vm</param>
+      <param name="menu">/dhis-web-maintenance-organisationunit/menu.vm</param>
+    </action>
+
+    <!-- OrganisationUnit -->
+
+    <action name="organisationUnit" class="org.hisp.dhis.oum.action.organisationunit.GetOrganisationUnitListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/organisationUnit.vm</param>
+      <param name="menu">/dhis-web-maintenance-organisationunit/menuWithTree.vm</param>
+      <param name="javascripts">../dhis-web-commons/ouwt/ouwt.js,javascript/organisationUnit.js</param>
+      <interceptor-ref name="organisationUnitTreeStack" />
+    </action>
+
+    <action name="validateOrganisationUnit" class="org.hisp.dhis.oum.action.organisationunit.ValidateOrganisationUnitAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">../dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showAddOrganisationUnitForm" class="org.hisp.dhis.oum.action.organisationunit.ShowAddOrganisationUnitFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/addOrganisationUnitForm.vm</param>
+      <param name="javascripts">javascript/shortName.js</param>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_ADD</param>
+    </action>
+
+    <action name="addOrganisationUnit" class="org.hisp.dhis.oum.action.organisationunit.AddOrganisationUnitAction">
+      <result name="success" type="redirect">organisationUnit.action</result>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_ADD</param>
+    </action>
+
+    <action name="getCompulsoryGroupSet" class="org.hisp.dhis.oum.action.organisationunit.GetCompulsoryGroupSetAction">
+      <result name="success" type="redirect">organisationUnit.action</result>
+      <result name="input" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/assignToCompulsoryGroupSetForm.vm</param>
+    </action>
+
+    <action name="assignOrganisationUnitToGroups" class="org.hisp.dhis.oum.action.organisationunit.AssignOrganisationUnitToGroupsAction">
+      <result name="success" type="redirect">getCompulsoryGroupSet.action?organisationUnitId=${organisationUnitId}</result>
+    </action>
+
+    <action name="showUpdateOrganisationUnitForm" class="org.hisp.dhis.oum.action.organisationunit.GetOrganisationUnitAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/updateOrganisationUnitForm.vm</param>
+      <param name="javascripts">javascript/shortName.js</param>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_ADD</param>
+    </action>
+
+    <action name="updateOrganisationUnit" class="org.hisp.dhis.oum.action.organisationunit.UpdateOrganisationUnitAction">
+      <result name="success" type="redirect">organisationUnit.action?currentPage=${keyCurrentPage}</result>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_ADD</param>
+    </action>
+
+    <action name="removeOrganisationUnit" class="org.hisp.dhis.oum.action.organisationunit.RemoveOrganisationUnitAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_DELETE</param>
+    </action>
+
+    <!-- OrganisationUnitGroup -->
+
+    <action name="organisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/organisationUnitGroup.vm</param>
+      <param name="menu">/dhis-web-maintenance-organisationunit/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/ouwt/ouwt.js,javascript/organisationUnitGroup.js</param>
+    </action>
+
+    <action name="getOrganisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonOrganisationUnitGroup.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="validateOrganisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.ValidateOrganisationUnitGroupAction">
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">../dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="openAddOrganisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.ShowAddOrganisationUnitGroupFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/addOrganisationUnitGroupForm.vm</param>
+      <param name="javascripts">javascript/organisationUnitGroup.js</param>
+      <param name="anyAuthorities">F_ORGUNITGROUP_PUBLIC_ADD, F_ORGUNITGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="addOrganisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.AddOrganisationUnitGroupAction">
+      <result name="success" type="redirect">organisationUnitGroup.action
+      </result>
+      <param name="anyAuthorities">F_ORGUNITGROUP_PUBLIC_ADD, F_ORGUNITGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="openUpdateOrganisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/updateOrganisationUnitGroupForm.vm</param>
+      <param name="javascripts">javascript/organisationUnitGroup.js</param>
+      <param name="anyAuthorities">F_ORGUNITGROUP_PUBLIC_ADD, F_ORGUNITGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateOrganisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.UpdateOrganisationUnitGroupAction">
+      <result name="success" type="redirect">organisationUnitGroup.action?currentPage=${keyCurrentPage}</result>
+      <param name="anyAuthorities">F_ORGUNITGROUP_PUBLIC_ADD, F_ORGUNITGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="removeOrganisationUnitGroup" class="org.hisp.dhis.oum.action.organisationunitgroup.RemoveOrganisationUnitGroupAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_ORGUNITGROUP_DELETE</param>
+    </action>
+
+    <!-- OrganisationUnitGroupSet -->
+
+    <action name="organisationUnitGroupSet" class="org.hisp.dhis.oum.action.organisationunitgroupset.GetGroupSetListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/organisationUnitGroupSet.vm</param>
+      <param name="menu">/dhis-web-maintenance-organisationunit/menu.vm</param>
+      <param name="javascripts">javascript/organisationUnitGroupSet.js</param>
+    </action>
+
+    <action name="getOrganisationUnitGroupSet" class="org.hisp.dhis.oum.action.organisationunitgroupset.GetGroupSetAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonOrganisationUnitGroupSet.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="addOrganisationUnitGroupSet" class="org.hisp.dhis.oum.action.organisationunitgroupset.AddGroupSetAction">
+      <result name="success" type="redirect">organisationUnitGroupSet.action</result>
+      <param name="anyAuthorities">F_ORGUNITGROUPSET_PUBLIC_ADD, F_ORGUNITGROUPSET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="validateOrganisationUnitGroupSet" class="org.hisp.dhis.oum.action.organisationunitgroupset.ValidateGroupSetAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showAddOrganisationUnitGroupSetForm" class="org.hisp.dhis.oum.action.organisationunitgroupset.ShowAddOrganisationUnitGroupSetFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/addOrganisationUnitGroupSetForm.vm</param>
+      <param name="javascripts">javascript/organisationUnitGroupSet.js</param>
+      <param name="anyAuthorities">F_ORGUNITGROUPSET_PUBLIC_ADD, F_ORGUNITGROUPSET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateOrganisationUnitGroupSetForm" class="org.hisp.dhis.oum.action.organisationunitgroupset.ShowUpdateGroupSetFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/updateOrganisationUnitGroupSetForm.vm</param>
+      <param name="javascripts">javascript/organisationUnitGroupSet.js</param>
+      <param name="anyAuthorities">F_ORGUNITGROUPSET_PUBLIC_ADD, F_ORGUNITGROUPSET_PRIVATE_ADD</param>
+    </action>
+
+    <action name="removeOrganisationUnitGroupSet" class="org.hisp.dhis.oum.action.organisationunitgroupset.RemoveGroupSetAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_ORGUNITGROUPSET_DELETE</param>
+    </action>
+
+    <action name="updateOrganisationUnitGroupSet" class="org.hisp.dhis.oum.action.organisationunitgroupset.UpdateGroupSetAction">
+      <result name="success" type="redirect">organisationUnitGroupSet.action?currentPage=${keyCurrentPage}</result>
+      <param name="anyAuthorities">F_ORGUNITGROUPSET_PUBLIC_ADD, F_ORGUNITGROUPSET_PRIVATE_ADD</param>
+    </action>
+
+    <!-- Hierarchy -->
+
+    <action name="hierarchyOperations" class="org.hisp.dhis.oum.action.hierarchy.GetSelectedOrganisationUnitAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/hierarchyOperations.vm</param>
+      <param name="menu">/dhis-web-maintenance-organisationunit/menuWithTree.vm</param>
+      <param name="javascripts">../dhis-web-commons/ouwt/ouwt.js,javascript/hierarchyOperations.js</param>
+      <interceptor-ref name="organisationUnitTreeStack" />
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_MOVE</param>
+    </action>
+
+    <action name="validateOrganisationUnitToMove" class="org.hisp.dhis.oum.action.hierarchy.ValidateOrganisationUnitToMoveAction">      
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>      
+      <result name="input" type="velocity-json">../dhis-web-commons/ajax/jsonResponseInput.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_MOVE</param>
+    </action>
+
+    <action name="validateNewParentOrganisationUnit" class="org.hisp.dhis.oum.action.hierarchy.ValidateNewParentOrganisationUnitAction">   
+      <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>      
+      <result name="input" type="velocity-json">../dhis-web-commons/ajax/jsonResponseInput.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_MOVE</param>
+    </action>
+
+    <action name="moveOrganisationUnit" class="org.hisp.dhis.oum.action.hierarchy.MoveOrganisationUnitAction">
+      <result name="success" type="redirect">hierarchyOperations.action
+      </result>
+      <param name="requiredAuthorities">F_ORGANISATIONUNIT_MOVE</param>
+    </action>
+
+    <!-- OrganisationUnitLevels -->
+
+    <action name="organisationUnitLevel" class="org.hisp.dhis.oum.action.organisationunitlevel.GetOrganisationUnitLevelsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/saveOrganisationUnitLevelForm.vm</param>
+      <param name="menu">/dhis-web-maintenance-organisationunit/menu.vm</param>
+      <param name="requiredAuthorities">F_ORGANISATIONUNITLEVEL_UPDATE</param>
+    </action>
+
+    <action name="saveOrganisationUnitLevels" class="org.hisp.dhis.oum.action.organisationunitlevel.SaveOrganisationUnitLevelsAction">
+      <result name="success" type="redirect">index.action</result>
+      <param name="requiredAuthorities">F_ORGANISATIONUNITLEVEL_UPDATE</param>
+    </action>
+
+    <!-- OrganisationUnit Search -->
+
+    <action name="organisationUnitSearch" class="org.hisp.dhis.oum.action.search.SearchOrganisationUnitsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-organisationunit/organisationUnitSearch.vm</param>
+      <param name="menu">/dhis-web-maintenance-organisationunit/menuWithTree.vm</param>
+      <param name="javascripts">../dhis-web-commons/ouwt/ouwt.js,javascript/organisationUnitSearch.js</param>
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+      <interceptor-ref name="organisationUnitTreeStack" />
+    </action>
+
+    <action name="getOrganisationUnitDetails" class="org.hisp.dhis.oum.action.search.GetOrganisationUnitDetailsAction">
+      <result name="success" type="velocity">/dhis-web-maintenance-organisationunit/organisationUnitDetails.vm</result>
+    </action>
+
+  </package>
+
+</struts>

@@ -1,0 +1,13 @@
+name,uid,code,optionname,optionuid,optioncode
+"Color",,"COLOR","Blue",,"BLUE"
+"Color",,"COLOR","Green",,"GREEN"
+"Color",,"COLOR","Yellow",,"YELLOW"
+"Sex",,,"Male",,"MALE"
+"Sex",,,"Female",,"FEMALE"
+"Sex",,,"Uknown",,"UNKNOWN"
+"Result",,,"High",,"HIGH"
+"Result",,,"Medium",,"MEDIUM"
+"Result",,,"Low",,"LOW"
+"Impact","cJ82jd8sd32","IMPACT","Great",,"GREAT"
+"Impact","cJ82jd8sd32","IMPACT","Medium",,"MEDIUM"
+"Impact","cJ82jd8sd32","IMPACT","Poor",,"POOR"

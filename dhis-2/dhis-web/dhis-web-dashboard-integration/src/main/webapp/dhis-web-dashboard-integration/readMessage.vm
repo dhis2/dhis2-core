@@ -1,0 +1,66 @@
+<script type="text/javascript">
+$( document ).ready( function() {
+	jQuery( '#text' ).autogrow();
+	
+	if ( scrollIsRelevant() == false ) {
+	   jQuery( '.scrollButton' ).hide();
+	}
+} );
+	
+var i18n_sender = '$encoder.jsEscape( $i18n.getString( "sender" ), "'")';
+var i18n_enter_text = '$encoder.jsEscape( $i18n.getString( "enter_text" ), "'")';
+var i18n_sending_message = '$encoder.jsEscape( $i18n.getString( "sending_message" ), "'")';
+</script>
+
+<input type="hidden" id="conversationId" value="${conversation.uid}"/>
+
+<div class="messageTopDiv horizontalMenu">
+<ul>
+<li><a class="greyButtonLink" href="unreadMessage.action?id=${conversation.id}">$i18n.getString( 'mark_unread' )</a></li>
+<li><a class="greyButtonLink" href="removeMessageRedirect.action?id=${conversation.id}">$i18n.getString( 'remove' )</a></li>
+<li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( 'back' )</a></li>
+<li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToBottom()">$i18n.getString( 'scroll_down' )</a></li>
+</ul>
+</div>
+
+<h3>
+	<img id="followUp${conversation.id}" style="padding-right:8px; cursor:pointer;" onclick="toggleFollowUp( '${conversation.id}' )"#if( $conversation.followUp ) src="../images/marked.png"#else src="../images/unmarked.png"#end>
+	$!encoder.htmlEncode( $conversation.subject )
+</h3>
+<div class="recipientsDiv tipText">
+    $i18n.getString( "to" )
+    #set( $recSize = $conversation.topRecipients.size() )
+    #foreach( $user in $conversation.topRecipients )
+         <a class="userLink" href="profile.action?id=${user.uid}">${user.name}</a>#if( $velocityCount < $recSize ), #end
+    #end
+    #if( $conversation.bottomRecipients > 0 ) $i18n.getString( "and" ) $conversation.bottomRecipients $i18n.getString( "more" )#end
+</div>
+
+#foreach( $message in $conversation.messages )
+<div class="messageSymbol"><img src="../images/mail_small.png" onclick="toggleMetaData( '${message.id}' )"></div>
+<div class="messageDiv">
+#if( $message.sender )
+<a class="bold userLink" href="profile.action?id=${message.sender.uid}">$encoder.htmlEncode( $message.sender.name )</a>
+#else
+<span class="bold">$i18n.getString( "system_notification" )</span>
+#end
+<span class="grey">&nbsp;&nbsp;$!format.formatDate( $message.lastUpdated )</span>
+
+<div class="messageText">$!dhisTextUtils.htmlify( $encoder.htmlEncode( $message.text ) )</div>
+<div id="metaData${message.id}" class="messageMetaData">$!encoder.htmlEncode( $message.metaData )</div>
+</div>
+#end
+
+<div class="replyDiv">
+<textarea id="text" name="text" class="replyArea"></textarea>
+<div style="margin-top:10px"><a class="blueButtonLink" href="javascript:sendReply()">$i18n.getString( 'reply' )</a></div>
+</div>
+
+<div class="messageBottomDiv horizontalMenu">
+<ul>
+<li><a class="greyButtonLink" href="unreadMessage.action?id=${conversation.id}">$i18n.getString( 'mark_unread' )</a></li>
+<li><a class="greyButtonLink" href="removeMessageRedirect.action?id=${conversation.id}">$i18n.getString( 'remove' )</a></li>
+<li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( 'back' )</a></li>
+<li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToTop()">$i18n.getString( 'scroll_up' )</a></li>
+</ul>
+</div>

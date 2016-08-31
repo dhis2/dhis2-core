@@ -1,0 +1,10 @@
+<h3>$i18n.getString( "dhis-web-maintenance-organisationunit" ) #openHelp( "ou_hierarchy" )</h3>
+
+<ul class="introList">
+    #if( $security.canView( "organisationUnit" ) )#introListImgItem( "organisationUnit.action" "org_unit" "organisationunit" )#end
+    #if( $security.canView( "organisationUnitGroup" ) )#introListImgItem( "organisationUnitGroup.action" "org_unit_group" "organisationunit" )#end
+    #if( $security.canView( "organisationUnitGroupSet" ) )#introListImgItem( "organisationUnitGroupSet.action" "org_unit_group_set" "groupset" )#end
+    #if( $currentUser.isAuthorized( "F_ORGANISATIONUNITLEVEL_UPDATE" ) )#introListImgItem( "organisationUnitLevel.action" "org_unit_level" "hierarchy" )#end
+    #introListImgItem( "organisationUnitSearch.action?skipSearch=true" "org_unit_search" "search" )
+    #if( $currentUser.isAuthorized( "F_ORGANISATIONUNIT_MOVE" ) )#introListImgItem( "hierarchyOperations.action" "hierarchy_operations_menu" "hierarchy" )#end
+</ul>

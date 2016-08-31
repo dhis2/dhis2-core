@@ -1,0 +1,63 @@
+<div ng-controller="TEIRegistrationController">    
+    
+    <!--registration form starts -->
+    <form name="outerForm" novalidate>
+
+        <!-- Entity type begins -->
+        <div ng-if="!selectedProgramForRelative">
+            <h3>{{'category'| translate}}</h3>
+            <table class="dhis2-list-table-striped dhis2-table-hover">
+                <tr>
+                    <td>
+                        {{'entity_type'| translate}}
+                    </td>
+                    <td>
+                        <select class="form-control" 
+                                ng-model="trackedEntities.selected" 
+                                ng-disabled="selectedAttribute && selectedAttribute.trackedEntity"
+                                ng-options="trackedEntity.name for trackedEntity in trackedEntities.available | orderBy: 'name'">                                
+                        </select>                            
+                    </td>
+                </tr>                   
+            </table>
+            <hr>
+        </div>
+        <!-- Entity type ends -->        
+
+        <!--custom registration form begins -->
+        <div class="vertical-spacing" ng-if="customFormExists">
+
+            <!-- enrollment and incidence dates begin -->
+            <div ng-if="selectedProgramForRelative && !customForm.hasProgramDate">
+                <div ng-include="'components/registration/enrollment-dates-form.html'"></div>
+            </div>
+            <!-- enrollment and incidence dates end -->
+
+            <div ng-include="'../dhis-web-commons/angular-forms/custom-form.html'"></div>
+
+        </div>
+        <!-- custom registration form ends-->
+
+        <!-- default registration form begins -->
+        <div class="vertical-spacing" ng-if="!customFormExists">            
+            <div ng-if="selectedProgramForRelative" ng-include="'components/registration/enrollment-dates-form.html'"></div>
+            <div ng-include="'components/registration/default-registration-form.html'"></div>
+        </div>
+        <!-- default registration form ends -->
+
+        <div ng-if="formEmpty && outerForm.submitted">
+            <div class="alert alert-warning">{{'form_is_empty_fill_at_least_one'| translate}}</div> 
+        </div>
+
+        <button type="button" class="btn btn-primary small-horizonal-spacing" ng-click="registerEntity()">{{'save'| translate}}</button>        
+        <button type="button" class="btn btn-default small-horizonal-spacing" ng-click="showRegistration()">{{'cancel'| translate}}</button>
+
+    </form>
+    <!--registration form ends -->
+  
+
+    <div ng-if="warningMessages.length > 0">
+        <div ng-include="'views/warnings.html'"></div>
+    </div>
+        
+  </div>

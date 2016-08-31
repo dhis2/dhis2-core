@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<organisationUnit>
+	<id>$organisationUnit.id</id>
+	<name>$!encoder.xmlEncode( $organisationUnit.name )</name>
+    <shortName>$!encoder.xmlEncode( $organisationUnit.shortName )</shortName>
+    <code>$!encoder.xmlEncode( $organisationUnit.code )</code>
+    <openingDate>$!format.formatDate( $organisationUnit.openingDate )</openingDate>
+    <closedDate>$!format.formatDate( $organisationUnit.closedDate )</closedDate>
+    <active>$organisationUnit.active</active>
+    <comment>$!encoder.xmlEncode( $organisationUnit.comment )</comment>
+    <geoCode>$!encoder.xmlEncode( $organisationUnit.geoCode )</geoCode>
+	<url>$!encoder.xmlEncode( $organisationUnit.url )</url>
+    <lastUpdated>$!format.formatDate( $organisationUnit.lastUpdated )</lastUpdated>
+</organisationUnit>

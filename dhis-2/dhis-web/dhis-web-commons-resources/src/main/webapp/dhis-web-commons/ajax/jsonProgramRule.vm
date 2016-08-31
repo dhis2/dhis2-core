@@ -1,0 +1,8 @@
+{ "programRule": 
+  {
+    "id": "$!{programRule.id}",
+    "uid": "$!{programRule.uid}",
+    "name": "$!encoder.jsonEncode( ${programRule.displayName} )",
+    "description": "$!encoder.jsonEncode( ${programRule.description} )"
+  }
+}

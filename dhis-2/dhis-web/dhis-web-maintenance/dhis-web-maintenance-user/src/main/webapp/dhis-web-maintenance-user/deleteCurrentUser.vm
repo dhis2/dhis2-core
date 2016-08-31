@@ -1,0 +1,26 @@
+
+<h3>$i18n.getString( "delete_current_user" )</h3>
+<input type="hidden" id="curLocaleCode" value="$locale.getLanguage()_$locale.getCountry()"/>
+<form id="deleteCurrentUser" action="deleteCurrentUser.action" method="post" >
+
+<table>
+	<tr>
+		<th colspan="2">&nbsp;</th>
+	</tr>
+	<tr>
+		<td><label for="username">$i18n.getString( "username" )</label></td>
+		<td><input type="text" id="username" name="username" style="width:20em" disabled="" value="$username"/></td>
+	</tr>
+	<tr>
+		<td><label for="oldPassword">$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="password" id="oldPassword" name="oldPassword" style="width:20em"/></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td valign="top"><input type="submit" value="$i18n.getString( 'Delete' )" style="width:10em"/><input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='index.action'" style="width:10em"/></td>
+	</tr>
+</table>
+
+</form>
+
+<span id="message" style="display:#if($message.trim().equals(""))none #else block #end">$message</span>

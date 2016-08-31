@@ -1,0 +1,47 @@
+<div class="panel panel-info" ng-controller="RelationshipController">
+    <div class="panel-heading handle bold">
+        {{relationshipsWidget.title| translate}}
+        <span class="nav-pills" ng-if="selectedTei && selectedProgram.relationshipText  && !selectedTei.inactive">
+            | <a href ng-click="showAddRelationship(true)" title="{{'add_relationship'| translate}}"><span ng-class="{true: 'widget-link-active', false: 'widget-link'} [showAddRelationshipDiv]">{{selectedProgram.relationshipText}}</span></a>
+        </span>        
+        
+        <span class="nav-pills" ng-if="selectedTei  && !selectedTei.inactive">
+            | <a href ng-click="showAddRelationship(false)" title="{{'add_relationship'| translate}}"><span ng-class="{true: 'widget-link-active', false: 'widget-link'} [showAddRelationshipDiv]">{{'add' | translate}}</span></a>
+        </span>
+        
+        <span class="pull-right widget-link">
+            <a class="small-horizonal-spacing" href ng-click="expandCollapse(relationshipsWidget)">
+                <span ng-show="relationshipsWidget.expand"><i class="fa fa-chevron-up" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!relationshipsWidget.expand"><i class="fa fa-chevron-down" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizonal-spacing" href ng-click="removeWidget(relationshipsWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>            
+        </span>        
+    </div>
+    <div ng-show="relationshipsWidget.expand" class="panel-body dashboard-widget-container">
+        <div ng-show="selectedTei && !selectedTei.relationships || selectedTei.relationships.length < 1" class="alert alert-warning">{{noRelationshipLabel}}</div> 
+        <div ng-show="!selectedTei" class="alert alert-danger">{{'relationship_not_possible'| translate}}</div> 
+        
+        <div ng-if="relatedTeis.length > 0">            
+            <table class="table table-striped dhis2-table-hover table-bordered">
+                <tr>
+                    <th>
+                        {{'relationship' | translate}}
+                    </th>
+                    <th ng-repeat="att in attributes" ng-if="att.displayInListNoProgram">
+                        {{att.name}}
+                    </th>
+                    <th></th>
+                </tr>
+                <tr ng-repeat="rel in relatedTeis">
+                    <td title="{{'go_to_dashboard'| translate}}" ng-click="showDashboard(rel.trackedEntityInstance, rel.relId)">{{rel.relName}}</td> 
+                    <td title="{{'go_to_dashboard'| translate}}" ng-click="showDashboard(rel.trackedEntityInstance, rel.relId)" ng-repeat="att in attributes" ng-if="att.displayInListNoProgram">
+                        {{rel.attributes[att.id]}}
+                    </td>
+                    <td ng-click="removeRelationship(rel)" title="{{'delete_relationship'| translate}}" ng-if="!selectedTei.inactive">
+                        <i class="fa fa-trash-o red"></i>
+                    </td>
+                </tr>
+            </table>           
+        </div>
+    </div>
+</div>

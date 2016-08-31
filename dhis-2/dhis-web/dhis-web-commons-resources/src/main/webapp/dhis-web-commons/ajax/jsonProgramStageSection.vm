@@ -1,0 +1,8 @@
+{ "programStageSection":
+  {
+    "id": "$!{section.id}",
+    "uid": "$!{section.uid}",
+    "name": "$!encoder.jsonEncode( ${section.name} )",
+    "dataElementCount": "$!{section.programStageDataElements.size()}"
+  }
+}

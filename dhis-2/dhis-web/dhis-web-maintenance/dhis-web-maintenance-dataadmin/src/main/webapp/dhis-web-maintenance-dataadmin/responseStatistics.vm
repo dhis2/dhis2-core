@@ -1,0 +1,186 @@
+
+<table>
+    <tr>
+        <th style="width:200px">$i18n.getString( "object_type" )</th>
+        <th style="width:200px">$i18n.getString( "number" )</th>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "data_elements" )</td>
+        <td>$objects.getValue( "DATAELEMENT" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "data_element_groups" )</td>
+        <td>$objects.getValue( "DATAELEMENTGROUP" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "indicator_types" )</td>
+        <td>$objects.getValue( "INDICATORTYPE" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "indicators" )</td>
+        <td>$objects.getValue( "INDICATOR" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "indicator_groups" )</td>
+        <td>$objects.getValue( "INDICATORGROUP" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "data_sets" )</td>
+        <td>$objects.getValue( "DATASET" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "organisation_units" )</td>
+        <td>$objects.getValue( "ORGANISATIONUNIT" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "organisation_unit_groups" )</td>
+        <td>$objects.getValue( "ORGANISATIONUNITGROUP" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "validation_rules" )</td>
+        <td>$objects.getValue( "VALIDATIONRULE" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "periods" )</td>
+        <td>$objects.getValue( "PERIOD" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "users" )</td>
+        <td>$objects.getValue( "USER" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "user_groups" )</td>
+        <td>$objects.getValue( "USERGROUP" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "pivot_tables" )</td>
+        <td>$objects.getValue( "REPORTTABLE" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "charts" )</td>
+        <td>$objects.getValue( "CHART" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "maps" )</td>
+        <td>$objects.getValue( "MAP" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "dashboards" )</td>
+        <td>$objects.getValue( "DASHBOARD" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "data_values" )</td>
+        <td>$objects.getValue( "DATAVALUE" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "programs" )</td>
+        <td>$objects.getValue( "PROGRAM" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "events" )</td>
+        <td>$objects.getValue( "PROGRAMSTAGEINSTANCE" )</td>
+    </tr>
+    <tr>
+    	<td colspan="2" style="height:15px"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th style="width:200px">$i18n.getString( "users_logged_in" )</th>
+        <th style="width:200px">$i18n.getString( "number" )</th>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_hour" )</td>
+        <td>$activeUsers.get( 0 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "today" )</td>
+        <td>$activeUsers.get( 1 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_2_days" )</td>
+        <td>$activeUsers.get( 2 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_7_days" )</td>
+        <td>$activeUsers.get( 7 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_30_days" )</td>
+        <td>$activeUsers.get( 30 )</td>
+    </tr>
+    <tr>
+        <td colspan="2" style="height:15px"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th style="width:200px">$i18n.getString( "user_account_invitations" )</th>
+        <th style="width:200px">$i18n.getString( "number" )</th>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "pending_invitations" )</td>
+        <td>$userInvitations.getValue( "ALL" )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "expired_invitations" )</td>
+        <td>$userInvitations.getValue( "EXPIRED" )</td>
+    </tr>
+    <tr>
+        <td colspan="2" style="height:15px"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th style="width:200px">$i18n.getString( "data_values" )</th>
+        <th style="width:200px">$i18n.getString( "number" )</th>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "today" )</td>
+        <td>$dataValueCount.get( 0 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_2_days" )</td>
+        <td>$dataValueCount.get( 1 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_7_days" )</td>
+        <td>$dataValueCount.get( 7 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_30_days" )</td>
+        <td>$dataValueCount.get( 30 )</td>
+    </tr>
+    <tr>
+        <td colspan="2" style="height:15px"></td>
+    </tr>
+</table>
+
+<table>
+    <tr>
+        <th style="width:200px">$i18n.getString( "events" )</th>
+        <th style="width:200px">$i18n.getString( "number" )</th>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "today" )</td>
+        <td>$eventCount.get( 0 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_2_days" )</td>
+        <td>$eventCount.get( 1 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_7_days" )</td>
+        <td>$eventCount.get( 7 )</td>
+    </tr>
+    <tr>
+        <td>$i18n.getString( "last_30_days" )</td>
+        <td>$eventCount.get( 30 )</td>
+    </tr>
+    <tr>
+        <td colspan="2" style="height:15px"></td>
+    </tr>
+</table>

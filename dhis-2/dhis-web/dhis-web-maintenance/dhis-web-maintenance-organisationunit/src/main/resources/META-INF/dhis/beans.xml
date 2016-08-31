@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+  <bean id="org.hisp.dhis.oum.action.NoAction" class="org.hisp.dhis.oum.action.NoAction" scope="prototype" />
+
+  <!-- OrganisationUnit -->
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.GetOrganisationUnitListAction" class="org.hisp.dhis.oum.action.organisationunit.GetOrganisationUnitListAction"
+    scope="prototype">
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.GetOrganisationUnitAction" class="org.hisp.dhis.oum.action.organisationunit.GetOrganisationUnitAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.ValidateOrganisationUnitAction" class="org.hisp.dhis.oum.action.organisationunit.ValidateOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.AddOrganisationUnitAction" class="org.hisp.dhis.oum.action.organisationunit.AddOrganisationUnitAction"
+    scope="prototype">
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.GetCompulsoryGroupSetAction" class="org.hisp.dhis.oum.action.organisationunit.GetCompulsoryGroupSetAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.AssignOrganisationUnitToGroupsAction" class="org.hisp.dhis.oum.action.organisationunit.AssignOrganisationUnitToGroupsAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.UpdateOrganisationUnitAction" class="org.hisp.dhis.oum.action.organisationunit.UpdateOrganisationUnitAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.RemoveOrganisationUnitAction" class="org.hisp.dhis.oum.action.organisationunit.RemoveOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunit.ShowAddOrganisationUnitFormAction" class="org.hisp.dhis.oum.action.organisationunit.ShowAddOrganisationUnitFormAction"
+    scope="prototype" />
+
+  <!-- OrganisationUnitGroup -->
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.ShowAddOrganisationUnitGroupFormAction" class="org.hisp.dhis.oum.action.organisationunitgroup.ShowAddOrganisationUnitGroupFormAction">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupListAction" class="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupListAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupAction" class="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupMembersAction" class="org.hisp.dhis.oum.action.organisationunitgroup.GetOrganisationUnitGroupMembersAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.ValidateOrganisationUnitGroupAction" class="org.hisp.dhis.oum.action.organisationunitgroup.ValidateOrganisationUnitGroupAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.AddOrganisationUnitGroupAction" class="org.hisp.dhis.oum.action.organisationunitgroup.AddOrganisationUnitGroupAction"
+    scope="prototype">
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.UpdateOrganisationUnitGroupAction" class="org.hisp.dhis.oum.action.organisationunitgroup.UpdateOrganisationUnitGroupAction"
+    scope="prototype">
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroup.RemoveOrganisationUnitGroupAction" class="org.hisp.dhis.oum.action.organisationunitgroup.RemoveOrganisationUnitGroupAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <!-- OrganisationUnitGroupSet -->
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.ShowAddOrganisationUnitGroupSetFormAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.ShowAddOrganisationUnitGroupSetFormAction">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.GetGroupSetListAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.GetGroupSetListAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.ValidateGroupSetAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.ValidateGroupSetAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.AddGroupSetAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.AddGroupSetAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.GetGroupSetAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.GetGroupSetAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.RemoveGroupSetAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.RemoveGroupSetAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.UpdateGroupSetAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.UpdateGroupSetAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitgroupset.ShowUpdateGroupSetFormAction" class="org.hisp.dhis.oum.action.organisationunitgroupset.ShowUpdateGroupSetFormAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <!-- Hierarchy operations -->
+
+  <bean id="org.hisp.dhis.oum.action.hierarchy.GetSelectedOrganisationUnitAction" class="org.hisp.dhis.oum.action.hierarchy.GetSelectedOrganisationUnitAction"
+    scope="prototype">
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.hierarchy.ValidateOrganisationUnitToMoveAction" class="org.hisp.dhis.oum.action.hierarchy.ValidateOrganisationUnitToMoveAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.hierarchy.ValidateNewParentOrganisationUnitAction" class="org.hisp.dhis.oum.action.hierarchy.ValidateNewParentOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.hierarchy.MoveOrganisationUnitAction" class="org.hisp.dhis.oum.action.hierarchy.MoveOrganisationUnitAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <!-- OrganisationUnitLevel -->
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitlevel.GetOrganisationUnitLevelsAction" class="org.hisp.dhis.oum.action.organisationunitlevel.GetOrganisationUnitLevelsAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.organisationunitlevel.SaveOrganisationUnitLevelsAction" class="org.hisp.dhis.oum.action.organisationunitlevel.SaveOrganisationUnitLevelsAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <!-- OrganisationUnit Search -->
+
+  <bean id="org.hisp.dhis.oum.action.search.SearchOrganisationUnitsAction" class="org.hisp.dhis.oum.action.search.SearchOrganisationUnitsAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.oum.action.search.GetOrganisationUnitDetailsAction" class="org.hisp.dhis.oum.action.search.GetOrganisationUnitDetailsAction"
+    scope="prototype">
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+</beans>

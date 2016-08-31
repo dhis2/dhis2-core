@@ -1,0 +1,54 @@
+<script> 
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_command" ) , "'" )';
+	function showUpdateCommandForm( context ) {
+	  location.href = 'editSMSCommand.action?selectedCommandID=' + context.id;
+	}
+	
+	function removeCommand( context ) {
+		removeItem( context.id, context.name, i18n_confirm_delete, 'deleteSMSCommand.action' );
+	}
+	$(function() {
+	  dhis2.contextmenu.makeContextMenu({
+		menuId: 'contextMenu',
+		menuItemActiveClass: 'contextMenuItemActive'
+	  });
+	});
+</script>
+
+<h3>$i18n.getString( "command_management" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateCommandForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeCommand"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+		<tr>
+			<td >
+			   <input type="button" value="$i18n.getString('add_new')" onclick="window.location.href='newSMSCommand.action'" style="width:100px"/></a>	
+			</td>
+		</tr>
+	</table>
+	<table class="listTable" id="listTable">
+      <thead>
+      <tr>
+        <th>$i18n.getString('name')</th>
+      </tr>
+      </thead>
+	  <tbody id="list">
+		#foreach( $command in $SMSCommands )
+			<tr id="tr${command.id}" data-id="$!command.id" data-name="$encoder.htmlEncode( $!command.name )"
+				data-can-update="$security.canUpdate( $command )"
+				data-can-delete="$security.canDelete( $command )">
+				<td>$encoder.htmlEncode( $!command.name )</td>
+			</tr>
+        #end
+        
+      
+	 </tbody> 
+</table>
+</td>
+</tr>
+</table>

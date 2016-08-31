@@ -1,0 +1,20 @@
+
+<h3>$i18n.getString( "assign_to_compulsory_group_set" )</h3>
+
+<p>$i18n.getString( "organisation_unit_group_set" ): $groupSet.name</p>
+
+<form id="assignForm" action="assignOrganisationUnitToGroups.action" method="post">
+
+<p>
+	<select id="organisationUnitGroupId" name="organisationUnitGroupId" style="width:300px">
+	#foreach ( $group in $groupSet.organisationUnitGroups )
+		<option value="$group.id">$group.name</option>
+	#end
+	</select>
+</p>
+
+<p><input type="submit" value="$i18n.getString( 'save' )" style="width:150px"/></p>
+
+<input type="hidden" name="organisationUnitId" value="$organisationUnitId"/>
+
+</form>

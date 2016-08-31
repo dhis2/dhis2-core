@@ -1,0 +1,4 @@
+<h2>$i18n.getString( "sms_functions" )</h2>
+<ul>
+    <li><a href="showSendingSMSForm.action">$i18n.getString( "show_send_sms_form" )</a></li>
+</ul>

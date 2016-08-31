@@ -1,0 +1,83 @@
+
+<script type="text/javascript">
+	jQuery(document).ready(function(){	
+
+		dhis2.contextmenu.makeContextMenu({
+		  menuId: 'contextMenu',
+		  menuItemActiveClass: 'contextMenuItemActive'
+		});
+	});
+	
+	function showDataElementCategoryOptionDetails( context ) {
+		jQuery.post( 'getCategoryOptionCombo.action', { id: context.id } ,
+			function ( json ) {
+			
+				setInnerHTML( 'nameField', json.dataElementCategoryOptionCombo.name );
+				setInnerHTML( 'codeField', json.dataElementCategoryOptionCombo.code );
+				setInnerHTML( 'idField', json.dataElementCategoryOptionCombo.uid );
+
+                showDetails();
+		});
+	}
+	
+	function showUpdateDataElementCategoryOptionForm( context ) {
+		location.href = 'showUpdateCategoryOptionComboForm.action?id=' + context.id;
+	}
+	
+</script>
+
+<h3>$i18n.getString( "data_element_category_option_combination_management" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="showUpdateDataElementCategoryOptionForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li><a data-target-fn="showDataElementCategoryOptionDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+  <tr>
+    <td style="vertical-align:top">
+      <table class="listTable" id="categoryOptionComboList">
+        <thead>
+          <tr>
+            <th>$i18n.getString( "name" )</th>
+          </tr>
+        </thead>
+          <tbody id="list">
+            #foreach( $optionCombo in $optionCombos )
+            #if( $optionCombo.id != $defaultCategoryOptionCombo.id )
+              <tr id="tr${optionCombo.id}" data-id="$!optionCombo.id" data-uid="$!optionCombo.uid" data-type="CategoryOption" data-name="$encoder.htmlEncode( $!optionCombo.displayName )"
+                  data-can-manage="$security.canManage( $optionCombo )"
+                  data-can-update="$security.canUpdate( $optionCombo )">
+                <td>$encoder.htmlEncode( $!optionCombo.displayName )</td>
+              </tr>
+              #end
+            #end
+          </tbody>
+
+        </table>
+		<p></p>
+		#parse( "/dhis-web-commons/paging/paging.vm" )
+    </td>
+
+    <td id="detailsData">
+      <div id="detailsArea">
+        <div id="hideDetailsArea">
+        <a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+      </div>
+      <p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+          <p><label>$i18n.getString( "code" ):</label><br/><span id="codeField"></span></p>
+		  <p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+	  </div>
+
+      <div id="warningArea">
+        <div id="hideDetailsArea">
+          <a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+        </div>
+        <p><span id="warningField"></span></p>
+      </div>
+
+		</td>
+  </tr>
+</table>

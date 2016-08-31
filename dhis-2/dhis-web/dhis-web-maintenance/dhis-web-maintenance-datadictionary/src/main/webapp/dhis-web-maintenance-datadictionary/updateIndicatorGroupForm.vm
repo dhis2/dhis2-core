@@ -1,0 +1,61 @@
+<script type="text/javascript">
+	jQuery(document).ready(	function(){
+        validation2( 'updateIndicatorGroupForm', function( form )
+        {
+            form.submit();
+        }, {
+            'beforeValidateHandler' : function()
+            {
+                listValidator( 'memberValidator', 'groupMembers' );
+                #tblDynamicAttributesJavascript()
+                $("#inSelected").find("option").attr("selected", "selected");
+            },
+            'rules' : getValidationRules( "indicatorGroup" )
+        } );
+
+        $('#inAvailable').selected({
+          url: '../api/indicators.json',
+          target: $('#inSelected'),
+          search: $('#inAvailableSearch'),
+          iterator: 'indicators'
+        });
+
+		// checkValueIsExist( "name", "validateIndicatorGroup.action", {id: $indicatorGroup.id});
+	});
+</script>
+
+<h3>$i18n.getString( "edit_indicator_group" )</h3>
+
+<form id="updateIndicatorGroupForm" action="updateIndicatorGroup.action" method="post" class="inputForm">
+
+<div>
+	<input type="hidden" id="id" name="id" value="$indicatorGroup.id"/>
+</div>
+
+<table>
+    <col width="120px" />
+
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$encoder.htmlEncode( $indicatorGroup.name )"></td>
+	</tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+#jqSelected({
+    "prefix": "in",
+    "i18n_available": "available_indicators",
+    "i18n_selected": "selected_indicators",
+    "objects": $indicators
+})
+
+<p>
+	<input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'indicatorGroup.action' )" style="width:10em"/>
+</p>
+
+</form>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+  "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-validationrule" extends="dhis-web-commons" namespace="/dhis-web-validationrule">
+
+    <action name="index" class="org.hisp.dhis.validationrule.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/index.vm</param>
+      <param name="menu">/dhis-web-validationrule/menu.vm</param>
+    </action>
+
+    <!-- ValidationRule CRUD operations -->
+
+    <action name="validationRule" class="org.hisp.dhis.validationrule.action.GetValidationRuleListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/validationRule.vm</param>
+      <param name="menu">/dhis-web-validationrule/menu.vm</param>
+      <param name="javascripts">javascript/general.js</param>
+    </action>
+
+    <action name="getValidationRule" class="org.hisp.dhis.validationrule.action.GetValidationRuleAction">
+      <result name="success" type="velocity-json">/dhis-web-validationrule/jsonValidationRule.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showAddValidationRuleForm" class="org.hisp.dhis.validationrule.action.GetPeriodTypesAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/addValidationRuleForm.vm</param>
+      <param name="menu">/dhis-web-validationrule/menu.vm</param>
+      <param name="javascripts">javascript/general.js,javascript/expressionBuilder.js,
+      	javascript/validationRule.js,javascript/addValidationRuleForm.js</param>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+    </action>
+
+    <action name="addValidationRule" class="org.hisp.dhis.validationrule.action.AddValidationRuleAction">
+      <result name="success" type="redirect">validationRule.action</result>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+    </action>
+
+    <action name="removeValidationRule" class="org.hisp.dhis.validationrule.action.RemoveValidationRuleAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_DELETE</param>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="validateValidationRule" class="org.hisp.dhis.validationrule.action.ValidateValidationRuleAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+    </action>
+
+    <action name="getTextualExpression" class="org.hisp.dhis.validationrule.action.GetTextualExpressionAction">
+      <result name="success" type="velocity-xml">/dhis-web-validationrule/responseTextualExpression.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showUpdateValidationRuleForm" class="org.hisp.dhis.validationrule.action.ShowUpdateValidationRuleFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/updateValidationRuleForm.vm</param>
+      <param name="javascripts">javascript/general.js,javascript/expressionBuilder.js,
+      	javascript/validationRule.js,javascript/updateValidationRuleForm.js</param>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+    </action>
+
+    <action name="updateValidationRule" class="org.hisp.dhis.validationrule.action.UpdateValidationRuleAction">
+      <result name="success" type="redirect">validationRule.action?currentPage=${keyCurrentPage}&amp;key=${keyCurrentKey}</result>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+    </action>
+
+    <action name="getFilteredDataElements" class="org.hisp.dhis.validationrule.action.GetFilteredDataElementsAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonOperands.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- ValidationRuleGroup CRUD operations -->
+
+    <action name="validationRuleGroup"
+      class="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/validationRuleGroup.vm</param>
+      <param name="menu">/dhis-web-validationrule/menu.vm</param>
+      <param name="javascripts">javascript/validationRuleGroup.js</param>
+    </action>
+
+    <action name="getValidationRuleGroup" class="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupAction">
+      <result name="success" type="velocity-json">/dhis-web-validationrule/jsonValidationRuleGroup.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeValidationRuleGroup"
+      class="org.hisp.dhis.validationrule.action.validationrulegroup.RemoveValidationRuleGroupAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="requiredAuthorities">F_VALIDATIONRULEGROUP_DELETE</param>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showAddValidationRuleGroupForm" class="org.hisp.dhis.validationrule.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/addValidationRuleGroupForm.vm</param>
+      <param name="javascripts">javascript/validationRuleGroup.js, javascript/addValidationRuleGroupForm.js</param>
+      <param name="anyAuthorities">F_VALIDATIONRULEGROUP_PUBLIC_ADD, F_VALIDATIONRULEGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="addValidationRuleGroup" class="org.hisp.dhis.validationrule.action.validationrulegroup.AddValidationRuleGroupAction">
+      <result name="success" type="redirect">validationRuleGroup.action</result>
+      <param name="anyAuthorities">F_VALIDATIONRULEGROUP_PUBLIC_ADD, F_VALIDATIONRULEGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateValidationRuleGroupForm"
+      class="org.hisp.dhis.validationrule.action.validationrulegroup.ShowUpdateValidationRuleGroupFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/updateValidationRuleGroupForm.vm</param>
+      <param name="javascripts">javascript/validationRuleGroup.js, javascript/updateValidationRuleGroupForm.js</param>
+      <param name="anyAuthorities">F_VALIDATIONRULEGROUP_PUBLIC_ADD, F_VALIDATIONRULEGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateValidationRuleGroup"
+      class="org.hisp.dhis.validationrule.action.validationrulegroup.UpdateValidationRuleGroupAction">
+      <result name="success" type="redirect">validationRuleGroup.action?currentPage=${keyCurrentPage}&amp;key=${keyCurrentKey}</result>
+      <param name="anyAuthorities">F_VALIDATIONRULEGROUP_PUBLIC_ADD, F_VALIDATIONRULEGROUP_PRIVATE_ADD</param>
+    </action>
+
+    <action name="validateValidationRuleGroup"
+      class="org.hisp.dhis.validationrule.action.validationrulegroup.ValidateValidationRuleGroupAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+    </action>
+
+    <!-- Run validation -->
+
+    <action name="showRunValidationForm" class="org.hisp.dhis.validationrule.action.SetupTreeAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/runValidationForm.vm</param>
+      <param name="menu">/dhis-web-validationrule/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,../dhis-web-commons/ouwt/ouwt.js,javascript/general.js,javascript/runValidation.js</param>
+      <param name="requiredAuthorities">F_RUN_VALIDATION</param>
+    </action>
+
+    <action name="validateRunValidation" class="org.hisp.dhis.validationrule.action.ValidateRunValidationAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+    </action>
+
+    <action name="runValidationAction" class="org.hisp.dhis.validationrule.action.RunValidationAction">
+      <result name="success" type="velocity">/dhis-web-validationrule/viewValidationResultForm.vm</result>
+      <param name="requiredAuthorities">F_RUN_VALIDATION</param>
+    </action>
+
+    <action name="viewValidationResultDetails" class="org.hisp.dhis.validationrule.action.GetValidationResultDetailsAction">
+      <result name="success" type="velocity">/dhis-web-validationrule/viewValidationResultDetailsForm.vm</result>
+    </action>
+
+    <action name="exportValidationResult" class="org.hisp.dhis.validationrule.action.ExportValidationResultAction">
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+    </action>
+
+    <!-- Data analysis -->
+
+    <action name="viewAnalysisForm" class="org.hisp.dhis.validationrule.action.dataanalysis.ViewAnalysisFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/dataAnalysisForm.vm</param>
+      <param name="menu">/dhis-web-validationrule/menu.vm</param>
+      <param name="javascripts">
+        ../dhis-web-commons/ouwt/ouwt.js,
+        ../dhis-web-commons/oust/oust.js,
+        ../dhis-web-commons/javascripts/lists.js,
+        javascript/dataAnalysis.js
+      </param>
+      <interceptor-ref name="organisationUnitTreeStack" />
+      <param name="requiredAuthorities">F_RUN_VALIDATION</param>
+    </action>
+
+    <action name="viewFollowupAnalysisForm" class="org.hisp.dhis.validationrule.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-validationrule/followupAnalysisForm.vm</param>
+      <param name="menu">/dhis-web-validationrule/menu.vm</param>
+      <param name="javascripts">
+        ../dhis-web-commons/oust/oust.js,
+        ../dhis-web-commons/javascripts/lists.js,
+        javascript/dataAnalysis.js
+      </param>
+      <interceptor-ref name="organisationUnitTreeStack" />
+      <param name="requiredAuthorities">F_RUN_VALIDATION</param>
+    </action>
+
+    <action name="getFollowup" class="org.hisp.dhis.validationrule.action.dataanalysis.GetFollowupAction">
+      <result name="success" type="velocity">/dhis-web-validationrule/followupResult.vm</result>
+      <param name="requiredAuthorities">F_RUN_VALIDATION</param>
+    </action>
+
+    <action name="getAnalysis" class="org.hisp.dhis.validationrule.action.dataanalysis.GetAnalysisAction">
+      <result name="success" type="velocity">/dhis-web-validationrule/searchResult.vm</result>
+      <param name="requiredAuthorities">F_RUN_VALIDATION</param>
+    </action>
+
+    <action name="markForFollowup" class="org.hisp.dhis.validationrule.action.dataanalysis.MarkForFollowupAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+    </action>
+
+    <action name="validateRunAnalysis" class="org.hisp.dhis.validationrule.action.dataanalysis.ValidationRunAnalysisAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+    </action>
+
+    <action name="exportAnalysisResult" class="org.hisp.dhis.validationrule.action.dataanalysis.ExportAnalysisResultAction">
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+    </action>
+
+  </package>
+</struts>

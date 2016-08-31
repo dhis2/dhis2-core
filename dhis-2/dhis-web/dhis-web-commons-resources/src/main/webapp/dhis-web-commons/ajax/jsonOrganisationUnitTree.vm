@@ -1,0 +1,13 @@
+{
+"version":"$!encoder.jsonEncode( $version )"
+,"username":"$!encoder.jsonEncode( $username )"
+,"realRoot":$realRoot
+,"roots": [ #foreach( $root in $rootOrganisationUnits )"$!encoder.jsonEncode($root.uid)"#if( $velocityCount < $rootOrganisationUnits.size() ),#end#end ]
+#if( ! $versionOnly )
+,"organisationUnits": {
+#foreach( $unit in $organisationUnits )
+"$!encoder.jsonEncode($unit.uid)":{"id":"$!encoder.jsonEncode($unit.uid)","n":"$!encoder.htmlEncode( ${unit.displayName} )","l":${unit.level},"path":"${unit.path}",#if( $unit.parent )"pid":"$!encoder.jsonEncode($unit.parent.uid)",#end"c":[#foreach( $child in $unit.sortedChildren )
+"$!encoder.jsonEncode($child.uid)"#if( $velocityCount < $unit.children.size() ),#end#end]}
+#if( $velocityCount < $organisationUnits.size() ),#end#end
+}#end
+}

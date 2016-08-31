@@ -1,0 +1,239 @@
+<div id="leftBar">   
+    <div class="left-bar-menu" ng-controller="LeftBarMenuController">
+        <ul class="nav nav-pills nav-stacked">
+            <li><a href ng-click="showHome()">{{'registration_and_data_entry'| translate}}</a></li>
+            <li><a href ng-click="showReportTypes()">{{'reports'| translate}}</a></li>            
+        </ul>
+    </div>  
+    <div id="orgUnitTree" style="margin-top:20px">
+        <ul>
+        </ul>
+    </div>
+    <img id="ouwt_loader" src="../images/ajax-loader-bar.gif" alt="{{'loading_tree' | translate}}"/>
+</div>
+
+<div id="mainPage" class="page">
+
+    <!-- top bar begins -->
+    <div class="row top-bar">        
+        <div class="col-sm-12">            
+            {{'upcoming_events'| translate}}
+            <div class="pull-right">
+                <div class="btn-group" dropdown is-open="status.isopen">
+                    <button type="button" class="btn btn-default dropdown-toggle" ng-disabled="!upcomingEvents.length">
+                        <i class="fa fa-cog" title="{{settingsLabel}}"></i>
+                    </button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li ng-show="upcomingEvents.length > 0"><a href ng-click="showHideColumns()">{{'show_hide_columns'| translate}}</a></li>
+                    </ul>
+                </div>
+            </div>            
+        </div>        
+    </div>
+    <!-- top bar ends -->
+
+    <!--input form begins -->
+    <form name="outerForm" novalidate>               
+        <div class="row">
+            <div class="col-sm-8 col-md-6">
+                <table class="table-borderless table-striped">
+                    <tr>
+                        <td>{{'org_unit' | translate}}</td>
+                        <td>
+                            <input type="text" class="form-control" selected-org-unit ng-model="selectedOrgUnit.name" value="{{selectedOrgUnit.name || 'please_select'| translate}}" ng-disabled="true">                                                                                        
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{'program'| translate}}
+                        </td>
+                        <td>
+                            <select ng-model="selectedProgram"
+                                    class="form-control"
+                                    ng-options="program as program.name for program in programs | orderBy: 'name'" 
+                                    ng-disabled="programs.length < 1">
+                                <option value="">{{programs.length > 0 ? 'please_select_a_program' : 'no_program_exists'| translate}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>{{'org_unit_scope'| translate}}</td>
+                        <td>                 
+                            <label><input type="radio" ng-model="selectedOuMode" name="selected" value="SELECTED"> {{'SELECTED'| translate}}</label><br/>
+                            <label><input type="radio" ng-model="selectedOuMode" name="children" value="CHILDREN"> {{'CHILDREN'| translate}}</label><br/>
+                            <label><input type="radio" ng-model="selectedOuMode" name="descendants" value="DESCENDANTS"> {{'DESCENDANTS'| translate}}</label><br/>                            
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {{'filter'| translate}}
+                        </td>
+                        <td> 
+                            <label>
+                                <input type="checkbox" ng-change="markForFollowup()" ng-model="displayMode.onlyMarkedFollowup"/>  {{'only_marked_for_followup'| translate}}
+                            </label>                                
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-8 col-md-6">
+                <table class="table-borderless">
+                    <tr>
+                        <td>
+                            <input type="text" 
+                                   name="reportStartDate" 
+                                   placeholder="{{'start_date'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})" 
+                                   class="form-control" 
+                                   d2-date 
+                                   ng-model="report.startDate" 
+                                   min-date="today" 
+                                   ng-required="true"/> 
+                            <span ng-show="outerForm.submitted && outerForm.reportStartDate.$invalid" style="color:red;font-size:12px">{{'required'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})</span>
+                        </td>
+                        <td>
+                            <input type="text" name="reportEndDate" placeholder="{{'end_date'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})" class="form-control" d2-date ng-model="report.endDate" min-date="today" ng-required="true"/>
+                            <span ng-show="outerForm.submitted && outerForm.reportEndDate.$invalid" style="color:red;font-size:12px">{{'required'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})</span>
+                        </td>
+                    </tr>
+                </table>                
+            </div>
+            <div class="col-md-6 trim">
+                <button type="button" class="btn btn-primary" ng-click="generateReport()" ng-disabled="!selectedProgram">{{'go'| translate}}</button>
+                <button type="button"
+                        class="btn btn-success small-horizonal-spacing"
+                        ng-if="upcomingEvents.length > 0"
+                        onclick="javascript:window.print()">
+                    {{'print'| translate}}
+                </button>
+                <button type="button" 
+                        class="btn btn-info small-horizonal-spacing"
+                        ng-if="upcomingEvents.length > 0"
+                        ng-csv="generateReportData()"
+                        csv-header="generateReportHeader()"
+                        filename="upcomingEvents.csv">
+                    {{'excel_export'| translate}}
+                </button>
+            </div>
+        </div>
+
+        <div class="row" ng-if="programs.length < 1">        
+            <div class="col-sm-8 col-md-6 vertical-spacing">
+                <div class="alert alert-warning">{{'no_program_exists_report'| translate}}</div> 
+            </div>
+        </div>
+        <div class="row" ng-if="programs.length > 0 && !selectedProgram">        
+            <div class="col-sm-8 col-md-6 vertical-spacing">
+                <div class="alert alert-warning">{{'please_select_program_report'| translate}}</div> 
+            </div>
+        </div>
+    </form>    
+    <!--input form ends -->
+
+    <img src="../images/ajax-loader-bar.gif" ng-if="reportStarted && !reportFinished"/>
+
+    <!-- upcoming events list begins -->
+    <div ng-if="reportFinished">
+        <div ng-switch="upcomingEvents.length">                    
+            <div ng-switch-when="undefined">
+                <div class="alert alert-warning vertical-spacing">
+                    {{'no_data_found'| translate}}
+                </div>
+            </div>
+            <div ng-switch-when="0">  
+                <div class="alert alert-warning vertical-spacing">
+                    {{'no_data_found'| translate}}
+                </div>
+            </div>    
+            <div ng-switch-default>
+                <!-- report begins -->
+                <div class="vertical-spacing">   
+                    <table class="listTable dhis2-table-striped-border dhis2-table-hover">               
+                        <thead>                        
+                            <tr>
+                                 <th ng-repeat="gridColumn in gridColumns | filter:{show: true}">
+
+                                    <!-- sort icon begins -->
+                                    <span ng-click="sortGrid(gridColumn)">
+                                        <span ng-class="{true: 'red'} [sortColumn.id === gridColumn.id]"><i class="fa fa-sort hideInPrint"></i></span>
+                                        {{gridColumn.name}}
+                                    </span>
+                                    <!-- sort icon ends -->
+
+                                    <!-- filter icon begins -->
+                                    <span class='pull-right hideInPrint'>
+                                        <span ng-if="gridColumn.type != 'DATE' && gridColumn.type != 'NUMBER'">
+                                            <a href ng-click="searchInGrid(gridColumn)" title="{{'search'| translate}}"><span ng-class="{true: 'filter-without-content', false: 'filter-with-content'} [filterText[gridColumn.id] == undefined || filterText[gridColumn.id] == '']"><i class="fa fa-search"></i></span></a>
+                                        </span>
+                                        <span ng-if="gridColumn.type === 'DATE' || gridColumn.type === 'NUMBER'">
+                                            <a href ng-click="searchInGrid(gridColumn)" title="{{'search'| translate}}"><span ng-class="{true: 'filter-without-content', false: 'filter-with-content'} [(filterText[gridColumn.id].start == undefined || filterText[gridColumn.id].start == '') && (filterText[gridColumn.id].end == undefined || filterText[gridColumn.id].end == '')]"><i class="fa fa-search"></i></span></a>
+                                        </span>                                                    
+                                    </span>
+                                    <!-- filter icon ends -->
+
+                                    <!-- filter input field begins -->
+                                    <span ng-show="gridColumn.showFilter" class="hideInPrint">                                          
+                                        <span ng-switch="gridColumn.valueType">                                            
+                                            <span ng-switch-when="NUMBER">
+                                                <input style="width: 45%;" placeholder="{{'lower_limit' | translate}}" type="number" ng-model="filterText[gridColumn.id].start" ng-blur="searchInGrid(gridColumn)">
+                                                <input style="width: 45%;" placeholder="{{'upper_limit' | translate}}" type="number" ng-model="filterText[gridColumn.id].end" ng-blur="searchInGrid(gridColumn)">
+                                            </span>
+                                            <span ng-switch-when="INTEGER">
+                                                <input style="width: 45%;" placeholder="{{'lower_limit' | translate}}" type="number" ng-model="filterText[gridColumn.id].start" ng-blur="searchInGrid(gridColumn)">
+                                                <input style="width: 45%;" placeholder="{{'upper_limit' | translate}}" type="number" ng-model="filterText[gridColumn.id].end" ng-blur="searchInGrid(gridColumn)">
+                                            </span>
+                                            <span ng-switch-when="INTEGER_POSITIVE">
+                                                <input style="width: 45%;" placeholder="{{'lower_limit' | translate}}" type="number" min="1" ng-model="filterText[gridColumn.id].start" ng-blur="searchInGrid(gridColumn)">
+                                                <input style="width: 45%;" placeholder="{{'upper_limit' | translate}}" type="number" min="1" ng-model="filterText[gridColumn.id].end" ng-blur="searchInGrid(gridColumn)">
+                                            </span>
+                                            <span ng-switch-when="INTEGER_NEGATIVE">
+                                                <input style="width: 45%;" placeholder="{{'lower_limit' | translate}}" type="number" max="-1" ng-model="filterText[gridColumn.id].start" ng-blur="searchInGrid(gridColumn)">
+                                                <input style="width: 45%;" placeholder="{{'upper_limit' | translate}}" type="number" max="-1" ng-model="filterText[gridColumn.id].end" ng-blur="searchInGrid(gridColumn)">
+                                            </span>
+                                            <span ng-switch-when="INTEGER_ZERO_OR_POSITIVE">
+                                                <input style="width: 45%;" placeholder="{{'lower_limit' | translate}}" type="number" min="0" ng-model="filterText[gridColumn.id].start" ng-blur="searchInGrid(gridColumn)">
+                                                <input style="width: 45%;" placeholder="{{'upper_limit' | translate}}" type="number" min="0" ng-model="filterText[gridColumn.id].end" ng-blur="searchInGrid(gridColumn)">
+                                            </span>
+                                            <span ng-switch-when="DATE">
+                                                <input style="width: 70%;" placeholder="{{'start_date' | translate}}" type="text" ng-model="filterText[gridColumn.id].start" d2-date readonly="readonly">
+                                                <span ng-hide="!filterText[gridColumn.id].start || filterText[gridColumn.id].start == undefined || filterText[gridColumn.id].start == ''">
+                                                    <a href ng-click='removeStartFilterText(gridColumn.id)'><span class='black'><i class="fa fa-trash-o"></i></span></a>                                                        
+                                                </span>
+                                                <input style="width: 70%;" placeholder="{{'end_date' | translate}}" type="text" ng-model="filterText[gridColumn.id].end" d2-date readonly="readonly">
+                                                <span ng-hide="!filterText[gridColumn.id].end || filterText[gridColumn.id].end == undefined || filterText[gridColumn.id].end == ''">
+                                                    <a href ng-click='removeEndFilterText(gridColumn.id)'><span class='black'><i class="fa fa-trash-o"></i></span></a>                                                        
+                                                </span> 
+                                            </span>
+                                            <span ng-switch-default>
+                                                <input type="text" style="width: 90%;" ng-model="filterText[gridColumn.id]" ng-blur="searchInGrid(gridColumn)">
+                                            </span> 
+                                        </span>                                                    
+                                    </span>
+                                    <!-- filter input field ends -->    
+                                    
+                                </th>
+                            </tr>                        
+                        </thead>
+                        <tbody id="list">
+                            <tr ng-repeat="upcomingEvent in upcomingEvents | orderBy:[d2Sort, 'trackedEntityInstance']:reverse | gridFilter:filterText:filterTypes"
+                                ng-click="showDashboard(upcomingEvent.trackedEntityInstance)"
+                                title="{{'go_to_dashboard'| translate}}">
+                                <td ng-repeat="gridColumn in gridColumns | filter:{show: true, eventCol: false}" 
+                                    ng-if='displayMode.onlyMarkedFollowup ? upcomingEvent.followup:true'>                                                
+                                    {{upcomingEvent[gridColumn.id]}}
+                                </td>
+                                <td ng-repeat="gridColumn in gridColumns | filter:{show: true, eventCol: true}" ng-if='displayMode.onlyMarkedFollowup ? upcomingEvent.followup:true'>                                                
+                                    {{upcomingEvent[gridColumn.id]}}
+                                </td>                               
+                            </tr>
+                        </tbody>        
+                    </table>
+                    <!--<serverside-paginator></serverside-paginator>-->
+                </div>
+                <!-- report ends -->
+            </div>
+        </div> 
+    </div>
+    <!-- upcoming events list ends -->
+</div>

@@ -1,0 +1,58 @@
+<h3>$i18n.getString('schedule_automated_message_reminder_form') #openHelp( "schedule_sending_message" )</h3>
+
+<form id='scheduleMessageForm' name='scheduleMessageForm' method="post">
+	<table>
+		<tbody>
+			<tr>
+				<td>$i18n.getString( "time_for_sending_message" )</td>
+				<td>
+					<input type="text" id="timeSendingMessage" name="timeSendingMessage" value="$!timeSendingMessage" style="width:295px;" class="{validate:{required:true,time:true}}"/>
+				</td>
+			</tr>
+			
+			<tr>
+				<td></td>
+				<td>
+					<input type="submit" style="width:150px;" id="scheduledBtn" name="scheduledBtn"
+					#if ( $running=='true' )
+						value="$i18n.getString( 'stop' )"
+					#else
+						value="$i18n.getString( 'start' )"
+					#end
+					onclick="javascript:isExecute=false;"/>
+					<input type="submit" id="executeButton" name="executeButton" style="width:150px;" value="$i18n.getString( 'execute' )" onclick="javascript:isExecute=true;" #if ( $running=='false' ) disabled #end/>
+				</td>
+			</tr>
+			
+		</tbody>
+	</table>
+	<span id="info">$i18n.getString( "scheduling_is" ) $!i18n.getString( $!status )</span>
+	
+	<table id="notificationTable" class="notificationTable" style="display:none">
+		<col width="120">
+		<col width="380">
+	</table>
+
+</form>
+
+<script>
+	jQuery(document).ready(	function(){
+		validation( 'scheduleMessageForm', function(form){
+			if(isExecute){
+				executeTasks();
+			}
+			else{
+				scheduleTasks();
+			}
+		});
+	});
+	
+	var i18n_scheduled = '$encoder.jsEscape( $i18n.getString( "run_success" ) , "'" )';
+	var i18n_start = '$encoder.jsEscape( $i18n.getString( "start" ) , "'" )';
+	var i18n_stop = '$encoder.jsEscape( $i18n.getString( "stop" ) , "'" )';
+	var i18n_not_started = '$encoder.jsEscape( $i18n.getString( "not_started" ) , "'" )';
+	var i18n_scheduling_is = '$encoder.jsEscape( $i18n.getString( "scheduling_is" ) , "'" )';
+	var i18n_executing = '$encoder.jsEscape( $i18n.getString( "executing" ) , "'" )';
+	var i18n_execute_success = '$encoder.jsEscape( $i18n.getString( "execute_success" ) , "'" )';
+	var i18n_execute_tasks_confirmation = '$encoder.jsEscape( $i18n.getString( "execute_tasks_confirmation" ) , "'" )';
+</script>

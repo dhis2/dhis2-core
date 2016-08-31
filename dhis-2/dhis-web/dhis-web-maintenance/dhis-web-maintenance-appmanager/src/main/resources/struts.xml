@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+"-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+"http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-maintenance-appmanager" extends="dhis-web-commons" namespace="/dhis-web-maintenance-appmanager">
+    
+    <!-- AppManager -->
+    
+    <action name="index" class="org.hisp.dhis.appmanager.action.NoAction">
+        <result name="success" type="redirect">appList.action</result>
+    </action>
+    
+    <action name="appList" class="org.hisp.dhis.appmanager.action.AppListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-appmanager/index.vm</param>
+      <param name="menu">/dhis-web-maintenance-appmanager/menu.vm</param>
+      <param name="javascripts">javascript/jquery.form.js,javascript/uploadApp.js</param>
+    </action>
+    
+    <action name="addApp" class="org.hisp.dhis.appmanager.action.AddAppAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="failure" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="menu">/dhis-web-maintenance-appmanager/menu.vm</param>
+      <param name="javascripts">javascript/jquery.form.js</param>
+      <interceptor-ref name="fileUploadStack" />
+    </action>
+    
+    <action name="deleteApp" class="org.hisp.dhis.appmanager.action.DeleteAppAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="page">/dhis-web-maintenance-appmanager/index.vm</param>
+      <param name="menu">/dhis-web-maintenance-appmanager/menu.vm</param>
+      <param name="javascripts">javascript/jquery.form.js</param>
+    </action>
+    
+    <action name="appSettings" class="org.hisp.dhis.appmanager.action.AppSettingsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-appmanager/appSettings.vm</param>
+      <param name="menu">/dhis-web-maintenance-appmanager/menu.vm</param>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="javascripts">javascript/jquery.form.js,javascript/deleteApp.js</param>
+      <param name="requiredAuthorities">F_SYSTEM_SETTING</param>
+    </action>
+    
+  </package>
+</struts>

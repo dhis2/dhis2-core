@@ -1,0 +1,7 @@
+@media print {
+
+  a[href]:after {
+    content: none;
+  }
+
+}

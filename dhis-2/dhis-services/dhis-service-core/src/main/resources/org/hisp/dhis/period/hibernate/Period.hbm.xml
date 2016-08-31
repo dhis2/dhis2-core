@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.period.Period" table="period">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="periodid">
+      <generator class="native" />
+    </id>
+
+    <properties name="uniqueGroup" unique="true">
+      <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" lazy="false" column="periodtypeid"
+        foreign-key="fk_period_periodtypeid" />
+      <property name="startDate" type="date" not-null="true" column="startdate" />
+      <property name="endDate" type="date" not-null="true" column="enddate" />
+    </properties>
+
+  </class>
+</hibernate-mapping>

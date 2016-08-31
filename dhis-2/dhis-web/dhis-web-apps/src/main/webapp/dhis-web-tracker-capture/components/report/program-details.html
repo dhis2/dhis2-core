@@ -1,0 +1,130 @@
+<div id='printSection'>
+    <div class="modal-header">
+        <h1>{{selectedProgram.name}} {{'report'| translate}}</h1>
+        <span class="pull-right bold">
+            {{'date'| translate}}: {{today}}
+        </span>
+    </div>
+    <div class="modal-body">
+        <div class='row'>
+            <div class="col-sm-6">
+                <h2>{{selectedProgram.trackedEntity.name}} {{'_details'| translate}}</h2>
+                <table class="table table-bordered table-compact">
+                    <tr ng-repeat="attribute in selectedTei.attributes" ng-show="attribute.show">
+                        <td class="bold">
+                            {{attribute.displayName}}
+                        </td>
+                        <td>
+                            <span ng-switch="attribute.type">
+                                <span ng-switch-when="bool">
+                                    <span ng-if="attribute.value === 'true'">{{'yes' | translate}}</span>
+                                    <span ng-if="attribute.value === 'false'">{{ 'no' | translate}}</span>
+                                </span>
+                                <span ng-switch-when="trueOnly">
+                                    <span ng-if="attribute.value">
+                                        <i class="fa fa-check"></i>
+                                    </span>
+                                </span>
+                                <span ng-switch-default>{{attribute.value}}</span>
+                            </span>
+                        </td>                
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row" ng-repeat="enrollment in enrollments">
+            <h2 class='col-sm-12'>{{'enrollment'| translate}} {{'_details'| translate}}</h2>
+            <div class="col-sm-4">
+                <span class="bold">{{selectedProgram.enrollmentDateLabel}}:</span>  {{enrollment.enrollmentDate}}            
+            </div>
+            <div class="col-sm-4">
+                <span class="bold">{{selectedProgram.incidentDateLabel}}:</span>    {{enrollment.incidentDate}}            
+            </div>
+            <div class="col-sm-4">
+                <span class="bold">{{'status'| translate}}:</span>  {{enrollment.status}}
+            </div>
+            <div class='row vertical-spacing'></div>
+            <div ng-if="enrollment.notes">
+                <h3 class='col-sm-12'>{{'notes'| translate}}</h3>
+                <table class="table-borderless table-striped">
+                    <tr class="col-sm-12" ng-repeat="note in enrollment.notes">
+                        <td class="col-sm-12">
+                            <p>
+                                {{note.value}}<br>
+                                ({{note.storedBy}}, {{note.storedDate}})
+                            </p>                                  
+                        </td>                    
+                    </tr>
+                </table>
+            </div>
+
+            <h2 class='col-sm-12'>{{'visits'| translate}}</h2>
+            
+            <div ng-repeat="programStage in programStages | orderBy:'sortOrder':reverse">
+                <div class='vertical-spacing' ng-repeat="dhis2Event in selectedReport.enrollments[enrollment.enrollment]| orderBy:'sortingDate':reverse | filter:{programStage: programStage.id}">
+                    <div class="col-sm-3">
+                        <span class="bold">{{'name'| translate}}:</span>    {{dhis2Event.name}}                
+                    </div>
+                    <div class="col-sm-3">
+                        <span class="bold">{{orgUnitLabel}}:</span> {{dhis2Event.orgUnitName}}                
+                    </div>
+                    <div class="col-sm-3">
+                        <span class="bold">{{dhis2Event.eventDate ? 'event_date' : 'due_date'| translate}}:</span>    {{dhis2Event.eventDate ? dhis2Event.eventDate : dhis2Event.dueDate}}
+                    </div>
+                    <div class="col-sm-3">
+                        <span class="bold">{{'status'| translate}}:</span>  {{dhis2Event.status}}
+                    </div>
+                    <div class='row vertical-spacing'></div>
+                    <div class='col-sm-6'>
+                        <table class="table table-bordered table-compact"  ng-if="dhis2Event.visited && dhis2Event.dataValues">
+                            <tr class="col-sm-12">
+                                <th class="col-md-5">
+                                    {{'data_element'| translate}}
+                                </th>
+                                <th class="col-sm-5">
+                                    {{'value'| translate}}
+                                </th>
+                                <th class="col-sm-2" ng-if="allowProvidedElsewhereExists[dhis2Event.programStage]">
+                                    {{'provided_elsewhere'| translate}}
+                                </th>
+                            </tr>
+                            <tr class="col-sm-12" ng-repeat="prStDe in stagesById[dhis2Event.programStage].programStageDataElements">
+                                <td>
+                                    {{prStDe.dataElement.formName ? prStDe.dataElement.formName : prStDe.dataElement.name}}
+                                </td>
+                                <td>
+                                    {{dhis2Event[prStDe.dataElement.id]}}
+                                </td>
+                                <td ng-if="allowProvidedElsewhereExists[dhis2Event.programStage]">
+                                    <span ng-if="dhis2Event[prStDe.dataElement.id].providedElsewhere"><i class="fa fa-check"></i></span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="alert alert-warning visit-details" ng-if="!dhis2Event.visited">{{'visit_not_made'| translate}}</div>
+                    <div class="alert alert-warning visit-details" ng-if="dhis2Event.visited && !dhis2Event.dataValues">{{'no_data'| translate}}</div>
+                    <div class='row vertical-spacing'></div>
+                    <div ng-if="dhis2Event.notes">
+                        <h4 class='col-sm-12'>{{'notes'| translate}}</h4>
+                        <table class="table-borderless table-striped">
+                            <tr class="col-sm-12" ng-repeat="note in dhis2Event.notes">
+                                <td class="col-sm-12">
+                                    <p>
+                                        {{note.value}}<br>
+                                        ({{note.storedBy}}, {{note.storedDate}})
+                                    </p>                                  
+                                </td>                    
+                            </tr>
+                        </table>
+                    </div>
+                    <hr class="visit-details" ng-show="$index < report.enrollments[enrollment.enrollment].length - 1">
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="close()">{{'close'| translate}}</button>
+    <button class="btn btn-primary" ng-click="print('printSection')">{{'print'| translate}}</button>
+</div>

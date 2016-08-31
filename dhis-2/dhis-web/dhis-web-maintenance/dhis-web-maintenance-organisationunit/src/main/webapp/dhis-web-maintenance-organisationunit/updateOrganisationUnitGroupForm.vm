@@ -1,0 +1,72 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+        validation2( 'updateOrganisationUnitGroupForm', function( form )
+        {
+            form.submit();
+        }, {
+            'beforeValidateHandler' : function()
+            {
+                #tblDynamicAttributesJavascript()
+            },
+            'rules' : getValidationRules( "organisationUnitGroup" )
+        } );
+		
+		checkValueIsExist( "name", "validateOrganisationUnitGroup.action", {id:$!organisationUnitGroup.id} );
+		checkValueIsExist( "shortName", "validateOrganisationUnitGroup.action", {id:$!organisationUnitGroup.id} );
+		checkValueIsExist( "code", "validateOrganisationUnitGroup.action", {id:$!organisationUnitGroup.id} );
+	});
+</script>
+
+<h3>$i18n.getString( "edit_org_unit_group" ) #openHelp( "ou_groups_edit" )</h3>
+
+<form id="updateOrganisationUnitGroupForm" action="updateOrganisationUnitGroup.action" method="post" class="inputForm">
+<input type="hidden" name="id" id="id" style="width:300px" value="$!{organisationUnitGroup.id}">
+<input type="hidden" id="symbol" name="symbol" value="$!{organisationUnitGroup.symbol}">
+	
+<table>
+    <tr>
+        <th colspan="3">$i18n.getString( "details" )</th>
+    </tr>
+    <tr>
+        <td style="width:120px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td colspan="2"><input type="text" id="name" name="name" value="$!organisationUnitGroup.name"/></td>
+    </tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="shortName" name="shortName" value="$!encoder.htmlEncode( $organisationUnitGroup.shortName )"></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $organisationUnitGroup.code )"></td>
+	</tr>
+    <tr>
+        <td style="height:35px"><label for="symbol">$i18n.getString( "symbol" )</td>
+        <td><a href="javascript:openSymbolDialog()">$i18n.getString( "select_symbol" )</a>
+            <img id="symbolImg" style="padding-left: 30px;"
+            #if( $organisationUnitGroup.hasSymbol() )
+            src="../images/orgunitgroup/${organisationUnitGroup.symbol}"
+            #else
+            src="../images/transparent.png"
+            #end >
+        </td>
+    </tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<table>
+    <tr>
+        <td>
+            #organisationUnitSelectionTree( false, true, false )
+        </td>
+    </tr>
+</table>
+
+<p>
+    <input type="submit" name="save" value="$i18n.getString( 'save' )" style="width:10em"/>
+    <input type="button" onclick="window.location.href='organisationUnitGroup.action'" value="$i18n.getString( 'cancel' )" style="width:10em"/>
+</p>
+
+</form>
+
+#parse( "dhis-web-maintenance-organisationunit/organisationUnitGroupSymbol.vm" )

@@ -1,0 +1,55 @@
+<script type="text/javascript">
+  var i18n_analysing_please_wait = '$encoder.jsEscape( $i18n.getString( "analysing_data" ) , "'")';
+  var i18n_no_organisation_unit_selected = '$encoder.jsEscape( $i18n.getString( "no_organisation_unit_selected" ), "'" )';
+
+  var NUM_RESULT_VALUES = 0; ## Document global, used in followupResult.vm
+
+  $( document ).ready( function() {
+    selectionTreeSelection.setMultipleSelectionAllowed( false );
+    selectionTreeSelection.setListenerFunction( getFollowupAnalysis );
+    selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+
+    $( "#info" ).html( i18n_no_organisation_unit_selected );
+    $( "#downloadButtons input:button" ).attr( "disabled", true );
+    $( "#controls" ).show();
+  });
+</script>
+
+<h3>$i18n.getString( "followup_analysis" ) #openHelp( "followupAnalysis" )</h3>
+<div style="position: relative; bottom: 10px;">
+  <div>
+      <table>
+        <tr>
+          <th>$i18n.getString( "select_parent_organisation_unit" )</th>
+        </tr>
+        <tr>
+          <td>
+            <div id="selectionTree" style="width: 350px;height:150px;overflow:auto;"></div>
+          </td>
+        </tr>
+      </table>
+  </div>
+  <div id="controls">
+    <div id="info"></div>
+    <div id="downloadButtons">
+      <input type="button" value="$i18n.getString( 'get_report_as_pdf' )" style="width:140px" onclick="exportAnalysisResult( 'pdf' )">
+      <input type="button" value="$i18n.getString( 'get_report_as_xls' )" style="width:140px" onclick="exportAnalysisResult( 'xls' )">
+      <input type="button" value="$i18n.getString( 'get_report_as_csv' )" style="width:140px" onclick="exportAnalysisResult( 'csv' )">
+    </div>
+  </div>
+</div>
+<div id="analysisResult"></div>
+
+<style>
+  #controls
+  {
+    padding-top: 14px;
+    margin-left: 380px;
+    position: absolute;
+    bottom: 0;
+  }
+  #info
+  {
+    width: initial;
+  }
+</style>

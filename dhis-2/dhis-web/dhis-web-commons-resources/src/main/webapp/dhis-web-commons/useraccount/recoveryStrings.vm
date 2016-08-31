@@ -1,0 +1,7 @@
+{
+"account_recovery": "$!encoder.jsonEncode( $i18nObject.getString( "account_recovery" ) )",
+"user_name": "$!encoder.jsonEncode( $i18nObject.getString( "user_name" ) )",
+"recover": "$!encoder.jsonEncode( $i18nObject.getString( "recover" ) )",
+"recover_success_message": "$encoder.jsonEncode( $!i18nObject.getString( "recover_success_message" ) )",
+"recover_error_message": "$encoder.jsonEncode( $!i18nObject.getString( "recover_error_message" ) )"
+}

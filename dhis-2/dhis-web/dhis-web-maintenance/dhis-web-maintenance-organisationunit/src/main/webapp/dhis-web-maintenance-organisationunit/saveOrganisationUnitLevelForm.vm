@@ -1,0 +1,49 @@
+<script type="text/javascript">
+var i18n_org_unit_levels_not_yet_saved = '$encoder.jsEscape( $i18n.getString( "org_unit_levels_not_yet_saved" ) , "'" )';
+	
+jQuery(document).ready(	function(){
+	validation( 'saveOrganisationUnitLevelsForm', function( form ){ form.submit() } );
+	
+	jQuery.getJSON( '../api/organisationUnitLevels.json?paging=false', function( data ) {
+		if ( !data || !data.organisationUnitLevels || !data.organisationUnitLevels.length ) {
+			setMessage( 'Organisation unit level is not yet saved, please save' );
+		}
+	} );
+});	
+</script>
+
+<h3>$i18n.getString( "organisation_unit_level_management" ) #openHelp( "ou_level" )</h3>
+
+<form method="post" id="saveOrganisationUnitLevelsForm" action="saveOrganisationUnitLevels.action" class="inputForm">
+
+<table>
+	<tr>
+		<th>$i18n.getString( "level" )</th>
+		<th>$i18n.getString( "name" )</th>
+		<th>$i18n.getString( "offline_levels" )</th>
+		<th>$i18n.getString( "operations" )</th>
+	</tr>
+	#foreach ( $level in $levels )
+    <tr>
+        <td style="text-align: center">$level.level</td>
+        <td><input type="text" id="level${level.level}" name="level${level.level}" value="$!level.displayName" class="uniqueFields {validate:{required:true,alphanumeric:false,unique:'uniqueFields'}}"/></td>
+        <td><select id="offline${level.level}" name="offline${level.level}" style="width:90px">
+        <option value="">$i18n.getString( "default" )</option>
+        #foreach( $l in [1..15])
+        	<option value="${l}"#if( $l == $level.offlineLevels ) selected="selected"#end>$l</option>
+        #end
+        </select></td>
+		<td align="center"><a href="javascript:translate( 'OrganisationUnitLevel', '$level.uid' )" title="$i18n.getString( 'translation_translate' )"><img src="../images/i18n.png" alt="$i18n.getString( 'translation_translate' )"/></a></td>
+    </tr>
+    #end
+    <tr>
+    	<td></td>
+    	<td>
+    		<input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/>
+    		<input type="button" value="$i18n.getString( 'cancel' )" onclick="javascript:window.location.href='index.action'" style="width:10em"/>
+    	</td>
+    </tr>
+</table>
+</form>
+
+<div id="message"></div>

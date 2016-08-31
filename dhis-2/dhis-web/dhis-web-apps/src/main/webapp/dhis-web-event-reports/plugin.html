@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<link rel="stylesheet" type="text/css" href="http://localhost:8080/dhis-web-commons/javascripts/ext/resources/css/ext-plugin-gray.css" />
+	<script src="http://localhost:8080/dhis-web-commons/javascripts/ext/ext-all.js"></script>
+	<script src="scripts/eventreport.js"></script>
+
+    <style type="text/css">
+		body {font-family:sans-serif; margin:0 0 0 60px;}
+
+		h1 {font-size:20px; margin:20px 0;}
+
+		#table1, #table2 {margin-bottom:40px;}
+    </style>
+
+	<script>
+		Ext.onReady(function() {
+			var url = 'http://localhost:8080';
+
+			DHIS.getEventReport({
+				url: url,
+				el: 'table1',
+				uid: 'aDrb9UMVxt0'
+			});
+		});
+	</script>
+</head>
+
+<body>
+    <h1>TABLE BY UID</h1>
+	<div id="table1"></div>
+
+    <h1>TABLE BY CONFIG</h1>
+	<div id="table2"></div>
+</body>
+</html>

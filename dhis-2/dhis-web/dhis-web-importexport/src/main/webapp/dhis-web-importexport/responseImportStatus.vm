@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+	<actionType>$encoder.xmlEncode( $actionType )</actionType>
+	<statusMessage>$encoder.xmlEncode( $statusMessage )</statusMessage>
+	<fileMessage>$encoder.xmlEncode( $fileMessage )</fileMessage>
+    <running>$running</running>
+</response>

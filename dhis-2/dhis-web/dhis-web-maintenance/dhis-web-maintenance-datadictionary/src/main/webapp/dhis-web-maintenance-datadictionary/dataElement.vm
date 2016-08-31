@@ -1,0 +1,122 @@
+
+#sharingDialog()
+
+<script type="text/javascript">
+	jQuery(document).ready(function(){	
+		tableSorter( 'dataElementList' );	
+
+      dhis2.contextmenu.makeContextMenu({
+        menuId: 'contextMenu',
+        menuItemActiveClass: 'contextMenuItemActive'
+      });
+	});
+
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_data_element" ) , "'")';
+	var i18n_none = '$encoder.jsEscape( $i18n.getString( "none" ) , "'")';
+	var i18n_yes = '$encoder.jsEscape( $i18n.getString( "yes" ) , "'")';
+	var i18n_no = '$encoder.jsEscape( $i18n.getString( "no" ) , "'")';
+	var i18n_number = '$encoder.jsEscape( $i18n.getString( "number" ) , "'")';
+	var i18n_yes_only = '$encoder.jsEscape( $i18n.getString( "yes_only" ) , "'")';
+	var i18n_yes_no = '$encoder.jsEscape( $i18n.getString( "yes_no" ) , "'")';
+	var i18n_text = '$encoder.jsEscape( $i18n.getString( "text" ) , "'")';
+	var i18n_date = '$encoder.jsEscape( $i18n.getString( "date" ) , "'")';	
+	var i18n_user_name = '$encoder.jsEscape( $i18n.getString( "user_name" ) , "'")';	
+	var i18n_sum = '$encoder.jsEscape( $i18n.getString( "sum" ) , "'")';
+	var i18n_average = '$encoder.jsEscape( $i18n.getString( "average" ) , "'")';
+	var i18n_aggregate = '$encoder.jsEscape( $i18n.getString( "aggregate" ) , "'")';
+	var i18n_tracker = '$encoder.jsEscape( $i18n.getString( "tracker" ) , "'")';
+	var i18n_translation_translate = '$encoder.jsEscape( $i18n.getString( "translation_translate" ) , "'")';
+	var i18n_edit = '$encoder.jsEscape( $i18n.getString( "edit" ) , "'")';
+	var i18n_remove = '$encoder.jsEscape( $i18n.getString( "remove" ) , "'")';
+	var i18n_show_details = '$encoder.jsEscape( $i18n.getString( "show_details" ) , "'")';
+	var i18n_name = '$encoder.jsEscape( $i18n.getString( "name" ) , "'")';
+	var i18n_operations = '$encoder.jsEscape( $i18n.getString( "operations" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "data_element_management" ) #openHelp( "dataElement" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canManage"><a data-target-fn="showSharingDialogWithContext"><i class="fa fa-share"></i>&nbsp;&nbsp;$i18n.getString( "sharing_settings" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateDataElementForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li><a data-target-fn="showCloneDataElementForm"><i class="fa fa-copy"></i>&nbsp;&nbsp;$i18n.getString( "clone" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeDataElement"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showDataElementDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable" >
+	<tr>
+		<td style="vertical-align:top">
+			<table width="100%">
+				<tr valign="bottom">
+					<td>#filterDiv( "dataElement" )</td>
+					<td>
+					   <div style="inline">
+               <select id="domainTypeList" name="domainTypeList" onchange="criteriaChanged()" style="width:160px">
+                 <option value="all">[ $i18n.getString( "select_domain_type" ) ]</option>
+                 <option value="aggregate" #if ( $!domainType && $domainType == "aggregate" ) selected="selected" #end>$i18n.getString("aggregate")</option>
+                 <option value="tracker" #if ( $!domainType && $domainType == "tracker" ) selected="selected" #end>$i18n.getString("tracker")</option>
+              </select>
+						</div>
+					</td>
+					<td style="text-align:right">
+						<input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddDataElementForm.action'" style="width:80px"/>
+					</td>
+				</tr>
+			</table>
+			<div id="content">
+			<table class="listTable" id="dataElementList">
+        <thead>
+        <tr>
+          <th>$i18n.getString( "name" )</th>
+        </tr>
+        </thead>
+        <tbody id="list">
+          #foreach( $dataElement in $dataElements )
+          <tr id="tr${dataElement.id}" data-id="$!dataElement.id" data-uid="$!dataElement.uid" data-type="DataElement" data-name="$encoder.htmlEncode( $!dataElement.displayName )"
+              data-can-manage="$security.canManage( $dataElement )"
+              data-can-update="$security.canUpdate( $dataElement )"
+              data-can-delete="$security.canDelete( $dataElement )">
+              <td>$encoder.htmlEncode( $!dataElement.displayName )</td>
+          </tr>
+          #end
+        </tbody>
+      </table>
+			<p></p>
+	  		#parse( "/dhis-web-commons/paging/paging.vm" )
+			</div>
+			
+		</td>
+
+		<td id="detailsData">
+
+			<div id="detailsArea">
+				<div id="hideDetailsArea">
+					<a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+				</div>
+				<p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+				<p><label>$i18n.getString( "short_name" ):</label><br/><span id="shortNameField"></span></p>
+				<p><label>$i18n.getString( "description" ):</label><br/><span id="descriptionField"></span></p>
+				<p><label>$i18n.getString( "domain_type" ):</label><br/><span id="domainTypeField"></span></p>
+				<p><label>$i18n.getString( "value_type" ):</label><br/><span id="typeField"></span></p>				
+				<p><label>$i18n.getString( "aggregation_type" ):</label><br/><span id="aggregationOperatorField"></span></p>
+				<p><label>$i18n.getString( "category_combination" ):</label><br/><span id="categoryComboField"></span></p>
+				<p><label>$i18n.getString( "url" ):</label><br/><span id="urlField"></span></p>
+				<p><label>$i18n.getString( "last_updated" ):</label><br/><span id="lastUpdatedField"></span></p>
+				<p><label>$i18n.getString( "approve_data" ):</label><br/><span id="approveDataField"></span></p>
+				<p><label>$i18n.getString( "data_sets" ):</label><br/><span id="dataSetsField"></span></p>
+				<p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+			</div>
+
+      <div id="warningArea">
+        <div id="hideDetailsArea">
+          <a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+        </div>
+        <p><span id="warningField"></span></p>
+      </div>
+
+		</td>
+	</tr>
+</table>

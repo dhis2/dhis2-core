@@ -1,0 +1,1 @@
+<message type="input">$encoder.xmlEncode( $message )</message>

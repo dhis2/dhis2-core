@@ -1,0 +1,24 @@
+<div class="clear">
+    <div class="vertical-spacing section-label">
+        {{'comments'| translate}}
+    </div>
+    <textarea class="form-control" rows="3" ng-model="note.value" placeholder="{{'add_your_comment_here'| translate}}" style="width:100%;"></textarea>
+    <div ng-if="currentEvent.notes">
+        <table class="listTable dhis2-list-table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        {{'recorded_comments'| translate}}
+                    </th>
+                </tr>
+            </thead>
+            <tr ng-repeat="note in currentEvent.notes">
+                <td class="wrap-text">
+                    <p>{{note.value}}</p>
+                    <p><strong>{{'created_by'| translate}}: </strong>{{note.storedBy}}</p>
+                    <p><strong>{{'date'| translate}}: </strong>{{note.storedDate}}</p>                    
+                </td>
+            </tr>
+        </table>  
+    </div>    
+</div>

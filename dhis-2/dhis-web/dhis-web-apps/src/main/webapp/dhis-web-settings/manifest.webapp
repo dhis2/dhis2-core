@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "name": "System Settings",
+  "description": "DHIS2 System Settings app",
+  "icons": {},
+  "developer": {
+    "url": "http://www.dhis2.org",
+    "name": "Nicolay Ramm"
+  },
+  "launch_path": "index.html",
+  "default_locale": "en",
+  "activities": {
+    "dhis": {
+      "href": ".."
+    }
+  }
+}

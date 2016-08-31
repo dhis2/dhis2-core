@@ -1,0 +1,75 @@
+<div ng-controller="RegistrationController">
+    <div ng-class="{true: 'bordered-div col-sm-8'} [registrationMode === 'REGISTRATION']">
+    
+        <!--registration form starts -->
+        <form name="outerForm" novalidate>
+
+            <!-- Entity type begins -->
+            <div ng-if="!selectedProgram && registrationMode === 'REGISTRATION'">
+                <h3>{{'category'| translate}}</h3>
+                <table class="dhis2-list-table-striped dhis2-table-hover">
+                    <tr>
+                        <td>
+                            {{'entity_type'| translate}}
+                        </td>
+                        <td>
+                            <select class="form-control" 
+                                    ng-model="trackedEntities.selected"                                     
+                                    ng-options="trackedEntity.name for trackedEntity in trackedEntities.available | orderBy: 'name'">                                
+                            </select>                            
+                        </td>
+                    </tr>                   
+                </table>
+                <hr>
+            </div>
+            <!-- Entity type ends -->        
+
+            <!--custom registration form begins -->
+            <div class="vertical-spacing" ng-if="customFormExists">
+
+                <!-- enrollment and incidence dates begin -->
+                <div ng-if="selectedProgram && !customForm.hasProgramDate && registrationMode !== 'PROFILE'">
+                    <div ng-include="'components/registration/enrollment-dates-form.html'"></div>
+                </div>
+                <!-- enrollment and incidence dates end -->
+
+                <div ng-include="'../dhis-web-commons/angular-forms/custom-form.html'"></div>
+
+            </div>
+            <!-- custom registration form ends-->
+
+            <!-- default registration form begins -->
+            <div class="vertical-spacing" ng-if="!customFormExists">            
+                <div ng-if="selectedProgram && registrationMode !== 'PROFILE'" ng-include="'components/registration/enrollment-dates-form.html'"></div>
+                <div ng-include="'components/registration/default-registration-form.html'"></div>
+            </div>
+            <!-- default registration form ends -->
+
+            <div ng-if="formEmpty && outerForm.submitted">
+                <div class="alert alert-warning">{{'form_is_empty_fill_at_least_one'| translate}}</div> 
+            </div>
+
+            <div ng-if="!editingDisabled && registrationMode === 'PROFILE'" class="vertical-spacing">
+                <button type="button" class="btn btn-primary small-horizonal-spacing" ng-click="registerEntity(null)">{{'save'| translate}}</button>        
+                <button type="button" class="btn btn-default small-horizonal-spacing" ng-click="cancel()">{{'cancel'| translate}}</button>
+            </div>
+
+            <div class="vertical-spacing" ng-if="registrationMode === 'ENROLLMENT'">            
+                <button type="button" class="btn btn-primary" ng-click="registerEntity(null)">{{'enroll'| translate}}</button>  
+                <button type="button" class="btn btn-default" ng-click="showNewEnrollment()">{{'cancel'| translate}}</button>                    
+            </div>
+
+            <div class="vertical-spacing" ng-if="registrationMode === 'REGISTRATION'">                
+                <button type="button" class="btn btn-primary" ng-click="registerEntity('DASHBOARD')">{{'save_and_continue'| translate}}</button>
+                <button type="button" class="btn btn-success small-horizonal-spacing" ng-click="registerEntity('SELF')">{{'save_and_add_new'| translate}}</button>
+                <button type="button" class="btn btn-default small-horizonal-spacing" ng-click="showRegistration()">{{'cancel'| translate}}</button>
+            </div>
+
+        </form>
+        <!--registration form ends -->
+    </div>
+
+    <div ng-if="warningMessages.length > 0" style="margin-top:18px" ng-class="{true: 'col-sm-4'} [registrationMode === 'REGISTRATION']">
+        <div ng-include="'views/warnings.html'"></div>
+    </div>
+</div>

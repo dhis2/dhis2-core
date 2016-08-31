@@ -1,0 +1,76 @@
+<div class="paging-container">
+	#set ( $baseLink 		= $paging.baseLink )
+	#set ( $pageSize 		= $paging.pageSize )
+	#set ( $currentPage 	= $paging.currentPage )
+	#set ( $startPage 		= $paging.startPage )
+	#set ( $numberOfPages	= $paging.numberOfPages )
+	
+	<input type="hidden" id="baseLink" value="$!baseLink"/>
+	<input type="hidden" id="currentPage" value="$!currentPage"/>
+	<input type="hidden" id="numberOfPages" value="$!numberOfPages"/>
+	#if ( $numberOfPages > 0 )
+		<table style="background-color: #ebf0f6;" width='100%'>
+			<tr>
+				<td>
+					<span>$i18n.getString("no_of_pages"):</span> $numberOfPages
+				</td>
+				<td>
+					<span>$i18n.getString("rows_in_page"):</span>
+					<input type="text" id="sizeOfPage" value="$!pageSize" style="width:50px" onKeyPress="changePageSize(event);">
+				</td>
+				<td>
+					<span>$i18n.getString("jump_to_page"):</span>					
+					<input type="text" id="jumpToPage" value="$!currentPage" style="width:50px" onKeyPress="changePageSize(event);">
+				</td>
+				<td>
+					<input type="button" id="submitButton" style='width:40px;' value="$i18n.getString( 'go' )" onclick="changePageSize(event);">
+				</td>				
+			</tr>		
+			<tr>
+				<td colspan="4"><hr/></td>
+			</tr>		
+			<tr>
+			<td colspan="4">
+			<div class="paging">
+			#if ($currentPage > 1)
+				#set ( $prev = $currentPage - 1 )
+				<a href="javascript:pagingList( 1,${pageSize} );" class="first" title="First">&laquo;&laquo;</a>
+				<a href="javascript:pagingList( ${prev},${pageSize} );" class="prev" title="Previous">&laquo;</a>
+			#else
+				<span class="first" title="First">&laquo;&laquo;</span>
+				<span class="prev" title="Previous">&laquo;</span>
+			#end
+			
+			#foreach( $i in [0..4] )
+				#set( $p = $startPage + $i )
+				#if ( $p <= $numberOfPages )
+					#if( $i > 0 )
+						<span class="seperator">|</span>
+					#end
+					#if( $p != $currentPage )
+						<a href="javascript:pagingList( ${p},${pageSize} );" class="page" title="Page $p">$p</a>
+					#else
+						<span class="page" title="Page $p">$p</span>
+					#end
+				#end
+			#end
+			
+			#if ( $currentPage < $numberOfPages )
+				#set ( $next = $currentPage + 1 )
+				<a href="javascript:pagingList(${next},${pageSize} );" class="next" title="Next">&raquo;</a>
+				<a href="javascript:pagingList(${numberOfPages},${pageSize} );" class="last" title="Last">&raquo;&raquo;</a>
+			#else
+				<span class="next" title="Next">&raquo; </span>
+				<span class="last" title="Last">&raquo;&raquo;</span>
+			#end
+			</div>
+			
+			</td>
+			</tr>
+		</table>
+	#end
+</div>
+
+<script>
+#if( ${currentPage} )jQuery.cookie( "currentPage", ${currentPage} );#end
+</script>

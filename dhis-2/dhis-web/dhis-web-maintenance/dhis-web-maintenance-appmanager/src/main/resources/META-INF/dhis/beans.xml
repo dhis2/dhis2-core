@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+  <bean id="org.hisp.dhis.appmanager.action.NoAction" class="org.hisp.dhis.appmanager.action.NoAction" scope="prototype" />
+
+  <bean id="org.hisp.dhis.appmanager.action.AddAppAction" class="org.hisp.dhis.appmanager.action.AddAppAction" scope="prototype" />
+  
+  <bean id="org.hisp.dhis.appmanager.action.AppSettingsAction" class="org.hisp.dhis.appmanager.action.AppSettingsAction" scope="prototype" />
+  
+  <bean id="org.hisp.dhis.appmanager.action.AppListAction" class="org.hisp.dhis.appmanager.action.AppListAction" scope="prototype" />
+  
+  <bean id="org.hisp.dhis.appmanager.action.DeleteAppAction" class="org.hisp.dhis.appmanager.action.DeleteAppAction" scope="prototype" />
+  
+</beans>

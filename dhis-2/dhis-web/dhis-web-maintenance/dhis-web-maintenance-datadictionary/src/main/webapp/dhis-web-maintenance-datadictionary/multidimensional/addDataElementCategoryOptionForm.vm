@@ -1,0 +1,98 @@
+<script type="text/javascript">
+  jQuery(document).ready(function() {
+    validation2('addDataElementCategoryOptionForm', function(form) {
+      form.submit()
+    }, {
+      'beforeValidateHandler': function() {
+        listValidator('memberValidator', 'categoryOptions');
+        #tblDynamicAttributesJavascript()
+      },
+      'rules': getValidationRules("dateElementCategoryOption")
+    });
+
+    selection.setOfflineLevel(1);
+    selection.setMultipleSelectionAllowed(true);
+    selection.setUnselectAllowed(true);
+    selection.setAutoSelectRoot(false);
+    selection.clearSelected();
+
+    checkValueIsExist("name", "validateDataElementCategoryOption.action");
+    checkValueIsExist("shortName", "validateDataElementCategoryOption.action");
+    checkValueIsExist("code", "validateDataElementCategoryOption.action");
+
+    dhis2.period.picker.createRangedInstance('#startDate', '#endDate', false, { 'maxDate': null })
+  });
+
+  var i18n_specify_category_option_name = '$encoder.jsEscape( $i18n.getString( "specify_category_option_name" ) , "'")';
+  var i18n_category_option_name_already_exists = '$encoder.jsEscape( $i18n.getString( "category_option_name_already_exists" ) , "'")';
+  var i18n_must_include_category_option = '$encoder.jsEscape( $i18n.getString( "must_include_category_option" ) , "'")';
+</script>
+
+<style type="text/css">
+    div#orgUnitTree
+    {
+        width: 495px;
+        border: 1px solid #ccc;
+    }
+</style>
+
+<h3>$i18n.getString( "create_new_data_element_category_option" )</h3>
+
+<form id="addDataElementCategoryOptionForm" name="addDataElementCategoryOptionForm" action="addDataElementCategoryOption.action" method="post" class="inputForm">
+
+  <table>
+    <tr>
+      <th colspan="2">$i18n.getString( "details" )</th>
+    </tr>
+    <tr>
+      <td style="width: 100px"><label>$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+      <td><input type="text" id="name" name="name" class="{validate:{required:true,rangelength:[2,150]}}"/></td>
+    </tr>
+    <tr>
+      <td style="width: 100px"><label>$i18n.getString( "short_name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+      <td><input type="text" id="shortName" name="shortName" class="{validate:{required:true,rangelength:[2,50]}}"/></td>
+    </tr>
+	<tr>
+	  <td><label>$i18n.getString( "code" )</td>
+	  <td><input type="text" id="code" name="code"/></td>
+    </tr>
+  </table>
+
+  #tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+  <div id="showMoreOptions" style="margin: 20px 0;"><a href="javascript:showMoreOrFewerOptions()">$i18n.getString( "show_more_options" )</a></div>
+
+  <div id="moreOptions" style="display:none">
+
+  <table>
+    <tr>
+      <td style="width: 100px"><label for="startDate">$i18n.getString( 'start_date' )</label></td>
+      <td><input type="text" id="startDate" name="startDate"></td>
+    </tr>
+    <tr>
+      <td style="width: 100px"><label for="endDate">$i18n.getString( 'end_date' )</label></td>
+      <td><input type="text" id="endDate" name="endDate"></td>
+    </tr>
+  </table>
+
+  <table style="margin: 20px 0;">
+    <tr>
+      <th>$i18n.getString( "organisation_units" )</th>
+    </tr>
+    <tr>
+      <td>
+        #parse( "/dhis-web-commons/ouwt/orgunittree.vm" )
+      </td>
+    </tr>
+  </table>
+
+  <div id="showFewerOptions" style="margin: 20px 0;"><a href="javascript:showMoreOrFewerOptions()">$i18n.getString( "show_fewer_options" )</a></div>
+
+  </div>
+
+  <p>
+    <input type="submit"  value="$i18n.getString( 'add' )" style="width:10em">
+    <input type="button" onclick="dhis2.commons.redirectCurrentPage( 'categoryOption.action' )" value="$i18n.getString( 'cancel' )" style="width:10em"/>
+  </p>
+
+</form>

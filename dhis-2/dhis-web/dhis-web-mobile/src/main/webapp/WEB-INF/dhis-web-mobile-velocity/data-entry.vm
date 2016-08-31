@@ -1,0 +1,483 @@
+<script type="text/javascript" src="$contextPath/dhis-web-commons/javascripts/jQuery/jquery.validate.js"></script>
+<script type="text/javascript" src="$contextPath/dhis-web-commons/javascripts/jQuery/jquery.validate.ext.js"></script>
+<script type="text/javascript" src="$contextPath/dhis-web-commons/i18nJavaScript.action"></script>
+<script type="text/javascript" src="$contextPath/dhis-web-commons/javascripts/jQuery/jquery.glob.js"></script>
+<script type="text/javascript" src="$contextPath/dhis-web-commons/javascripts/jQuery/jquery.date.js"></script>
+<script type="text/javascript" src="$contextPath/dhis-web-commons/javascripts/date.js"></script>
+<script type="text/javascript" src="$contextPath/dhis-web-commons/javascripts/periodType.js"></script>
+
+<script>
+var Selected = {};
+var periodTypeFactory = new PeriodType();
+var periodType;
+var periodOffset = 0;
+var allowFuturePeriods = false;
+
+function selectOrganisationUnit( e ) {
+  Selected.orgUnit = $(this).data('id');
+  Selected.orgUnitName = $(this).html();
+}
+
+function selectDataSet( e ) {
+  Selected.dataSet = $(this).data('id');
+}
+
+function selectPeriod( e ) {
+  Selected.period = $(this).data('id');
+  Selected.periodName = $(this).html();
+}
+
+function loadOrganisationUnitsPage() {
+  $.mobile.loading('show');
+
+  var organisationUnits = fm.organisationUnits();
+  var tmpl = $('#organisation-units-template').html();
+
+  var ou = _.values(organisationUnits);
+  ou = _.sortBy(ou, function( n ) {
+    return n.level;
+  });
+
+  $('#organisation-units-page section[data-role="content"]').html(
+      _.template(tmpl, { 'organisationUnits': ou })
+  );
+
+  $('#organisation-unit-list').listview();
+  $('#organisation-unit-list li a').bind('click', selectOrganisationUnit);
+
+  $.mobile.loading('hide');
+}
+
+function loadDataSetsPage() {
+  if( Selected.orgUnit === undefined ) {
+    $.mobile.changePage('#organisation-units-page');
+    return;
+  }
+
+  $.mobile.loading('show');
+
+  var organisationUnit = fm.organisationUnit(Selected.orgUnit);
+  var tmpl = $('#data-sets-template').html();
+
+  var dataSets = organisationUnit.dataSets.sort(function(a, b) {
+      var labelA = a.label.toLowerCase();
+      var labelB = b.label.toLowerCase();
+
+      if( labelA < labelB ) {
+          return -1;
+      } else if( labelA > labelB ) {
+          return 1;
+      }
+
+      return 0;
+  });
+
+  $('#data-sets-page section[data-role="content"]').html(
+      _.template(tmpl, { 'dataSets': dataSets })
+  );
+
+  $('#data-set-list').listview();
+  $('#data-set-list li a').bind('click', selectDataSet);
+
+  $.mobile.loading('hide');
+}
+
+function refreshPeriods() {
+  var tmpl = $('#period-template').html();
+
+  var periods = periodTypeFactory.get(periodType).generatePeriods(periodOffset);
+
+  if( !allowFuturePeriods ) {
+    periods = periodTypeFactory.filterFuturePeriods(periods);
+    $('#next_year').button('disable');
+  }
+
+  periods = periodTypeFactory.reverse(periods);
+
+  $('#period-page section[data-role="content"]').html(
+      _.template(tmpl, { 'periods': periods })
+  );
+
+  $('#period-page').trigger('pagecreate');
+  $('#period-list').listview('refresh');
+
+  if( !allowFuturePeriods ) {
+    $('#next_year').button('disable');
+  }
+
+  $('#previous_year').bind('click', function() {
+    periodOffset--;
+    refreshPeriods();
+
+    if( periodOffset < 0 ) {
+      $('#next_year').button('enable');
+    } else {
+      $('#next_year').button('disable');
+    }
+  });
+
+  $('#next_year').bind('click', function() {
+    periodOffset++;
+    refreshPeriods();
+
+    if( !allowFuturePeriods && periodOffset == 0 ) {
+      $('#next_year').button('disable');
+    } else {
+      $('#next_year').button('enable');
+    }
+  });
+
+  $('#period-list li a').bind('click', selectPeriod);
+}
+
+function loadPeriodPage() {
+  if( Selected.dataSet === undefined ) {
+    if( Selected.orgUnit === undefined ) {
+      $.mobile.changePage('#organisation-units-page');
+    } else {
+      $.mobile.changePage('#data-sets-page');
+    }
+
+    return;
+  }
+
+  $.mobile.loading('show');
+
+  var form = fm.form(Selected.dataSet);
+  periodType = form.options.periodType;
+  allowFuturePeriods = form.options.allowFuturePeriods;
+  refreshPeriods();
+
+  $.mobile.loading('hide');
+}
+
+function loadDataEntryPage() {
+  if( Selected.period === undefined && Selected.dataSet === undefined && Selected.orgUnit === undefined ) {
+    $.mobile.changePage('#organisation-units-page');
+    return;
+  }
+
+  if( Selected.period === undefined && Selected.dataSet === undefined && Selected.orgUnit !== undefined ) {
+    $.mobile.changePage('#data-sets-page');
+    return;
+  }
+
+  if( Selected.period === undefined && Selected.dataSet !== undefined && Selected.orgUnit !== undefined ) {
+    $.mobile.changePage('#periods-page');
+    return;
+  }
+
+  $.mobile.loading('show');
+
+  function renderFormTemplate( form, valueMap ) {
+    var tmpl = $('#data-entry-template').html();
+
+    $('#data-entry-page section[data-role="content"]').html(
+        _.template(tmpl, {
+          'form': form,
+          'valueMap': valueMap,
+          optionSets: fm.optionSets(),
+          periodName: Selected.periodName,
+          orgUnitName: Selected.orgUnitName
+        })
+    );
+
+    $('#data-entry-page').trigger('pagecreate');
+    $('#data-entry-list').listview('refresh');
+    $('#send_button').bind('click', saveValuesNotCompleted);
+    $('#send_and_complete_button').bind('click', saveValuesCompleted);
+  }
+
+  var dvs = {
+    dataSet: Selected.dataSet,
+    orgUnit: Selected.orgUnit,
+    period: Selected.period
+  };
+
+  var storedValues = fm.getDataValueSetValues(dvs);
+
+  if( storedValues ) {
+    var valueMap = {};
+
+    _.each(storedValues.dataValues, function( val, idx ) {
+      valueMap[val.dataElement + '-' + val.categoryOptionCombo] = val.value;
+    });
+
+    var form = fm.form(Selected.dataSet);
+    renderFormTemplate(form, valueMap);
+    $.mobile.loading('hide');
+  } else {
+    $.ajax({
+      url: '$contextPath/api/dataSets/' + Selected.dataSet + '/form',
+      cache: false,
+      data: {
+        ou: Selected.orgUnit,
+        pe: Selected.period
+      },
+      dataType: 'json'
+    }).success(function( form ) {
+      renderFormTemplate(form);
+    }).error(function() {
+      var form = fm.form(Selected.dataSet);
+      renderFormTemplate(form);
+    }).complete(function() {
+      $.mobile.loading('hide');
+    });
+  }
+}
+
+function getCurrentDate() {
+  var d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+}
+
+function saveValuesCompleted() {
+  saveValues(true);
+}
+
+function saveValuesNotCompleted() {
+  saveValues(false);
+}
+
+function saveValues( completed ) {
+  $('#send_button').button('disable');
+  $('#send_and_complete_button').button('disable');
+
+  $.mobile.loading('show');
+
+  var fields = $('#data-entry-form :input[name]');
+
+  var dataValueSet = {
+    dataSet: Selected.dataSet,
+    orgUnit: Selected.orgUnit,
+    period: Selected.period.toString()
+  };
+
+  if( completed ) {
+    dataValueSet.completeDate = getCurrentDate();
+  }
+
+  var dataValues = [];
+
+  _.each(fields, function( field ) {
+    var field = $(field);
+
+    var val = '';
+
+    if( field.attr('type') == 'checkbox' ) {
+      val = field.attr('checked') == 'checked' ? 'true' : 'false';
+    } else {
+      val = field.val();
+    }
+
+    var dataValue = {
+      dataElement: field.data('dataelement'),
+      categoryOptionCombo: field.data('categoryoptioncombo'),
+      value: val
+    };
+
+    dataValues.push(dataValue);
+  });
+
+  dataValueSet.dataValues = dataValues;
+
+  fm.saveDataValueSet(dataValueSet).complete(function() {
+    $.mobile.loading('hide');
+
+    if( completed ) {
+      alert('Data Set was completed.');
+    } else {
+      alert('Data Set was saved.');
+    }
+
+    location.href = 'index';
+  });
+}
+
+$(document).bind('pagechange', function( event, data ) {
+  var pageId = data.toPage.attr('id');
+
+  if( fm.needMetaData() ) {
+    location.href = 'index';
+  }
+
+  var pageLoaders = {
+    'organisation-units-page': loadOrganisationUnitsPage,
+    'data-sets-page': loadDataSetsPage,
+    'period-page': loadPeriodPage,
+    'data-entry-page': loadDataEntryPage
+  };
+
+  if( pageLoaders[pageId] ) {
+    pageLoaders[pageId].call();
+  } else {
+    $.mobile.loading('show', {
+      html: '<h1>$i18n.getString("change_to_invalid_page")</h1>',
+      textVisible: true
+    });
+  }
+});
+</script>
+
+<script id="organisation-units-template" type="text/template">
+    <ul id="organisation-unit-list" data-role="listview" data-inset="true">
+        <% if( _.size( organisationUnits ) > 0 ) { %>
+            <% _( organisationUnits ).each( function(organisationUnit, idx) { %>
+            <li><a href="#data-sets-page" data-id="<%= organisationUnit.id %>"><%= organisationUnit.label %></a></li>
+            <% }); %>
+        <% } else { %>
+            <li>$i18n.getString("no_organisation_units_for_data_entry").</li>
+        <% } %>
+    </ul>
+</script>
+
+<script id="data-sets-template" type="text/template">
+    <ul id="data-set-list" data-role="listview" data-inset="true">
+        <% _( dataSets ).each( function(dataSet, idx) { %>
+        <li><a href="#period-page" data-id="<%= dataSet.id %>"><%= dataSet.label %></a></li>
+        <% }); %>
+    </ul>
+</script>
+
+<script id="period-template" type="text/template">
+    <div data-role="controlgroup" data-type="horizontal">
+        <button id="previous_year" data-icon="arrow-l">$i18n.getString("year")</button>
+        <button id="next_year" data-icon="arrow-r" data-iconpos="right">$i18n.getString("year")</button>
+    </div>
+    <ul id="period-list" data-role="listview" data-inset="true">
+        <% _( periods ).each( function(period, idx) { %>
+        <li><a href="#data-entry-page" data-id="<%= period.iso %>"><%= period.name %></a></li>
+        <% }); %>
+    </ul>
+</script>
+
+<script id="data-entry-template" type="text/template">
+    <ul data-role="listview" data-inset="true">
+        <li data-role="list-divider"><%= form.label %></li>
+        <li><%= orgUnitName %> / <%= periodName %></li>
+    </ul>
+
+    <form id='data-entry-form'>
+    <ul id="data-entry-list" data-role="listview" data-inset="true">
+        <% _( form.groups ).each( function(group, idx) { %>
+            <% if(group.label !== 'default') { %><li data-role="list-divider"><%= group.label %></li><% } %>
+
+            <% _( group.fields ).each( function(field, idx) { %>
+            <% var fieldId = _.uniqueId('field'); %>
+            <%
+                var value;
+
+                if( valueMap ) {
+                    value = valueMap[field.dataElement + '-' + field.categoryOptionCombo];
+                } else {
+                    value = field.value === undefined ? '' : field.value;
+                }
+            %>
+                <li>
+                    <label for='<%= fieldId %>'><%= field.label %></label>
+
+                    <% if( field.optionSet ) { %>
+                        <select type="" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255">
+                        <% for( var i=0,len=optionSets[field.optionSet].length; i<len; i++) { %>
+                            <option value="<%= optionSets[field.optionSet][i] %>" <% if( value == optionSets[field.optionSet][i] ) { %> selected="selected" <% } %>> <%= optionSets[field.optionSet][i] %></option>
+                        <% } %>
+                        </select>
+                    <% } else if( field.type == 'TEXT' ) { %>
+                        <input type="text" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+                    <% } else if( field.type == 'LONG_TEXT' ) { %>
+                        <input type="text" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+                    <% } else if( field.type == 'DATE' ) { %>
+                        <input type="date" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+                    <% } else if( field.type == 'BOOLEAN' ) { %>
+                        <select type="" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255">
+                            <option value="">[ $i18n.getString("none_selected") ]</option>
+                            <option value="true" <% if( value == "true" ) { %> selected="selected" <% } %>>$i18n.getString("yes")</option>
+                            <option value="false" <% if( value == "false" ) { %> selected="selected" <% } %>>$i18n.getString("no")</option>
+                        </select>
+                    <% } else if( field.type == 'TRUE_ONLY' ) { %>
+                        <input type="checkbox" id='<%= fieldId %>' <% if( value == 'true' ) { %> checked="checked" <% } %> name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" />
+                    <% } else if( field.type == 'INTEGER' ) { %>
+                        <input type="number" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+                    <% } else if( field.type == 'INTEGER_POSITIVE' ) { %>
+                        <input type="number" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+                    <% } else if( field.type == 'INTEGER_NEGATIVE' ) { %>
+                        <input type="number" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+					<% } else if( field.type == 'INTEGER_ZERO_OR_POSITIVE' ) { %>
+                        <input type="number" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+                    <% } else if( field.type == 'NUMBER' ) { %>
+                        <input type="number" id='<%= fieldId %>' name='<%= fieldId %>' data-dataElement='<%= field.dataElement %>' data-categoryOptionCombo='<%= field.categoryOptionCombo %>' maxlength="255" value="<%= value %>" />
+                    <% } %>
+                </li>
+            <% }); %>
+
+        <% }); %>
+
+        <li><input type="button" id="send_button" value="$i18n.getString("send")" /></li>
+        <li><input type="button" id="send_and_complete_button" value="$i18n.getString("send_and_complete")" /></li>
+    </ul>
+    </form>
+</script>
+
+<section data-role="page" id="organisation-units-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="index" data-icon="back">$i18n.getString("back")</a>
+	</header>
+
+	<section data-role="content">
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>
+
+<section data-role="page" id="data-sets-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="#organisation-units-page" data-icon="back">$i18n.getString("back")</a>
+	</header>
+
+	<section data-role="content">
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>
+
+<section data-role="page" id="period-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="#data-sets-page" data-icon="back">$i18n.getString("back")</a>
+	</header>
+
+	<section data-role="content">
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>
+
+<section data-role="page" id="data-entry-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="#period-page" data-icon="back">$i18n.getString("back")</a>
+	</header>
+
+	<section data-role="content">
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>

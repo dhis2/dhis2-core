@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataElementGroup>
+	<id>$dataElementGroup.id</id>
+	<name>$encoder.xmlEncode( $dataElementGroup.displayName )</name>
+	<memberCount>$memberCount</memberCount>
+</dataElementGroup>

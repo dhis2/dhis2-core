@@ -1,0 +1,6 @@
+<h3>$i18n.getString( "dhis-web-maintenance-dataset" ) #openHelp( "datasets" )</h3>
+
+<ul class="introList">
+    #if( $security.canView( "dataSet" ) )#introListImgItem( "dataSet.action" "dataset" "dataset" )#end
+    #if( $security.canView( "dataSet" ) )#introListImgItem( "displayEditorForm.action" "dataset_assignment_editor" "assignment" )#end
+</ul>

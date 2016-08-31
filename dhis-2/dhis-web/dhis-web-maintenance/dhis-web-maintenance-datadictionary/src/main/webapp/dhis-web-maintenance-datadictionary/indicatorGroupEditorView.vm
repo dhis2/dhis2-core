@@ -1,0 +1,159 @@
+<script type="text/javascript">
+	var indicatorGroups = new Array();
+	#foreach( $indicatorGroup in $indicatorGroups )
+		indicatorGroups['$indicatorGroup.id'] = '$encoder.jsEscape( $indicatorGroup.displayName, "'" )';
+	#end
+
+	var availableIndicators = new Array();
+	#foreach( $indicator in $indicators )
+		availableIndicators['$indicator.id'] = '$encoder.jsEscape( $indicator.displayName, "'" )';
+	#end
+	var selectedIndicators = new Array();	
+
+	var i18n_select_indicator_group = '$encoder.jsEscape( $i18n.getString( "select_indicator_group" ) , "'")';
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_indicator_group" ) , "'")';
+	var i18n_member_of = '$encoder.jsEscape( $i18n.getString( "member_of" ) , "'")';
+	var i18n_update_success = '$encoder.jsEscape( $i18n.getString( "update_success" ) , "'")';
+	var i18n_new = '$encoder.jsEscape( $i18n.getString( "new" ) , "'")';
+	var i18n_save = '$encoder.jsEscape( $i18n.getString( "save" ) , "'")';
+	var i18n_rename = '$encoder.jsEscape( $i18n.getString( "rename" ) , "'")';
+	
+</script>
+
+<style type="text/css">
+#addIndicatorGroupForm{
+	width:300px;
+}
+#addIndicatorGroupForm div{
+	float:left;
+}
+.select{
+	min-width:300px;
+}
+</style>
+
+
+<h3>$i18n.getString( "indicator_group_editor" ) #openHelp( "indicatorGroupEditor" )</h3>
+
+<div id="tabs" style="position:absolute">
+	<ul>
+		<li><a href="#view_1">$i18n.getString( "view_1" )</a></li>
+		<li><a href="#view_2">$i18n.getString( "view_2" )</a></li>
+	</ul>
+	<div id="view_1">
+	<table>	
+		<tr>
+			<th>$i18n.getString( "indicator_group" )</th>
+			<th>$i18n.getString( "selected_indicators" )</th>
+			<td rowspan="2"></td>
+			<th>$i18n.getString( "available_indicators" )</th>			
+		</tr>
+		
+		<tr>
+			<td><input id="indicatorGroupsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'indicatorGroups');"/></td>
+			<td><input id="selectedIndicatorsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'selectedIndicators');"/></td>		
+			<td><input id="availableIndicatorsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'availableIndicators');"/></td>
+		</tr>
+
+		<tr>
+			<td>
+				<select class="select" id="indicatorGroups" size="30" onchange="getIndicatorsByGroup();"/>
+			</td>
+			<td>
+				<select class="select" id="selectedIndicators" multiple="multiple" size="30"  ondblclick="moveSelectedById(this.id, 'availableIndicators');"/>
+			</td>
+			
+			<td>
+				<input type="button" value="&lt;" onclick="moveSelectedById('availableIndicators', 'selectedIndicators');" style="width:30px"/><br/><br/>
+				<input type="button" value="&gt;" onclick="moveSelectedById('selectedIndicators', 'availableIndicators');" style="width:30px"/>
+			</td>
+			<td>
+				<select class="select" id="availableIndicators" multiple="multiple" size="30"  ondblclick="moveSelectedById(this.id, 'selectedIndicators');"/>
+			</td>
+		</tr>
+		<tr>
+			<td>			
+				<a href="javascript:sortList( 'indicatorGroups', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<a href="javascript:sortList( 'indicatorGroups', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<input type="button" value="$i18n.getString( 'new' )" onclick="showAddGroup()" style="width:70px"/>
+				<input type="button" value="$i18n.getString( 'rename' )" onclick="showUpdateGroup()" style="width:70px"/>
+				<input type="button" value="$i18n.getString( 'delete' )" onclick="deleteIndicatorGroup()" style="width:70px"/>
+			</td>
+			<td>
+				<a href="javascript:sortList( 'selectedIndicators', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<a href="javascript:sortList( 'selectedIndicators', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>			
+				<input type="button" value="$i18n.getString( 'update_indicator_group_member' )" onclick="updateGroupMembers()"/>
+			</td>
+			<td></td>
+			<td>
+				<a href="javascript:sortList( 'availableIndicators', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<a href="javascript:sortList( 'availableIndicators', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>						
+			</td>
+		</tr>
+	</table>
+	</div>
+	<div id="view_2">
+		<table>	
+			<tr>		
+				<th>$i18n.getString( "available_indicators" )</th>
+				<th>$i18n.getString( "selected_groups" )</th>
+			<td rowspan="2"></td>
+				<th>$i18n.getString( "available_groups" )</th>
+				
+			</tr>
+			
+			<tr>
+				<td><input id="availableIndicatorsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'availableIndicators2');"/></td>
+				<td><input id="assignedGroupsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'assignedGroups');"/></td>				
+				<td><input id="availableGroupsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'availableGroups');"/></td>
+			</tr>
+
+			<tr>
+				<td>
+					<select class="select" id="availableIndicators2" size="30" onclick="getAssignedIndicatorGroups()">				
+					</select>
+				</td>		
+				<td>
+					<select class="select" id="assignedGroups" multiple="multiple" size="30" ondblclick="moveSelectedById('assignedGroups', 'availableGroups');">
+					</select>
+				</td>
+				
+				<td>
+					<input type="button" value="&lt;" onclick="moveSelectedById('availableGroups', 'assignedGroups');" style="width:30px"/><br/><br/>
+					<input type="button" value="&gt;" onclick="moveSelectedById('assignedGroups', 'availableGroups');" style="width:30px"/>
+				</td>
+				
+				<td>
+					<select class="select" id="availableGroups" multiple="multiple" size="30" ondblclick="moveSelectedById(this.id, 'assignedGroups');">				
+					</select>
+				</td>
+				
+			</tr>
+			<tr>		
+				<td>
+					<a href="javascript:sortList( 'availableIndicators2', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+					<a href="javascript:sortList( 'availableIndicators2', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>						
+				</td>
+				<td>
+					<a href="javascript:sortList( 'assignedGroups', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+					<a href="javascript:sortList( 'assignedGroups', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+					<input type="button" value="$i18n.getString( 'update_indicator_group_member' )" onclick="assignGroupsForIndicator()"/>
+				</td>
+				<td></td>
+				<td>
+					<a href="javascript:sortList( 'availableGroups', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+					<a href="javascript:sortList( 'availableGroups', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>			
+					<input type="button" value="$i18n.getString( 'new' )" onclick="showAddGroup2()" style="width:70px"/>
+					<input type="button" value="$i18n.getString( 'rename' )" onclick="showUpdateGroup2()" style="width:70px"/>
+					<input type="button" value="$i18n.getString( 'delete' )" onclick="deleteIndicatorGroup2()" style="width:70px"/>
+				</td>
+				
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="addIndicatorGroupForm">
+	<label>$i18n.getString( "name" )</label>	
+	<input type="text" id="name" name="name" style="width:20em" class="{validate:{required:true}}"/>	
+</div>

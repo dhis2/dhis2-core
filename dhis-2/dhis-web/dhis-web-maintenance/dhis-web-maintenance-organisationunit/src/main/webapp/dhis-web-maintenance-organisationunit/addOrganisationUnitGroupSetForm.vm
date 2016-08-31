@@ -1,0 +1,90 @@
+<script type="text/javascript">
+    jQuery(document).ready(function() {
+        validation2('addOrganisationUnitGroupSetForm', function(form) {
+     	    form.submit();
+     	}, {
+     		'beforeValidateHandler' : function() {
+                $("#ougSelected").find("option").attr("selected", "selected");
+                #tblDynamicAttributesJavascript()
+     		},
+     		'rules' : getValidationRules("organisationUnitGroupSet")
+     	});
+
+     	checkValueIsExist("name", "validateOrganisationUnitGroupSet.action");
+
+     	changeCompulsory(getFieldValue('compulsory'));
+
+        $('#ougAvailable').selected({
+          url: '../api/organisationUnitGroups.json?filter=organisationUnitGroupSet:null',
+          target: $('#ougSelected'),
+          search: $('#ougAvailableSearch'),
+          iterator: 'organisationUnitGroups'
+        });
+	});
+</script>
+
+<h3>$i18n.getString( "create_new_org_unit_group_set" ) #openHelp( "ou_groupsets_edit" )</h3>
+
+#sharingCreateNotification( "organisationUnitGroupSet" )
+
+<form id="addOrganisationUnitGroupSetForm" action="addOrganisationUnitGroupSet.action" method="post" class="inputForm">
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+
+	<tr>
+		<td><label for="name" style="width:12px">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name"></td>
+	</tr>
+	
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" ></td>
+	</tr>
+	
+	<tr>
+		<td><label for="description" style="width:100%">$i18n.getString( "description" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><textarea id="description" name="description"></textarea></td>
+	</tr>
+	
+	<tr>
+		<td><label for="compulsory" style="width:100%">$i18n.getString( "compulsory" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>
+			<select id="compulsory" name="compulsory" onchange="changeCompulsory(this.value)">
+				<option value="true" selected="selected">$i18n.getString( "yes" )</option>
+				<option value="false">$i18n.getString( "no" )</option>
+			</select>
+		</td>
+	</tr>
+
+	<tr>
+		<td><label for="dataDimension" style="width:100%">$i18n.getString( "data_dimension" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>
+			<select id="dataDimension" name="dataDimension">
+				<option value="true" selected="selected">$i18n.getString( "yes" )</option>
+				<option value="false">$i18n.getString( "no" )</option>
+			</select>
+		</td>
+	</tr>
+
+	<tr>
+		<td colspan="2" style="height:15px"></td>
+	</tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+#jqSelected({
+  "prefix": "oug",
+  "i18n_available": "available_groups",
+  "i18n_selected": "selected_groups"
+})
+
+<p>
+	<input type="submit" name="save" value="$i18n.getString( 'add' )" style="width:10em" />
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='organisationUnitGroupSet.action'" style="width:10em" />
+</p>
+
+</form>

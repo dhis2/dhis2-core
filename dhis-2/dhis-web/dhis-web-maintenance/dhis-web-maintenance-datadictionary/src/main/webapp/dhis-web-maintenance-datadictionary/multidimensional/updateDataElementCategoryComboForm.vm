@@ -1,0 +1,75 @@
+<script src="javascript/categoryOptionCombo.js"></script>
+<script type="text/javascript">
+	jQuery(document).ready(	function(){
+        dhis2.coc.clearAndSetAjaxSelect(dhis2.coc.getType(), false);
+
+        $('#dataDimensionType').on('change', function( e ) {
+            dhis2.coc.clearAndSetAjaxSelect(dhis2.coc.getType(), true);
+        });
+
+		validation2( 'editDataElementCategoryComboForm', function( form ) {
+			validateSelectedCategories( form );
+		}, {
+			'beforeValidateHandler': function() {
+                $("#caSelected").find("option").attr("selected", "selected");
+                listValidator( 'caValidator', 'caSelected' );
+			},
+			'rules': getValidationRules("dateElementCategoryCombo")
+		});
+
+		checkValueIsExist( "name", "validateDataElementCategoryCombo.action", {id: $dataElementCategoryCombo.id});
+	});
+</script>
+
+<h3>$i18n.getString( "edit_data_element_category_combo" )</h3>
+
+<form id="editDataElementCategoryComboForm" name="editDataElementCategoryComboForm" action="updateDataElementCategoryCombo.action" method="post" class="inputForm">
+  <input type="hidden" id="id" name="id" value="$dataElementCategoryCombo.id"/>
+  
+  <table id="detailsList">
+    <thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "data_element_category_combo_details" )</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="width:120px"><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name" value="$encoder.htmlEncode( $dataElementCategoryCombo.displayName )"/></td>
+      </tr>
+	 <tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $dataElementCategoryCombo.code )"></td>
+	 </tr>	
+      <tr>
+        <td><label>$i18n.getString( "data_dimension_type" )</td>
+        <td>
+          <select id="dataDimensionType" name="dataDimensionType" disabled="disabled">
+            <option value="DISAGGREGATION"#if( "DISAGGREGATION" == $dataElementCategoryCombo.dataDimensionType ) selected="selected"#end>$i18n.getString( "disaggregation" )</option>
+            <option value="ATTRIBUTE"#if( "ATTRIBUTE" == $dataElementCategoryCombo.dataDimensionType ) selected="selected"#end>$i18n.getString( "attribute" )</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td><label for="skipTotal">$i18n.getString( "skip_total_in_reports" )</label></td>
+        <td><input type="checkbox" id="skipTotal" name="skipTotal" value="true"#if( $dataElementCategoryCombo.skipTotal ) checked="checked"#end/></td>
+      </tr>
+      <tr>
+      	<td colspan="2" style="height:15px"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  #jqSelected({
+    "prefix": "ca",
+    "i18n_available": "available_categories",
+    "i18n_selected": "selected_categories",
+    "objects": $dataElementCategories
+  })
+
+  <p>
+	<input type="submit" name="update" value="$i18n.getString( 'update' )" style="width:10em" />
+	<input type="button" name="cancel" onclick="dhis2.commons.redirectCurrentPage( 'categoryCombo.action' )" value="$i18n.getString( 'cancel' )" style="width:10em" />
+  </p>
+
+</form>

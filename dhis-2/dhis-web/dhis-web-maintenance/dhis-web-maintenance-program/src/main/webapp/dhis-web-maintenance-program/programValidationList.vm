@@ -1,0 +1,91 @@
+<h3>$i18n.getString( "program_validation_rule_management" ) #openHelp( "program_validation_rule" )</h3>
+
+<h4>$encoder.htmlEncode($program.displayName)</h4>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="showUpdateSingleProgramValidationForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li><a data-target-fn="removeProgramValidation"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showProgramValidationDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+	<tr>
+		<td style="vertical-align:top">
+			
+<table class="mainPageTable">
+  <tr>
+    <td style="vertical-align:top" colspan="2">
+		<table width="100%">
+			<tr>
+				<td>
+					<input type="text" id='keySearch' onchange="filterValues( this.value , 1)" style="width:250px" placeholder="$i18n.getString( 'filter_by_name' )" />
+					<input type='button' value="$i18n.getString('filter')" onclick="filterValues( getFieldValue('keySearch' , 1)"/>
+					<input type='button' value="$i18n.getString('cancel')" onclick="setFieldValue('keySearch',''), filterValues('', 1)"/>
+				</td>
+				<td align="right">
+					<input type="button" value="$i18n.getString( "add_new" )" onclick="window.location.href='showAddSingleProgramValidationForm.action?id=$program.id'" style="width:100px"><br>
+					<input type="button" value="$i18n.getString( "back" )" onclick="window.location.href='program.action'" style="width:100px">
+				</td>
+			</tr>
+		</table>
+
+		<table class="listTable">
+      <col>
+      <thead>
+			  <tr>
+				<th>$i18n.getString( "name" )</th>
+			  </tr>
+      </thead>
+      <tbody id="list">
+      #foreach( $validation in $validations )
+        <tr id="tr${validation.id}" data-id="$!validation.id" data-uid="$!validation.uid" data-type="ProgramValidation" data-name="$encoder.htmlEncode( $!validation.displayName )"
+            data-can-manage="$security.canManage( $validation )"
+            data-can-update="$security.canUpdate( $validation )"
+            data-can-delete="$security.canDelete( $validation )">
+          <td>$encoder.htmlEncode( $!validation.displayName )</td>
+        </tr>
+      #end
+      </tbody>
+    </table>
+		</td>
+
+		<td id="detailsData">
+      <div id="detailsArea">
+        <div id="hideDetailsArea">
+					<a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"></a>
+				</div>			
+				<p><label class="bold">$i18n.getString( "name" ):</label><br><span id="descriptionField"></span></p>
+				<p><label class="bold">$i18n.getString( "operator" ):</label><br><span id="operatorField"></span></p>
+				<p><label class="bold">$i18n.getString( "left_side_description" ):</label><br><span id="leftSideDescriptionField"></span></p>
+				<p><label class="bold">$i18n.getString( "left_side_expression" ):</label><br><span id="leftSideExpressionField"></span></p>
+				<p><label class="bold">$i18n.getString( "right_side_description" ):</label><br><span id="rightSideDescriptionField"></span></p>
+				<p><label class="bold">$i18n.getString( "right_side_expression" ):</label><br><span id="rightSideExpressionField"></span></p>
+				<p><label class="bold">$i18n.getString( "id" ):</label><br><span id="idField"></span></p>
+			</div>
+		</td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_tracked_entity_attribute" ) , "'" )';
+	var i18n_none = '$encoder.jsEscape( $i18n.getString( "none" ), "'")';	
+	var i18n_yes = '$encoder.jsEscape( $i18n.getString( "yes" ) , "'")';
+	var i18n_no = '$encoder.jsEscape( $i18n.getString( "no" ) , "'")';
+	var i18n_number = '$encoder.jsEscape( $i18n.getString( "number" ) , "'")';
+	var i18n_yes_no = '$encoder.jsEscape( $i18n.getString( "yes_no" ) , "'")';
+	var i18n_text = '$encoder.jsEscape( $i18n.getString( "text" ) , "'")';
+	var i18n_date = '$encoder.jsEscape( $i18n.getString( "date" ) , "'")';
+	var i18n_option_set = '$encoder.jsEscape( $i18n.getString( "option_set" ) , "'")';
+	var i18n_processing = '$encoder.jsEscape( $i18n.getString( "processing" ) , "'")';
+	var i18n_done = '$encoder.jsEscape( $i18n.getString( "done" ) , "'")';
+	var i18n_left_side = '$encoder.jsEscape( $i18n.getString( "left_side" ) , "'")';
+	var i18n_condition = '$encoder.jsEscape( $i18n.getString( "condition" ) , "'")';
+	var i18n_equal_to = '$encoder.jsEscape( $i18n.getString( "equal_to" ) , "'")';
+	var i18n_not_equal_to = '$encoder.jsEscape( $i18n.getString( "not_equal_to" ) , "'")';
+	var i18n_greater_than = '$encoder.jsEscape( $i18n.getString( "greater_than" ) , "'")';
+	var i18n_greater_than_or_equal_to = '$encoder.jsEscape( $i18n.getString( "greater_than_or_equal_to" ) , "'")';
+	var i18n_less_than = '$encoder.jsEscape( $i18n.getString( "less_than" ) , "'")';
+	var i18n_less_than_or_equal_to = '$encoder.jsEscape( $i18n.getString( "less_than_or_equal_to" ) , "'")';
+</script>

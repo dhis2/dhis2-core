@@ -1,0 +1,23 @@
+<h3>$i18n.getString( "define_dataset_associations" )</h3>
+
+<h4>$encoder.htmlEncode( $dataSet.displayName )</h4>
+
+<form id="defineDataSetAssociationsForm" action="defineDataSetAssociations.action" method="post">
+  <div style="display:inline">
+	<input type="hidden" name="dataSetId" value="$dataSetId"/>
+  </div>
+  <table id="selectionTable">
+	<tr>
+	  <td>
+		#organisationUnitSelectionTree( false, true, false )
+	  </td>
+    </tr>
+    <tr>
+      <td>
+        <input type="submit" id="submitButton" value="$i18n.getString( 'save' )" style="width:10em"/>
+		<input type="button" onclick="window.location.href='dataSet.action'" value="$i18n.getString( 'cancel' )" style="width:10em"/>
+      </td>
+    </tr>
+  </table>
+
+</form>

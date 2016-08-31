@@ -1,0 +1,18 @@
+<h3>$i18n.getString( "dhis-web-maintenance-program" )</h3>
+
+<ul class="introList">
+    #if( $security.canView( "trackedEntityAttribute" ) )#introListImgItem( "attribute.action" "attribute" "patient" )#end
+    #if( $security.canView( "trackedEntityAttributeGroup" ) )#introListImgItem( "attributeGroup.action" "attribute_group" "patient" )#end
+    #if( $security.canView( "relationShipType" ) )#introListImgItem( "relationshipType.action" "relationship_type" "patient" )#end
+    #if( $security.canView( "trackedEntity" ) )#introListImgItem( "trackedEntity.action" "tracked_entity" "patient" )#end
+    #if( $security.canView( "program" ) )#introListImgItem( "program.action" "program" "program" )#end
+    #introListImgItem( "caseAggregation.action" "aggregation_query_builder" "caseaggregationmapping" )
+	
+	#if( $auth.hasAccess( "dhis-web-maintenance-program", "viewScheduleTasks" ) )
+		#introListImgItem( "viewScheduleTasks.action" "schedule_automated_message_reminder" "scheduling" )
+	#end
+	#if($auth.hasAccess( "dhis-web-maintenance-program", "viewScheduledCaseAggCondTasks" ) )
+		#introListImgItem( "viewScheduledCaseAggCondTasks.action" "schedule_automated_aggregation" "scheduling" )
+	#end
+	
+</ul>

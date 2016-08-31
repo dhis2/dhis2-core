@@ -1,0 +1,139 @@
+<script type="text/javascript">
+	jQuery(document).ready(function(){
+		jQuery("#availableDataSets").dhisAjaxSelect({
+			source: "../dhis-web-commons-ajax-json/getDataSets.action",
+			iterator: "dataSets",
+			connectedTo: 'dataSets',
+			handler: function(item) {
+				var option = jQuery("<option />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			}
+		});
+
+		datePickerInRange( 'fromDate' , 'toDate' );	
+	});
+
+	var i18n_analysing_please_wait = '$encoder.jsEscape( $i18n.getString( "analysing_please_wait" ) , "'")';
+	var i18n_specify_dataset = '$encoder.jsEscape( $i18n.getString( "specify_dataset" ) , "'")';
+	var i18n_specify_a_start_date = '$encoder.jsEscape( $i18n.getString( "specify_a_start_date" ) , "'")';
+	var i18n_specify_an_ending_date = '$encoder.jsEscape( $i18n.getString( "specify_an_ending_date" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "${key}_analysis" ) #openHelp( "${key}Analysis" )</h3>
+
+<div id="analysisInput">
+
+<input type="hidden" id="key" name="key" value="$!key">
+
+<table>
+	<tr>
+		<th>$i18n.getString( "from_date" )</th>
+		<th>$i18n.getString( "to_date" )</th>
+	</tr>
+	<tr>
+		<td>
+			<input type="text" id="fromDate" name="fromDate" />			
+		</td>
+		<td>
+			<input type="text" id="toDate" name="toDate" />				
+		</td>
+	</tr>  
+    <tr>
+        <td colspan="2" style="height:10px"></td>
+    </tr>
+ </table>
+ 
+<table style="margin-top: 15px; margin-bottom: 15px;">
+    <colgroup>
+      <col style="width: 500px;"/>
+      <col/>
+      <col style="width: 500px;"/>
+    </colgroup>
+
+	<tr>
+		<th style="min-width:325px;">$i18n.getString( "available_data_sets" )</th>
+		<th></th>
+		<th style="min-width:325px;">$i18n.getString( "selected_data_sets" )</th>
+	</tr>
+
+	<tr>
+		<td>
+            <select id="availableDataSets" name="availableDataSets" multiple="multiple" style="height: 200px; width: 100%;"></select>
+		</td>
+
+        <td style="text-align:center">
+        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableDataSets' );"/><br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'dataSets' );"/><br/>
+			<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableDataSets' );"/><br/>
+			<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'dataSets' );"/>
+        </td>
+
+		<td>
+            <select id="dataSets" name="dataSets" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px">
+		</td>
+	</tr>
+</table>
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "select_parent_organisation_unit" )</th>
+	</tr>
+	<tr>
+		<td colspan="2">
+			<div id="selectionTree" style="width:400px;height:250px;overflow:auto;"></div>
+			<script type="text/javascript">
+
+          		selectionTreeSelection.setMultipleSelectionAllowed( false );
+          		selectionTreeSelection.setListenerFunction( organisationUnitSelected );
+				selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+
+        	</script>
+		</td>
+	</tr>
+</table>
+
+#if( $key == "stddevoutlier" )
+<div id="stddevform">
+<table>	
+    <tr>
+        <td colspan="2" style="height:20px"></td>
+    </tr>
+	<tr>
+		<th style="min-width:325px">$i18n.getString( "select_std_dev" )</th>
+	</tr>
+	<tr>
+		<td>
+			<select id="standardDeviation" name="standardDeviation" style="width:120px">
+				<option value="1.0">1.0</option>
+                <option value="1.5">1.5</option>
+                <option value="2.0">2.0</option>
+                <option value="2.5">2.5</option>
+                <option value="3.0" selected="selected">3.0</option>
+                <option value="3.5">3.5</option>
+                <option value="4.0">4.0</option>
+                <option value="4.5">4.5</option>
+                <option value="5.0">5.0</option>
+			</select>
+		</td>
+	</tr>
+</table>
+</div>
+#end
+
+<table> 
+    <tr>
+        <td colspan="2" style="height:5px"></td>
+    </tr>
+	<tr>
+		<td>
+			<input id="startButton" type="button" onclick="validateRunAnalyseData()" value="$i18n.getString( 'start' )" style="width:120px" />
+		</td>
+	</tr>
+</table>
+
+</div>
+
+<div id="analysisResult"></div>

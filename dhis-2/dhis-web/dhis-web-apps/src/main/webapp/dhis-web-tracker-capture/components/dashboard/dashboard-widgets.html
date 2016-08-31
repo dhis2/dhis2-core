@@ -1,0 +1,20 @@
+<div class="modal-header">
+    <h1>{{'select_widgets_to_show'| translate}}</h1>
+</div>
+
+<div class="modal-body">   
+    <table class="listTable dhis2-table-striped-border">
+        <tr ng-repeat="widget in dashboardWidgets">
+            <td ng-click="widget.show = !widget.show">
+                {{widget.title | translate}}
+            </td>
+            <td>
+                <input type="checkbox" ng-model="widget.show" ng-change="closeOpenWidget(widget)">
+            </td>
+        </tr>
+    </table>    
+</div>
+
+<div class="modal-footer">     
+    <button type="button" class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
+</div>

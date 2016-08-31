@@ -1,0 +1,164 @@
+<script type="text/javascript">
+	var dataElementGroups = new Array();
+	var dataElementGroupShortNames = new Array();
+	var dataElementGroupCodes = new Array();
+	#foreach( $dataElementGroup in $dataElementGroups )
+        dataElementGroups['$dataElementGroup.id'] = '$encoder.jsEscape( $dataElementGroup.displayName, "'" )';
+		dataElementGroupShortNames['$dataElementGroup.id'] = '$!encoder.jsEscape( $dataElementGroup.shortName, "'" )';
+		dataElementGroupCodes['$dataElementGroup.id'] = '$!encoder.jsEscape( $dataElementGroup.code, "'" )';
+	#end
+
+	var availableDataElements = new Array();
+	#foreach( $dataElement in $dataElements )
+		availableDataElements['$dataElement.uid'] = '$encoder.jsEscape( $dataElement.displayName, "'" )';
+	#end
+	var selectedDataElements = new Array();
+
+	var i18n_select_dataelement_group = '$encoder.jsEscape( $i18n.getString( "select_dataelement_group" ) , "'")';
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_data_element_group" ) , "'")';
+	var i18n_member_of = '$encoder.jsEscape( $i18n.getString( "member_of" ) , "'")';
+	var i18n_update_success = '$encoder.jsEscape( $i18n.getString( "update_success" ) , "'")';
+	var i18n_new = '$encoder.jsEscape( $i18n.getString( "new" ) , "'")';
+	var i18n_save = '$encoder.jsEscape( $i18n.getString( "save" ) , "'")';
+	var i18n_rename = '$encoder.jsEscape( $i18n.getString( "rename" ) , "'")';
+	var i18n_this_field_is_required = '$encoder.jsEscape( $i18n.getString( "this_field_is_required" ) , "'")';
+</script>
+
+<style type="text/css">
+#addDataElementGroupForm{
+	width:300px;
+}
+#addDataElementGroupForm div{
+	float:left;
+}
+.select{
+	min-width:300px;
+}
+</style>
+
+<h3>
+	$i18n.getString( "data_element_group_management" ) #openHelp( "dataElementGroupEditor" )
+</h3>
+
+<div id="tabs" style="position:absolute">
+	<ul>
+		<li><a href="#view_1">$i18n.getString( "view_1" )</a></li>
+		<li><a href="#view_2">$i18n.getString( "view_2" )</a></li>
+	</ul>
+	<div id="view_1">
+	<table >
+		<tr>
+			<th>$i18n.getString( "data_element_group" )</th>
+			<th>$i18n.getString( "selected_dataelements" )</th>
+			<td rowspan="2"></td>
+			<th>$i18n.getString( "available_dataelements" )</th>
+
+		</tr>
+
+		<tr>
+			<td><input id="dataElementGroupsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'dataElementGroups');"/></td>
+			<td><input id="selectedDataElementsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'selectedDataElements');"/></td>
+			<td><input id="availableDataElementsFilter" type="text" style="width:300px;" onkeyup="loadAvailableDataElements()"/></td>
+		</tr>
+
+		<tr>
+			<td>
+				<select class="select" id="dataElementGroups" size="30" onchange="getDataElementsByGroup()"/>
+			</td>
+			<td>
+				<select class="select" id="selectedDataElements" style="width:300px;" multiple="multiple" size="30"  ondblclick="moveSelectedById(this.id, 'availableDataElements');" />			
+			</td>
+
+			<td>
+				<input type="button" value="&lt;" onclick="moveSelectedById('availableDataElements', 'selectedDataElements');" style="width:42px"/><br/><br/>
+				<input type="button" value="&gt;" onclick="moveSelectedById('selectedDataElements', 'availableDataElements');" style="width:42px"/>
+			</td>
+			<td>
+				<select class="select" id="availableDataElements" style="width:300px;" multiple="multiple" size="30" ondblclick="moveSelectedById(this.id, 'selectedDataElements');"/>			
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<a href="javascript:sortList( 'dataElementGroups', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<a href="javascript:sortList( 'dataElementGroups', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<input type="button" value="$i18n.getString( 'new' )" onclick="showAddGroup()" style="width:70px"/>
+				<input type="button" value="$i18n.getString( 'rename' )" onclick="showUpdateGroup()" style="width:70px"/>
+				<input type="button" value="$i18n.getString( 'delete' )" onclick="deleteDataElemenGroup()" style="width:70px"/>
+			</td>
+			<td>
+				<a href="javascript:sortList( 'selectedDataElements', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<a href="javascript:sortList( 'selectedDataElements', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<input type="button" value="$i18n.getString( 'update_dataelement_group_members' )" onclick="updateGroupMembers()"/>
+			</td>
+			<td></td>
+			<td>
+				<a href="javascript:sortList( 'availableDataElements', 'ASC' );"><img align="absmiddle" src="../images/sort_ascending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+				<a href="javascript:sortList( 'availableDataElements', 'DES' );"><img align="absmiddle" src="../images/sort_descending.png" style="border:#666666 thin solid;cursor:pointer;width:20px;"/></a>
+			</td>
+
+
+		</tr>
+	</table>
+	</div>
+	<div id="view_2">
+		<table>
+			<tr>
+				<th>$i18n.getString( "available_dataelements" )</th>		
+				<th>$i18n.getString( "selected_groups" )</th>
+				<td rowspan="2"></td>
+				<th>$i18n.getString( "available_groups" )</th>
+			</tr>
+
+			<tr>		
+				<td><input id="availableDataElementsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'availableDataElements2');"/></td>		
+				<td><input id="assignedGroupsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'assignedGroups');"/></td>
+				<td><input id="availableGroupsFilter" type="text" style="width:300px;" onkeyup="filterList(this.value, 'availableGroups');"/></td>		
+			</tr>
+
+			<tr>
+				<td>
+					<select class="select" id="availableDataElements2" style="width:300px;" size="30" onchange="getAssignedDataElementGroups()"/>
+				</td>
+				<td>
+					<select class="select" id="assignedGroups" style="width:300px;" multiple="multiple" size="30" ondblclick="moveSelectedById(this.id, 'availableGroups');"/>
+				</td>
+				<td>
+					<input type="button" value="&lt;" onclick="moveSelectedById('availableGroups', 'assignedGroups');" style="width:42px"/><br/><br/>
+					<input type="button" value="&gt;" onclick="moveSelectedById('assignedGroups', 'availableGroups');" style="width:42px"/>
+				</td>	
+				<td>
+				  <select name="select" size="30" multiple="multiple" class="select" id="availableGroups" ondblclick="moveSelectedById(this.id, 'assignedGroups');"/>
+			</td>		
+			</tr>
+			<tr>
+				<td></td>
+				<td>			
+					<input type="button" value="$i18n.getString( 'assign_groups_for_dataelement' )" onclick="assignGroupsForDataElement()"/>
+				</td>
+				<td></td>
+				<td>		
+					<input type="button" value="$i18n.getString( 'new' )" onclick="showAddGroupView2()" style="width:70px"/>
+					<input type="button" value="$i18n.getString( 'rename' )" onclick="showUpdateGroup2()" style="width:70px"/>
+					<input type="button" value="$i18n.getString( 'delete' )" onclick="deleteDataElemenGroupView2()" style="width:70px"/>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div id="addDataElementGroupForm">
+	<table>
+		<tr>
+			<td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td><input type="text" id="name" name="name" style="width:20em" maxlength="160" class="{validate:{required:true}}"/></td>
+		</tr>
+		<tr>
+			<td><label>$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td><input type="text" id="shortName" name="shortName" style="width:20em" maxlength="50" class="{validate:{required:true}}"/></td>
+		</tr>
+		<tr>
+			<td><label>$i18n.getString( "code" )</label></td>
+			<td><input type="text" id="code" name="code" style="width:20em" maxlength="50"/></td>
+		</tr>
+	</table>
+</div>

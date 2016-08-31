@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+    [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+    >
+<hibernate-mapping package="org.hisp.dhis.sms.command">
+	<class name="SMSSpecialCharacter" table="smsspecialcharacter">
+
+		<id name="id" column="specialcharacterid">
+			<generator class="increment" />
+		</id>
+
+		<property name="name" type="text" />
+		<property name="value" type="text" />
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,12 @@
+<script type="text/javascript">
+  selection.setListenerFunction(organisationUnitSelected);
+</script>
+
+<style type="text/css">
+  #leftBarContents div#orgUnitTree {
+    height : 430px;
+  }
+</style>
+
+<br>
+#parse( "/dhis-web-commons/ouwt/orgunittreesearch.vm" )

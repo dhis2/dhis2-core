@@ -1,0 +1,44 @@
+<script type="text/javascript" src="javascript/updateIndicatorTypeForm.js"></script>
+<script type="text/javascript">
+	jQuery(document).ready(	function(){
+		checkValueIsExist( "name", "validateIndicatorType.action", {id: $indicatorType.id});
+	});
+</script>
+
+<h3>$i18n.getString( "edit_indicator_type" )</h3>
+
+<form id="updateIndicatorTypeForm" action="updateIndicatorType.action" method="post" class="inputForm">
+
+<div>
+	<input type="hidden" id="id" name="id" value="$indicatorType.id">
+</div>
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$encoder.htmlEncode( $indicatorType.name )"> </td>
+	</tr>
+	<tr>
+		<td><label for="factor">$i18n.getString( "factor" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="factor" name="factor" value="$indicatorType.factor"></td>
+	</tr>
+	<tr>
+		<td><label for="number">$i18n.getString( "number" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><select id="number" name="number" maxlength="10">
+				<option value='true' #if($indicatorType.number=='true') selected #end>$i18n.getString('yes')</option>
+				<option value='false' #if($indicatorType.number=='false') selected #end>$i18n.getString('no')</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>
+            <input type="submit" value="$i18n.getString( 'save' )" style="width:10em" />
+            <input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'indicatorType.action' )" style="width:10em"/>
+        </td>
+	</tr>
+</table>
+</form>

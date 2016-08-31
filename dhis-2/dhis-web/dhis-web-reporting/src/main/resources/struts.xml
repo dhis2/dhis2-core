@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+  "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-reporting" extends="dhis-web-commons" namespace="/dhis-web-reporting">
+
+    <action name="index" class="org.hisp.dhis.reporting.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/index.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+    </action>
+    
+    <!-- Document -->
+
+    <action name="saveDocument" class="org.hisp.dhis.reporting.document.action.SaveDocumentAction">
+      <result name="success" type="redirect">displayViewDocumentForm.action</result>
+      <interceptor-ref name="fileUploadStack" />
+      <param name="anyAuthorities">F_DOCUMENT_PUBLIC_ADD,F_DOCUMENT_PRIVATE_ADD</param>
+    </action>
+
+    <action name="removeDocument" class="org.hisp.dhis.reporting.document.action.RemoveDocumentAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="requiredAuthorities">F_DOCUMENT_DELETE</param>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="displayViewDocumentForm" class="org.hisp.dhis.reporting.document.action.GetAllDocumentsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/viewDocumentForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">javascript/document.js</param>
+    </action>
+
+    <action name="displayAddDocumentForm" class="org.hisp.dhis.reporting.document.action.GetDocumentAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/addDocumentForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">javascript/document.js</param>
+      <param name="anyAuthorities">F_DOCUMENT_PUBLIC_ADD,F_DOCUMENT_PRIVATE_ADD</param>
+    </action>
+
+    <action name="addDocumentToDashboard" class="org.hisp.dhis.reporting.document.action.AddDocumentToDashboardAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- Report -->
+
+    <action name="displayAddReportForm" class="org.hisp.dhis.reporting.reportviewer.action.GetReportOptionsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/addReportForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">javascript/report.js</param>
+      <param name="anyAuthorities">F_REPORT_PUBLIC_ADD,F_REPORT_PRIVATE_ADD</param>
+    </action>
+
+    <action name="addReport" class="org.hisp.dhis.reporting.reportviewer.action.AddReportAction">
+      <result name="success" type="redirect">displayViewReportForm.action</result>
+      <result name="error" type="redirect">displayAddReportForm.action</result>
+      <interceptor-ref name="fileUploadStack" />
+      <param name="anyAuthorities">F_REPORT_PUBLIC_ADD,F_REPORT_PRIVATE_ADD</param>
+    </action>
+
+    <action name="removeReport" class="org.hisp.dhis.reporting.reportviewer.action.RemoveReportAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="requiredAuthorities">F_REPORT_DELETE</param>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="displayViewReportForm" class="org.hisp.dhis.reporting.reportviewer.action.GetAllReportsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/viewReportForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">javascript/report.js</param>
+    </action>
+
+    <action name="getReport" class="org.hisp.dhis.reporting.reportviewer.action.GetReportAction">
+      <result name="success" type="velocity-json">/dhis-web-reporting/jsonReport.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getReports" class="org.hisp.dhis.reporting.reportviewer.action.GetAllReportsAction">
+      <result name="success" type="velocity-json">/dhis-web-reporting/jsonReports.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="addReportToDashboard" class="org.hisp.dhis.reporting.reportviewer.action.AddReportToDashboardAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getReportTemplate" class="org.hisp.dhis.reporting.reportviewer.action.GetReportTemplateAction">
+      <result name="success" type="outputStreamResult" />
+    </action>
+    
+    <action name="generateHtmlReport" class="org.hisp.dhis.reporting.reportviewer.action.GetReportAndParamsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/renderHtmlReport.vm</param>
+      <param name="hideMenu">true</param>
+    </action>
+
+    <!-- ReportTable -->
+
+    <action name="displayManageTableForm" class="org.hisp.dhis.reporting.tablecreator.action.GetAllTablesAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/viewTableForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">javascript/table.js</param>
+    </action>
+
+    <action name="getReportTables" class="org.hisp.dhis.reporting.tablecreator.action.GetAllTablesAction">
+      <result name="success" type="velocity-json">/dhis-web-reporting/jsonReportTables.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeTable" class="org.hisp.dhis.reporting.tablecreator.action.RemoveTableAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getReportParams" class="org.hisp.dhis.reporting.tablecreator.action.GetReportParamsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/inputReportParamsForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/generateReport.js</param>
+    </action>
+
+    <action name="getTable" class="org.hisp.dhis.reporting.tablecreator.action.GetTableAction">
+      <result name="success" type="velocity-json">/dhis-web-reporting/jsonTable.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="addReportTableToDashboard" class="org.hisp.dhis.reporting.tablecreator.action.AddReportTableToDashboardAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="exportTable" class="org.hisp.dhis.reporting.tablecreator.action.ExportTableAction">
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+      <result name="jasper" type="gridJasperResult" />
+      <result name="jrxml" type="gridJrxmlResult" />
+      <result name="html" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/reportTableGrid.vm</param>
+      <param name="hideMenu">true</param>
+      <param name="javascripts">javascript/generateReport.js</param>
+      <param name="stylesheets">style/dhis-web-reporting.css</param>
+    </action>
+
+    <!-- Data Completeness -->
+
+    <action name="displayViewDataCompletenessForm" class="org.hisp.dhis.reporting.completeness.action.GetDataCompletenessOptionsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/viewDataCompletenessForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/dataCompleteness.js</param>
+      <param name="stylesheets">style/dhis-web-reporting.css</param>
+    </action>
+
+    <action name="getDataCompleteness" class="org.hisp.dhis.reporting.completeness.action.GetDataCompletenessAction">
+      <result name="input" type="redirect">displayViewDataCompletenessForm.action</result>
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+      <result name="html" type="velocity">/dhis-web-commons/ajax/htmlGrid.vm</result>
+    </action>
+
+    <!-- DataSet Report -->
+
+    <action name="showDataSetReportForm" class="org.hisp.dhis.reporting.dataset.action.GetDataSetReportOptionsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/dataSetReportForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/dataSetReport.js</param>
+      <param name="stylesheets">style/dhis-web-reporting.css</param>
+    </action>
+
+    <action name="generateDataSetReport" class="org.hisp.dhis.reporting.dataset.action.GenerateDataSetReportAction">
+      <result name="DEFAULT" type="velocity">/dhis-web-reporting/renderSectionDataSetReportForm.vm</result>
+      <result name="SECTION" type="velocity">/dhis-web-reporting/renderSectionDataSetReportForm.vm</result>
+      <result name="CUSTOM" type="velocity">/dhis-web-reporting/renderCustomDataSetReportForm.vm</result>
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+    </action>
+    
+    <!-- Data Approval -->
+
+    <action name="showDataApprovalForm" class="org.hisp.dhis.reporting.dataapproval.action.GetDataApprovalOptionsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/dataApprovalForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/ouwt/ouwt.js,javascript/dataSetReport.js,javascript/dataApproval.js</param>
+      <param name="stylesheets">style/dhis-web-reporting.css</param>
+    </action>
+    
+    <!-- Organisation Unit Distribution -->
+
+    <action name="getOrgUnitDistribution" class="org.hisp.dhis.reporting.orgunitdistribution.action.GetOrgUnitDistributionAction">
+      <result name="csv" type="gridCsvResult" />
+      <result name="xls" type="gridXlsResult" />
+      <result name="pdf" type="gridPdfResult" />
+      <result name="html" type="velocity">/dhis-web-commons/ajax/htmlGrid.vm</result>
+    </action>
+
+    <action name="displayOrgUnitDistribution"
+      class="org.hisp.dhis.reporting.orgunitdistribution.action.GetOrgUnitDistributionOptionsAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/viewOrgUnitDistribution.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/orgUnitDistribution.js</param>
+      <param name="stylesheets">style/dhis-web-reporting.css</param>
+    </action>
+
+    <action name="getOrgUnitDistributionChart" class="org.hisp.dhis.reporting.orgunitdistribution.action.GetOrgUnitDistributionChartAction">
+      <result name="success" type="chart"></result>
+    </action>
+
+    <!-- Data mart -->
+
+    <action name="displayDataMartForm" class="org.hisp.dhis.reporting.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-reporting/viewDataMartForm.vm</param>
+      <param name="menu">/dhis-web-reporting/menu.vm</param>
+      <param name="javascripts">javascript/dataMart.js</param>
+      <param name="requiredAuthorities">F_DATA_MART_ADMIN</param>
+    </action>
+
+    <action name="startExport" class="org.hisp.dhis.reporting.datamart.action.StartExportAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_DATA_MART_ADMIN</param>
+    </action>
+
+  </package>
+</struts>

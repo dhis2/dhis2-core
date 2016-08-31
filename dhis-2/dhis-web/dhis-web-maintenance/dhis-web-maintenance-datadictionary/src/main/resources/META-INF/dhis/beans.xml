@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+  <bean id="org.hisp.dhis.dd.action.NoAction" class="org.hisp.dhis.dd.action.NoAction" />
+
+  <!-- Data Element -->
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.GetDataElementListAction" class="org.hisp.dhis.dd.action.dataelement.GetDataElementListAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.ShowUpdateDataElementGroupFormAction" class="org.hisp.dhis.dd.action.dataelementgroup.ShowUpdateDataElementGroupFormAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.GetDataElementGroupMembersAction" class="org.hisp.dhis.dd.action.dataelement.GetDataElementGroupMembersAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.GetDataElementAction" class="org.hisp.dhis.dd.action.dataelement.GetDataElementAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.RemoveDataElementAction" class="org.hisp.dhis.dd.action.dataelement.RemoveDataElementAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.AddDataElementAction" class="org.hisp.dhis.dd.action.dataelement.AddDataElementAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.UpdateDataElementAction" class="org.hisp.dhis.dd.action.dataelement.UpdateDataElementAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.ShowDataElementFormAction" class="org.hisp.dhis.dd.action.dataelement.ShowDataElementFormAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="optionService" ref="org.hisp.dhis.option.OptionService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelement.ValidateDataElementAction" class="org.hisp.dhis.dd.action.dataelement.ValidateDataElementAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <!-- Data Element Group -->
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.ShowAddDataElementGroupForm" class="org.hisp.dhis.dd.action.dataelementgroup.ShowAddDataElementGroupForm"
+    scope="prototype">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.ShowDataElementGroupEditorAction" class="org.hisp.dhis.dd.action.dataelementgroup.ShowDataElementGroupEditorAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.RenameDEGroupNameEditorAction" class="org.hisp.dhis.dd.action.dataelementgroup.RenameDEGroupNameEditorAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.GetDataElementGroupListAction" class="org.hisp.dhis.dd.action.dataelementgroup.GetDataElementGroupListAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.GetAssignedGroupsByDataElementAction" class="org.hisp.dhis.dd.action.dataelementgroup.GetAssignedGroupsByDataElementAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.AssignGroupsForDataElementAction" class="org.hisp.dhis.dd.action.dataelementgroup.AssignGroupsForDataElementAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.GetDataElementGroupAction" class="org.hisp.dhis.dd.action.dataelementgroup.GetDataElementGroupAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.RemoveDataElementGroupAction" class="org.hisp.dhis.dd.action.dataelementgroup.RemoveDataElementGroupAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.AddDataElementGroupAction" class="org.hisp.dhis.dd.action.dataelementgroup.AddDataElementGroupAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.UpdateDataElementGroupAction" class="org.hisp.dhis.dd.action.dataelementgroup.UpdateDataElementGroupAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.ValidateDataElementGroupAction" class="org.hisp.dhis.dd.action.dataelementgroup.ValidateDataElementGroupAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroup.GetDataElementGroupMembersAction" class="org.hisp.dhis.dd.action.dataelementgroup.GetDataElementGroupMembersAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <!-- Data Element Group Set -->
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroupset.AddDataElementGroupSetAction" class="org.hisp.dhis.dd.action.dataelementgroupset.AddDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroupset.DeleteDataElementGroupSetAction" class="org.hisp.dhis.dd.action.dataelementgroupset.DeleteDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroupset.OpenUpdateDataElementGroupSetAction" class="org.hisp.dhis.dd.action.dataelementgroupset.OpenUpdateDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroupset.ListDataElementGroupSetAction" class="org.hisp.dhis.dd.action.dataelementgroupset.ListDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroupset.UpdateDataElementGroupSetAction" class="org.hisp.dhis.dd.action.dataelementgroupset.UpdateDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroupset.ValidateDataElementGroupSetAction" class="org.hisp.dhis.dd.action.dataelementgroupset.ValidateDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.dataelementgroupset.GetDataElementGroupSetAction" class="org.hisp.dhis.dd.action.dataelementgroupset.GetDataElementGroupSetAction"
+    scope="prototype">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+
+  <!-- Indicator Group -->
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.ShowAddIndicatorGroupForm" class="org.hisp.dhis.dd.action.indicatorgroup.ShowAddIndicatorGroupForm">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.ShowIndicatorGroupEditorAction" class="org.hisp.dhis.dd.action.indicatorgroup.ShowIndicatorGroupEditorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.GetIndicatorGroupListAction" class="org.hisp.dhis.dd.action.indicatorgroup.GetIndicatorGroupListAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.GetIndicatorGroupAction" class="org.hisp.dhis.dd.action.indicatorgroup.GetIndicatorGroupAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.RemoveIndicatorGroupAction" class="org.hisp.dhis.dd.action.indicatorgroup.RemoveIndicatorGroupAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.AddIndicatorGroupAction" class="org.hisp.dhis.dd.action.indicatorgroup.AddIndicatorGroupAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.ShowUpdateIndicatorGroupFormAction" class="org.hisp.dhis.dd.action.indicatorgroup.ShowUpdateIndicatorGroupFormAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.UpdateIndicatorGroupAction" class="org.hisp.dhis.dd.action.indicatorgroup.UpdateIndicatorGroupAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.RenameIndicatorGroupNameEditorAction" class="org.hisp.dhis.dd.action.indicatorgroup.RenameIndicatorGroupNameEditorAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.AssignGroupsForIndicatorAction" class="org.hisp.dhis.dd.action.indicatorgroup.AssignGroupsForIndicatorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroup.GetAssignedIndicatorGroupsAction" class="org.hisp.dhis.dd.action.indicatorgroup.GetAssignedIndicatorGroupsAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <!-- Indicator Group Set -->
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroupset.AddIndicatorGroupSetAction" class="org.hisp.dhis.dd.action.indicatorgroupset.AddIndicatorGroupSetAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroupset.DeleteIndicatorGroupSetAction" class="org.hisp.dhis.dd.action.indicatorgroupset.DeleteIndicatorGroupSetAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroupset.OpenUpdateIndicatorGroupSetAction" class="org.hisp.dhis.dd.action.indicatorgroupset.OpenUpdateIndicatorGroupSetAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroupset.ListIndicatorGroupSetAction" class="org.hisp.dhis.dd.action.indicatorgroupset.ListIndicatorGroupSetAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroupset.UpdateIndicatorGroupSetAction" class="org.hisp.dhis.dd.action.indicatorgroupset.UpdateIndicatorGroupSetAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatorgroupset.GetIndicatorGroupSetAction" class="org.hisp.dhis.dd.action.indicatorgroupset.GetIndicatorGroupSetAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <!-- Indicator Type -->
+
+  <bean id="org.hisp.dhis.dd.action.indicatortype.GetIndicatorTypeListAction" class="org.hisp.dhis.dd.action.indicatortype.GetIndicatorTypeListAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatortype.GetIndicatorTypeAction" class="org.hisp.dhis.dd.action.indicatortype.GetIndicatorTypeAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatortype.RemoveIndicatorTypeAction" class="org.hisp.dhis.dd.action.indicatortype.RemoveIndicatorTypeAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatortype.AddIndicatorTypeAction" class="org.hisp.dhis.dd.action.indicatortype.AddIndicatorTypeAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatortype.UpdateIndicatorTypeAction" class="org.hisp.dhis.dd.action.indicatortype.UpdateIndicatorTypeAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicatortype.ValidateIndicatorTypeAction" class="org.hisp.dhis.dd.action.indicatortype.ValidateIndicatorTypeAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <!-- Indicator -->
+
+  <bean id="org.hisp.dhis.dd.action.indicator.ShowAddIndicatorForm" class="org.hisp.dhis.dd.action.indicator.ShowAddIndicatorForm"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicator.GetIndicatorListAction" class="org.hisp.dhis.dd.action.indicator.GetIndicatorListAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicator.GetIndicatorAction" class="org.hisp.dhis.dd.action.indicator.GetIndicatorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicator.RemoveIndicatorAction" class="org.hisp.dhis.dd.action.indicator.RemoveIndicatorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicator.AddIndicatorAction" class="org.hisp.dhis.dd.action.indicator.AddIndicatorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicator.ShowUpdateIndicatorFormAction" class="org.hisp.dhis.dd.action.indicator.ShowUpdateIndicatorFormAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicator.UpdateIndicatorAction" class="org.hisp.dhis.dd.action.indicator.UpdateIndicatorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="legendService" ref="org.hisp.dhis.legend.LegendService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.indicator.ValidateIndicatorAction" class="org.hisp.dhis.dd.action.indicator.ValidateIndicatorAction"
+    scope="prototype">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+  </bean>
+
+  <!-- Category -->
+
+  <bean id="org.hisp.dhis.dd.action.category.AddDataElementCategoryAction" class="org.hisp.dhis.dd.action.category.AddDataElementCategoryAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.ValidateDataElementCategoryAction" class="org.hisp.dhis.dd.action.category.ValidateDataElementCategoryAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.GetDataElementCategoryListAction" class="org.hisp.dhis.dd.action.category.GetDataElementCategoryListAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.UpdateDataElementCategoryAction" class="org.hisp.dhis.dd.action.category.UpdateDataElementCategoryAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.GetDataElementCategoryAction" class="org.hisp.dhis.dd.action.category.GetDataElementCategoryAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.RemoveDataElementCategoryAction" class="org.hisp.dhis.dd.action.category.RemoveDataElementCategoryAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <!-- CategoryOption -->
+
+  <bean id="org.hisp.dhis.dd.action.category.ShowAddDataElementCategoryOptionAction"
+    class="org.hisp.dhis.dd.action.category.ShowAddDataElementCategoryOptionAction" scope="prototype"/>
+
+  <bean id="org.hisp.dhis.dd.action.category.GetDataElementCategoryOptionListAction" class="org.hisp.dhis.dd.action.category.GetDataElementCategoryOptionListAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.AddDataElementCategoryOptionAction" class="org.hisp.dhis.dd.action.category.AddDataElementCategoryOptionAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.UpdateDataElementCategoryOptionAction" class="org.hisp.dhis.dd.action.category.UpdateDataElementCategoryOptionAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.RemoveDataElementCategoryOptionAction" class="org.hisp.dhis.dd.action.category.RemoveDataElementCategoryOptionAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.GetDataElementCategoryOptionAction" class="org.hisp.dhis.dd.action.category.GetDataElementCategoryOptionAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.ValidateDataElementCategoryOptionAction" class="org.hisp.dhis.dd.action.category.ValidateDataElementCategoryOptionAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <!-- CategoryCombo -->
+
+  <bean id="org.hisp.dhis.dd.action.categorycombo.GetDataElementCategoryListAction" class="org.hisp.dhis.dd.action.categorycombo.GetDataElementCategoryListAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categorycombo.AddDataElementCategoryComboAction" class="org.hisp.dhis.dd.action.categorycombo.AddDataElementCategoryComboAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categorycombo.ValidateDataElementCategoryComboAction" class="org.hisp.dhis.dd.action.categorycombo.ValidateDataElementCategoryComboAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categorycombo.GetDataElementCategoryComboListAction" class="org.hisp.dhis.dd.action.categorycombo.GetDataElementCategoryComboListAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categorycombo.UpdateDataElementCategoryComboAction" class="org.hisp.dhis.dd.action.categorycombo.UpdateDataElementCategoryComboAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categorycombo.GetDataElementCategoryComboAction" class="org.hisp.dhis.dd.action.categorycombo.GetDataElementCategoryComboAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categorycombo.RemoveDataElementCategoryComboAction" class="org.hisp.dhis.dd.action.categorycombo.RemoveDataElementCategoryComboAction"
+    scope="prototype">
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <!-- CategoryOptionGroup  -->
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.ShowAddCategoryOptionGroupAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.ShowAddCategoryOptionGroupAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.AddCategoryOptionGroupAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.AddCategoryOptionGroupAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.GetCategoryOptionGroupAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.GetCategoryOptionGroupAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.GetCategoryOptionGroupListAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.GetCategoryOptionGroupListAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.RemoveCategoryOptionGroupAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.RemoveCategoryOptionGroupAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.ShowUpdateCategoryOptionGroupAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.ShowUpdateCategoryOptionGroupAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.UpdateCategoryOptionGroupAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.UpdateCategoryOptionGroupAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroup.ValidateCategoryOptionGroupAction" class="org.hisp.dhis.dd.action.categoryoptiongroup.ValidateCategoryOptionGroupAction"
+    scope="prototype">
+  </bean>
+
+  <!-- CategoryOptionGroupSet  -->
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroupset.AddCategoryOptionGroupSetAction" class="org.hisp.dhis.dd.action.categoryoptiongroupset.AddCategoryOptionGroupSetAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroupset.GetCategoryOptionGroupSetAction" class="org.hisp.dhis.dd.action.categoryoptiongroupset.GetCategoryOptionGroupSetAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroupset.GetCategoryOptionGroupSetListAction" class="org.hisp.dhis.dd.action.categoryoptiongroupset.GetCategoryOptionGroupSetListAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroupset.RemoveCategoryOptionGroupSetAction" class="org.hisp.dhis.dd.action.categoryoptiongroupset.RemoveCategoryOptionGroupSetAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroupset.ShowUpdateCategoryOptionGroupSetAction" class="org.hisp.dhis.dd.action.categoryoptiongroupset.ShowUpdateCategoryOptionGroupSetAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroupset.UpdateCategoryOptionGroupSetAction" class="org.hisp.dhis.dd.action.categoryoptiongroupset.UpdateCategoryOptionGroupSetAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.categoryoptiongroupset.ValidateCategoryOptionGroupSetAction" class="org.hisp.dhis.dd.action.categoryoptiongroupset.ValidateCategoryOptionGroupSetAction"
+    scope="prototype">
+  </bean>
+
+  <!-- CategoryOptionCombo -->
+
+  <bean id="org.hisp.dhis.dd.action.category.GetCategoryOptionComboListAction" class="org.hisp.dhis.dd.action.category.GetCategoryOptionComboListAction"
+    scope="prototype">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.GetCategoryOptionComboAction" class="org.hisp.dhis.dd.action.category.GetCategoryOptionComboAction"
+    scope="prototype">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.UpdateCategoryOptionComboAction" class="org.hisp.dhis.dd.action.category.UpdateCategoryOptionComboAction"
+    scope="prototype">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dd.action.category.ValidateCategoryOptionComboAction" class="org.hisp.dhis.dd.action.category.ValidateCategoryOptionComboAction"
+    scope="prototype">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+</beans>

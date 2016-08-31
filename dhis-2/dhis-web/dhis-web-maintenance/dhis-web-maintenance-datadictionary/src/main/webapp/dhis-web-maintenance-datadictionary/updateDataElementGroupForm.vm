@@ -1,0 +1,78 @@
+<script type="text/javascript">
+	jQuery(function() {
+        validation2( 'updateDataElementGroupForm', function( form )
+        {
+            form.submit();
+        }, {
+            'beforeValidateHandler' : function() {
+                beforeSubmit();
+                #tblDynamicAttributesJavascript()
+                $("#deSelected").find("option").attr("selected", "selected");
+            },
+            'rules' : getValidationRules( "dataElementGroup" )
+        } );
+
+        checkValueIsExist( "name", "validateDataElementGroup.action", {
+            id : getFieldValue( 'id' )
+        } );
+		
+		checkValueIsExist( "shortName", "validateDataElementGroup.action", {
+            id : getFieldValue( 'id' )
+        } );
+		
+		checkValueIsExist( "code", "validateDataElementGroup.action", {
+            id : getFieldValue( 'id' )
+        } );
+
+        $('#deAvailable').selected({
+          url: '../api/dataElements.json',
+          target: $('#deSelected'),
+          search: $('#deAvailableSearch'),
+          iterator: 'dataElements'
+        });
+	});
+</script>
+
+<h3>$i18n.getString( "edit_data_element_group" )</h3>
+
+<form id="updateDataElementGroupForm" action="updateDataElementGroup.action" method="post" class="inputForm">
+
+<div>
+	<input type="hidden" id="id" name="id" value="$dataElementGroup.id"/>
+</div>
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+
+	<tr>
+		<td style="width: 120px;"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$encoder.htmlEncode( $!dataElementGroup.name )">
+		</td>
+	</tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="shortName" name="shortName" value="$!encoder.htmlEncode( $dataElementGroup.shortName )"></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $dataElementGroup.code )"></td>
+	</tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+#jqSelected({
+    "prefix": "de",
+    "i18n_available": "available_data_elements",
+    "i18n_selected": "selected_data_elements",
+    "objects": $dataElements
+})
+
+<p>
+	<input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'dataElementGroup.action' )" style="width:10em"/>
+</p>
+
+</form>

@@ -1,0 +1,15 @@
+
+<h3>$i18n.getString( "analytics_tables_management" ) #openHelp( "data_mart" )</h3>
+
+<!-- Analytics -->
+
+<div class="setting">$i18n.getString( "analytics_tables_update" )</div>
+
+<div class="setting"><input type="button" onclick="startExport()" value="$i18n.getString( 'start_export' )" style="width:120px"></div>
+
+<div>
+<table id="notificationTable" class="notificationTable" style="display:none">
+<col width="140">
+<col width="360">
+</table>
+</div>

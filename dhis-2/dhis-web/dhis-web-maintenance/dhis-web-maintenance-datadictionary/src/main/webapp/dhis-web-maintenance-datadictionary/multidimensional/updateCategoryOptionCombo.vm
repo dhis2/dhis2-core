@@ -1,0 +1,49 @@
+<script type="text/javascript">
+    jQuery(document).ready(	function() {
+	   validation( 'addCategoryOptionComboForm', function(form){
+			form.submit();
+		})
+		
+        checkValueIsExist( "code", "validateCategoryOptionCombo.action", {id: $optionCombo.id} );
+	});
+
+</script>
+
+<h3>$i18n.getString( "edit_data_element_category_option_combo" )</h3>
+
+<form id="addCategoryOptionComboForm" name="addCategoryOptionComboForm" action="updateCategoryOptionCombo.action" method="post" class="inputForm">
+  
+  <input type="hidden" id="id" name="id" value="$optionCombo.id"/>
+  
+  <table>
+    <tr>
+      <th colspan="2">$i18n.getString( "details" )</th>      
+    </tr>
+    <tr>
+      <td style="width: 100px"><label>$i18n.getString( "name" )</label></td>
+      <td><input type="text" id="name" name="name" value="$!encoder.htmlEncode( $optionCombo.displayName )" readonly /></td>
+      <td></td>
+    </tr>      
+	<tr>
+	  <td><label>$i18n.getString( "code" )</label></td>
+	  <td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $optionCombo.code )" /></td>
+    </tr>
+    <tr>
+   		<td><label for="ignoreApproval ">$i18n.getString( "ignore_data_approval" )</label></td>
+   		<td>
+   			<select id="ignoreApproval" name="ignoreApproval">
+   				<option value="false">$i18n.getString( "no" )</option>
+   				<option value="true" #if( $!optionCombo.ignoreApproval ) selected="selected" #end>$i18n.getString( "yes" )</option>
+   			</select>
+        </td>
+    </tr>
+	<tr>
+		<td></td>
+		<td>
+			<input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/>
+			<input type="button" onclick="dhis2.commons.redirectCurrentPage( 'categoryOptionCombo.action' )" value="$i18n.getString( 'cancel' )" style="width:10em"/></p>
+		</td>
+	</tr>
+  </table>  
+  
+</form>

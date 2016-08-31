@@ -1,0 +1,137 @@
+<div class="panel panel-info" ng-controller="EnrollmentController">
+    <div class="panel-heading handle bold">
+
+        {{enrollmentWidget.title| translate}}
+        <span class="nav-pills" ng-show="selectedProgram && currentEnrollment && currentEnrollment !== selectedEnrollment">
+            | <a href ng-click="loadEnrollmentDetails(currentEnrollment)" title="{{'current'| translate}}"><span ng-class="{true: 'widget - link - active', false: 'widget - link'} [showEnrollmentDiv]">{{'current'| translate}}</span></a>
+        </span>
+        <span class="nav-pills" ng-show="selectedProgram && !currentEnrollment && !selectedTei.inactive">
+            | <a href ng-click="showNewEnrollment()" title="{{'new'| translate}}"><span ng-class="{true: 'widget - link - active', false: 'widget - link'} [showEnrollmentDiv]">{{'new'| translate}}</span></a>
+        </span>
+        <span class="nav-pills" ng-show="hasEnrollmentHistory">
+            | <a href ng-click="showEnrollmentHistory()" title="{{'history'| translate}}"><span ng-class="{true: 'widget - link - active', false: 'widget - link'} [showEnrollmentHistoryDiv]">{{'history'| translate}}</span></a>
+        </span>       
+
+        <span class="pull-right widget-link">            
+            <a class="small-horizonal-spacing" href ng-click="expandCollapse(enrollmentWidget)">
+                <span ng-show="enrollmentWidget.expand"><i class="fa fa-chevron-up" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!enrollmentWidget.expand"><i class="fa fa-chevron-down" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizonal-spacing" href ng-click="removeWidget(enrollmentWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>            
+        </span>
+    </div>
+    <div ng-show="enrollmentWidget.expand" class="panel-body dashboard-widget-container">
+        
+        <!-- operations on selected enrollment begins -->
+        <div ng-if="selectedEnrollment.enrollment">
+
+            <table class="table-borderless table-striped">
+                <tr class="col-md-12">
+                    <td class="col-md-6">
+                        {{'enrolling_orgunit' | translate}}
+                    </td>
+                    <td class="col-md-6">
+                        <input type="text" class="form-control" value={{selectedEnrollment.orgUnitName}} ng-disabled="true"/>
+                    </td>
+                </tr>
+                <tr class="col-md-12">
+                    <td class="col-md-6">
+                        {{selectedProgram.enrollmentDateLabel}}
+                    </td>
+                    <td class="col-md-6">
+                        <input type="text" placeholder="{{dhis2CalendarFormat.keyDateFormat}}" class="form-control" d2-date ng-model="selectedEnrollment.enrollmentDate" ng-disabled="true"/>
+                    </td>
+                </tr>
+                <tr class="col-md-12" ng-if="selectedProgram.displayIncidentDate">                    
+                    <td class="col-md-6">
+                        {{selectedProgram.incidentDateLabel}}
+                    </td>
+                    <td class="col-md-6">
+                        <input type="text" placeholder="{{dhis2CalendarFormat.keyDateFormat}}" class="form-control" d2-date ng-model="selectedEnrollment.incidentDate" ng-disabled="true"/>
+                    </td>
+                </tr>                
+            </table>
+
+            <div class="vertical-spacing horizonal-spacing">
+
+                <button type="button" 
+                        class="btn btn-primary"
+                        ng-disabled="selectedEnrollment.status !== 'ACTIVE' || selectedTei.inactive"
+                        ng-click="completeEnrollment()">
+                    {{'complete'| translate}}
+                </button>
+                <button type="button" 
+                        class="btn btn-warning"
+                        ng-disabled="selectedEnrollment.status !== 'ACTIVE' || selectedTei.inactive"
+                        ng-click="terminateEnrollment()">
+                    {{'terminate'| translate}}
+                </button>   
+
+                <button type="button"
+                        title="{{'unmark_for_followup'| translate}}"
+                        class="btn btn-danger horizonal-spacing"
+                        ng-disabled="selectedEnrollment.status !== 'ACTIVE' || selectedTei.inactive"
+                        ng-if="selectedEnrollment.followup"
+                        ng-click="markForFollowup()">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </button>
+                <button type="button" 
+                        title="{{'mark_for_followup'| translate}}"
+                        class="btn btn-default horizonal-spacing"
+                        ng-disabled="selectedEnrollment.status !== 'ACTIVE' || selectedTei.inactive"
+                        ng-if="!selectedEnrollment.followup"
+                        ng-click="markForFollowup()">
+                    <i class="fa fa-exclamation-triangle"></i>
+                </button>
+
+            </div>
+
+        </div>
+        <!-- operations on selected enrollment ends -->
+
+        <!-- new enrollment registration form begins -->
+        <div ng-if="showEnrollmentDiv" ng-include="'components/registration/registration.html'"></div>
+        <!-- new enrollment registration form ends -->
+
+        <!-- operations on historical enrollment begins -->
+        <div ng-if="showEnrollmentHistoryDiv && !selectedEnrollment">
+            <div class="row">
+                <table class="table table-bordered table-striped dhis2-table-hover">
+                    <tr>
+                        <th>
+                            {{selectedProgram.enrollmentDateLabel}}
+                        </th>
+                        <th ng-if="selectedProgram.displayIncidentDate">
+                            {{selectedProgram.incidentDateLabel}}
+                        </th>
+                    </tr>
+                    <tr ng-click="loadEnrollmentDetails(en)" ng-repeat="en in historicalEnrollments" title="{{'details'| translate}}">
+                        <td>
+                            {{en.enrollmentDate}}
+                        </td>
+                        <td ng-if="selectedProgram.displayIncidentDate">
+                            {{en.incidentDate}}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <!-- operations on historical enrollment ends -->
+
+        <!-- various alerts begin -->
+        <div ng-if="selectedProgram && !selectedEnrollment && !showEnrollmentDiv && !hasEnrollmentHistory">
+            <div class="alert alert-warning">{{'not_yet_enrolled_enrollment'| translate}}</div> 
+        </div>
+        <div ng-if="selectedProgram && !selectedEnrollment && !showEnrollmentDiv && !showEnrollmentHistoryDiv && hasEnrollmentHistory">
+            <div class="alert alert-warning">{{'no_active_enrollment_exists'| translate}}</div> 
+        </div>
+        <div ng-if="!selectedProgram && programExists">
+            <div class="alert alert-danger">{{'please_select_a_program_for_enrollment'| translate}}</div> 
+        </div>
+        <div ng-if="!programExists">
+            <div class="alert alert-danger">{{'no_program_exists_enrollment'| translate}}</div> 
+        </div>
+        <!-- various alerts end -->
+
+    </div>
+</div>

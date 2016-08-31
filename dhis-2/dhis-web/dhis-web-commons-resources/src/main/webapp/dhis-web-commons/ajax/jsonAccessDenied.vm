@@ -1,0 +1,4 @@
+{
+  "response": "error",
+  "message": "$!encoder.jsonEncode( $i18n.getString( 'access_denied' ) ) - $!encoder.jsonEncode( $i18n.getString( 'access_denied_message' ) )"
+}

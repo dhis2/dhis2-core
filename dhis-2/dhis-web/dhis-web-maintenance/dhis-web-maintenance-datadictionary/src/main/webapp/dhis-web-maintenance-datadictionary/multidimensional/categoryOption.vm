@@ -1,0 +1,86 @@
+
+#sharingDialog()
+
+<script type="text/javascript">
+	jQuery(document).ready(function(){	
+		tableSorter( 'categoryList' );	
+
+    dhis2.contextmenu.makeContextMenu({
+      menuId: 'contextMenu',
+      menuItemActiveClass: 'contextMenuItemActive'
+    });
+	});
+	
+
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_data_element_category_option" ) , "'" )';
+</script>
+
+<h3>$i18n.getString( "data_element_category_option_management" ) #openHelp( "dataElementCategoryOption" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canManage"><a data-target-fn="showSharingDialogWithContext"><i class="fa fa-share"></i>&nbsp;&nbsp;$i18n.getString( "sharing_settings" )</a></li>
+    <li><a data-target-fn="showUpdateDataElementCategoryOptionForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li><a data-target-fn="removeDataElementCategoryOption"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showDataElementCategoryOptionDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+  <tr>
+    <td style="vertical-align:top">
+		<table width="100%">
+			<tr>
+				<td>#filterDiv( "categoryOption" )</td>
+				<td colspan="3" style="text-align:right"><input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddDataElementCategoryOptionForm.action'"/></td>
+			</tr>
+		</table>
+      <table class="listTable" id="categoryList">
+        <thead>
+          <tr>
+            <th>$i18n.getString( "name" )</th>
+          </tr>
+        </thead>
+          <tbody id="list">
+            #foreach( $dataElementCategoryOption in $dataElementCategoryOptions )
+            #if( $dataElementCategoryOption.id != $defaultCategoryOption.id )
+              <tr id="tr${dataElementCategoryOption.id}" data-id="$!dataElementCategoryOption.id" data-uid="$!dataElementCategoryOption.uid" data-type="CategoryOption" data-name="$encoder.htmlEncode( $!dataElementCategoryOption.displayName )"
+                  data-can-manage="$security.canManage( $dataElementCategoryOption )"
+                  data-can-update="$security.canUpdate( $dataElementCategoryOption )"
+                  data-can-delete="$security.canDelete( $dataElementCategoryOption )">
+                <td>$encoder.htmlEncode( $!dataElementCategoryOption.displayName )</td>
+              </tr>
+              #end
+            #end
+          </tbody>
+
+        </table>
+		<p></p>
+		#parse( "/dhis-web-commons/paging/paging.vm" )
+    </td>
+
+    <td id="detailsData">
+      <div id="detailsArea">
+        <div id="hideDetailsArea">
+        <a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+      </div>
+          <p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+          <p><label>$i18n.getString( "short_name" ):</label><br/><span id="shortNameField"></span></p>
+          <p><label>$i18n.getString( "code" ):</label><br/><span id="codeField"></span></p>
+          <p><label>$i18n.getString( "categories" ):</label><br/><span id="categoriesField"></span></p>
+          <p><label>$i18n.getString( "start_date" ):</label><br/><span id="startDateField"></span></p>
+          <p><label>$i18n.getString( "end_date" ):</label><br/><span id="endDateField"></span></p>
+		  <p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+	  </div>
+
+      <div id="warningArea">
+        <div id="hideDetailsArea">
+          <a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+        </div>
+        <p><span id="warningField"></span></p>
+      </div>
+
+		</td>
+  </tr>
+</table>

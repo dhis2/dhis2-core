@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.hisp.dhis.attribute">
+  <class name="AttributeValue" table="attributevalue">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="attributevalueid">
+      <generator class="native" />
+    </id>
+
+    <property name="created" />
+
+    <property name="lastUpdated" />
+
+    <property name="value" type="text" />
+
+    <many-to-one name="attribute" class="org.hisp.dhis.attribute.Attribute" column="attributeid"
+      foreign-key="fk_attributevalue_attributeid" not-null="true" />
+
+  </class>
+</hibernate-mapping>

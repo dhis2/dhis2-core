@@ -1,0 +1,23 @@
+<div class="panel panel-info" ng-controller="ProfileController">
+    <div class="panel-heading handle bold">
+        {{profileWidget.title| translate}}
+        <span class="nav-pills" ng-if="!enrollmentEditing && !selectedTei.inactive">
+            | <a href ng-click="enableEdit()" title="{{'edit_profile'| translate}}"><span ng-class="{true: 'widget - link - active', false: 'widget - link'} [!editingDisabled]">{{'edit'| translate}}</span></a>
+        </span>
+
+        <span class="pull-right widget-link">            
+            <a class="small-horizonal-spacing" href ng-click="expandCollapse(profileWidget)">
+                <span ng-show="profileWidget.expand"><i class="fa fa-chevron-up" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!profileWidget.expand"><i class="fa fa-chevron-down" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizonal-spacing" href ng-click="removeWidget(profileWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>            
+        </span>        
+    </div>
+    <div ng-show="profileWidget.expand" class="panel-body dashboard-widget-container">
+        <form name="outerForm" novalidate>
+            <div ng-if="!enrollmentEditing">                
+                <div ng-include="'components/registration/registration.html'"></div>
+            </div>
+        </form>
+    </div>
+</div>

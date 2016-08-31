@@ -1,0 +1,9 @@
+{ "categoryOptionGroupSet": 
+  {
+    "id": $!{categoryOptionGroupSet.id},
+    "name": "$!encoder.jsonEncode( ${categoryOptionGroupSet.displayName} )",
+	"shortName": "$!encoder.jsonEncode( ${categoryOptionGroupSet.displayShortName} )",
+	"code": "$!encoder.jsonEncode( ${categoryOptionGroupSet.code} )",
+    "memberCount": "$categoryOptionGroupSet.members.size()"
+  } 
+}

@@ -1,0 +1,44 @@
+
+<h2>$i18n.getString( "settings" )</h2>
+
+<form action="saveSettingsForm.action" method="POST">
+
+<div class="header-box" align="center">
+    <h3 style="text-align: left;">$i18n.getString( "update_user" )</h3>
+    <p style="text-align: left;">
+        $i18n.getString("first_name") *<br/>
+        <input type="text" id="firstName" name="firstName" value="$!firstName" />
+
+        $i18n.getString("surname") *<br />
+        <input type="text" id="surname" name="surname" value="$!surname" />
+
+        $i18n.getString("phone_number") <br />
+        <input type="text" id="phoneNumber" name="phoneNumber" value="$!phoneNumber" />
+
+        $i18n.getString("email") <br />
+        <input type="text" id="email" name="email" value="$!email" />
+    </p>
+</div>
+
+<div class="header-box" align="center">
+	<h3 style="text-align: left;">$i18n.getString( "language" )</h3>
+	<p style="text-align: left;">
+		<select id="currentLocale" name="currentLocale" style="width: 100%;">
+		#foreach( $locale in $availableLocales )
+			<option value="$locale.toString()" #if( $locale == $currentLocale )selected="selected"#end>$locale.getDisplayName()</option>
+		#end
+		</select>
+	</p>
+</div>
+
+<div class="header-box" align="center">
+	<p> <input type="submit" style="width: 100%;" value="$i18n.getString("save")" /> </p>
+</div>
+
+</form>
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+	<li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>

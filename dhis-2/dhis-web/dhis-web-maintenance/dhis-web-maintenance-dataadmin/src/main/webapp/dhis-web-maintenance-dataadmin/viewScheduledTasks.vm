@@ -1,0 +1,84 @@
+
+<h3>$i18n.getString( "scheduling_management" ) #openHelp( "scheduling" )</h3>
+
+<input id="isRunning" type="hidden" value="${running}">
+
+<form id="schedulingForm" action="scheduleTasks.action" method="post">
+
+<!-- Resource tables -->
+
+<div class="settingHeader">$i18n.getString( "resource_tables" )</div>
+
+<div class="settingLabel settingIndent">$i18n.getString( "resource_table_task_strategy" )</div>
+
+<div class="settingLabel settingIndent tipText">$i18n.getString( "last_success" ): $!format.formatDateTime( $lastResourceTableSuccess )</div>
+
+<div class="setting settingIndent">
+<select id="resourceTableStrategy" name="resourceTableStrategy" class="scheduling">
+	<option value="disabled">$i18n.getString( "disabled" )</option>
+	<option value="allDaily"#if( $resourceTableStrategy && $resourceTableStrategy == "allDaily" ) selected="selected"#end>$i18n.getString( "all_daily" )</option>
+	<option value="allEvery15Min"#if( $resourceTableStrategy && $resourceTableStrategy == "allEvery15Min" ) selected="selected"#end>$i18n.getString( "all_every_15_min" )</option>
+</select>
+</div>
+
+<!-- Analytics -->
+
+<div class="settingHeader">$i18n.getString( "analytics_tables" )</div>
+
+<div class="settingLabel settingIndent">$i18n.getString( "analytics_tables_task_strategy" )</div>
+
+<div class="settingLabel settingIndent tipText">$i18n.getString( "last_success" ): $!format.formatDateTime( $lastAnalyticsTableSuccess )</div>
+
+<div class="setting settingIndent">
+<select id="analyticsStrategy" name="analyticsStrategy" class="scheduling">
+    <option value="disabled">$i18n.getString( "disabled" )</option>
+    <option value="allDaily"#if( $analyticsStrategy && $analyticsStrategy == "allDaily" ) selected="selected"#end>$i18n.getString( "all_daily" )</option>
+    <option value="last3YearsDaily"#if( $analyticsStrategy && $analyticsStrategy == "last3YearsDaily" ) selected="selected"#end>$i18n.getString( "last_3_years_daily" )</option>
+</select>
+</div>
+
+<!-- Monitoring -->
+
+<div class="settingHeader">$i18n.getString( "data_monitoring" )</div>
+
+<div class="settingLabel settingIndent">$i18n.getString( "data_monitoring_strategy" )</div>
+
+<div class="settingLabel settingIndent tipText">$i18n.getString( "last_success" ): $!format.formatDateTime( $lastMonitoringSuccess )</div>
+
+<div class="setting settingIndent">
+<select id="monitoringStrategy" name="monitoringStrategy" class="scheduling">
+    <option value="disabled">$i18n.getString( "disabled" )</option>
+    <option value="allDaily"#if( $monitoringStrategy && $monitoringStrategy == "allDaily" ) selected="selected"#end>$i18n.getString( "all_daily" )</option>
+</select>
+</div>
+
+<!-- Data value synch -->
+
+<div class="settingHeader">$i18n.getString( "data_synchronization" )</div>
+
+<div class="settingLabel settingIndent">$i18n.getString( "data_synchronization_strategy" )</div>
+
+<div class="settingLabel settingIndent tipText">$i18n.getString( "last_success" ): $!format.formatDateTime( $lastDataSyncSuccess )</div>
+
+<div class="setting settingIndent">
+<select id="dataSynchStrategy" name="dataSynchStrategy" class="scheduling">
+    <option value="disabled">$i18n.getString( "disabled" )</option>
+    <option value="enabled"#if( $dataSynchStrategy && $dataSynchStrategy == "enabled" ) selected="selected"#end>$i18n.getString( "enabled" )</option>
+</select>
+</div>
+
+<!-- Submit -->
+
+<div class="setting">
+	<input type="button" style="width:140px" onclick="submitSchedulingForm()"
+	#if ( $running )
+	value="$i18n.getString( 'stop' )"
+	#else
+	value="$i18n.getString( 'start' )"
+	#end
+	/>
+</div>
+
+</form>
+
+<span id="info">$i18n.getString( "scheduling_is" ) $!i18n.getString( $!status )</span>

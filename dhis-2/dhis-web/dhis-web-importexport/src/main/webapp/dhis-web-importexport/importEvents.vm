@@ -1,0 +1,78 @@
+
+<h3>$i18n.getString( "import_summary" )</h3>
+
+<h4>$i18n.getString( "import_total_count" )</h4>
+<table>
+<col width="110">
+<col width="110">
+<tr>
+	<th>$i18n.getString( "type" )</th>
+	<th style="text-align:center">$i18n.getString( "count" )</th>
+</tr>
+<tr>
+	<td>$i18n.getString( "imported" )</td>
+	<td style="text-align:center">$!importSummaries.imported</td>
+</tr>
+<tr>
+	<td>$i18n.getString( "updated" )</td>
+	<td style="text-align:center">$!importSummaries.updated</td>
+</tr>
+<tr>
+	<td>$i18n.getString( "ignored" )</td>
+	<td style="text-align:center">$!importSummaries.ignored</td>
+</tr>
+</table>
+
+#foreach( $summary in $importSummaries.importSummaries )
+
+<h4>$i18n.getString( "import_count" )</h4>
+#if( $summary.importCount )
+<table>
+<col width="110">
+<col width="110">
+<tr>
+	<th>$i18n.getString( "type" )</th>
+	<th style="text-align:center">$i18n.getString( "count" )</th>
+</tr>
+<tr>
+	<td>$i18n.getString( "imported" )</td>
+	<td style="text-align:center">${summary.importCount.imported}</td>
+</tr>
+<tr>
+	<td>$i18n.getString( "updated" )</td>
+	<td style="text-align:center">${summary.importCount.updated}</td>
+</tr>
+<tr>
+	<td>$i18n.getString( "ignored" )</td>
+	<td style="text-align:center">${summary.importCount.ignored}</td>
+</tr>
+</table>
+#else
+<p>$i18n.getString( "no_data_values_found" )</p>
+#end
+
+#if( $summary.status == 'ERROR' )
+<h4 style="color: red;">$i18n.getString( "error" )</h4>
+$summary.description
+#else
+<h4>$i18n.getString( "conflicts" )</h4>
+#if( $summary.conflicts.size() > 0 )
+<table>
+<col width="110">
+<col width="110">
+<tr>
+	<th>$i18n.getString( "element" )</th>
+	<th>$i18n.getString( "description" )</th>
+</tr>
+#foreach( $conflict in $summary.conflicts )
+<tr>
+	<td>${conflict.object}</td>
+	<td>$encoder.htmlEncode( $conflict.value )</td>
+</tr>
+#end
+</table>
+#else
+<p>$i18n.getString( "no_conflicts_found" )</p>
+#end
+#end
+#end

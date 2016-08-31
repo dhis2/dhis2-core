@@ -1,0 +1,5 @@
+<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0" idScheme="code" dataSet="DS_A" completeDate="2012-01-09" period="201201" orgUnit="OU_A">
+    <dataValue dataElement="DE_A" value="10001" storedBy="john" timestamp="2012-01-01" comment="comment" followup="false"/>
+    <dataValue dataElement="DE_B" value="10002" storedBy="john" timestamp="2012-01-02" comment="comment" followup="false"/>
+    <dataValue dataElement="DE_C" value="10003" storedBy="john" timestamp="2012-01-03" comment="comment" followup="false"/>
+</dataValueSet>

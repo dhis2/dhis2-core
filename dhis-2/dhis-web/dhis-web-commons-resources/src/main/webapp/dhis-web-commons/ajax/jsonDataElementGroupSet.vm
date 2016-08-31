@@ -1,0 +1,8 @@
+{ "dataElementGroupSet":
+  {
+    "id": "${dataElementGroupSet.id}" ,
+    "uid": "${dataElementGroupSet.uid}" ,
+    "name": "$!encoder.jsonEncode( ${dataElementGroupSet.displayName} )",
+	"memberCount": "$dataElementGroupSet.members.size()"
+  }
+}

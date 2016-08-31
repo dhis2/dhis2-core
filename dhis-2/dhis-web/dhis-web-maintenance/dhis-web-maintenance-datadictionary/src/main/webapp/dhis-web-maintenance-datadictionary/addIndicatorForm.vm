@@ -1,0 +1,154 @@
+<script type="text/javascript">
+	jQuery( document ).ready( function()
+	{
+	    validation2( 'addIndicatorForm', function( form )
+	    {
+	        form.submit();
+	    }, {
+	    	'beforeValidateHandler' : function() {
+	    		#tblDynamicAttributesJavascript()
+	    	},
+	        'rules' : getValidationRules( "indicator" )
+	    } );
+
+	    checkValueIsExist( "code", "validateIndicator.action" );
+	} );
+
+	var previousName = '';
+</script>
+
+<h3>$i18n.getString( "create_new_indicator" )</h3>
+
+#sharingCreateNotification( "indicator" )
+
+<form id="addIndicatorForm" action="addIndicator.action" method="post" class="inputForm">
+
+<input type="hidden" id="numeratorDescription" name="numeratorDescription"/>	
+<input type="hidden" id="denominatorDescription" name="denominatorDescription" value=""/>
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+	<tr>
+		<td style="width:140px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" onchange="nameChanged()" /></td>
+	</tr>
+	<tr>
+		<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="shortName" name="shortName" /></td>
+	</tr>
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" /></td>
+	</tr>
+	<tr>
+		<td><label for="description">$i18n.getString( "description" )</label></td>
+		<td><textarea id="description" name="description"></textarea></td>
+	</tr>
+	<tr>
+		<td><label for="annualized">$i18n.getString( "annualized" )</label></td>
+		<td>
+			<select id="annualized" name="annualized">
+				<option value="false">$i18n.getString( "no" )</option>
+				<option value="true">$i18n.getString( "yes" )</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td><label for="decimals">$i18n.getString( "decimals_in_data_output" )</label></td>
+		<td>
+			<select id="decimals" name="decimals">
+				<option>[$i18n.getString( "default" )]</option>
+				<option value="0">0</option>
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td><label for="indicatorTypeId">$i18n.getString( "indicator_type" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>
+			<select id="indicatorTypeId" name="indicatorTypeId" onchange='indicatorTypeChanged();'>
+				<option value="">[$i18n.getString('select')]</option>
+			#foreach( $indicatorType in $indicatorTypes )
+				<option value="$indicatorType.id" number="$indicatorType.number">$encoder.htmlEncode( $indicatorType.name )</option>
+			#end
+			</select>
+		</td>
+	</tr>
+    <tr>
+        <td><label>$i18n.getString( 'legend_set' )</label></td>            
+        <td>
+            <select id="selectedLegendSetId" name="selectedLegendSetId">
+                <option value="0">[$i18n.getString('please_select')]</option>
+                #foreach ( $legendSet in $legendSets )
+                <option value="$legendSet.id">$encoder.htmlEncode( $legendSet.name )</option>
+                #end
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td><label for="url">$i18n.getString( "url" )</label></td>
+        <td><input type="text" id="url" name="url" /></td>
+    </tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes } )
+
+<table>
+	<tr>
+		<td style="width:140px"></td>
+		<td>
+			<input type="button" value="$i18n.getString( 'edit_numerator' )" onclick="indicatorNumeratorForm()" style="width:200px"/>
+			<input type="hidden" id="numerator" name="numerator"/>
+		</td>	
+	</tr>
+	<tr>
+		<td style="width:120px"></td>
+		<td>
+			<input type="button" id="denominatorButton" name="denominatorButton" value="$i18n.getString( 'edit_denominator' )" onclick="indicatorDenominatorForm()" style="width:200px"/>
+			<input type="hidden" id="denominator" name="denominator" class="{validate:{required:true}}"/>
+		</td>
+	</tr>
+</table>
+
+
+#if( $!groupSets && $!groupSets.size() > 0 )
+<table>
+	<tr>
+		<td style="height:15px" colspan="2"/>
+	</tr>
+
+    <tr>
+		<th colspan="2">$i18n.getString( "indicator_groups" )</th>
+    </tr>
+
+	#foreach ( $groupSet in $groupSets )
+    <tr>
+		<td><label>$encoder.htmlEncode( $groupSet.name )</label></td>			
+		<td>
+			<select id="selectedGroups" name="selectedGroups">
+				<option value="-1">[$i18n.getString( "select_group" )]</option>
+				#foreach ( $group in $groupSet.getSortedGroups() )
+				<option value="$group.id">$group.name</option>
+				#end
+			</select>
+		</td>
+    </tr>
+	#end
+</table>
+#end
+
+<p>
+	<input type="submit" value="$i18n.getString( 'add' )" style="width:10em" />
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'indicator.action' )" style="width:10em"/>
+</p>
+
+</form>
+
+#parse( "/dhis-web-maintenance-datadictionary/indicatorExpressionBuilderForm.vm" )
+

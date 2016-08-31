@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.period.RelativePeriods" table="relativeperiods">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="relativeperiodsid">
+      <generator class="native" />
+    </id>
+    
+    <property name="thisMonth" />
+    <property name="lastMonth" />
+    <property name="thisBimonth" />
+    <property name="lastBimonth" />
+    <property name="thisQuarter" />
+    <property name="lastQuarter" />
+    <property name="thisSixMonth" />
+    <property name="lastSixMonth" />
+    <property name="monthsThisYear" />
+    <property name="quartersThisYear" />
+    <property name="thisYear" />
+    
+    <property name="monthsLastYear" />
+    <property name="quartersLastYear" />
+    <property name="lastYear" />
+    
+    <property name="last5Years" />
+    <property name="last12Months" />
+    <property name="last6Months" />
+    <property name="last3Months" />
+    <property name="last6BiMonths" />
+    <property name="last4Quarters" />
+    <property name="last2SixMonths" />
+    <property name="thisFinancialYear" />
+    <property name="lastFinancialYear" />
+    <property name="last5FinancialYears" />
+    
+    <property name="thisWeek" />
+    <property name="lastWeek" />
+    <property name="last4Weeks" />
+    <property name="last12Weeks" />
+    <property name="last52Weeks" />
+    
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,53 @@
+#if ( $message )
+<script type="text/javascript">
+    setMessage( "${message}" ); 
+</script>
+#end
+
+<h3>$i18n.getString( "dhis14_file_configuration" )</h3>
+
+<form id="configForm" name="configForm" method="post" action="configDhis14.action">
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "configuration" )</th>
+	</tr>
+	<tr>
+		<td><label for="dataFile">$i18n.getString( "data_file" ) (#)</label></td>
+		<td><input type="text" id="dataFile" name="dataFile" value="$!configuration.dataFile" style="width:20em"></td>
+	</tr>
+	<tr>
+		<td><label for="userName">$i18n.getString( "user_name" )</label></td>
+		<td><input type="text" id="userName" name="userName" value="$!configuration.userName" style="width:20em"></td>
+	</tr>
+	<tr>
+		<td><label for="password">$i18n.getString( "password" )</label></td>
+		<td><input type="text" id="password" name="password" value="$!configuration.password" style="width:20em"></td>
+	</tr>
+	<tr>
+		<td><label for="levels">$i18n.getString( "levels" )</label></td>
+		<td>
+			<select id="levels" name="levels" style="width:20em">
+				<option value="8" #if ( $configuration.levels == "8" )selected="selected"#end>&nbsp;8&nbsp;</option>
+				<option value="7" #if ( $configuration.levels == "7" )selected="selected"#end>&nbsp;7&nbsp;</option>
+				<option value="6" #if ( $configuration.levels == "6" )selected="selected"#end>&nbsp;6&nbsp;</option>
+				<option value="5" #if ( $configuration.levels == "5" )selected="selected"#end>&nbsp;5&nbsp;</option>
+				<option value="4" #if ( $configuration.levels == "4" )selected="selected"#end>&nbsp;4&nbsp;</option>
+				<option value="3" #if ( $configuration.levels == "3" )selected="selected"#end>&nbsp;3&nbsp;</option>
+				<option value="2" #if ( $configuration.levels == "2" )selected="selected"#end>&nbsp;2&nbsp;</option>
+				<option value="1" #if ( $configuration.levels == "1" )selected="selected"#end>&nbsp;1&nbsp;</option>			
+    		</select>
+    	</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>
+			<input type="button" value="$i18n.getString( 'save' )" style="width:50%" onclick="validateConfigDhis14()" />
+			<input type="button" value="$i18n.getString( 'cancel' )" style="width:50%" onclick="window.location.href='displayImportForm.action?importFormat=DHIS14FILE'" />
+		</td>
+	</tr>
+</table>
+
+</form>
+
+<span id="message"></span>

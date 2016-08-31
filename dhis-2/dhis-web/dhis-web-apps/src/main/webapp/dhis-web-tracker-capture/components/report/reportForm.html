@@ -1,0 +1,77 @@
+<div class="row">
+    <div class="col-sm-8 col-md-6">
+        <table class="table table-borderless table-striped">
+            <tr>
+                <td>{{'org_unit' | translate}}</td>
+                <td>
+                    <input type="text" class="form-control" value="{{selectedOrgUnit.name|| 'please_select'| translate}}" ng-disabled="true">                                                                                        
+                </td>
+            </tr>            
+            <tr>
+                <td class='col-sm-4 col-md-3 vertical-center'>{{'org_unit_scope'| translate}}</td>
+                <td class='col-sm-4 col-md-3'>                 
+                    <label><input type="radio" ng-model="selectedOuMode.name" name="selected" value="SELECTED"> {{'SELECTED'| translate}}</label><br/>
+                    <label><input type="radio" ng-model="selectedOuMode.name" name="children" value="CHILDREN"> {{'CHILDREN'| translate}}</label><br/>
+                    <label><input type="radio" ng-model="selectedOuMode.name" name="descendants" value="DESCENDANTS"> {{'DESCENDANTS'| translate}}</label><br/>
+                </td>
+            </tr>
+            <tr>
+                <td class='col-sm-4 col-md-3 vertical-center'>
+                    {{'program'| translate}}
+                </td>
+                <td class='col-sm-4 col-md-3'>
+                    <select ng-model="selectedProgram"
+                            class="form-control"
+                            ng-options="program as program.name for program in programs | orderBy: 'name'"
+                            ng-disabled="programs.length < 1">
+                        <option value="">{{programs.length > 0 ? 'please_select' : 'no_program_exists'| translate}}</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-8 col-md-6">
+        <table class="table-borderless">
+            <tr>
+                <td>
+                    <input type="text" 
+                           name="reportStartDate" 
+                           placeholder="{{'start_date'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})" 
+                           class="form-control" 
+                           d2-date 
+                           ng-model="report.startDate" 
+                           max-date="0"
+                           ng-required="true"/> 
+                    <span ng-show="outerForm.submitted && outerForm.reportStartDate.$invalid" style="color:red;font-size:12px">{{'required'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})</span>
+                </td>
+                <td>
+                    <input type="text" 
+                           name="reportEndDate" 
+                           placeholder="{{'end_date'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})" 
+                           class="form-control" 
+                           d2-date 
+                           ng-model="report.endDate" 
+                           max-date="0" 
+                           ng-required="true"/>
+                    <span ng-show="outerForm.submitted && outerForm.reportEndDate.$invalid" style="color:red;font-size:12px">{{'required'| translate}} ({{dhis2CalendarFormat.keyDateFormat}})</span>
+                </td>
+            </tr>
+        </table>                
+    </div>
+    <div class="col-md-6 trim">
+        <button type="button" class="btn btn-primary" ng-click="generateReport(selectedProgram, report, selectedOuMode)" ng-disabled="!selectedProgram">{{'go'| translate}}</button>               
+    </div>
+</div>
+
+<div class="row" ng-if="programs.length < 1">        
+    <div class="col-sm-8 col-md-6 vertical-spacing">
+        <div class="alert alert-warning">{{'no_program_exists_report'| translate}}</div> 
+    </div>
+</div>
+<div class="row" ng-if="programs.length > 0 && !selectedProgram">        
+    <div class="col-sm-8 col-md-6 vertical-spacing">
+        <div class="alert alert-warning">{{'please_select_program_report'| translate}}</div> 
+    </div>
+</div>

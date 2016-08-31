@@ -1,0 +1,17 @@
+
+<script type="text/javascript">
+jQuery( document ).ready( function() {
+  jQuery( "#showMainMenuLink" ).attr( "href", "modules.action" );
+} );
+</script>
+
+#if ( $keyFlag )
+<img src="../dhis-web-commons/flags/${keyFlagImage}" style="margin-top: 16px; margin-left: 16px; border: 1px solid #D0D0D0;">
+#end
+
+<h2>$i18n.getString( "dhis2_online" )&nbsp;</h2>
+
+<ul>
+	<li><a href="http://www.dhis2.org" target="_blank">$i18n.getString( "home_page" )&nbsp;</a></li>
+	<li><a href="https://launchpad.net/dhis2" target="_blank">$i18n.getString( "launchpad_site" )&nbsp;</a></li>
+</ul>

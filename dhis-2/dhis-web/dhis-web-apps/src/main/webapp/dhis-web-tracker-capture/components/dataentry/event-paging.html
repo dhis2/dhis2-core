@@ -1,0 +1,43 @@
+<div class="paging-container">
+
+    <div class="event-paging">
+        
+        <span ng-show="eventsByStage[stage.id].indexOf(currentEvent)  > 0">
+            <a href ng-click="showDataEntryForEvent(eventsByStage[stage.id][0])" title="{{'first'| translate}}"> 
+                &laquo;&laquo;
+            </a>
+            <a href ng-click="showDataEntryForEvent(eventsByStage[stage.id][eventsByStage[stage.id].indexOf(currentEvent)-1])" title="{{'previous'| translate}}"> 
+                &laquo;
+            </a>                    
+        </span>
+        <span ng-hide="eventsByStage[stage.id].indexOf(currentEvent)  > 0">
+            <span title="{{'first'| translate}}">&laquo;&laquo;</span>
+            <span title="{{'previous'| translate}}">&laquo;</span>
+        </span>
+        
+        
+        <a href ng-click="showDataEntryForEvent(eventsByStage[stage.id][i])" 
+            title="{{'event_recorded_on'| translate}} {{eventsByStage[stage.id][i].sortingDate}} {{'at' | translate}} {{eventsByStage[stage.id][i].orgUnitName}}" 
+            ng-repeat="i in [] | forLoop:paginator.lowerLimit():eventsByStage[stage.id].length  | limitTo:paginator.getToolBarDisplay()" 
+            ng-class="eventsByStage[stage.id].indexOf(currentEvent) === i && 'active'">
+            {{i + 1}}
+        </a>
+
+        
+        <span ng-show="eventsByStage[stage.id].indexOf(currentEvent)  < eventsByStage[stage.id].length - 1">
+            <a href ng-click="showDataEntryForEvent(eventsByStage[stage.id][eventsByStage[stage.id].indexOf(currentEvent) + 1])" title="{{'next'| translate}}" > 
+                &raquo;
+            </a>
+            <a href ng-click="showLastEventInStage(stage.id)" title="{{'last'| translate}}"> 
+                &raquo;&raquo;
+            </a>
+        </span>
+        <span ng-hide="eventsByStage[stage.id].indexOf(currentEvent) < eventsByStage[stage.id].length - 1">
+            <span class="next" title="{{'next'| translate}}">&raquo; </span>
+            <span class="last" title="{{'last'| translate}}">&raquo;&raquo;</span>
+        </span>
+        
+        
+    </div>
+
+</div>

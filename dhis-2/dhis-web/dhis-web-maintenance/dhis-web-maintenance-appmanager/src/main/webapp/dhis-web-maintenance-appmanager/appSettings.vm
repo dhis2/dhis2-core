@@ -1,0 +1,32 @@
+<script>
+    jQuery(document).ready(function() {
+        jQuery('#appSettingsForm').ajaxForm({
+            dataType:  'json',
+            success: function(data){
+                setHeaderDelayMessage(data.message);
+            }
+        });
+
+      dhis2.contextmenu.makeContextMenu({
+        menuId: 'contextMenu',
+        menuItemActiveClass: 'contextMenuItemActive'
+      });
+    });
+</script>
+
+<h3>$i18n.getString( "appmanager_settings" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="removeApp"><i class="fa fa-trash-o"></i>$i18n.getString( "remove" )</a></li>
+  </ul>
+</div>
+
+<div class="settingLabel">$i18n.getString( "appmanager_installation_folder" ) <span class="tipText">($i18n.getString( "appmanager_absolute_server_path" ))</span></div>
+<div class="setting"><input type="text" id="appFolderPath" name="appFolderPath" style="width:40em" value="$!appFolderPath"/></div>
+<div class="settingLabel">$i18n.getString( "appmanager_baseurl" ) <span class="tipText">($i18n.getString( "appmanager_where_apps_can_be_found" ))</span></div>
+<div class="setting"><input type="text" id="appBaseUrl" name="appBaseUrl" style="width:40em" value="$!appBaseUrl"/></div>
+<div>
+	<input type="button" value="Save" style="width:120px" onclick="setAppConfig()" /> &nbsp;
+	<a href="javascript:resetAppConfig()">$i18n.getString( "appmanager_set_to_default" )</a>
+</div>

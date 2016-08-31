@@ -1,0 +1,6 @@
+
+<h2>$i18n.getString( "dataset" )&nbsp;</h2>
+<ul>
+	#if( $security.canView( "dataSet" ) )<li><a href="dataSet.action">$i18n.getString( "dataset" )&nbsp;</a></li>#end
+	#if( $security.canView( "dataSet" ) )<li><a href="displayEditorForm.action">$i18n.getString( "dataset_assignment_editor" )&nbsp;</a></li>#end
+</ul>

@@ -1,0 +1,159 @@
+<script type="text/javascript" src="javascript/viewDataEntryForm.js"></script>
+<script type="text/javascript">
+	jQuery(document).ready(function() 
+	{
+		jQuery('#designTextarea').ckeditor()
+		  .editor
+		  .setData('$encoder.jsEscape( $dataEntryValue, "'" )');
+	});
+
+    var stat = "ADD";
+    var dataEntryFormId = -1;
+    var selected = null;
+    var autoSave = ${autoSave};
+    var dataSetId = ${dataSet.id};
+
+	#if( $dataEntryForm )
+    stat = "EDIT";
+    dataEntryFormId = ${dataEntryForm.id};
+    #end
+
+  var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "dataentryform_confirm_delete" ) , "'" )';
+	var i18n_save_success = '$encoder.jsEscape( $i18n.getString( "save_success" ) , "'" )';
+	var i18n_indicator_already_inserted = '$encoder.jsEscape( $i18n.getString( "indicator_already_inserted" ) , "'" )';
+	var i18n_no_indicator_was_selected = '$encoder.jsEscape( $i18n.getString( "no_indicator_was_selected" ) , "'" )';
+	var i18n_dataelement_already_inserted = '$encoder.jsEscape( $i18n.getString( "dataelement_already_inserted" ) , "'" )';
+	var i18n_no_dataelement_was_selected = '$encoder.jsEscape( $i18n.getString( "no_dataelement_was_selected" ) , "'" )';
+</script>
+
+<style type="text/css">
+.ui-state-active2, .ui-widget-content .ui-state-active2, .ui-widget-header .ui-state-active2 {
+	border: 1px solid #79b7e7;
+	background: #f5f8f9;
+	font-weight: bold;
+	color: #e17009;
+}
+
+.ui-dialog .ui-dialog-content {
+	padding: 2px;
+}
+
+#dataElementSelector, #totalSelector, #indicatorSelector,  {
+	padding: 2px;
+}
+</style>
+
+<h3>$i18n.getString( "dataentryform_management" ) #openHelp( "customDataEntryForm" )</h3>
+
+<form id="saveDataEntryForm" name="saveDataEntryForm" action="saveDataEntryForm.action" method="post">
+  <table id="detailsList">
+    <col/> ## Labels
+    <col/> ## Input
+    <thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "dataentryform_details" )</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="nameField" name="nameField" value='#if( $dataEntryForm.name )$!dataEntryForm.name#else$dataSet.displayName#end' style="width:30em"></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "dataset" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" value="$dataSet.displayName" style="width:30em" disabled /></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "style" )</label></td>
+        <td>
+        <select id="style" name="style" style="width:30em">
+          <option value="NORMAL"#if( "NORMAL" == $dataEntryForm.style ) selected=selected#end>$i18n.getString( "normal" )</option>
+          <option value="COMFORTABLE"#if( "COMFORTABLE" == $dataEntryForm.style ) selected=selected#end>$i18n.getString( "comfortable" )</option>
+          <option value="COMPACT"#if( "COMPACT" == $dataEntryForm.style ) selected=selected#end>$i18n.getString( "compact" )</option>
+          <option value="NONE"#if( "NONE" == $dataEntryForm.style ) selected=selected#end>$i18n.getString( "none" )</option>
+        </select>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">&nbsp;</td>
+      </tr>
+    </tbody>
+  </table>
+    
+  <table width="100%">      
+    <tr>
+      <th>$i18n.getString( "dataentryform_design" )</th>
+    </tr>
+    <tr>
+      <td><div><textarea id="designTextarea" name="designTextarea"></textarea></div></td>
+    </tr>
+    <tr>
+      <td>
+	    <button type="button" id="saveButton" onclick="validateDataEntryForm( false )">$i18n.getString( 'save' )</button>
+        <button type="button" id="saveCloseButton" onclick="validateDataEntryForm( true )">$i18n.getString( 'save_close' )</button>
+        <button type="button" id="cancelButton" onclick="window.location.href='dataSet.action'">$i18n.getString( 'cancel' )</button>&nbsp;&nbsp;<span style="color:#606060">|</span>&nbsp;
+        <button type="button" id="insertDataElementsButton">$i18n.getString( 'insert_data_elements' )</button>&nbsp;&nbsp;
+        <button type="button" id="insertImagesButton">$i18n.getString( 'insert_images' )</button>&nbsp;&nbsp;<span style="color:#606060">|</span>&nbsp;
+        <button type="button" id="delete" onclick="removeDataEntryForm( '$dataSet.id', '$dataEntryForm.id', '$dataEntryForm.name' )">$i18n.getString( 'delete' )</button>
+		<input type="checkbox" id="autoSave" name="autoSave" #if($autoSave && $autoSave=="true") checked #end onchange="setAutoSaveSetting(this.checked)" />$i18n.getString( 'auto_save_data_entry_forms' )
+      </td>          
+	  <script>
+		if(stat == "EDIT")
+		{
+			enable('delete');
+		}
+		else
+		{
+			disable('delete');
+		}
+	  </script>
+    </tr>
+  </table>
+  <input type="hidden" name="dataSetIdField" id="dataSetIdField" value="${dataSet.id}" />
+</form>
+
+<div id="selectionDialog" title="$i18n.getString( 'insert_data_elements_totals_indicators' )">
+<div id="tabs">
+		<table style="width: 100%;">
+			<tr id="dataElementsTab">
+				<td>
+					<select id="dataElementSelector" multiple="multiple" style="height: 200px; width: 100%;"></select>
+				</td>
+			</tr>
+			<tr id="totalsTab">
+				<td>
+					<select id="totalSelector" multiple="multiple" style="height: 200px; width: 100%;"></select>
+				</td>
+			</tr>
+			<tr id="indicatorsTab">
+				<td>
+					<select id="indicatorSelector" multiple="multiple" style="height: 200px; width: 100%;"></select>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<button type="button" id="dataElementsButton">$i18n.getString( "data_elements" )</button>
+					<button type="button" id="totalsButton">$i18n.getString( "totals" )</button>
+					<button type="button" id="indicatorsButton">$i18n.getString( "indicators" )</button>&nbsp;&nbsp;<span style="color:#606060">|</span>&nbsp;
+					<button type="button" id="insertButton">$i18n.getString( "insert" )</button>
+					<input type="checkbox" id="greyedField"><label for="greyedField">$i18n.getString( "grey_field" )</label>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+</div>
+
+
+<div id="imageDialog" title="$i18n.getString( 'insert_images' )">
+<div style="margin:4px">
+    <div>
+    	<select id="imageSelector" multiple="multiple" style="height: 200px; width:100%;">
+    	#foreach( $flag in $flags )
+    	<option value="../dhis-web-commons/flags/${flag}.png">$i18n.getString( ${flag} )</option>
+	    #end
+    	</select>
+    </div>
+    <div style="margin-top:6px"><button type="button" id="insertImageButton">$i18n.getString( "insert" )</button></div>
+</div>
+</div>

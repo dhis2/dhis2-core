@@ -1,0 +1,21 @@
+<div class="modal-header page">
+    <h3>{{'select_columns_to_show'| translate}}</h3>
+</div>
+
+<div class="modal-body page">   
+    <table class="listTable dhis2-table-striped-border">
+        <tr ng-repeat="eventGridColumn in gridColumns">
+            <td ng-click="eventGridColumn.show = !eventGridColumn.show">
+                <span ng-if="eventGridColumn.id !== 'comment' && eventGridColumn.id !== 'uid'">{{eventGridColumn.name}}</span>
+                <span ng-if="eventGridColumn.id === 'comment' || eventGridColumn.id === 'uid'">{{eventGridColumn.name | translate}}</span>
+            </td>
+            <td>
+                <input type="checkbox" ng-model="eventGridColumn.show" ng-change="showHideColumns(eventGridColumn)">
+            </td>
+        </tr>                                    
+    </table>    
+</div>
+
+<div class="modal-footer page">        
+    <button class="btn btn-primary" type="button" data-ng-click="close()">{{'close'| translate}}</button>
+</div> 

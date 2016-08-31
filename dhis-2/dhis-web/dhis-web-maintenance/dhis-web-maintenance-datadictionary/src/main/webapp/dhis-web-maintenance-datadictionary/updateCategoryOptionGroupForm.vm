@@ -1,0 +1,85 @@
+<script type="text/javascript">
+  jQuery(function() {
+    validation('updateCategoryOptionGroupForm', function(form) {
+      form.submit();
+    }, function() {
+      #tblDynamicAttributesJavascript()
+      $("#coSelected").find("option").attr("selected", "selected");
+      if( jQuery("#coSelected option").length > 0 ) {
+        setFieldValue('hasOptions', 'true');
+      }
+    });
+
+    checkValueIsExist("name", "validateCategoryOptionGroup.action", {
+      id: getFieldValue('id')
+    });
+
+    checkValueIsExist("shortName", "validateCategoryOptionGroup.action", {
+      id: getFieldValue('id')
+    });
+
+    checkValueIsExist("code", "validateCategoryOptionGroup.action", {
+      id: getFieldValue('id')
+    });
+
+    $('#coAvailable').selected({
+      url: '../api/categoryOptions.json',
+      target: $('#coSelected'),
+      search: $('#coAvailableSearch'),
+      iterator: 'categoryOptions'
+    });
+  });
+</script>
+
+<h3>$i18n.getString( "edit_category_option_group" )</h3>
+
+<form id="updateCategoryOptionGroupForm" action="updateCategoryOptionGroup.action" method="post" class="inputForm">
+
+<div>
+    <input type="hidden" id="id" name="id" value="$categoryOptionGroup.id"/>
+</div>
+
+<table>
+    <tr>
+        <th colspan="2">$i18n.getString( "details" )</th>
+    </tr>
+
+    <tr>
+        <td style="width: 120px;"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="name" name="name" class="{validate:{required:true}}" value="$encoder.htmlEncode( $!categoryOptionGroup.name )">
+        </td>
+    </tr>
+    <tr>
+        <td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="shortName" name="shortName" class="{validate:{required:true}}"  value="$!encoder.htmlEncode( $categoryOptionGroup.shortName )"></td>
+    </tr>
+    <tr>
+        <td><label for="code">$i18n.getString( "code" )</label></td>
+        <td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $categoryOptionGroup.code )"></td>
+    </tr>
+	<tr>
+		<td><label>$i18n.getString( "data_dimension_type" )</td>
+		<td>
+			<select id="dataDmensionType" name="dataDimensionType" disabled="disabled">
+				<option value="DISAGGREGATION"#if( "DISAGGREGATION" == $categoryOptionGroup.dataDimensionType ) selected="selected"#end>$i18n.getString( "disaggregation" )</option>
+				<option value="ATTRIBUTE"#if( "ATTRIBUTE" == $categoryOptionGroup.dataDimensionType ) selected="selected"#end>$i18n.getString( "attribute" )</option>
+			</select>
+		</td>
+	</tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+#jqSelected({
+  "prefix": "co",
+  "i18n_available": "available_category_options",
+  "i18n_selected": "selected_category_options",
+  "objects": $categoryOptions
+})
+
+<p>
+    <input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/>
+    <input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'categoryOptionGroup.action' )" style="width:10em"/>
+</p>
+
+</form>

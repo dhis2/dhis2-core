@@ -1,0 +1,128 @@
+<div class="modal-header page">
+    <h2>{{teiAddLabel}}</h2>
+</div>
+<div class="modal-body">
+    <div class='row' ng-if="addingRelationship">
+        <div class='col-md-12'>
+            <select ng-model="relationship.selected"
+                    class="form-control"
+                    ng-options="rel as rel.name for rel in relationshipTypes | orderBy: 'name'"
+                    ng-disabled="relatedProgramRelationship">
+                <option value="">{{'please_select_a_relationship'| translate}}</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        <hr ng-if="addingRelationship">
+        <h3 ng-if="!addingRelationship && selectedTeiForDisplay">
+            <span class='col-sm-12'>
+                {{'existing_associate' | translate}}
+            </span>            
+        </h3>
+        <div class="col-md-3" ng-if="addingRelationship || selectedTeiForDisplay">            
+            <select name="foo" 
+                    ng-model="selectedRelationship.aIsToB" 
+                    class="form-control" 
+                    ng-if="addingRelationship"
+                    ng-change="setRelationshipSides('A')"
+                    ng-disabled="selectedProgramForRelative && selectedProgram.relatedProgram && relatedProgramRelationship || !relationship.selected">
+                <option>{{relationship.selected.aIsToB}}</option>
+                <option>{{relationship.selected.bIsToA}}</option>
+            </select>
+            <div class='relationship-container'>
+                <table class="table table-striped table-compact table-borderless">
+                    <tr ng-repeat="attribute in selectedTeiForDisplay.attributes">
+                        <td>
+                            {{attribute.displayName}}
+                        </td>
+                        <td>
+                            {{attribute.value}}                                                                                                  
+                        </td>
+                    </tr>           
+                </table>
+            </div>
+        </div>
+        
+        <div ng-class="{true: 'col-md-9 pull-right', false: 'col-sm-12'} [addingRelationship || selectedTeiForDisplay]">            
+            <div ng-if="addingRelationship">
+                <select name="foo" 
+                        ng-model="selectedRelationship.bIsToA" 
+                        class="form-control" 
+                        ng-change="setRelationshipSides('B')"
+                        ng-disabled="selectedProgramForRelative && selectedProgram.relatedProgram && relatedProgramRelationship  || !relationship.selected">    
+                    <option>{{relationship.selected.aIsToB}}</option>
+                    <option>{{relationship.selected.bIsToA}}</option>
+                </select>                
+            </div>            
+            
+            <div class='relationship-container' ng-class="{true: '', false: 'col-sm-6'} [addingRelationship]" ng-if="teiForRelationship">
+                <button class="btn btn-warning" type="button" ng-click="back()">{{'back' | translate}}</button>
+                <table class="table table-striped table-compact table-borderless">
+                    <tr ng-repeat="gridColumn in gridColumns">
+                        <td>
+                            {{gridColumn.name}}
+                        </td>
+                        <td >                                                
+                            {{teiForRelationship[gridColumn.id]}}                                                
+                        </td> 
+                    </tr>
+                </table>                
+            </div>
+            
+            <div class='relationship-container' ng-if="!teiForRelationship">
+
+                <div class="row">                    
+                    <div class="col-sm-4 vertical-spacing">
+                        <select ng-model="selectedProgramForRelative"
+                                class="form-control"
+                                ng-disabled="programs.length < 1 || (selectedProgramForRelative && selectedProgram.relatedProgram && relatedProgramRelationship) || selectedAttribute && selectedAttribute.trackedEntity"
+                                ng-options="program as program.name for program in programs | orderBy: 'name'" 
+                                ng-change="setAttributesForSearch(selectedProgramForRelative)">
+                            <option value="">{{'please_select_a_program'| translate}}</option>
+                        </select>                
+                    </div>
+                    <div class="input-group col-sm-8 vertical-spacing">
+                        <input type="text" placeholder="{{'type_your_search_criteria_here'| translate}}" ng-model="searchText.value" d2-enter="search(searchMode.freeText)" class="form-control expanded" ng-class="{true: 'invalid - input'} [!searchText && emptySearchText]" ng-focus="showHideSearch(true)">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default without-border-radius trim" type="button" title="{{'advanced_search'| translate}}" ng-click="showHideSearch(false)"><i class="fa fa-caret-down"></i></button>
+                            <button class="btn btn-primary without-border-radius trim" type="button" title="{{'search'| translate}}" ng-click="search(searchMode.freeText)"><i class="fa fa-search"></i></button>                            
+                            <button class="btn btn-default without-border-radius trim" type="button" title="{{'list_all'| translate}}" ng-disabled="showRegistrationDiv" ng-click="search(searchMode.listAll)"><i class="fa fa-list"></i></button>
+                            <button class="btn btn-success trim" type="button" title="{{'register'| translate}}" ng-click="showRegistration()"><i class="fa fa-plus-square"></i></button>                            
+                            
+                        </div>                
+                    </div>                    
+                </div>
+
+                <div ng-if="showAdvancedSearchDiv">
+                    <div ng-include="'views/advanced-search.html'"></div>     
+                    <span>&nbsp;</span>
+                </div>
+
+                <!-- entity grid begins -->
+                <i ng-if="!teiFetched" class="fa fa-spinner fa-spin fa-2x"></i>
+                <div class="row" ng-if="!showRegistrationDiv">
+                    <div class="col-sm-12" ng-include="'views/tei.html'"></div>               
+                </div>
+                <!-- entity grid ends -->
+
+                <!--- Error display for search begins -->
+                <div class="row" ng-if="emptySearchAttribute || !searchText.value && emptySearchText">
+                    <div class="col-sm-12 vertical-spacing">
+                        <div class="alert alert-danger">{{'search_input_required'| translate}}</div>         
+                    </div>
+                </div>
+                <!--- Error display for search ends -->
+                
+                <div ng-show="showRegistrationDiv">
+                    <div ng-include="'components/teiadd/registration.html'"></div>
+                    <span>&nbsp;</span>
+                </div>
+            </div>
+        </div>        
+    </div>
+</div>
+<div class="modal-footer">        
+    <button class="btn btn-primary trim" data-ng-click="addRelationship()" ng-disabled='!teiForRelationship'>{{addingRelationship ? 'save' : 'select' | translate}}</button>
+    <button class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>    
+</div> 

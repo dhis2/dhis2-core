@@ -1,0 +1,77 @@
+<style type="text/css" media="screen">
+
+/* Put your CSS styling here */
+
+</style>
+
+<script type="text/javascript">
+
+// Put your javascript functions here 
+
+jQuery( document ).ready( function() {
+    // Put javascript to be executed after page is loaded here 
+} );
+</script>
+
+<div>
+
+<!-- Put your HTML mark-up here -->
+
+</div>
+
+<!-- Remove all content after this line after reading it -->
+
+<h3>This is a template for HTML/javascript based reports</h3>
+
+<p>You have the jQuery javascript library at your disposal when writing reports. It can be accessed with the usual jQuery or $ symbols.</p>
+
+<p>
+You can embed javascript through the usual &lt;script type="text/javascript"&gt;&lt;script&gt; tag.
+You can embed CSS styling through the usual &lt;style type="text/css"&gt;&lt;style&gt; tag.
+You should not include &lt;html&gt;, &lt;body&gt; or &lt;head&gt; tags in your report.
+</p>
+
+<p>
+You can utilize the DHIS 2 Web API to render meta-data and data in your report. 
+The Web API can be accessed from ../api. For instance, to retrieve the first page
+of data elements in JSON format you can link to ../api/dataElements.json. To 
+get access to aggregate data you can utilize the analytics resource at
+../api/analytics.</p>
+
+<p>
+HTML-based standard reports can use relative periods and report parameters in
+the same way as other types of standard reports. If you select relative periods or report
+parameters for period and organisation unit, you can access the resulting periods
+and organisation unit in the dhis2.report javascript namespace like below:
+</p>
+
+<div style="font-family:courier,sans-serif; padding:20px; border: 1px solid #ddd;">
+var orgUnit = dhis2.report.organisationUnit; // An object<br><br>
+
+var id = orgUnit.id;
+var name = orgUnit.name;<br><br>
+var code = orgUnit.code;<br><br>
+
+var orgUnitHierarchy = dhis2.report.organisationUnitHierarchy; // An array with org unit objects for the hierarchy (current org unit first)<br><br>
+
+var name = orgUnitHierarchy[0].name;<br><br>
+
+var orgUnitChildren = dhis2.report.organisationUnitChildren; // An array with child org unit objects<br><br>
+
+var date = dhis2.report.date; // A date in yyyy-MM-dd format<br><br>
+
+var periods = dhis2.report.periods; // An array with period identifiers<br><br>
+
+var period = periods[0];
+</div> 
+
+<p>
+Right-click and view page source to see the structure of this template. You can upload 
+your HTML report through the "add new report" screen in DHIS 2 under "design file".
+</p>
+
+<p>
+jQuery documentation can be found <a href="http://docs.jquery.com/">here</a>.
+DHIS 2 Web API documentation can be found  
+<a href="http://dhis2.org/doc/snapshot/en/user/html/ch23.html">here</a>.
+</p>

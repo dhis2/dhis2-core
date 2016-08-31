@@ -1,0 +1,74 @@
+
+
+.reportheading {
+    font-family: arial, georgia, tahoma;
+    font-size: 17px;
+    font-weight: bold;    
+    white-space: nowrap;
+    cursor: default;    
+}
+
+.reportheadingwithunderline {
+    font-family: arial, georgia, tahoma;
+    font-size: 13px;
+    font-weight: bold;    
+    white-space: nowrap;
+    cursor: default;    
+}
+
+.reportsubheading {
+    font-family: arial, georgia, tahoma;
+    font-size: 15px;
+    font-weight: bold;    
+    white-space: nowrap;
+    cursor: default;    
+}
+
+.tableheading1 {
+    font-family: arial, georgia, tahoma;
+    font-size: 13px;
+    font-weight: bold;    
+    cursor: default;    
+}
+
+.tabledata1 {
+    font-family: arial, georgia, tahoma;
+    font-size: 12px;
+    cursor: default;    
+}
+
+.tableheading2 {
+    font-family: arial, georgia, tahoma;
+    font-size: 10px;
+    font-weight: bold;    
+    cursor: default;    
+}
+
+.tabledata2 {
+    font-family: arial, georgia, tahoma;
+    font-size: 10px;    
+    cursor: default;    
+}
+
+#dropmenudiv{
+            position:absolute;
+            border:1px solid black;
+            border-bottom-width: 0;
+            font:normal 12px Verdana;
+            line-height:18px;
+            z-index:100;
+         }
+
+        #dropmenudiv a{
+            width: 100%;
+            display: block;
+            text-indent: 3px;
+            border-bottom: 1px solid black;
+            padding: 1px 0;
+            text-decoration: none;
+            font-weight: bold;
+        } 
+
+       #dropmenudiv a:hover{ /*hover background color*/
+            background-color: yellow;
+       }

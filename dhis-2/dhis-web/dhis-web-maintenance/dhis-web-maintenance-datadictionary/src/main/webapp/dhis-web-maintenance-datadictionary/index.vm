@@ -1,0 +1,19 @@
+<h3>$i18n.getString( "dhis-web-maintenance-datadictionary" )</h3>
+
+<ul class="introList">
+	#if( $security.canView( "dataElement" ) )#introListImgItem( "dataElement.action" "data_element" "dataelement" )#end
+	#if( $security.canView( "dataElementGroup" ) )#introListImgItem( "dataElementGroup.action" "data_element_group" "dataelement" )#end
+    #if( $security.canView( "dataElementGroup" ) )#introListImgItem( "dataElementGroupEditor.action" "data_element_group_editor" "dataelement" )#end
+    #if( $security.canView( "dataElementGroupSet" ) )#introListImgItem( "dataElementGroupSet.action" "data_element_group_set" "groupset" )#end
+    #if( $security.canView( "categoryOptionCombo" ) )#introListImgItem( "categoryOptionCombo.action" "category_option_combo" "category" )#end
+    #if( $security.canView( "categoryOption" ) )#introListImgItem( "categoryOption.action" "category_option" "category" )#end
+    #if( $security.canView( "category" ) )#introListImgItem( "category.action" "category" "category" )#end
+    #if( $security.canView( "categoryCombo" ) )#introListImgItem( "categoryCombo.action" "category_combo" "category" )#end
+    #if( $security.canView( "categoryOptionGroup" ) )#introListImgItem( "categoryOptionGroup.action" "category_option_group" "category" )#end
+    #if( $security.canView( "categoryOptionGroupSet" ) )#introListImgItem( "categoryOptionGroupSet.action" "category_option_group_set" "category" )#end
+    #if( $security.canView( "indicator" ) )#introListImgItem( "indicator.action" "indicator" "indicator" )#end
+    #if( $security.canView( "indicatorType" ) )#introListImgItem( "indicatorType.action" "indicator_type" "indicator" )#end
+    #if( $security.canView( "indicatorGroup" ) )#introListImgItem( "indicatorGroup.action" "indicator_group" "indicator" )#end
+    #if( $security.canView( "indicatorGroup" ) )#introListImgItem( "indicatorGroupEditor.action" "indicator_group_editor" "indicator" )#end
+    #if( $security.canView( "indicatorGroupSet" ) )#introListImgItem( "indicatorGroupSet.action" "indicator_group_set" "groupset" )#end
+</ul>

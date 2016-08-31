@@ -1,0 +1,109 @@
+<script type="text/javascript">
+    var i18n_export = '$i18n.getString( "export" )';
+</script>
+
+##@author Ovidiu Rosu <rosu.ovi@gmail.com>
+
+<h3>$i18n.getString( "filtered_metadata_export" ) #openHelp( "filtered_metadata_export" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canManage"><a data-target-fn="exportFilterButton"><i class="fa fa-play"></i>&nbsp;&nbsp;$i18n.getString( "export" )</a></li>
+    <li data-enabled="canManage"><a data-target-fn="editFilterButton"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li data-enabled="canManage"><a data-target-fn="removeFilterButton"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showFilterDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<!-- FILTER EXPORT FORM -->
+<div id="mainDivFilter">
+    <table class="mainPageTable">
+        <tr>
+            <td style="vertical-align:top">
+                <table width="100%">
+                    <tr>
+                        <td>#filterDiv( "dxf2FilteredMetaDataExport" )</td>
+                        <td colspan="9" style="text-align:right">
+                            <form id="formFilter" method="POST" action="filterExportForm.action">
+                                <input type="hidden" name="name" value=""/>
+                                <input type="hidden" name="uid" value=""/>
+                                <input type="hidden" name="description" value=""/>
+                                <input type="hidden" name="jsonFilter" value=''/>
+                                <input type="hidden" name="command" value=""/>
+                                <input type="button" value="$i18n.getString( 'sort' )" onclick="window.location.href='showSortFilterForm.action';" style="width: 100px;"/>
+                                <input type="button" value="$i18n.getString( "add_new_filter" )" onclick="submitFilterForm( 'addNew' );" style="width: 100px;"/>
+                                <input type="button" value="$i18n.getString( "ad_hoc_export" )" onclick="submitFilterForm( 'addAdHoc' );" style="width: 140px;"/>
+                            </form>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- FILTER TABLE -->
+                <table id="filterList" class="listTable">
+                    <thead>
+                    <tr>
+                        <th>$i18n.getString( "name" )</th>
+                    </tr>
+                    </thead>
+                    <tbody id="filterTableBody">
+                        #foreach( $filter in $filters )
+                        <tr id="tr${filter.uid}" data-id="$!filter.id" data-uid="$!filter.uid" data-type="Filter" data-name="$encoder.htmlEncode( $!filter.name )"
+                            data-can-manage="#if( $auth.hasAccess( 'dhis-web-importexport', 'dxf2FilteredMetaDataExport' ) )true#{else}false#end">
+                            <td>$encoder.htmlEncode( $!filter.name )</td>
+                        </tr>
+                        #end
+                    </tbody>
+                </table>
+                <p></p>
+                #parse( "/dhis-web-commons/paging/paging.vm" )
+            </td>
+            <td id="detailsData">
+                <div id="detailsArea" style="display: none;">
+                    <div id="hideDetailsArea">
+                        <a href="javascript:hideDetails();" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+                    </div>
+                    <p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+                    <p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- EXPORT DIALOG -->
+<div id="exportDialog" style="display: none;">
+    <form id="exportForm" action="" method="post">
+        <input type="hidden" id="exportJsonValue" name="exportJsonValue" >
+    </form>
+    <table>
+        <tr>
+            <td colspan="2">
+                <select id="format" style="width: 250px; font-size: 10pt;">
+                    <option value="xml">XML</option>
+                    <option value="json">Json</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <select id="compression" style="width: 250px; font-size: 10pt;">
+                    <option value="zip">Zipped</option>
+                    <option value="gz">GZipped</option>
+                    <option value="uncompressed">Uncompressed</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="checkbox" id="exportDependencies" name="exportDependencies"/>
+                <label for="exportDependencies" style="font-size: 10pt;">$i18n.getString( "export_with_dependencies" ) #openHelp( "export_with_dependencies" )</label>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <input type="hidden" id="exportJson" value=''/>
+                <input type="button" id="exportButton" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only ui-state-active2" value="$i18n.getString( 'export' )" style="width:250px; font-size: 10pt;" onclick="exportFilteredMetaData();"/>
+            </td>
+        </tr>
+    </table>
+</div>

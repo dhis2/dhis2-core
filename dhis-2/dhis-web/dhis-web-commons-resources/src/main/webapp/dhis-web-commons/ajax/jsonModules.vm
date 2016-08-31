@@ -1,0 +1,13 @@
+#set( $size = $modules.size() )
+{ "modules": [
+#foreach( $module in $modules )
+{
+"name":"$!encoder.jsonEncode( $module.name )",
+"namespace":"$!encoder.jsonEncode( $module.namespace )",
+"defaultAction":"$!encoder.jsonEncode( $module.defaultAction )",
+"displayName":"$!encoder.jsonEncode( $module.displayName )",
+"icon":"$!encoder.jsonEncode( $module.iconFallback )",
+"description":"$!encoder.jsonEncode( $module.description )"
+}#if( $velocityCount < $size ),#end
+#end
+] }

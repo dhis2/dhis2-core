@@ -1,0 +1,36 @@
+{
+    "version": "0.1",
+    "name": "Test App",
+    "description": "Test Description",
+    "launch_path": "/index.html",
+    "icons": {
+        "16": "/img/icons/mortar-16.png",
+        "48": "/img/icons/mortar-48.png",
+        "128": "/img/icons/mortar-128.png"
+    },
+    "developer": {
+        "name": "Test Developer",
+        "url": "http://test"
+    },
+    "installs_allowed_from": ["*","127.0.0.1"],
+    "locales": {
+        "es": {
+            "description": "Test",
+            "developer": {
+                "url": "http://test"
+            }
+        },
+        "it": {
+            "description": "Test",
+            "developer": {
+                "url": "http://test"
+            }
+        }
+    },
+    "default_locale": "en",
+    "activities": {
+      "dhis": {
+        "href": "http://localhost:8080/dhis"
+      }
+    }
+}

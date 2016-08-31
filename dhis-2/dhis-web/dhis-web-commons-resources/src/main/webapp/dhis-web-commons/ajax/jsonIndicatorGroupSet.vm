@@ -1,0 +1,8 @@
+{ "indicatorGroupSet": 
+  {
+    "id": $!{indicatorGroupSet.id},
+    "uid": "$!{indicatorGroupSet.uid}",
+    "name": "$!encoder.jsonEncode( ${indicatorGroupSet.displayName} )",
+    "memberCount": "$!indicatorGroupSet.members.size()"
+  }
+}

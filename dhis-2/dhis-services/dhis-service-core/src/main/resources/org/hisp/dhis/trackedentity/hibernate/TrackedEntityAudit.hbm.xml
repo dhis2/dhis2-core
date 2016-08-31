@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="org.hisp.dhis.trackedentity.TrackedEntityAudit" table="trackedentityaudit">
+
+		<id name="id" column="trackedentityauditid">
+			<generator class="native" />
+		</id>
+
+		<many-to-one name="entityInstance" column="trackedentityinstanceid"
+			class="org.hisp.dhis.trackedentity.TrackedEntityInstance" foreign-key="fk_trackedentityauditid_trackedentityinstanceid" />
+
+		<property name="date" />
+		
+		<property name="visitor" />
+		
+		<property name="accessedModule" />
+	</class>
+</hibernate-mapping>

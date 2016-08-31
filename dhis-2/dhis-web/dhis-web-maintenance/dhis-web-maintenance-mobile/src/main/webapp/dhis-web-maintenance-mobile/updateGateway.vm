@@ -1,0 +1,182 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+	 
+		validation2( "addGateWayConfigForm", function( form ) {
+			saveGatewayConfig();
+		}, {
+			'rules' : getValidationRulesGateway()
+		} );
+		
+		changeValueType( getFieldValue( 'gatewayType' ) );
+    });
+	
+	var i18n_add_update_success = '$encoder.jsEscape( $i18n.getString( "add_update_gateway_success" ) , "'")';
+	var i18n_required_data_error = '$encoder.jsEscape( $i18n.getString( "required_data_error" ) , "'" )';
+</script>
+<h3>$i18n.getString( "add_update_gateway_management" )</h3>
+<form id="addGateWayConfigForm" name="addGateWayConfigForm">
+	<table id="detailsList">
+		<tr>
+			<th colspan="2">$i18n.getString( "gateway_type" )</th>
+		</tr>
+		<tr>
+			<td>$i18n.getString( "type" ):</td>
+			<td>
+				<select id="gatewayType" style="width:100%;" onchange="changeValueType( this.value )">
+					<option value="bulksms" #if ( $!index == $!bulkIndex ) selected='selected' #end>$i18n.getString( "bulk_gw" )</option>
+					<option value="clickatell" #if ( $!index == $!clickatellIndex ) selected='selected' #end>$i18n.getString( "clickatell_gw" )</option>
+					<option value="http" #if ( $!index == $!httpIndex ) selected='selected' #end>$i18n.getString( "generic_http_gw" )</option>
+					<option value="modem" #if ( $!index == $!modemIndex ) selected='selected' #end>$i18n.getString( "modem_gw" )</option>
+					<option value="smpp_gw" #if ( $!index == $!smppIndex ) selected='selected' #end>$i18n.getString( "smpp_gw" )</option>					
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<th colspan="2">$i18n.getString( "gateway_configuration" )</th>
+		</tr>
+		  #set( $smppGateway = $!gatewayConfigMap.get( $smppIndex ) )
+        <tbody id="smppFields">
+            <tr>
+                <td>$i18n.getString( "gateway_name" ):</td>
+                <td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!smppGateway.name )"/></td>
+            </tr>
+            <tr>
+                <td>$i18n.getString( "username" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+                <td><input type="text" name="username" id="username" style="width: 28em" value="$!smppGateway.username"/></td>
+            </tr> 
+            <tr>
+                <td>$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+                <td><input type="password" name="password" id="password" style="width: 28em" value="$!smppGateway.password"/></td>
+            </tr>
+            <tr>
+                <td>$i18n.getString( "address" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+                <td><input type="text" name="address" id="address" style="width: 28em" value="$!smppGateway.address"/></td>
+            </tr>
+            <tr>
+                <td>$i18n.getString( "port" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+                <td><input type="text" name="port" id="port" style="width: 28em" value="$!smppGateway.port"/></td>
+            </tr>
+        </tbody>
+		#set( $bulkGateway = $!gatewayConfigMap.get( $bulkIndex ) )
+		<tbody id="bulksmsFields">
+			<tr>
+				<td>$i18n.getString( "gateway_name" ):</td>
+				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!bulkGateway.name )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "username" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="username" id="username" style="width: 28em" value="$!bulkGateway.username"/></td>
+			</tr> 
+			<tr>
+				<td>$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="password" name="password" id="password" style="width: 28em" value="$!bulkGateway.password"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "region" ):</td>
+				<td>
+					<select id="region" name="region" style="width:100%;">
+						<option value="INTERNATIONAL" #if ( $bulkGateway.region == "INTERNATIONAL" ) selected #end>$i18n.getString( "international" )</option>
+						<option value="UNITEDKINGDOM" #if ( $bulkGateway.region == "UNITEDKINGDOM" ) selected #end>$i18n.getString( "uk" )</option>
+						<option value="SOUTHAFRICA" #if ( $bulkGateway.region == "SOUTHAFRICA" ) selected #end>$i18n.getString( "south_africa" )</option>
+						<option value="SPAIN" #if ( $bulkGateway.region == "SPAIN" ) selected #end>$i18n.getString( "spain" )</option>
+						<option value="USA" #if ( $bulkGateway.region == "USA" ) selected #end>$i18n.getString( "usa" )</option>
+						<option value="GERMANY" #if ( $bulkGateway.region == "GERMANY" ) selected #end>$i18n.getString( "germany" )</option>
+					</select>
+				</td>
+			</tr>
+		</tbody>
+		#set( $modemGateway = $!gatewayConfigMap.get( $modemIndex ) )
+		<tbody id="modemFields">
+			<tr>
+				<td>$i18n.getString( "gateway_name" ):</td>
+				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!modemGateway.name )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "port" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="port" id="port" style="width: 28em" value="$!modemGateway.port"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "baudrate" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="baudRate" id="baudRate" style="width: 28em" value="$!modemGateway.baudRate"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "polling_interval_in_seconds" ): <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="pollingInterval" id="pollingInterval" style="width: 28em" value="$!modemGateway.pollingInterval"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "manufacturer" ):</td>
+				<td><input type="text" name="manufacturer" id="manufacturer" style="width: 28em" value="$!modemGateway.manufacturer"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "model" ):</td>
+				<td><input type="text" name="model" id="model" style="width: 28em" value="$!modemGateway.model"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "pin" ):</td>
+				<td><input type="text" name="pin" id="pin" style="width: 28em" value="$!modemGateway.pin"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "inbound" ):</td>
+				<td>
+					<select id="inbound" name="inbound" style="width:100%;">
+						<option value="true" #if ( $modemGateway.inbound ) selected #end>$i18n.getString( "yes" )</option>
+						<option value="false" #if ( !$modemGateway.inbound ) selected #end>$i18n.getString( "no" )</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "outbound" ):</td>
+				<td>
+					<select id="outbound" name="outbound" style="width:100%;">
+						<option value="true" #if ( $modemGateway.outbound ) selected #end>$i18n.getString( "yes" )</option>
+						<option value="false" #if ( !$modemGateway.outbound ) selected #end>$i18n.getString( "no" )</option>
+					</select>
+				</td>
+			</tr>
+		</tbody>
+		#set( $clickatellGateway = $!gatewayConfigMap.get( $clickatellIndex ) )
+		<tbody id="clickatellFields">
+			<tr>
+				<td>$i18n.getString( "gateway_name" ):</td>
+				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!clickatellGateway.name )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "username" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="username" id="username" style="width: 28em" value="$!clickatellGateway.username"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="password" name="password" id="password" style="width: 28em" value="$!clickatellGateway.password"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "api_id" ):</td>
+				<td><input type="text" name="apiId" id="apiId" style="width: 28em" value="$!clickatellGateway.apiId"/></td>
+			</tr>
+		</tbody>
+		#set( $httpGateway = $!gatewayConfigMap.get( $httpIndex ) )
+		#set( $params = $!httpGateway.getParameters() )
+		<tbody id="genericHTTPFields">
+			<tr>
+				<td>$i18n.getString( "gateway_name" ):</td>
+				<td><input type="text" name="name" id="name" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.name )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "username" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="username" id="username" style="width: 28em" value="$!params.get( 'username' )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "password" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="password" name="password" id="password" style="width: 28em" value="$!params.get( 'password' )"/></td>
+			</tr>
+			<tr>
+				<td>$i18n.getString( "url_template" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
+				<td><input type="text" name="urlTemplate" id="urlTemplate" style="width: 28em" value="$!encoder.htmlEncode( $!httpGateway.urlTemplate )"/></td>
+			</tr>
+		</tbody>
+		<tr>
+			<td colspan="2" align="right"><input type="submit" value="$i18n.getString( 'save_settings' )" style="width:8em"/>
+			<input type="button" value="$i18n.getString( 'back' )" onclick="window.location.href='showSMSConfigureForm.action'" style="width:8em"/></td>
+		</tr>
+	</table>
+</form>
+

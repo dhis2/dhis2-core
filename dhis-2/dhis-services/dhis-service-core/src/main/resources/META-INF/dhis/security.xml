@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://www.springframework.org/schema/security"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+  <bean id="userDetailsService" class="org.hisp.dhis.security.DefaultUserDetailsService">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="bCryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+
+  <bean id="org.hisp.dhis.security.PasswordManager" class="org.hisp.dhis.security.spring.SpringSecurityPasswordManager">
+    <property name="passwordEncoder" ref="bCryptPasswordEncoder" />
+  </bean>
+
+  <bean id="org.hisp.dhis.security.SecurityService" class="org.hisp.dhis.security.DefaultSecurityService">
+    <property name="passwordManager" ref="org.hisp.dhis.security.PasswordManager" />
+    <property name="emailMessageSender" ref="emailMessageSender" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+  </bean>
+
+  <!-- Security : Authentication providers -->
+  <sec:authentication-manager alias="authenticationManager">
+    <sec:authentication-provider user-service-ref="userDetailsService">
+      <sec:password-encoder ref="bCryptPasswordEncoder" />
+    </sec:authentication-provider>
+  </sec:authentication-manager>
+
+  <!-- OAuth2 -->
+  <bean id="clientDetailsService" class="org.hisp.dhis.security.oauth2.DefaultClientDetailsService" />
+
+  <bean id="tokenStore" class="org.springframework.security.oauth2.provider.token.store.JdbcTokenStore">
+    <constructor-arg name="dataSource" ref="dataSource" />
+  </bean>
+
+  <bean id="authorizationCodeServices" class="org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices">
+    <constructor-arg name="dataSource" ref="dataSource" />
+  </bean>
+
+  <bean id="tokenServices" class="org.springframework.security.oauth2.provider.token.DefaultTokenServices">
+    <property name="tokenStore" ref="tokenStore" />
+    <property name="supportRefreshToken" value="true" />
+  </bean>
+
+  <bean id="clientDetailsUserService" class="org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService">
+    <constructor-arg ref="clientDetailsService" />
+  </bean>
+
+  <sec:authentication-manager id="clientAuthenticationManager">
+    <sec:authentication-provider user-service-ref="clientDetailsUserService" />
+  </sec:authentication-manager>
+  <!-- End OAuth2 -->
+
+</beans>

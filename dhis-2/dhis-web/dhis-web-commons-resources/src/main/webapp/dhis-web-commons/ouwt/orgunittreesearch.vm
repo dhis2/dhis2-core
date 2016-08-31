@@ -1,0 +1,29 @@
+<script type="text/javascript">
+    jQuery(document).ready(function(){
+		jQuery("#searchIcon").click(function(){
+			jQuery("#searchSpan").toggle();
+			jQuery("#searchField").focus();
+		});
+		
+		jQuery("#searchField").autocomplete({
+		    source: "../dhis-web-commons/ouwt/getOrganisationUnitsByName.action",
+		    select: function(event,ui) {
+		        jQuery("#searchField").val(ui.item.value);
+		        selection.findByName();
+		    }
+		});
+	});
+	
+	var i18n_find = '$encoder.jsEscape( $i18n.getString( "find" ) , "'")';
+</script>
+
+<img id="searchIcon" src="../images/search.png" style="cursor: pointer" title="$i18n.getString( 'locate_organisation_unit_by_name' )">
+
+<span id="searchSpan" style="width:100%;display:none;">
+	<input type="text" id="searchField" name="key" style="width:155px" />
+	<input type="button" value="Find" onclick="selection.findByName()" />
+</span>
+
+<div id="orgUnitTreeContainer">
+#parse( "/dhis-web-commons/ouwt/orgunittree.vm" )
+</div>

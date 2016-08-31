@@ -1,0 +1,23 @@
+
+<h2>$i18n.getString( "data_element" )&nbsp;</h2>
+<ul>
+    #if( $security.canView( "dataElement" ) )<li><a href="dataElement.action">$i18n.getString( "data_element" )&nbsp;</a></li>#end
+    #if( $security.canView( "dataElementGroup" ) )<li><a href="dataElementGroup.action">$i18n.getString( "data_element_group" )&nbsp;</a></li>#end
+    #if( $security.canView( "dataElementGroup" ) )<li><a href="dataElementGroupEditor.action">$i18n.getString( "data_element_group_editor" )&nbsp;</a></li>#end
+	#if( $security.canView( "dataElementGroupSet" ) )<li><a href="dataElementGroupSet.action">$i18n.getString( "data_element_group_set" )&nbsp;</a></li>#end
+    #if( $security.canView( "categoryOptionCombo" ) )<li><a href="categoryOptionCombo.action">$i18n.getString( "category_option_combo" )&nbsp;</a></li>#end
+    #if( $security.canView( "categoryOption" ) )<li><a href="categoryOption.action">$i18n.getString( "category_option" )&nbsp;</a></li>#end
+    #if( $security.canView( "category" ) )<li><a href="category.action">$i18n.getString( "category" )&nbsp;</a></li>#end
+    #if( $security.canView( "categoryCombo" ) )<li><a href="categoryCombo.action">$i18n.getString( "category_combination" )&nbsp;</a></li>#end
+    #if( $security.canView( "categoryOptionGroup" ) )<li><a href="categoryOptionGroup.action">$i18n.getString( "category_option_group" )&nbsp;</a></li>#end
+    #if( $security.canView( "categoryOptionGroupSet" ) )<li><a href="categoryOptionGroupSet.action">$i18n.getString( "category_option_group_set" )&nbsp;</a></li>#end
+</ul>
+
+<h2>$i18n.getString( "indicator" )&nbsp;</h2>
+<ul>
+    #if( $security.canView( "indicator" ) )<li><a href="indicator.action">$i18n.getString( "indicator" )&nbsp;</a></li>#end
+    #if( $security.canView( "indicatorType" ) )<li><a href="indicatorType.action">$i18n.getString( "indicator_type" )&nbsp;</a></li>#end
+    #if( $security.canView( "indicatorGroup" ) )<li><a href="indicatorGroup.action">$i18n.getString( "indicator_group" )&nbsp;</a></li>#end
+	#if( $security.canView( "indicatorGroup" ) )<li><a href="indicatorGroupEditor.action">$i18n.getString( "indicator_group_editor" )&nbsp;</a></li>#end
+	#if( $security.canView( "indicatorGroupSet" ) )<li><a href="indicatorGroupSet.action">$i18n.getString( "indicator_group_set" )&nbsp;</a></li>#end
+</ul>

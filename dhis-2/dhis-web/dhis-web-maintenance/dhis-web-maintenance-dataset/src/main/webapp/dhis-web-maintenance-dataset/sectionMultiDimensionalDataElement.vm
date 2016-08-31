@@ -1,0 +1,58 @@
+<table class="mainPageTable" cellpadding="0">    
+    #set( $tabIndex = 1 )
+    #set( $colCount = $optionCombos.size()  ) 
+    #set( $categories = $categoryCombo.categories  )
+                
+    #foreach( $category in $categories )            
+        #set( $categoryOptions = $optionsMap.get( $category.id ) )
+        #set( $colCount = $colCount / $categoryOptions.size() )     
+        <tr colspan="$colCount">
+            <td></td>
+            #set( $cols = $colRepeat.get( $category.id ) )
+            #foreach( $col in $cols )
+                #foreach( $categoryOption in $categoryOptions )
+                    <th colspan="$colCount"> <div align="center"> $categoryOption.displayName </div> </th>
+                #end
+            #end                            
+        </tr>
+    #end   
+             
+    #set( $mark = 0 )        
+    #foreach( $dataElement in $section.dataElements )
+    	#if( $mark == 1 )
+            #set( $mark = 0 )
+        #else
+            #set( $mark = 1 )
+        #end            
+        #set( $count = $count + 1 )        
+        <tr #if( $mark == 1 ) style="background-color:#dddddd" #end>        
+            ##data element name
+            <td>
+                #if( $useShortName )
+                    $encoder.htmlEncode( $dataElement.displayShortName )
+                #else
+                    $encoder.htmlEncode( $dataElement.displayName )
+                #end
+            </td>                                            
+            #foreach( $optionCombo in $optionCombos )                      
+                ##Data Entry            
+                <td style="text-align:center">
+                	
+                	#set( $greyedField = "false" )
+                	#set( $greyedField = $greyedFields.get( "$dataElement.id:$optionCombo.id" ) )                	       	
+                	   
+                	#if( $greyedField == "true" )               		          
+                		<input name="entryfieldTxt" id="[$dataElement.id]_[$optionCombo.id].txt" type="text" disabled="disabled"/>
+                        <input name="entryfieldBtn" id="[$dataElement.id]_[$optionCombo.id].btn" type="button" onclick="saveGreyStatus( '$section.id', '$dataElement.id', '$optionCombo.id' )" value="$i18n.getString( 'enable' )" style="width:70px"/>
+                    #else                                 
+                        <input name="entryfieldTxt" id="[$dataElement.id]_[$optionCombo.id].txt" type="text"/>
+                        <input name="entryfieldBtn" id="[$dataElement.id]_[$optionCombo.id].btn" type="button" onclick="saveGreyStatus( '$section.id', '$dataElement.id', '$optionCombo.id' )" value="$i18n.getString( 'disable' )" style="width:70px"/>
+	                #end                                       
+                    
+                </td>
+                #set( $tabIndex = $tabIndex + 1 )
+            #end
+        </tr>
+        <tr></tr>                                                
+    #end    
+</table>

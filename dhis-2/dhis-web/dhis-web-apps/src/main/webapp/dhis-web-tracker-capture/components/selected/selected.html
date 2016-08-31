@@ -1,0 +1,22 @@
+<div class="panel panel-info" ng-controller="SelectedInfoController">
+    <div class="panel-heading handle bold">
+        {{current_selectionsWidget.title| translate}}
+        <span class="pull-right widget-link">
+            <a class="small-horizonal-spacing" href ng-click="expandCollapse(current_selectionsWidget)">
+                <span ng-show="current_selectionsWidget.expand"><i class="fa fa-chevron-up" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!current_selectionsWidget.expand"><i class="fa fa-chevron-down" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizonal-spacing" href ng-click="removeWidget(current_selectionsWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>            
+        </span>        
+    </div>    
+    <div ng-show="current_selectionsWidget.expand" class="panel-body dashboard-element-container">
+        <div class="row" ng-repeat="selection in selections">
+            <div class="col-sm-6">
+                {{selection.title| translate}}
+            </div>
+            <div class="col-sm-6">
+                <input type="text" class="form-control" value="{{selection.value| translate}}" ng-disabled="true"/>                
+            </div>
+        </div>        
+    </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="panel panel-info" ng-controller="TeiReportController">
+    <div class="panel-heading handle bold hideInPrint">
+        {{reportWidget.title| translate}}        
+        <span class="pull-right widget-link">
+            <a class="small-horizonal-spacing" href ng-click="expandCollapse(reportWidget)">
+                <span ng-show="reportWidget.expand"><i class="fa fa-chevron-up" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!reportWidget.expand"><i class="fa fa-chevron-down" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizonal-spacing" href ng-click="removeWidget(reportWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>            
+        </span>        
+    </div>
+    <div ng-show="reportWidget.expand" class="panel-body dashboard-widget-container">        
+        <div ng-if="!dataExists" class="alert alert-warning">{{noDataReportLabel}}</div>
+        <div ng-if="dataExists" class="remove-default-padding hideInPrint">
+            <table class="table table-striped dhis2-table-hover">
+                <tr ng-click="showProgramReportDetails(pr)" ng-repeat="pr in programs" ng-if="report[pr.id].enrollments" title="{{'details'| translate}}">                   
+                    <td>
+                        {{pr.name}}                        
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div ng-if="showProgramReportDetailsDiv">     
+            <div ng-class="printable" ng-include="'components/report/program-details.html'"></div>             
+        </div>
+    </div>
+</div>

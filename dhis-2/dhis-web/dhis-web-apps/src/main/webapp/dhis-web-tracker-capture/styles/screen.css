@@ -1,0 +1,11 @@
+html, body { 
+    height:100%;
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    font-size: 10pt;
+}
+
+.not-for-screen {
+    display: none;
+}

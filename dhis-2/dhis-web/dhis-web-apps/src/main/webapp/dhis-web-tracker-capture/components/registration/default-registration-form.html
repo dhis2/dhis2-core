@@ -1,0 +1,172 @@
+<h3 ng-if="widget !== 'PROFILE'">{{'profile'| translate}}</h3>
+<table class="dhis2-list-table-striped dhis2-table-hover">
+    <tr ng-repeat="attribute in attributes" ng-if="!hiddenFields[attribute.id]">
+        <td>
+            <span ng-bind="attribute.name"></span><span ng-if="attribute.mandatory || attribute.unique" class="required">*</span>
+        </td>
+        <td>
+            <ng-form name="innerForm">
+                <span ng-if="attribute.optionSetValue">
+                    <ui-select  ng-model="selectedTei[attribute.id]" 
+                                theme="select2" 
+                                ng-required="attribute.mandatory || attribute.unique"                                 
+                                name="foo" 
+                                d2-attribute-validator
+                                attribute-data={{attribute}}
+                                selected-program-id={{selectedProgram.id}}  
+                                selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                                ng-disabled="editingDisabled" 
+                                on-select="teiValueUpdated(selectedTei, attribute.id)"
+                                style="width:100%;">
+                        <ui-select-match allow-clear="true"  class="form-control-ui-select"  placeholder="{{'select_or_search' | translate}}">{{$select.selected.name  || $select.selected}}</ui-select-match>
+                        <ui-select-choices  repeat="option.name as option in optionSets[attributesById[attribute.id].optionSet.id].options | filter: $select.search | limitTo:maxOptionSize">
+                          <span ng-bind-html="option.name | highlight: $select.search"></span>
+                        </ui-select-choices>
+                    </ui-select>
+                </span>
+                <span ng-if="!attribute.optionSetValue" ng-switch="attribute.valueType">
+                    <span ng-switch-when="DATE">
+                        <input type="text" 
+                               placeholder="{{dhis2CalendarFormat.keyDateFormat}}" 
+                               name="foo" 
+                               class="form-control" 
+                               d2-date
+                               d2-date-validator 
+                               max-date="attribute.allowFutureDate ? '' : 0"
+                               ng-model="selectedTei[attribute.id]"
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }"
+                               d2-attribute-validator 
+                               attribute-data={{attribute}}
+                               selected-program-id={{selectedProgram.id}}  
+                               selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                               ng-disabled="editingDisabled" 
+                               blur-or-change="teiValueUpdated(selectedTei, attribute.id)"
+                               ng-required="attribute.mandatory || attribute.unique"/>
+                    </span>
+                    <span ng-switch-when="TRUE_ONLY">
+                        <input type="checkbox" 
+                               name="foo" 
+                               class="form-control" 
+                               ng-model="selectedTei[attribute.id]" 
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }"
+                               d2-attribute-validator 
+                               attribute-data={{attribute}}
+                               selected-program-id={{selectedProgram.id}}  
+                               selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                               ng-disabled="editingDisabled" 
+                               ng-change="teiValueUpdated(selectedTei, attribute.id)"
+                               ng-required="attribute.mandatory || attribute.unique"/>
+                    </span>
+                    <span ng-switch-when="BOOLEAN">
+                        <select name="foo" 
+                                ng-model="selectedTei[attribute.id]" 
+                                ng-model-options="{ updateOn: 'blur', allowInvalid: true }" 
+                                d2-attribute-validator 
+                                attribute-data={{attribute}}
+                                selected-program-id={{selectedProgram.id}}  
+                                selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                                class="form-control" 
+                                ng-disabled="editingDisabled" 
+                                ng-change="teiValueUpdated(selectedTei, attribute.id)"
+                                ng-required="attribute.mandatory || attribute.unique">
+                            <option value="">{{'please_select'| translate}}</option>                        
+                            <option value="false">{{'no'| translate}}</option>
+                            <option value="true">{{'yes'| translate}}</option>
+                        </select>
+                    </span>                    
+                    <span ng-switch-when="NUMBER">
+                        <input type="number" 
+                               name="foo" 
+                               class="form-control" 
+                               ng-model="selectedTei[attribute.id]" 
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }" 
+                               d2-attribute-validator 
+                               attribute-data={{attribute}}
+                               selected-program-id={{selectedProgram.id}}  
+                               selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                               d2-number-validator 
+                               number-type={{attribute.valueType}} 
+                               ng-disabled="editingDisabled" 
+                               ng-blur="teiValueUpdated(selectedTei, attribute.id)"
+                               ng-required="attribute.mandatory || attribute.unique"/>
+                    </span>
+                    <span ng-switch-when="EMAIL">
+                        <input type="email" 
+                               name="foo" 
+                               class="form-control" 
+                               ng-model="selectedTei[attribute.id]" 
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }" 
+                               d2-attribute-validator 
+                               attribute-data={{attribute}}
+                               selected-program-id={{selectedProgram.id}}  
+                               selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                               ng-disabled="editingDisabled" 
+                               ng-blur="teiValueUpdated(selectedTei, attribute.id)"
+                               ng-required="attribute.mandatory || attribute.unique"/>
+                    </span>
+                    <span ng-switch-when="LONG_TEXT">
+                        <textarea row="3"
+                               name="foo" 
+                               class="form-control" 
+                               ng-model="selectedTei[attribute.id]" 
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }" 
+                               d2-attribute-validator 
+                               attribute-data={{attribute}}
+                               selected-program-id={{selectedProgram.id}}  
+                               selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                               ng-disabled="editingDisabled" 
+                               ng-blur="teiValueUpdated(selectedTei, attribute.id)"
+                               ng-required="attribute.mandatory || attribute.unique">                                   
+                        </textarea>/>                                    
+                    </span>
+                    <span ng-switch-when="TRACKER_ASSOCIATE">
+                        <input type="text" 
+                               name="foo" 
+                               class="form-control-trimmed" 
+                               ng-model="selectedTei[attribute.id]" 
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }" 
+                               d2-attribute-validator 
+                               attribute-data={{attribute}}
+                               selected-program-id={{selectedProgram.id}}  
+                               selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }"
+                               ng-disabled="true" 
+                               ng-blur="teiValueUpdated(selectedTei, attribute.id)"
+                               style="width:75%;"
+                               ng-required="attribute.mandatory || attribute.unique"/>
+                        <a href ng-class="{true: 'disable-clicks', false: ''} [editingDisabled]" ng-click="getTrackerAssociate(attribute, selectedTei[attribute.id])" title="{{'add'| translate}} {{attribute.name}}">
+                            <i class="fa fa-external-link fa-2x vertical-center"></i>
+                        </a>
+                        <a href ng-if="selectedTei[attribute.id]" ng-class="{true: 'disable-clicks', false: ''} [editingDisabled]" ng-click="selectedTei[attribute.id] = null" title="{{'add'| translate}} {{attribute.name}}">
+                            <i class="fa fa-trash-o fa-2x vertical-center"></i>
+                        </a>
+                    </span>
+                    <span ng-switch-default>
+                        <input type="text" 
+                               name="foo" 
+                               class="form-control" 
+                               ng-model="selectedTei[attribute.id]" 
+                               ng-model-options="{ updateOn: 'blur', allowInvalid: true }" 
+                               d2-attribute-validator 
+                               attribute-data={{attribute}}
+                               selected-program-id={{selectedProgram.id}}  
+                               selected-tei-id={{selectedTei.trackedEntityInstance}}  
+                               ng-disabled="editingDisabled" 
+                               ng-blur="teiValueUpdated(selectedTei, attribute.id)"
+                               ng-required="attribute.mandatory || attribute.unique"/>                                    
+                    </span>
+                </span>
+                <div ng-messages="innerForm.foo.$error" ng-if="interacted(innerForm.foo)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html">                                         
+                    <div class="alert alert-warning alert-dismissible" role="alert" ng-if="warningMessages[attribute.id]">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        {{warningMessages[attribute.id]}}
+                    </div>
+                    <div class="alert alert-danger alert-dismissible" role="alert" ng-if="errorMessages[attribute.id]">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        {{errorMessages[attribute.id]}}
+                    </div>
+                </div>
+            </ng-form>            
+        </td>
+    </tr>           
+</table>

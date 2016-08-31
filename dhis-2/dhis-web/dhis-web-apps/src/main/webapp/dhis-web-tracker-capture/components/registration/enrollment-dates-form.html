@@ -1,0 +1,43 @@
+<table class="dhis2-list-table-striped dhis2-table-hover">
+    <tr>
+        <td>
+            {{'enrolling_orgunit' | translate}}
+        </td>
+        <td>
+            <input type="text" class="form-control" value={{selectedEnrollment.orgUnitName}} ng-disabled="true"/>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            {{selectedProgram.enrollmentDateLabel}}
+        </td>
+        <td>
+            <input type="text" 
+                   placeholder="{{dhis2CalendarFormat.keyDateFormat}}" 
+                   name="enrollmentDate" 
+                   class="form-control" 
+                   d2-date 
+                   ng-model="selectedEnrollment.enrollmentDate" 
+                   max-date="selectedProgram.selectEnrollmentDatesInFuture ? '' : 0"
+                   min-date=""
+                   ng-required="true"/>
+            <span ng-show="outerForm.submitted && outerForm.enrollmentDate.$invalid" class="error">{{'required'| translate}}</span>
+        </td>
+    </tr>     
+    <tr ng-if="selectedProgram.displayIncidentDate">
+        <td>
+            {{selectedProgram.incidentDateLabel}}
+        </td>
+        <td>
+            <input type="text" 
+                   placeholder="{{dhis2CalendarFormat.keyDateFormat}}"
+                   name="incidentDate"
+                   class="form-control" 
+                   d2-date 
+                   max-date="selectedProgram.selectIncidentDatesInFuture ? '' : 0"
+                   min-date=""
+                   ng-model="selectedEnrollment.incidentDate"/>
+        </td>
+    </tr>
+</table>
+<hr>

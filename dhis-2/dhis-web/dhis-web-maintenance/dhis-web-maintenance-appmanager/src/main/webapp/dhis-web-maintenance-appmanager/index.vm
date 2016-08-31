@@ -1,0 +1,108 @@
+<style type="text/css">
+#uploadArea {
+    border: 1px solid #ccc; 
+    border-radius: 3px; 
+    padding: 10px; 
+    width: 440px; 
+    margin-bottom: 30px;
+}
+
+#progressbar {
+    width: 460px;
+    margin-bottom: 30px;
+}
+
+#appStoreLink {
+    font-size: 15px;
+    color: #777;
+    padding-bottom: 20px;
+    width: auto;
+    max-width: 460px;
+}
+</style>
+
+<script>
+jQuery(document).ready(function() {
+    jQuery('#appSettingsForm').ajaxForm({
+        dataType:  'json',
+        success: function(data){
+            setHeaderDelayMessage(data.message);
+        }
+    });
+
+  dhis2.contextmenu.makeContextMenu({
+    menuId: 'contextMenu',
+    menuItemActiveClass: 'contextMenuItemActive'
+  });
+});
+
+function openApp( context ) {
+  jQuery.getJSON('../api/apps?key=' + context.id, function(json) {
+    var app = json[0];
+    var url = '${appBaseUrl}/' + app.folderName + '/' + app.launch_path;
+    window.location.href = url;
+  });
+}
+
+function removeApp( context ) {
+  deleteApp( context.id, context.name );
+}
+
+var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "appmanager_confirm_delete" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "dhis-web-maintenance-appmanager" )</h3>
+
+#if( $!appStoreUrl )
+<div id="appStoreLink">Look for apps in the <a href="${appStoreUrl}" target="_blank">app store</a></div>
+#end
+
+<div>
+#if( ${settingsValid} == true )
+<div id="uploadArea">
+    <form id="uploadPackageForm" enctype="multipart/form-data" method="post">
+    <span style="margin-right: 30px">$i18n.getString( "appmanager_upload_app_package" ):</span><input type="file" id="upload" name="upload" accept="application/zip,.zip" />
+    </form>
+</div>
+<div id="progressbar"></div>
+#else
+<div id="uploadArea">Please configure the <a href="appSettings.action">app settings</a> before installing apps</div>
+#end
+</div>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li><a data-target-fn="openApp"><i class="fa fa-play"></i>&nbsp;&nbsp;$i18n.getString( "open" )</a></li>
+    <li><a data-target-fn="removeApp"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+  </ul>
+</div>
+
+#if( $appList.isEmpty() )
+<div style="margin-left: 15px; margin-top: 6px;">$i18n.getString( "appmanager_you_have_no_apps_installed" )</div>
+#else
+<table style="width:80%">
+  <tr>
+    <td style="vertical-align:top">
+      <table class="listTable" id="appList" width='100%'>
+        <col/>
+        <col/>				
+        <thead>				
+          <tr>
+            <th>$i18n.getString( "appmanager_appname" )</th>
+            <th>$i18n.getString( "version" )</th>
+          </tr>
+        </thead>
+        <tbody id="list">
+            #foreach( $app in $appList )
+            <tr id="tr${app.key}" data-id="${app.key}" data-name="$encoder.jsEncode( $app.name )">
+                <td>$encoder.jsEncode( $app.name )</td>
+                <td>$app.version</td>
+            </tr>
+            #end
+        </tbody>
+      </table>
+    </td>
+  </tr>
+</table>
+#end
+

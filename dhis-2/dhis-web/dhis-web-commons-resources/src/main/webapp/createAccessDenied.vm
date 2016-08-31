@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<title>DHIS 2</title>
+	<style>
+	*
+	{
+		font-family: tahoma, sans-serif;
+	}
+
+	p
+	{
+		font-size: 10pt;
+	}
+	</style>
+</head>
+<body>
+
+## -------------------------------------------------------------------------- ##
+
+<h2>$i18n.getString( "access_denied" )</h2>
+
+<p>$encoder.htmlEncode( $i18n.getString( "create_access_denied_message" ) ) $exception.message</p>
+
+<p><input type="button" value="$encoder.htmlEncode( $i18n.getString( "go_back" ) )" onclick="window.history.back()"></p>
+
+## -------------------------------------------------------------------------- ##
+
+</body>
+</html>

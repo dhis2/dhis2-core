@@ -1,0 +1,15 @@
+{
+"create_new_account": "$!encoder.jsonEncode( $i18nObject.getString( "create_new_account" ) )",
+"name": "$!encoder.jsonEncode( $i18nObject.getString( "new_user_account_name" ) )",
+"first_name": "$!encoder.jsonEncode( $i18nObject.getString( "new_user_account_first_name" ) )",
+"last_name": "$!encoder.jsonEncode( $i18nObject.getString( "new_user_account_last_name" ) )",
+"user_name": "$!encoder.jsonEncode( $i18nObject.getString( "user_name" ) )",
+"password": "$!encoder.jsonEncode( $i18nObject.getString( "password" ) )",
+"confirm_password": "$!encoder.jsonEncode( $i18nObject.getString( "confirm_password" ) )",
+"email": "$!encoder.jsonEncode( $i18nObject.getString( "email" ) )",
+"mobile_phone": "$!encoder.jsonEncode( $i18nObject.getString( "mobile_phone" ) )",
+"employer": "$!encoder.jsonEncode( $i18nObject.getString( "employer" ) )",
+"prove_not_robot": "$!encoder.jsonEncode( $i18nObject.getString( "prove_you_are_not_a_robot" ) )",
+"cant_read_words": "$!encoder.jsonEncode( $i18nObject.getString( "cant_read_the_words_try_another_one" ) )",
+"create": "$!encoder.jsonEncode( $i18nObject.getString( "create" ) )"
+}

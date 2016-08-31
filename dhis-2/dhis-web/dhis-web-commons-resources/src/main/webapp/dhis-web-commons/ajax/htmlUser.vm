@@ -1,0 +1,36 @@
+<h3><span id="senderName">$!{user.firstName} $!{user.surname}</span></h3>
+<table>
+<tr>
+<td><label>$i18n.getString( "email" ):</label></td>
+<td><span id="senderEmail">$!{user.email}</span></td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "username" ):</label></td>
+<td><span id="senderUsername">$!{user.userCredentials.username}</span></td>
+</tr>
+<tr>
+<td><label>$i18n.getString( "phone_number" ):</label></td>
+<td><span id="senderPhoneNumber">$!{user.phoneNumber}</span></td>
+</tr>
+#if( $user.organisationUnits && $user.organisationUnits.size() > 0 )
+<tr>
+<td><label>$i18n.getString( "organisation_units" ):</label></td>
+<td><span id="senderOrganisationUnits">
+#set( $unitsNo = $user.organisationUnits.size() )
+#foreach( $unit in $user.organisationUnits )
+${unit.name}#if( $velocityCount < $unitsNo ), #end
+#end
+</span></td>
+</tr>
+#end
+#if( $user.userCredentials.userAuthorityGroups && $user.userCredentials.userAuthorityGroups.size() > 0 )
+<tr>
+<td><label>$i18n.getString( "user_roles" ):</label></td>
+<td><span id="senderUserRoles">
+#set( $rolesNo = $user.userCredentials.userAuthorityGroups.size() )
+#foreach( $role in $user.userCredentials.userAuthorityGroups )
+${role.name}#if( $velocityCount < $rolesNo ), #end
+#end
+</span></td>
+</tr>
+#end

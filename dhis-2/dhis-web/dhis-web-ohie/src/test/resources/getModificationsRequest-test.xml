@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://www.w3.org/2005/08/addressing"
+  xmlns:csd="urn:ihe:iti:csd:2013">
+
+  <soap:Header>
+    <wsa:Action soap:mustUnderstand="1">urn:ihe:iti:csd:2013:GetDirectoryModificationsRequest</wsa:Action>
+    <wsa:MessageID>urn:uuid:def119ad-dc13-49c1-a3c7-e3742531f9b3</wsa:MessageID>
+    <wsa:ReplyTo soap:mustUnderstand="1">
+      <wsa:Address>http://www.w3.org/2005/08/addressing/anonymous</wsa:Address>
+    </wsa:ReplyTo>
+    <wsa:To soap:mustUnderstand="1">http://host/csDirectory</wsa:To>
+  </soap:Header>
+  <soap:Body>
+    <csd:getModificationsRequest>
+      <csd:lastModified>2014-01-01T09:30:10.5</csd:lastModified>
+    </csd:getModificationsRequest>
+  </soap:Body>
+
+</soap:Envelope>

@@ -1,0 +1,84 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+		datePickerInRange( 'startDate' , 'endDate' );	
+	});
+	
+    var i18n_select_one_or_more_object_types = '$encoder.jsEscape( $i18n.getString( "select_one_or_more_object_types" ), "'")';
+    var i18n_select_startdate = '$encoder.jsEscape( $i18n.getString( "select_startdate" ), "'")';
+    var i18n_select_enddate = '$encoder.jsEscape( $i18n.getString( "select_enddate" ), "'")';
+</script>
+
+<h3>$i18n.getString( "$exportFormat" ) $i18n.getString( "datavalue_export" ) #openHelp( "export" )</h3>
+
+<form id="exportForm" name="exportForm" method="post" action="exportData.action">
+
+<input type="hidden" name="exportFormat" value="$!exportFormat" />
+
+<table width="325">
+
+	<colgroup>
+  		<col width="25">
+ 		<col width="300">
+  	</colgroup>
+
+    <!-- Data -->
+    <tr>
+		<th colspan="2" >$i18n.getString( "data" )</th>
+	</tr>
+	<tr>
+		<td><input id="dataValue" name="dataValue" type="checkbox" value="true" /></td>
+		<td><label for="dataValue">$i18n.getString( 'data_value' )</label></td>
+  	</tr>
+  	<tr>
+		<td><input id="dataValueDaily" name="dataValueDaily" type="checkbox" value="true" /></td>
+		<td><label for="dataValueDaily">$i18n.getString( 'data_value_daily' )</label></td>
+  	</tr>
+	
+</table>	
+
+<table width="708">
+	
+    <colgroup>
+        <col width="325">
+        <col>
+        <col width="325">
+    </colgroup>
+    <!-- Timespan -->
+	
+	<tr>
+		<th>$i18n.getString( "start_date" )</th>
+		<td></td>
+		<th>$i18n.getString( "end_date" )</th>
+	</tr>	
+    <tr>
+  		<td><input type="text" id="startDate" name="startDate" value="$!startDate" style="width:230px"></td>
+		<td></td>
+  		<td><input type="text" id="endDate" name="endDate" value="$!endDate" style="width:230px"></td>
+  	</tr>
+  	<tr>
+		<td colspan="2" height="15"></td>
+	</tr>
+    
+</table>
+	
+<table width="325">
+
+	<colgroup>
+  		<col width="25">
+ 		<col width="300">
+  	</colgroup>	
+	<!-- Submit -->
+	
+	<tr>		
+		<td colspan="2">
+			<input type="button" value="$i18n.getString( 'export' )" style="width:34%" onclick="submitDataExportForm()" />
+			<input type="button" value="$i18n.getString( 'select_all' )" style="width:33%" onclick="toggle( 'all' )" />
+			<input type="button" value="$i18n.getString( 'select_none' )" style="width:33%" onclick="toggle( 'none' )" />
+		</td>
+	</tr>
+	
+</table>
+
+</form>
+
+<span id="message"></span>

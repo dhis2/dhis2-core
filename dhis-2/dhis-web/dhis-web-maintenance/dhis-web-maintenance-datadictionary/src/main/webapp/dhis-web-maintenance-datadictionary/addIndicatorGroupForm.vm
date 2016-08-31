@@ -1,0 +1,61 @@
+<script type="text/javascript">
+	jQuery(function() {
+        validation2( 'addIndicatorGroupForm', function( form )
+        {
+            form.submit();
+        }, {
+            'beforeValidateHandler' : function()
+            {
+                listValidator( 'memberValidator', 'groupMembers' );
+                #tblDynamicAttributesJavascript()
+                $("#inSelected").find("option").attr("selected", "selected");
+            },
+            'rules' : getValidationRules( "indicatorGroup" )
+        } );
+
+        var nameField = document.getElementById( 'name' );
+        nameField.select();
+        nameField.focus();
+
+        $('#inAvailable').selected({
+          url: '../api/indicators.json',
+          target: $('#inSelected'),
+          search: $('#inAvailableSearch'),
+          iterator: 'indicators'
+        });
+	});
+</script>
+
+<h3>$i18n.getString( "create_new_indicator_group" )</h3>
+
+#sharingCreateNotification( "indicatorGroup" )
+
+<form id="addIndicatorGroupForm" action="addIndicatorGroup.action" method="post" class="inputForm">
+
+<table>
+    <col width="120px" />
+
+    <tr>
+   		<th colspan="2">$i18n.getString( "details" )</th>
+   	</tr>
+
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" /></td>
+	</tr>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes } )
+
+#jqSelected({
+  "prefix": "in",
+  "i18n_available": "available_indicators",
+  "i18n_selected": "selected_indicators"
+})
+
+<p>
+	<input type="submit" value="$i18n.getString( 'add' )" style="width:10em"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="dhis2.commons.redirectCurrentPage( 'indicatorGroup.action' )" style="width:10em"/>
+</p>
+
+</form>

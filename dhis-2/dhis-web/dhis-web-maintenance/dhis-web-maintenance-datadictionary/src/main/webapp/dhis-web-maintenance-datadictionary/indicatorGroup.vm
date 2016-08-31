@@ -1,0 +1,76 @@
+
+#sharingDialog()
+
+<script type="text/javascript">
+	jQuery(document).ready(function(){	
+		tableSorter( 'listTable' );	
+	});
+	
+  var i18n_confirm_delete = '$encoder.jsEscape($i18n.getString( "confirm_delete_indicator_group" ) , "'")';
+	// Are you sure you want to delete this?
+	var i18n_adding_indicator_group_failed = '$encoder.jsEscape($i18n.getString( "adding_indicator_group_failed" ) , "'")';
+	var i18n_saving_indicator_group_failed = '$encoder.jsEscape($i18n.getString( "saving_indicator_group_failed" ) , "'")';
+</script>
+
+<h3>$i18n.getString( "indicator_group_management" ) #openHelp( "indicatorGroup" )</h3>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canManage"><a data-target-fn="showSharingDialogWithContext"><i class="fa fa-share"></i>&nbsp;&nbsp;$i18n.getString( "sharing_settings" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateIndicatorGroupForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeIndicatorGroup"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showIndicatorGroupDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<table class="mainPageTable">
+	<tr>
+		<td style="vertical-align:top">
+			<table width="100%">
+				<tr>
+					<td>#filterDiv( "indicatorGroup" )</td>
+					<td colspan="4" style="text-align:right"><input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddIndicatorGroupForm.action'" style="width:80px"/></td>
+				</tr>
+			</table>
+			<table class="listTable" id="listTable">
+        <thead>
+					<tr>
+						<th>$i18n.getString( "name" )</th>
+					</tr>
+        </thead>
+				<tbody id="list">
+				#foreach( $indicatorGroup in $indicatorGroups )
+				<tr id="tr${indicatorGroup.id}" data-id="$!indicatorGroup.id" data-uid="$!indicatorGroup.uid" data-type="IndicatorGroup" data-name="$encoder.htmlEncode( $!indicatorGroup.displayName )"
+            data-can-manage="$security.canManage( $indicatorGroup )"
+            data-can-update="$security.canUpdate( $indicatorGroup )"
+            data-can-delete="$security.canDelete( $indicatorGroup )">
+          <td>$encoder.htmlEncode( $!indicatorGroup.displayName )</td>
+				</tr>
+				#end
+				</tbody>
+			</table>
+			<p></p>
+			#parse( "/dhis-web-commons/paging/paging.vm" )
+		</td>
+
+		<td id="detailsData">
+      <div id="detailsArea">
+        <div id="hideDetailsArea">
+        <a href="javascript:hideDetails()" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"/></a>
+      </div>
+      <p><label>$i18n.getString( "name" ):</label><br/><span id="nameField"></span></p>
+      <p><label>$i18n.getString( "number_of_members" ):</label><br/><span id="memberCountField"></span></p>
+      <p><label>$i18n.getString( "id" ):</label><br/><span id="idField"></span></p>
+      </div>
+
+			<div id="warningArea">
+        <div id="hideDetailsArea">
+          <a href="javascript:hideWarning()" title="$i18n.getString( 'hide_warning' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_warning' )"/></a>
+        </div>
+        <p><span id="warningField"></span></p>
+      </div>
+			
+		</td>
+	</tr>
+</table>

@@ -1,0 +1,19 @@
+<div class="panel panel-info">
+    <div class="panel-heading bold">
+        {{'indicators'| translate}}
+    </div>
+    <div class="panel-body">
+        <table class="dhis2-list-table-striped">
+            <tr ng-repeat="pid in allProgramRules.programIndicators.rules">
+                <td>
+                    {{pid.name}}
+                </td>
+                <td>
+                    <input type="text" class="form-control" value={{formatNumberResult(ruleeffects[currentEvent.event][pid.id].data)}} ng-disabled="true">
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
