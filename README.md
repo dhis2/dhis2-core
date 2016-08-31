@@ -1,7 +1,7 @@
 
 # DHIS 2
 
-DHIS 2 is a flexible information system for data capture, management, validation, analytics and visualization.
+DHIS 2 is a flexible information system for data capture, management, validation, analytics and visualization. It allows for data capture through clients ranging from Web browsers, Android devices, Java feature phones and SMS. It features data visualization apps for dashboards, pivot tables, charting and GIS. It provides metadata management and configuration. Its data model and services are exposed through a RESTful Web API.
 
 ## Overview
 
