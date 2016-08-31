@@ -152,4 +152,62 @@ public interface ProgramIndicatorService
      *         {@link ProgramIndicator.INVALID_VARIABLES_IN_EXPRESSION}.
      */
     String filterIsValid( String filter );
+
+    // -------------------------------------------------------------------------
+    // ProgramIndicatorGroup
+    // -------------------------------------------------------------------------
+
+    int addProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+
+    void updateProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+
+    void deleteProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+
+    ProgramIndicatorGroup getProgramIndicatorGroup( int id );
+
+    ProgramIndicatorGroup getProgramIndicatorGroup( int id, boolean i18nIndicators );
+
+    ProgramIndicatorGroup getProgramIndicatorGroup( String uid );
+
+    List<ProgramIndicatorGroup> getAllProgramIndicatorGroups();
+
+    List<ProgramIndicatorGroup> getProgramIndicatorGroupByName( String name );
+
+    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max );
+
+    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetweenByName( String name, int first, int max );
+
+    int getProgramIndicatorGroupCount();
+
+    int getProgramIndicatorGroupCountByName( String name );
+
+    // -------------------------------------------------------------------------
+    // ProgramIndicatorGroupSet
+    // -------------------------------------------------------------------------
+
+    int addProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet );
+
+    void updateProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet );
+
+    void deleteProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet );
+
+    ProgramIndicatorGroupSet getProgramIndicatorGroupSet( int id );
+
+    ProgramIndicatorGroupSet getProgramIndicatorGroupSet( int id, boolean i18nGroups );
+
+    ProgramIndicatorGroupSet getProgramIndicatorGroupSet( String uid );
+
+    List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetByName( String name );
+
+    List<ProgramIndicatorGroupSet> getCompulsoryProgramIndicatorGroupSetsWithMembers();
+
+    List<ProgramIndicatorGroupSet> getAllProgramIndicatorGroupSets();
+
+    List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetsBetween( int first, int max );
+
+    List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetsBetweenByName( String name, int first, int max );
+
+    int getProgramIndicatorGroupSetCount();
+
+    int getProgramIndicatorGroupSetCountByName( String name );
 }
