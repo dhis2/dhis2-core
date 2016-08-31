@@ -28,17 +28,16 @@ package org.hisp.dhis.settings.user.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Locale;
-
-import org.hisp.dhis.i18n.I18nService;
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.StyleObject;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 
-import com.opensymphony.xwork2.Action;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Chau Thu Tran
@@ -50,12 +49,9 @@ public class GetGeneralSettingsAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private I18nService i18nService;
+    private I18nLocaleService i18nLocaleService;
 
-    public void setI18nService( I18nService i18nService )
-    {
-        this.i18nService = i18nService;
-    }
+    public void setI18nLocaleService( I18nLocaleService i18nLocaleService ) { this.i18nLocaleService = i18nLocaleService; }
 
     private LocaleManager localeManager;
 
@@ -160,14 +156,14 @@ public class GetGeneralSettingsAction
         availableLocales = localeManager.getAvailableLocales();
 
         currentLocale = localeManager.getCurrentLocale();
-        
+
         // ---------------------------------------------------------------------
         // Get available DB locales
         // ---------------------------------------------------------------------
 
-        availableLocalesDb = i18nService.getAvailableLocales();
+        availableLocalesDb = i18nLocaleService.getAllLocales();
 
-        currentLocaleDb = i18nService.getCurrentLocale();
+        currentLocaleDb = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
 
         // ---------------------------------------------------------------------
         // Get styles

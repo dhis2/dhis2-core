@@ -185,8 +185,6 @@ public class DefaultProgramService
     {
         org.hisp.dhis.program.Program program = programService.getProgram( programId );
 
-        // program = i18n( i18nService, locale, program );
-
         org.hisp.dhis.api.mobile.model.LWUITmodel.Program pr = new org.hisp.dhis.api.mobile.model.LWUITmodel.Program();
 
         pr.setId( program.getId() );

@@ -28,11 +28,12 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.i18n.I18nService;
 import org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.Filter;
@@ -63,7 +64,7 @@ public class AppCacheFilter implements Filter
     private UserSettingLocaleManager localeManager;
 
     @Autowired
-    private I18nService i18nService;
+    private UserSettingService userSettingService;
 
     @Override
     public void doFilter( ServletRequest req, ServletResponse res, FilterChain chain ) throws IOException, ServletException
@@ -85,7 +86,7 @@ public class AppCacheFilter implements Filter
             writer.println( "# DHIS2 " + systemInfo.getVersion() + " r" + systemInfo.getRevision() );
             writer.println( "# User: " + currentUserService.getCurrentUsername() );
             writer.println( "# User UI Language: " + localeManager.getCurrentLocale() );
-            writer.println( "# User DB Language: " + i18nService.getCurrentLocale() );
+            writer.println( "# User DB Language: " + userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) );
             writer.println( "# Calendar: " + systemInfo.getCalendar() );
         }
     }

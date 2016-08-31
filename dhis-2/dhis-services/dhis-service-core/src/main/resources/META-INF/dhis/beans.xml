@@ -1240,13 +1240,6 @@
     <bean id="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" class="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" />  
   
 
-  <!-- I18nService -->
-
-  <bean id="org.hisp.dhis.i18n.I18nService" class="org.hisp.dhis.i18n.DefaultI18nService">
-    <property name="translationService" ref="org.hisp.dhis.translation.TranslationService" />
-    <property name="localeService" ref="org.hisp.dhis.i18n.118nLocaleService" />
-    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
-  </bean>
 
   <bean id="org.hisp.dhis.i18n.118nLocaleService" class="org.hisp.dhis.i18n.DefaultI18nLocaleService">
     <property name="localeStore" ref="org.hisp.dhis.i18n.I18nLocaleStore" />
@@ -1714,11 +1707,6 @@
 
   <bean id="org.hisp.dhis.message.MessageConversationDeletionHandler" class="org.hisp.dhis.message.MessageConversationDeletionHandler">
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.translation.TranslationDeletionHandler" class="org.hisp.dhis.translation.TranslationDeletionHandler">
-    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
-    <property name="translationService" ref="org.hisp.dhis.translation.TranslationService" />
   </bean>
 
   <bean id="org.hisp.dhis.attribute.AttributeValueDeletionHandler" class="org.hisp.dhis.attribute.AttributeValueDeletionHandler">

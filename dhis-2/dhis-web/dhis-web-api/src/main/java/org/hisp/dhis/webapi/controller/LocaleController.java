@@ -28,7 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.i18n.I18nService;
+import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
@@ -52,7 +52,7 @@ public class LocaleController
     private LocaleManager localeManager;
 
     @Autowired
-    private I18nService i18nService;
+    private I18nLocaleService localeService;
 
     @RequestMapping( value = "/ui", method = RequestMethod.GET )
     public @ResponseBody List<WebLocale> getUiLocales( Model model )
@@ -66,7 +66,7 @@ public class LocaleController
     @RequestMapping( value = "/db", method = RequestMethod.GET )
     public @ResponseBody List<WebLocale> getDbLocales()
     {
-        List<Locale> locales = i18nService.getAvailableLocales();
+        List<Locale> locales = localeService.getAllLocales();
         List<WebLocale> webLocales = locales.stream().map( WebLocale::fromLocale ).collect( Collectors.toList() );
         return webLocales;
     }

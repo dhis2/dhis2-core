@@ -34,7 +34,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.comparator.AttributeSortOrderComparator;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.i18n.I18nService;
+import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
@@ -97,12 +97,9 @@ public class SetupTreeAction
         this.attributeService = attributeService;
     }
 
-    private I18nService i18nService;
+    private I18nLocaleService i18nLocaleService;
 
-    public void setI18nService( I18nService i18nService )
-    {
-        this.i18nService = i18nService;
-    }
+    public void setI18nLocaleService( I18nLocaleService i18nLocaleService ) { this.i18nLocaleService = i18nLocaleService; }
 
     private LocaleManager localeManager;
 
@@ -270,7 +267,7 @@ public class SetupTreeAction
 
         availableLocales = localeManager.getAvailableLocales();
 
-        availableLocalesDb = i18nService.getAvailableLocales();
+        availableLocalesDb = i18nLocaleService.getAllLocales();
 
         attributes = new ArrayList<>( attributeService.getAttributes( User.class ) );
         Collections.sort( attributes, AttributeSortOrderComparator.INSTANCE );

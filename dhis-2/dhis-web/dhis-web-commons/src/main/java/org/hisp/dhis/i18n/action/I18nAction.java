@@ -28,21 +28,21 @@ package org.hisp.dhis.i18n.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.util.TranslationUtils;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.i18n.I18nService;
-
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.translation.ObjectTranslation;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
 
 /**
  * @author Oyvind Brucker
@@ -75,13 +75,20 @@ public class I18nAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private I18nService i18nService;
+    private LocaleManager localeManager;
 
-    public void setI18nService( I18nService i18nService )
+    public void setLocaleManager( LocaleManager localeManager )
     {
-        this.i18nService = i18nService;
+        this.localeManager = localeManager;
     }
-    
+
+    private UserSettingService userSettingService;
+
+    public void setUserSettingService( UserSettingService userSettingService )
+    {
+        this.userSettingService = userSettingService;
+    }
+
     private IdentifiableObjectManager identifiableObjectManager;
 
     public void setIdentifiableObjectManager( IdentifiableObjectManager identifiableObjectManager )
@@ -172,33 +179,21 @@ public class I18nAction
     {
         className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className ) : className;
         
-        currentLocale = i18nService.getCurrentLocale();
+        currentLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
         
-        availableLocales = i18nService.getAvailableLocales();
+        availableLocales = localeManager.getAvailableLocales();
 
         IdentifiableObject object = identifiableObjectManager.getObject( uid, className );
 
-        translations = convertTranslations( object.getTranslations() );
+        translations = TranslationUtils.convertTranslations( object.getTranslations(), currentLocale.getLanguage() );
 
-        referenceTranslations = i18nService.getObjectPropertyValues( object );
+        referenceTranslations = TranslationUtils.getObjectPropertyValues( object );
 
-        propertyNames = i18nService.getObjectPropertyNames( object );
+        propertyNames = TranslationUtils.getObjectPropertyNames( object );
 
         return SUCCESS;
     }
 
-    private Map<String, String> convertTranslations( Set<ObjectTranslation> translations )
-    {
-        Map<String, String> translationMap = new Hashtable<>();
 
-        for ( ObjectTranslation translation : translations )
-        {
-            if ( translation.getProperty() != null && translation.getValue() != null )
-            {
-                translationMap.put( translation.getProperty().name().replace( "_","" ).toLowerCase(), translation.getValue() );
-            }
-        }
 
-        return translationMap;
-    }
 }

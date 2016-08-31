@@ -58,8 +58,8 @@
     <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
     <property name="userService" ref="org.hisp.dhis.user.UserService" />
     <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
-    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
     <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+    <property name="i18nLocaleService" ref="org.hisp.dhis.i18n.118nLocaleService"/>
   </bean>
 
   <bean id="org.hisp.dhis.user.action.DisableUserAction" class="org.hisp.dhis.user.action.DisableUserAction" scope="prototype" />

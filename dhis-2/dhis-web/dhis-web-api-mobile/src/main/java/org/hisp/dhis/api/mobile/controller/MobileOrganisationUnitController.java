@@ -28,12 +28,6 @@ package org.hisp.dhis.api.mobile.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
 import org.hisp.dhis.api.mobile.ActivityReportingService;
 import org.hisp.dhis.api.mobile.FacilityReportingService;
 import org.hisp.dhis.api.mobile.IProgramService;
@@ -47,12 +41,6 @@ import org.hisp.dhis.api.mobile.model.DataSetValueList;
 import org.hisp.dhis.api.mobile.model.DataStreamSerializable;
 import org.hisp.dhis.api.mobile.model.Interpretation;
 import org.hisp.dhis.api.mobile.model.InterpretationComment;
-import org.hisp.dhis.api.mobile.model.Message;
-import org.hisp.dhis.api.mobile.model.MobileModel;
-import org.hisp.dhis.api.mobile.model.ModelList;
-import org.hisp.dhis.api.mobile.model.Recipient;
-import org.hisp.dhis.api.mobile.model.SMSCode;
-import org.hisp.dhis.api.mobile.model.SMSCommand;
 import org.hisp.dhis.api.mobile.model.LWUITmodel.LostEvent;
 import org.hisp.dhis.api.mobile.model.LWUITmodel.Notification;
 import org.hisp.dhis.api.mobile.model.LWUITmodel.Patient;
@@ -62,7 +50,13 @@ import org.hisp.dhis.api.mobile.model.LWUITmodel.Program;
 import org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramInstance;
 import org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramStage;
 import org.hisp.dhis.api.mobile.model.LWUITmodel.Relationship;
-import org.hisp.dhis.i18n.I18nService;
+import org.hisp.dhis.api.mobile.model.Message;
+import org.hisp.dhis.api.mobile.model.MobileModel;
+import org.hisp.dhis.api.mobile.model.ModelList;
+import org.hisp.dhis.api.mobile.model.Recipient;
+import org.hisp.dhis.api.mobile.model.SMSCode;
+import org.hisp.dhis.api.mobile.model.SMSCommand;
+import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -74,6 +68,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 @Controller
 @RequestMapping( value = "/mobile" )
@@ -97,7 +97,7 @@ public class MobileOrganisationUnitController
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private I18nService i18nService;
+    private I18nLocaleService localeService;
 
     @Autowired
     private SMSCommandService smsCommandService;
@@ -126,7 +126,7 @@ public class MobileOrganisationUnitController
         mobileModel.setPrograms( programService.getPrograms( unit, locale ) );
         mobileModel.setDatasets( facilityReportingService.getMobileDataSetsForUnit( unit, locale ) );
         mobileModel.setServerCurrentDate( new Date() );
-        mobileModel.setLocales( getLocalStrings( i18nService.getAvailableLocales() ) );
+        mobileModel.setLocales( getLocalStrings( localeService.getAllLocales() ) );
         return mobileModel;
     }
 
@@ -208,7 +208,7 @@ public class MobileOrganisationUnitController
         // );
         mobileModel.setDatasets( facilityReportingService.getMobileDataSetsForUnit( unit, locale ) );
         mobileModel.setServerCurrentDate( new Date() );
-        mobileModel.setLocales( getLocalStrings( i18nService.getAvailableLocales() ) );
+        mobileModel.setLocales( getLocalStrings( localeService.getAllLocales() ) );
         mobileModel.setSmsCommands( this.getMobileSMSCommands( smsCommandService.getJ2MESMSCommands() ) );
         return mobileModel;
     }

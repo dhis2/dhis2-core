@@ -28,15 +28,16 @@ package org.hisp.dhis.i18n.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+import com.opensymphony.xwork2.ActionSupport;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.system.util.LocaleUtils;
+import org.hisp.dhis.util.TranslationUtils;
 
 import java.util.Locale;
 import java.util.Map;
 
-import org.hisp.dhis.i18n.I18nService;
-import org.hisp.dhis.system.util.LocaleUtils;
-
-import com.opensymphony.xwork2.ActionSupport;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
 
 /**
  * @author Oyvind Brucker
@@ -56,13 +57,12 @@ public class GetTranslationsAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private I18nService i18nService;
+    private IdentifiableObjectManager identifiableObjectManager;
 
-    public void setI18nService( I18nService i18nService )
+    public void setIdentifiableObjectManager( IdentifiableObjectManager identifiableObjectManager )
     {
-        this.i18nService = i18nService;
+        this.identifiableObjectManager = identifiableObjectManager;
     }
-
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -99,8 +99,10 @@ public class GetTranslationsAction
         
         Locale locale = LocaleUtils.getLocale( loc );
 
-        translations = i18nService.getTranslationsNoFallback( className, objectUid, locale );
-        
+        IdentifiableObject object = identifiableObjectManager.getObject( objectUid , className );
+
+        translations = TranslationUtils.convertTranslations( object.getTranslations(), locale.getLanguage() );
+
         return SUCCESS;
     }
 }
