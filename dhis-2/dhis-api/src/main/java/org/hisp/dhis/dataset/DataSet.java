@@ -59,6 +59,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 
 import java.util.Date;
@@ -430,19 +431,19 @@ public class DataSet
     {
         return categoryCombo != null && !DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
-    
+
     /**
      * Indicates if the given period is valid for data entry for this data set.
      * Returns true if the given period is null.
-     * 
+     *
      * @param period the period.
      */
     public boolean isValidPeriodForDataEntry( Period period )
     {
         if ( period != null )
         {
-            return ( startDate == null || startDate.compareTo( period.getStartDate() ) <= 0 )
-                && ( endDate == null || endDate.compareTo( period.getEndDate() ) >= 0 );
+            return (startDate == null || startDate.compareTo( period.getStartDate() ) <= 0)
+                && (endDate == null || endDate.compareTo( period.getEndDate() ) >= 0);
         }
 
         return true;
@@ -605,6 +606,7 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = Double.MIN_VALUE, max = Double.MAX_VALUE )
     public int getExpiryDays()
     {
         return expiryDays;
