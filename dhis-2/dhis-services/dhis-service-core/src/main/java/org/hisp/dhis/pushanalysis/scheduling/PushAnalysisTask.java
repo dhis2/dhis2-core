@@ -1,5 +1,4 @@
-package org.hisp.dhis.pushanalysis;
-
+package org.hisp.dhis.pushanalysis.scheduling;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,25 +27,42 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.security.NoSecurityContextRunnable;
 
 /**
  * @author Stian Sandvold
  */
-public interface PushAnalysisService
+public class PushAnalysisTask
+    extends NoSecurityContextRunnable
 {
-    PushAnalysis getByUid( String uid );
 
-    boolean stopPushAnalysis( PushAnalysis pushAnalysis );
+    private int pushAnalysisId;
+    private TaskId taskId;
+    private PushAnalysisService pushAnalysisService;
+    private static final Log log = LogFactory.getLog( PushAnalysisTask.class );
 
-    boolean startPushAnalysis( PushAnalysis pushAnalysis );
 
-    void runPushAnalysis( int id, TaskId taskId );
+    public PushAnalysisTask( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
+    {
+        this.pushAnalysisId = pushAnalysisId;
+        this.taskId = taskId;
+        this.pushAnalysisService = pushAnalysisService;
+    }
 
-    void runTask( PushAnalysis pushAnalysis );
-
-    String generatePushAnalysisForUser( User user, PushAnalysis pushAnalysis )
-        throws Exception;
-
+    @Override
+    public void call()
+    {
+        try
+        {
+            pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        } catch( Exception ex ) {
+            log.error( DebugUtils.getStackTrace( ex ));
+            throw ex;
+        }
+    }
 }

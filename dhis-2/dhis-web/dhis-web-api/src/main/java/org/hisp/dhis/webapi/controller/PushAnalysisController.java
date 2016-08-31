@@ -29,11 +29,16 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.apache.commons.io.IOUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
+import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
+import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
+import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -52,7 +57,8 @@ import javax.servlet.http.HttpServletResponse;
 @Controller
 @RequestMapping( PushAnalysisSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
-public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
+public class PushAnalysisController
+    extends AbstractCrudController<PushAnalysis>
 {
 
     @Autowired
@@ -63,6 +69,12 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    @Autowired
+    private Scheduler scheduler;
 
     /**
      * Endpoint that renders the same content as a Push Analysis email would contain, for the logged in user.
@@ -148,7 +160,8 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
                 WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
         }
 
-        pushAnalysisService.runPushAnalysis( pushAnalysis );
+        PushAnalysisTask task = new PushAnalysisTask( pushAnalysis.getId(), new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ), pushAnalysisService );
+        scheduler.executeTask( task );
     }
 
 }

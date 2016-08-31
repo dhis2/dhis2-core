@@ -29,32 +29,35 @@ package org.hisp.dhis.pushanalysis;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
+import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Stian Sandvold
  */
+@Transactional
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
@@ -68,6 +71,9 @@ public class DefaultPushAnalysisService
     private ChartService chartService;
 
     private I18nManager i18nManager;
+
+    @Autowired
+    private Notifier notifier;
 
     public void setReportTableService( ReportTableService reportTableService )
     {
@@ -149,14 +155,23 @@ public class DefaultPushAnalysisService
     }
 
     @Override
-    public void runPushAnalysis( PushAnalysis pushAnalysis )
+    public void runPushAnalysis( int id, TaskId taskId )
     {
+        PushAnalysis pushAnalysis = pushAnalysisStore.get( id );
+        notifier.clear( taskId );
+
+        notifier.notify( taskId, "PushAnalysis started" );
+
         Set<User> receivingUsers = new HashSet<>();
 
-        pushAnalysis.getReceivingUserGroups().forEach( userGroup -> receivingUsers.addAll( userGroup.getMembers() ) );
+        for(UserGroup userGroup : pushAnalysis.getReceivingUserGroups())
+        {
+            receivingUsers.addAll( userGroup.getMembers() );
+        }
 
-        receivingUsers.forEach( user -> {
-            if ( user.getEmail().length() > 0 )
+        for(User user : receivingUsers)
+        {
+            if ( user.hasEmail() )
             {
                 try
                 {
@@ -169,7 +184,11 @@ public class DefaultPushAnalysisService
                     e.printStackTrace();
                 }
             }
-        } );
+        }
+    }
+
+    public void runTask( PushAnalysis pushAnalysis )
+    {
     }
 
     @Override
@@ -264,14 +283,11 @@ public class DefaultPushAnalysisService
             String organisationUnitUid = null;
             StringWriter stringWriter = new StringWriter();
 
-            if ( reportTable.hasReportParams() && reportTable.getReportParams().isOrganisationUnitSet() )
-            {
-                organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
-            }
+            OrganisationUnit  userOrgUnit = user.getOrganisationUnit();
 
             GridUtils.toHtmlInlineCss(
                 reportTableService
-                    .getReportTableGridByUser( item.getReportTable().getUid(), date, organisationUnitUid, user ),
+                    .getReportTableGridByUser( item.getReportTable().getUid(), date, userOrgUnit.getUid(), user ),
                 stringWriter
             );
 
@@ -281,12 +297,13 @@ public class DefaultPushAnalysisService
         else if ( item.getType() == DashboardItemType.EVENT_REPORT )
         {
 
-            // TODO
-            return "TODO: EventReports";
+            // TODO: Implement event reports
+            return "";
         }
         else
         {
             return "";
         }
     }
+
 }
