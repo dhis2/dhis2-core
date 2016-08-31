@@ -1,0 +1,54 @@
+<div class="panel panel-info" ng-controller="MessagingController">
+    <div class="panel-heading handle bold">
+        {{messagingWidget.title| translate}}
+
+        <span class="pull-right widget-link">
+            <a class="small-horizontal-spacing" href ng-click="expandCollapse(messagingWidget)">
+                <span ng-show="messagingWidget.expand"><i class="fa fa-chevron-up" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!messagingWidget.expand"><i class="fa fa-chevron-down" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizontal-spacing" href ng-click="removeWidget(messagingWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>            
+        </span>        
+    </div>
+    <div ng-show="messagingWidget.expand" class="panel-body dashboard-widget-container">
+        
+        <div ng-if="!dashboardReady">
+            <img id="ouwt_loader" src="../images/ajax-loader-bar.gif" alt="{{'loading'| translate}}"/>
+        </div>
+        
+        <!-- sms section begins -->
+        <form name="smsForm" novalidate>
+            <div ng-if="dashboardReady">
+                <input type="text" 
+                       name="phoneNumber"
+                       placeholder="{{'phone_number' | translate}}"
+                       class="form-control" 
+                       ng-required="true"     
+                       ng-model="message.phoneNumber"/>
+                <span ng-show="smsForm.submitted && smsForm.phoneNumber.$invalid" class="error">{{'required'| translate}}</span>
+                <textarea name="message"
+                          class="form-control" 
+                          rows="3" 
+                          maxlength="160"
+                          ng-model="message.value" 
+                          ng-required="true"     
+                          placeholder="{{'your_sms_message_here'| translate}}"></textarea>
+                <span ng-show="smsForm.submitted && smsForm.message.$invalid" class="error">{{'required'| translate}}</span>
+                <div class="vertical-spacing">
+                    <button type="button" 
+                            class="btn btn-primary"
+                            ng-click="sendSms()">
+                        {{'send'| translate}}
+                    </button>        
+                    <button type="button" 
+                            class="btn btn-default small-horizontal-spacing" 
+                            ng-click="clear()">
+                        {{'clear'| translate}}
+                    </button>
+                </div>
+            </div>
+        </form>
+        <!-- sms section ends -->
+        
+    </div>
+</div>

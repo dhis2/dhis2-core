@@ -1,0 +1,165 @@
+<script type="text/javascript" src="javascript/addSection.js"></script>
+<script type="text/javascript">
+	jQuery(document).ready(	function(){
+		jQuery('#availableDataElementList').dhisAjaxSelect({
+			source: '../dhis-web-commons-ajax-json/getSectionDataElements.action',
+			iterator: 'dataElements',
+			sortSelected: false,
+			connectedTo: 'selectedDataElementList',
+			handler: function(item) {
+				var option = jQuery('<option />');
+				option.text( item.name );
+				option.attr( 'value', item.id );
+
+				return option;
+			},
+			params: {
+				'dataSetId': $dataSet.id,
+				'categoryComboId': $categoryCombo.id
+			}
+		});
+		
+		jQuery("#availableIndicatorList").dhisAjaxSelect({
+			source: '../dhis-web-commons-ajax-json/getSectionIndicators.action',
+			iterator: 'indicators',
+			sortSelected: false,
+			connectedTo: 'selectedIndicatorList',
+			handler: function(item) {
+				var option = jQuery('<option />');
+				option.text( item.name );
+				option.attr( 'value', item.id );
+
+				return option;
+			},
+			params: {
+				'dataSetId': $dataSet.id
+			}
+		});				
+	});
+</script>
+
+<h3>$i18n.getString( "add_section" ) #openHelp( "dataset_sections_edit" )</h3>
+
+<form id="addSectionForm" name="addSectionForm" action="addSection.action" method="get" class="inputForm">
+
+  <table id="detailsList" style="margin-bottom: 20px">
+    <col/>
+    <col/>
+    <thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "section_details" )</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" id="sectionName" name="sectionName"></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "description" )</label></td>
+        <td><textarea id="description" name="description"></textarea></td>
+      </tr>
+	  <tr>
+        <td><label>$i18n.getString( "dataset" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" value="$dataSet.displayName" disabled="disabled"/><input type="hidden" id="dataSetId" name="dataSetId" value="$dataSet.id"/></td>
+      </tr>
+      <tr>
+        <td><label>$i18n.getString( "category_combo" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+        <td><input type="text" value="$!categoryCombo.displayName" disabled="disabled"/><input type="hidden" id="categoryComboId" name="categoryComboId" value="$!categoryCombo.id"/></td>
+      </tr>
+     
+      <tr><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <table id="dataElementSelectionArea">
+    <colgroup>
+      <col style="width: 500px;"/>
+      <col/>
+      <col style="width: 500px;"/>
+      <col/>
+    </colgroup>
+
+    <thead>
+      <tr>                
+        <th>$i18n.getString( "available_data_elements" )</th>
+		<th></th>
+		<th>$i18n.getString( "selected_data_elements" )</th>
+      </tr>
+    </thead>
+
+    <tbody>      
+      <tr>
+        <td>
+			<select id="availableDataElementList" name="availableDataElementList" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        </td>
+
+        <td style="text-align:center">
+        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableDataElementList' );"/><br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedDataElementList' );"/><br/>
+			<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableDataElementList' );"/><br/>
+			<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedDataElementList' );"/>
+        </td>
+
+		<td>
+            <select id="selectedDataElementList" name="selectedDataElementList" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px;"></select>
+		</td>
+
+		<td style="width:30px; text-align:center">
+            <a href="javascript:moveUpSelectedOption( 'selectedDataElementList' )"><img src="../images/move_up.png"></a><br/><br/>
+            <a href="javascript:moveDownSelectedOption( 'selectedDataElementList' )"><img src="../images/move_down.png"></a><br/><br/>
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+  
+  
+  <table id="indicatorSelectionArea">
+    <colgroup>
+      <col style="width: 500px;"/>
+      <col/>
+      <col style="width: 500px;"/>
+      <col/>
+    </colgroup>
+
+    <thead>
+      <tr>                
+        <th>$i18n.getString( "available_indicators" )</th>
+		<th></th>
+		<th>$i18n.getString( "selected_indicators" )</th>
+      </tr>
+    </thead>
+
+    <tbody>      
+      <tr>
+        <td>
+			<select id="availableIndicatorList" name="availableIndicatorList" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        </td>
+
+        <td style="text-align:center">
+        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableIndicatorList' );"/><br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedIndicatorList' );"/><br/>
+			<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableIndicatorList' );"/><br/>
+			<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedIndicatorList' );"/>
+        </td>
+
+		<td>
+            <select id="selectedIndicatorList" name="selectedIndicatorList" multiple="multiple" style="height: 200px; width: 100%; margin-top: 22px;"></select>
+		</td>
+
+		<td style="width:30px; text-align:center">
+            <a href="javascript:moveUpSelectedOption( 'selectedIndicatorList' )"><img src="../images/move_up.png"></a><br/><br/>
+            <a href="javascript:moveDownSelectedOption( 'selectedIndicatorList' )"><img src="../images/move_down.png"></a><br/><br/>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="4">
+          <input type="submit" value="$i18n.getString( 'save' )" style="width:120px" />
+          <input type="button" onclick="window.location.href='section.action?dataSetId=$dataSet.id&categoryComboId=$categoryCombo.id'" value="$i18n.getString( 'cancel' )" style="width:120px" />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</form>

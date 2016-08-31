@@ -1,0 +1,23 @@
+<h2>$i18n.getString( "beneficiary_list" )</h2>
+	#if( $validated)
+		<div class="header-box">
+			<h3 style="text-align: left;">$i18n.getString("successfully_saved")</h3>
+		</div>
+	#else	
+	
+	#end
+<p>
+<ul>
+#foreach( $beneficiary in $beneficiaries )
+	<li><a href="selectActivity.action?organisationUnitId=$organisationUnit.id&beneficiaryId=$beneficiary.id&current=$current">$!encoder.htmlEncode( ${beneficiary.getFullName()} )</a></li>
+#end
+</ul>
+</p>
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+	<li><a href="selectActivityType.action?orgUnitId=$organisationUnit.id">$i18n.getString("activity_type")</a></li>
+	<li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>
+</div>

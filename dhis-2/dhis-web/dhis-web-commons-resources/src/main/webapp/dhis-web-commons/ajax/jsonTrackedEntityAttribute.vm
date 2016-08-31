@@ -1,0 +1,17 @@
+{ "attribute":
+  {
+		"id": "${attribute.id}",
+		"uid": "${attribute.uid}",
+		"name": "$!encoder.jsonEncode( ${attribute.name} )",
+		"code": "$!encoder.jsonEncode( ${attribute.code} )",
+		"description": "$!encoder.jsonEncode( ${attribute.description} )",
+		"unique":  "$!{attribute.unique}",
+		"valueType": "$!attribute.valueType",
+		"displayInListNoProgram": "$!attribute.displayInListNoProgram",
+		"inherit": "$!attribute.inherit",
+		"confidential": "$!attribute.confidential",
+		"optionSet": "$!attribute.optionSet.name",
+		"orgunitScope": "$!attribute.orgunitScope",
+		"programScope": "$!attribute.programScope"
+  }
+}

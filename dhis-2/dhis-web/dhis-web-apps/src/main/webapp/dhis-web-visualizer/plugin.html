@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="../dhis-web-commons/javascripts/ext/resources/css/ext-plugin-gray.css" />
+
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
+
+    <script src="scripts/chart.js"></script>
+
+    <style type="text/css">
+		body {font-family: sans-serif; margin: 0 0 0 60px;}
+
+		h1 {font-size: 20px; margin: 20px 0;}
+
+		#chart1, #chart2 {width: 800px; height: 320px; margin-bottom: 50px; }
+    </style>
+
+	<script>
+		Ext.onReady(function() {
+			var url = 'http://localhost:8080';
+
+			DHIS.getChart({
+				url: url,
+				el: 'chart1',
+				uid: 'LW0O27b7TdD',
+                crossDomain: true,
+                username: 'admin',
+                password: 'district',
+                dashboard: true
+			});
+
+			//DHIS.getChart({
+				//url: url,
+				//el: 'chart2',
+                ////type: 'pie',
+				//columns: [{dimension: 'in', items: [{id: 'Uvn6LCg7dVU'}, {id: 'OdiHJayrsKo'}, {id: 'sB79w2hiLp8'}, {id: 'AUqdhY4mpvp'}]}],
+				//rows: [{dimension: 'pe', items: [{id: 'LAST_6_MONTHS'}]}],
+                //filters: [{dimension: 'ou', items: [{id: 'USER_ORGUNIT'}]}],
+                //domainAxisTitle: 'PERIODS',
+                //rangeAxisTitle: 'PERCENT',
+                //domainAxisStyle: {
+                    //labelFont: '10px sans-serif',
+                    //labelRotation: 0,
+                    //titleFont: 'bold 10px sans-serif'
+                //},
+                //rangeAxisStyle: {
+                    //labelFont: '10px arial',
+                    //titleFont: 'bold 10px sans-serif'
+                //},
+                //legendStyle: {
+                    //labelMaxLength: 9,
+                    //labelFontSize: 10,
+                    //titleFont: '18px sans-serif'
+                //},
+                //seriesStyle: {
+                    //labelFont: '10px sans-serif',
+                    //labelColor: 'black'
+                //}
+			//});
+		});
+	</script>
+</head>
+
+<body>
+    <h1>CHART BY UID</h1>
+	<div id="chart1"></div>
+
+    <h1>CHART BY CONFIG</h1>
+	<div id="chart2"></div>
+</body>
+</html>

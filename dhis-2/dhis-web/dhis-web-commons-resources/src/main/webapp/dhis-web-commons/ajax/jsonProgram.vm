@@ -1,0 +1,19 @@
+{ "program":
+  {
+	"id": "$!program.id",
+	"uid": "$!program.uid",
+	"name": "$!encoder.jsEncode( ${program.name} )",
+	"description": "$!encoder.jsEncode( ${program.description} )",
+	"programType": "$!program.programType",
+	"dataEntryMethod": "$!program.dataEntryMethod",
+	"displayIncidentDate": "$!program.displayIncidentDate",
+	"ignoreOverdueEvents": "$!program.ignoreOverdueEvents",
+	"enrollmentDateLabel": "$!encoder.jsEncode( ${program.enrollmentDateLabel} )",
+	"incidentDateLabel": "$!encoder.jsEncode( ${program.incidentDateLabel} )",
+	"programStageCount": "${program.programStages.size()}",
+	"noAttributes": "$!program.attributes.size()",
+	"onlyEnrollOnce": "$!program.onlyEnrollOnce",
+	"selectEnrollmentDatesInFuture": "$!program.selectEnrollmentDatesInFuture",
+	"selectIncidentDatesInFuture": "$!program.selectIncidentDatesInFuture"
+  }
+}

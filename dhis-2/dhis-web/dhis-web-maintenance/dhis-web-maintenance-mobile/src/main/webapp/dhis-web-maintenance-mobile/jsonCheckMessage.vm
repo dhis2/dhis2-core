@@ -1,0 +1,3 @@
+{
+  "message": "$!encoder.jsonEncode( ${message} )"
+}

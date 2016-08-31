@@ -1,0 +1,89 @@
+<div class="panel panel-info" ng-controller="DataEntryController">    
+    <div class="panel-heading handle bold">        
+        <div ng-include="'components/dataentry/dataentry-print.html'"></div>
+        <div ng-if="useMainMenu && !mainMenuStageSelected()">
+            {{'main_menu' | translate}}
+            
+            <span class="pull-right widget-link">
+                <a href ng-click="model.showLegend = !model.showLegend" title="{{'event_color_legend'| translate}}" class="small-horizontal-spacing" ng-if="allEventsSorted.length > 0"><i class="fa fa-info-circle vertical-center"></i></a>
+                <a class="small-horizontal-spacing" href ng-click="expandCollapse(dataentryWidget)">
+                    <span ng-show="dataentryWidget.expand"><i class="fa fa-chevron-up vertical-center" title="{{collapseLabel}}"></i></span>
+                    <span ng-show="!dataentryWidget.expand"><i class="fa fa-chevron-down vertical-center" title="{{expandLabel}}"></i></span>
+                </a>            
+            </span>
+            
+        </div>
+        <div ng-if="!useMainMenu">
+            {{dataentryWidget.title | translate}}
+            <span class="pull-right widget-link">               
+                <a href ng-click="model.showEventSearch = !model.showEventSearch" title="{{'search'| translate}}" ng-if="allEventsSorted.length > eventPageSize" class="small-horizontal-spacing"><span ng-class="{true: 'red'} [model.eventSearchText.length > 0]"><i class="fa fa-search vertical-center"></i></span></a>
+                <a href ng-click="model.showLegend = !model.showLegend" title="{{'event_color_legend'| translate}}" class="small-horizontal-spacing" ng-if="allEventsSorted.length > 0"><i class="fa fa-info-circle vertical-center"></i></a>
+                <a href ng-click="toggleEventsTableDisplay()" title="{{showEventsAsTables ? 'toggle_table_view_off' : 'toggle_table_view_on'| translate}}" ng-show="stagesCanBeShownAsTable"><span ng-if="!showEventsAsTables"><i class="fa fa-bars vertical-center"></i></span><span ng-if="showEventsAsTables"><i class="fa fa-square vertical-center"></i></span></a>
+                <!--<a href ng-click="categoryOptionComboFilter()" title="{{'cocbo_filter'| translate}}" class="small-horizontal-spacing" ng-if="selectedProgram && selectedProgram.categoryCombo && !selectedProgram.categoryCombo.isDefault"><i class="fa fa-filter vertical-center"></i></a>-->
+                <d2-audit name-id-map="prStDes" event-id="{{currentEvent.event}}" data-type="dataElement" ng-if="currentEvent.event"></d2-audit>
+                <a class="small-horizontal-spacing" href ng-click="expandCollapse(dataentryWidget)">
+                    <span ng-show="dataentryWidget.expand"><i class="fa fa-chevron-up vertical-center" title="{{collapseLabel}}"></i></span>
+                    <span ng-show="!dataentryWidget.expand"><i class="fa fa-chevron-down vertical-center" title="{{expandLabel}}"></i></span>
+                </a>
+                <a class="small-horizontal-spacing" href ng-click="removeWidget(dataentryWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle vertical-center"></i></a>
+            </span>
+        </div>
+        <div ng-if="mainMenuStageSelected()">            
+            {{headerCurrentStageName()}}
+            
+            <span class="pull-right widget-link">  
+                <span ng-repeat="stage in headerStagesWithoutCurrent()" ng-if='useMenuMultiMode'>
+                    <span ng-if="$index !== 0"> | </span>
+                    <a href ng-click="openStageFromMenu(stage, stage.id)">
+                        {{stage.displayName}} ({{getStageEventCnt(stage)}})
+                    </a>
+                </span>
+                <a href ng-click="model.showLegend = !model.showLegend" title="{{'event_color_legend'| translate}}" class="small-horizontal-spacing" ng-if="allEventsSorted.length > 0"><i class="fa fa-info-circle vertical-center"></i></a>
+                <a href ng-click="toggleEventsTableDisplay()" title="{{showEventsAsTables ? 'toggle_table_view_off' : 'toggle_table_view_on'| translate}}" ng-show="stagesCanBeShownAsTable"><span ng-if="!showEventsAsTables"><i class="fa fa-bars vertical-center"></i></span><span ng-if="showEventsAsTables"><i class="fa fa-square vertical-center"></i></span></a>
+                <a class="small-horizontal-spacing" href ng-click="expandCollapse(dataentryWidget)">
+                    <span ng-show="dataentryWidget.expand"><i class="fa fa-chevron-up vertical-center" title="{{collapseLabel}}"></i></span>
+                    <span ng-show="!dataentryWidget.expand"><i class="fa fa-chevron-down vertical-center" title="{{expandLabel}}"></i></span>
+                </a>
+                <a class="small-horizontal-spacing" href ng-click="removeWidget(dataentryWidget)" title="{{removeLabel}}" ng-if="dataentryWidget.showHideAllowed"><i class="fa fa-times-circle vertical-center"></i></a>            
+            </span>
+        </div>       
+    </div>
+
+    <div ng-show="dataentryWidget.expand" class="panel-body dashboard-widget-container">        
+        <div ng-if="showSelf">
+            <div ng-if="!dashboardReady">
+                <img id="ouwt_loader" src="../images/ajax-loader-bar.gif" alt="{{'loading'| translate}}"/>
+            </div>
+            <div ng-if="dashboardReady">
+                <div ng-if="model.showLegend">
+                    <div ng-include="'components/dataentry/event-legend.html'"></div>
+                </div>
+                <div ng-if="useMainMenu && !mainMenuStageSelected() && eventsLoaded">
+                    <div class="">
+                        <div ng-repeat="mainMenuStage in mainMenuStages" class="main-menu-item-container" ng-class="getMainMenuItemStyle(mainMenuStage)" ng-click="openStageFromMenu(mainMenuStage)">                            
+                            <div class="main-menu-item">{{mainMenuStage.displayName}} ({{getStageEventCnt(mainMenuStage)}})</div>  
+                            <div class="main-menu-item-footer">{{getStageStyleLabel(mainMenuStage)}}</div>
+                        </div>
+                    </div>                
+                </div>
+                <div ng-if="!useMainMenu || mainMenuStageSelected()">                    
+                    <div class="hideInPrint" ng-if="selectedEnrollment && selectedEnrollment.enrollment">
+                        <div ng-include="'components/dataentry/event-layout.html'"></div>
+                    </div>
+                    <div ng-if="!selectedEnrollment || !selectedEnrollment.enrollment" class="alert alert-danger">{{notEnrolledLabel}}</div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div ng-include="'components/dataentry/main-dataentry-form.html'"></div>
+                        </div>
+                    </div>
+                    <div ng-if="displayCustomForm !== 'TABLE'">
+                        <div class="long-vertical-spacing" ng-include="'components/dataentry/dataentry-notes.html'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="!showSelf">
+            <div class="alert alert-warning">{{'no_active_enrollment'| translate}}</div>
+        </div>        
+    </div>    
+</div>

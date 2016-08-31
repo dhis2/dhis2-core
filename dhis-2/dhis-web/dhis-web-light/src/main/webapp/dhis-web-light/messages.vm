@@ -1,0 +1,83 @@
+
+<h2>$i18n.getString( "conversations" )</h2>
+
+<p>
+<ul>
+    #foreach( $conversation in $conversations )
+        #if( $conversation.read == false )
+            <li><a href="reply.action?conversationId=$conversation.uid" style="font-weight: bold;">$conversation.subject</a></li>
+        #else
+            <li><a href="reply.action?conversationId=$conversation.uid">$conversation.subject</a></li>
+        #end
+    #end
+</ul>
+</p>
+
+#*
+	<p>
+
+	<form method="POST" action="searchUser.action">
+	<div class="header-box" align="center">
+		<h3 style="text-align: left;">$i18n.getString("search_user")</h3>
+		
+		<p style="text-align: left;">
+			<input type="text" name="keyword"/>
+		</p>
+		<p style="text-align: left;">
+			 <input type="submit" style="width: 100%;" value="$i18n.getString("search")" />
+		</p>
+	</div>
+	
+	</form>
+
+	<p>
+			<form>
+			
+			#foreach( $user in $users)
+			<ul>		
+				<li><a href="showUserList.action?userId=$user.getId()">$!encoder.htmlEncode( ${user.getName()} )</a></li>
+			</ul>
+			#end
+			
+			</form>
+	</p>
+*#
+
+<h2>$i18n.getString( "write" )</h2>
+
+<ul>
+	<li>
+	<a href="message.action">$i18n.getString( "write_message" )</a>
+	</li>
+</ul>
+
+<ul>
+	<li>
+	<a href="feedback.action">$i18n.getString( "write_feedback" )</a>
+	</li>
+</ul>
+
+<h2>$i18n.getString( "last_recipients" )</h2>
+
+<p>
+<ul>
+#set( $max = 1)
+	#foreach( $usermessage in $usermessages )
+       
+           <li><a href="showUserList.action?userId=$usermessage.getId()">$usermessage.lastRecipientName</a></li>
+       #if ( $max == 5 )
+				#break
+			#end
+			#set( $max = $max+1 )
+
+    #end
+</ul>
+</p>
+
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+	<li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>
+</div>

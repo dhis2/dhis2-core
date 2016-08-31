@@ -1,0 +1,19 @@
+<div class="panel panel-info">
+    <div class="panel-heading bold">
+        {{'indicators'| translate}}
+    </div>
+    <div class="panel-body">
+        <table class="dhis2-list-table-striped">
+            <tr ng-repeat="displayText in displayTextEffects">
+                <td>
+                    {{displayText.name}}
+                </td>
+                <td>
+                    <input type="text" class="form-control" value={{toTwoDecimals(displayText.text)}} ng-disabled="true">
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+

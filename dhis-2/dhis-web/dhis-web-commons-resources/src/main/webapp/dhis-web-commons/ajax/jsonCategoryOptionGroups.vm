@@ -1,0 +1,18 @@
+#set( $size = $categoryOptionGroups.size() )
+{ "categoryOptionGroups": [
+#foreach( $categoryOptionGroup in $categoryOptionGroups )
+  {
+    "id": $!{categoryOptionGroup.id},
+    "uid": "$!{categoryOptionGroup.uid}",
+    "name": "$!encoder.jsonEncode( ${categoryOptionGroup.displayName} )",
+	"shortName": "$!encoder.jsonEncode( ${categoryOptionGroup.displayShortName} )",
+	"code": "$!encoder.jsonEncode( ${categoryOptionGroup.code} )",
+    "memberCount": "$categoryOptionGroup.members.size()",
+    "groupSet": "$!categoryOptionGroup.groupSet.uid"
+  }#if( $velocityCount < $size ),#end 
+#end
+]
+#if( $usePaging ),
+    "paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

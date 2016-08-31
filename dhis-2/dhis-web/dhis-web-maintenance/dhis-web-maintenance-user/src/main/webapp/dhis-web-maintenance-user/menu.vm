@@ -1,0 +1,8 @@
+<h2>$i18n.getString( "user" )&nbsp;</h2>
+<ul>
+	#if( $security.canView( "user" ) )<li><a href="user.action">$i18n.getString( "user_by_orgunit" )&nbsp;</a></li>#end
+	#if( $security.canView( "user" ) )<li><a href="alluser.action">$i18n.getString( "user" )&nbsp;</a></li>#end
+	#if( $security.canView( "userRole" ) )<li><a href="allRole.action" title="$i18n.getString( "user_role" )">$i18n.getString( "user_role" )&nbsp;</a></li>#end
+	#if( $security.canView( "userGroup" ) )<li><a href="getAllUserGroups.action">$i18n.getString( "user_group" )</a></li>#end
+	<li><a href="deleteCurrentUser.action" title="$i18n.getString( "delete_current_user" )">$i18n.getString( "delete_current_user" )</a></li>
+</ul>

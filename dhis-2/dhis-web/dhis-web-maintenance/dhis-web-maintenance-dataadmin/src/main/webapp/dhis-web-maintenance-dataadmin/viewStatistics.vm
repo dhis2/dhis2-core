@@ -1,0 +1,6 @@
+
+<h3>$i18n.getString( "data_statistics" ) #openHelp( "dataStatistics" )</h3>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<div id="contentDiv"></div>

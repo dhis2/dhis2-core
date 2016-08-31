@@ -1,0 +1,14 @@
+{ "reminder": 
+  {
+    "id": $!{reminder.id},
+    "uid": "$!{reminder.uid}",
+    "name": "$!encoder.jsonEncode( ${reminder.displayName} )",
+    "daysAllowedSendMessage": "$!{reminder.daysAllowedSendMessage}",
+    "templateMessage": "$!encoder.jsonEncode( ${reminder.templateMessage} )",
+    "dateToCompare": "$!{reminder.dateToCompare}",
+    "sendTo": "$!reminder.sendTo",
+    "whenToSend": "$!{reminder.whenToSend}",
+    "messageType": "$!{reminder.messageType}",
+	"userGroup": "$!encoder.jsonEncode( ${reminder.userGroup.name} )"
+  } 
+}

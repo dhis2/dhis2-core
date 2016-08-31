@@ -1,0 +1,1120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+  "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+  <include file="dhis-web-commons.xml" />
+
+  <package name="dhis-web-maintenance-program" extends="dhis-web-commons"
+    namespace="/dhis-web-maintenance-program">
+
+    <action name="index" class="org.hisp.dhis.trackedentity.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/index.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+    </action>
+
+    <!-- RelationshipType -->
+
+    <action name="relationshipType"
+      class="org.hisp.dhis.trackedentity.action.relationship.GetRelationshipTypeListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/relationshipType.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/relationship.js</param>
+    </action>
+
+    <action name="getRelationshipType"
+      class="org.hisp.dhis.trackedentity.action.relationship.GetRelationshipTypeAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonRelationshipType.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeRelationshipType"
+      class="org.hisp.dhis.trackedentity.action.relationship.RemoveRelationshipTypeAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_RELATIONSHIPTYPE_DELETE</param>
+    </action>
+
+    <action name="addRelationshipType"
+      class="org.hisp.dhis.trackedentity.action.relationship.AddRelationshipTypeAction">
+      <result name="success" type="redirect">relationshipType.action
+      </result>
+      <param name="requiredAuthorities">F_RELATIONSHIPTYPE_ADD</param>
+    </action>
+
+    <action name="showAddRelationshipTypeForm" class="org.hisp.dhis.trackedentity.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addRelationshipTypeForm.vm</param>
+      <param name="javascripts">javascript/relationship.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_RELATIONSHIPTYPE_ADD</param>
+    </action>
+
+    <action name="showUpdateRelationshipTypeForm"
+      class="org.hisp.dhis.trackedentity.action.relationship.GetRelationshipTypeAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateRelationshipTypeForm.vm</param>
+      <param name="javascripts">javascript/relationship.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateRelationshipType" class="org.hisp.dhis.trackedentity.action.relationship.UpdateRelationshipTypeAction">
+      <result name="success" type="redirect">relationshipType.action</result>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="validateRelationshipType"
+      class="org.hisp.dhis.trackedentity.action.relationship.ValidateRelationshipTypeAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- TrackedEntityAttribute -->
+
+    <action name="attribute"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributeListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/attribute.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/attribute.js</param>
+    </action>
+
+    <action name="getAttribute" class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributeAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonTrackedEntityAttribute.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getAttributes" class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributeListAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonTrackedEntityAttributes.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getAttributeWithoutGroup" class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributesWithoutGroupAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonTrackedEntityAttributes.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeAttribute" class="org.hisp.dhis.trackedentity.action.trackedentityattribute.RemoveAttributeAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_DELETE</param>
+    </action>
+
+    <action name="addAttribute" class="org.hisp.dhis.trackedentity.action.trackedentityattribute.AddAttributeAction">
+      <result name="success" type="redirect">attribute.action</result>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showAddAttributeForm" class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAddUpdateAttributeAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addAttributeForm.vm</param>
+      <param name="javascripts">javascript/attribute.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateAttributeForm"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAddUpdateAttributeAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateAttibuteForm.vm</param>
+      <param name="javascripts">javascript/attribute.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateAttribute"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.UpdateAttributeAction">
+      <result name="success" type="redirect">attribute.action</result>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="validateAttribute"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ValidateAttributeAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="attributeVisitSchedule"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAttributeVisitScheduleFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/attributeVisitSchedule.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/attribute.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="saveAttributeVisitSchedule"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.SaveAttributeVisitScheduleAction">
+      <result name="success" type="redirect">attribute.action</result>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="attributeInListNoProgram"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAttributeInListNoProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/attributeInListNoProgram.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/attribute.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="saveAttributeInListNoProgram"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattribute.SaveAttributeInListNoProgramAction">
+      <result name="success" type="redirect">attribute.action</result>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <!-- Program -->
+
+    <action name="program"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programList.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/program.js</param>
+    </action>
+
+    <action name="getProgram"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonProgram.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeProgram"
+      class="org.hisp.dhis.trackedentity.action.program.RemoveProgramAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="requiredAuthorities">F_PROGRAM_DELETE</param>
+    </action>
+
+    <action name="addProgram"
+      class="org.hisp.dhis.trackedentity.action.program.AddProgramAction">
+      <result name="success" type="redirect">program.action
+      </result>
+      <param name="anyAuthorities">F_PROGRAM_PUBLIC_ADD,F_PROGRAM_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showAddProgramForm"
+      class="org.hisp.dhis.trackedentity.action.program.ShowAddProgramFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addProgramForm.vm</param>
+      <param name="javascripts">javascript/program.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_PROGRAM_PUBLIC_ADD,F_PROGRAM_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateProgramForm"
+      class="org.hisp.dhis.trackedentity.action.program.ShowUpdateProgramFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateProgramForm.vm</param>
+      <param name="javascripts">javascript/program.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_PROGRAM_PUBLIC_ADD,F_PROGRAM_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateProgram"
+      class="org.hisp.dhis.trackedentity.action.program.UpdateProgramAction">
+      <result name="success" type="redirect">program.action
+      </result>
+      <param name="anyAuthorities">F_PROGRAM_PUBLIC_ADD,F_PROGRAM_PRIVATE_ADD</param>
+    </action>
+
+    <action name="validateProgram"
+      class="org.hisp.dhis.trackedentity.action.program.ValidateProgramAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <result name="input" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseInput.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- Program_OrganisationUnit Association -->
+
+    <action name="defineProgramAssociationsForm"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programAssociations.vm</param>
+      <param name="anyAuthorities">F_PROGRAM_PUBLIC_ADD,F_PROGRAM_PRIVATE_ADD</param>
+    </action>
+
+    <action name="defineProgramAssociations"
+      class="org.hisp.dhis.trackedentity.action.program.DefineProgramAssociationsAction">
+      <result name="success" type="redirect">program.action
+      </result>
+      <param name="anyAuthorities">F_PROGRAM_PUBLIC_ADD,F_PROGRAM_PRIVATE_ADD</param>
+    </action>
+
+    <!-- ProgramStage -->
+
+    <action name="programStage"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programStage.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/programStage.js</param>
+    </action>
+
+    <action name="getProgramStage"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonProgramStage.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showAddProgramStageForm"
+      class="org.hisp.dhis.trackedentity.action.programstage.ShowAddProgramStageAction">
+      <result name="input" type="velocity-xml">
+        /dhis-web-commons/ajax/xmlResponseInput.vm
+      </result>
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-program/addProgramStageForm.vm
+      </param>
+      <param name="javascripts">javascript/programStage.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_ADD</param>
+    </action>
+
+    <action name="addProgramStage"
+      class="org.hisp.dhis.trackedentity.action.programstage.AddProgramStageAction">
+      <result name="success" type="redirect">programStage.action?id=${id}
+      </result>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_ADD</param>
+    </action>
+
+    <action name="validateProgramStage"
+      class="org.hisp.dhis.trackedentity.action.programstage.ValidateProgramStageAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="updateProgramStage"
+      class="org.hisp.dhis.trackedentity.action.programstage.UpdateProgramStageAction">
+      <result name="success" type="redirect">
+        programStage.action?id=${programId}
+      </result>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_ADD</param>
+    </action>
+
+    <action name="showUpdateProgramStageForm"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-program/updateProgramStageForm.vm
+      </param>
+      <param name="javascripts">javascript/programStage.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_ADD</param>
+    </action>
+
+    <action name="removeProgramStage"
+      class="org.hisp.dhis.trackedentity.action.programstage.RemoveProgramStageAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_DELETE</param>
+    </action>
+
+    <action name="programStageList"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageListAction">
+      <result name="success" type="velocity">/content.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programStageList.vm</param>
+      <param name="javascripts">javascript/programStage.js</param>
+    </action>
+
+    <action name="sortProgramStagesForm"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/sortProgramStagesForm.vm</param>
+      <param name="javascripts">javascript/programStage.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_ADD</param>
+    </action>
+
+    <action name="sortProgramStages"
+      class="org.hisp.dhis.trackedentity.action.programstage.SortProgramStagesAction">
+      <result name="success" type="redirect">programStage.action?id=${id}</result>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_ADD</param>
+    </action>
+
+    <!-- Program stage section -->
+
+    <action name="programStageSectionList"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageSectionListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-program/programStageSection.vm
+      </param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/programStageSection.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_SECTION_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddProgramStageSectionForm"
+      class="org.hisp.dhis.trackedentity.action.programstage.ShowAddProgramStageSectionAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-program/addProgramStageSectionForm.vm
+      </param>
+      <param name="javascripts">javascript/programStageSection.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_SECTION_ADD</param>
+    </action>
+
+    <action name="addProgramStageSection"
+      class="org.hisp.dhis.trackedentity.action.programstage.AddProgramStageSectionAction">
+      <result name="success" type="redirect">programStageSectionList.action?id=${programStageId}
+      </result>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_SECTION_ADD</param>
+    </action>
+
+    <action name="showUpdateProgramStageSectionForm"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageSectionAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-program/updateProgramStageSectionForm.vm
+      </param>
+      <param name="javascripts">javascript/programStageSection.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_SECTION_ADD</param>
+    </action>
+
+    <action name="updateProgramStageSection"
+      class="org.hisp.dhis.trackedentity.action.programstage.UpdateProgramStageSectionAction">
+      <result name="success" type="redirect">programStageSectionList.action?id=${programStageId}
+      </result>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_SECTION_ADD</param>
+    </action>
+
+    <action name="getProgramStageSection"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageSectionAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonProgramStageSection.vm
+      </result>
+    </action>
+
+    <action name="removeProgramStageSection"
+      class="org.hisp.dhis.trackedentity.action.programstage.RemoveProgramStageSectionAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_SECTION_DELETE</param>
+    </action>
+
+    <action name="showProgramStageSectionSortedOderForm"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">
+        /dhis-web-maintenance-program/programStageSectionSortOder.vm
+      </param>
+      <param name="javascripts">javascript/programStageSection.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAMSTAGE_SECTION_MANAGEMENT</param>
+    </action>
+
+    <action name="saveProgramStageSectionSortOrder"
+      class="org.hisp.dhis.trackedentity.action.programstage.SaveProgramStageSectionSortOrderAction">
+      <result name="success" type="redirect">programStageSectionList.action?id=${id}
+      </result>
+    </action>
+
+    <action name="validateProgramStageSection"
+      class="org.hisp.dhis.trackedentity.action.programstage.ValidateProgramStageSectionAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+    </action>
+
+    <!-- Data Entry Form -->
+
+    <action name="viewDataEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.ViewDataEntryFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/viewDataEntryForm.vm</param>
+      <param name="javascripts">
+        ../dhis-web-commons/ckeditor/ckeditor.js,
+        ../dhis-web-commons/ckeditor/adapters/jquery.js,
+        javascript/viewDataEntryForm.js
+      </param>
+    </action>
+
+    <action name="saveDataEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.SaveDataEntryFormAction">
+      <result name="success" type="redirect">
+        programStage.action?id=${programId}
+      </result>
+    </action>
+
+    <action name="autoSaveDataEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.SaveDataEntryFormAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+    </action>
+
+    <action name="delDataEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.RemoveDataEntryFormAction">
+      <result name="success" type="redirect">
+        programStage.action?id=${programId}
+      </result>
+    </action>
+
+    <action name="validateDataEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.ValidateDataEntryFormAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getSelectedDataElements"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.GetSelectedDataElementsAction">
+      <result name="success" type="velocity-xml">
+        /dhis-web-maintenance-program/responseSelDataElementList.vm
+      </result>
+    </action>
+
+    <action name="showDataEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.ShowDataEntryFormAction">
+      <result name="success" type="velocity">
+        /dhis-web-maintenance-program/dataEntryFormCode.vm
+      </result>
+    </action>
+
+    <action name="setAutoSaveDataEntrySetting"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.SetAutoSaveDataEntrySettingAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+    </action>
+
+    <!-- Tracked Entity Form -->
+
+    <action name="viewProgramEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.ViewProgramEntryFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/viewProgramEntryForm.vm</param>
+      <param name="javascripts">
+        ../dhis-web-commons/ckeditor/ckeditor.js,
+        ../dhis-web-commons/ckeditor/adapters/jquery.js,
+        javascript/viewProgramEntryForm.js
+      </param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_FORM_ADD</param>
+    </action>
+
+    <action name="saveProgramEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.SaveProgramEntryFormAction">
+      <result name="success" type="redirect">program.action
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_FORM_ADD</param>
+    </action>
+
+    <action name="autoSaveProgramEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.SaveProgramEntryFormAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_FORM_ADD</param>
+    </action>
+
+    <action name="removeDataEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.RemoveDataEntryFormAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+    </action>
+
+    <action name="removeProgramEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.RemoveProgramEntryFormAction">
+      <result name="success" type="redirect">program.action
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_FORM_DELETE</param>
+    </action>
+
+    <action name="showProgramEntryForm"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.ShowProgramEntryFormAction">
+      <result name="success" type="velocity">
+        /dhis-web-maintenance-program/dataEntryFormCode.vm
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_FORM_ADD</param>
+    </action>
+
+    <action name="setAutoSaveProgramEntryFormSetting"
+      class="org.hisp.dhis.trackedentity.action.dataentryform.SetAutoSaveProgramEntryFormSettingAction">
+      <result name="success" type="velocity-json">
+        ../dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_FORM_ADD</param>
+    </action>
+
+    <!-- Tracked Entity Attribute Group -->
+
+    <action name="attributeGroup"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/attributeGroup.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/attributeGroup.js</param>
+    </action>
+
+    <action name="getAttributeGroup"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonTrackedEntityAttributeGroup.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="removeAttributeGroup"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.RemoveAttributeGroupAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_DELETE</param>
+    </action>
+
+    <action name="addAttributeGroup"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.AddAttributeGroupAction">
+      <result name="success" type="redirect">attributeGroup.action</result>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showAddAttributeGroupForm" class="org.hisp.dhis.trackedentity.action.NoAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addAttributeGroupForm.vm</param>
+      <param name="javascripts">javascript/attributeGroup.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateAttributeGroupForm"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateAttibuteGroupForm.vm</param>
+      <param name="javascripts">javascript/attributeGroup.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateAttributeGroup"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.UpdateAttributeGroupAction">
+      <result name="success" type="redirect">attributeGroup.action</result>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="validateAttributeGroup"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.ValidateAttributeGroupAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
+      <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm</result>
+      <result name="input" type="velocity-json">/dhis-web-commons/ajax/jsonResponseInput.vm</result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showSortAttributeGroup"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/sortAttributeGroupForm.vm</param>
+      <param name="javascripts">javascript/attributeGroup.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="anyAuthorities">F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD, F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD</param>
+    </action>
+
+    <action name="saveAttributeGroupSortOrder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.SaveAttributeGroupSortOrderAction">
+      <result name="success" type="redirect">attributeGroup.action</result>
+    </action>
+
+    <!-- Validation - ValidationCriteria -->
+
+    <action name="validationCriteria"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/validationCriteria.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/validationcriteria.js</param>
+    </action>
+
+    <action name="showAddValidationCriteriaForm"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addValidationCriteria.vm</param>
+      <param name="javascripts">javascript/validationcriteria.js</param>
+      <param name="requiredAuthorities">F_VALIDATIONCRITERIA_ADD</param>
+    </action>
+
+    <action name="addValidationCriteria"
+      class="org.hisp.dhis.trackedentity.action.validation.AddValidationCriteriaAction">
+      <result name="success" type="redirect">validationCriteria.action?id=${programId}
+      </result>
+      <param name="requiredAuthorities">F_VALIDATIONCRITERIA_ADD</param>
+    </action>
+
+    <action name="showUpdateValidationCriteriaForm"
+      class="org.hisp.dhis.trackedentity.action.validation.GetValidationCriteriaAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateValidationCriteria.vm</param>
+      <param name="javascripts">javascript/validationcriteria.js</param>
+      <param name="requiredAuthorities">F_VALIDATIONCRITERIA_ADD</param>
+    </action>
+
+    <action name="getValidationCriteria"
+      class="org.hisp.dhis.trackedentity.action.validation.GetValidationCriteriaAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonValidationCriteria.vm
+      </result>
+    </action>
+
+    <action name="updateValidationCriteria"
+      class="org.hisp.dhis.trackedentity.action.validation.UpdateValidationCriteriaAction">
+      <result name="success" type="redirect">validationCriteria.action?id=${programId}
+      </result>
+      <param name="requiredAuthorities">F_VALIDATIONCRITERIA_ADD</param>
+    </action>
+
+    <action name="removeValidationCriteria"
+      class="org.hisp.dhis.trackedentity.action.validation.RemoveValidationCriteriaAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_VALIDATIONCRITERIA_DELETE</param>
+    </action>
+
+    <action name="validateValidationCriteria"
+      class="org.hisp.dhis.trackedentity.action.validation.ValidateValidationCriteriaAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="input" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseInput.vm
+      </result>
+    </action>
+
+    <!-- Program Validation -->
+
+    <action name="programValidation"
+      class="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programValidationList.vm</param>
+      <param name="javascripts">javascript/programValidation.js</param>
+      <param name="requiredAuthorities">F_PROGRAM_VALIDATION</param>
+    </action>
+
+    <action name="showAddSingleProgramValidationForm"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addSingleProgramValidationForm.vm</param>
+      <param name="javascripts">javascript/programValidation.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAM_VALIDATION</param>
+    </action>
+
+    <action name="addProgramValidation"
+      class="org.hisp.dhis.trackedentity.action.validation.AddProgramValidationAction">
+      <result name="success" type="redirect">
+        programValidation.action?programId=${programId}
+      </result>
+      <param name="requiredAuthorities">F_PROGRAM_VALIDATION</param>
+    </action>
+
+    <action name="showUpdateMultiProgramValidationForm"
+      class="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateMultiProgramValidationForm.vm</param>
+      <param name="javascripts">javascript/programValidation.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAM_VALIDATION</param>
+    </action>
+
+    <action name="showUpdateSingleProgramValidationForm"
+      class="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateSingleProgramValidationForm.vm</param>
+      <param name="javascripts">javascript/programValidation.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAM_VALIDATION</param>
+    </action>
+
+    <action name="updateProgramValidation"
+      class="org.hisp.dhis.trackedentity.action.validation.UpdateProgramValidationAction">
+      <result name="success" type="redirect">
+        programValidation.action?programId=${programId}
+      </result>
+      <param name="requiredAuthorities">F_PROGRAM_VALIDATION</param>
+    </action>
+
+    <action name="removeProgramValidation"
+      class="org.hisp.dhis.trackedentity.action.validation.RemoveProgramValidationAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_PROGRAM_VALIDATION</param>
+    </action>
+
+    <action name="getProgramValidation"
+      class="org.hisp.dhis.trackedentity.action.validation.GetProgramValidationAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonProgramValidation.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="getProgramExpressionDescription"
+      class="org.hisp.dhis.trackedentity.action.validation.GetProgramExpressionDescriptionAction">
+      <result name="success" type="velocity">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- Program Indicator -->
+
+    <action name="programIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programIndicator.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/programIndicator.js</param>
+    </action>
+
+    <action name="getProgramIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonProgramIndicator.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="showAddProgramIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addProgramIndicator.vm</param>
+      <param name="javascripts">javascript/programIndicator.js</param>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_PUBLIC_ADD, F_PROGRAM_INDICATOR_PRIVATE_ADD</param>
+    </action>
+
+    <action name="addProgramIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.AddProgramIndicatorAction">
+      <result name="success" type="redirect">programIndicator.action?programId=${programId}
+      </result>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_PUBLIC_ADD, F_PROGRAM_INDICATOR_PRIVATE_ADD</param>
+    </action>
+
+    <action name="showUpdateProgramIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.GetProgramIndicatorAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateProgramIndicator.vm</param>
+      <param name="javascripts">javascript/programIndicator.js</param>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_PUBLIC_ADD, F_PROGRAM_INDICATOR_PRIVATE_ADD</param>
+    </action>
+
+    <action name="updateProgramIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.UpdateProgramIndicatorAction">
+      <result name="success" type="redirect">programIndicator.action?programId=${programId}
+      </result>
+      <param name="anyAuthorities">F_PROGRAM_INDICATOR_PUBLIC_ADD, F_PROGRAM_INDICATOR_PRIVATE_ADD</param>
+    </action>
+
+    <action name="removeProgramIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.RemoveProgramIndicatorAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_PROGRAM_INDICATOR_DELETE</param>
+    </action>
+
+    <action name="validateProgramIndicator"
+      class="org.hisp.dhis.trackedentity.action.programindicator.ValidateProgramIndicatorAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- Program reminder -->
+
+    <action name="programReminder"
+      class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programReminder.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/programReminder.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddProgramReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ShowAddProgramReminderAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addProgramReminder.vm</param>
+      <param name="javascripts">javascript/programReminder.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="addProgramReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.AddProgramReminderAction">
+      <result name="success" type="redirect">programReminder.action?id=${programId}
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="showUpdateProgramReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetInstanceReminderAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateProgramReminder.vm</param>
+      <param name="javascripts">javascript/programReminder.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="updateProgramReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.UpdateProgramReminderAction">
+      <result name="success" type="redirect">programReminder.action?id=${programId}
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="removeProgramReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.RemoveProgramReminderAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="getReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetInstanceReminderAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonTrackedEntityInstanceReminder.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="validateReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ValidateProgramReminderAction">
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+    </action>
+
+    <!-- Program Stage reminder -->
+
+    <action name="programStageReminder"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programStageReminder.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/programStageReminder.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddProgramStageReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ShowAddProgramStageReminderAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addProgramStageReminder.vm</param>
+      <param name="javascripts">javascript/programStageReminder.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="addProgramStageReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.AddProgramStageReminderAction">
+      <result name="success" type="redirect">programStageReminder.action?id=${programStageId}
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="showUpdateProgramStageReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetProgramStageReminderAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateProgramStageReminder.vm</param>
+      <param name="javascripts">javascript/programStageReminder.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="updateProgramStageReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.UpdateProgramStageReminderAction">
+      <result name="success" type="redirect">programStageReminder.action?id=${programStageId}
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="removeProgramStageReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.RemoveProgramStageReminderAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param>
+    </action>
+
+    <action name="getProgramStageReminder"
+      class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetProgramStageReminderAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonTrackedEntityInstanceReminder.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <!-- TrackedEntity -->
+
+    <action name="trackedEntity"
+      class="org.hisp.dhis.trackedentity.action.trackedentity.GetTrackedEntityListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/trackedEntity.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/trackedEntity.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddTrackedEntityForm" class="org.hisp.dhis.trackedentity.action.trackedentity.ShowAddUpdateTrackedEntityAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addTrackedEntity.vm</param>
+      <param name="javascripts">javascript/trackedEntity.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_ADD</param>
+    </action>
+
+    <action name="addTrackedEntity"
+      class="org.hisp.dhis.trackedentity.action.trackedentity.AddTrackedEntityAction">
+      <result name="success" type="redirect">trackedEntity.action
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_ADD</param>
+    </action>
+
+    <action name="showUpdateTrackedEntityForm"
+      class="org.hisp.dhis.trackedentity.action.trackedentity.ShowAddUpdateTrackedEntityAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateTrackedEntity.vm</param>
+      <param name="javascripts">javascript/trackedEntity.js</param>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_UPDATE</param>
+    </action>
+
+    <action name="updateTrackedEntity"
+      class="org.hisp.dhis.trackedentity.action.trackedentity.UpdateTrackedEntityAction">
+      <result name="success" type="redirect">trackedEntity.action
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_UPDATE</param>
+    </action>
+
+    <action name="removeTrackedEntity"
+      class="org.hisp.dhis.trackedentity.action.trackedentity.RemoveTrackedEntityAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_DELETE</param>
+    </action>
+
+    <action name="getTrackedEntity"
+      class="org.hisp.dhis.trackedentity.action.trackedentity.GetTrackedEntityAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonTrackedEntity.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+    <action name="validateTrackedEntity"
+      class="org.hisp.dhis.trackedentity.action.trackedentity.ValidateTrackedEntityAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+    </action>
+
+    <!-- Program Rule -->
+
+    <action name="programRule"
+      class="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleListAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/programRule.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="javascripts">javascript/programRule.js</param>
+      <param name="requiredAuthorities">F_PROGRAM_RULE_MANAGEMENT</param>
+    </action>
+
+    <action name="showAddProgramRuleForm" class="org.hisp.dhis.trackedentity.action.programrule.ShowAddProgramRuleFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addProgramRule.vm</param>
+      <param name="javascripts">javascript/programRule.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAM_RULE_ADD</param>
+    </action>
+
+    <action name="showUpdateProgramRuleForm" class="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateProgramRule.vm</param>
+      <param name="javascripts">javascript/programRule.js</param>
+      <param name="stylesheets">style/basic.css</param>
+      <param name="requiredAuthorities">F_PROGRAM_RULE_UPDATE</param>
+    </action>
+
+    <action name="validateProgramRule"
+      class="org.hisp.dhis.trackedentity.action.programrule.ValidateProgramRuleAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <result name="error" type="velocity-json">
+        /dhis-web-commons/ajax/jsonResponseError.vm
+      </result>
+    </action>
+
+    <action name="getProgramRule"
+      class="org.hisp.dhis.trackedentity.action.programrule.GetProgramRuleAction">
+      <result name="success" type="velocity-json">
+        /dhis-web-commons/ajax/jsonProgramRule.vm
+      </result>
+      <param name="onExceptionReturn">plainTextError</param>
+    </action>
+
+  </package>
+</struts>

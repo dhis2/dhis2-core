@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramStageSection" table="programstagesection">
+
+    <id name="id" column="programstagesectionid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+   	   column="programstageid" foreign-key="fk_program_programstageid" />
+
+    <list name="programStageDataElements">
+      <key column="programstagesectionid" />
+      <list-index column="section_sort_order" base="1" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
+    </list>
+    
+    <list name="programIndicators" table="programstagesection_programindicators">
+      <key column="programstagesectionid" foreign-key="fk_programstagesection_programindicators_sectionid" />
+      <list-index column="sort_order" base="1" />
+      <many-to-many class="org.hisp.dhis.program.ProgramIndicator" column="programindicatorid"
+      	foreign-key="fk_programstagesection_programindicators_indicatorid"/>
+    </list>
+
+    <property name="sortOrder" column="sortorder" not-null="true" />
+
+  </class>
+</hibernate-mapping>

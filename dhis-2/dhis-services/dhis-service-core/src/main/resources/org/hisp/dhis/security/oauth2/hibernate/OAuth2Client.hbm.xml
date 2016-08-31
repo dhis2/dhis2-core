@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.security.oauth2.OAuth2Client" table="oauth2client">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="oauth2clientid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="cid" column="cid" not-null="true" unique="true" length="230" />
+
+    <property name="secret" column="secret" not-null="true" unique="false" length="512" />
+
+    <list name="redirectUris" table="oauth2clientredirecturis" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="oauth2clientid" foreign-key="fk_oauth2clientredirecturis_oauth2clientid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="redirecturi" />
+    </list>
+
+    <list name="grantTypes" table="oauth2clientgranttypes" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="oauth2clientid" foreign-key="fk_oauth2clientgranttypes_oauth2clientid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="granttype" />
+    </list>
+
+  </class>
+</hibernate-mapping>

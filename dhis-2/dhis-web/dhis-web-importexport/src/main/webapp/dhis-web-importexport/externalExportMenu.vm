@@ -1,0 +1,9 @@
+
+<h3>$i18n.getString( "export_to_other_systems" )</h3>
+
+<ul class="introList">
+    #introListImgItem( "displayMetaDataExportForm.action?exportFormat=DHIS14XML" "DHIS14_metadata_export" "dhis14" )
+    #introListImgItem( "displayDetailedMetaDataExportForm.action?exportFormat=DHIS14XML" "DHIS14_detailed_metadata_export" "dhis14" )
+    #introListImgItem( "displayDataExportForm.action?exportFormat=DHIS14XML" "DHIS14_data_export" "dhis14" )
+	#introListImgItem( "displayMetaDataExportForm.action?exportFormat=XLS" "xls_metadata_export" "excel" )
+</ul>

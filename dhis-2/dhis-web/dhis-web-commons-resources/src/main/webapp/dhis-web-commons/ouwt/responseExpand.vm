@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<units>
+#foreach( $parent in $parents )
+	<parent parentId="$encoder.xmlEncode( $parent.uid )">
+	#foreach( $child in $childrenMap.get( $parent ) )
+  		<child id="$encoder.xmlEncode( $child.uid )" hasChildren="$child.children.size()">$encoder.xmlEncode( $child.name )</child>
+  	#end
+  	</parent>
+#end
+</units>

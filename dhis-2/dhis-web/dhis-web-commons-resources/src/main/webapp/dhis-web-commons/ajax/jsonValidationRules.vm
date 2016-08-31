@@ -1,0 +1,15 @@
+#set( $size = $validationRules.size() )
+{ "validationRules": [
+#foreach( $validationRule in $validationRules )
+  {
+    "id": ${validationRule.id},
+    "name": "$!encoder.jsonEncode( ${validationRule.name} )",
+    "description": "$!encoder.jsonEncode( ${validationRule.description} )",
+    "type": "$!encoder.jsonEncode( ${validationRule.type} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

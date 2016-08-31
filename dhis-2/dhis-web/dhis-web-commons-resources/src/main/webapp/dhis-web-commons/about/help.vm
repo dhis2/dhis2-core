@@ -1,0 +1,14 @@
+
+<h3>$i18n.getString( "help_center" )</h3>
+
+<table>
+<tr>
+<td valign="top"><div id="helpMenu"></div></td>
+<td valign="top">
+	<div id="helpContent">
+		<h3>$i18n.getString( "help_intro_header" )<h3>
+		<p>$i18n.getString( "help_intro_text" )</p>
+	</div>
+</td>
+</tr>
+</table>

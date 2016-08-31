@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<categoryOptionCombos>
+#foreach( $coc in $categoryOptionCombos )
+    <categoryOptionCombo>
+        <id>$coc.id</id>
+        <name>$!encoder.xmlEncode( $coc.name )</name>
+    </categoryOptionCombo>
+#end
+</categoryOptionCombos>

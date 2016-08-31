@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.period.PeriodType" table="periodtype" >
+
+    <cache usage="read-write" />
+
+    <id name="id" column="periodtypeid">
+      <generator class="native" />
+    </id>
+
+    <discriminator column="name" type="string" length="50" not-null="true" />
+
+    <subclass name="org.hisp.dhis.period.DailyPeriodType" discriminator-value="Daily" />
+    <subclass name="org.hisp.dhis.period.WeeklyPeriodType" discriminator-value="Weekly" />
+    <subclass name="org.hisp.dhis.period.MonthlyPeriodType" discriminator-value="Monthly" />
+    <subclass name="org.hisp.dhis.period.BiMonthlyPeriodType" discriminator-value="BiMonthly" />
+    <subclass name="org.hisp.dhis.period.QuarterlyPeriodType" discriminator-value="Quarterly" />
+    <subclass name="org.hisp.dhis.period.SixMonthlyPeriodType" discriminator-value="SixMonthly" />
+    <subclass name="org.hisp.dhis.period.SixMonthlyAprilPeriodType" discriminator-value="SixMonthlyApril" />
+    <subclass name="org.hisp.dhis.period.YearlyPeriodType" discriminator-value="Yearly" />
+    <subclass name="org.hisp.dhis.period.TwoYearlyPeriodType" discriminator-value="TwoYearly" />
+    <subclass name="org.hisp.dhis.period.FinancialAprilPeriodType" discriminator-value="FinancialApril" />
+    <subclass name="org.hisp.dhis.period.FinancialJulyPeriodType" discriminator-value="FinancialJuly" />
+    <subclass name="org.hisp.dhis.period.FinancialOctoberPeriodType" discriminator-value="FinancialOct" />
+
+  </class>
+</hibernate-mapping>

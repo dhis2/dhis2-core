@@ -1,0 +1,13 @@
+#set( $size = $dataElementGroups.size() )
+{ "dataElementGroups": [
+#foreach( $dataElementGroup in $dataElementGroups )
+  {
+    "id": ${dataElementGroup.id} ,
+    "name": "$!encoder.jsonEncode( ${dataElementGroup.displayName} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

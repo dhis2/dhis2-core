@@ -1,0 +1,17 @@
+
+<div id="shareLink">$i18n.getString( "share_your_own_interpretations_from" ) 
+    <a href="../dhis-web-pivot/index.html">$i18n.getString( "pivot_table" )</a>, 
+	<a href="../dhis-web-visualizer/index.html">$i18n.getString( "data_visualizer" )</a>,
+	<a href="../dhis-web-mapping/index.html">$i18n.getString( "gis" )</a> or
+	<a href="../dhis-web-reporting/showDataSetReportForm.action">$i18n.getString( "data_set_report" )</a>
+</div>
+
+<div id="interpretationFeed"></div>
+
+<script type="text/javascript">
+var currentUser = {
+	id: "${currentUser.id}",
+	uid: "${currentUser.uid}",
+	name: "${currentUser.name}"
+};	
+</script>

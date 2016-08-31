@@ -1,0 +1,68 @@
+<div class="panel panel-info" ng-controller="DataEntryController">    
+    <div class="panel-heading handle bold">        
+        <div ng-include="'components/dataentry/dataentry-print.html'"></div>
+        {{dataentryTabularWidget.title| translate}}
+        <span class="pull-right widget-link">
+            <a href ng-click="model.showLegend = !model.showLegend" title="{{'event_color_legend'| translate}}" class="small-horizontal-spacing" ng-if="allEventsSorted.length > 0"><i class="fa fa-info-circle vertical-center"></i></a>
+            <d2-audit name-id-map="prStDes" event-id="{{currentEvent.event}}" data-type="dataElement" ng-if="currentEvent.event"></d2-audit>
+            <a class="small-horizontal-spacing" href ng-click="expandCollapse(dataentryTabularWidget)">
+                <span ng-show="dataentryTabularWidget.expand"><i class="fa fa-chevron-up vertical-center" title="{{collapseLabel}}"></i></span>
+                <span ng-show="!dataentryTabularWidget.expand"><i class="fa fa-chevron-down vertical-center" title="{{expandLabel}}"></i></span>
+            </a>
+            <a class="small-horizontal-spacing" href ng-click="removeWidget(dataentryTabularWidget)" title="{{removeLabel}}"><i class="fa fa-times-circle"></i></a>
+        </span>
+    </div>
+
+    <div ng-show="dataentryTabularWidget.expand" class="panel-body dashboard-widget-container">
+        <div ng-if="showSelf">
+            <div ng-if="!dashboardReady">
+                <img src="../images/ajax-loader-bar.gif" alt="{{'loading'| translate}}"/>
+            </div>
+            <div ng-if="dashboardReady">
+                <div class="col-sm-2 list-group">
+                    <a ng-repeat="stage in programStages| orderBy:'sortOrder':reverse" class="list-group-item cursor-pointer" ng-class="{true: 'active'} [stage.id === currentStage.id]" ng-click="setCurrentStage(stage)">
+                        {{stage.displayName}}
+                    </a>
+                </div>
+                <div class="col-sm-10">
+                    <div class="row" ng-if="model.showLegend">
+                        <div class="col-sm-12" ng-include="'components/dataentry/event-legend.html'"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div style="width: 97%; float: left; padding: 5px">
+                                <div ng-if="currentStage && currentStage.id && eventsLoaded">
+                                    <div ng-include="'components/dataentry/tabular-horizontal-layout.html'"></div>
+                                    <div ng-if="!eventsByStage[currentStage.id] || eventsByStage[currentStage.id].length === 0">
+                                        <div class="alert alert-warning">{{'no_event_exists'| translate}}</div>
+                                    </div>                                    
+                                    <div ng-if="currentEvent" class="long-vertical-spacing" ng-include="'components/dataentry/dataentry-notes.html'"></div>                                    
+                                </div>
+                                <div ng-if="!eventsLoaded">
+                                    <img src="../images/ajax-loader-bar.gif" alt="{{'loading'| translate}}"/>
+                                </div>
+                            </div>
+                            <div style="width: 3%;" class="pull-right" ng-if="stageNeedsEvent(currentStage) && eventsLoaded && selectedEnrollment.status === 'ACTIVE'">
+                                <div class="btn-group-vertical" role="group">
+                                    <a href class="btn btn-primary vertical-spacing"
+                                        ng-click="showCreateEvent(stage, eventCreationActions.add, currentStage)"
+                                        ng-disabled="selectedEntity.inactive">
+                                         <i class="fa fa-plus fa-2x" title="{{'add_new_event'|translate}}"></i>
+                                    </a>
+                                    <a href class="btn btn-info"
+                                        ng-click="showCreateEvent(stage, eventCreationActions.schedule, currentStage)"
+                                        ng-disabled="selectedEntity.inactive">
+                                         <i class="fa fa-calendar fa-2x" title="{{'schedule_new_event'|translate}}"></i>
+                                    </a>
+                                </div>                                
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="!showSelf">
+            <div class="alert alert-warning">{{'no_active_enrollment'| translate}}</div>
+        </div>        
+    </div>    
+</div>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataElements>
+#foreach ( $dataElement in $dataElements )
+	<dataElement>
+		<id>$dataElement.id</id>
+		<name>$!encoder.xmlEncode( $dataElement.name )</name>
+		<shortName>$!encoder.xmlEncode( $dataElement.shortName )</shortName>
+		<alternativeName>$!encoder.xmlEncode( $dataElement.alternativeName )</alternativeName>
+		<code>$!encoder.xmlEncode( $dataElement.code )</code>
+		<description>$!encoder.xmlEncode( $dataElement.description )</description>
+		<valueType>$dataElement.valueType</valueType>
+	</dataElement>
+#end
+</dataElements>

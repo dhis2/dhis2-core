@@ -1,0 +1,10 @@
+#set( $size = $!{translations.keySet().size()} )
+{ "translations": [
+  #foreach( $key in $translations.keySet() )
+  {
+    "key": "$!{key}",
+	"value": "$!encoder.jsonEncode( ${translations.get( $!{key} )} )"
+  }#if( $velocityCount < $size ),#end
+  #end
+  ]
+}

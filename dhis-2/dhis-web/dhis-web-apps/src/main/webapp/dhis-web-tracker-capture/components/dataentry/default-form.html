@@ -1,0 +1,89 @@
+<form name="outerDataEntryForm" novalidate class="remove-default-padding">
+    <table class="dhis2-list-table-striped default-form-table" ng-if='currentEvent && !currentStage.programStageSections.length'>
+        <tr ng-repeat="prStDe in currentStage.programStageDataElements" ng-if="!isHidden(prStDe.dataElement.id, currentEvent)">
+            <td>
+                <span d2-pop-over 
+                    class="popover-label"
+                    details="{{'details'| translate}}"
+                    content="prStDe.dataElement"
+                    template="dataelement-details.html"
+                    trigger="click"
+                    placement="right">
+                    <a href title="{{'details'| translate}}">{{prStDe.dataElement.displayFormName}}</a>
+                </span>
+                <span ng-if="prStDe.compulsory" class="required">*</span>
+                <span class="hideInPrint">                    
+                    <span ng-if="otherValuesLists[prStDe.dataElement.id]" ng-repeat="altValue in otherValuesLists[prStDe.dataElement.id] track by $index">
+                        <span class="label label-default">{{altValue | translate}}</span>
+                   </span>
+                </span>
+            </td>            
+            <td class="absorbing-column" dhis2-compiled-include="components/dataentry/inner-form.html">                
+            </td>
+            <td ng-if="allowProvidedElsewhereExists[currentStage.id]">
+                <div class="align-center" ng-show="prStDe.allowProvidedElsewhere">
+                    <span>
+                        <input type="checkbox"
+                           class="form-control-checkbox"
+                           ng-model="currentEvent.providedElsewhere[prStDe.dataElement.id]"
+                           ng-disabled="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                           ng-change="saveDatavalueLocation(prStDe)"/>
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div ng-if='currentEvent && currentStage.programStageSections.length'>
+        <accordion close-others='false'>
+            <!-- The inline style was needed to override overflow:hidden in the css. Can possibly be replaced with a CSS update. -->
+            <accordion-group is-open="section.open" ng-repeat='section in currentStage.programStageSections' ng-if="!hiddenSections[currentEvent.event][section.id]" style="overflow:visible">
+                <accordion-heading>
+                    {{section.displayName}}
+                </accordion-heading>
+                
+                <div class="vertical-spacing" ng-if="!section.programStageDataElements || section.programStageDataElements.length === 0">
+                    <div class="alert alert-warning">{{'section'| translate}} {{section.displayName}} {{'has_no_dataelements'| translate}}</div>
+                </div>
+
+                <div class="row">
+                   <table class="dhis2-list-table-striped default-form-table" ng-if="section.programStageDataElements && section.programStageDataElements.length > 0">                        
+                        <tr ng-repeat="de in section.programStageDataElements" ng-if="!isHidden(de.dataElement.id)">
+                            <td>
+                                <span d2-pop-over 
+                                    class="popover-label"
+                                    details="{{'details'| translate}}"
+                                    content="prStDes[de.dataElement.id].dataElement"
+                                    template="dataelement-details.html"
+                                    trigger="click"
+                                    placement="right">
+                                    <a href title="{{'details'| translate}}">{{prStDes[de.dataElement.id].dataElement.displayFormName}}</a>
+                                </span>
+                                <span ng-if="prStDes[de.dataElement.id].compulsory" class="required">*</span>
+                                <span class="hideInPrint">
+                                    <d2-info ng-if="prStDes[de.dataElement.id].dataElement.description" data-content='[{"name":"{{"description" | translate}}", "data":"{{prStDes[de.dataElement.id].dataElement.description}}"}]'>
+                                    </d2-info>
+                                    <span ng-if="otherValuesLists[de.dataElement.id] && showOtherValuesLists" ng-repeat="altValue in otherValuesLists[de.dataElement.id]">
+                                        <span class="label label-default">{{altValue | translate}}</span>
+                                    </span>
+                                </span>
+                            </td>
+                            <td class="absorbing-column" dhis2-compiled-include="components/dataentry/section-inner-form.html">
+                            </td>
+                            <td ng-if="allowProvidedElsewhereExists[currentStage.id]">
+                                <div class="align-center" ng-show="prStDes[de.dataElement.id].allowProvidedElsewhere">
+                                    <input type="checkbox"
+                                           class="form-control-checkbox"
+                                           ng-model="currentEvent.providedElsewhere[prStDes[de.dataElement.id].dataElement.id]"
+                                           ng-disabled="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                                           ng-change="saveDatavalueLocation(prStDes[de.dataElement.id])"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+            </accordion-group> 
+        </accordion>
+    </div>
+    
+</form>

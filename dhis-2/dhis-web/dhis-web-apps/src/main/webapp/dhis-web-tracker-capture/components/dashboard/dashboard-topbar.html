@@ -1,0 +1,24 @@
+<div ng-controller="RuleBoundController" ng-init="widgetTitle = 'indicators'">
+    <div class="dashboard-info-box" ng-if="dashboardReady">
+        <ul class="list-inline-fullwidth">
+
+            <li ng-repeat="(key,item) in displayTextEffects" ng-if="item.ineffect">
+                <span ng-if="item.content==='High risk pregnancy'" style="color:red">
+                        <i class="glyphicon glyphicon-asterisk"></i>
+                        {{item.content | trimquotes}}
+                </span>
+                <span ng-if="item.content==='Unmanaged referral'" style="color:darkgoldenrod">
+                        <i class="glyphicon glyphicon-asterisk"></i>
+                        {{item.content | trimquotes}}
+                </span>
+                <span ng-if="item.content!=='High risk pregnancy'
+                      && item.content!=='Unmanaged referral'">
+                    {{item.content | trimquotes}}{{item.data | trimquotes}}
+                </span>
+            </li>
+            <li ng-repeat="(key,item) in displayKeyDataEffects" ng-if="item.ineffect">
+                {{item.content | trimquotes }}: {{item.data | trimquotes}}
+            </li>
+        </ul>
+    </div>
+</div>

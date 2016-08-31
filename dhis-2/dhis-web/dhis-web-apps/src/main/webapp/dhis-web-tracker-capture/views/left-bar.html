@@ -1,0 +1,18 @@
+<div id="hideLeftBar">
+    <a href="index.action" title="{{'show_main_menu'| translate}}" id="showMainMenuLink"><i class="fa fa-home leftBarIcon"></i></a>
+    <a href="javascript:dhis2.leftBar.hideAnimated()" title="{{'hide_menu'| translate}}" id="hideMainMenuLink"><i class="fa fa-arrow-left leftBarIcon"></i></a>
+    <a href="javascript:dhis2.leftBar.extendAnimated()" title="{{'extend_menu'| translate}}" id="extendMainMenuLink"><i class="fa fa-arrow-right leftBarIcon"></i></a>
+</div>
+<div class="left-bar-menu" ng-controller="LeftBarMenuController">
+    <ul class="nav nav-pills nav-stacked">
+        <li><a href ng-click="showHome()">{{'registration_and_data_entry'| translate}}</a></li>
+        <li><a href ng-click="showReportTypes()">{{'reports'| translate}}</a></li>
+    </ul>
+</div>
+<div style="margin-top:20px">
+    <img id="searchIcon" src="../images/search.png" style="cursor: pointer" title="{{searchOusLabel}}">
+    <span id="searchSpan" style="width:100%;display:none;">
+        <input type="text" id="searchField" name="key"/>
+        <input type="button" value="{{findLabel}}" onclick="selection.findByName()"/>
+    </span>
+</div>

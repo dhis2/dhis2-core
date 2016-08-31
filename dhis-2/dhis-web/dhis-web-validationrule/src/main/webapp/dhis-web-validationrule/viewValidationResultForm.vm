@@ -1,0 +1,126 @@
+<script type="text/javascript">
+	// add jquery.tablesorter parser for sorting the importance column:
+	// high => 3 medium => 2 low => 1
+	jQuery.tablesorter.addParser({
+	    id: 'importanceSorter',
+	    is: function(s) {
+			// return false so this parser is not auto-detected
+	        return false;
+	    },
+	    format: function(s) {
+	        return s
+	            .replace( '$i18n.getString( "high" )', 3 )
+	            .replace( '$i18n.getString( "medium" )', 2 )
+	            .replace( '$i18n.getString( "low" )', 1 );
+	    },
+	    type: 'numeric'
+	});
+    jQuery(function() {
+        $("#validationRuleList").tablesorter({ 
+        // sort on the first column, order asc 
+        sortList: [[0,0], [1,0], [2,1]] 
+    	});
+    });
+
+	var i18n_analysing_please_wait = '$encoder.jsEscape( $i18n.getString( "analysing_please_wait" ) , "'")';
+</script>
+
+<input type="hidden" id="organisationUnitId" value="$!{organisationUnit.id}" />
+
+<h3>$i18n.getString( "validation_alerts" ) - $encoder.htmlEncode( $!{organisationUnit.name} )</h3>
+
+<table>
+	<colgroup>
+	    <col width="100">
+	    <col width="120">
+        <col width="200">
+        <col width="200">
+	</colgroup>
+	<tr>
+		<td>$i18n.getString( "start_date" ):</td>
+		<td>$startDate</td>
+		<td><input type="button" value="$i18n.getString( 'get_report_as_pdf' )" style="width:180px" onclick="exportValidationResult( 'pdf' )"></td>
+		<td><input type="button" value="$i18n.getString( 'get_report_as_xls' )" style="width:180px" onclick="exportValidationResult( 'xls' )"></td>
+    </tr>
+	<tr>
+		<td>$i18n.getString( "end_date" ):</td>
+		<td>$endDate</td>
+		<td><input type="button" value="$i18n.getString( 'get_report_as_csv' )" style="width:180px" onclick="exportValidationResult( 'csv' )"></td>
+		<td><input name="button" type="button" style="width:180px" onclick="displayAnalysisInput()" value="$i18n.getString( 'done' )"></td>
+	</tr>
+	<tr>
+		<td colspan="4" height="15"></td>
+	</tr>
+</table>
+
+<span id="info">
+#if( $validationResults.size() == 0 )
+	$i18n.getString( "validation_passed_successfully" )
+#elseif( $maxExceeded )
+	$i18n.getString( "max_values_exceeded" )
+#else
+	$validationResults.size() $i18n.getString( "values_found" )
+#end
+</span>
+
+#if( $validationResults.size() > 0 )
+
+<div id="validationResults">
+
+<table class="listTable" id="validationRuleList" style="width:100%">
+	<colgroup>
+	    <col>
+	    <col>
+	    <col>
+	    <col>
+	    <col>
+	    <col width="40">
+	    <col>
+	    <col>
+		<col width="40">
+	</colgroup>
+	<thead>
+		<tr>
+			<!-- Note: &nbsp; in the headers below keeps the jquery.tablesorter icons from overlapping the labels. -->
+			<th>$i18n.getString( "organisation_unit" )&nbsp;&nbsp;&nbsp;&nbsp;</th>
+			<th>$i18n.getString( "period" )&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            #if( $showAttributeCombos )
+                <th>$i18n.getString( "attributes" )&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            #end
+			<!-- Note: column-level sortInitialOrder only works in tablesorter 2.0.8 and later (an earlier version in use as of this writing.) --->
+			<th class="{sorter: 'importanceSorter', sortInitialOrder: 'desc'}">$i18n.getString( "importance" )&nbsp;&nbsp;&nbsp;&nbsp;</th>
+			<th class="{sorter: false}">$i18n.getString( "validation_rule" )</th>
+			<th class="{sorter: false}">$i18n.getString( "value" )</th>
+			<th class="{sorter: false}">$i18n.getString( "operator" )</th>
+			<th class="{sorter: false}">$i18n.getString( "value" )</th>
+			<th class="{sorter: false}">$i18n.getString( "details" )</th>
+		</tr>
+	</thead>
+	<tbody>
+		#foreach( $result in $validationResults )
+		<tr id="tr${result.id}">
+		  <td>$encoder.htmlEncode( $!result.orgUnit.name )</td>
+		  <td>$!format.formatPeriod( $result.period )</td>
+          #if( $showAttributeCombos )
+              <td>#if($result.attributeOptionCombo.isDefault()=='false') $encoder.htmlEncode( $!result.attributeOptionCombo.name ) #end</td>
+          #end
+		  <td>$encoder.htmlEncode( $i18n.getString( "$!result.validationRule.importance" ) )</td>
+		  <td>$encoder.htmlEncode( $!result.validationRule.getInstructionFallback() )</td>
+		  <td>$encoder.htmlEncode( $!result.leftsideValue )</td>
+		  <td style="text-align:center">$encoder.htmlEncode( $i18n.getString( $!result.validationRule.operator.mathematicalOperator ) )</td>
+		  <td>$encoder.htmlEncode( $!result.rightsideValue )</td>
+		  <td style="text-align:center">
+		    <a href="#" onclick="viewValidationResultDetails( $result.validationRule.id, $result.orgUnit.id, $result.period.id )" title="$i18n.getString( 'show_details' )">
+		      <img src="../images/information.png" alt="$i18n.getString( 'show_details' )">
+			</a>
+		  </td>
+		</tr>
+		#end
+	</tbody>
+</table>
+
+</div>
+
+#end
+
+<div id="validationResultDetailsDiv" class="page"></div>

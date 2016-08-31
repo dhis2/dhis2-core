@@ -1,0 +1,52 @@
+<div class="paging-container">
+    <table style="background-color: #ebf0f6;" width='100%'>
+        <tr>
+            <td>
+                {{'total_number_of_pages'| translate}}: {{pager.pageCount}}
+            </td>
+            <td>
+                <span>{{'rows_per_page'| translate}}:</span> <input type="text" min="1" style="width:50px;" ng-model="pager.pageSize" d2-enter="resetPageSize()" ng-blur="resetPageSize()"> 
+            </td>
+            <td>
+                <span>{{'jump_to_page'| translate}}:</span> <input type="text" min="1" style="width:50px;" ng-model="pager.page" d2-enter="jumpToPage()" ng-blur="jumpToPage()"> 
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3"><hr/></td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div class="paging">
+                    <span ng-show="pager.page > 1">
+                        <a href ng-click="getPage(1)" title="{{'first'| translate}}"> 
+                            &laquo;&laquo;
+                        </a>
+                        <a href ng-click="getPage(pager.page - 1)" title="{{'previous'| translate}}"> 
+                            &laquo;
+                        </a>                    
+                    </span>
+                    <span ng-hide="pager.page > 1">
+                        <span title="{{'first'| translate}}">&laquo;&laquo;</span>
+                        <span title="{{'previous'| translate}}">&laquo;</span>
+                    </span>
+                    <a href ng-click="getPage(i+1)" title="{{'page'| translate}} {{i + 1}}" ng-repeat="i in []| forLoop:paginator.lowerLimit():pager.pageCount | limitTo : pager.toolBarDisplay" ng-class="pager.page == i + 1 && 'active'">
+                        {{i + 1}}
+                    </a>
+
+                    <span ng-show="pager.page < pager.pageCount">
+                        <a href ng-click="getPage(pager.page + 1)" title="{{'next'| translate}}" > 
+                            &raquo;
+                        </a>
+                        <a href ng-click="getPage(pager.pageCount)" title="{{'last'| translate}}"> 
+                            &raquo;&raquo;
+                        </a>
+                    </span>
+                    <span ng-hide="pager.page < pager.pageCount">
+                        <span class="next" title="{{'next'| translate}}">&raquo; </span>
+                        <span class="last" title="{{'last'| translate}}">&raquo;&raquo;</span>
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>   
+</div>

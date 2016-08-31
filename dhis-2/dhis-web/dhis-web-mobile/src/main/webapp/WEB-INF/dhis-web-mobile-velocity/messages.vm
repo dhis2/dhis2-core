@@ -1,0 +1,55 @@
+
+<script>
+    $(document).bind('pagechange',function(){
+        $.mobile.loading( 'show' );
+
+        $.ajax({
+            url: '$contextPath/api/currentUser/inbox',
+            dataType: 'json'
+        }).success(function(data) {
+            if( data['messageConversations'] !== undefined ) {
+                $.each(data.messageConversations, function(i, item) {
+                    if(item.read) {
+                        $('#messageList').append('<li><a href="messages/' + item.id + '">' + item.name + '</a></li>');
+                    } else {
+                        $('#messageList').append('<li class="ui-btn-active"><a href="messages/' + item.id + '">' + item.name + '</a></li>');
+                    }
+                });
+            } else {
+                $('#messageList').append('<li>$i18n.getString("no_messages")</li>');
+            }
+        }).error(function() {
+            $.mobile.loading( 'show', {
+                html: '<h1>$i18n.getString("unable_to_get_inbox")</h1>',
+                textVisible: true
+            });
+
+            setTimeout( function() {
+                $.mobile.loading( 'hide' );
+            }, 1500);
+        }).complete(function() {
+            $('section[data-role="content"] ul').listview('refresh');
+            $.mobile.loading( 'hide' );
+        });
+    });
+</script>
+
+<section data-role="page" id="messages-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="index" data-icon="back">$i18n.getString("back")</a>
+        <a href="messages/new-message" data-icon="plus">$i18n.getString("new")</a>
+    </header>
+
+	<section data-role="content">
+        <ul id="messageList" data-role="listview" data-inset="true" data-count-theme="b">
+            <li data-role="list-divider">$i18n.getString("messages")</li>
+        </ul>
+	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>

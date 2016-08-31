@@ -1,0 +1,9 @@
+{ "userRole":
+  {
+	"name": "$!encoder.jsonEncode( ${userAuthorityGroup.name} )",
+	"uid": "$!encoder.jsonEncode( ${userAuthorityGroup.uid} )",
+	"members": "$!{userAuthorityGroup.members.size()}",
+	"dataSets": "$!{userAuthorityGroup.dataSets.size()}",
+	"reports": "$!{userAuthorityGroup.reports.size()}"
+  }
+}

@@ -1,0 +1,11 @@
+
+<h2>Simple test page for SMS input</h2>
+<form action="smsinput.action" method="GET" name="smstest">
+<label for="sender">From:</label><input type="textfield" name="sender"/><br/>
+<label for="received_time">Time received:</label><input type="textfield" name="received_time" value="2012-04-30 09:00"/><br/>
+<label for="message">SMS</label><br/><textarea name="message"></textarea><br/>
+
+<input type="submit" value="Submit"/>
+</form>
+
+<li><a href="index.action">$i18n.getString("home")</a></li>

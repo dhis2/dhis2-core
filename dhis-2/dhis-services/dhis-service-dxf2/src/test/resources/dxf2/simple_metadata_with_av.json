@@ -1,0 +1,465 @@
+{
+  "dataElements": [
+    {
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "aggregationLevels": [ ],
+      "created": "2016-02-17T06:15:06.079+0000",
+      "zeroIsSignificant": false,
+      "attributeValues": [ ],
+      "code": "DataElementCodeA",
+      "publicAccess": "rw------",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "userGroupAccesses": [ ],
+      "shortName": "DataElementShortA",
+      "name": "DataElementA",
+      "id": "SG4HuKlNEFH",
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "lastUpdated": "2016-02-17T06:15:59.378+0000",
+      "valueType": "TEXT"
+    },
+    {
+      "lastUpdated": "2016-02-17T06:16:08.180+0000",
+      "valueType": "TEXT",
+      "shortName": "DataElementShortB",
+      "name": "DataElementB",
+      "id": "CCwk5Yx440o",
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "userGroupAccesses": [ ],
+      "domainType": "AGGREGATE",
+      "aggregationType": "SUM",
+      "publicAccess": "rw------",
+      "attributeValues": [ ],
+      "code": "DataElementCodeB",
+      "created": "2016-02-17T06:15:49.487+0000",
+      "zeroIsSignificant": false,
+      "aggregationLevels": [ ],
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      }
+    },
+    {
+      "publicAccess": "rw------",
+      "aggregationType": "SUM",
+      "shortName": "DataElementShortC",
+      "name": "DataElementC",
+      "id": "j5PneRdU7WT",
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "domainType": "AGGREGATE",
+      "userGroupAccesses": [ ],
+      "lastUpdated": "2016-02-27T03:17:13.827+0000",
+      "valueType": "TEXT",
+      "aggregationLevels": [ ],
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "created": "2016-02-27T03:17:13.820+0000",
+      "zeroIsSignificant": false,
+      "code": "DataElementCodeC",
+      "attributeValues": [
+        {
+          "created": "2016-02-27T03:17:13.583+0000",
+          "value": "DataElementTextAttributeC",
+          "attribute": {
+            "id": "vNmjWwe4G1g"
+          },
+          "lastUpdated": "2016-02-27T03:17:13.832+0000"
+        },
+        {
+          "value": "Gender_Male",
+          "created": "2016-02-27T03:17:13.583+0000",
+          "attribute": {
+            "id": "dxk9vlXm8rI"
+          },
+          "lastUpdated": "2016-02-27T03:17:13.830+0000"
+        }
+      ]
+    },
+    {
+      "publicAccess": "rw------",
+      "aggregationType": "SUM",
+      "userGroupAccesses": [ ],
+      "domainType": "AGGREGATE",
+      "id": "k90AVpBahO4",
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "name": "DataElementD",
+      "shortName": "DataElementShortD",
+      "valueType": "TEXT",
+      "lastUpdated": "2016-02-27T03:17:51.963+0000",
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "aggregationLevels": [ ],
+      "zeroIsSignificant": false,
+      "created": "2016-02-27T03:17:51.961+0000",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "vNmjWwe4G1g"
+          },
+          "created": "2016-02-27T03:17:51.892+0000",
+          "value": "DataElementTextAttributeD",
+          "lastUpdated": "2016-02-27T03:17:51.965+0000"
+        },
+        {
+          "lastUpdated": "2016-02-27T03:17:51.963+0000",
+          "attribute": {
+            "id": "dxk9vlXm8rI"
+          },
+          "value": "Gender_Female",
+          "created": "2016-02-27T03:17:51.892+0000"
+        }
+      ],
+      "code": "DataElementCodeD"
+    }
+  ],
+  "options": [
+    {
+      "code": "Gender_Female",
+      "attributeValues": [ ],
+      "lastUpdated": "2016-02-27T03:09:09.734+0000",
+      "name": "Female",
+      "id": "uBDO9S6MdoE",
+      "created": "2016-02-27T03:09:09.734+0000"
+    },
+    {
+      "attributeValues": [ ],
+      "code": "Gender_Male",
+      "lastUpdated": "2016-02-27T03:09:03.161+0000",
+      "id": "IoxIRLL7ZTU",
+      "name": "Male",
+      "created": "2016-02-27T03:09:03.161+0000"
+    }
+  ],
+  "date": "2016-02-27T03:28:02.798+0000",
+  "userRoles": [
+    {
+      "lastUpdated": "2016-02-17T06:14:12.260+0000",
+      "userGroupAccesses": [ ],
+      "created": "2016-02-17T06:14:12.260+0000",
+      "name": "Superuser",
+      "id": "rKLtmQLRMU8",
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_MAP_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_PROGRAM_ENROLLMENT",
+        "F_REPORTTABLE_EXTERNAL",
+        "F_SQLVIEW_EXTERNAL",
+        "F_GIS_ADMIN",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_CHART_PUBLIC_ADD",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_CHART_EXTERNAL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_MAP_EXTERNAL",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+      ],
+      "dataSets": [ ],
+      "programs": [ ],
+      "publicAccess": "--------"
+    }
+  ],
+  "organisationUnitLevels": [
+    {
+      "id": "e1DcQuAONBm",
+      "name": "Country",
+      "created": "2016-02-17T06:17:12.379+0000",
+      "level": 1,
+      "lastUpdated": "2016-02-17T06:19:09.255+0000"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "openingDate": "2016-02-17",
+      "path": "/PdWlltZnVZe",
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "featureType": "NONE",
+      "lastUpdated": "2016-02-17T06:17:01.228+0000",
+      "code": "OrgUnitCodeA",
+      "attributeValues": [ ],
+      "uuid": "6ea86a20-1eb1-4bbd-87ea-948ee1e01f20",
+      "description": "",
+      "created": "2016-02-17T06:17:01.218+0000",
+      "id": "PdWlltZnVZe",
+      "shortName": "OrgUnitShortA",
+      "name": "OrgUnitA"
+    }
+  ],
+  "categories": [
+    {
+      "created": "2016-02-17T06:13:29.131+0000",
+      "userGroupAccesses": [ ],
+      "name": "default",
+      "id": "XSypGD15atv",
+      "lastUpdated": "2016-02-27T03:27:08.138+0000",
+      "dataDimensionType": "DISAGGREGATION",
+      "dataDimension": true,
+      "publicAccess": "--------",
+      "categoryOptions": [
+        {
+          "id": "SMHi6P8WZ1H"
+        }
+      ]
+    }
+  ],
+  "trackedEntities": [
+    {
+      "lastUpdated": "2016-02-17T06:25:08.000+0000",
+      "attributeValues": [ ],
+      "description": "Person",
+      "created": "2016-02-17T06:25:08.000+0000",
+      "name": "Person",
+      "id": "NdUUIOhQPcu"
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "ignoreApproval": false,
+      "lastUpdated": "2016-02-17T06:13:29.134+0000",
+      "categoryOptions": [
+        {
+          "id": "SMHi6P8WZ1H"
+        }
+      ],
+      "created": "2016-02-17T06:13:29.133+0000",
+      "id": "gOeVvNgprQ8",
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "name": "default"
+    }
+  ],
+  "attributes": [
+    {
+      "documentAttribute": false,
+      "trackedEntityAttribute": false,
+      "dataSetAttribute": false,
+      "organisationUnitGroupAttribute": false,
+      "optionAttribute": false,
+      "trackedEntityAttributeAttribute": false,
+      "userAttribute": false,
+      "organisationUnitAttribute": false,
+      "userGroupAttribute": false,
+      "name": "Data Element OptionSet Attribute",
+      "id": "dxk9vlXm8rI",
+      "dataElementAttribute": true,
+      "indicatorGroupAttribute": false,
+      "optionSetAttribute": false,
+      "lastUpdated": "2016-02-27T03:10:19.638+0000",
+      "valueType": "TEXT",
+      "unique": false,
+      "categoryOptionGroupAttribute": false,
+      "programAttribute": false,
+      "programStageAttribute": false,
+      "organisationUnitGroupSetAttribute": false,
+      "optionSet": {
+        "id": "zyv3t0BEXXU"
+      },
+      "indicatorAttribute": false,
+      "categoryOptionAttribute": false,
+      "created": "2016-02-27T03:10:19.638+0000",
+      "mandatory": false,
+      "dataElementGroupAttribute": false
+    },
+    {
+      "lastUpdated": "2016-02-27T03:10:04.283+0000",
+      "optionSetAttribute": false,
+      "valueType": "TEXT",
+      "unique": false,
+      "categoryOptionGroupAttribute": false,
+      "indicatorGroupAttribute": false,
+      "dataElementAttribute": true,
+      "name": "Data Element Text Attribute",
+      "id": "vNmjWwe4G1g",
+      "userGroupAttribute": false,
+      "userAttribute": false,
+      "optionAttribute": false,
+      "trackedEntityAttributeAttribute": false,
+      "organisationUnitAttribute": false,
+      "organisationUnitGroupAttribute": false,
+      "trackedEntityAttribute": false,
+      "documentAttribute": false,
+      "dataSetAttribute": false,
+      "dataElementGroupAttribute": false,
+      "created": "2016-02-27T03:10:04.282+0000",
+      "mandatory": false,
+      "categoryOptionAttribute": false,
+      "indicatorAttribute": false,
+      "organisationUnitGroupSetAttribute": false,
+      "programStageAttribute": false,
+      "programAttribute": false
+    }
+  ],
+  "categoryCombos": [
+    {
+      "publicAccess": "--------",
+      "created": "2016-02-17T06:13:29.133+0000",
+      "userGroupAccesses": [ ],
+      "name": "default",
+      "skipTotal": false,
+      "id": "zU1OZFVxnw7",
+      "lastUpdated": "2016-02-17T06:13:29.135+0000",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [
+        {
+          "id": "XSypGD15atv"
+        }
+      ]
+    }
+  ],
+  "dataSets": [
+    {
+      "created": "2016-02-17T06:16:40.204+0000",
+      "renderAsTabs": false,
+      "organisationUnits": [
+        {
+          "id": "PdWlltZnVZe"
+        }
+      ],
+      "validCompleteOnly": false,
+      "attributeValues": [ ],
+      "code": "DataSetCodeA",
+      "fieldCombinationRequired": false,
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "userGroupAccesses": [ ],
+      "dataElements": [
+        {
+          "id": "CCwk5Yx440o"
+        },
+        {
+          "id": "SG4HuKlNEFH"
+        }
+      ],
+      "openFuturePeriods": 0,
+      "noValueRequiresComment": false,
+      "shortName": "DataSetShortA",
+      "name": "DataSetA",
+      "indicators": [ ],
+      "renderHorizontally": false,
+      "compulsoryDataElementOperands": [ ],
+      "categoryCombo": {
+        "id": "zU1OZFVxnw7"
+      },
+      "id": "DSaKQTwN4qg",
+      "lastUpdated": "2016-02-17T06:19:18.986+0000",
+      "expiryDays": 0,
+      "timelyDays": 15,
+      "dataElementDecoration": false,
+      "skipOffline": false,
+      "periodType": "Monthly",
+      "version": 1,
+      "publicAccess": "rw------",
+      "notifyCompletingUser": false,
+      "mobile": false
+    }
+  ],
+  "users": [
+    {
+      "id": "ueKaFVdR8Fz",
+      "firstName": "admin",
+      "created": "2016-02-17T06:14:12.250+0000",
+      "dataViewOrganisationUnits": [ ],
+      "attributeValues": [ ],
+      "surname": "admin",
+      "organisationUnits": [
+        {
+          "id": "PdWlltZnVZe"
+        }
+      ],
+      "lastUpdated": "2016-02-17T06:14:12.250+0000",
+      "userCredentials": {
+        "id": "m3ww4DWJtMf",
+        "cogsDimensionConstraints": [ ],
+        "catDimensionConstraints": [ ],
+        "invitation": false,
+        "username": "admin",
+        "selfRegistered": false,
+        "userInfo": {
+          "id": "ueKaFVdR8Fz"
+        },
+        "created": "2016-02-17T06:14:12.362+0000",
+        "disabled": false,
+        "passwordLastUpdated": "2016-02-17T06:14:12.274+0000",
+        "externalAuth": false,
+        "userRoles": [
+          {
+            "id": "rKLtmQLRMU8"
+          }
+        ],
+        "lastLogin": "2016-02-17T06:14:12.274+0000"
+      }
+    }
+  ],
+  "optionSets": [
+    {
+      "publicAccess": "rw------",
+      "version": 1,
+      "user": {
+        "id": "ueKaFVdR8Fz"
+      },
+      "code": "Gender",
+      "attributeValues": [ ],
+      "lastUpdated": "2016-02-27T03:09:09.736+0000",
+      "valueType": "TEXT",
+      "name": "Gender",
+      "id": "zyv3t0BEXXU",
+      "options": [
+        {
+          "id": "IoxIRLL7ZTU"
+        },
+        {
+          "id": "uBDO9S6MdoE"
+        }
+      ],
+      "userGroupAccesses": [ ],
+      "created": "2016-02-27T03:08:49.239+0000"
+    }
+  ],
+  "categoryOptions": [
+    {
+      "id": "SMHi6P8WZ1H",
+      "shortName": "default",
+      "name": "default",
+      "created": "2016-02-17T06:13:29.120+0000",
+      "userGroupAccesses": [ ],
+      "attributeValues": [ ],
+      "lastUpdated": "2016-02-17T06:13:29.137+0000",
+      "organisationUnits": [ ],
+      "publicAccess": "--------"
+    }
+  ]
+}

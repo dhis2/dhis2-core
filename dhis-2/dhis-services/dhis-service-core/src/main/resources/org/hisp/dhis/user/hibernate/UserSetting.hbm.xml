@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.user.UserSetting" table="usersetting">
+
+    <cache usage="read-write" />
+
+    <composite-id>
+      <key-many-to-one name="user" class="org.hisp.dhis.user.User" column="userinfoid" foreign-key="fk_usersetting_userinfoid" />
+      <key-property name="name" column="name" />
+    </composite-id>
+
+    <property name="value" type="serializable" length="65535" />
+
+  </class>
+</hibernate-mapping>

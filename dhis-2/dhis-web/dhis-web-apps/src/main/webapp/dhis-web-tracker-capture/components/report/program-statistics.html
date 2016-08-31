@@ -1,0 +1,64 @@
+<span id="showLeftBar">
+    <a href="javascript:dhis2.leftBar.showAnimated()" title="$i18n.getString('show_menu' )"><i class="fa fa-arrow-right leftBarIcon"></i></a>
+</span>
+
+<div id="leftBar">
+    
+    <d2-left-bar></d2-left-bar>
+    
+    <div id="orgUnitTree">
+        <ul>
+        </ul>
+    </div>
+    
+    <img id="ouwt_loader" src="../images/ajax-loader-bar.gif" alt="{{'in_progress'| translate}}"/>
+    
+    <div class="small-horizontal-spacing" ng-if="!treeLoaded">
+        {{'loading_tree'| translate}}
+    </div>
+    
+    <!--- selected org unit begins -->
+    <input type="text" selected-org-unit ng-model="selectedOrgUnit.displayName" ng-hide=true>
+    <!--- selected org unit ends  -->
+    
+</div>
+
+<div id="mainPage" class="bordered-div page">
+    <h2>{{'program_statistics_report'| translate}}</h2>
+    <form name="outerForm" novalidate>               
+        <div ng-include="'components/report/report-form.html'"></div>
+    </form>    
+    <img src="../images/ajax-loader-bar.gif" ng-if="!dataReady && reportStarted"/>
+    <div ng-if="dataReady">
+        <div class="row col-sm-12">
+            <div class="col-sm-6 align-center">
+                <h2>{{'enrollment_stats' | translate}}</h2>
+                <nvd3-pie-chart
+                    data="enrollmentStat"
+                    id="enrollmentChart"
+                    width="350"
+                    height="250"
+                    x="xFunction()"
+                    y="yFunction()"
+                    showLabels="true"
+                    tooltips="true">
+                        <svg height="200"></svg>
+                </nvd3-pie-chart>
+            </div>
+            <div class="col-sm-6 align-center">
+                <h2>{{'event_stats' | translate}}</h2>
+                <nvd3-pie-chart
+                    data="eventStat"
+                    id="eventChart"
+                    width="350"
+                    height="250"
+                    x="xFunction()"
+                    y="yFunction()"
+                    showLabels="true"
+                    tooltips="true">
+                        <svg height="200"></svg>
+                </nvd3-pie-chart>
+            </div>
+        </div>        
+    </div>    
+</div>

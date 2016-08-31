@@ -1,0 +1,3 @@
+{
+	"defaultAction":"$!encoder.jsonEncode( $!helpPageLink )"
+}

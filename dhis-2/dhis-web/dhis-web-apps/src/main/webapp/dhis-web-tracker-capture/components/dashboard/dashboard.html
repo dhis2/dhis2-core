@@ -1,0 +1,108 @@
+<div class="container-1-1">
+    
+    <!-- dashboard widgets begin -->
+    <div class="col-sm-12">
+        <div class="row dashboard-top-bar-sticky" height-change-source ng-if="useTopBar">
+            <div class="col-sm-12">
+                <div class="dashboard-info-btn-left">
+                    <button type="button" class="btn btn-default remove-focus-effects dashboard-info-btn-left-back" ng-click="back()">
+                        {{getBackButtonText()}}
+                    </button>
+                </div>
+                <div ng-include="'components/dashboard/dashboard-topbar.html'" class="dashboard-info-box-container" ng-class="topbarClass"></div>
+                <div ng-class="topbarRightSizeClass">
+                    <button type="button" 
+                            title="{{model.stickyDisabled ? stickLabel : unstickLabel}}" 
+                            ng-show="(dashboardWidgets | filter: {parent: 'smallerWidget', show: true}).length > 0"
+                            class="btn btn-default dashboard-info-btn-right-size" 
+                            ng-class="{true: 'stick', false: 'unstick'} [!model.stickyDisabled]" 
+                            ng-click="model.stickyDisabled = !model.stickyDisabled">                    
+                        <i class="fa fa-thumb-tack"></i>
+                    </button>
+                    <div class="btn-group trim" dropdown is-open="status.isopen" ng-if="showSettingsButton">
+                        <button type="button" title="{{settingsLabel}}" class="btn btn-default dropdown-toggle dashboard-info-btn-right-size" dropdown-toggle>                    
+                            <i class="fa fa-cog"></i>
+                        </button>
+                        <ul class="dropdown-menu pull-right" role="menu">
+                            <li><a href ng-click="showHideWidgets()">{{showHideWidgetsLabel}}</a></li>
+                            <li ng-if="userAuthority.canAdministerDashboard"><a href ng-click="saveDashboarLayoutAsDefault()">{{'save_layout_as_default'| translate}}</a></li>
+                            <li><a href ng-click="activiateTEI()">{{selectedTei.inactive ? 'activate_tei' : 'deactivate_tei' | translate}} {{trackedEntity.displayName}}</a></li>
+                        </ul>
+                    </div>
+                </div>          
+            </div>
+        </div>
+        
+        <div class="row">       
+            <div height-change-target ng-if="useTopBar" class="vertical-spacing"></div>
+            <!-- dashboard bigger widgets begin -->
+            <div ng-class="widgetSize.bigger">
+                
+                <!-- dashboard buttons begin -->
+		<div ng-if="!useTopBar" class="vertical-spacing">
+                    <button type="button" class="btn btn-default" ng-click="back()">{{getBackButtonText()}}</button>
+
+                    <button ng-disabled="!previousTeiExists" type="button" class="btn btn-default small-horizontal-spacing" ng-click="fetchTei('PREV')" title="{{'previous'| translate}}"><i class="fa fa-caret-left"></i></button>
+
+                    <button ng-disabled="!nextTeiExists" type="button" class="btn btn-default small-horizontal-spacing" ng-click="fetchTei('NEXT')" title="{{'next'| translate}}"><i class="fa fa-caret-right"></i></button>
+
+                    <select ng-model="selectedProgram"
+                            class="form-control-program"
+                            ng-options="program as program.displayName for program in programs | orderBy: 'displayName'" 
+                            ng-disabled="programs.length < 1"
+                            ng-change="applySelectedProgram(selectedProgram)">
+                        <option value="">{{programs.length > 0 ? 'please_select_a_program' : 'no_program_exists' | translate}}</option>
+                    </select>
+		</div>
+                <!-- dashboard buttons end -->
+        
+                <div id="biggerWidget" class="row connectedSortable empty-dashboard-container" d2-sortable bigger-widgets={{dashboardWidgets | filter: {parent: 'biggerWidget'}}} smaller-widgets={{ dashboardWidgets | filter: {parent: 'smallerWidget'}}}>
+                    <div class="col-sm-12 remove-one-pix" id={{biggerWidget.title}} ng-repeat="biggerWidget in dashboardWidgets | orderBy:'order' | filter: {parent: 'biggerWidget'}">
+                        <div ng-show="(biggerWidget.show && !temporaryHideWidgets[biggerWidget.title]) || temporaryShowWidgets[biggerWidget.title]" ng-include="biggerWidget.view" ng-class="{true: 'hideInPrint'} [biggerWidget.title != 'report']"></div>
+                    </div>                    
+                </div>
+            </div>
+            <!-- dashboard bigger widgets end -->
+
+            <!-- dashboard smaller widgets begin -->
+            <div ng-class="[!model.stickyDisabled ? 'widgets-sticky' : '', widgetSize.smaller]">
+                <!-- dashboard setting begins -->
+                <div class="row add-default-right-padding vertical-spacing" ng-if="!useTopBar">
+                    <div class="pull-right">
+                        <button type="button" 
+                                title="{{model.stickyDisabled ? stickLabel : unstickLabel}}" 
+                                ng-show="(dashboardWidgets | filter: {parent: 'smallerWidget', show: true}).length > 0"
+                                class="btn btn-default" 
+                                ng-class="{true: 'stick', false: 'unstick'} [!model.stickyDisabled]" 
+                                ng-click="model.stickyDisabled = !model.stickyDisabled">                    
+                            <i class="fa fa-thumb-tack"></i>
+                        </button>
+                        <div class="btn-group trim" dropdown is-open="status.isopen">
+                            <button type="button" title="{{settingsLabel}}" class="btn btn-default dropdown-toggle" dropdown-toggle>                    
+                                <i class="fa fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu pull-right" role="menu">
+                                <li><a href ng-click="showHideWidgets()">{{showHideWidgetsLabel}}</a></li>
+                                <li ng-if="userAuthority.canAdministerDashboard"><a href ng-click="saveDashboarLayoutAsDefault()">{{'save_layout_as_default'| translate}}</a></li>
+                                <li><a href ng-click="activiateTEI()">{{selectedTei.inactive ? 'activate_tei' : 'deactivate_tei' | translate}} {{trackedEntity.displayName}}</a></li>
+                            </ul>
+                        </div>
+                    </div>    
+                </div>                
+                <!-- dashboard setting ends -->
+                
+                <div id="smallerWidget" class="row connectedSortable empty-dashboard-container" d2-sortable bigger-widgets={{dashboardWidgets | filter: {parent: 'biggerWidget'}}} smaller-widgets={{dashboardWidgets | filter: {parent: 'smallerWidget'}}}>
+                    <div class="col-sm-12 remove-one-pix" id={{smallerWidget.title}} ng-repeat="smallerWidget in dashboardWidgets  | orderBy:'order' | filter: {parent: 'smallerWidget'}">                        
+                        <div ng-show="(smallerWidget.show && !temporaryHideWidgets[smallerWidget.title]) || temporaryShowWidgets[smallerWidget.title]" ng-include="smallerWidget.view" ng-class="{true: 'hideInPrint'} [smallerWidget.title != 'report']"></div>
+                    </div>                   
+                </div>
+                
+            </div>
+            <!-- dashboard smaller widgets end -->
+            
+        </div>          
+    </div>
+    <!-- dashboard widgets end -->
+    
+</div>
+

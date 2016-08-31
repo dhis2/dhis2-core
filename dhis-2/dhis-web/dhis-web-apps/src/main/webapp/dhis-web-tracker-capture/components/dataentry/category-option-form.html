@@ -1,0 +1,12 @@
+<div class="row" ng-if="selectedProgram" ng-repeat="category in selectedCategories">
+    <div class="col-sm-3">{{category.displayName}}</div>
+    <div class="col-sm-9">
+        <select class="form-control"
+                name="option"
+                ng-model="category.selectedOption"
+                ng-options="option as option.displayName for option in category.categoryOptions"
+                ng-change="getCategoryOptions()">
+            <option value="" ng-selected="selectDefault.selected">{{'please_select' | translate}}</option>
+        </select>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+
+<h2>$subject</h2>
+
+<form method="POST" action="sendReply.action">
+<div class="header-box" align="center">
+	<h3 style="text-align: left;">$i18n.getString( "reply" )</h3>
+    <p style="text-align: left;">
+        <input type="hidden" name="conversationId" value="$conversationId" />
+        <input type="text" maxlength="255" size="24" name="text" />
+        <input type="submit" style="width: 100%;" value="$i18n.getString("send")" />
+    </p>
+</div>
+</form>
+
+#foreach( $message in $messages )
+<div class="header-box" align="center">
+	<h3 style="text-align: left;">Reply from $message.sender.getName()</h3>
+    <p style="text-align: left;">$message.text</p>
+</div>
+#end
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+    <li><a href="messages.action">$i18n.getString("messages")</a></li>
+    <li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>
+</div>

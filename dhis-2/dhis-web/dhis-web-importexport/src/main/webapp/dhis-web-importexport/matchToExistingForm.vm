@@ -1,0 +1,217 @@
+<script>
+	var i18n_no_item_to_match = '$encoder.jsEscape( $i18n.getString( "no_item_to_match" ), "'" )';
+</script>
+
+#macro( displayProperty $key $value )
+<tr>
+	<td>$i18n.getString( "${key}" )</td>
+	<td>$!value</td>
+</tr>	
+#end
+
+#macro( displayBoolProperty $key $value )
+<tr>
+	<td>$i18n.getString( "${key}" )</td>
+	<td>$!{value}</td>
+</tr>	
+#end
+
+#macro( displayAggregationOperatorProperty $key $value )
+<tr>
+	<td>$i18n.getString( "${key}" )</td>
+	<td>#formatBool( $!{value} )</td>
+</tr>	
+#end
+
+<h3>$i18n.getString( 'match_to_existing' )</h3>
+
+<form id="previewForm" name="previewForm" method="post" action="">
+	
+<input type="hidden" id="objectType" name="objectType" value="$!objectType">
+<input type="hidden" id="objectId" name="objectId" value="$!importObject.id">
+	
+<table style="width:700px">
+
+	<!-- Import object -->
+	
+	<tr>
+		<th style="width:35%">$i18n.getString( "property" )</th>
+		<th style="width:65%">$i18n.getString( "details" )</th>
+	</tr>	
+	
+	#displayProperty( "name" $importObject.object.name )
+	
+	#if ( $objectType == "CONSTANT" )
+	
+	#displayProperty( "value" $importObject.object.value )
+	
+	#end
+	
+	#if ( $objectType == "DATAELEMENT" || $objectType == "CALCULATEDDATAELEMENT" )
+			
+	#displayProperty( "alternative_name" $importObject.object.alternativeName )
+	#displayProperty( "short_name" $importObject.object.shortName )
+	#displayProperty( "code" $importObject.object.code )
+	#displayProperty( "description" $importObject.object.description )
+		
+	<tr>
+		<td>$i18n.getString( "type" )</td>
+		<td>#formatType( $!importObject.object.type )</td>
+	</tr>
+	
+	#displayAggregationOperatorProperty( "aggregation_operator" $importObject.object.aggregationOperator )
+	
+	#end
+	
+	#if ( $objectType == "CALCULATEDDATAELEMENT" )
+	
+	#displayBoolProperty( "saved" $importObject.object.saved )
+	
+    <tr>
+        <td>$i18n.getString( "expression" )</td>
+        <td>$!importObject.object.expression.expression</td>
+    </tr>
+        
+	#end
+	
+	#if ( $objectType == "INDICATORTYPE" )
+	
+	#displayProperty( "factor" $importObject.object.factor )
+	
+	#end
+	
+	#if ( $objectType == "INDICATOR" )
+	
+	#displayProperty( "alternative_name" $importObject.object.alternativeName )
+	#displayProperty( "short_name" $importObject.object.shortName )
+	#displayProperty( "code" $importObject.object.code )
+	#displayProperty( "description" $importObject.object.description )
+	#displayBoolProperty( "annualized" $importObject.object.annualized )
+	#displayProperty( "numerator_description" $importObject.object.numeratorDescription )
+	#displayAggregationOperatorProperty( "numerator_aggregation_operator" $importObject.object.numeratorAggregationOperator )
+	#displayProperty( "denominator_description" $importObject.object.denominatorDescription )
+	#displayAggregationOperatorProperty( "denominator_aggregation_operator" $importObject.object.denominatorAggregationOperator )
+	
+	#end
+	
+	#if ( $objectType == "ORGANISATIONUNIT" )
+	
+	#displayProperty( "short_name" $importObject.object.shortName )
+	#displayProperty( "code" $importObject.object.code )
+	#displayBoolProperty( "active" $importObject.object.active )
+	#displayProperty( "comment" $importObject.object.comment )
+	#displayProperty( "geoCode" $importObject.object.geo_code )
+	
+	#end
+	
+	#if ( $objectType == "ORGANISATIONUNITLEVEL" )
+	
+	#displayProperty( "level" $importObject.object.level )
+	
+	#end
+	
+	#if ( $objectType == "VALIDATIONRULE" )
+		
+	#displayProperty( "description" $importObject.object.description )
+	#displayProperty( "type" $importObject.object.type )
+	#displayProperty( "operator" $importObject.object.operator )
+	
+	#end
+	
+	#if ( $objectType == "REPORT" )
+		
+	#displayProperty( "design" $importObject.object.design )
+	#displayProperty( "type" $importObject.object.type )
+	
+	#end
+		
+    #if ( $objectType == "REPORTTABLE" )
+        
+	#displayProperty( "table_name" $importObject.object.tableName )
+	#displayProperty( "mode" $importObject.object.mode )
+	#displayBoolProperty( "regression" $importObject.object.regression )
+	#displayBoolProperty( "do_indicators" $importObject.object.doIndicators )
+	#displayBoolProperty( "do_category_option_combos" $importObject.object.doCategoryOptionCombos )
+	#displayBoolProperty( "do_periods" $importObject.object.doPeriods )
+	#displayBoolProperty( "do_units" $importObject.object.doUnits )
+	
+	#displayBoolProperty( "reporting_month" $importObject.object.reportingMonth )
+	#displayBoolProperty( "last_3_months" $importObject.object.last3Months )
+	#displayBoolProperty( "last_6_months" $importObject.object.last6Months )
+	#displayBoolProperty( "last_12_months" $importObject.object.last12Months )
+	#displayBoolProperty( "last_3_months" $importObject.object.last3Months )
+	#displayBoolProperty( "so_far_this_year" $importObject.object.soFarThisYear )
+	#displayBoolProperty( "last_3_to_6_months" $importObject.object.last3To6Months )
+	#displayBoolProperty( "last_6_to_9_months" $importObject.object.last3To6Months )
+	#displayBoolProperty( "last_9_to_12_months" $importObject.object.last9To12Months )
+	#displayBoolProperty( "last_12_individual_months" $importObject.object.last12IndividualMonths )
+	#displayBoolProperty( "individual_months_this_year" $importObject.object.individualMonthsThisYear )
+	#displayBoolProperty( "individual_quarters_this_year" $importObject.object.individualQuartersThisYear )
+	    
+    #end
+    
+	#if ( $objectType == "CHART" )
+	
+	#displayProperty( "type" $importObject.object.type )
+	#displayProperty( "size" $importObject.object.size )
+	#displayProperty( "dimension" $importObject.object.dimension )
+	#displayBoolProperty( "hide_legend" $importObject.object.hideLegend )
+	#displayBoolProperty( "vertical_labels" $importObject.object.verticalLabels )
+	#displayBoolProperty( "horizontal_plot_orientation" $importObject.object.horizontalPlotOrientation )
+	#displayBoolProperty( "regression" $importObject.object.regression )
+		
+	#displayBoolProperty( "reporting_month" $importObject.object.reportingMonth )
+	#displayBoolProperty( "last_3_months" $importObject.object.last3Months )
+	#displayBoolProperty( "last_6_months" $importObject.object.last6Months )
+	#displayBoolProperty( "last_12_months" $importObject.object.last12Months )
+	#displayBoolProperty( "so_far_this_year" $importObject.object.soFarThisYear )
+	#displayBoolProperty( "last_3_to_6_months" $importObject.object.last3To6Months )
+	#displayBoolProperty( "last_6_to_9_months" $importObject.object.last3To6Months )
+	#displayBoolProperty( "last_9_to_12_months" $importObject.object.last9To12Months )
+	#displayBoolProperty( "last_12_individual_months" $importObject.object.last12IndividualMonths )
+	#displayBoolProperty( "individual_months_this_year" $importObject.object.individualMonthsThisYear )
+	#displayBoolProperty( "individual_quarters_this_year" $importObject.object.individualQuartersThisYear )
+	    
+	#end
+	
+	<tr>
+		<td colspan="2" style="height:10px">
+	</tr>
+	
+	<!-- Existing objects -->
+	
+	<tr>
+		<th colspan="2">$i18n.getString( "existing_objects" )</th>
+	</tr>
+	<tr>
+		<td colspan="2">
+			<input type="text" id="filterField" style="width:66%" onkeyup="filterExistingObjects()"><input
+				type="button" value="$i18n.getString( 'view_all' )" style="width:16%" onclick="viewAllExistingObjects()">
+		</td>
+	</tr>
+	<tr>
+		<td colspan="2">
+			<select multiple id="existingObjects" name="existingObjects" style="width:100%; height:220px">
+				#foreach( $object in $objects )
+					<option value="$object.id">$object.name</option>
+				#end
+			</select>
+		</td>
+	</tr>
+	
+	<!-- Actions -->
+	
+	<tr>
+		<td colspan="2">
+			<input type="button" value="$i18n.getString( 'match_to_existing' )" style="width:25%" onclick="matchObject()"><input
+				type="button" value="$i18n.getString( 'cancel' )" style="width:25%" onclick="cancelObject()">
+		</td>
+	</tr>
+	
+</table>
+
+</form>
+
+<div style="display:none">
+	<select multiple id="filteredObjects"></select>
+</div>

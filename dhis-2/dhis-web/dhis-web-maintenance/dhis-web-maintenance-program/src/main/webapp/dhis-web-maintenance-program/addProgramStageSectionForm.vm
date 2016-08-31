@@ -1,0 +1,139 @@
+<script>
+jQuery( document ).ready( function()
+{
+	validation2( 'programStageSectionForm', function( form )
+	{
+		form.submit();
+	},{
+		'beforeValidateHandler' : function()
+		{
+			selectAllById('dataElementIds');
+			selectAllById('selectedIndicators');
+			if(jQuery("#dataElementIds option").length > 0 ){
+				setFieldValue('dataElementList', 'true');
+			}
+		},
+		'rules' : getValidationRules( "programStageSection" )
+	});
+	
+	checkValueIsExist( "name", "validateProgramStageSection.action",{programStageId:getFieldValue('programStageId')});
+	byId('name').focus();
+});
+</script>
+
+<h3>$i18n.getString( "create_new_program_stage_section" )</h3>
+
+<h4>$programStage.displayName</h4>
+																		
+<form id="programStageSectionForm" name="programStageSectionForm" action="addProgramStageSection.action" method="post" class="inputForm">
+
+<input type="hidden" id="programStageId" name="programStageId" value="$programStage.id"/>
+<table>
+	<thead>
+		<tr><th colspan="2">$i18n.getString( "section_details" )</th></tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td><input type="text" id="name" name="name" /></td>
+		</tr>
+	</tbody>
+</table>
+
+<table id="programStageMembersArea">    
+   <colgroup>
+		<col style='width:500px'/>
+		<col/>
+		<col style='width:500px'/>
+	</colgroup>
+	<thead>
+      <tr>        
+        <th>$i18n.getString( "available_data_elements" )</th>
+        <th></th>
+        <td class="class-th">
+			$i18n.getString( "selected_data_elements" )
+			<input type='hidden' id='dataElementList' name='dataElementList' >
+		</td>
+      </tr>
+    </thead>
+  
+    <tbody>
+      <tr>
+        <td>
+            <select id="availableList" name='availableList' size="15" style="height: 200px; width: 100%;" multiple="multiple" ondblclick="moveSelectedById( 'availableList', 'dataElementIds' );">
+				#foreach( $psPataElement in $availableDataElements )
+					<option value='$psPataElement.dataElement.id'>$psPataElement.dataElement.name</option>
+				#end
+			</select>
+        </td>
+        
+		<td style="text-align:center">
+        	<input type="button" value="&gt;" class='filterButton' onclick="moveSelectedById( 'availableList', 'dataElementIds' );"/><br/>
+            <input type="button" value="&lt;" class='filterButton' onclick="moveSelectedById( 'dataElementIds', 'availableList' );"/><br/>
+			<input type="button" value="&gt;&gt;" class='filterButton' onclick="moveAllById( 'availableList', 'dataElementIds' );"/><br/>
+			<input type="button" value="&lt;&lt;" class='filterButton' onclick="moveAllById( 'dataElementIds', 'availableList' );"/>
+		</td>
+		
+		<td>
+			<select id="dataElementIds" name='dataElementIds' size="15" style="height: 200px; width: 100%;" multiple="multiple"  ondblclick="moveSelectedById( 'dataElementIds', 'availableList' );"></select>
+		</td>
+			
+		<td>
+            <a href="javascript:moveUpSelectedOption('dataElementIds')"><img src="../images/move_up.png"/></a><br/><br/>
+            <a href="javascript:moveDownSelectedOption('dataElementIds')"><img src="../images/move_down.png"/></a><br/><br/>
+        </td>   
+		 </tr>
+    </tbody>
+</table>
+
+
+<table>
+	<colgroup>
+		<col style='width:500px'/>
+		<col/>
+		<col style='width:500px'/>
+	</colgroup>
+	<tr>
+		<th>$i18n.getString( "available_indicators" )</th>
+		<th>$i18n.getString( "filter" )</th>
+		<th>$i18n.getString( "selected_indicators" )</th>
+	</tr>
+	
+	<tr>
+		<td>
+			<select style="height: 200px; width: 100%;" multiple="multiple" id="availableIndicators" name="availableIndicators" ondblclick="moveSelectedById( 'availableIndicators', 'selectedIndicators' )" >
+				#foreach( $indicator in $availableProgramIndicators )
+					<option value="$indicator.id">$encoder.htmlEncode( $indicator.displayName )</option>
+				#end
+			</select>
+		</td>
+		<td>
+			<input type="button" value="&gt;" title="$i18n.getString('move_selected')" onclick="dhisAjaxSelect_moveAllSelected( 'availableIndicators', 'selectedIndicators' )" class='filterButton'/><br/>
+			<input type="button" value="&lt;" title="$i18n.getString('remove_selected')" onclick="dhisAjaxSelect_moveAllSelected( 'selectedIndicators', 'availableIndicators' )" class='filterButton'/><br/>
+			<input type="button" value="&gt;&gt;" onclick="moveAllById( 'availableIndicators', 'selectedIndicators' )" class='filterButton' /><br/>
+			<input type="button" value="&lt;&lt;" onclick="moveAllById( 'selectedIndicators', 'availableIndicators' )" class='filterButton' />
+		</td>
+		<td>
+			<select style="height: 200px; width: 100%;" multiple="multiple" id="selectedIndicators" name="selectedIndicators" ondblclick="moveSelectedById( 'selectedIndicators', 'availableIndicators' )" >		</select>
+		</td>
+		<td>
+			<a href="javascript:moveUpSelectedOption( 'selectedIndicators')" title="$i18n.getString( 'move_up' )"><img src="../images/move_up.png" alt="$i18n.getString( 'move_up' )"/></a><br/><br/>
+			<a href="javascript:moveDownSelectedOption( 'selectedIndicators' )" title="$i18n.getString( 'move_down' )"><img src="../images/move_down.png" alt="$i18n.getString( 'move_up' )"/></a>
+		</td>
+	</tr> 
+</table>
+
+
+<p>
+	<input type="submit" value="$i18n.getString( 'add' )" style="width:10em"/>
+	<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='programStageSectionList.action?id=$programStage.id'" style="width:10em"/>
+</p>
+
+</form> 	
+
+<script type="text/javascript">    
+    var i18n_invalid_min_max_days = '$encoder.jsEscape( $i18n.getString( "invalid_min_max_days" ) , "'")';
+    var i18n_value_must_positive = '$encoder.jsEscape( $i18n.getString( "value_must_positive" ) , "'")';
+    var i18n_value_must_integer = '$encoder.jsEscape( $i18n.getString( "value_must_integer" ) , "'")';
+    var i18n_compulsory_checkbox_title = '$encoder.jsEscape( $i18n.getString( "compulsory_checkbox_title" ) , "'")';   
+</script>

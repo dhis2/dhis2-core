@@ -1,0 +1,23 @@
+<table class="table table-bordered table-horizontal-layout" ng-if="eventsByStage[currentStage.id].length > 0">
+    <thead ng-if="eventsByStage[currentStage.id].length > 1">
+        <tr>
+            <th ng-repeat="col in eventGridColumns.partial">
+                {{col.name}}
+            </th>
+        </tr>
+    </thead>
+    <tbody ng-repeat="dhis2Event in eventsByStage[currentStage.id]">
+        <tr ng-click="showDataEntry(dhis2Event, false, false)" ng-if="eventsByStage[currentStage.id].length > 1">
+            <td ng-class="getEventStyle(dhis2Event)" class="cursor-pointer" ng-repeat="col in eventGridColumns.partial">
+                {{dhis2Event[col.id]}}                                    
+            </td>
+        </tr>
+        <tr ng-if="currentEvent && currentEvent.programStage === currentStage.id && dhis2Event.event === currentEvent.event">
+            <td colspan="{{eventGridColumns.partial.length}}" class="cursor-pointer">
+                <div class="row">
+                    <div class="col-sm-6" ng-include="'components/dataentry/main-dataentry-form.html'"></div>
+                </div>                
+            </td>
+        </tr>
+    </tbody>
+</table>

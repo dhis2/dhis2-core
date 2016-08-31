@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015, UiO
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+-->
+
+<div>
+    <div class="pull-right" ng-show="event===chosenEvent && buttonsEnabled()">
+        <div class="btn-group event-table-options-dropdown dropup">
+          <button type="button" class="btn btn-default" ng-click="defaultOption.onClick()"  data-toggle='tooltip' title='{{defaultOption.tooltip | translate}}' ng-bind-html="defaultOption.icon" ng-disabled="defaultOption.disabled">                                             
+          </button>
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+            <span class="caret"></span>
+            <span class="sr-only">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu custom-dropdown-menu dropdown-menu-left">
+              <li ng-show="option.show && !option.disabled" ng-repeat="option in eventTableOptionsArr" ng-click="option.onClick()">
+                  <a href="">                  
+                      <span ng-bind-html="option.icon"></span>
+                      &nbsp;{{option.text | translate}}                  
+                  </a>              
+              </li>                                      
+          </ul>                                                                
+        </div>
+    </div>
+    <div class="pull-right" ng-show="event!=chosenEvent || !buttonsEnabled()">        
+        <span ng-if="showNoteExistsIcon && event.notes && event.notes.length > 0">            
+            <span class='glyphicon glyphicon-list-alt cursor-pointer' ng-click="showNotes()" tooltip-html-unsafe="{{notesSummary()}}"></span>
+        </span>
+        <span class="badge event-table-options-badge" ng-class="getEventStyle(event)">
+            <span ng-show="event.status == EVENTSTATUSCOMPLETELABEL" class="glyphicon glyphicon-ok event-table-options-glypicon"></span>
+            <span ng-show="event.status != EVENTSTATUSCOMPLETELABEL" class="glyphicon glyphicon-remove event-table-options-glypicon"></span>          
+        </span>                                                
+    </div>        
+</div>
+
+
+
+

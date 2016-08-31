@@ -1,0 +1,410 @@
+<form name="outerDataEntryForm" novalidate>
+    <div class="row compare-form">
+        <!--<div class="compare-form-left" ng-class="{'compare-form-left-right-shown': stageNeedsEvent(currentStage, true)}">-->
+        <div class="compare-form-left">
+            <div class="container-fluid">        
+                <!-- headers -->
+                <div class="row compare-form-row compare-form-header">
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.header)" ng-bind="dataElementLabel">                
+                    </div>            
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvents)" ng-if="otherStageEvents.length > 0">
+                        <div class="compare-form-navigation-column-back compare-form-navigation-column">
+                            <span class="small-badge compare-form-other-events-badge-left cursor-pointer hideInPrint" 
+                                  title="{{'show_previous' | translate}}"
+                                  ng-show="showOtherEventsNavigationButtonInCompareForm(buttonType.back)" 
+                                  ng-click="navigateOtherStageEvents(-1)">
+                                <i class="fa fa-chevron-left"></i>
+                            </span>
+                            &nbsp;
+                        </div>
+                        <div class="compare-form-other-events-column">                    
+                                <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvent)" ng-repeat="otherEvent in otherStageEvents" class="other-events-alignment">
+                                    {{currentStage.displayName}} {{otherStageEventIndexes[$index].position + 1}}
+                                </div>                    
+                        </div>                                
+                        <div class="compare-form-navigation-column-forward compare-form-navigation-column">
+                            <span class="small-badge compare-form-other-events-badge-right cursor-pointer hideInPrint" 
+                                  title="{{'show_next' | translate}}"
+                                  ng-show="showOtherEventsNavigationButtonInCompareForm(buttonType.forward)" 
+                                  ng-click="navigateOtherStageEvents(1)">
+                            <i class="fa fa-chevron-right"></i>
+                            </span>
+                            &nbsp;
+                        </div>
+                    </div>            
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.currentEvent)">   
+                        <span ng-if="selectedEnrollment.status === 'ACTIVE' && !currentEvent.editingNotAllowed">                    
+                            {{'current' | translate}}
+                        </span>  
+                        <span ng-if="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed">                    
+                            {{currentStage.displayName}} {{currentStageEventNumber()}}
+                        </span>                        
+                    </div>
+                    <div ng-if="allowProvidedElsewhereExists[currentStage.id]" ng-class="getCompareModeColSize(compareModeColDefs.providedElsewhere)" ng-bind="providedElsewhereLabel" style="text-align: center">                        
+                    </div>
+                </div>
+                <!------------->
+                <!-- currentStage main properties -->        
+                <div class="row compare-form-row row-alt-even">
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.header)" class="compare-form-extra-padding">
+                        {{currentEvent.excecutionDateLabel}}
+                    </div>
+
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvents)" ng-if="otherStageEvents.length > 0" class="compare-form-extra-padding">                
+                        <div class="compare-form-navigation-column-back compare-form-navigation-column">                    
+                            &nbsp;
+                        </div>
+                        <div class="compare-form-other-events-column">                    
+                            <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvent)" ng-repeat="otherEvent in otherStageEvents" class="other-events-alignment">
+                                {{otherEvent.eventDate}}
+                            </div>                    
+                        </div>                                
+                        <div class="compare-form-navigation-column-forward compare-form-navigation-column">
+                            &nbsp;
+                        </div>                
+                    </div>
+
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.currentEvent)">
+
+                        <div ng-if="selectedEnrollment.status === 'ACTIVE' && !currentEvent.editingNotAllowed" class="compare-form-extra-padding-current-event">
+                            <input type="text"
+                                   placeholder="{{dhis2CalendarFormat.keyDateFormat}}"
+                                   class="form-control hideInPrint" 
+                                   ng-class="{'input-success': eventDateSaved}"
+                                   d2-date 
+                                   max-date="0"
+                                   min-date=""
+                                   ng-model="currentEvent.eventDate"
+                                   ng-disabled="currentEvent.status === 'SKIPPED' || selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed"    
+                                   ng-required="true"
+                                   blur-or-change="saveEventDate()"/>
+                            <input type="text"
+                                   class="form-control not-for-screen" 
+                                   ng-class="{'input-success': eventDateSaved}"               
+                                   value={{currentEvent.eventDate}}>
+                            <span ng-if="invalidDate === currentEvent.event" class="error">{{'date_required'| translate}}</span>
+                        </div>
+
+                        <div ng-if="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed" class="compare-form-extra-padding">
+                            {{currentEvent.eventDate}}
+                        </div>
+                    </div>
+                    
+                    <div ng-if="allowProvidedElsewhereExists[currentStage.id]" ng-class="getCompareModeColSize(compareModeColDefs.providedElsewhere)" style="text-align: center">                        
+                    </div>
+                    
+                </div>
+                <div class="row compare-form-row" ng-if="!currentStage.hideDueDate && currentEvent.status === 'SCHEDULE'">
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.header)" class="compare-form-extra-padding">
+                        <span>
+                            {{'due_date'| translate}}
+                        </span>
+                    </div>
+
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvents)" ng-if="otherStageEvents.length > 0" class="compare-form-extra-padding">                
+                        <div class="compare-form-navigation-column-back compare-form-navigation-column">&nbsp;</div>
+                        <div class="compare-form-other-events-column">                    
+                            <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvent)" ng-repeat="otherEvent in otherStageEvents" class="other-events-alignment">
+                                {{otherEvent.dueDate}}
+                            </div>                    
+                        </div>                                
+                        <div class="compare-form-navigation-column-forward compare-form-navigation-column">&nbsp;</div>                
+                    </div>
+
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.currentEvent)">
+                        <div ng-if="selectedEnrollment.status === 'ACTIVE' && !currentEvent.editingNotAllowed" class="compare-form-extra-padding-current-event">
+                            <span ng-if="!currentEvent.eventDate && currentEvent.status !== 'SKIPPED' && !selectedEntity.inactive && selectedEnrollment.status === 'ACTIVE'">
+                                <a href ng-click="enableRescheduling()" title="{{ schedulingEnabled ? 'disable_rescheduling' : 'enable_rescheduling' | translate}}"><span class="text-primary bold">{{'reschedule_duedate'| translate}}</span></a>                        
+                            </span>                    
+                            <input type="text" 
+                                   placeholder="{{dhis2CalendarFormat.keyDateFormat}}"
+                                   class="form-control"
+                                   ng-class="{'input-success': dueDateSaved}"
+                                   d2-date                                
+                                   ng-model="currentEvent.dueDate"
+                                   blur-or-change="saveDueDate()" 
+                                   ng-disabled="currentEvent.eventDate || !schedulingEnabled || currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"/>
+                            <span ng-if="invalidDueDate === currentEvent.event" class="error">{{'date_required'| translate}}</span>
+                        </div>                
+                        <div ng-if="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed" class="compare-form-extra-padding">
+                            {{currentEvent.dueDate}}
+                        </div>
+                    </div>
+                    
+                    <div ng-if="allowProvidedElsewhereExists[currentStage.id]" ng-class="getCompareModeColSize(compareModeColDefs.providedElsewhere)" style="text-align: center">                        
+                    </div>
+                    
+                </div>     
+                <div class="row compare-form-row">
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.header)" class="compare-form-extra-padding">
+                        {{'org_unit' | translate}}
+                    </div>
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvents)" ng-if="otherStageEvents.length > 0" class="compare-form-extra-padding">
+                        <div class="compare-form-navigation-column-back compare-form-navigation-column">&nbsp;</div>
+                        <div class="compare-form-other-events-column">                    
+                            <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvent)" ng-repeat="otherEvent in otherStageEvents" class="other-events-alignment">
+                                {{otherEvent.orgUnitName}}
+                            </div>                    
+                        </div>                                
+                        <div class="compare-form-navigation-column-forward compare-form-navigation-column">&nbsp;</div>                
+                    </div>
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.currentEvent)" class="compare-form-extra-padding">
+                        {{currentEvent.orgUnitName}}
+                    </div>
+                    <div ng-if="allowProvidedElsewhereExists[currentStage.id]" ng-class="getCompareModeColSize(compareModeColDefs.providedElsewhere)" style="text-align: center">                        
+                    </div>
+                </div>
+                <!------------------>
+                <!-- main section --> 
+
+                <div class="row row-alternate compare-form-row" ng-repeat="prStDe in currentStage.programStageDataElements" ng-if="currentEvent.eventDate && !isHidden(prStDe.dataElement.id, currentEvent)">
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.header)" class="compare-form-extra-padding">
+                        <d2-info display-name="{{prStDe.dataElement.formName ? prStDe.dataElement.formName : prStDe.dataElement.displayName}}"
+                                 data-content='[{"name":"{{"description" | translate}}", "data":"{{prStDe.dataElement.description}}"},
+                                                {"name":"{{"url" | translate}}", "data":"{{prStDe.dataElement.url}}"}]'
+                                 data-title="Details">
+                        </d2-info>
+                        <span ng-if="prStDe.compulsory" class="required">*</span>
+                    </div>
+
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvents)" ng-if="otherStageEvents.length > 0" class="compare-form-extra-padding">                
+                        <div class="compare-form-navigation-column-back compare-form-navigation-column">&nbsp;</div>
+                        <div class="compare-form-other-events-column">
+                            <div ng-repeat="otherEvent in otherStageEvents" ng-class="getCompareModeColSize(compareModeColDefs.otherEvent)" class="other-events-alignment">
+                                <div ng-switch="prStDe.dataElement.valueType" title="{{getValueTitleCompareForm(otherEvent)}}">
+                                    <div ng-switch-when="BOOLEAN">
+                                        <dhis2-radio-button
+                                            dh-required="prStDe.compulsory"                                     
+                                            dh-disabled="true" 
+                                            dh-value="otherEvent[prStDe.dataElement.id]" 
+                                            dh-name="{{otherEvent.event}}{{prStDe.dataElement.id}}"
+                                            dh-click="saveDataValueForRadio(prStDe, otherEvent, value)">                                                    
+                                        </dhis2-radio-button>
+                                    </div>
+                                    <div ng-switch-when="TRUE_ONLY">
+                                        <input type="checkbox"     
+                                               class="form-control"
+                                               ng-model="otherEvent[prStDe.dataElement.id]"                                                               
+                                               ng-required={{prStDe.compulsory}}                                        
+                                               ng-disabled="true" 
+                                               name="foo"/>
+                                    </div>
+                                    <div ng-switch-when="MULTI_SELECT_GROUP">
+                                        <ul>
+                                            <li ng-repeat='event in otherEvent[prStDe.dataElement.id].selections'>
+                                                {{event.formName ? event.formName : event.name}}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div ng-switch-default>
+                                        <span>
+                                            {{otherEvent[prStDe.dataElement.id]}}
+                                        </span>
+                                    </div>
+                                </div>                
+                            </div>
+                        </div>                                
+                        <div class="compare-form-navigation-column-forward compare-form-navigation-column">&nbsp;</div>                
+                    </div>
+
+                    <div ng-class="getCompareModeColSize(compareModeColDefs.currentEvent)">
+                        <!--<div ng-if="selectedEnrollment.status === 'ACTIVE' && !currentEvent.editingNotAllowed" ng-include="'components/dataentry/inner-form.html'"></div>-->
+                        <div ng-if="selectedEnrollment.status === 'ACTIVE' && !currentEvent.editingNotAllowed" 
+                             class="compare-form-extra-padding-current-event current-event-width"                              
+                             style="float: left" 
+                             dhis2-compiled-include="components/dataentry/inner-form.html">                            
+                        </div>                                                                       
+                        <div ng-if="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed" class="compare-form-extra-padding current-event-width" style="float: left">
+                            <div ng-switch="prStDe.dataElement.valueType">
+                                <div ng-switch-when="BOOLEAN">
+                                    <dhis2-radio-button
+                                        dh-required="prStDe.compulsory"                                     
+                                        dh-disabled="true" 
+                                        dh-value="currentEvent[prStDe.dataElement.id]" 
+                                        dh-name="{{currentEvent.event}}{{prStDe.dataElement.id}}"
+                                        dh-click="saveDataValueForRadio(prStDe, currentEvent, value)">                                                    
+                                    </dhis2-radio-button>
+                                </div>
+                                <div ng-switch-when="TRUE_ONLY">
+                                    <input type="checkbox"     
+                                           class="form-control"
+                                           ng-model="currentEvent[prStDe.dataElement.id]"                                                               
+                                           ng-required={{prStDe.compulsory}}                                        
+                                           ng-disabled="true" 
+                                           name="foo"/>
+                                </div>
+                                <div ng-switch-when="MULTI_SELECT_GROUP">
+                                    <ul>
+                                        <li ng-repeat='event in currentEvent[prStDe.dataElement.id].selections'>
+                                            {{event.formName ? event.formName : event.name}}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div ng-switch-default>
+                                    <span>
+                                        {{currentEvent[prStDe.dataElement.id]}}
+                                    </span>
+                                </div>
+                            </div>   
+                        </div>                        
+                        <div style="float:right" class="hideInPrint compare-form-extra-padding mouse-pointer">
+                            <d2-audit dataelement-id="{{prStDe.dataElement.id}}" dataelement-name="{{prStDe.dataElement.displayName}}" current-event="{{currentEvent.event}}"></d2-audit>
+                        </div>                        
+                    </div>
+                    <div ng-if="allowProvidedElsewhereExists[currentStage.id]" ng-class="getCompareModeColSize(compareModeColDefs.providedElsewhere)" style="text-align: center">                        
+                        <div class="hideInPrint compare-form-extra-padding" ng-show="prStDe.allowProvidedElsewhere">
+                            <span>
+                                <input type="checkbox"
+                                   class=""
+                                   ng-model="currentEvent.providedElsewhere[prStDe.dataElement.id]"
+                                   ng-disabled="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                                   ng-change="saveDatavalueLocation(prStDe)"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-------------->
+                <!-- sections -->
+
+                <div ng-if='currentStage.programStageSections && currentStage.programStageSections.length > 0 && currentEvent.eventDate'>
+                    <accordion close-others='false'>
+                        <accordion-group heading="{{section.displayName}}" is-open="section.open" ng-repeat='section in currentStage.programStageSections' ng-init="sectionNr = $index + 1" ng-if="!hiddenSections[currentEvent.event][section.id]">
+
+                            <div class="vertical-spacing" ng-if="!section.programStageDataElements || section.programStageDataElements.length === 0">
+                                <div class="alert alert-warning">{{'section'| translate}} {{section.displayName}} {{'has_no_dataelements'| translate}}</div>
+                            </div>
+
+                            <div ng-if="section.programStageDataElements && section.programStageDataElements.length > 0">
+                                
+                                <div class="row compare-form-row compare-form-header">
+                                    <div ng-class="getCompareModeColSize(compareModeColDefs.header)" ng-bind="dataElementLabel">                
+                                    </div>
+                                    <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvents)" ng-if="otherStageEvents.length > 0">
+                                        <div>                    
+                                            <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvent)" ng-repeat="otherEvent in otherStageEvents" class="other-events-alignment">
+                                                {{currentStage.displayName}} {{otherStageEventIndexes[$index].position + 1}}
+                                            </div>                    
+                                       </div>
+                                    </div>
+                                    <div ng-class="getCompareModeColSize(compareModeColDefs.currentEvent)">   
+                                        <span ng-if="selectedEnrollment.status === 'ACTIVE' && !currentEvent.editingNotAllowed">                    
+                                            {{'current' | translate}}
+                                        </span>  
+                                        <span ng-if="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed">                    
+                                            {{currentStage.displayName}} {{currentStageEventNumber()}}
+                                        </span>                        
+                                    </div>
+                                    <div ng-if="allowProvidedElsewhereExists[currentStage.id]" ng-class="getCompareModeColSize(compareModeColDefs.providedElsewhere)" ng-bind="providedElsewhereLabel" style="text-align: center">                        
+                                    </div>
+                                </div>
+                                
+                                <div class="row row-alternate compare-form-row" ng-repeat="de in section.programStageDataElements"
+                                     ng-if="!isHidden(de.dataElement.id, currentEvent)">
+                                    <div ng-class="getCompareModeColSize(compareModeColDefs.header)" class="compare-form-extra-padding">
+                                        <d2-info display-name="{{prStDes[de.dataElement.id].dataElement.formName ? prStDes[de.dataElement.id].dataElement.formName :
+                                                                 prStDes[de.dataElement.id].dataElement.displayName}}"
+                                                 data-content='[{"name":"{{"description" | translate}}", "data":"{{prStDes[de.dataElement.id].dataElement.description}}"},
+                                                                {"name":"{{"url" | translate}}", "data":"{{prStDes[de.dataElement.id].dataElement.url}}"}]'
+                                                 data-title="Details">
+                                        </d2-info>
+                                        <span ng-if="prStDes[de.dataElement.id].compulsory" class="required">*</span>
+                                    </div>
+
+                                    <!--other Events in section -->
+                                    <div ng-class="getCompareModeColSize(compareModeColDefs.otherEvents)" ng-if="otherStageEvents.length > 0" class="compare-form-extra-padding">                
+                                        <div class="compare-form-navigation-column-back compare-form-navigation-column">                    
+                                            &nbsp;
+                                        </div>
+                                        <div class="compare-form-other-events-column">                    
+                                            <div ng-repeat="otherEvent in otherStageEvents" ng-class="getCompareModeColSize(compareModeColDefs.otherEvent)" class="other-events-alignment">                
+                                                <div ng-switch="prStDes[de.dataElement.id].dataElement.valueType">
+                                                    <div ng-switch-when="BOOLEAN">
+                                                        <dhis2-radio-button
+                                                            dh-required="prStDes[de.dataElement.id].compulsory"                                     
+                                                            dh-disabled="true" 
+                                                            dh-value="otherEvent[prStDes[de.dataElement.id].dataElement.id]" 
+                                                            dh-name="{{otherEvent.event}}{{prStDe.dataElement.id}}"
+                                                            dh-click="saveDataValueForRadio(prStDes[de.dataElement.id], otherEvent, value)">                                                    
+                                                        </dhis2-radio-button>
+                                                    </div>
+                                                    <div ng-switch-when="TRUE_ONLY">
+                                                        <input type="checkbox"     
+                                                               class="form-control"
+                                                               ng-model="otherEvent[prStDes[de.dataElement.id].dataElement.id]"                                                               
+                                                               ng-required={{prStDes[de.dataElement.id].compulsory}}                                        
+                                                               ng-disabled="true" 
+                                                               name="foo"/>
+                                                    </div>
+                                                    <div ng-switch-when="MULTI_SELECT_GROUP">
+                                                        <ul>
+                                                            <li ng-repeat='event in otherEvent[de.dataElement.id].selections'>
+                                                                {{event.formName ? event.formName : event.name}}
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <div ng-switch-default>
+                                                        <span>
+                                                            {{otherEvent[de.dataElement.id]}}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>                 
+                                        </div>                                
+                                        <div class="compare-form-navigation-column-forward compare-form-navigation-column">
+                                            &nbsp;
+                                        </div>                
+                                    </div>
+                                    <!-- end other events in section -->                           
+
+                                    <div ng-class="getCompareModeColSize(compareModeColDefs.currentEvent)">
+                                        <div dhis2-compiled-include="components/dataentry/section-inner-form.html"
+                                             class="current-event-width"                              
+                                             style="float: left">                                                 
+                                        </div>
+                                        <div style="float:right" class="hideInPrint compare-form-extra-padding mouse-pointer">
+                                            <d2-audit dataelement-id="{{de.dataElement.id}}" dataelement-name="{{prStDes[de.dataElement.id].dataElement.displayName}}" current-event="{{currentEvent.event}}"></d2-audit>
+                                        </div>
+                                    </div>
+                                    
+                                    <div ng-if="allowProvidedElsewhereExists[currentStage.id]" ng-class="getCompareModeColSize(compareModeColDefs.providedElsewhere)" style="text-align: center">                        
+                                        <div ng-show=" [de.dataElement.id].allowProvidedElsewhere">
+                                            <input type="checkbox"
+                                                   class=""
+                                                   ng-model="currentEvent.providedElsewhere[prStDes[de.dataElement.id].dataElement.id]"
+                                                   ng-disabled="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                                                   ng-change="saveDatavalueLocation(prStDes[de.dataElement.id])"/>
+                                        </div>
+                                    </div>                                    
+                                </div>
+                            </div>
+
+                        </accordion-group>
+                    </accordion>
+                </div>
+                <!-- sections end -->
+            </div>            
+        </div> 
+        <!--
+        <div class="compare-form-right" ng-show="stageNeedsEvent(currentStage, true)">
+            <span>
+                <span class="small-badge cursor-pointer hideInPrint"
+                      title="{{'add_new' | translate}}"
+                      ng-click="showCreateEvent(currentStage, eventCreationActions.add)">
+                    <i class="fa fa-plus"></i>
+                </span>
+                <span class="small-badge cursor-pointer hideInPrint"
+                      title="{{'schedule_new' | translate}}"                      
+                      ng-click="showCreateEvent(currentStage, eventCreationActions.schedule)">
+                    <i class="fa fa-clock-o"></i>
+                </span>
+                <span class="small-badge cursor-pointer hideInPrint"
+                      title="{{'make_referral' | translate}}"                      
+                      ng-click="showCreateEvent(currentStage, eventCreationActions.referral)">
+                    <i class="fa fa-hospital-o"></i>
+                </span>
+            </span>
+        </div>
+        -->
+    </div>
+</form>

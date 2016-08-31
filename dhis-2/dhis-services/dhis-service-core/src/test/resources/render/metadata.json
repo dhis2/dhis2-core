@@ -1,0 +1,16 @@
+{
+  "dataElements": [
+    {
+      "id": "deabcdefghA",
+      "name": "DataElementA"
+    },
+    {
+      "id": "deabcdefghB",
+      "name": "DataElementB"
+    },
+    {
+      "id": "deabcdefghC",
+      "name": "DataElementC"
+    }
+  ]
+}

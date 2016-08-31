@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataElementGroups>
+	#foreach( $dataElementGroup in $dataElementGroups )
+	<dataElementGroup>
+		<id>$dataElementGroup.id</id>
+		<name>$encoder.xmlEncode( $dataElementGroup.displayName )</name>
+	</dataElementGroup>	
+	#end	
+</dataElementGroups>
+

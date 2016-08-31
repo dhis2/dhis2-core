@@ -1,0 +1,37 @@
+#macro( integrityItem $header $id )
+<h4>${header}&nbsp;<img id="${id}Button"></h4>
+
+<div id="${id}Div" style="border:1px solid #a0a0a0; padding:10px; width:600px"></div>
+
+#end
+<h3>
+    <span id="di-title">$i18n.getString( "data_integrity" )</span><span style="display:none;" id="di-completed">$i18n.getString( "data_integrity_checks_performed" )</span> #openHelp( "dataIntegrity" )
+</h3>
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<div id="contentDiv" style="display:none">
+#integrityItem( $i18n.getString( "data_elements_without_data_set" ) "dataElementsWithoutDataSet" )
+#integrityItem( $i18n.getString( "data_elements_without_groups" ) "dataElementsWithoutGroups" )
+#integrityItem( $i18n.getString( "data_elements_violating_exclusive_group_sets" ) "dataElementsViolatingExclusiveGroupSets" )
+#integrityItem( $i18n.getString( "data_elements_in_data_set_not_in_form" ) "dataElementsInDataSetNotInForm" )
+#integrityItem( $i18n.getString( "invalid_category_combos" ) "invalidCategoryCombos" )
+#integrityItem( $i18n.getString( "data_elements_assigned_to_period_types_with_different_period_types" ) "dataElementsAssignedToDataSetsWithDifferentPeriodTypes" )
+#integrityItem( $i18n.getString( "category_option_combos_not_in_data_element_category_combo" ) "categoryOptionCombosNotInDataElementCategoryCombo" )
+#integrityItem( $i18n.getString( "data_sets_not_assigned_to_organisation_units" ) "dataSetsNotAssignedToOrganisationUnits" )
+#integrityItem( $i18n.getString( "sections_with_invalid_category_combinations" ) "sectionsWithInvalidCategoryCombinations" )
+#integrityItem( $i18n.getString( "indicators_with_identical_formulas" ) "indicatorsWithIdenticalFormulas" )
+#integrityItem( $i18n.getString( "indicators_without_groups" ) "indicatorsWithoutGroups" )
+#integrityItem( $i18n.getString( "invalid_indicator_numerators" ) "invalidIndicatorNumerators" )
+#integrityItem( $i18n.getString( "invalid_indicator_denominators" ) "invalidIndicatorDenominators" )
+#integrityItem( $i18n.getString( "indicators_violating_exclusive_group_sets" ) "indicatorsViolatingExclusiveGroupSets" )
+#integrityItem( $i18n.getString( "duplicate_periods" ) "duplicatePeriods" )
+#integrityItem( $i18n.getString( "organisation_units_with_cyclic_references" ) "organisationUnitsWithCyclicReferences" )
+#integrityItem( $i18n.getString( "orphaned_organisation_units" ) "orphanedOrganisationUnits" )
+#integrityItem( $i18n.getString( "organisation_units_without_groups" ) "organisationUnitsWithoutGroups" )
+#integrityItem( $i18n.getString( "organisation_units_violation_exclusive_group_sets" ) "organisationUnitsViolatingExclusiveGroupSets" )
+#integrityItem( $i18n.getString( "organisation_unit_groups_without_group_sets" ) "organisationUnitGroupsWithoutGroupSets" )
+#integrityItem( $i18n.getString( "validation_rules_without_groups" ) "validationRulesWithoutGroups" )
+#integrityItem( $i18n.getString( "invalid_validation_rule_left_side_expressions" ) "invalidValidationRuleLeftSideExpressions" )
+#integrityItem( $i18n.getString( "invalid_validation_rule_right_side_expressions" ) "invalidValidationRuleRightSideExpressions" )
+</div>
+<table id="notificationsTable"></table>

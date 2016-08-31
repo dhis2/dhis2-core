@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentity">
+
+    <cache usage="read-write" />
+    
+    <id name="id" column="trackedentityid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="description" type="text" />
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="trackedentityattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="trackedentityid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+  </class>
+</hibernate-mapping>

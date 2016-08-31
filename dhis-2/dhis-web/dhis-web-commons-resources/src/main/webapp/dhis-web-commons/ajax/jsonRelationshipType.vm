@@ -1,0 +1,9 @@
+{ "relationshipType":
+  {
+    "id": "${relationshipType.id}",
+	"uid": "${relationshipType.uid}",
+	"aIsToB": "$!encoder.jsonEncode( ${relationshipType.aIsToB} )",
+	"bIsToA": "$!encoder.jsonEncode( ${relationshipType.bIsToA} )",
+	"description": "$!encoder.jsonEncode( ${relationshipType.name} )"
+  }
+}

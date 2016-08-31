@@ -1,0 +1,29 @@
+
+<h3>$i18n.getString( "dataset_assignment_editor" ) #openHelp( "dataSetAssignmentEditor" )</h3>
+
+<table>
+    <col width="330"/>
+    <tr>
+    	<th>$i18n.getString( "select_org_unit" )</th>
+    </tr>
+    <tr>
+	    <td><div id="selectionTree" style="width:325px; height:240px"></div></td>
+    </tr>
+</table>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+
+<div id="contentDiv">
+</div>
+
+<script type="text/javascript">
+
+	jQuery(document).ready(function() {	
+		selectionTreeSelection.setListenerFunction( displayAssociatedForm );
+		selectionTreeSelection.setMultipleSelectionAllowed( false );
+		selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+	});
+	
+	var i18n_processing = '$encoder.jsEscape( $i18n.getString( "processing" ) , "'")';
+
+</script>

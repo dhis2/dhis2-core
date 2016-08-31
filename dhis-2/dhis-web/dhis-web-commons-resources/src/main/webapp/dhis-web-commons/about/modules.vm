@@ -1,0 +1,16 @@
+
+<div class="app-manager-header ui-helper-clearfix">
+    <h3>$i18n.getString( "app_manager")</h3>
+    <div class="app-menu-help">
+      <i class="fa fa-bookmark"></i> $i18n.getString( "app_favorite_description" )<br>
+      <i class="fa fa-arrows"></i> $i18n.getString( "app_draggable_description" )
+    </div>
+    <select id="menuOrderBy">
+        <option selected value="custom">$i18n.getString( "app_order_custom" )</option>
+        <option value="name-asc">$i18n.getString( "app_order_name_alpha" )</option>
+    </select>
+</div>
+
+<div id="appsMenu"></div>
+
+<script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.menu.manager.js?_rev=$!{buildRevision}"></script>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataSet>
+	<id>$dataSet.id</id>
+    <name>$!encoder.xmlEncode( $dataSet.displayName )</name>
+    <shortName>$!encoder.xmlEncode( $dataSet.displayShortName )</shortName>
+    <periodTypeId>$dataSet.periodType.id</periodTypeId>
+    <frequency>$i18n.getString( $dataSet.periodType.name )</frequency>
+    <dataElementCount>$dataSet.dataElements.size()</dataElementCount>
+    <dataentryform>#if( $dataSet.dataEntryForm )$encoder.xmlEncode( $dataSet.dataEntryForm.name )#end</dataentryform>
+</dataSet>

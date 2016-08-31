@@ -1,0 +1,21 @@
+
+<form method="POST" action="sendFeedback.action">
+<div class="header-box" align="center">
+	<h3 style="text-align: left;">$i18n.getString( "send_feedback" )</h3>
+    <p style="text-align: left;">
+        $i18n.getString( "subject" ) *<br />
+        <input type="text" maxlength="255" size="24" name="subject" />
+
+        $i18n.getString( "text" ) *<br />
+        <input type="text" maxlength="255" size="24" name="text" />
+        <input type="submit" style="width: 100%;" value="$i18n.getString("send")" />
+    </p>
+</div>
+</form>
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+    <li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>
+</div>

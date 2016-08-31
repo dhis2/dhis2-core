@@ -1,0 +1,46 @@
+<div class="modal-header">
+    <h2>{{'audit_history'| translate}}</h2>
+</div>
+<div class="modal-body page"> 
+    <div ng-if="itemList.length > 0">
+        <span class="row">
+            <input class="form-control col-md-7" ng-model="model.searchText" placeholder="{{model.searchPlaceholder}}" type="search" />
+        </span>
+        <div class="scroll">
+            <table class="listTable dhis2-table-striped-border">
+                <thead>
+                    <tr>
+                        <th ng-repeat="col in auditColumns">
+                            <span ng-switch="col">
+                                <span ng-switch-when="name">
+                                    {{model.name}}
+                                </span>
+                                <span ng-switch-default>
+                                	{{col | translate}}
+                                </span>                                    
+                            </span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody ng-repeat="row in uniqueRows">
+                    <tr ng-repeat="item in itemList | orderBy: 'created':reverse | filter: {name: row} | filter: {name: model.searchText}" ng-init="rowIndex = $index">
+                        <td ng-repeat="col in auditColumns" 
+                            rowspan="{{(itemList | filter: {name: row} | filter: model.searchText).length}}"
+                            ng-if="col === 'name' && rowIndex === 0">
+                            {{item[col]}}
+                        </td>
+                        <td class="wrap-text" ng-repeat="col in auditColumns" ng-if="col !== 'name'">
+                            {{item[col]}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div ng-if="itemList.length === 0">
+        <div class="alert alert-warning">{{'audit_history_unavailable'| translate}}</div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-default" data-ng-click="close()">{{'close'| translate}}</button>
+</div>

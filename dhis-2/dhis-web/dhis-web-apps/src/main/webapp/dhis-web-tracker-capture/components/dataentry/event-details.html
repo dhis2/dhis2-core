@@ -1,0 +1,115 @@
+<!-- event dates/scheduling begin -->
+<div class="row" ng-if="displayCustomForm !== 'TABLE' && displayCustomForm !== 'COMPARE' && !currentStage.periodType">
+
+    <div ng-class="{true: 'col-md-12', false: 'col-md-6'} [currentStage.hideDueDate]">
+        {{currentEvent.excecutionDateLabel ? currentEvent.excecutionDateLabel : 'report_date' | translate}}
+        <input type="text"
+               placeholder="{{dhis2CalendarFormat.keyDateFormat}}"
+               class="form-control hideInPrint" 
+               ng-class="{'input-success': eventDateSaved}"
+               d2-date-validator 
+               d2-date 
+               max-date="0"
+               min-date=""
+               name="eventDate"
+               ng-model="currentEvent.eventDate"
+               ng-disabled="currentEvent.status === 'SKIPPED' || selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed"    
+               ng-required="true"
+               blur-or-change="saveEventDate()"/>
+        <input type="text"
+               class="form-control not-for-screen" 
+               ng-class="{'input-success': eventDateSaved}"               
+               value={{currentEvent.eventDate}}>
+        <div ng-messages="outerDataEntryForm.eventDate.$error" ng-if="interacted(outerDataEntryForm.eventDate)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html">                        
+        </div>        
+    </div>
+    <div ng-if="!currentStage.hideDueDate"  class="col-md-6">
+        <span ng-if="currentEvent.eventDate || currentEvent.status === 'SKIPPED' || currentEvent.dueDate || registrationMode === 'REGISTRATION'">
+            {{'due_date'| translate}}
+        </span>
+        <span ng-if="!currentEvent.eventDate && currentEvent.status !== 'SKIPPED' && !selectedEntity.inactive && selectedEnrollment.status === 'ACTIVE' && registrationMode !== 'REGISTRATION'">
+            <a href ng-click="enableRescheduling()" title="{{ schedulingEnabled ? 'disable_rescheduling' : 'enable_rescheduling' | translate}}"><span class="text-primary bold">{{'reschedule_duedate'| translate}}</span></a>                        
+        </span>                    
+        <input type="text"
+               placeholder="{{dhis2CalendarFormat.keyDateFormat}}"
+               class="form-control hideInPrint"
+               ng-class="{'input-success': dueDateSaved}"
+               d2-date-validator 
+               d2-date       
+               name="dueDate"
+               ng-model="currentEvent.dueDate"
+               blur-or-change="saveDueDate()" 
+               ng-disabled="currentEvent.eventDate || !schedulingEnabled || currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"/>
+        <input type="text"
+               class="form-control not-for-screen"
+               ng-class="{'input-success': dueDateSaved}"
+               value={{currentEvent.dueDate}}>        
+        <div ng-messages="outerDataEntryForm.dueDate.$error" ng-if="interacted(outerDataEntryForm.dueDate)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html">                        
+        </div>
+    </div>
+</div>
+<!-- event dates/scheduling end -->
+
+<!-- coordinates begin -->
+<div class="row" ng-if="currentStage.captureCoordinates && currentEvent.eventDate">
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-sm-2 vertical-center add-default-top-margin">
+                {{'latitude' | translate}}
+            </div>
+            <div class="input-group col-sm-10 pull-left">
+                <input type="number"
+                    ng-model="currentEvent.coordinate.latitude"
+                    class="form-control"
+                    placeholder="{{'latitude' | translate}}"
+                    ng-class="{'input-success': latitudeSaved}"
+                    name="latitude"
+                    d2-coordinate-validator
+                    ng-blur="saveCoordinate('LAT')"
+                    ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                    ng-required="false"/>
+                <span class="input-group-btn">
+                    <button class="btn btn-grp hideInPrint trim"
+                            type="button"
+                            ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                            title="{{'get_from_map'| translate}}"
+                            ng-click="showProgramStageMap(currentEvent)">
+                            <i class="fa fa-map-marker"></i>
+                    </button>
+                </span>
+            </div>
+            <div ng-messages="outerDataEntryForm.latitude.$error" ng-if="interacted(outerDataEntryForm.latitude)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html"></div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-sm-2 vertical-center add-default-top-margin">
+                {{'longitude' | translate}}
+            </div>
+            <div class="input-group col-sm-10 pull-left">
+                <input type="number"
+                       ng-model="currentEvent.coordinate.longitude"
+                       class="form-control"
+                       placeholder="{{'longitude' | translate}}"
+                       ng-class="{'input-success': longitudeSaved}"
+                       name="longitude"
+                       d2-coordinate-validator
+                       ng-blur="saveCoordinate('LNG')"
+                       ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                       ng-required="false"/>
+                <span class="input-group-btn">
+                    <button class="btn btn-grp hideInPrint trim"
+                            type="button"
+                            ng-disabled="currentEvent.enrollmentStatus !== 'ACTIVE' || currentEvent.editingNotAllowed"
+                            title="{{'get_from_map'| translate}}"
+                            ng-click="showProgramStageMap(currentEvent)">
+                            <i class="fa fa-map-marker"></i>
+                    </button>
+                </span>
+            </div>
+            <div ng-messages="outerDataEntryForm.longitude.$error" ng-if="interacted(outerDataEntryForm.longitude)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html"></div>
+        </div>
+
+    </div>
+</div>
+<!-- coordinates begin -->

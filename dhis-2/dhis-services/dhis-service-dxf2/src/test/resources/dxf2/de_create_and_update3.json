@@ -1,0 +1,24 @@
+{
+  "dataElements": [
+    {
+      "code": "DECE",
+      "created": "2016-03-04T03:37:12.729+0000",
+      "lastUpdated": "2016-03-04T03:37:12.745+0000",
+      "name": "DEE",
+      "id": "deabcdefghE",
+      "shortName": "DESE",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "--------",
+      "description": "DEDE",
+      "zeroIsSignificant": false,
+      "valueType": "INTEGER",
+      "categoryCombo": {
+        "id": "hmqVMxvDKUD"
+      },
+      "userGroupAccesses": [ ],
+      "attributeValues": [ ],
+      "aggregationLevels": [ ]
+    }
+  ]
+}

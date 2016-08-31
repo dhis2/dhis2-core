@@ -1,0 +1,12 @@
+<h2>$i18n.getString( "tracked_entity" )</h2>
+<ul>
+	#if( $security.canView( "trackedEntityAttribute" ) )<li><a href="attribute.action">$i18n.getString( "tracked_entity_attribute" )</a></li>#end
+	#if( $security.canView( "trackedEntityAttributeGroup" ) )<li><a href="attributeGroup.action">$i18n.getString( "tracked_entity_attribute_group" )</a></li>#end
+	#if( $security.canView( "relationShipType" ) )<li><a href="relationshipType.action">$i18n.getString( "relationship_type" )</a></li>#end
+	#if( $security.canView( "trackedEntity" ) )<li><a href="trackedEntity.action">$i18n.getString( "tracked_entity" )</a></li>#end
+</ul>
+
+<h2>$i18n.getString( "programs" )</h2>
+<ul>
+	#if( $security.canView( "program" ) )<li><a href="program.action">$i18n.getString( "program" )</a></li>#end
+</ul>

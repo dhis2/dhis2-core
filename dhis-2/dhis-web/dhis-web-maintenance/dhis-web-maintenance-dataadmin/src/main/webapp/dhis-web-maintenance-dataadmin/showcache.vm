@@ -1,0 +1,82 @@
+<style type="text/css">
+	.stats {
+		border: solid #d0d0d0 1px;
+		border-collapse: collapse;
+	}
+	.stats td {
+		border: solid #d0d0d0 1px;
+		padding: 5px;
+	}
+</style>
+
+<h3>$i18n.getString( "cache_statistics" ) #openHelp( "cacheStatistics" )</h3>
+
+<p><input type="button" style="width:150px" value="$i18n.getString( 'clear_cache' )" onclick="window.location.href='clearCache.action'"/></p>
+
+<h4>$i18n.getString( "second_level_cache_statistics" )</h4>
+
+<table class="stats" border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<th>$i18n.getString( "region_name" )</th>
+		<th>$i18n.getString( "put_count" )</th>
+		<th>$i18n.getString( "hit_count" )</th>
+		<th>$i18n.getString( "miss_count" )</th>
+		<th>$i18n.getString( "mem_count" )</td>
+		<th>$i18n.getString( "disk_count" )</th>
+		<th>$i18n.getString( "mem_size" )</th>
+	</tr>
+#foreach( $regionName in $stats.secondLevelCacheRegionNames )
+	<tr>
+		<td>$regionName</td>
+		<td>$stats.getSecondLevelCacheStatistics( $regionName ).putCount</td>
+		<td>$stats.getSecondLevelCacheStatistics( $regionName ).hitCount</td>
+		<td>$stats.getSecondLevelCacheStatistics( $regionName ).missCount</td>
+		<td>$stats.getSecondLevelCacheStatistics( $regionName ).elementCountInMemory</td>
+		<td>$stats.getSecondLevelCacheStatistics( $regionName ).elementCountOnDisk</td>
+		<td>$stats.getSecondLevelCacheStatistics( $regionName ).sizeInMemory</td>
+	</tr>
+#end	
+	<tr>
+		<td><b>$i18n.getString( "total_second_level_cache" )</b></td>
+		<td><b>$stats.secondLevelCachePutCount</b></td>
+		<td><b>$stats.secondLevelCacheHitCount</b></td>
+		<td><b>$stats.secondLevelCacheMissCount</b></td>
+		<td colspan="3">&nbsp;</td>
+	</tr>
+	<tr>
+		<td><b>$i18n.getString( "total_query_cache" )</b></td>
+		<td><b>$stats.queryCachePutCount</b></td>
+		<td><b>$stats.queryCacheHitCount</b></td>
+		<td><b>$stats.queryCacheMissCount</b></td>
+		<td colspan="3">&nbsp;</td>
+	</tr>
+</table>
+
+<h4>$i18n.getString( "query_cache_statistics" )</h4>
+
+<table class="stats" border="0" cellpadding="0" cellspacing="0">
+	<tr>
+		<th>$i18n.getString( "query_name" )</th>
+		<th>$i18n.getString( "put_count" )</th>
+		<th>$i18n.getString( "hit_count" )</th>
+		<th>$i18n.getString( "miss_count" )</th>
+		<th>$i18n.getString( "exec_count" )</td>
+		<th>$i18n.getString( "exec_avg_time" )</th>
+		<th>$i18n.getString( "exec_max_time" )</th>
+		<th>$i18n.getString( "exec_min_time" )</th>
+		<th>$i18n.getString( "exec_row_count" )</th>
+	</tr>
+#foreach( $query in $stats.queries )
+	<tr>
+		<td>$query</td>
+		<td>$stats.getQueryStatistics( $query ).cachePutCount</td>
+		<td>$stats.getQueryStatistics( $query ).cacheHitCount</td>
+		<td>$stats.getQueryStatistics( $query ).cacheMissCount</td>
+		<td>$stats.getQueryStatistics( $query ).executionCount</td>
+		<td>$stats.getQueryStatistics( $query ).executionAvgTime</td>
+		<td>$stats.getQueryStatistics( $query ).executionMaxTime</td>
+		<td>$stats.getQueryStatistics( $query ).executionMinTime</td>
+		<td>$stats.getQueryStatistics( $query ).executionRowCount</td>
+	</tr>
+#end	
+</table>

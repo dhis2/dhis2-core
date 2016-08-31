@@ -1,0 +1,92 @@
+<div class="row">
+    <div class="col-sm-12" ng-if="model.showEventSearch">
+        <input class="form-control" placeholder="{{'event_filter'| translate}}" ng-model="model.eventSearchText"/>
+    </div>    
+    <div ng-class="getTopLineColumnStyle(1)">
+        <div ng-if="!useMainMenu || (useMainMenu && !hideTopLineEventsForFormTypes[displayCustomForm])" 
+             ng-repeat="dhis2Event in filteredEvents = (getTopLineEventsPage()| eventListFilter:allEventsSorted:model.eventSearchText)">            
+            <div class="event-container event-container-navigation" ng-click="getEventPage('BACKWARD')" ng-if="model.eventSearchText.length === 0 && ($index === 0 && eventPagingStart > 0)">
+                {{'previous'| translate}}
+            </div>
+
+            <script type="text/ng-template" id="event-details.html">                
+                <table class="table table-striped table-bordered">
+                <tr>
+                <td>{{'org_unit' | translate}}</td>
+                <td>{{content.orgUnitName}}</td>
+                </tr>
+                <tr>
+                <td>{{'program_stage' | translate}}</td>
+                <td>{{content.name}}</td>
+                </tr>
+                <tr>
+                <td>{{'date' | translate}}</td>
+                <td>{{content.eventDate ? content.eventDate : content.dueDate}}</td>
+                </tr>
+                </table>
+            </script>
+            <div class="event-container" 
+                 d2-pop-over 
+                 details="{{'details'| translate}}"
+                 content="dhis2Event"
+                 template="event-details.html"  
+                 placement="top" 
+                 ng-class="getEventStyle(dhis2Event)" 
+                 ng-click="showDataEntry(dhis2Event, false, true)">                
+                <div class="event-container-item">
+                    {{dhis2Event.sortingDate}}
+                </div>
+                <div class="event-container-item">
+                    {{dhis2Event.orgUnitName}}
+                </div>
+                <div class="event-container-item">
+                    {{dhis2Event.name}}
+                </div>
+                <div class="event-container-footer">{{getEventStyleLabel(dhis2Event)}}</div>
+            </div>
+            <div class="arrow-container" ng-if="$index + 1 < filteredEvents.length">
+                <i class="fa fa-arrow-right"></i>
+            </div>       
+            <div class="event-container event-container-navigation" ng-click="getEventPage('FORWARD')" ng-if="model.eventSearchText.length === 0 && ($index + 1 === eventPageSize && eventPagingEnd < topLineEvents.length)">
+                {{'next'| translate}}
+            </div>
+        </div>
+        <div ng-if="(topLineEvents.length < 1 || (useMainMenu && hideTopLineEventsForFormTypes[displayCustomForm])) && eventsLoaded">
+            <div ng-if="!useMainMenu">
+                <div class="alert alert-warning">{{'no_event_exists'| translate}}</div>
+            </div>
+            <div ng-if="useMainMenu" class="container-fluid">
+                <div class="row">
+                    <div class="col-md-3">
+                    </div>
+                    <div class="col-md-6" style="text-align: center">
+                        <div class="badge-container" style='display:inline-block'>
+                            <a href class="disable-link-effects" ng-click="useMainMenu ? showCreateEventIfStageNeedsEvent(selectedMainMenuStage, eventCreationActions.add, false, true) : showCreateEvent(null, eventCreationActions.add)" title="{{'add_new'| translate}}">
+                                <span class="stage-tasks-badge-big" ng-class="{'stage-tasks-badge-disabled': !stageNeedsEventOfType(selectedMainMenuStage, eventCreationActions.add)}">                                     
+                                    <span><i class="fa fa-plus vertical-center"></i></span>                
+                                </span>
+                            </a>                
+                        </div>
+                        <div class="badge-container" style='display:inline-block'>
+                            <a href class="disable-link-effects" ng-click="useMainMenu ? showCreateEventIfStageNeedsEvent(selectedMainMenuStage, eventCreationActions.schedule, false, true) : showCreateEvent(null, eventCreationActions.schedule)" title="{{'schedule_new'| translate}}">
+                                <span class="stage-tasks-badge-big" ng-class="{'stage-tasks-badge-disabled': !stageNeedsEventOfType(selectedMainMenuStage, eventCreationActions.schedule)}">                                     
+                                    <span><i class="fa fa-calendar vertical-center"></i></span>                
+                                </span>
+                            </a>                
+                        </div>            
+                        <div class="badge-container" style='display:inline-block'>
+                            <a href class="disable-link-effects" ng-click="useMainMenu ? showCreateEventIfStageNeedsEvent(selectedMainMenuStage, eventCreationActions.referral, false, true) : showCreateEvent(null, eventCreationActions.referral)" title="{{'make_referral'| translate}}">
+                                <span class="stage-tasks-badge-big" ng-class="{'stage-tasks-badge-disabled': !stageNeedsEventOfType(selectedMainMenuStage, eventCreationActions.referral)}">                                     
+                                    <span><i class="fa fa-share vertical-center"></i></span>                
+                                </span>
+                            </a>                
+                        </div>
+                    </div>  
+                    <div class="col-md-3" style="text-align: center">
+                    </div> 
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ng-include="'components/dataentry/new-event-menu.html'"></div>        
+</div>

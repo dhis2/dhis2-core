@@ -1,0 +1,77 @@
+<script type="text/javascript">
+	jQuery(document).ready(function(){	
+		tableSorter( 'listTable' );	
+		setTableStyles();
+	});
+
+    var i18n_value_must_be_a_number = '$encoder.jsEscape( $i18n.getString( "value_must_be_a_number" ) , "'")';
+    var i18n_value_is_lower_than_min_value = '$encoder.jsEscape( $i18n.getString( "value_is_lower_than_min_value" ) , "'")';
+    var i18n_value_is_higher_than_max_value = '$encoder.jsEscape( $i18n.getString( "value_is_higher_than_max_value" ) , "'")';
+    var i18n_mark_value_for_followup = '$encoder.jsEscape( $i18n.getString( "mark_value_for_followup" ) , "'")';
+    var i18n_unmark_value_for_followup = '$encoder.jsEscape( $i18n.getString( "unmark_value_for_followup" ) , "'")';
+</script>
+
+#if ( $dataValues.size() == 0 )
+
+<span id="info">$i18n.getString( "no_values_found" )</span>
+
+<input type="button" onclick="displayAnalysisInput()" value="$i18n.getString( 'done' )" style="width:120px">
+
+#else
+
+<span id="info">#if( $maxExceeded )$i18n.getString( "max_values_exceeded" ) #else$!dataValues.size() $i18n.getString( "values_found" ) #end</span>
+
+<input type="button" onclick="displayAnalysisInput()" value="$i18n.getString( 'done' )" style="width:120px">
+<input type="button" value="$i18n.getString( 'get_report_as_pdf' )" style="width:140px" onclick="exportAnalysisResult( 'pdf' )">
+<input type="button" value="$i18n.getString( 'get_report_as_xls' )" style="width:140px" onclick="exportAnalysisResult( 'xls' )">
+<input type="button" value="$i18n.getString( 'get_report_as_csv' )" style="width:140px" onclick="exportAnalysisResult( 'csv' )">
+<br><br>
+
+<table class="listTable" id="listTable" style="width:100%">
+	<thead>
+	<tr>
+		<th>$i18n.getString( "data_element" )</th>
+		<th>$i18n.getString( "organisation_unit" )</th>
+		<th class="{sorter: false}">$i18n.getString( "period" )</th>
+		<th style="text-align:center" class="{sorter: false}">$i18n.getString( "min" )</th>
+		<th style="width: 100px; text-align:center" class="{sorter: false}">$i18n.getString( "value" )</th>
+		<th style="text-align:center" class="{sorter: false}">$i18n.getString( "max" )</th>
+		<th style="text-align:center" class="{sorter: false}">$i18n.getString( "mark" )</th>
+	</tr>
+	</thead>
+	#set( $count = 0 )	
+	<tbody id="list">
+	#foreach( $value in $dataValues )	
+	#set( $count = $count + 1 )	
+	<tr>	
+		<td><span id="value-${count}-name">$encoder.htmlEncode( $value.dataElementName ) $encoder.htmlEncode( $value.categoryOptionComboNameParsed )</span></td>
+		
+		<td>$encoder.htmlEncode( $value.sourceName )</td>
+		
+		<td value="$format.formatDate($value.period.startDate)">$format.formatPeriod( $value.period )</td>
+		
+		<td style="text-align:center">$value.min</td>
+		
+		<td style="width:100px; text-align:center;">$encoder.htmlEncode( $value.value )		
+            <input type="hidden" id="value-${count}-de" value="$value.dataElementId">
+            <input type="hidden" id="value-${count}-pe" value="$value.periodId">
+            <input type="hidden" id="value-${count}-ou" value="$value.sourceId">
+            <input type="hidden" id="value-${count}-coc" value="$value.categoryOptionComboId">
+            <input type="hidden" id="value-${count}-min" value="$value.min">
+            <input type="hidden" id="value-${count}-max" value="$value.max">
+		</td>
+		
+		<td style="text-align:center">$value.max</td>
+		
+		<td style="text-align:center">
+		#if ( $value.followup )
+			<img id="value-${count}-followUp" src="../images/marked.png" onclick="markFollowup($count)" style="cursor:pointer">
+		#else
+		    <img id="value-${count}-followUp" src="../images/unmarked.png" onclick="markFollowup($count)" style="cursor:pointer">
+		#end
+		</td>		
+	</tr>
+	#end
+	</tbody>
+</table>
+#end

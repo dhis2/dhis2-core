@@ -1,0 +1,65 @@
+<h3>$i18n.getString( "program_stage_section" )</h3>
+
+<h4>$encoder.htmlEncode($programStage.displayName)</h4>
+
+<div id="contextMenu" class="contextMenu">
+  <ul id="contextMenuItems" class="contextMenuItems">
+    <li data-enabled="canUpdate"><a data-target-fn="showUpdateProgramStageSectionForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+    <li data-enabled="canUpdate"><a data-target-fn="translateWithContext"><i class="fa fa-globe"></i>&nbsp;&nbsp;$i18n.getString( "translation_translate" )</a></li>
+    <li data-enabled="canDelete"><a data-target-fn="removeSection"><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    <li><a data-target-fn="showSectionDetails"><i class="fa fa-info-circle"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
+  </ul>
+</div>
+
+<input type='hidden' id='id' name='id' value='$programStage.id'>
+
+<table class="mainPageTable">
+	<tr>
+		<td align="right">
+			<input type="button" value="$i18n.getString( 'add_new' )" onclick="window.location.href='showAddProgramStageSectionForm.action?programStageId=$programStage.id'" style="width:150px"><br>
+			<input type="button" value="$i18n.getString( 'sort_order' )" onclick="window.location.href='showProgramStageSectionSortedOderForm.action?id=$programStage.id'" style="width:150px"><br>
+			<input type="button" value="$i18n.getString( 'back' )" onclick="window.location.href='programStage.action?id=$programStage.program.id'" style="width:150px">
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">  
+			<table class="listTable" id="listTable">
+				<thead>
+					<tr>            
+						<th>$i18n.getString( "name" )</th>
+					</tr>
+				</thead>
+		  
+				<tbody id="list">
+					#set( $mark = false )
+					#foreach( $section in $sections )
+                    <tr id="tr${section.id}" data-id="$!section.id" data-uid="$!section.uid" data-psid="$!programStage.id" data-type="ProgramStageSection" data-name="$encoder.htmlEncode( $!section.displayName )"
+                        data-can-manage="$security.canManage( $section )"
+                        data-can-update="$security.canUpdate( $section )"
+                        data-can-delete="$security.canDelete( $section )">
+                        <td>$encoder.htmlEncode( $!section.displayName )</td>
+                    </tr>
+					#end
+				</tbody>
+			</table>
+		</td>
+		
+		<td id="detailsData">
+
+            <div id="detailsArea">
+                <div id="hideDetailsArea">
+					<a href="javascript:hideDetails();" title="$i18n.getString( 'hide_details' )"><img src="../images/hide.png" alt="$i18n.getString( 'hide_details' )"></a>
+				</div>				
+				<p><label class="bold">$i18n.getString( "name" ):</label><br><span id="nameField"></span></p>
+				<p><label class="bold">$i18n.getString( "no_of_dataelements" ):</label><br><span id="dataElementCountField"></span></p>				
+				<p><label class="bold">$i18n.getString( "id" ):</label><br><span id="idField"></span></p>				
+			</div>
+		</td>
+	</tr>
+</table>
+
+
+<script type="text/javascript">
+    var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_prorgam_stage_section" ) , "'" )';
+	var i18n_delete_success = '$encoder.jsEscape( $i18n.getString( "delete_success" ) , "'" )';
+</script>

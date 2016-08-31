@@ -1,0 +1,20 @@
+<div class="modal-header page">
+    <h3>{{'comments'| translate}}</h3>
+</div>
+
+<div class="modal-body page">   
+    <table class="dhis2-list-table-striped">    
+        
+        <tr ng-repeat="note in dhis2Event.notes">
+            <td class="wrap-text">
+                <p>{{note.value}}</p>
+                <p><strong>{{'created_by' | translate}}: </strong>{{note.storedBy}}</p>
+                <p><strong>{{'date' | translate}}: </strong>{{note.storedDate}}</p>                    
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="modal-footer page">        
+    <button class="btn btn-primary" data-ng-click="close()">{{'close'| translate}}</button>
+</div> 

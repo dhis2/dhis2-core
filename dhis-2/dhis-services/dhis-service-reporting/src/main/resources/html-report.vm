@@ -1,0 +1,54 @@
+<script type="text/javascript">
+
+dhis2.util.namespace( 'dhis2.report' );
+
+dhis2.report.organisationUnit = {
+#if( $organisationUnit )
+    "id": "$!encoder.htmlEncode( ${organisationUnit.uid} )",
+    "name": "$!encoder.htmlEncode( ${organisationUnit.name} )",
+    "code": "$!encoder.htmlEncode( ${organisationUnit.code} )"
+#end
+};
+
+dhis2.report.organisationUnitHierarchy = [
+#if( $organisationUnitHierarchy )
+#set( $size = $organisationUnitHierarchy.size() )
+#foreach( $ou in $organisationUnitHierarchy )
+{
+    "id": "$!encoder.htmlEncode( ${ou.uid} )",
+    "name": "$!encoder.htmlEncode( ${ou.name} )",
+    "code": "$!encoder.htmlEncode( ${ou.code} )"
+}#if( $velocityCount < $size ),#end
+#end
+#end
+];
+
+dhis2.report.organisationUnitChildren = [
+#if( $organisationUnitChildren )
+#set( $size = $organisationUnitChildren.size() )
+#foreach( $ou in $organisationUnitChildren )
+{
+    "id": "$!encoder.htmlEncode( ${ou.uid} )",
+    "name": "$!encoder.htmlEncode( ${ou.name} )",
+    "code": "$!encoder.htmlEncode( ${ou.code} )"
+}#if( $velocityCount < $size ),#end
+#end
+#end
+];
+
+dhis2.report.date = "$!{date}";
+
+dhis2.report.periods = [
+#if( $periods )
+#set( $size = $periods.size() )
+#foreach( $period in $periods )
+"$period"#if( $velocityCount < $size ),#end
+#end
+#end
+];
+
+</script>
+
+<div>
+${report.designContent}
+</div>

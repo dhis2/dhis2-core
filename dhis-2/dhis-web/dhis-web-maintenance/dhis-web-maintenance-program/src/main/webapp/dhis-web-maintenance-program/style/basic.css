@@ -1,0 +1,108 @@
+
+td{ padding-right : 10px;}
+
+textarea{
+	width:660px; 
+	height: 100px;
+	text-align:left;
+}
+
+input[type="text"]{
+	width:320px; 
+	text-align:left;
+}
+
+select
+{
+	width:325px;
+	text-align:left;
+}
+
+input[type="button"], input[type="submit"]
+{
+	width: 160px;
+	padding-left:5px;
+	padding-right:5px;
+}
+
+input.filterButton
+{
+	width: 50px;
+	padding-left:5px;
+	padding-right:5px;
+	text-align:center;
+}
+
+.hidden 
+{
+	display: none;
+}
+
+.visible
+{
+	display: block;
+}
+
+input.small-button
+{
+	width:25px;
+}
+
+input.nornal-button
+{
+	width:55px;
+}
+
+button.ui-button-icon-only {
+    width: 2em !important;
+	height: 2em !important;
+	padding-top:-10px !important;
+}
+
+fieldset
+{
+	border: 1px solid #3f5d8e;
+}
+
+tr.selected{
+	background-color:#3399FF;
+	color:#FFFFFF;
+}
+
+#selectedList tr{
+	cursor:pointer;
+}
+
+.dataElementDiv
+{
+	overflow:auto; 
+	height:20em;
+	border:1px solid #9DA1AA;
+}
+
+.dataElementDiv table
+{
+	width:100%;
+}
+
+fieldset
+{
+	border: 1px solid #3f5d8e;
+}
+
+.ui-autocomplete {
+	max-height: 100px;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.class-th {
+    border-bottom: 1px solid #cad5e5;
+    border-collapse: collapse;
+    color: #39547d;
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 28px;
+    padding: 3px 0 3px 1px;
+    text-align: left;
+}

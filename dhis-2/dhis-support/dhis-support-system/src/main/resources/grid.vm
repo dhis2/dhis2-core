@@ -1,0 +1,130 @@
+#set( $dollar = '$' ) 
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dpt" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	#foreach ( $key in $params.keySet() )
+	<parameter name="${encoder.xmlEncode( ${key} )}" #if ( ${params.get($key)} )class="${params.get($key).getClass().getName()}"#end/>
+	#end
+	#foreach( $header in $grid.getHeaders() )
+	<field name="${encoder.xmlEncode( ${header.column} )}" class="${header.type}"/>
+	#end
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="326" splitType="Stretch">
+			<staticText>
+				<reportElement x="12" y="15" width="532" height="41" forecolor="#184F73"/>
+				<textElement textAlignment="Center">
+					<font size="24"/>
+				</textElement>
+				<text><![CDATA[${encoder.xmlEncode( ${grid.title} )}]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="12" y="67" width="253" height="20"/>
+				<textElement textAlignment="Right">
+					<font size="13"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[${dollar}F{reporting_month_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="289" y="67" width="255" height="20"/>
+				<textElement>
+					<font size="13"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA[${dollar}F{param_organisationunit_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="265" y="67" width="24" height="20"/>
+				<textElement textAlignment="Center">
+					<font size="13"/>
+				</textElement>
+				<text><![CDATA[-]]></text>
+			</staticText>
+			<bar3DChart>
+				<chart evaluationTime="Report">
+					<reportElement x="12" y="114" width="532" height="210"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<dataset>
+						<incrementWhenExpression><![CDATA[${dollar}F{organisation_unit_is_parent}.equals( "Yes" )]]></incrementWhenExpression>
+					</dataset>
+					#foreach( $header in $grid.getHeaders() )
+					#if ( !$header.meta )
+					<categorySeries>
+						<seriesExpression><![CDATA["${encoder.xmlEncode( ${header.name} )}"]]></seriesExpression>
+						<categoryExpression><![CDATA[""]]></categoryExpression>
+						<valueExpression><![CDATA[${dollar}F{${encoder.xmlEncode( ${header.column} )}}]]></valueExpression>
+					</categorySeries>
+					#end
+					#end
+				</categoryDataset>
+				<bar3DPlot isShowLabels="true">
+					<plot/>
+					<itemLabel color="#000000" backgroundColor="#FFFFFF"/>
+					<categoryAxisFormat>
+						<axisFormat>
+							<labelFont/>
+							<tickLabelFont/>
+						</axisFormat>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat>
+							<labelFont/>
+							<tickLabelFont/>
+						</axisFormat>
+					</valueAxisFormat>
+				</bar3DPlot>
+			</bar3DChart>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="15" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="51" splitType="Stretch">
+			#set( $x = 10 )
+			#foreach( $header in $grid.getVisibleHeaders() )
+			#if( $header.meta )	#set( $offset = 110 ) #else	#set( $offset = 55 ) #end
+			<staticText>
+				<reportElement x="${x}" y="26" width="${offset}" height="20"/>
+				<textElement #if( !$header.meta )textAlignment="Center"#end>
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[${encoder.xmlEncode( ${header.name} )}]]></text>
+			</staticText>
+			#set( $x = ( $x + $offset ) )
+			#end
+			<line>
+				<reportElement x="10" y="44" width="${x}" height="1"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="21" splitType="Stretch">
+			#set( $x = 10 )
+			#foreach( $header in $grid.getVisibleHeaders() )
+			#if( $header.meta )	#set( $offset = 110 ) #else	#set( $offset = 55 ) #end
+			<textField isBlankWhenNull="true">
+				<reportElement x="${x}" y="0" width="${offset}" height="20"/>
+				<textElement #if( !$header.meta )textAlignment="Center"#end>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression class="${header.type}"><![CDATA[${dollar}F{${encoder.xmlEncode( ${header.column} )}}]]></textFieldExpression>
+			</textField>			
+			#set( $x = ( $x + $offset ) )
+			#end
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="22" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="20" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

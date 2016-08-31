@@ -1,0 +1,360 @@
+<script type="text/javascript">
+    var i18n_export = '$encoder.jsEscape( $i18n.getString( "export" ), "'" )';
+    var i18n_select_all = '$encoder.jsEscape( $i18n.getString( "select_all" ), "'" )';
+
+    var i18n_available_attributeTypes = '$encoder.jsEscape( $i18n.getString( "available_attribute_types" ), "'" )';
+    var i18n_selected_attributeTypes = '$encoder.jsEscape( $i18n.getString( "selected_attribute_types" ), "'" )';
+
+    var i18n_available_categories = '$encoder.jsEscape( $i18n.getString( "available_categories" ), "'" )';
+    var i18n_selected_categories = '$encoder.jsEscape( $i18n.getString( "selected_categories" ), "'" )';
+
+    var i18n_available_category_combos = '$encoder.jsEscape( $i18n.getString( "available_category_combos" ), "'" )';
+    var i18n_selected_category_combos = '$encoder.jsEscape( $i18n.getString( "selected_category_combos" ), "'" )';
+
+    var i18n_available_charts = '$encoder.jsEscape( $i18n.getString( "available_charts" ), "'" )';
+    var i18n_selected_charts = '$encoder.jsEscape( $i18n.getString( "selected_charts" ), "'" )';
+
+    var i18n_available_constants = '$encoder.jsEscape( $i18n.getString( "available_constants" ), "'" )';
+    var i18n_selected_constants = '$encoder.jsEscape( $i18n.getString( "selected_constants" ), "'" )';
+
+    var i18n_available_dataElementGroupSets = '$encoder.jsEscape( $i18n.getString( "available_dataElementGroupSets" ), "'" )';
+    var i18n_selected_dataElementGroupSets = '$encoder.jsEscape( $i18n.getString( "selected_dataElementGroupSets" ), "'" )';
+
+    var i18n_available_dataElementGroups = '$encoder.jsEscape( $i18n.getString( "available_dataElementGroups" ), "'" )';
+    var i18n_selected_dataElementGroups = '$encoder.jsEscape( $i18n.getString( "selected_dataElementGroups" ), "'" )';
+
+    var i18n_available_dataElements = '$encoder.jsEscape( $i18n.getString( "available_data_elements" ), "'" )';
+    var i18n_selected_dataElements = '$encoder.jsEscape( $i18n.getString( "selected_data_elements" ), "'" )';
+
+    var i18n_available_dataSets = '$encoder.jsEscape( $i18n.getString( "available_datasets" ), "'" )';
+    var i18n_selected_dataSets = '$encoder.jsEscape( $i18n.getString( "selected_datasets" ), "'" )';
+
+    var i18n_available_documents = '$encoder.jsEscape( $i18n.getString( "available_documents" ), "'" )';
+    var i18n_selected_documents = '$encoder.jsEscape( $i18n.getString( "selected_documents" ), "'" )';
+
+    var i18n_available_indicatorGroupSets = '$encoder.jsEscape( $i18n.getString( "available_indicatorGroupSets" ), "'" )';
+    var i18n_selected_indicatorGroupSets = '$encoder.jsEscape( $i18n.getString( "selected_indicatorGroupSets" ), "'" )';
+
+    var i18n_available_indicatorGroups = '$encoder.jsEscape( $i18n.getString( "available_indicatorGroups" ), "'" )';
+    var i18n_selected_indicatorGroups = '$encoder.jsEscape( $i18n.getString( "selected_indicatorGroups" ), "'" )';
+
+    var i18n_available_indicatorTypes = '$encoder.jsEscape( $i18n.getString( "available_indicatorTypes" ), "'" )';
+    var i18n_selected_indicatorTypes = '$encoder.jsEscape( $i18n.getString( "selected_indicatorTypes" ), "'" )';
+
+    var i18n_available_indicators = '$encoder.jsEscape( $i18n.getString( "available_indicators" ), "'" )';
+    var i18n_selected_indicators = '$encoder.jsEscape( $i18n.getString( "selected_indicators" ), "'" )';
+
+    var i18n_available_mapLegendSets = '$encoder.jsEscape( $i18n.getString( "available_mapLegendSets" ), "'" )';
+    var i18n_selected_mapLegendSets = '$encoder.jsEscape( $i18n.getString( "selected_mapLegendSets" ), "'" )';
+
+    var i18n_available_maps = '$encoder.jsEscape( $i18n.getString( "available_maps" ), "'" )';
+    var i18n_selected_maps = '$encoder.jsEscape( $i18n.getString( "selected_maps" ), "'" )';
+
+    var i18n_available_optionSets = '$encoder.jsEscape( $i18n.getString( "available_optionSets" ), "'" )';
+    var i18n_selected_optionSets = '$encoder.jsEscape( $i18n.getString( "selected_optionSets" ), "'" )';
+
+    var i18n_available_organisationUnitGroupSets = '$encoder.jsEscape( $i18n.getString( "available_organisationUnitGroupSets" ), "'" )';
+    var i18n_selected_organisationUnitGroupSets = '$encoder.jsEscape( $i18n.getString( "selected_organisationUnitGroupSets" ), "'" )';
+
+    var i18n_available_organisationUnitGroups = '$encoder.jsEscape( $i18n.getString( "available_organisationUnitGroups" ), "'" )';
+    var i18n_selected_organisationUnitGroups = '$encoder.jsEscape( $i18n.getString( "selected_organisationUnitGroups" ), "'" )';
+
+    var i18n_available_organisationUnitLevels = '$encoder.jsEscape( $i18n.getString( "available_organisationUnitLevels" ), "'" )';
+    var i18n_selected_organisationUnitLevels = '$encoder.jsEscape( $i18n.getString( "selected_organisationUnitLevels" ), "'" )';
+
+    var i18n_available_organisationUnits = '$encoder.jsEscape( $i18n.getString( "available_organisationUnits" ), "'" )';
+    var i18n_selected_organisationUnits = '$encoder.jsEscape( $i18n.getString( "selected_organisationUnits" ), "'" )';
+
+    var i18n_available_reportTables = '$encoder.jsEscape( $i18n.getString( "available_reportTables" ), "'" )';
+    var i18n_selected_reportTables = '$encoder.jsEscape( $i18n.getString( "selected_reportTables" ), "'" )';
+
+    var i18n_available_reports = '$encoder.jsEscape( $i18n.getString( "available_reports" ), "'" )';
+    var i18n_selected_reports = '$encoder.jsEscape( $i18n.getString( "selected_reports" ), "'" )';
+
+    var i18n_available_sqlViews = '$encoder.jsEscape( $i18n.getString( "available_sqlViews" ), "'" )';
+    var i18n_selected_sqlViews = '$encoder.jsEscape( $i18n.getString( "selected_sqlViews" ), "'" )';
+
+    var i18n_available_userGroups = '$encoder.jsEscape( $i18n.getString( "available_userGroups" ), "'" )';
+    var i18n_selected_userGroups = '$encoder.jsEscape( $i18n.getString( "selected_userGroups" ), "'" )';
+
+    var i18n_available_userRoles = '$encoder.jsEscape( $i18n.getString( "available_userRoles" ), "'" )';
+    var i18n_selected_userRoles = '$encoder.jsEscape( $i18n.getString( "selected_userRoles" ), "'" )';
+
+    var i18n_available_users = '$encoder.jsEscape( $i18n.getString( "available_users" ), "'" )';
+    var i18n_selected_users = '$encoder.jsEscape( $i18n.getString( "selected_users" ), "'" )';
+
+    var i18n_available_validationRuleGroups = '$encoder.jsEscape( $i18n.getString( "available_validationRuleGroups" ), "'" )';
+    var i18n_selected_validationRuleGroups = '$encoder.jsEscape( $i18n.getString( "selected_validationRuleGroups" ), "'" )';
+
+    var i18n_available_validationRules = '$encoder.jsEscape( $i18n.getString( "available_validationRules" ), "'" )';
+    var i18n_selected_validationRules = '$encoder.jsEscape( $i18n.getString( "selected_validationRules" ), "'" )';
+
+    var i18n_validate_filter = '$encoder.jsEscape( $i18n.getString( "validate_filter" ), "'" )';
+
+    var i18n_move_selected = '$encoder.jsEscape( $i18n.getString( "move_selected" ), "'" )';
+    var i18n_remove_selected = '$encoder.jsEscape( $i18n.getString( "remove_selected" ), "'" )';
+    var i18n_move_all = '$encoder.jsEscape( $i18n.getString( "move_all" ), "'" )';
+    var i18n_remove_all = '$encoder.jsEscape( $i18n.getString( "remove_all" ), "'" )';
+    var i18n_filter = '$encoder.jsEscape( $i18n.getString( "filter" ), "'" )';
+</script>
+
+##@author Ovidiu Rosu <rosu.ovi@gmail.com>
+
+#if ($command == "addNew")
+    <h3>$i18n.getString( "create_new_filter" )</h3>
+#elseif($command == "addAdHoc")
+    <h3>$i18n.getString( "ad_hoc_export" )</h3>
+#elseif( $filter)
+	 <h3>$i18n.getString( "edit_filter" )</h3>
+#end
+
+<!-- FILTER FORM -->
+<form id="formFilter" name="formFilter" class="inputForm">
+    <input type="hidden" id="jsonFilter" name="jsonFilter" value='$filter.jsonFilter'/>
+    #if ($command == "addNew" || $command == "addAdHoc")
+        <input type="hidden" id="uid" name="uid" value=""/>
+    #end
+	
+    #if ($command == "addNew" || ( $command != "addAdHoc" && $filter ) )
+		 <input type="hidden" id="jsonFilter" name="jsonFilter" value='$!filter.jsonFilter'/>
+		<input type="hidden" id="uid" name="uid" value="$!filter.uid"/>
+	
+        <div>
+            <table id="detailsList" style="width: 400px;">
+                <tr>
+                    <th colspan="2">$i18n.getString( "filter_details" )</th>
+                </tr>
+                <tr>
+                    <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+                    <td>
+                        <input type="text" id="name" name="name" maxlength="150" value="$filter.name" style="width: 100%;">
+                    </td>
+                </tr>
+                <tr>
+                    <td><label>$i18n.getString( "description" )</label></td>
+                    <td>
+                        <input type="text" id="description" name="description" value="$filter.description" style="width: 100%;">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    #end
+</form>
+
+<!-- METADATA ACCORDION -->
+<div id="mainDivAccordion" style="margin-bottom: 10px; margin-top: 10px; width: 90%;">
+    <!-- ATTRIBUTES TYPES SELECTION -->
+    <h6 id="headingAttributes" style="font-size: 10pt;"><label>$i18n.getString( "attribute_types" )</label></h6>
+
+    <div id="mainDivAttributes" style="margin: 5px;"></div>
+
+    <!-- CATEGORIES SELECTION -->
+    <h6 id="headingCategories" style="font-size: 10pt;"><label>$i18n.getString( "categories" )</label></h6>
+
+    <div id="mainDivCategories" style="margin: 5px;"></div>
+
+    <!-- CATEGORY COMBOS SELECTION -->
+    <h6 id="headingCategoryCombos" style="font-size: 10pt;"><label>$i18n.getString( "category_combos" )</label></h6>
+
+    <div id="mainDivCategoryCombos" style="margin: 5px;"></div>
+
+    <!-- CHARTS SELECTION -->
+    <h6 id="headingCharts" style="font-size: 10pt;"><label>$i18n.getString( "charts" )</label></h6>
+
+    <div id="mainDivCharts" style="margin: 5px;"></div>
+
+    <!-- CONSTANTS SELECTION -->
+    <h6 id="headingConstants" style="font-size: 10pt;"><label>$i18n.getString( "constants" )</label></h6>
+
+    <div id="mainDivConstants" style="margin: 5px;"></div>
+
+    <!-- DATA ELEMENT GROUP SETS SELECTION -->
+    <h6 id="headingDataElementGroupSets" style="font-size: 10pt;"><label>$i18n.getString( "data_element_group_sets" )</label></h6>
+
+    <div id="mainDivDataElementGroupSets" style="margin: 5px;"></div>
+
+    <!-- DATA ELEMENT GROUPS SELECTION -->
+    <h6 id="headingDataElementGroups" style="font-size: 10pt;"><label>$i18n.getString( "data_element_groups" )</label></h6>
+
+    <div id="mainDivDataElementGroups" style="margin: 5px;"></div>
+
+    <!-- DATA ELEMENTS SELECTION -->
+    <h6 id="headingDataElements" style="font-size: 10pt;"><label>$i18n.getString( "data_elements" )</label></h6>
+
+    <div id="mainDivDataElements" style="margin: 5px;"></div>
+
+    <!-- DATA SETS SELECTION -->
+    <h6 id="headingDataSets" style="font-size: 10pt;"><label>$i18n.getString( "data_sets" )</label></h6>
+
+    <div id="mainDivDataSets" style="margin: 5px;"></div>
+
+    <!-- DOCUMENTS SELECTION -->
+    <h6 id="headingDocuments" style="font-size: 10pt;"><label>$i18n.getString( "documents" )</label></h6>
+
+    <div id="mainDivDocuments" style="margin: 5px;"></div>
+
+    <!-- INDICATOR GROUP SETS SELECTION -->
+    <h6 id="headingIndicatorGroupSets" style="font-size: 10pt;"><label>$i18n.getString( "indicator_group_sets" )</label></h6>
+
+    <div id="mainDivIndicatorGroupSets" style="margin: 5px;"></div>
+
+    <!-- INDICATOR GROUPS SELECTION -->
+    <h6 id="headingIndicatorGroups" style="font-size: 10pt;"><label>$i18n.getString( "indicator_groups" )</label></h6>
+
+    <div id="mainDivIndicatorGroups" style="margin: 5px;"></div>
+
+    <!-- INDICATOR TYPES SELECTION -->
+    <h6 id="headingIndicatorTypes" style="font-size: 10pt;"><label>$i18n.getString( "indicator_types" )</label></h6>
+
+    <div id="mainDivIndicatorTypes" style="margin: 5px;"></div>
+
+    <!-- INDICATORS SELECTION -->
+    <h6 id="headingIndicators" style="font-size: 10pt;"><label>$i18n.getString( "indicators" )</label></h6>
+
+    <div id="mainDivIndicators" style="margin: 5px;"></div>
+
+    <!-- MAP LEGEND SETS SELECTION -->
+    <h6 id="headingMapLegendSets" style="font-size: 10pt;"><label>$i18n.getString( "map_legend_sets" )</label></h6>
+
+    <div id="mainDivMapLegendSets" style="margin: 5px;"></div>
+
+    <!-- MAPS SELECTION -->
+    <h6 id="headingMaps" style="font-size: 10pt;"><label>$i18n.getString( "maps" )</label></h6>
+
+    <div id="mainDivMaps" style="margin: 5px;"></div>
+
+    <!-- OPTION SETS SELECTION -->
+    <h6 id="headingOptionSets" style="font-size: 10pt;"><label>$i18n.getString( "option_sets" )</label></h6>
+
+    <div id="mainDivOptionSets" style="margin: 5px;"></div>
+
+    <!-- ORGANISATION UNIT GROUP SETS SELECTION -->
+    <h6 id="headingOrganisationUnitGroupSets" style="font-size: 10pt;"><label>$i18n.getString( "organisation_unit_group_sets" )</label></h6>
+
+    <div id="mainDivOrganisationUnitGroupSets" style="margin: 5px;"></div>
+
+    <!-- ORGANISATION UNIT GROUPS SELECTION -->
+    <h6 id="headingOrganisationUnitGroups" style="font-size: 10pt;"><label>$i18n.getString( "organisation_unit_groups" )</label></h6>
+
+    <div id="mainDivOrganisationUnitGroups" style="margin: 5px;"></div>
+
+    <!-- ORGANISATION UNIT LEVELS SELECTION -->
+    <h6 id="headingOrganisationUnitLevels" style="font-size: 10pt;"><label>$i18n.getString( "organisation_unit_levels" )</label></h6>
+
+    <div id="mainDivOrganisationUnitLevels" style="margin: 5px;"></div>
+
+    <!-- ORGANISATION UNITS SELECTION -->
+    <h6 id="headingOrganisationUnits" style="font-size: 10pt;"><label>$i18n.getString( "organisation_units" )</label></h6>
+
+    <div id="mainDivOrganisationUnits" style="margin: 5px;"></div>
+
+    <!-- REPORT TABLES SELECTION -->
+    <h6 id="headingReportTables" style="font-size: 10pt;"><label>$i18n.getString( "report_tables" )</label></h6>
+
+    <div id="mainDivReportTables" style="margin: 5px;"></div>
+
+    <!-- REPORTS SELECTION -->
+    <h6 id="headingReports" style="font-size: 10pt;"><label>$i18n.getString( "reports" )</label></h6>
+
+    <div id="mainDivReports" style="margin: 5px;"></div>
+
+    <!-- SQL VIEWS SELECTION -->
+    <h6 id="headingSqlViews" style="font-size: 10pt;"><label>$i18n.getString( "sql_views" )</label></h6>
+
+    <div id="mainDivSqlViews" style="margin: 5px;"></div>
+
+    <!-- USER GROUPS SELECTION -->
+    <h6 id="headingUserGroups" style="font-size: 10pt;"><label>$i18n.getString( "user_groups" )</label></h6>
+
+    <div id="mainDivUserGroups" style="margin: 5px;"></div>
+
+    <!-- USER ROLES SELECTION -->
+    <h6 id="headingUserRoles" style="font-size: 10pt;"><label>$i18n.getString( "user_roles" )</label></h6>
+
+    <div id="mainDivUserRoles" style="margin: 5px;"></div>
+
+    <!-- USERS SELECTION -->
+    <h6 id="headingUsers" style="font-size: 10pt;"><label>$i18n.getString( "users" )</label></h6>
+
+    <div id="mainDivUsers" style="margin: 5px;"></div>
+
+    <!-- VALIDATION RULE GROUPS SELECTION -->
+    <h6 id="headingValidationRuleGroups" style="font-size: 10pt;"><label>$i18n.getString( "validation_rule_groups" )</label></h6>
+
+    <div id="mainDivValidationRuleGroups" style="margin: 5px;"></div>
+
+    <!-- VALIDATION RULES SELECTION -->
+    <h6 id="headingValidationRules" style="font-size: 10pt;"><label>$i18n.getString( "validation_rules" )</label></h6>
+
+    <div id="mainDivValidationRules" style="margin: 5px;"></div>
+</div>
+
+<!-- METADATA ACCORDION COMMANDS -->
+<div>
+    <table id="detailsList">
+        <tr>
+            <td colspan="2">
+                <input type="button" value="$i18n.getString( 'select_all_values' )" style="width:125px;" onclick="selectAllValues();"/>
+                <input type="button" value="$i18n.getString( 'deselect_all_values' )" style="width:125px;" onclick="deselectAllValues();"/>
+            </td>
+        </tr>
+        <tr>
+            #if($command == "addNew")
+                <td colspan="2">
+                    <input type="button" value="$i18n.getString( 'add_new' )" onclick="saveFilter();" style="width:125px" />
+                    <input type="button" value="$i18n.getString( 'cancel' )" onclick="window.history.back();" style="width:125px" />
+                </td>
+            #elseif($command == "addAdHoc")
+                <td colspan="2">
+                    <input type="button" value="$i18n.getString( 'export' )" onclick="startExport();" style="width:125px" />
+                    <input type="button" value="$i18n.getString( 'cancel' )" onclick="window.history.back();" style="width:125px" />
+                </td>
+			 #elseif ($filter)
+                 <td colspan="2">
+                     <input type="button" value="$i18n.getString( 'save' )" onclick="updateFilter();" style="width:125px" />
+                     <input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href = 'dxf2FilteredMetaDataExport.action';" style="width:125px" />
+                 </td>
+            #end
+        </tr>
+    </table>
+</div>
+
+<!-- EXPORT DIALOG -->
+#if($command == "addAdHoc")
+    <div id="exportDialog" style="display: none;">
+        <form id="exportForm" action="" method="post">
+            <input type="hidden" id="exportJsonValue" name="exportJsonValue" >
+        </form>
+        <table>
+            <tr>
+                <td colspan="2">
+                    <select id="format" style="width: 250px; font-size: 10pt;">
+                        <option value="xml">XML</option>
+                        <option value="json">Json</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <select id="compression" style="width: 250px; font-size: 10pt;">
+                        <option value="zip">Zipped</option>
+                        <option value="gz">GZipped</option>
+                        <option value="uncompressed">Uncompressed</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="checkbox" id="exportDependencies" name="exportDependencies"/>
+                    <label for="exportDependencies" style="font-size: 10pt;">$i18n.getString( "export_with_dependencies" ) #openHelp( "exportDependencies" )</label>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <input type="hidden" id="exportJson" value=''/>
+                    <input type="button" id="exportButton" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only ui-state-active2" value="$i18n.getString( 'export' )" style="width:250px; font-size: 10pt;" onclick="exportFilteredMetaData();"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+#end

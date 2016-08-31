@@ -1,0 +1,157 @@
+{
+  "organisationUnits": [
+    {
+      "path": "/inVD5SdytkT",
+      "openingDate": "2016-03-11T17:00:00.000+0000",
+      "lastUpdated": "2016-03-12T06:19:49.665+0000",
+      "created": "2016-03-12T06:19:49.649+0000",
+      "shortName": "Country",
+      "user": {
+        "id": "enHApD3I6Ho"
+      },
+      "attributeValues": [ ],
+      "id": "inVD5SdytkT",
+      "name": "Country",
+      "description": "",
+      "featureType": "NONE",
+      "uuid": "0f2d7a85-3b6e-4cae-9d5a-e2903331629b"
+    }
+  ],
+  "userRoles": [
+    {
+      "dataSets": [ ],
+      "publicAccess": "--------",
+      "name": "Superuser",
+      "programs": [ ],
+      "lastUpdated": "2016-03-12T06:18:41.386+0000",
+      "created": "2016-03-12T06:18:41.386+0000",
+      "userGroupAccesses": [ ],
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_MAP_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_PROGRAM_ENROLLMENT",
+        "F_REPORTTABLE_EXTERNAL",
+        "F_SQLVIEW_EXTERNAL",
+        "F_GIS_ADMIN",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_CHART_PUBLIC_ADD",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_CHART_EXTERNAL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_MAP_EXTERNAL",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+      ],
+      "id": "tHEWGwIMsJk"
+    }
+  ],
+  "users": [
+    {
+      "email": "user@b.org",
+      "surname": "BB",
+      "firstName": "User",
+      "created": "2016-03-12T06:21:02.324+0000",
+      "lastUpdated": "2016-03-12T06:21:02.325+0000",
+      "dataViewOrganisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "userCredentials": {
+        "id": "mcHDMwMMdPZ",
+        "user": {
+          "id": "enHApD3I6Ho"
+        },
+        "cogsDimensionConstraints": [ ],
+        "selfRegistered": false,
+        "catDimensionConstraints": [ ],
+        "lastLogin": "2016-03-12T06:21:02.226+0000",
+        "created": "2016-03-12T06:21:02.329+0000",
+        "passwordLastUpdated": "2016-03-12T06:21:02.226+0000",
+        "userInfo": {
+          "id": "MwhEJUnTHkn"
+        },
+        "userRoles": [
+          {
+            "id": "tHEWGwIMsJk"
+          }
+        ],
+        "username": "admin",
+        "invitation": false,
+        "disabled": false,
+        "externalAuth": false
+      },
+      "teiSearchOrganisationUnits": [ ],
+      "id": "MwhEJUnTHkn",
+      "attributeValues": [ ]
+    },
+    {
+      "firstName": "User",
+      "email": "user@a.org",
+      "surname": "AA",
+      "attributeValues": [ ],
+      "id": "sPWjoHSY03y",
+      "created": "2016-03-12T06:20:43.502+0000",
+      "lastUpdated": "2016-03-12T06:20:43.502+0000",
+      "dataViewOrganisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "inVD5SdytkT"
+        }
+      ],
+      "userCredentials": {
+        "id": "Tp9lYEAOEg0",
+        "username": "admin",
+        "userRoles": [
+          {
+            "id": "tHEWGwIMsJk"
+          }
+        ],
+        "invitation": false,
+        "disabled": false,
+        "externalAuth": false,
+        "cogsDimensionConstraints": [ ],
+        "user": {
+          "id": "enHApD3I6Ho"
+        },
+        "selfRegistered": false,
+        "catDimensionConstraints": [ ],
+        "lastLogin": "2016-03-12T06:20:43.407+0000",
+        "created": "2016-03-12T06:20:43.508+0000",
+        "userInfo": {
+          "id": "sPWjoHSY03y"
+        },
+        "passwordLastUpdated": "2016-03-12T06:20:43.407+0000"
+      },
+      "teiSearchOrganisationUnits": [ ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+<td><input type="checkbox" onchange="assignAll( this, $source.id )" #if( $checked ) checked #end/></td>
+<td>$source.name</td>
+#foreach( $item in $metaItems )
+#set( $index = $velocityCount - 1 )
+<td>
+	<div id="div$item.id$item.name" align="center">
+		<img #if ( $item.metaValue == "true" ) src="../images/edit_add.png" #else src="../images/cancel.png" #end onclick="changeAssociatedStatus( $item.id, $item.name, $item.metaValue )" style="cursor:pointer" title="$!itemMaps.get( $index )"/>
+		<input type="hidden" value="$item.metaValue"/>
+	</div>
+</td>
+#end

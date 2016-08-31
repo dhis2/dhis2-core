@@ -1,0 +1,31 @@
+
+<script type="text/javascript">
+
+    var VALIDATION_ERRORS = 0;
+    
+    function validate(obj){
+        var validationErrorId = "#" + $(obj).attr("name") + "-validation-error";
+        validationErrorId = validationErrorId.replace(/\./g,'\\\.');
+        if(obj.value != null && obj.value.indexOf(" ") > -1){
+          if(!$(validationErrorId).length>0){
+            $(obj).after("<span id='" + $(obj).attr("name") + "-validation-error' style='color:red'>$i18n.getString( "validation_error_space" )</span>");
+            VALIDATION_ERRORS++;
+          }
+        }else{
+          if($(validationErrorId).length>0){
+            $(validationErrorId).remove();
+            VALIDATION_ERRORS--;
+          }
+        }
+    }
+    
+    $(document).ready(function() {   
+        $(".validate").each(function(){
+            validate(this);
+        });
+        $(".validate").change(function() {
+            validate(this);
+        });
+    });
+    
+</script>

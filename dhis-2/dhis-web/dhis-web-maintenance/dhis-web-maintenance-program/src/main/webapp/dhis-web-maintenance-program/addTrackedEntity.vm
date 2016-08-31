@@ -1,0 +1,53 @@
+<script>
+	jQuery(document).ready(	function(){
+		validation2( 'addTrackedEntityForm', function( form )
+		{
+			form.submit();
+		},{
+			'rules' : getValidationRules( "trackedEntity" ),
+      'beforeValidateHandler' : function() {
+        #tblDynamicAttributesJavascript()
+      }
+		});
+		
+		checkValueIsExist( "name", "validateTrackedEntity.action");
+	});	
+</script>
+
+<h3>$i18n.getString( "create_new_tracked_entity" )</h3>
+<form id="addTrackedEntityForm" action="addTrackedEntity.action" method="post" class="inputForm">
+
+<table id="attrTable"> 
+	<thead>
+		<tr><th colspan="2">$i18n.getString( "tracked_entity_details" )</th></tr>
+    </thead>
+	
+    <tbody>
+		<tr>
+			<td style="width:200px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+			<td><input type="text" id="name" name="name" "/></td>
+			<td></td>
+		</tr>   
+		
+		<tr>
+			<td><label for="description">$i18n.getString( "description" )</label></td>
+			<td><input type="text" id="description" name="description" /></td>
+			<td></td>
+		</tr>
+    </tbody>
+</table>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<table>
+	<tr>
+		<td></td>
+		<td>
+			<input type="submit" value="$i18n.getString( 'add' )" style="width:10em"/>
+			<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='trackedEntity.action'" style="width:10em"/>
+		</td>
+	</tr>
+</table>
+<span id='message'></span>
+
+</form>   

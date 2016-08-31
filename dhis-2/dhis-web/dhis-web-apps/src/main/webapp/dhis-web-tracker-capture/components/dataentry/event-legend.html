@@ -1,0 +1,8 @@
+<span class='bold'>{{'legend'| translate}}</span>
+<table class="table table-bordered">
+    <tr>
+        <td ng-class="eventStyle.color" ng-repeat="eventStyle in eventStyles| filter:filterLegend()">
+            <span class="bold">{{getLegendText(eventStyle.description)}}</span>
+        </td>
+    </tr>
+</table>

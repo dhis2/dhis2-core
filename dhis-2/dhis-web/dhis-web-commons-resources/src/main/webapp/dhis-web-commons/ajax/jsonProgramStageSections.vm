@@ -1,0 +1,10 @@
+#set( $size = ${sections.size()} )
+{ "sections": [
+  #foreach( ${section} in $!{sections} )
+  {
+	"id": "${section.id}",
+	"name": "$!encoder.jsonEncode( ${section.displayName} )"
+  }#if( $velocityCount < $size ),#end
+  #end
+  ]
+}

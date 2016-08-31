@@ -1,0 +1,12 @@
+#set ( $baseLink 		= $paging.baseLink )
+#set ( $pageSize 		= $paging.pageSize )
+#set ( $currentPage 	= $paging.currentPage )
+#set ( $startPage 		= $paging.startPage )
+#set ( $numberOfPages	= $paging.numberOfPages )
+{
+	"numberOfPages": "${numberOfPages}",
+	"currentPage":"${currentPage}",
+	"baseLink":"$!encoder.jsonEncode( ${baseLink} )",
+	"pageSize":"${pageSize}",
+	"startPage":"${startPage}"
+}

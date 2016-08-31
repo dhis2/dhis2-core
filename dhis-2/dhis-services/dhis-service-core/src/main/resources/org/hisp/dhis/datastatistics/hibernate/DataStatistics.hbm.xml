@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.datastatistics.DataStatistics" table="datastatistics">
+  
+    <cache usage="read-write" />
+    
+    <id name="id" column="statisticsid">
+      <generator class="native" />
+    </id>
+    
+    &identifiableProperties;
+    <property name="chartViews" column="chartviews" type="double"/>
+    <property name="mapViews" column="mapviews" type="double"/>
+    <property name="reportTableViews" column="reporttableviews" type="double"/>
+    <property name="eventReportViews" column="eventreportviews" type="double"/>
+    <property name="eventChartViews" column="eventchartviews" type="double"/>
+    <property name="dashboardViews" column="dashboardviews" type="double"/>
+    <property name="dataSetReportViews" column="datasetreportviews" type="double" />
+    <property name="activeUsers" column="active_users" type="int"/>
+    <property name="totalViews" column="totalviews" type="double"/>
+    <property name="savedCharts" column="charts" type="double"/>
+    <property name="savedMaps" column="maps" type="double"/>
+    <property name="savedReportTables" column="reporttables" type="double"/>
+    <property name="savedEventReports" column="eventreports" type="double"/>
+    <property name="savedEventCharts" column="eventcharts" type="double"/>
+    <property name="savedDashboards" column="dashboards" type="double"/>
+    <property name="savedIndicators" column="indicators" type="double"/>
+    <property name="users" column="users" type="int"/>
+
+  </class>
+</hibernate-mapping>

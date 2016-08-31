@@ -1,0 +1,16 @@
+#set( $size = $users.size() )
+{ "users": [
+#foreach( $user in $users )
+  {
+    "id": ${user.id},
+    "surname": "$!encoder.jsonEncode( ${user.surname} )",
+    "firstName": "$!encoder.jsonEncode( ${user.firstName} )",
+    "email": "$!encoder.jsonEncode( ${user.email} )",
+    "phoneNumber": "$!encoder.jsonEncode( ${user.phoneNumber} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

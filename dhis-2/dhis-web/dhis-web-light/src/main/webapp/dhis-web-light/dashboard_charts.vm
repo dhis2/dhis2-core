@@ -1,0 +1,12 @@
+<div class="headerDiv"><span class="header">$i18n.getString("dashboard_charts")</span></div>
+
+<div class="contentDiv">
+#foreach( $id in $charts )
+<div class="contentChartDiv"><img src="getChart.action?id=${id}" style="width:100%"></div>
+#end
+<div class="contentChartDiv">
+#foreach( $chart in $chartsForAll )
+<a href="getDashboardChart.action?id=$chart.id">$chart.name</a></br>
+#end
+</div>
+</div>

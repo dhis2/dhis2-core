@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<indicators>
+#foreach( $indicator in $indicators )
+	<indicator>
+	    <id>$indicator.id</id>
+	    <name>$!encoder.xmlEncode( $indicator.displayName )</name>
+	    <alternativeName>$!encoder.xmlEncode( $indicator.alternativeName )</alternativeName>
+	    <shortName>$!encoder.xmlEncode( $indicator.displayShortName )</shortName>
+	    <code>$!encoder.xmlEncode( $indicator.code )</code>
+	    <description>$!encoder.xmlEncode( $indicator.displayDescription )</description>
+	    <annualized>$indicator.annualized</annualized>
+	</indicator>
+#end
+</indicators>

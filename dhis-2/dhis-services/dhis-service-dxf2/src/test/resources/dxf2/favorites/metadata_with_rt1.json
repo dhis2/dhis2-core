@@ -1,0 +1,834 @@
+{
+  "organisationUnitGroups": [
+    {
+      "userGroupAccesses": [ ],
+      "name": "OrgUnitGroupA",
+      "code": "OrgUnitGroupA",
+      "shortName": "OrgUnitGroupA",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "lastUpdated": "2016-03-17T01:52:11.966+0000",
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "id": "K82vX2wgq6j",
+      "attributeValues": [ ],
+      "created": "2016-03-17T01:52:11.957+0000",
+      "publicAccess": "rw------"
+    }
+  ],
+  "categoryCombos": [
+    {
+      "lastUpdated": "2016-03-17T01:40:08.004+0000",
+      "code": "default",
+      "dataDimensionType": "DISAGGREGATION",
+      "name": "default",
+      "userGroupAccesses": [ ],
+      "publicAccess": "--------",
+      "created": "2016-03-17T01:40:08.002+0000",
+      "skipTotal": false,
+      "categories": [
+        {
+          "id": "GLevLNI9wkl"
+        }
+      ],
+      "id": "bjDvmb4bfuf"
+    },
+    {
+      "skipTotal": false,
+      "id": "v7n8H4aj8Cg",
+      "categories": [
+        {
+          "id": "XFgfIO1qQmd"
+        }
+      ],
+      "publicAccess": "rw------",
+      "created": "2016-03-17T01:54:04.875+0000",
+      "name": "Gender",
+      "userGroupAccesses": [ ],
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "lastUpdated": "2016-03-17T01:54:04.956+0000",
+      "dataDimensionType": "DISAGGREGATION",
+      "code": "Gender"
+    }
+  ],
+  "trackedEntities": [
+    {
+      "description": "Person",
+      "lastUpdated": "2016-03-16T17:00:00.000+0000",
+      "created": "2016-03-16T17:00:00.000+0000",
+      "code": "Person",
+      "name": "Person",
+      "id": "MCPQUTHX1Ze",
+      "attributeValues": [ ]
+    }
+  ],
+  "dataSets": [
+    {
+      "renderAsTabs": false,
+      "created": "2016-03-17T01:55:31.495+0000",
+      "openFuturePeriods": 0,
+      "attributeValues": [ ],
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "id": "f1OijtLnf8a",
+      "version": 1,
+      "renderHorizontally": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "dataElements": [
+        {
+          "id": "JXWenbITNIR"
+        },
+        {
+          "id": "Kvv6LltZuOd"
+        },
+        {
+          "id": "Dy2uRmhOKbJ"
+        },
+        {
+          "id": "JrpFZgTcp5m"
+        }
+      ],
+      "shortName": "DataSetShortA",
+      "userGroupAccesses": [ ],
+      "fieldCombinationRequired": false,
+      "dataElementDecoration": false,
+      "name": "DataSetA",
+      "indicators": [ ],
+      "publicAccess": "rw------",
+      "notifyCompletingUser": false,
+      "mobile": false,
+      "compulsoryDataElementOperands": [ ],
+      "timelyDays": 15,
+      "code": "DataSetCodeA",
+      "periodType": "Monthly",
+      "noValueRequiresComment": false,
+      "lastUpdated": "2016-03-17T01:55:35.911+0000",
+      "skipOffline": false,
+      "expiryDays": 0,
+      "validCompleteOnly": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      }
+    }
+  ],
+  "users": [
+    {
+      "dataViewOrganisationUnits": [ ],
+      "code": "admin",
+      "firstName": "admin",
+      "lastUpdated": "2016-03-17T01:51:26.764+0000",
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "id": "M5zQapPyTZI",
+      "attributeValues": [ ],
+      "userCredentials": {
+        "username": "admin",
+        "userRoles": [
+          {
+            "id": "yrB6vc5Ip3r"
+          }
+        ],
+        "lastUpdated": "2016-03-17T01:51:26.892+0000",
+        "disabled": false,
+        "selfRegistered": false,
+        "invitation": false,
+        "code": "admin",
+        "catDimensionConstraints": [ ],
+        "cogsDimensionConstraints": [ ],
+        "id": "JNRA5Y0EPes",
+        "userInfo": {
+          "id": "M5zQapPyTZI"
+        },
+        "lastLogin": "2016-03-17T01:51:26.794+0000",
+        "created": "2016-03-17T01:51:26.794+0000",
+        "externalAuth": false,
+        "passwordLastUpdated": "2016-03-17T01:51:26.795+0000"
+      },
+      "teiSearchOrganisationUnits": [ ],
+      "created": "2016-03-17T01:51:26.764+0000",
+      "surname": "admin"
+    }
+  ],
+  "organisationUnits": [
+    {
+      "name": "Country",
+      "uuid": "eb380b08-6cc6-4aca-9b67-e1247e02db33",
+      "shortName": "Country",
+      "lastUpdated": "2016-03-17T01:51:39.609+0000",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "featureType": "NONE",
+      "id": "uyHni0GvBpD",
+      "openingDate": "2016-03-17",
+      "attributeValues": [ ],
+      "description": "",
+      "path": "/uyHni0GvBpD",
+      "created": "2016-03-17T01:51:39.597+0000"
+    }
+  ],
+  "categories": [
+    {
+      "id": "GLevLNI9wkl",
+      "dataDimension": true,
+      "publicAccess": "--------",
+      "created": "2016-03-17T01:40:07.999+0000",
+      "userGroupAccesses": [ ],
+      "name": "default",
+      "code": "default",
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION",
+      "lastUpdated": "2016-03-17T03:00:44.982+0000"
+    },
+    {
+      "publicAccess": "rw------",
+      "created": "2016-03-17T01:53:56.097+0000",
+      "id": "XFgfIO1qQmd",
+      "dataDimension": true,
+      "categoryOptions": [
+        {
+          "id": "DRs8ZFxNOpW"
+        },
+        {
+          "id": "x3Owjhq9G7K"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION",
+      "code": "Gender",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "lastUpdated": "2016-03-17T01:53:56.098+0000",
+      "userGroupAccesses": [ ],
+      "name": "Gender"
+    }
+  ],
+  "dataElements": [
+    {
+      "userGroupAccesses": [ ],
+      "valueType": "NUMBER",
+      "name": "DataElementA",
+      "aggregationType": "AVERAGE",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "DataElementShortA",
+      "attributeValues": [ ],
+      "id": "JXWenbITNIR",
+      "zeroIsSignificant": false,
+      "created": "2016-03-17T01:52:56.017+0000",
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "code": "DataElementCodeA",
+      "lastUpdated": "2016-03-17T01:52:56.021+0000",
+      "aggregationLevels": [ ],
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------"
+    },
+    {
+      "aggregationLevels": [ ],
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdated": "2016-03-17T01:53:21.549+0000",
+      "code": "DataElementCodeB",
+      "zeroIsSignificant": false,
+      "attributeValues": [ ],
+      "id": "Kvv6LltZuOd",
+      "created": "2016-03-17T01:53:21.548+0000",
+      "aggregationType": "AVERAGE",
+      "name": "DataElementB",
+      "userGroupAccesses": [ ],
+      "valueType": "NUMBER",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "DataElementShortB"
+    },
+    {
+      "aggregationLevels": [ ],
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "categoryCombo": {
+        "id": "v7n8H4aj8Cg"
+      },
+      "code": "DataElementCodeC",
+      "lastUpdated": "2016-03-17T01:54:39.782+0000",
+      "attributeValues": [ ],
+      "id": "JrpFZgTcp5m",
+      "zeroIsSignificant": false,
+      "created": "2016-03-17T01:54:39.781+0000",
+      "userGroupAccesses": [ ],
+      "valueType": "NUMBER",
+      "aggregationType": "AVERAGE",
+      "name": "DataElementC",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "DataElementShortC"
+    },
+    {
+      "zeroIsSignificant": false,
+      "attributeValues": [ ],
+      "id": "Dy2uRmhOKbJ",
+      "created": "2016-03-17T01:55:00.723+0000",
+      "aggregationType": "AVERAGE",
+      "name": "DataElementD",
+      "userGroupAccesses": [ ],
+      "valueType": "NUMBER",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "DataElementShortD",
+      "aggregationLevels": [ ],
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "categoryCombo": {
+        "id": "v7n8H4aj8Cg"
+      },
+      "lastUpdated": "2016-03-17T01:55:00.724+0000",
+      "code": "DataElementCodeD"
+    }
+  ],
+  "userRoles": [
+    {
+      "lastUpdated": "2016-03-17T01:51:26.775+0000",
+      "code": "Superuser",
+      "name": "Superuser",
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_DATAELEMENTGROUP_PUBLIC_ADD",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_DATAELEMENT_DELETE",
+        "F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD",
+        "F_MAP_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_GROUP_SET_DELETE",
+        "F_CATEGORY_PRIVATE_ADD",
+        "F_INDICATORGROUPSET_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_PROGRAM_ENROLLMENT",
+        "F_REPORTTABLE_EXTERNAL",
+        "F_CATEGORY_OPTION_PRIVATE_ADD",
+        "F_GIS_ADMIN",
+        "F_CATEGORY_OPTION_GROUP_PUBLIC_ADD",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DATAELEMENTGROUPSET_DELETE",
+        "F_INDICATOR_DELETE",
+        "F_INDICATORTYPE_ADD",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_INDICATOR_PUBLIC_ADD",
+        "F_INDICATORGROUP_PUBLIC_ADD",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_INDICATOR_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_CATEGORY_OPTION_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_DELETE",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_CATEGORY_COMBO_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_DATAELEMENT_PUBLIC_ADD",
+        "F_INDICATORGROUP_DELETE",
+        "F_CATEGORY_OPTION_GROUP_DELETE",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_SQLVIEW_EXTERNAL",
+        "F_DATAELEMENTGROUPSET_PRIVATE_ADD",
+        "F_CATEGORY_COMBO_DELETE",
+        "F_CATEGORY_OPTION_GROUP_PRIVATE_ADD",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_INDICATORGROUPSET_PRIVATE_ADD",
+        "F_CATEGORY_PUBLIC_ADD",
+        "F_CHART_PUBLIC_ADD",
+        "F_CATEGORY_COMBO_PUBLIC_ADD",
+        "F_CHART_EXTERNAL",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_DATAELEMENTGROUP_PRIVATE_ADD",
+        "F_INDICATORGROUPSET_DELETE",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_CATEGORY_DELETE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_INDICATORTYPE_DELETE",
+        "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD",
+        "F_MAP_EXTERNAL",
+        "F_INDICATORGROUP_PRIVATE_ADD",
+        "F_DATAELEMENT_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE",
+        "F_DATAELEMENTGROUP_DELETE",
+        "F_DATAELEMENTGROUPSET_PUBLIC_ADD"
+      ],
+      "userGroupAccesses": [ ],
+      "description": "Superuser",
+      "created": "2016-03-17T01:51:26.775+0000",
+      "publicAccess": "--------",
+      "programs": [ ],
+      "dataSets": [ ],
+      "id": "yrB6vc5Ip3r"
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "name": "default",
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ],
+      "code": "default",
+      "lastUpdated": "2016-03-17T01:40:08.003+0000",
+      "ignoreApproval": false,
+      "id": "HllvX50cXC0",
+      "created": "2016-03-17T01:40:08.003+0000"
+    },
+    {
+      "categoryCombo": {
+        "id": "v7n8H4aj8Cg"
+      },
+      "id": "c8yQa2ZIqhL",
+      "name": "Female",
+      "categoryOptions": [
+        {
+          "id": "DRs8ZFxNOpW"
+        }
+      ],
+      "created": "2016-03-17T01:54:04.952+0000",
+      "ignoreApproval": false,
+      "lastUpdated": "2016-03-17T01:54:04.952+0000"
+    },
+    {
+      "ignoreApproval": false,
+      "lastUpdated": "2016-03-17T01:54:04.954+0000",
+      "categoryOptions": [
+        {
+          "id": "x3Owjhq9G7K"
+        }
+      ],
+      "created": "2016-03-17T01:54:04.954+0000",
+      "name": "Male",
+      "categoryCombo": {
+        "id": "v7n8H4aj8Cg"
+      },
+      "id": "O9ZA0CUVVmL"
+    }
+  ],
+  "categoryOptions": [
+    {
+      "userGroupAccesses": [ ],
+      "name": "default",
+      "code": "default",
+      "shortName": "default",
+      "lastUpdated": "2016-03-17T01:40:08.007+0000",
+      "id": "xYerKDKCefk",
+      "organisationUnits": [ ],
+      "attributeValues": [ ],
+      "publicAccess": "--------",
+      "created": "2016-03-17T01:40:07.989+0000"
+    },
+    {
+      "userGroupAccesses": [ ],
+      "name": "Female",
+      "code": "Female",
+      "lastUpdated": "2016-03-17T01:53:41.461+0000",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "shortName": "Female",
+      "attributeValues": [ ],
+      "id": "DRs8ZFxNOpW",
+      "organisationUnits": [ ],
+      "created": "2016-03-17T01:53:41.459+0000",
+      "publicAccess": "rw------"
+    },
+    {
+      "publicAccess": "rw------",
+      "created": "2016-03-17T01:53:34.525+0000",
+      "id": "x3Owjhq9G7K",
+      "organisationUnits": [ ],
+      "attributeValues": [ ],
+      "shortName": "Male",
+      "lastUpdated": "2016-03-17T01:53:34.526+0000",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "code": "Male",
+      "name": "Male",
+      "userGroupAccesses": [ ]
+    }
+  ],
+  "organisationUnitLevels": [
+    {
+      "level": 1,
+      "created": "2016-03-17T01:51:45.201+0000",
+      "lastUpdated": "2016-03-17T01:51:45.201+0000",
+      "id": "knxIFcPUBz2",
+      "name": "Country"
+    }
+  ],
+  "date": "2016-03-17T03:08:06.883+0000",
+  "reportTables": [
+    {
+      "relativePeriods": {
+        "last2SixMonths": false,
+        "monthsThisYear": false,
+        "thisFinancialYear": false,
+        "last4Quarters": false,
+        "quartersLastYear": false,
+        "thisQuarter": false,
+        "last12Weeks": false,
+        "thisSixMonth": false,
+        "last52Weeks": false,
+        "last6Months": false,
+        "thisYear": false,
+        "last12Months": false,
+        "lastBimonth": false,
+        "lastQuarter": false,
+        "lastMonth": false,
+        "lastWeek": false,
+        "thisBimonth": true,
+        "thisMonth": false,
+        "last5Years": false,
+        "last5FinancialYears": false,
+        "quartersThisYear": false,
+        "last3Months": false,
+        "thisWeek": false,
+        "last6BiMonths": false,
+        "monthsLastYear": false,
+        "lastSixMonth": false,
+        "last4Weeks": false,
+        "lastYear": false,
+        "lastFinancialYear": false
+      },
+      "created": "2016-03-17T03:07:00.982+0000",
+      "organisationUnitGroups": [ ],
+      "userOrganisationUnit": false,
+      "userOrganisationUnitChildren": false,
+      "userOrganisationUnitGrandChildren": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "showHierarchy": false,
+      "userGroupAccesses": [ ],
+      "columnDimensions": [
+        "dx"
+      ],
+      "aggregationType": "DEFAULT",
+      "publicAccess": "rw------",
+      "dataDimensionItems": [
+        {
+          "dataElement": {
+            "id": "JXWenbITNIR"
+          },
+          "dataDimensionItemType": "AGGREGATE_DATA_ELEMENT"
+        },
+        {
+          "dataElement": {
+            "id": "Kvv6LltZuOd"
+          },
+          "dataDimensionItemType": "AGGREGATE_DATA_ELEMENT"
+        }
+      ],
+      "showDimensionLabels": true,
+      "displayDensity": "NORMAL",
+      "categoryDimensions": [ ],
+      "organisationUnitLevels": [ ],
+      "periods": [ ],
+      "reportParams": {
+        "paramGrandParentOrganisationUnit": false,
+        "paramOrganisationUnit": false,
+        "paramParentOrganisationUnit": false,
+        "paramReportingPeriod": false
+      },
+      "itemOrganisationUnitGroups": [ ],
+      "fontSize": "NORMAL",
+      "hideEmptyRows": false,
+      "rowSubTotals": true,
+      "categoryOptionGroups": [ ],
+      "colTotals": true,
+      "cumulative": false,
+      "id": "KJuwWdngkHL",
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "digitGroupSeparator": "SPACE",
+      "dataElementGroups": [ ],
+      "skipRounding": false,
+      "rowTotals": true,
+      "externalAccess": false,
+      "name": "ReportTableA",
+      "colSubTotals": true,
+      "regression": false,
+      "topLimit": 0,
+      "rowDimensions": [
+        "pe"
+      ],
+      "filterDimensions": [
+        "ou"
+      ],
+      "lastUpdated": "2016-03-17T03:07:00.982+0000",
+      "completedOnly": false,
+      "sortOrder": 0
+    },
+    {
+      "created": "2016-03-17T03:07:22.233+0000",
+      "relativePeriods": {
+        "lastBimonth": false,
+        "last12Months": true,
+        "last6Months": false,
+        "thisYear": false,
+        "last52Weeks": false,
+        "thisSixMonth": false,
+        "last12Weeks": false,
+        "thisQuarter": false,
+        "quartersLastYear": false,
+        "last4Quarters": false,
+        "thisFinancialYear": false,
+        "monthsThisYear": false,
+        "last2SixMonths": false,
+        "last4Weeks": false,
+        "lastYear": false,
+        "lastFinancialYear": false,
+        "lastSixMonth": false,
+        "monthsLastYear": false,
+        "last6BiMonths": false,
+        "quartersThisYear": false,
+        "last5FinancialYears": false,
+        "last3Months": false,
+        "thisWeek": false,
+        "last5Years": false,
+        "thisMonth": false,
+        "thisBimonth": false,
+        "lastWeek": false,
+        "lastMonth": false,
+        "lastQuarter": false
+      },
+      "organisationUnitGroups": [ ],
+      "userOrganisationUnit": false,
+      "userOrganisationUnitChildren": false,
+      "userOrganisationUnitGrandChildren": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "columnDimensions": [
+        "dx"
+      ],
+      "userGroupAccesses": [ ],
+      "showHierarchy": false,
+      "aggregationType": "DEFAULT",
+      "publicAccess": "rw------",
+      "showDimensionLabels": true,
+      "dataDimensionItems": [
+        {
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND",
+          "dataElementOperand": {
+            "dataElement": {
+              "id": "JrpFZgTcp5m"
+            },
+            "categoryOptionCombo": {
+              "id": "c8yQa2ZIqhL"
+            }
+          }
+        },
+        {
+          "dataElementOperand": {
+            "dataElement": {
+              "id": "Dy2uRmhOKbJ"
+            },
+            "categoryOptionCombo": {
+              "id": "c8yQa2ZIqhL"
+            }
+          },
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND"
+        }
+      ],
+      "displayDensity": "NORMAL",
+      "categoryDimensions": [ ],
+      "periods": [ ],
+      "organisationUnitLevels": [ ],
+      "reportParams": {
+        "paramParentOrganisationUnit": false,
+        "paramReportingPeriod": false,
+        "paramOrganisationUnit": false,
+        "paramGrandParentOrganisationUnit": false
+      },
+      "itemOrganisationUnitGroups": [ ],
+      "hideEmptyRows": false,
+      "fontSize": "NORMAL",
+      "categoryOptionGroups": [ ],
+      "colTotals": true,
+      "rowSubTotals": true,
+      "cumulative": false,
+      "id": "EsT7nC4XB5b",
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "digitGroupSeparator": "SPACE",
+      "dataElementGroups": [ ],
+      "skipRounding": false,
+      "rowTotals": true,
+      "externalAccess": false,
+      "name": "ReportTableB",
+      "colSubTotals": true,
+      "regression": false,
+      "rowDimensions": [
+        "pe"
+      ],
+      "topLimit": 0,
+      "filterDimensions": [
+        "ou"
+      ],
+      "lastUpdated": "2016-03-17T03:07:22.234+0000",
+      "completedOnly": false,
+      "sortOrder": 0
+    },
+    {
+      "lastUpdated": "2016-03-17T03:07:42.029+0000",
+      "filterDimensions": [
+        "ou"
+      ],
+      "sortOrder": 0,
+      "completedOnly": false,
+      "regression": false,
+      "colSubTotals": true,
+      "rowDimensions": [
+        "pe"
+      ],
+      "topLimit": 0,
+      "rowTotals": true,
+      "skipRounding": false,
+      "name": "ReportTableC",
+      "externalAccess": false,
+      "cumulative": false,
+      "dataElementGroups": [ ],
+      "digitGroupSeparator": "SPACE",
+      "id": "SLlbFsXXhm0",
+      "organisationUnits": [
+        {
+          "id": "uyHni0GvBpD"
+        }
+      ],
+      "reportParams": {
+        "paramReportingPeriod": false,
+        "paramParentOrganisationUnit": false,
+        "paramOrganisationUnit": false,
+        "paramGrandParentOrganisationUnit": false
+      },
+      "periods": [ ],
+      "organisationUnitLevels": [ ],
+      "colTotals": true,
+      "categoryOptionGroups": [ ],
+      "rowSubTotals": true,
+      "fontSize": "NORMAL",
+      "itemOrganisationUnitGroups": [ ],
+      "hideEmptyRows": false,
+      "showDimensionLabels": true,
+      "dataDimensionItems": [
+        {
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND",
+          "dataElementOperand": {
+            "categoryOptionCombo": {
+              "id": "O9ZA0CUVVmL"
+            },
+            "dataElement": {
+              "id": "JrpFZgTcp5m"
+            }
+          }
+        },
+        {
+          "dataElementOperand": {
+            "dataElement": {
+              "id": "Dy2uRmhOKbJ"
+            },
+            "categoryOptionCombo": {
+              "id": "O9ZA0CUVVmL"
+            }
+          },
+          "dataDimensionItemType": "DATA_ELEMENT_OPERAND"
+        }
+      ],
+      "publicAccess": "rw------",
+      "categoryDimensions": [ ],
+      "displayDensity": "NORMAL",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "aggregationType": "DEFAULT",
+      "columnDimensions": [
+        "dx"
+      ],
+      "userGroupAccesses": [ ],
+      "showHierarchy": false,
+      "userOrganisationUnit": false,
+      "organisationUnitGroups": [ ],
+      "created": "2016-03-17T03:07:42.029+0000",
+      "relativePeriods": {
+        "thisMonth": false,
+        "last5Years": false,
+        "lastQuarter": false,
+        "lastMonth": false,
+        "thisBimonth": false,
+        "lastWeek": false,
+        "monthsLastYear": false,
+        "lastSixMonth": false,
+        "last4Weeks": false,
+        "lastYear": false,
+        "lastFinancialYear": false,
+        "quartersThisYear": false,
+        "last5FinancialYears": false,
+        "thisWeek": false,
+        "last3Months": false,
+        "last6BiMonths": false,
+        "thisFinancialYear": false,
+        "last4Quarters": false,
+        "quartersLastYear": false,
+        "thisQuarter": false,
+        "last2SixMonths": false,
+        "monthsThisYear": false,
+        "last6Months": false,
+        "thisYear": false,
+        "last52Weeks": false,
+        "last12Months": true,
+        "lastBimonth": false,
+        "last12Weeks": false,
+        "thisSixMonth": false
+      },
+      "userOrganisationUnitGrandChildren": false,
+      "userOrganisationUnitChildren": false
+    }
+  ]
+}

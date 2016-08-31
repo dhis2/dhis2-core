@@ -1,0 +1,17 @@
+#set( $size = $dataSets.size() )
+{ "dataSets": [
+#foreach( $dataSet in $dataSets )
+  {
+    "id": "$!encoder.jsonEncode( ${dataSet.uid} )",
+    "name": "$!encoder.jsonEncode( ${dataSet.displayName} )",
+    "shortName": "$!encoder.jsonEncode( ${dataSet.displayShortName} )",
+    "periodTypeId": "$!{dataSet.periodTypeId}",
+    "version": "$!{dataSet.version}",
+    "expiryDays": "$!encoder.jsonEncode( ${dataSet.expiryDays} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

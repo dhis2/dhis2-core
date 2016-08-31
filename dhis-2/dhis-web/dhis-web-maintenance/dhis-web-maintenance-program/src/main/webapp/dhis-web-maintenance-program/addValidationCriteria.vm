@@ -1,0 +1,65 @@
+<script type="text/javascript" src="javascript/addValidationCriteria.js"></script>																
+
+<h3>$i18n.getString( "create_validation_criteria" ) #openHelp( "validation_criteria" )</h3>
+<h5>$program.displayName</h5>
+
+<form id="validationCriteriaForm" action="addValidationCriteria.action" method="post" class="inputForm">
+<input type='hidden' id='programId' name='programId' value='$program.id' />
+<table>
+	<tr><th colspan="3">$i18n.getString('validation_criteria_details')</th></tr>
+    <tr>
+		<td><label for="name">$i18n.getString('name') <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td colspan="2"><input type='text' id='name' name='name' /></td>
+    </tr>
+    <tr>
+		<td><label for="description">$i18n.getString('description') <em title="$i18n.getString( 'required' )" class="required">*</em></label></label></td>
+		<td colspan="2"><input type='text' id='description' name='description' ></td>
+	</tr>
+    <tr>
+		<td><label for="property">$i18n.getString('criteria')<em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td>	  
+		<table>
+			<tr>
+				<td>
+					<select id='property' name='property' style='width:120px' onChange="showDivValue();">
+						<option value="" selected="selected">[$i18n.getString( "please_select" )]</option>
+						#foreach($programAttribute in $program.programAttributes)
+							#if( $programAttribute.attribute.valueType!='TRACKER_ASSOCIATE')
+								#set($opt="")
+								#foreach($option in $programAttribute.attribute.optionSet.options)
+									#set($opt=$opt + ';' + $option.code + ':' + $option.name )
+								#end 
+								<option valuetype='$programAttribute.attribute.valueType' value="$programAttribute.attribute.uid" opt="$opt">$programAttribute.attribute.displayName</option>
+							#end
+						#end
+					</select>
+				</td>
+				<td>
+					<select id='operator' name='operator' style='width: 39px'>
+						<option value='-1' #if( "$validationCriteria.operator"=='-1') selected #end>$i18n.getString('operator_less_then')</option>
+						<option value='0'  #if( "$validationCriteria.operator"=='0') selected #end>$i18n.getString('operator_equal_to')</option>
+						<option value='1'  #if( "$validationCriteria.operator"=='1') selected #end>$i18n.getString('operator_greater_then')</option>
+					</select>
+				</td>
+				<td id='valueTD'>
+					<input type='text' id='value' name='value' style="width:130px"/>
+				</td>
+			</tr>
+		</table>
+		</td>
+    </tr>
+    <tr>
+		<td>&nbsp;</td>
+		<td colspan="2">
+			<input type="submit" value="$i18n.getString('save')" style="width:10em"/>
+			<input name="button" type="button" style="width:10em" onclick="javascript:window.location.href= 'validationCriteria.action?id=$program.id'" value="$i18n.getString('cancel')"/>
+		</td>
+    </tr>
+  </table>
+</form>
+
+<script type="text/javascript">
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_tracked_entity_attribute" ) , "'" )';
+	var i18n_yes = '$encoder.jsEscape( $i18n.getString( "yes" ) , "'" )';
+	var i18n_no = '$encoder.jsEscape( $i18n.getString( "no" ) , "'" )';
+</script>

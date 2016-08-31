@@ -1,0 +1,5 @@
+<status>
+	<code>$statusCode</code>
+	<timestamp>#if( $timestamp ) $format.formatDateTime( $timestamp ) #end</timestamp>
+	<storedBy>$!encoder.xmlEncode( storedBy )</storedBy>
+</status>

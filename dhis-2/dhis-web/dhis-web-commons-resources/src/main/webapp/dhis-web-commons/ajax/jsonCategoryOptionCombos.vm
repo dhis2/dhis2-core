@@ -1,0 +1,15 @@
+#set( $size = $categoryOptionCombos.size() )
+{ "categoryOptionCombos": [
+#foreach( $coc in $categoryOptionCombos )
+  {
+    "id": $!{coc.id},
+    "uid": "$!{coc.uid}",
+    "name": "$!encoder.jsonEncode( ${coc.name} )",
+	"default": "$coc.isDefault()"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

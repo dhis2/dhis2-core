@@ -1,0 +1,35 @@
+<div class="modal-header">
+  <h3>Make referral</h3>
+</div>
+<div class="modal-body">
+    <h4>Select an organizaton unit</h4>
+    <div class="org-unit-tree row" data-stop-propagation="true">
+        <script type="text/ng-template" id="orgUnitTree.html">
+            <span class="org-unit-tree-button" ng-click="expandCollapse(orgUnit)" ng-show="orgUnit.show && orgUnit.children.length > 0"><i class="fa fa-minus-square-o"></i></span>
+            <span class="org-unit-tree-button" ng-click="expandCollapse(orgUnit)" ng-show="(!orgUnit.show && orgUnit.children.length > 0) || (!orgUnit.show && orgUnit.hasChildren)"><i class="fa fa-plus-square-o"></i></span>
+            <span class="org-unit-tree-button" ng-click="setSelectedSearchingOrgUnit(orgUnit)" ng-class="{'selected-org-unit' : orgUnit.id === selectedSearchingOrgUnit.id}">{{orgUnit.displayName}}</span>
+            <ul class="tree" id="tree" ng-show="orgUnit.show">
+                <li ng-repeat="orgUnit in orgUnit.children | orderBy:'name'" ng-include="'orgUnitTree.html'"></li>
+            </ul>
+        </script>
+        <ul class="tree" id="tree">
+            <li ng-repeat="orgUnit in orgUnits | orderBy:'name'" ng-include="'orgUnitTree.html'"></li>
+        </ul>
+    </div>
+    <div class="alert alert-warning" ng-if="orgError"><span>Please select an organization unit</span></div>
+    <hr/>
+    <h4>{{stage.excecutionDateLabel}}</h4>
+    <input type="text" 
+           placeholder="{{dhis2CalendarFormat.keyDateFormat}}" 
+           d2-date
+           d2-date-validator
+           class="form-control"
+           ng-model="referralDate"                                    
+           ng-required="true"
+           />
+    <div class="alert alert-warning" ng-if="dateError"><span>Please select a date</span></div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" data-ng-click="cancel()">Cancel</button>
+  <button class="btn btn-primary" data-ng-click="makeReferral()">Make referral</button>
+</div>

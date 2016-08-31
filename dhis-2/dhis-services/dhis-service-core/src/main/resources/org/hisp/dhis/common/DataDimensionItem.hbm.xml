@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.common.DataDimensionItem" table="datadimensionitem">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="datadimensionitemid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="indicator" class="org.hisp.dhis.indicator.Indicator" 
+      column="indicatorid" foreign-key="fk_datadimensionitem_indicatorid" />
+
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" 
+      column="dataelementid" foreign-key="fk_datadimensionitem_dataelementid" />
+
+    <many-to-one name="dataElementOperand" class="org.hisp.dhis.dataelement.DataElementOperand"
+	  column="dataelementoperandid" foreign-key="fk_datadimensionitem_dataelementoperandid" />
+
+    <component name="reportingRate" class="org.hisp.dhis.common.ReportingRate">
+      <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet"
+        column="datasetid" foreign-key="fk_datadimensionitem_datasetid" />
+
+      <property name="metric" length="50" column="metric"> <!-- not null true -->
+        <type name="org.hibernate.type.EnumType">
+          <param name="enumClass">org.hisp.dhis.common.ReportingRateMetric</param>
+          <param name="useNamed">true</param>
+          <param name="type">12</param>
+        </type>
+      </property>
+    </component>
+
+    <many-to-one name="programIndicator" class="org.hisp.dhis.program.ProgramIndicator" 
+      column="programindicatorid" foreign-key="fk_datadimensionitem_programindicatorid" />
+
+    <many-to-one name="programDataElement" class="org.hisp.dhis.program.ProgramDataElement"
+      column="programdataelementid" foreign-key="fk_datadimensionitem_programdataelementid" />
+
+    <many-to-one name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" 
+      column="programattributeid" foreign-key="fk_datadimensionitem_programattributeid" />
+
+  </class>
+</hibernate-mapping>

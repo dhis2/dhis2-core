@@ -1,0 +1,10 @@
+<div class="modal-header">
+  <h3>{{'attribute_category_selection' | translate}}</h3>
+</div>
+<div class="modal-body">
+  <div ng-include="'components/dataentry/category-option-form.html'"></div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="applyOptions()">{{'apply' | translate}}</button> 
+    <button class="btn btn-default" ng-click="close()">{{'close' | translate}}</button>
+</div>

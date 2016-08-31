@@ -1,0 +1,91 @@
+<script type="text/javascript">
+	jQuery( function()
+	{
+		validation( 'expression-form', insertExpression );
+	});
+	
+	var i18n_description_not_null = '$encoder.jsEscape( $i18n.getString( "description_not_null" ) , "'")';
+	var i18n_expression_not_null = '$encoder.jsEscape( $i18n.getString( "expression_not_null" ) , "'")';
+	var i18n_no_constant_to_select = '$encoder.jsEscape( $i18n.getString( "no_constant_to_select" ) , "'")';
+</script>
+
+<div id="expression-container" class="page">
+<form id="expression-form" name="expression-form">
+<table style="width:100%;text-align:left">
+	<colgroup>
+		<col width="45%"/>
+		<col width="2%"/>
+		<col width="53%"/>
+	</colgroup>
+	<tr>
+		<th colspan="2">$i18n.getString( "description" )</th>		
+		<th>$i18n.getString( "constants" )</th>
+	</tr>
+	<tr>
+		<td valign="top">
+			<input type="text" id="description" name="description" style="width:100%" class="{validate:{required:true}}"/>
+			<div style="margin: 4px 0">
+			<input type="radio" id="missingValueStrategyA" name="missingValueStrategy" value="SKIP_IF_ANY_VALUE_MISSING">
+				<label for="missingValueStrategyA">$i18n.getString( "skip_if_any_value_is_missing" )</label><br>
+			<input type="radio" id="missingValueStrategyB" name="missingValueStrategy" value="SKIP_IF_ALL_VALUES_MISSING">
+				<label for="missingValueStrategyB">$i18n.getString( "skip_if_all_values_are_missing" )</label><br>
+			<input type="radio" id="missingValueStrategyC" name="missingValueStrategy" value="NEVER_SKIP">
+				<label for="missingValueStrategyC">$i18n.getString( "never_skip" )</label>
+			</div>
+		</td>
+		<td valign="top"></td>
+		<td valign="top">
+			<select id="constantId" name="constantId" size="3" style="width:100%" ondblclick="insertText( 'expression', this.value )">
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="3"></td>
+	</tr>
+	<tr>
+		<th colspan="2">$i18n.getString( "expression" )</th>
+		<th>$i18n.getString( "available_data_elements" )</th>
+	</tr>
+	<tr>
+		<td valign="top">
+		<textarea id="expression" name="expression" style="width:100%; min-width: 250px; height:160px; margin-top:2px;" wrap="virtual" onchange="getExpressionText()" class="{validate:{required:true}}"></textarea><br/>
+		<div style="padding: 9px 0">
+			<a class="greyButtonLink" href="javascript:insertText( 'expression', '(' )" title="$i18n.getString( 'left_brackets' )">&#40;</a>
+			<a class="greyButtonLink" href="javascript:insertText( 'expression', ')' )" title="$i18n.getString( 'right_brackets' )">&#41;</a>
+			<a class="greyButtonLink" href="javascript:insertText( 'expression', '*' )" title="$i18n.getString( 'multiply' )">&#42;</a>
+			<a class="greyButtonLink" href="javascript:insertText( 'expression', '/' )" title="$i18n.getString( 'divide' )">&#47;</a>
+			<a class="greyButtonLink" href="javascript:insertText( 'expression', '+' )" title="$i18n.getString( 'plus' )">&#43;</a>
+			<a class="greyButtonLink" href="javascript:insertText( 'expression', '-' )" title="$i18n.getString( 'minus' )">&#45;</a>
+			<a class="greyButtonLink" href="javascript:insertText( 'expression', '[days]' )" title="$i18n.getString( 'no_of_days' )">Days</a>
+		</div>
+		</td>
+		<td></td>
+		<td valign="top">
+			<div style="margin-bottom: 4px">
+			<input type="text" id="filter" name="filter" style="width:280px">
+			<input type="button" value="$i18n.getString( 'filter' )" onclick="getOperandsPage()" style="width:60px">
+			<input type="button" value="$i18n.getString( 'clear' )" onclick="clearSearchText();" style="width:60px">
+			</div>
+
+			<select id="dataElementId" name="dataElementId" size="9" style="width:100%" ondblclick="insertText( 'expression', this.value )">
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<th colspan="3">$i18n.getString( "description" )</th>		
+	</tr>
+	<tr>
+		<td colspan="3"><div id="formulaText" style="width:100%;height:150px;overflow:auto"></div></td>
+	</tr>
+	<tr>
+		<td colspan="3"></td>
+	</tr>
+	<tr>
+		<td colspan="3">
+			<input type="submit" value="$i18n.getString( 'save' )" style="width:125px"/>
+			<input type="button" value="$i18n.getString( 'cancel' )" style="width:125px" onclick="dialog.dialog('close')"/>
+		</td>
+	</tr>	
+</table>
+</form>
+</div>

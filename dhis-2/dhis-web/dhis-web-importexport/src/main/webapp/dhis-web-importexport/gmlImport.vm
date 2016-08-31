@@ -1,0 +1,35 @@
+<h3>$i18n.getString( "gml_import" )</h3>
+<p class="tipText">$i18n.getString( "gml_import_info_text" )</p>
+<div id="inputCriteria" class="inputCriteria" style="width: 380px">
+  <form id="importForm" name="importForm" method="post" enctype="multipart/form-data" action="importGml.action">
+    <table>
+      <col width="140">
+      <col>
+      <tr>
+        <td>$i18n.getString( "file" )</td>
+        <td><input type="file" id="upload" name="upload" style="margin-left:0px"/></td>
+      </tr>
+      <tr>
+        <td>$i18n.getString( "dry_run" )</td>
+        <td>
+          <select id="dryRun" name="dryRun" style="width:190px">
+            <option value="false">$i18n.getString( "no" )</option>
+            <option value="true">$i18n.getString( "yes" )</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><input type="button" value="$i18n.getString( 'import' )" style="width:120px" onclick="importMetaData()"></td>
+      </tr>
+    </table>
+  </form>
+</div>
+<div id="notificationDiv">
+  <table id="notificationTable" class="notificationTable" style="display:none">
+    <col width="120">
+    <col width="380">
+  </table>
+</div>
+
+<div id="importSummaryDiv" class="page formSection" style="display:none; width:80%; padding-bottom:20px;"></div>

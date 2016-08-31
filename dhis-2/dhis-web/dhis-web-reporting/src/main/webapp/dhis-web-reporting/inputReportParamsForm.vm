@@ -1,0 +1,82 @@
+
+<script type="text/javascript">
+jQuery(document).ready(function() {
+	#if( !$!reportParams.isSet() )
+	viewReport( '' );
+	#end
+	
+	#if ( $!reportParams.isOrganisationUnitSet() )
+	selectionTreeSelection.setMultipleSelectionAllowed( false );
+	selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+	#end
+});
+
+var i18n_process_completed = '$encoder.jsEscape( $i18n.getString( "process_completed" ), "'")';
+var i18n_please_select_unit = '$encoder.jsEscape( $i18n.getString( "select_organisation_unit" ), "'")';
+</script>
+
+<h3>$i18n.getString( "report_table_parameters" )</h3>
+
+<input type="hidden" id="uid" name="uid" value="$!{uid}" />
+<input type="hidden" id="mode" name="mode" value="$!{mode}" />
+<input type="hidden" id="type" name="type" value="$!{type}" />
+
+<table>
+	
+    <!-- Reporting month -->
+    
+    #if ( $!reportParams.isParamReportingMonth() )
+    
+    <tr>
+        <th>$i18n.getString( "reporting_period" )</th>
+    </tr>
+    <tr>
+        <td>
+            <select id="reportingPeriod" name="reportingPeriod" style="width:325px">               
+                #foreach ( $period in $periods )
+                    <option value="${period.uid}">${period.displayName}</option>
+                #end
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="4" style="height:10px"></td>
+    </tr>
+    
+    #end
+    
+    <!-- OrganisationUnit -->
+    
+    #if ( $!reportParams.isOrganisationUnitSet() )
+        
+	<tr>
+        <th>$i18n.getString( "organisation_unit" )</th>
+    </tr>
+    <tr>
+	    <td>
+			<div id="selectionTree" style="width:325px; height:210px"></div>
+	    </td>
+	</tr>
+    <tr>
+        <td colspan="4" style="height:10px"></td>
+    </tr>
+    
+    #end
+    
+    <!-- Submit -->
+    
+    <tr>
+        <td>
+    	#if( $!reportParams.isSet() )
+        	#if ( $mode == "table" )
+            <input type="button" value="$i18n.getString( 'get_report' )" onclick="viewReport( '' )" style="width:140px" />
+            <input type="button" value="$i18n.getString( 'back' )" onclick="javascript:window.location.href='displayManageTableForm.action'" style="width:140px" />
+        	#elseif ( $mode == "report" )
+            <input type="button" value="$i18n.getString( 'get_report' )" onclick="viewReport( 'pdf' )" style="width:140px" />
+            <input type="button" value="$i18n.getString( 'back' )" onclick="javascript:window.location.href='displayViewReportForm.action'" style="width:140px" /><br>
+            <input type="button" value="$i18n.getString( 'get_report_as_xls' )" onclick="viewReport( 'xls' )" style="width:140px" />
+        	#end
+        #end
+        </td>
+    </tr>
+</table>

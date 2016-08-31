@@ -1,0 +1,31 @@
+<div ng-show="currentEvent" class="remove-default-padding overflow-ellipsis">
+    <script type="text/ng-template" id="popover.html">
+        <div class="wrap-text">{{content.value}}</div>
+        <hr>
+        <p><strong>{{'created_by' | translate}}: </strong>{{content.storedBy}}</p>
+        <p><strong>{{'date' | translate}}: </strong>{{content.storedDate}}</p>                           
+    </script>    
+    <div class="add-default-padding bordered-div long-vertical-spacing">
+        <textarea class="form-control" rows="3" ng-model="note.value" placeholder="{{'your_note_here'| translate}}"></textarea> 
+        <div class="vertical-spacing hideInPrint">
+            <button type="button" 
+                    class="btn btn-primary"
+                    ng-click="addNote()">
+                {{'add'| translate}}
+            </button>        
+            <button type="button" 
+                    class="btn btn-default small-horizontal-spacing hideInPrint"
+                    ng-click="clearNote()">
+                {{'clear'| translate}}
+            </button>
+        </div>
+        <table class="table table-striped table-bordered dhis2-table-hover">
+            <tr ng-repeat="note in currentEvent.notes">
+                <td d2-pop-over content="note" template="popover.html" details="{{'details'| translate}}">                
+                    <span>{{note.heading}}</span>
+                    <span class="pull-right">{{note.displayDate}}</span>            
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

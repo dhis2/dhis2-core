@@ -1,0 +1,15 @@
+<div class="modal-header">
+    <h2>{{dialogOptions.headerText | translate}}</h2>
+</div>
+<div class="modal-body">
+    <p>{{dialogOptions.bodyText | translate}}</p>
+    <ul ng-if="dialogOptions && dialogOptions.bodyList.length > 0">
+        <li ng-repeat="item in dialogOptions.bodyList">
+            {{ item | translate }}
+        </li>
+    </ul>
+</div>
+
+<div class="modal-footer">
+    <button class="btn btn-default" data-ng-click="dialogOptions.ok();">{{dialogOptions.closeButtonText | translate}}</button>
+</div>

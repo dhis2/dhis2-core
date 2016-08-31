@@ -1,0 +1,138 @@
+<div class="advanced-search-container-main">                                
+    <div data-stop-propagation="true" class="advanced-search-container">    
+        <table class="dhis2-list-table-striped dhis2-table-hover">
+            <tr>
+                <div ng-include="'views/search-ou-tree.html'"></div>
+            </tr>
+            <tr>
+                <td>{{'ou_search_scope'| translate}}</td>
+                <td>                    
+                    <label><input type="radio" ng-model="selectedOuMode.name" name="selected" value="SELECTED"> {{'SELECTED'| translate}}</label><br/>
+                    <label><input type="radio" ng-model="selectedOuMode.name" name="children" value="CHILDREN"> {{'CHILDREN'| translate}}</label><br/>
+                    <label><input type="radio" ng-model="selectedOuMode.name" name="descendants" value="DESCENDANTS"> {{'DESCENDANTS'| translate}}</label><br/>
+                    <!--<label><input type="radio" ng-model="selectedOuMode.name" name="accessible" value="ACCESSIBLE"> {{'ACCESSIBLE'| translate}}</label>-->
+                </td>
+            </tr>
+            <tr ng-if="selectedProgram">
+                <td>{{selectedProgram.enrollmentDateLabel}}</td>
+                <td>
+                    <div class="dataelement-filter">
+                        <div class="container-1-2">
+                            <input type="text" 
+                                   placeholder="{{'start_date'| translate}}" 
+                                   class="form-control-select2" 
+                                   d2-date 
+                                   d2-date-validator
+                                   max-date="enrollment.programEnrollmentEndDate ? enrollment.programEnrollmentEndDate : selectedProgram.selectEnrollmentDatesInFuture ? '' : 0"
+                                   ng-model="enrollment.programEnrollmentStartDate"/>
+                        </div>
+                        <div class="container-1-2">
+                            <input type="text" 
+                                   placeholder="{{'end_date'| translate}}" 
+                                   class="form-control-select2" 
+                                   d2-date 
+                                   min-date="enrollment.programEnrollmentStartDate ? enrollment.programEnrollmentStartDate : ''"
+                                   max-date="selectedProgram.selectEnrollmentDatesInFuture ? '' : 0"
+                                   ng-model="enrollment.programEnrollmentEndDate"/>                
+                        </div>             
+                    </div>                
+                </td>
+            </tr>
+            <tr ng-if="selectedProgram && selectedProgram.displayIncidentDate">
+                <td>{{selectedProgram.incidentDateLabel}}</td>
+                <td>
+                    <div class="dataelement-filter">
+                        <div class="container-1-2">
+                            <input type="text" 
+                                   placeholder="{{'start_date'| translate}}" 
+                                   class="form-control-select2" 
+                                   d2-date 
+                                   d2-date-validator
+                                   max-date="enrollment.programIncidentEndDate ? enrollment.programIncidentEndDate : selectedProgram.selectIncidentDatesInFuture ? '' : 0"
+                                   ng-model="enrollment.programIncidentStartDate"/>
+                        </div>
+                        <div class="container-1-2">
+                            <input type="text" 
+                                   placeholder="{{'end_date'| translate}}" 
+                                   class="form-control-select2" 
+                                   d2-date 
+                                   d2-date-validator
+                                   min-date="enrollment.programIncidentStartDate ? enrollment.programIncidentStartDate : ''"
+                                   max-date="selectedProgram.selectIncidentDatesInFuture ? '' : 0"
+                                   ng-model="enrollment.programIncidentEndDate"/>                
+                        </div>             
+                    </div>                
+                </td>
+            </tr>
+            <tr ng-repeat="attribute in attributes | nonConfidential">
+                <td>
+                    {{attribute.displayName}}
+                </td>
+                <td>
+                    <div ng-if="attribute.optionSetValue">
+                        <select multiple ui-select2  ng-model="attribute.value" data-placeholder="{{'please_select'| translate}}" style="width:100%;">
+                            <option ng-repeat="option in optionSets[attribute.optionSet.id].options | filter:$viewValue | limitTo:maxOptionSize" value="{{option.code}}">{{option.displayName}}</option>
+                        </select>
+                    </div>
+                    <div ng-if="!attribute.optionSetValue" ng-switch="attribute.valueType">
+                        <div ng-switch-when="NUMBER">
+                            <div class="dataelement-filter">                                                
+                                <div class="filter-operator">
+                                    <select ng-model="attribute.operator" class="form-control-select2" ng-options="operator | translate for operator in defaultOperators">
+                                    </select>
+                                </div>
+                                <div class="filter-value" ng-show="attribute.operator === defaultOperators[0]">
+                                    <input type="number" placeholder="{{'exact_value'| translate}}" class="form-control-select2" ng-model="attribute.exactValue"/>
+                                </div>
+                                <div class="filter-value" ng-show="attribute.operator === defaultOperators[1]">
+                                    <div class="container-1-2">
+                                        <input type="number" placeholder="{{'from'| translate}}" class="form-control-select2" ng-model="attribute.startValue"/>
+                                    </div>
+                                    <div class="container-1-2">
+                                        <input type="number" placeholder="{{'to'| translate}}" class="form-control-select2" ng-model="attribute.endValue"/>                
+                                    </div>
+                                </div>                            
+                            </div>                        
+                        </div>
+                        <div ng-switch-when="DATE">
+                            <div class="dataelement-filter">
+                                <div class="filter-operator">
+                                    <select ng-model="attribute.operator" class="form-control-select2" ng-options="operator | translate for operator in defaultOperators">
+                                    </select>
+                                </div>
+                                <div class="filter-value" ng-show="attribute.operator === defaultOperators[0]">
+                                    <input type="text" placeholder="{{'exact_date'| translate}}" class="form-control-select2" d2-date ng-model="attribute.exactValue"/>
+                                </div>
+                                <div class="filter-value" ng-show="attribute.operator === defaultOperators[1]">
+                                    <div class="container-1-2">
+                                        <input type="text" placeholder="{{'start_date'| translate}}" class="form-control-select2" d2-date ng-model="attribute.startValue"/>
+                                    </div>
+                                    <div class="container-1-2">
+                                        <input type="text" placeholder="{{'end_date'| translate}}" class="form-control-select2" d2-date ng-model="attribute.endValue"/>                
+                                    </div>
+                                </div>                            
+                            </div> 
+                        </div>
+                        <div ng-switch-when="BOOLEAN">
+                            <select ui-select2 multiple ng-model="attribute.value" data-placeholder="{{'please_select'| translate}}" style="width:100%;">
+                                <option ng-repeat="option in boolOperators" value="{{option}}">{{option}}</option>
+                            </select>
+                        </div> 
+                        <div ng-switch-default>
+                            <input type="text" class="form-control-select2" ng-model="attribute.value" /> 
+                        </div>
+                    </div>
+                </td>
+            </tr>         
+        </table>
+    </div>
+
+    <div class="horizontal-spacing">
+        <button type="button"
+                class="btn btn-primary"
+                ng-click="search(searchMode.attributeBased)">
+            {{'search'| translate}}
+        </button>        
+    </div>    
+    
+</div>

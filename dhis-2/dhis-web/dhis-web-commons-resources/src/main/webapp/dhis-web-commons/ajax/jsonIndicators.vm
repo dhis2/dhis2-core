@@ -1,0 +1,21 @@
+#set( $size = $indicators.size() )
+{ "indicators": [
+#foreach( $indicator in $indicators )
+#set( $groups = $indicator.groups )
+  {
+    "id": $!{indicator.id},
+    "uid": "$!{indicator.uid}",
+    "name": "$!encoder.jsonEncode( ${indicator.displayName} )",
+    "alternativeName": "$!encoder.jsonEncode( ${indicator.alternativeNamee} )",
+    "shortName": "$!encoder.jsonEncode( ${indicator.displayShortName} )",
+    "code": "$!encoder.jsonEncode( ${indicator.code} )",
+    "annualized": "${indicator.annualized}",
+    "indicatorTypeId": $!{indicator.indicatorType.id},
+    "groups": [ #foreach( $group in $groups )${group.id}#if( $velocityCount < $groups.size() ),#end#end ]
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

@@ -1,0 +1,98 @@
+
+#macro( displayObjects $headerKey $objectName $newObjects $updateObjects )
+<tr>
+  	<td>$i18n.getString( "${headerKey}" )</td>
+  	#if ( $newObjects > 0 )
+  	<td id="new${objectName}Td" style="background-color:#CEEACC">
+  		<a href="displayPreviewForm.action?type=${objectName.toUpperCase()}&status=NEW" style="width:100%; display:block; text-align:center">
+  			<span id="new${objectName}Span">
+  				$newObjects
+  			</span>
+  		</a>
+  	</td>
+  	#else
+  	<td>$i18n.getString( "none" )</td>
+  	#end
+  	#if ( $updateObjects > 0 )
+  	<td id="update${objectName}Td" style="background-color:#D1D9E5">
+  		<a href="displayPreviewForm.action?type=${objectName.toUpperCase()}&status=UPDATE" style="width:100%; display:block; text-align:center">
+  			<span id="update${objectName}Span">
+  				$updateObjects
+  			</span>	
+  		</a>
+  	</td>
+	#else
+	<td>$i18n.getString( "none" )</td>
+	#end
+	<td></td>
+</tr>
+#end
+
+<h3>$i18n.getString( 'import_preview' ) #openHelp( "importpreview" )</h3>
+
+<form id="previewForm" name="previewForm" method="post">
+
+<input type="hidden" id="type" name="type" value="$!type">
+<input type="hidden" id="status" name="status" value="$!status">
+
+<table style="width:700px">
+	
+  	<tr>
+  		<th style="width:224px">$i18n.getString( "element" )</th>
+  		<th style="width:108px">$i18n.getString( "new" )</th>
+  		<th style="width:108px">$i18n.getString( "update" )</th>
+  		<td style="width:260px"></td>
+	</tr>
+	#displayObjects( "constant" "Constant" $newConstants $updateConstants )
+	#displayObjects( "data_element" "DataElement" $newDataElements $updateDataElements )
+	#displayObjects( "data_element_group" "DataElementGroup" $newDataElementGroups $updateDataElementGroups )
+	#displayObjects( "data_element_group_set" "DataElementGroupSet" $newDataElementGroupSets $updateDataElementGroupSets )
+	#displayObjects( "indicator_type" "IndicatorType" $newIndicatorTypes $updateIndicatorTypes )
+	#displayObjects( "indicator" "Indicator" $newIndicators $updateIndicators )
+	#displayObjects( "indicator_group" "IndicatorGroup" $newIndicatorGroups $updateIndicatorGroups )
+	#displayObjects( "indicator_group_set" "IndicatorGroupSet" $newIndicatorGroupSets $updateIndicatorGroupSets )
+	#displayObjects( "dataset" "DataSet" $newDataSets $updateDataSets )
+	#displayObjects( "organisation_unit" "OrganisationUnit" $newOrganisationUnits $updateOrganisationUnits )
+	#displayObjects( "organisation_unit_group" "OrganisationUnitGroup" $newOrganisationUnitGroups $updateOrganisationUnitGroups )
+	#displayObjects( "organisation_unit_group_set" "OrganisationUnitGroupSet" $newOrganisationUnitGroupSets $updateOrganisationUnitGroupSets )
+	#displayObjects( "organisation_unit_level" "OrganisationUnitLevel" $newOrganisationUnitLevels $updateOrganisationUnitLevels )
+	#displayObjects( "validation_rule" "ValidationRule" $newValidationRules $updateValidationRules )
+	#displayObjects( "report" "Report" $newReports $updateReports )
+	#displayObjects( "report_table" "ReportTable" $newReportTables $updateReportTables )
+	#displayObjects( "chart" "Chart" $newCharts $updateCharts )
+	#displayObjects( "datavalue" "DataValue" $newDataValues $updateDataValues )
+	
+	<tr>
+		<td colspan="3">
+			<input type="button" value="$i18n.getString( 'import_all' )" style="width:50%" onclick="window.location.href='importAllObjects.action'"><input 
+				type="button" value="$i18n.getString( 'cancel' )" style="width:50%" onclick="window.location.href='discardAllObjects.action'">
+		</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td colspan="4" style="height:10px"></td>
+	</tr>	
+	<tr>
+		<th colspan="4">$i18n.getString( "objects" )</th>
+	</tr>
+	<tr>
+		<td colspan="4">
+			<select multiple id="objects" name="objects" style="width:100%; height:200px">
+				#foreach( $importObject in $importObjects )
+					<option value="$importObject.id">$importObject.object.name</option>
+				#end
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="4">
+			<input type="button" value="$i18n.getString( 'discard_all' )" style="width:33%" onclick="discardObjectsOfTypeAjax()"><input 
+				type="button" value="$i18n.getString( 'discard_selected' )" style="width:33%" onclick="discardObjectAjax()">#if ( $status == "NEW" )<input 
+				type="button" value="$i18n.getString( 'match_to_existing' )" style="width:33%" onclick="displayMatchForm()">#elseif ( $status == "UPDATE" )<input 
+				type="button" value="$i18n.getString( 'compare_to_existing' )" style="width:33%" onclick="displayCompareForm()">#end
+		</td>
+	</tr>
+	
+</table>
+
+</form>

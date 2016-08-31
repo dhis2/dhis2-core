@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.option.Option" table="optionvalue">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="optionvalueid">
+      <generator class="native" />
+    </id>
+
+    <property name="uid" column="uid" unique="true" length="11" />
+    <property name="code" column="code" not-null="false" unique="false" length="230" />
+
+    <!-- Length for legacy support -->
+    <property name="created" type="timestamp" />
+    <property name="lastUpdated" type="timestamp" />
+
+    <property name="name" column="name" not-null="true" length="230" />
+
+    <!-- Dynamic attribute values -->
+    <set name="attributeValues" table="optionattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="optionvalueid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+  </class>
+</hibernate-mapping>

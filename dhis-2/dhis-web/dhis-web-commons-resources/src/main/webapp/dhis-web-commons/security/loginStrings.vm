@@ -1,0 +1,14 @@
+{
+"create_an_account": "$!encoder.jsonEncode( $i18nObject.getString( "create_an_account" ) )",
+"login_username": "$!encoder.jsonEncode( $i18nObject.getString( "login_username" ) )",
+"login_password": "$!encoder.jsonEncode( $i18nObject.getString( "login_password" ) )",
+"forgot_password": "$!encoder.jsonEncode( $i18nObject.getString( "forgot_password" ) )",
+"create_an_account": "$!encoder.jsonEncode( $i18nObject.getString( "create_an_account" ) )",
+"wrong_username_or_password": "$!encoder.jsonEncode( $i18nObject.getString( "wrong_username_or_password" ) )",
+"powered_by": "$!encoder.jsonEncode( $i18nObject.getString( "powered_by" ) )",
+"sign_in": "$!encoder.jsonEncode( $i18nObject.getString( "sign_in" ) )",
+"applicationTitle": "$!encoder.jsonEncode( $!translations.get( "applicationTitle" ) )",
+"keyApplicationIntro": "$!encoder.jsonEncode( $translations.get( "keyApplicationIntro" ) )",
+"keyApplicationNotification": "$!encoder.jsonEncode( $translations.get( "keyApplicationNotification" ) )",
+"keyApplicationFooter": "$!encoder.jsonEncode( $translations.get( "keyApplicationFooter" ) )"
+}

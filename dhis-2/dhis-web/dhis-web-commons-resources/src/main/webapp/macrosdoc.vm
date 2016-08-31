@@ -1,0 +1,118 @@
+
+## Documentation for macros.vm - not available on web
+
+#*
+Displays a table which lists a set of objects and it's common operations: Filter, 
+add, update, translate, remove and show details. The macro produces code against 
+some specific conventions for the scripts and actions to call. Call it this way:
+
+#objectList( [name of object, e.g. DataElement], [list of such objects, e.g. $dataElements] )
+
+@param objectName The litteral name of the type of object to display, e.g. DataElement
+@param objects A Velocity list of the objects to be formatted, typically prepared by an action.
+*#
+#macro( objectList $objectName $objects ) #end
+
+#*
+Supportive method for displaying rows with alternating colors in a table.
+
+@param mark boolean alternating the color.
+*#
+#macro( alternate $mark ) #end
+
+#****************************************************
+	Required args:
+		id			
+		text		
+		mandatory	
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trTextInput $args ) #end
+
+#****************************************************
+	Required args:
+		id			
+		text		
+		mandatory	
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trBooleanSelectInput $args ) #end
+	
+#****************************************************
+	Required args:
+		id			
+		text		
+		mandatory	
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trDateInput $args ) #end
+
+#****************************************************
+	Required args:
+		id			
+		text		
+		mandatory	
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trNumberInput $args ) #end
+
+#****************************************************
+	Required args:
+		id			
+		text		
+		mandatory	
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trIntegerInput $args ) #end
+
+#****************************************************
+	Required args:
+		id			
+		text		
+		mandatory	
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trPositiveIntegerInput $args ) #end
+
+#****************************************************
+	Required args:
+		id			
+		text		
+		mandatory	
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trNegativeIntegerInput $args ) #end
+
+#****************************************************
+	Required args:
+		id			
+		text
+		mandatory	
+		choices		Array of choices.		
+	Optional args:
+		name		Will use id if omitted.
+		value		
+*****************************************************#
+#macro( trMultipleChoiceInput $args ) #end
+	
+#****************************************************
+	Required args:
+		attributes	
+	Optional args:
+		attributeValues
+*****************************************************#
+#macro( tblDynamicAttributes $args ) #end

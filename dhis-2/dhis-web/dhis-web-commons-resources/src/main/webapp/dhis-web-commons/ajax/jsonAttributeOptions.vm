@@ -1,0 +1,13 @@
+#set( $size = $attributeOptions.size() )
+{ "attributeOptions": [
+#foreach( $attributeOption in $attributeOptions )
+  {
+    "id": ${attributeOption.id},
+    "name": "$!encoder.jsonEncode( ${attributeOption.name} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

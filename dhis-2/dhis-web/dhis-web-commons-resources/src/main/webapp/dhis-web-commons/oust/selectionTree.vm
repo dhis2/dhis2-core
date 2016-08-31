@@ -1,0 +1,9 @@
+<script type="text/javascript">
+jQuery(document).ready(function()
+{
+	selectionTreeSelection.setMultipleSelectionAllowed(true);
+	selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+});
+</script>
+
+<div id="selectionTree"></div>

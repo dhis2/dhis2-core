@@ -1,0 +1,25 @@
+<!-- data entry/event buttons begin -->  
+<div class="row hideInPrint" ng-if="displayCustomForm !== 'TABLE'">
+    <div class="col-sm-12">
+        <a href ng-click="completeIncompleteEvent(null, outerDataEntryForm)" 
+            class="btn btn-warning" 
+            ng-disabled="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed || currentEvent.orgUnit !== selectedOrgUnit.id"
+            ng-if="currentEvent.eventDate && (currentEvent.status === 'SCHEDULE' || currentEvent.status === 'ACTIVE' || currentEvent.status === 'VISITED')">{{'complete'| translate}}</a>
+        <a href ng-click="completeIncompleteEvent(null, outerDataEntryForm)" 
+            class="btn btn-warning"
+            ng-disabled="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed && currentEvent.status !== 'COMPLETED' || currentEvent.orgUnit !== selectedOrgUnit.id"
+            ng-if="currentEvent.eventDate && currentEvent.status === 'COMPLETED'">{{'incomplete'| translate}}</a>    
+        <a href ng-click="skipUnskipEvent()" 
+            class="btn btn-warning" 
+            ng-disabled="selectedEnrollment.status !== 'ACTIVE' || currentEvent.editingNotAllowed || currentEvent.orgUnit !== selectedOrgUnit.id"
+            ng-if="!currentEvent.eventDate">{{currentEvent.status === 'SKIPPED' ? 'unskip' : 'skip'| translate}}</a>
+    
+        <div class="pull-right">
+            <a href ng-click="deleteEvent()" 
+                ng-disabled="selectedEnrollment.status === 'COMPLETED' || currentEvent.editingNotAllowed || currentEvent.orgUnit !== selectedOrgUnit.id"
+                class="btn btn-danger horizontal-spacing">{{'delete'| translate}}</a>  
+            <a href class="btn btn-info" ng-click="print('print-div');">{{'print_form'| translate}}</a>
+        </div>
+    </div>
+</div>
+ <!-- data entry/event buttons end -->     

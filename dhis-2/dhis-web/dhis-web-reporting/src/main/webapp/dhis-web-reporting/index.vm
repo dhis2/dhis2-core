@@ -1,0 +1,11 @@
+<h3>$i18n.getString( "dhis-web-reporting" )</h3>
+
+<ul class="introList">
+    #introListImgItem( "displayViewReportForm.action" "standard_report" "standardreport" )
+    #introListImgItem( "showDataSetReportForm.action" "dataset_report" "datasetreport" )
+    #introListImgItem( "displayViewDataCompletenessForm.action" "reporting_rate_summary" "reportingratesummary" )
+    #introListImgItem( "displayViewDocumentForm.action" "resource" "resource" )
+    #introListImgItem( "displayOrgUnitDistribution.action" "orgunit_distribution_report" "distribution" )
+    #introListImgItem( "showDataApprovalForm.action" "data_approval" "dataapproval" )
+    #introListImgItem( "displayManageTableForm.action" "report_table" "reporttable" )
+</ul>
