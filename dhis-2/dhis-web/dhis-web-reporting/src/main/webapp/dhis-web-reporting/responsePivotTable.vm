@@ -1,0 +1,32 @@
+{ 
+"pivotTable": {
+"sizeIndicators": "$pivotTable.indicators.size()",
+"sizePeriods": "$pivotTable.periods.size()",
+"sizeOrganisationUnits": "$pivotTable.organisationUnits.size()",
+
+"indicators": [
+#set( $size = $pivotTable.indicators.size() )
+#foreach( $indicator in $pivotTable.indicators )
+{ "id":"${indicator.id}", "name":"$!encoder.jsonEncode( ${indicator.displayShortName} )" }#if( $velocityCount < $size ),#end
+#end ],
+
+"periods": [
+#set( $size = $pivotTable.periods.size() )
+#foreach( $period in $pivotTable.periods )
+{ "id":"${period.id}","name": "$!encoder.jsonEncode( ${period.name} )" }#if( $velocityCount < $size ),#end
+#end ],
+
+"organisationUnits": [
+#set( $size = $pivotTable.organisationUnits.size() )
+#foreach( $organisationUnit in $pivotTable.organisationUnits )
+{ "id":"${organisationUnit.id}", "name":"$!encoder.jsonEncode( ${organisationUnit.shortName} )" }#if( $velocityCount < $size ),#end
+#end ],
+
+"indicatorValues": [ 
+{
+#set( $size = $pivotTable.indicatorValues.size() )
+#foreach( $value in $pivotTable.indicatorValues )
+"${value.elementId}-${value.periodId}-${value.organisationUnitId}":"${format.formatValue( ${value.value} )}"#if( $velocityCount < $size ),#end
+#end } ] 
+}
+}

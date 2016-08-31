@@ -1,0 +1,83 @@
+{
+  "legends": [
+    {
+      "name": "Medium Plus",
+      "id": "Pn6IoBWiJpe",
+      "endValue": 70.0,
+      "color": "#FF6600",
+      "startValue": 60.0
+    },
+    {
+      "name": "Low",
+      "id": "lrs5w0hTJtE",
+      "endValue": 40.0,
+      "color": "#FF0000",
+      "startValue": 0.0
+    },
+    {
+      "name": "Medium",
+      "id": "QokQceufnau",
+      "endValue": 60.0,
+      "color": "#993300",
+      "startValue": 40.0
+    },
+    {
+      "name": "High Plus",
+      "id": "JVBtpZGG2Rh",
+      "endValue": 90.0,
+      "color": "#339966",
+      "startValue": 80.0
+    },
+    {
+      "name": "High",
+      "id": "epVTNHmMDlk",
+      "endValue": 80.0,
+      "color": "#99CC00",
+      "startValue": 70.0
+    },
+    {
+      "name": "Great",
+      "id": "VwpNfwNQX3m",
+      "endValue": 120.0,
+      "color": "#00FF00",
+      "startValue": 90.0
+    },
+    {
+      "name": "Invalid",
+      "id": "Va71FXFjb4w",
+      "endValue": 990.0,
+      "color": "#99CCFF",
+      "startValue": 120.0
+    }
+  ],
+  "legendSets": [
+    {
+      "name": "ANC Coverage",
+      "id": "fqs276KXCXi",
+      "symbolizer": "color",
+      "legends": [
+        {
+          "id": "Pn6IoBWiJpe"
+        },
+        {
+          "id": "lrs5w0hTJtE"
+        },
+        {
+          "id": "QokQceufnau"
+        },
+        {
+          "id": "JVBtpZGG2Rh"
+        },
+        {
+          "id": "epVTNHmMDlk"
+        },
+        {
+          "id": "VwpNfwNQX3m"
+        },
+        {
+          "id": "Va71FXFjb4w"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+<h3>$i18n.getString( "metadata_export_with_dependencies" )</h3>
+
+<div id="inputCriteria" class="inputCriteria" style="width:460px">
+<table>
+  <tr>
+    <td style="width:140px">$i18n.getString( "object_type" )</td>
+    <td>
+      <select id="objectType" style="width:280px" onchange="mde.displayObjectList()">
+        <option value="dataSets" selected="selected">$i18n.getString( "data_sets" )</option>
+        <option value="programs">$i18n.getString( "programs" )</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>$i18n.getString( "object" )</td>
+    <td>
+      <select id="objectList" style="width:280px"></select>
+    </td>
+  </tr>
+  <tr>
+    <td>$i18n.getString( "format" )</td>
+    <td>
+      <select id="format" style="width:280px">
+        <option value="json">JSON</option>
+        <option value="xml">XML</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><input type="button" value="$i18n.getString( 'export' )" onclick="mde.exportMetadata()" style="width:120px"></td>
+  </tr>
+</table>
+</div>

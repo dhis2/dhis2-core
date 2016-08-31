@@ -1,0 +1,112 @@
+#macro( getSymbol $ip )
+#if( $ip.chartInterpretation )
+<img src="../images/chart.png">
+#elseif( $ip.mapInterpretation )
+<img src="../images/map.png">
+#elseif( $ip.reportTableInterpretation )
+<img src="../images/table.png">
+#elseif( $ip.dataSetReportInterpretation )
+<img src="../images/dataset.png">
+#end
+#end
+
+<script>
+var i18n_cancel = '$encoder.jsEscape( $i18n.getString( "cancel" ) , "'")';
+var i18n_save = '$encoder.jsEscape( $i18n.getString( "save" ) , "'")';
+var i18n_could_not_delete_interpretation_comment = '$encoder.jsEscape( $i18n.getString( "could_not_delete_interpretation_comment" ) , "'")';
+var i18n_could_not_delete_interpretation = '$encoder.jsEscape( $i18n.getString( "could_not_delete_interpretation" ) , "'")';
+var i18n_could_not_save_interpretation = '$encoder.jsEscape( $i18n.getString( "could_not_save_interpretation" ) , "'")';
+
+jQuery(function() {
+    updateEventHandlers();
+});
+</script>
+
+#macro( gearDropDown $user )
+  #if( $currentUser.userCredentials.isSuper() || $currentUser == $user )
+  <div class="gearDropDown">
+    <span><i class="fa fa-gear"></i> <i class="fa fa-caret-down"></i></span>
+  </div>
+  #end
+#end
+
+<div class="dropDown">
+  <ul>
+    <li data-target-fn="editIp"><a><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString('edit')</a></li>
+    <li data-target-fn="deleteIp"><a><i class="fa fa-trash-o"></i>&nbsp;&nbsp;$i18n.getString('delete')</a></li>
+  </ul>
+</div>
+
+#set( $maxComments = 4 )
+#foreach( $ip in $interpretations )
+<div class="interpretationContainer" data-ip-uid="$ip.uid">
+    #if( $ip.organisationUnit )#set( $ou = "&ou=" + $ip.organisationUnit.uid )#else#set( $ou = "" )#end
+    #if( $ip.period )#set( $pe = "&pe=" + $ip.period.isoDate )#else#set( $pe = "" )#end
+
+    <div class="interpretation">
+      <div class="interpretationContent">
+        <div class="interpretationName">
+          <div class="interpretationSymbol">
+            #getSymbol( $ip )
+          </div>
+          <div class="interpretationUser">
+             <a class="bold userLink" href="profile.action?id=${ip.user.uid}">$!{encoder.htmlEncode( $ip.user.name )}</a><br>
+             <span class="tipText">$!{format.formatDate( $ip.created )}</span>
+          </div>
+          #gearDropDown( $ip.user )
+        </div>
+        <div class="interpretationText">
+            $!dhisTextUtils.htmlify( ${ip.text} )
+        </div>
+        <div class="interpretationItem">
+        #if( $ip.chartInterpretation )
+            <a href="../dhis-web-visualizer/index.html?id=${ip.chart.uid}&date=${format.formatDate( $ip.created )}">
+            <img style="cursor:pointer"
+                src="../api/charts/${ip.chart.uid}/data?date=${format.formatDate( $ip.created )}&width=558&height=300${ou}"
+                title="$i18n.getString( 'click_to_view_in_data_visualizer' )"></a>
+        #elseif( $ip.mapInterpretation )
+            <a href="../dhis-web-mapping/index.html?id=${ip.map.uid}">
+            <img style="cursor:pointer"
+                src="../api/maps/${ip.map.uid}/data?date=${format.formatDate( $ip.created )}&width=558"
+                title="$i18n.getString( 'click_to_view_in_gis' )"></a>
+        #elseif( $ip.reportTableInterpretation )
+            <a class="bold"
+               title="$i18n.getString( 'click_to_view_report_table' )"
+               href="../dhis-web-pivot/index.html?id=${ip.reportTable.uid}${pe}${ou}">
+               $encoder.htmlEncode( $ip.reportTable.name )</a>
+        #elseif( $ip.dataSetReportInterpretation )
+            <a class="bold"
+               title="$i18n.getString( 'click_to_view_data_set_report' )"
+               href="../dhis-web-reporting/showDataSetReportForm.action?ds=${ip.dataSet.uid}&pe=${ip.period.isoDate}&ou=${ip.organisationUnit.uid}">
+               $encoder.htmlEncode( $ip.dataSet.name )</a>
+        #end
+        </div>
+      </div>
+	    #set( $comments = $ip.comments )
+	    #set( $commentStartPos = ( $comments.size() - $maxComments ) )
+	    <div class="interpretationCommentArea">
+	        #if( $comments.size() > $maxComments )
+	        <div id="commentHeader${ip.uid}" class="interpretationCommentHeader"><a href="javascript:expandComments( '${ip.uid}' )">View all $comments.size() comments</a></div>
+        	#end
+        	<div id="comments${ip.uid}">
+	        #foreach( $comment in $comments )
+	        <div #if( $velocityCount <= $commentStartPos ) style="display:none"#end class="interpretationComment" data-ip-comment-uid="$comment.uid">
+	            <div class="interpretationName">
+                <a class="bold userLink" href="profile.action?id=${comment.user.uid}">${comment.user.name}</a>&nbsp;
+                <span class="grey">${format.formatDate( $comment.created )}</span>
+                #gearDropDown( $comment.user )
+	            </div>
+		        <div class="interpretationText">
+		            $!dhisTextUtils.htmlify( ${comment.text} )
+		        </div>
+            </div>
+	        #end
+	        </div>
+          <div style="clear: none;">
+            <textarea id="commentArea${ip.uid}" class="commentArea" placeholder="$i18n.getString( 'add_a_comment' )..."></textarea>
+            <input type="button" class="commentButton" value="Post comment" onclick="postComment( '${ip.uid}' )">
+          </div>
+	    </div>
+    </div>
+</div>
+#end

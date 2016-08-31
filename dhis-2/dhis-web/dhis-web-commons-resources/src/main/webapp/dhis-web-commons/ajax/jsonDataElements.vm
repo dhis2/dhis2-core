@@ -1,0 +1,25 @@
+#set( $size = $dataElements.size() )
+{ "dataElements": [
+#foreach( $dataElement in $dataElements )
+#set( $groups = $dataElement.groups )
+#set( $dataSets = $dataElement.dataSets )
+  {
+	"id":  ${dataElement.id},
+	"uid": "${dataElement.uid}",
+	"name": "$!encoder.jsonEncode( ${dataElement.displayName} )",
+	"alternativeName": "$!encoder.jsonEncode( ${dataElement.alternativeNamee} )",
+	"shortName": "$!encoder.jsonEncode( ${dataElement.displayShortName} )",
+	"code": "$!encoder.jsonEncode( ${dataElement.code} )",
+	"valueType": "$!{dataElement.valueType}",
+	"optionSet": #if($!dataElement.optionSet) "true"  #else "false" #end,
+	"aggregationType": "$!{dataElement.aggregationType}",
+	"zeroIsSignificant": "$!{dataElement.zeroIsSignificant}",
+	"dataSets": [ #foreach( $dataSet in $dataSets )${dataSet.id}#if( $velocityCount < $dataSets.size() ),#end#end ],
+	"groups": [ #foreach( $group in $groups )${group.id}#if( $velocityCount < $groups.size() ),#end#end ]
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

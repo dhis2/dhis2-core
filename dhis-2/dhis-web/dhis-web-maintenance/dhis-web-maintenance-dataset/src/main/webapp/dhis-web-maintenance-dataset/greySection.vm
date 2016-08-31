@@ -1,0 +1,43 @@
+<script type="text/javascript">
+    var i18n_enable = '$encoder.jsEscape( $i18n.getString( "enable" ) , "'" )';
+    var i18n_disable = '$encoder.jsEscape( $i18n.getString( "disable" ) , "'" )';
+</script>
+
+<h3>$i18n.getString( "section_grey_field_managment" ) #openHelp( "grey_field" )</h3>
+  
+<table id="detailsList" style="margin-bottom:15px">
+	<col/>
+	<col/>
+	<thead>
+		<tr>
+			<th colspan="2">$i18n.getString( "section_details" )</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		<tr>
+			<td><label>$i18n.getString( "name" ):</label></td>
+			<td>$section.displayName</td>
+		</tr>
+		<tr>
+			<td><label>$i18n.getString( "dataset" ):</label></td>
+			<td>$section.dataSet.displayName</td>
+		</tr>
+		<tr>
+	    <td><label>$i18n.getString( "category_combo" ):</label></td>
+	        <td>$categoryCombo.displayName</td>
+		</tr>
+    </tbody>    
+</table>
+
+<div style="border:1px solid #cccccc; width:95%; padding:10px; margin-bottom:15px; border-radius:3px;">
+	#if( $sectionIsMultiDimensional == "true" )    
+    	#parse( "/dhis-web-maintenance-dataset/sectionMultiDimensionalDataElement.vm" )
+	#else
+    	#parse( "/dhis-web-maintenance-dataset/sectionDataElement.vm" )
+	#end	
+</div>
+
+<p>
+	<input type="button" onclick="window.location.href='section.action?dataSetId=$section.dataSet.id&categoryComboId=$categoryCombo.id'" value="$i18n.getString( 'done' )" style="width:120px"/>
+</p>

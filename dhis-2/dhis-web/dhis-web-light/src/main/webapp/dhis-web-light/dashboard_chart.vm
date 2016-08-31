@@ -1,0 +1,24 @@
+## ============================================================================
+<h2>
+	$i18n.getString( "chart" )
+</h2>
+
+
+## ============================================================================
+<p>
+	<img src="getChart.action?id=$id" style="width:100%"></br>
+</p>
+
+
+## ============================================================================
+<h3>$i18n.getString("interpretation_share")</h3>
+
+<form method="POST" action="postInterpretation.action">
+	<input type="hidden" name="id" value="$id" />
+	<div class="header-box" align="center">
+		<p style="text-align: left;">			
+			<input type="text" size="24" name="interpretation" />			
+			<input type="submit" style="width: 100%;" value="$i18n.getString("share")" />
+		</p>
+	</div>
+</form>

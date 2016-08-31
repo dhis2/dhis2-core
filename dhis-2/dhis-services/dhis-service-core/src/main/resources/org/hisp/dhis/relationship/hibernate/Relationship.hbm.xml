@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.relationship.Relationship" table="relationship">
+
+    <cache usage="read-write" />
+    
+    <id name="id" column="relationshipid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="entityInstanceA" class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceaid" not-null="true"
+      foreign-key="fk_relationship_trackedentityinstanceida" />
+
+    <many-to-one name="relationshipType" class="org.hisp.dhis.relationship.RelationshipType" column="relationshiptypeid"
+      not-null="true" foreign-key="fk_relationship_relationshiptypeid" />
+
+    <many-to-one name="entityInstanceB" class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstancebid" not-null="true"
+      foreign-key="fk_relationship_trackedentityinstanceidb" />
+
+  </class>
+</hibernate-mapping>

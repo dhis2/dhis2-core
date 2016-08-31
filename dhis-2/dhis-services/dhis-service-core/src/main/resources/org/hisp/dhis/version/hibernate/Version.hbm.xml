@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.version.Version" table="version">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="versionid">
+      <generator class="native" />
+    </id>
+
+    <property name="key" not-null="true" unique="true" column="versionkey" length="230"/>
+
+    <property name="value" column="versionvalue"/>
+
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValue"
+        table="trackedentityattributereservedvalue">
+
+        <id name="id" column="trackedentityattributereservedvalueid">
+            <generator class="native"/>
+        </id>
+
+        <many-to-one name="trackedEntityAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+            column="trackedentityattributeid"
+            foreign-key="fk_attributereservedvalue_trackedentityattributeid"/>
+                         
+        <many-to-one name="valueUtilizedByTEI" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+            column="trackedentityinstanceid"
+            foreign-key="fk_attributevalue_trackedentityinstanceid"/>
+        
+        <property name="created" type="timestamp"/>
+
+        <property name="expiryDate" type="timestamp"/>
+        
+        <property name="value" access="property" length="50000"/>
+    </class>
+</hibernate-mapping>

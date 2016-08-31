@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.legend.Legend" table="maplegend">
+
+    <cache usage="read-write" />
+    
+    <id name="id" column="maplegendid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <property name="startValue" column="startvalue" index="maplegend_startvalue" />
+
+    <property name="endValue" column="endvalue" index="maplegend_endvalue" />
+
+    <property name="color" column="color" />
+
+    <property name="image" column="image" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="maplegendtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="maplegendid" foreign-key="fk_objecttranslation_maplegendid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

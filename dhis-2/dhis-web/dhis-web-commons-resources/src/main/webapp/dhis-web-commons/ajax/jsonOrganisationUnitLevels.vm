@@ -1,0 +1,13 @@
+#set( $size = $organisationUnitLevels.size() )
+{ "levels": [
+#foreach( $level in $organisationUnitLevels )
+  {    
+    "name": "$!encoder.jsonEncode( ${level.name} )",
+    "level": "$level.level"
+  }#if( $velocityCount < $size ),#end    
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

@@ -1,0 +1,44 @@
+<style>
+.gridTable th, .gridTable td
+{
+  text-align: center;
+  width: 90px;
+  line-height: 170%;
+}
+
+.lAln
+{
+  text-align: left;
+}
+</style>
+
+#parse( "dhis-web-reporting/renderDataSetReportHeader.vm" )
+
+#foreach( $grid in $grids )
+<div class="formSection" style="margin-bottom:30px">
+
+<div class="cent"><h3>$!encoder.htmlEncode( $grid.title )</h3></div>
+
+<table class="listTable gridTable">
+<thead>
+<tr>
+#foreach( $header in $grid.getVisibleHeaders() )
+<th #if( $header.meta )style="text-align:left"#end>$!encoder.htmlEncode( $header.name )</th>
+#end
+</tr>
+</thead>
+
+<tbody>    
+#foreach( $row in $grid.getVisibleRows() )
+<tr>
+#foreach( $col in $row )
+#set( $index = ( $velocityCount - 1 ) )
+#if( $grid.getVisibleHeaders().get( $index ).meta )<td class="lAln">$!encoder.htmlEncode( $col.value )</td>
+#else<td><span class="val" #if( $col.hasAttr( 'de' ) )data-de="$!{col.attr( 'de' )}" data-co="$!{col.attr( 'co' )}"#end>$!format.formatValue( $col.value )</span></td>#end
+#end
+</tr>
+#end
+</tbody>
+</table>
+</div>
+#end

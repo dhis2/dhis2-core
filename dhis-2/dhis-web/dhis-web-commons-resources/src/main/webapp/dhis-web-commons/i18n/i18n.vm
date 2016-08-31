@@ -1,0 +1,149 @@
+var i18n_month_short_january = '$encoder.jsEscape($i18n.getString( 'month.short.january' ) , "'")';
+var i18n_month_short_february = '$encoder.jsEscape($i18n.getString( 'month.short.february' ) , "'")';
+var i18n_month_short_march = '$encoder.jsEscape($i18n.getString( 'month.short.march' ) , "'")';
+var i18n_month_short_april = '$encoder.jsEscape($i18n.getString( 'month.short.april' ) , "'")';
+var i18n_month_short_may = '$encoder.jsEscape($i18n.getString( 'month.short.may' ) , "'")';
+var i18n_month_short_june = '$encoder.jsEscape($i18n.getString( 'month.short.june' ) , "'")';
+var i18n_month_short_july = '$encoder.jsEscape($i18n.getString( 'month.short.july' ) , "'")';
+var i18n_month_short_august = '$encoder.jsEscape($i18n.getString( 'month.short.august' ) , "'")';
+var i18n_month_short_september = '$encoder.jsEscape($i18n.getString( 'month.short.september' ) , "'")';
+var i18n_month_short_october = '$encoder.jsEscape($i18n.getString( 'month.short.october' ) , "'")';
+var i18n_month_short_november = '$encoder.jsEscape($i18n.getString( 'month.short.november' ) , "'")';
+var i18n_month_short_december = '$encoder.jsEscape($i18n.getString( 'month.short.december' ) , "'")';
+var monthNamesShort = [i18n_month_short_january, 
+						i18n_month_short_february,
+						i18n_month_short_march,
+						i18n_month_short_april,
+						i18n_month_short_may,
+						i18n_month_short_june,
+						i18n_month_short_july,
+						i18n_month_short_august,
+						i18n_month_short_september,
+						i18n_month_short_october,
+						i18n_month_short_november,
+						i18n_month_short_december];
+						
+var i18n_month_january = '$encoder.jsEscape($i18n.getString( 'month.january' ) , "'")';
+var i18n_month_february = '$encoder.jsEscape($i18n.getString( 'month.february' ) , "'")';
+var i18n_month_march = '$encoder.jsEscape($i18n.getString( 'month.march' ) , "'")';
+var i18n_month_april = '$encoder.jsEscape($i18n.getString( 'month.april' ) , "'")';
+var i18n_month_may = '$encoder.jsEscape($i18n.getString( 'month.may' ) , "'")';
+var i18n_month_june = '$encoder.jsEscape($i18n.getString( 'month.june' ) , "'")';
+var i18n_month_july = '$encoder.jsEscape($i18n.getString( 'month.july' ) , "'")';
+var i18n_month_august = '$encoder.jsEscape($i18n.getString( 'month.august' ) , "'")';
+var i18n_month_september = '$encoder.jsEscape($i18n.getString( 'month.september' ) , "'")';
+var i18n_month_october = '$encoder.jsEscape($i18n.getString( 'month.october' ) , "'")';
+var i18n_month_november = '$encoder.jsEscape($i18n.getString( 'month.november' ) , "'")';
+var i18n_month_december = '$encoder.jsEscape($i18n.getString( 'month.december' ) , "'")';
+var monthNames = [i18n_month_january, 
+						i18n_month_february,
+						i18n_month_march,
+						i18n_month_april,
+						i18n_month_may,
+						i18n_month_june,
+						i18n_month_july,
+						i18n_month_august,
+						i18n_month_september,
+						i18n_month_october,
+						i18n_month_november,
+						i18n_month_december];
+						
+var i18n_weekday_short_monday = '$encoder.jsEscape($i18n.getString( 'weekday.short.monday' ) , "'")';
+var i18n_weekday_short_tuesday = '$encoder.jsEscape($i18n.getString( 'weekday.short.tuesday' ) , "'")';
+var i18n_weekday_short_wednesday = '$encoder.jsEscape($i18n.getString( 'weekday.short.wednesday' ) , "'")';
+var i18n_weekday_short_thursday = '$encoder.jsEscape($i18n.getString( 'weekday.short.thursday' ) , "'")';
+var i18n_weekday_short_friday= '$encoder.jsEscape($i18n.getString( 'weekday.short.friday' ) , "'")';
+var i18n_weekday_short_saturday = '$encoder.jsEscape($i18n.getString( 'weekday.short.saturday' ) , "'")';
+var i18n_weekday_short_sunday = '$encoder.jsEscape($i18n.getString( 'weekday.short.sunday' ) , "'")';
+var dayNamesShort = [i18n_weekday_short_sunday,
+						i18n_weekday_short_monday,
+						i18n_weekday_short_tuesday,
+						i18n_weekday_short_wednesday,
+						i18n_weekday_short_thursday,
+						i18n_weekday_short_friday,
+						i18n_weekday_short_saturday];
+var dayNamesMin = [i18n_weekday_short_sunday,
+						i18n_weekday_short_monday,
+						i18n_weekday_short_tuesday,
+						i18n_weekday_short_wednesday,
+						i18n_weekday_short_thursday,
+						i18n_weekday_short_friday,
+						i18n_weekday_short_saturday]
+
+var i18n_please_enter_name = '$encoder.jsEscape($i18n.getString( 'please_enter_name' ) , "'")';
+var i18n_please_select_period = '$encoder.jsEscape($i18n.getString( 'please_select_period' ) , "'")';
+var i18n_please_select_dataset = '$encoder.jsEscape($i18n.getString( 'please_select_dataset' ) , "'")';
+var i18n_please_select_dataelement = '$encoder.jsEscape($i18n.getString( 'please_select_dataelement' ) , "'")';
+var i18n_please_select_indicator = '$encoder.jsEscape($i18n.getString( 'please_select_indicator' ) , "'")';
+var i18n_please_enter_description = '$encoder.jsEscape($i18n.getString( 'please_enter_description' ) , "'")';
+var i18n_delete_confirm = '$encoder.jsEscape($i18n.getString( 'delete_confirm' ) , "'")';
+var i18n_deleting = '$encoder.jsEscape($i18n.getString( 'deleting' ) , "'")';
+var i18n_ok = '$encoder.jsEscape($i18n.getString( 'ok' ) , "'")';
+var i18n_cancel = '$encoder.jsEscape($i18n.getString( 'cancel' ) , "'")';
+var i18n_edit = '$encoder.jsEscape($i18n.getString( 'edit' ) , "'")';
+var i18n_available = '$encoder.jsEscape($i18n.getString( 'available' ) , "'")';
+var i18n_edit = '$encoder.jsEscape($i18n.getString( 'edit' ) , "'")';
+var i18n_selected = '$encoder.jsEscape($i18n.getString( 'edit' ) , "'")';
+var i18n_show_menu = '$encoder.jsEscape( $i18n.getString( "show_menu" ) , "'")';
+var i18n_warning = '$encoder.jsEscape( $i18n.getString( "warning" ) , "'")';
+var i18n_error = '$encoder.jsEscape( $i18n.getString( "error" ) , "'")';
+var i18n_success = '$encoder.jsEscape( $i18n.getString( "success" ) , "'")';
+var i18n_hide_menu = '$encoder.jsEscape( $i18n.getString( "hide_menu" ) , "'")';
+var i18n_waiting = '$encoder.jsEscape( $i18n.getString( "waiting" ) , "'")';
+var i18n_enter_digits = '$encoder.jsEscape($i18n.getString( 'please_enter_a_valid_digits' ) , "'")'
+var i18n_process = '$encoder.jsEscape( $i18n.getString( "process" ) , "'" )';
+var i18n_delete_success = '$encoder.jsEscape( $i18n.getString( "delete_success" ) , "'" )';
+var i18n_no_item_to_export = '$encoder.jsEscape( $i18n.getString( "no_item_to_export" ) , "'" )';
+
+var validationMessage   = {
+         required: '$encoder.jsEscape($i18n.getString( 'this_field_is_required' ) , "'")'
+        ,remote: '$encoder.jsEscape($i18n.getString( 'please_fix_this_field' ) , "'")'
+        ,email: '$encoder.jsEscape($i18n.getString( 'please_enter_a_valid_email_address' ) , "'")'
+        ,url: '$encoder.jsEscape($i18n.getString( 'please_enter_a_valid_url' ) , "'")'
+        ,date: '$encoder.jsEscape($i18n.getString( 'please_enter_a_valid_date' ) , "'")'
+        ,dateISO: '$encoder.jsEscape($i18n.getString( 'please_enter_a_valid_date_iso' ) , "'")'
+        ,number: '$encoder.jsEscape($i18n.getString( 'please_enter_a_valid_number' ) , "'")'
+        ,digits: '$encoder.jsEscape($i18n.getString( 'please_enter_a_valid_digits' ) , "'")'
+        ,lettersdigitsonly: '$encoder.jsEscape($i18n.getString( 'please_enter_a_letters_or_digits' ) , "'")'
+        ,equalTo: '$encoder.jsEscape($i18n.getString( 'please_enter_the_equal_values_again' ) , "'")'
+        ,accept: '$encoder.jsEscape($i18n.getString( 'please_enter_a_value_with_a_valid_expression' ) , "'")'
+        ,firstletteralphabet: '$encoder.jsEscape($i18n.getString( 'first_character_must_be_alphabetical' ) , "'")'
+        ,maxlength: validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_no_more_than_n_character' ) , "'")')
+        ,minlength: validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_at_least_than_n_character' ) , "'")')
+        ,rangelength: validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_a_value_between_n_character' ) , "'")')
+        ,range: validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_a_value_between_a_and_b' ) , "'")')
+        ,max: validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_a_value_less_than_or_equal_to_n' ) , "'")')
+        ,min: validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_a_value_greater_than_or_equal_to_n' ) , "'")')
+        ,notequalto: '$encoder.jsEscape($i18n.getString( 'please_enter_a_different_value_to_above' ) , "'")'
+        ,decimals: '$encoder.jsEscape($i18n.getString( 'digits_decimal_only_please' ) , "'")'
+        ,alphanumeric: '$encoder.jsEscape($i18n.getString( 'please_letters_numbers_spaces_underscores_only' ) , "'")'       
+        ,alphanumericwithbasicpuncspaces: '$encoder.jsEscape($i18n.getString( 'please_letters_numbers_spaces_or_some_special_chars_only' ) , "'")'
+        ,letterswithbasicspecialchars: '$encoder.jsEscape($i18n.getString( 'please_letters_numbers_spaces_or_some_special_chars_only' ) , "'")'
+        ,lessthanequal: validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_a_value_less_than_or_equal_to' ) , "'")')
+        ,greaterthanequal: validatorFormat( '$encoder.jsEscape($i18n.getString( 'please_enter_a_value_greater_than_or_equal_to' ) , "'")' )
+        ,unique: '$encoder.jsEscape($i18n.getString( 'please_do_not_enter_same_values' ) , "'")'
+        ,letterswithbasicpunc: '$encoder.jsEscape($i18n.getString( 'letters_or_punctuation_only_please' ) , "'")'
+        ,maxWords : validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_n_words_or_less' ) , "'")')
+        ,minWords : validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_at_least_n_words' ) , "'")')
+        ,rangeWords : validatorFormat('$encoder.jsEscape($i18n.getString( 'please_enter_betwwen_a_and_b_words' ) , "'")')
+        ,lettersonly : '$encoder.jsEscape($i18n.getString( 'letters_only_please' ) , "'")'
+        ,nowhitespace : '$encoder.jsEscape($i18n.getString( 'no_white_space_please' ) , "'")'
+        ,nostartwhitespace : '$encoder.jsEscape($i18n.getString( 'no_start_white_space_please' ) , "'")'
+        ,ziprange : '$encoder.jsEscape($i18n.getString( 'ZIP_code_must_be_in_the_range' ) , "'")'
+        ,time : '$encoder.jsEscape($i18n.getString( 'please_enter_valid_time' ) , "'")'
+        ,phone : '$encoder.jsEscape($i18n.getString( 'please_enter_valid_phone_number' ) , "'")'
+        ,strippedminlength : '$encoder.jsEscape($i18n.getString( 'please_enter_at_least_n_character' ) , "'")'
+        ,datelessthanequaltoday: '$encoder.jsEscape($i18n.getString( 'this_date_can_not_be_after_today' ) , "'")'
+        ,required_group : '$encoder.jsEscape($i18n.getString( 'please_fill_out_at_least_one_of_these_fields' ) , "'")'
+        ,required_select_group : '$encoder.jsEscape($i18n.getString( 'please_select_at_least_one_option_for_these_fields' ) , "'")'
+        ,password: '$encoder.jsEscape($i18n.getString( 'password_must_contain_at_least_one_capital_letter_and_one_digit' ) , "'")'
+        ,notOnlyDigits: '$encoder.jsEscape($i18n.getString('only_digits_are_not_allowed' ) , "'")'
+        ,custome_regex: validatorFormat("{1}")
+        ,greaterDate: '$encoder.jsEscape($i18n.getString('closedDate_should_be_greater_than_openDate' ) , "'")'
+        ,unicodechars: '$encoder.jsEscape($i18n.getString('please_unicode_chars_only' ) , "'")'
+        ,unrecognizedcoordinatestring: '$encoder.jsEscape($i18n.getString('unrecognized_coordinate_string' ) , "'")'
+        ,number: '$encoder.jsEscape($i18n.getString('please_enter_valid_number' ) , "'")'
+        ,integer: '$encoder.jsEscape($i18n.getString('please_enter_valid_integer' ) , "'")'
+        ,positive_integer: '$encoder.jsEscape($i18n.getString('please_enter_valid_positive_integer' ) , "'")'
+        ,negative_integer: '$encoder.jsEscape($i18n.getString('please_enter_valid_negative_integer' ) , "'")'
+};

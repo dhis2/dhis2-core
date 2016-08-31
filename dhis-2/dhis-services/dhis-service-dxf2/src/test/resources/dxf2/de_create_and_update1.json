@@ -1,0 +1,100 @@
+{
+  "dataElements": [
+    {
+      "code": "DECA",
+      "created": "2016-03-04T03:37:12.714+0000",
+      "lastUpdated": "2016-03-04T03:37:12.733+0000",
+      "name": "DEA",
+      "id": "deabcdefghA",
+      "shortName": "DESA",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "--------",
+      "description": "DEDA",
+      "zeroIsSignificant": false,
+      "valueType": "INTEGER",
+      "categoryCombo": {
+        "id": "hmqVMxvDKUD"
+      },
+      "userGroupAccesses": [
+        {
+          "userGroup": {
+            "id": "ugabcdefghA",
+            "code": "UserGroupCodeA"
+          },
+          "access": "r-------"
+        }
+      ],
+      "attributeValues": [],
+      "aggregationLevels": []
+    },
+    {
+      "code": "DECB",
+      "created": "2016-03-04T03:37:12.720+0000",
+      "lastUpdated": "2016-03-04T03:37:12.741+0000",
+      "name": "DEB",
+      "id": "deabcdefghB",
+      "shortName": "DESB",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "--------",
+      "description": "DEDB",
+      "zeroIsSignificant": false,
+      "valueType": "INTEGER",
+      "categoryCombo": {
+        "id": "hmqVMxvDKUD"
+      },
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "aggregationLevels": []
+    },
+    {
+      "code": "DECC",
+      "created": "2016-03-04T03:37:12.725+0000",
+      "lastUpdated": "2016-03-04T03:37:12.743+0000",
+      "name": "DEC",
+      "id": "deabcdefghC",
+      "shortName": "DESC",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "--------",
+      "description": "DEDC",
+      "zeroIsSignificant": false,
+      "valueType": "INTEGER",
+      "categoryCombo": {
+        "id": "hmqVMxvDKUD"
+      },
+      "userGroupAccesses": [
+        {
+          "userGroup": {
+            "id": "ugabcdefghA",
+            "code": "UserGroupCodeA"
+          },
+          "access": "r-------"
+        }
+      ],
+      "attributeValues": [],
+      "aggregationLevels": []
+    },
+    {
+      "code": "DECD",
+      "created": "2016-03-04T03:37:12.729+0000",
+      "lastUpdated": "2016-03-04T03:37:12.745+0000",
+      "name": "DED",
+      "id": "deabcdefghD",
+      "shortName": "DESD",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "--------",
+      "description": "DEDD",
+      "zeroIsSignificant": false,
+      "valueType": "INTEGER",
+      "categoryCombo": {
+        "id": "hmqVMxvDKUD"
+      },
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "aggregationLevels": []
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.fileresource.FileResource" table="fileresource">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="fileresourceid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <!-- TODO name == filename. Can this be non-unique? -->
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <property name="contentType" column="contenttype" not-null="true" unique="false" length="255" />
+
+    <property name="contentLength" column="contentlength" not-null="true" unique="false" />
+
+    <property name="contentMd5" column="contentmd5" not-null="true" length="32" />
+
+    <property name="storageKey" column="storagekey" not-null="true" unique="true" length="1024" />
+
+    <property name="assigned" column="isassigned" not-null="true" />
+    
+    <property name="storageStatus" length="40" column="storagestatus">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.fileresource.FileResourceStorageStatus</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="domain" length="40" column="domain">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.fileresource.FileResourceDomain</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_fileresource_userid" />
+
+  </class>
+</hibernate-mapping>

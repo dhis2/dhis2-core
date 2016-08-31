@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <bean id="org.hisp.dhis.validationrule.action.NoAction" class="org.hisp.dhis.validationrule.action.NoAction">
+  </bean>
+
+  <!-- ValidationRule CRUD operations -->
+
+  <bean id="org.hisp.dhis.validationrule.action.AddValidationRuleAction" 
+    class="org.hisp.dhis.validationrule.action.AddValidationRuleAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.ShowUpdateValidationRuleFormAction"
+    class="org.hisp.dhis.validationrule.action.ShowUpdateValidationRuleFormAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.GetValidationRuleAction" 
+    class="org.hisp.dhis.validationrule.action.GetValidationRuleAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.GetValidationRuleListAction"
+    class="org.hisp.dhis.validationrule.action.GetValidationRuleListAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.RemoveValidationRuleAction"
+    class="org.hisp.dhis.validationrule.action.RemoveValidationRuleAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.UpdateValidationRuleAction"
+    class="org.hisp.dhis.validationrule.action.UpdateValidationRuleAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.ValidateValidationRuleAction"
+    class="org.hisp.dhis.validationrule.action.ValidateValidationRuleAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.SetupTreeAction" class="org.hisp.dhis.validationrule.action.SetupTreeAction"
+    scope="prototype">
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.GetPeriodTypesAction" class="org.hisp.dhis.validationrule.action.GetPeriodTypesAction"
+    scope="prototype">
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <!-- ValidationRuleGroup CRUD operations -->
+
+  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.AddValidationRuleGroupAction"
+    class="org.hisp.dhis.validationrule.action.validationrulegroup.AddValidationRuleGroupAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupAction"
+    class="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupListAction"
+    class="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupListAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.RemoveValidationRuleGroupAction"
+    class="org.hisp.dhis.validationrule.action.validationrulegroup.RemoveValidationRuleGroupAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.ShowUpdateValidationRuleGroupFormAction"
+    class="org.hisp.dhis.validationrule.action.validationrulegroup.ShowUpdateValidationRuleGroupFormAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.UpdateValidationRuleGroupAction"
+    class="org.hisp.dhis.validationrule.action.validationrulegroup.UpdateValidationRuleGroupAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.ValidateValidationRuleGroupAction"
+    class="org.hisp.dhis.validationrule.action.validationrulegroup.ValidateValidationRuleGroupAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <!-- ValidationRule Expression -->
+
+  <bean id="org.hisp.dhis.validationrule.action.GetTextualExpressionAction"
+    class="org.hisp.dhis.validationrule.action.GetTextualExpressionAction"
+    scope="prototype">
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.GetFilteredDataElementsAction"
+    class="org.hisp.dhis.validationrule.action.GetFilteredDataElementsAction"
+    scope="prototype">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <!-- ValidationRule service operations -->
+
+  <bean id="org.hisp.dhis.validationrule.action.ValidateRunValidationAction"
+    class="org.hisp.dhis.validationrule.action.ValidateRunValidationAction"
+    scope="prototype">
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.RunValidationAction" class="org.hisp.dhis.validationrule.action.RunValidationAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.GetValidationResultDetailsAction"
+    class="org.hisp.dhis.validationrule.action.GetValidationResultDetailsAction"
+    scope="prototype">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.ExportValidationResultAction"
+    class="org.hisp.dhis.validationrule.action.ExportValidationResultAction"
+    scope="prototype">
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+  </bean>
+
+  <!-- Data analysis -->
+
+  <bean id="org.hisp.dhis.validationrule.action.dataanalysis.ViewAnalysisFormAction"
+    class="org.hisp.dhis.validationrule.action.dataanalysis.ViewAnalysisFormAction"
+    scope="prototype">
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.dataanalysis.GetAnalysisAction"
+    class="org.hisp.dhis.validationrule.action.dataanalysis.GetAnalysisAction"
+    scope="prototype">
+    <property name="serviceProvider" ref="dataAnalysisServiceProvider" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.dataanalysis.MarkForFollowupAction"
+    class="org.hisp.dhis.validationrule.action.dataanalysis.MarkForFollowupAction"
+    scope="prototype">
+    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.dataanalysis.ValidationRunAnalysisAction"
+    class="org.hisp.dhis.validationrule.action.dataanalysis.ValidationRunAnalysisAction"
+    scope="prototype">
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validationrule.action.dataanalysis.GetFollowupAction"
+    class="org.hisp.dhis.validationrule.action.dataanalysis.GetFollowupAction"
+    scope="prototype">
+    <property name="followupAnalysisService" ref="org.hisp.dhis.dataanalysis.FollowupAnalysisService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+  </bean>
+
+</beans>

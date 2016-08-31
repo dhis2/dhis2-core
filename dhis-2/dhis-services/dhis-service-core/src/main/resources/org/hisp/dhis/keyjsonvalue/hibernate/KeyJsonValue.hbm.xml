@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]>
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.keyjsonvalue.KeyJsonValue" table="keyjsonvalue">
+
+        <cache usage="read-write"/>
+
+        <id name="id" column="keyjsonvalueid">
+            <generator class="native"/>
+        </id>
+        &identifiableProperties;
+
+        <property name="namespace" column="namespace" type="string" length="255" not-null="true" unique-key="keyjsonvalue_unique_key_in_namespace"/>
+
+        <property name="key" column="namespacekey" type="string" length="255" unique-key="keyjsonvalue_unique_key_in_namespace" /> <!-- set not-null -->
+
+        <property name="plainValue" column="value" type="text" access="property"/>
+
+        <property name="encryptedValue" column="encrypted_value" type="AESEncryptedString" access="property"/>
+        
+        <property name="encrypted" column="encrypted" type="boolean" />
+
+    </class>
+</hibernate-mapping>

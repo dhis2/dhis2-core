@@ -1,0 +1,31 @@
+
+<h2>
+	$i18n.getString( "interpretations" )
+</h2>
+
+
+<i>$i18n.getString( "interpretations_support" )</i><br />
+
+<p>
+	#foreach( $interpretation in $interpretations )
+		<li>
+			<a href="getInterpretation.action?interpretationId=$interpretation.getId()">
+				$interpretation.getText()
+			</a>
+		</li>
+	#end
+</p>
+
+<div id="footer">
+	<h2>
+		$i18n.getString( "navigate_to" )
+	</h2>
+	
+	<ul>
+		<li>
+			<a href="index.action">
+				$i18n.getString("home")
+			</a>
+		</li>
+	</ul>
+</div>

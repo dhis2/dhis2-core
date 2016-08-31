@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>$encoder.htmlEncode( $applicationTitle )</title>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.ext.js"></script>
+    <script type="text/javascript" src="../javascripts/useraccount/restore.js"></script>
+    <script type="text/javascript" src="../i18nJavaScript.action"></script>
+    <link type="text/css" rel="stylesheet" href="../css/account.css">
+</head>
+<body>
+
+<div id="accountHeader"></div>
+
+<div id="accountContainer">
+
+<div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
+
+<div id="accountInput">
+
+<h3>$i18n.getString( "restore_account" )</h3>
+
+<form id="restoreForm">
+
+<input type="hidden" id="username" value="${username}">
+<input type="hidden" id="token" value="${token}">
+
+<table style="margin-bottom:20px">
+    <tr>
+        <td style="width:140px"><label for="code">$i18n.getString( "code_from_email" )</label></td>
+        <td><input type="text" id="code" name="code" autocomplete="off"></td>
+    </tr>
+    <tr>
+        <td><label for="password">$i18n.getString( "new_password" )</label></td>
+        <td><input type="password" id="password" name="password" autocomplete="off"></td>
+    </tr>
+    <tr>
+        <td><label for="retypePassword">$i18n.getString( "confirm_password" )</label></td>
+        <td><input type="password" id="retypePassword" name="retypePassword" autocomplete="off"></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td><input id="submitButton" type="submit" value="$i18n.getString( 'restore' )" style="width:10em"></td>
+    </tr>
+</table>
+
+</form>
+
+<div id="restoreSuccessMessage" style="display:none">
+You account was successfully restored. Use your new password to 
+<a href="login.action">log in at the login page</a>.
+</div>
+
+<div id="restoreErrorMessage" style="display:none">
+Sorry, your account could not be restored. The code might be invalid or expired. Try again or
+go to the <a href="login.action">login page</a> and request a new restore email.
+</div>
+
+</div>
+
+</body>
+</html>

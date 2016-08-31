@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <bean id="org.hisp.dhis.sms.input.SMSInputAction" 
+    class="org.hisp.dhis.sms.input.SMSInputAction" 
+    scope="prototype">
+    <property name="incomingSmsService" ref="org.hisp.dhis.sms.incoming.IncomingSmsService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.sms.outcoming.ShowSendSMSFormAction"
+    class="org.hisp.dhis.sms.outcoming.ShowSendSMSFormAction" 
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.sms.outcoming.ShowSendSMSBeneficiaryFormAction"
+    class="org.hisp.dhis.sms.outcoming.ShowSendSMSBeneficiaryFormAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.sms.outcoming.ProcessingSendSMSAction"
+    class="org.hisp.dhis.sms.outcoming.ProcessingSendSMSAction" 
+    scope="prototype"/>
+
+</beans>

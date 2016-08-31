@@ -1,0 +1,56 @@
+
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+		#if( !$!reportParams.isSet() )
+		generateReport();
+		#end
+	});
+
+	var i18n_process_completed = '$encoder.jsEscape( $i18n.getString( "process_completed" ), "'")';
+	var i18n_please_wait = '$encoder.jsEscape( $i18n.getString( "please_wait" ), "'")';
+	var i18n_please_select_unit = '$encoder.jsEscape( $i18n.getString( "select_organisation_unit" ), "'")';
+</script>
+
+<div class="headerDiv"><span class="header">$i18n.getString( "report_table_parameters" )</span></div>
+
+<input type="hidden" id="uid" name="uid" value="$!uid" />
+
+<!-- Reporting month -->
+
+#if ( $!reportParams.isParamReportingMonth() )
+
+<div class="labelDiv">$i18n.getString( "reporting_period" )</div>
+
+<div class="pageDiv">
+<select id="reportingPeriod" name="reportingPeriod" style="width:300px">               
+#foreach ( $period in $periods )
+<option value="${period.startDateString}">${period.name}</option>
+#end
+</select>
+</div>
+
+#end
+
+<!-- OrganisationUnit -->
+
+#if ( $!reportParams.isParamGrandParentOrganisationUnit() || $!reportParams.isParamParentOrganisationUnit() || $!reportParams.isParamOrganisationUnit() )
+
+<div class="labelDiv">$i18n.getString( "organisation_unit" )</div>
+
+<div class="pageDiv" id="selectionTree" style="width:300px; height:200px"></div>	            
+<script type="text/javascript">
+	selectionTreeSelection.setMultipleSelectionAllowed( false );
+	selectionTree.buildSelectionTree();
+</script>
+
+#end
+
+<!-- Submit -->
+
+<div class="labelDiv">
+#if( $!reportParams.isSet() )
+<input type="button" value="$i18n.getString( 'get_report' )" onclick="generateReport()" style="width:150px; height:26px;" />
+#end
+</div>
+
+<span id="message"></span>

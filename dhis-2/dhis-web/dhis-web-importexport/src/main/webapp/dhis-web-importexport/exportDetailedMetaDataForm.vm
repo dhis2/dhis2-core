@@ -1,0 +1,123 @@
+<script type="text/javascript">
+	jQuery(function() {
+		jQuery("#availableDataElements").dhisAjaxSelect({
+			source: "../dhis-web-commons-ajax-json/getDataElements.action",
+			iterator: "dataElements",
+			connectedTo: 'selectedDataElements',
+			handler: function(item) {
+				var option = jQuery("<option data-id='" + item.groups + "' />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			},
+			filter: {
+				source: "../dhis-web-commons-ajax-json/getDataElementGroups.action",
+				label: 'dataelement group',
+				iterator: "dataElementGroups",
+				handler: function(item) {
+					return "<option data-key='id' data-value='" + item.id + "'>" + item.name + "</option>";
+				}
+			}
+		});
+
+		jQuery("#availableIndicators").dhisAjaxSelect({
+			source: "../dhis-web-commons-ajax-json/getIndicators.action",
+			iterator: "indicators",
+			connectedTo: 'selectedIndicators',
+			handler: function(item) {
+				var option = jQuery("<option data-id='" + item.groups + "' />");
+				option.text( item.name );
+				option.attr( "value", item.id );
+
+				return option;
+			},
+			filter: {
+				source: "../dhis-web-commons-ajax-json/getIndicatorGroups.action",
+				iterator: "indicatorGroups",
+				label: 'indicator group',
+				handler: function(item) {
+					return "<option data-key='id' data-value='" + item.id + "'>" + item.name + "</option>";
+				}
+			}
+		});
+	});
+</script>
+
+<h3>$i18n.getString( "$exportFormat" ) $i18n.getString( "detailed_metadata_export" ) #openHelp( "export" )</h3>
+
+<form id="exportForm" name="exportForm" method="post" action="exportDetailedMetaData.action">
+<input type="hidden" name="exportFormat" value="$!exportFormat">
+  <table id="dataElementSelectionArea">
+      <colgroup>
+        <col style="width: 500px;"/>
+        <col/>
+        <col style="width: 500px"/>
+      </colgroup>
+    <thead>
+      <tr>
+        <th>$i18n.getString( "available_data_elements" )</th>
+		<th>$i18n.getString( "filter" )</th>
+        <th>$i18n.getString( "selected_data_elements" )</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <select id="availableDataElements" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        </td>
+        <td>
+        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableDataElements' );"/><br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedDataElements' );"/><br/>
+			<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableDataElements' );"/><br/>
+			<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedDataElements' );"/>
+		</td>			
+        <td>
+        	<select id="selectedDataElements" name="selectedDataElements" multiple="multiple" style="height: 200px; width: 100%; margin-top: 45px;"></select>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table id="indicatorSelectionArea">
+      <colgroup>
+        <col style="width: 500px;"/>
+        <col/>
+        <col style="width: 500px;"/>
+      </colgroup>
+
+    <thead>
+      <tr>
+        <th>$i18n.getString( "available_indicators" )</th>
+		<th>$i18n.getString( "filter" )</th>
+        <th>$i18n.getString( "selected_indicators" )</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>
+          <select id="availableIndicators" name="availableIndicators" multiple="multiple" style="height: 200px; width: 100%;"></select>
+        </td>
+
+        <td>
+        	<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'availableIndicators' );"/><br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:50px" onclick="dhisAjaxSelect_moveAllSelected( 'selectedIndicators' );"/><br/>
+			<input type="button" value="&gt;&gt;" title="$i18n.getString('move_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'availableIndicators' );"/><br/>
+			<input type="button" value="&lt;&lt;" title="$i18n.getString('remove_all')" style="width:50px" onclick="dhisAjaxSelect_moveAll( 'selectedIndicators' );"/>
+        </td>
+
+        <td>
+			<select id="selectedIndicators" name="selectedIndicators" multiple="multiple" style="height: 200px; width: 100%; margin-top: 45px;"></select>
+        </td>
+      </tr>
+
+	    <tr>
+    		<td>
+    			<input type="button" value="$i18n.getString( 'export' )" onclick="exportDetailedMetaData()" style="width:120px">
+			</td>
+    	</tr>
+	    </tbody>
+	</table>
+	
+</form>

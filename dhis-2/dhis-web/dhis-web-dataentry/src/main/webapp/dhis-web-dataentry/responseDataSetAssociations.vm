@@ -1,0 +1,19 @@
+{ "dataSetAssociations": {
+"dataSetAssociationSets": {
+#set( $size1 = $dataSetAssociationSets.size() )
+#set( $index = 0 )
+#foreach( $associationSet in $dataSetAssociationSets )
+"${index}": [
+#set( $index = $index + 1 )
+#set( $size2 = $associationSet.size() )
+#foreach( $id in $associationSet )
+"$encoder.jsonEncode( $id )"#if( $velocityCount < $size2 ),#end
+#end ]#if( $velocityCount < $size1 ),#end
+#end },
+
+"organisationUnitAssociationSetMap": {
+#set( $size = $organisationUnitAssociationSetMap.size() )
+#foreach( $orgUnit in $organisationUnitAssociationSetMap.keySet() )
+"${orgUnit}":"$organisationUnitAssociationSetMap.get( ${orgUnit} )"#if( $velocityCount < $size ),#end
+#end }
+} }

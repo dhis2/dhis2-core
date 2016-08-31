@@ -1,0 +1,56 @@
+
+<h3>$i18n.getString( "import_summary" )</h3>
+
+#if( ${summary.dataSetComplete} && ${summary.dataSetComplete} != "false" )
+<p>$i18n.getString( "data_set_completed_on" ) ${summary.dataSetComplete}</p>
+#end
+
+<h4>$i18n.getString( "import_count" )</h4>
+#if( $summary.importCount )
+<table>
+<col width="120">
+<col width="260">
+<tr>
+	<th>$i18n.getString( "type" )</th>
+	<th>$i18n.getString( "count" )</th>
+</tr>
+<tr>
+	<td>$i18n.getString( "imported" )</td>
+	<td>${summary.importCount.imported}</td>
+</tr>
+<tr>
+	<td>$i18n.getString( "updated" )</td>
+	<td>${summary.importCount.updated}</td>
+</tr>
+<tr>
+	<td>$i18n.getString( "deleted" )</td>
+	<td>${summary.importCount.deleted}</td>
+</tr>
+<tr>
+	<td>$i18n.getString( "ignored" )</td>
+	<td>${summary.importCount.ignored}</td>
+</tr>
+</table>
+#else
+<p>$i18n.getString( "no_data_values_found" )</p>
+#end
+
+<h4>$i18n.getString( "conflicts" )</h4>
+#if( $summary.conflicts.size() > 0 )
+<table>
+<col width="120">
+<col width="260">
+<tr>
+	<th>$i18n.getString( "element" )</th>
+	<th>$i18n.getString( "description" )</th>
+</tr>
+#foreach( $conflict in $summary.conflicts )
+<tr>
+	<td>${conflict.object}</td>
+	<td>$encoder.htmlEncode( $conflict.value )</td>
+</tr>
+#end
+</table>
+#else
+<p>$i18n.getString( "no_conflicts_found" )</p>
+#end

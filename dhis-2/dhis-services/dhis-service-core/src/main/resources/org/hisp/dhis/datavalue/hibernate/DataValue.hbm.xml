@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.datavalue.DataValue" table="datavalue">
+
+    <composite-id>
+      <key-many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_datavalue_dataelementid" />
+      <key-many-to-one name="period" class="org.hisp.dhis.period.Period" column="periodid" foreign-key="fk_datavalue_periodid" />      
+      <key-many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid" foreign-key="fk_datavalue_organisationunitid" />
+      <key-many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid" foreign-key="fk_datavalue_categoryoptioncomboid" />
+      <key-many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="attributeoptioncomboid" foreign-key="fk_datavalue_attributeoptioncomboid" />
+    </composite-id>
+
+    <property name="value" length="50000" />
+
+    <property name="storedBy" column="storedby" />
+
+    <property name="created" column="created" type="timestamp" />
+
+    <property name="lastUpdated" column="lastupdated" type="timestamp" index="in_datavalue_lastupdated" />
+
+    <property name="comment" length="50000" />
+
+    <property name="followup" />
+
+  </class>
+</hibernate-mapping>

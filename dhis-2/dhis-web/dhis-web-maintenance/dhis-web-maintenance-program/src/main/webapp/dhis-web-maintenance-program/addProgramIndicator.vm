@@ -1,0 +1,116 @@
+<script>
+jQuery( document ).ready( function()
+{
+	validation2( 'programIndicatorForm', function( form )
+	{
+		 #tblDynamicAttributesJavascript()
+		form.submit();
+	},{
+		'beforeValidateHandler' : function()
+		{
+			
+		},
+		'rules' : getValidationRules( "programIndicator" )
+	});
+	
+	checkValueIsExist( "name", "validateProgramIndicator.action" );	
+	checkValueIsExist( "shortName", "validateProgramIndicator.action" );	
+	checkValueIsExist( "code", "validateProgramIndicator.action" );	
+});
+</script>
+
+<h3>$i18n.getString( "create_new_program_indicator" ) #openHelp( "program_indicator" )</h3>
+
+<h4>$encoder.htmlEncode($program.displayName)</h4>
+							
+<form id="programIndicatorForm" action="addProgramIndicator.action" method="post" class="inputForm">
+<input type='hidden' id='programId' name='programId' value='$program.id'>
+
+<table>
+	<thead>
+      <tr>
+        <th colspan="2">$i18n.getString( "program_indicator_details" )sadasd</th>
+      </tr>
+    </thead>
+	<tbody>
+		<tr>
+			<td style="width:140px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+			<td><input type="text" id="name" name="name" ></td>
+		</tr>	
+		<tr>
+			<td><label for="shortName">$i18n.getString( "short_name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+			<td><input type="text" id="shortName" name="shortName" ></td>
+		</tr>	
+		<tr>
+			<td><label for="code">$i18n.getString( "code" ) </label></td>
+			<td><input type="text" id="code" name="code" ></td>
+		</tr>	
+		<tr>
+			<td><label for="description">$i18n.getString( "description" ) </label></td>
+			<td><textarea type="text" id="description" name="description" ></textarea></td>
+		</tr>
+		<tr>
+			<td><label for="decimals">$i18n.getString( "decimals_in_data_output" )</label></td>
+			<td>
+				<select id="decimals" name="decimals">
+					<option>[$i18n.getString( "default" )]</option>
+					<option value="0">0</option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+	        <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
+	        <td>
+	            <select id="aggregationType" name="aggregationType">
+	                <option value="AVERAGE">$i18n.getString( "average" )</option>
+	                <option value="SUM">$i18n.getString( "sum" )</option>
+	                <option value="COUNT">$i18n.getString( "count" )</option>
+	                <option value="STDDEV">$i18n.getString( "stddev" )</option>
+	                <option value="VARIANCE">$i18n.getString( "variance" )</option>
+	                <option value="MIN">$i18n.getString( "min" )</option>
+	                <option value="MAX">$i18n.getString( "max" )</option>
+	                <option value="CUSTOM">$i18n.getString( "custom" )</option>
+	            </select>
+	        </td>
+			<td></td>
+	    </tr>
+	    <tr>
+	        <td><label>$i18n.getString( 'legend_set' )</label></td>            
+	        <td>
+	            <select id="legendSetId" name="legendSetId">
+	                <option value="0">[$i18n.getString('please_select')]</option>
+	                #foreach ( $legendSet in $legendSets )
+	                <option value="$legendSet.id">$!encoder.htmlEncode( $legendSet.displayName )</option>
+	                #end
+	            </select>
+	        </td>
+        </tr>
+		<tr>
+			<td><label for="displayInForm">$i18n.getString( "display_in_form" )</label></td>
+			<td><input type="checkbox" id="displayInForm" name="displayInForm" value="true"></td>
+		</tr>
+</table>
+
+<br>
+
+#tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+<br>
+
+#parse( "/dhis-web-maintenance-program/programIndicatorForm.vm" )
+
+<div style="margin-top:25px">
+	<input type="submit" value="$i18n.getString( 'add' )" style="width:10em">
+	<input type="button" value="$i18n.getString( 'cancel' )" style="width:10em" onclick="window.location.href='programIndicator.action?programId=$program.id'" >
+</div>	
+	
+</form>
+
+<script>
+	$('#tabs').tabs();
+</script>

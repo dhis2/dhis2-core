@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.sms.outbound.OutboundSms" table="outbound_sms" lazy="false">
+
+    <id name="id">
+      <generator class="native" />
+    </id>
+
+    <set name="recipients" table="outbound_sms_recipients" fetch="join">
+      <key column="outbound_sms_id" />
+      <element type="text"/>
+    </set>
+    
+    <property name="date" not-null="true" />
+
+    <property name="message" length="500" />
+
+
+    <property name="status" not-null="true" index="outbound_sms_status_index">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.sms.outbound.OutboundSmsStatus</param>
+      </type>
+    </property>
+    
+    <property name="sender" />
+
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,48 @@
+<script type="text/javascript" src="javascript/updateAttributeGroupForm.js"></script>
+
+<h3>$i18n.getString( "edit_tracked_entity_attribute_group" )</h3>
+<form id="updateAttributeGroupForm" name="updateAttributeGroupForm" action="updateAttributeGroup.action" method="post" class="inputForm">
+
+<div style="display:inline">
+  <input type="hidden" id="id" name="id" value="$!attributeGroup.id"/>
+</div>
+
+<table>
+	<tr>
+		<th colspan="2">$i18n.getString( "tracked_entity_attribute_group_deltails" )</th>
+	</tr>
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$encoder.htmlEncode( $attributeGroup.name )" /></td>
+	</tr>   
+	<tr>
+		<td><label for="description">$i18n.getString( "description" )</label></td>
+		<td><textarea id="description" name="description">$!encoder.htmlEncode( $attributeGroup.description )</textarea></td>
+	</tr>
+	<tr>
+		<td colspan="2" height="15px"></td>
+	</tr>
+</table>
+
+#jqSelected({
+  "prefix": "tea",
+  "i18n_available": "availableAttribute",
+  "i18n_selected": "selectedAttribute",
+  "objects": $attributeGroup.attributes
+})
+
+<table>
+	<colgroup>
+		<col style='width:500px'/>
+		<col/>
+		<col style='width:500px'/>
+	</colgroup>
+	<tr>
+		<td colspan='2'>
+			<input type="submit" value="$i18n.getString( 'update' )" style="width:10em" />
+			<input type="button" value="$i18n.getString( 'cancel' )" style="width:10em" onclick="window.location.href='attributeGroup.action'" />
+		</td>
+	</tr>
+</table>
+
+</form>

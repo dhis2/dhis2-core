@@ -1,0 +1,9 @@
+#set( $size = $dataElements.size() )
+{ "dataElements": [
+#foreach ( $element in $dataElements )
+  {
+    "id": $!{element.id},
+    "name": "$!{element.name}"
+  }#if( $velocityCount < $size ),#end
+#end
+] }

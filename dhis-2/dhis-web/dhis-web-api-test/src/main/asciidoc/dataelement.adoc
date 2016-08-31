@@ -1,0 +1,612 @@
+
+[[resources-dataelement]]
+== **Data Element**
+
+Description of data elements here, including link to docs?
+
+=== Fields description
+include::{snippets}/data-elements/id/response-fields.adoc[]
+
+=== Listing DataElement
+
+==== List all
+
+A `GET` request will list all available data elements.
+
+Response fields
+include::{snippets}/data-elements/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/data-elements/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/data-elements/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that data element or 404.
+
+Example request
+include::{snippets}/data-elements/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/data-elements/id/http-response.adoc[]
+
+==== Using 'filter'
+
+A `GET` request with a  filter parameter which use like operator on an attribute
+More details at http://dhis2.github.io/dhis2-docs/master/en/developer/html/ch01s08.html
+
+Response fields
+include::{snippets}/data-elements/filter/response-fields.adoc[]
+
+Example request
+include::{snippets}/data-elements/filter/curl-request.adoc[]
+Example response
+include::{snippets}/data-elements/filter/http-response.adoc[]
+
+==== Using 'fields'
+
+A `GET` request with a  fields parameter and specify the name of attributes to be included in the result.
+More detail at http://dhis2.github.io/dhis2-docs/master/en/developer/html/ch01s09.html
+
+include::{snippets}/data-elements/fields/response-fields.adoc[]
+
+include::{snippets}/data-elements/fields/curl-request.adoc[]
+
+include::{snippets}/data-elements/fields/http-response.adoc[]
+
+
+=== Create DataElement
+Request fields
+include::{snippets}/data-elements/create/request-fields.adoc[]
+
+Example request
+include::{snippets}/data-elements/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/data-elements/create/http-response.adoc[]
+
+=== Delete DataElement
+
+Example request
+include::{snippets}/data-elements/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/data-elements/delete/http-response.adoc[]
+
+
+=== Update DataElement
+
+Example request
+include::{snippets}/data-elements/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/data-elements/update/http-response.adoc[]
+
+
+
+=== Add DataElementGroup
+
+Example request
+include::{snippets}/data-elements/adddataElementGroups/curl-request.adoc[]
+
+Example response
+include::{snippets}/data-elements/adddataElementGroups/http-response.adoc[]
+
+
+=== Delete DataElementGroup
+
+Example request
+include::{snippets}/data-elements/deletedataElementGroups/curl-request.adoc[]
+
+Example response
+include::{snippets}/data-elements/deletedataElementGroups/http-response.adoc[]
+
+
+== **Data Element Category**
+
+=== Fields description
+include::{snippets}/categories/id/response-fields.adoc[]
+
+=== Listing Category
+
+==== List all
+A `GET` request will list all available data element categories.
+
+Response structure
+include::{snippets}/categories/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/categories/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/categories/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that data element category or 404.
+
+Example request
+include::{snippets}/categories/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/categories/id/http-response.adoc[]
+
+
+
+=== Create Category
+
+Example request
+include::{snippets}/categories/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/categories/create/http-response.adoc[]
+
+
+=== Delete Category
+
+Example request
+include::{snippets}/categories/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/categories/delete/http-response.adoc[]
+
+
+=== Add CategoryOption
+
+Example request
+include::{snippets}/categories/addcategoryoptions/curl-request.adoc[]
+
+Example response
+include::{snippets}/categories/addcategoryoptions/http-response.adoc[]
+
+=== Delete CategoryOption
+
+Example request
+include::{snippets}/categories/deletecategoryoptions/curl-request.adoc[]
+
+Example response
+include::{snippets}/categories/deletecategoryoptions/http-response.adoc[]
+
+== **Category Combo**
+Fields Description
+include::{snippets}/categoryCombos/id/response-fields.adoc[]
+s
+=== Listing CategoryCombo
+
+==== List all
+A `GET` request will list all available Category Combos
+
+Response structure
+include::{snippets}/categoryCombos/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/categoryCombos/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Category Combos or 404.
+
+Example request
+include::{snippets}/categoryCombos/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/id/http-response.adoc[]
+
+=== Create CategoryCombo
+
+Example request
+include::{snippets}/categoryCombos/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/create/http-response.adoc[]
+
+
+=== Update CategoryCombo
+
+Example request
+include::{snippets}/categoryCombos/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/update/http-response.adoc[]
+
+
+=== Delete CategoryCombo
+
+Example request
+include::{snippets}/categoryCombos/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/delete/http-response.adoc[]
+
+== **DataElement Group**
+Fields Description
+include::{snippets}/dataElementGroups/id/response-fields.adoc[]
+
+=== Listing DataElementGroup
+
+==== List all
+A `GET` request will list all available DataElement Group
+
+Response structure
+include::{snippets}/dataElementGroups/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/dataElementGroups/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroups/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that DataElement Group or 404.
+
+Example request
+include::{snippets}/dataElementGroups/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroups/id/http-response.adoc[]
+
+=== Create DataElementGroup
+
+Example request
+include::{snippets}/dataElementGroups/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroups/create/http-response.adoc[]
+
+
+=== Update DataElementGroup
+
+Example request
+include::{snippets}/dataElementGroups/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroups/update/http-response.adoc[]
+
+
+=== Delete
+
+Example request
+include::{snippets}/dataElementGroups/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroups/delete/http-response.adoc[]
+
+
+== **DataElement Group Set**
+Fields Description
+include::{snippets}/dataElementGroupSets/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available DataElement Group Set
+
+Response structure
+include::{snippets}/dataElementGroupSets/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/dataElementGroupSets/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroupSets/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that DataElement Group Set or 404.
+
+Example request
+include::{snippets}/dataElementGroupSets/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroupSets/id/http-response.adoc[]
+
+=== Create
+
+Example request
+include::{snippets}/dataElementGroupSets/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroupSets/create/http-response.adoc[]
+
+
+=== Update
+
+Example request
+include::{snippets}/dataElementGroupSets/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroupSets/update/http-response.adoc[]
+
+
+=== Delete
+
+Example request
+include::{snippets}/dataElementGroupSets/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/dataElementGroupSets/delete/http-response.adoc[]
+
+
+== **Category Combo**
+Fields Description
+include::{snippets}/categoryCombos/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Category Combo
+
+Response structure
+include::{snippets}/categoryCombos/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/categoryCombos/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Category Combo or 404.
+
+Example request
+include::{snippets}/categoryCombos/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/id/http-response.adoc[]
+
+=== Create CategoryCombo
+
+Example request
+include::{snippets}/categoryCombos/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/create/http-response.adoc[]
+
+
+=== Update CategoryCombo
+
+Example request
+include::{snippets}/categoryCombos/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/update/http-response.adoc[]
+
+
+=== Delete CategoryCombo
+
+Example request
+include::{snippets}/categoryCombos/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryCombos/delete/http-response.adoc[]
+
+
+== **Category Option Combo**
+Fields Description
+include::{snippets}/categoryOptionCombos/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Category Option Combo
+
+Response structure
+include::{snippets}/categoryOptionCombos/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/categoryOptionCombos/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionCombos/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Category Option Combo or 404.
+
+Example request
+include::{snippets}/categoryOptionCombos/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionCombos/id/http-response.adoc[]
+
+=== Create CategoryOptionCombo
+
+Example request
+include::{snippets}/categoryOptionCombos/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionCombos/create/http-response.adoc[]
+
+
+=== Update CategoryOptionCombo
+
+Example request
+include::{snippets}/categoryOptionCombos/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionCombos/update/http-response.adoc[]
+
+
+=== Delete CategoryOptionCombo
+
+Example request
+include::{snippets}/categoryOptionCombos/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionCombos/delete/http-response.adoc[]
+
+
+
+== **Category Option**
+Fields Description
+include::{snippets}/categoryOptions/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Category Option
+
+Response structure
+include::{snippets}/categoryOptions/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/categoryOptions/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptions/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Category Option or 404.
+
+Example request
+include::{snippets}/categoryOptions/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptions/id/http-response.adoc[]
+
+=== Create CategoryOption
+
+Example request
+include::{snippets}/categoryOptions/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptions/create/http-response.adoc[]
+
+
+=== Update CategoryOption
+
+Example request
+include::{snippets}/categoryOptions/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptions/update/http-response.adoc[]
+
+
+=== Delete CategoryOption
+
+Example request
+include::{snippets}/categoryOptions/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptions/delete/http-response.adoc[]
+
+
+
+
+== **Category Option Group**
+Fields Description
+include::{snippets}/categoryOptionGroups/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Category Option Group
+
+Response structure
+include::{snippets}/categoryOptionGroups/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/categoryOptionGroups/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroups/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Category Option Group or 404.
+
+Example request
+include::{snippets}/categoryOptionGroups/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroups/id/http-response.adoc[]
+
+=== Create CategoryOptionGroup
+
+Example request
+include::{snippets}/categoryOptionGroups/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroups/create/http-response.adoc[]
+
+
+=== Update CategoryOptionGroup
+
+Example request
+include::{snippets}/categoryOptionGroups/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroups/update/http-response.adoc[]
+
+
+=== Delete CategoryOptionGroup
+
+Example request
+include::{snippets}/categoryOptionGroups/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroups/delete/http-response.adoc[]
+
+
+
+== **Category Option Group Set**
+Fields Description
+include::{snippets}/categoryOptionGroupSets/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Category Option Group Set
+
+Response structure
+include::{snippets}/categoryOptionGroupSets/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/categoryOptionGroupSets/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroupSets/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Category Option Group Set or 404.
+
+Example request
+include::{snippets}/categoryOptionGroupSets/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroupSets/id/http-response.adoc[]
+
+=== Create CategoryOptionGroupSet
+
+Example request
+include::{snippets}/categoryOptionGroupSets/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroupSets/create/http-response.adoc[]
+
+
+=== Update CategoryOptionGroupSet
+
+Example request
+include::{snippets}/categoryOptionGroupSets/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroupSets/update/http-response.adoc[]
+
+
+=== Delete CategoryOptionGroupSet
+
+Example request
+include::{snippets}/categoryOptionGroupSets/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/categoryOptionGroupSets/delete/http-response.adoc[]

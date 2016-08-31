@@ -1,0 +1,66 @@
+<script type="text/javascript" src="../dhis-web-commons/javascripts/useraccount/updateUserProfileForm.js"></script>
+
+<div id="updateProfileHeader">$encoder.htmlEncode( $userCredentials.userInfo.getName() )</div>
+<div id="updateProfileLink"><a class="blueButtonLink" href="../dhis-web-dashboard-integration/profile.action?id=${currentUser.uid}">$i18n.getString( "view_profile" )</a></div>
+
+<form id="updateUserProfileForm" name="updateUserProfileForm" class="inputForm">
+  <div><input type="hidden" id="id" name="id" value="$userCredentials.id"/></div>
+
+  <table>
+    <tr>
+      <th colspan="2">$i18n.getString( "profile_details" )</th>
+    </tr>
+    <tr>
+      <td><label for="email">$i18n.getString( "email" )</label></td>
+      <td><input type="text" id="email" name="email" value="$!encoder.htmlEncode( $userCredentials.userInfo.email )"></td>
+    </tr>
+    <tr>
+      <td><label for="phoneNumber">$i18n.getString( "phone_number" )</label></td>
+      <td><input type="text" id="phoneNumber" name="phoneNumber" value="$!encoder.htmlEncode( $userCredentials.userInfo.phoneNumber )"></td>
+    </tr>
+    <tr>
+      <td><label for="introduction">$i18n.getString( "introduction" )</label></td>
+      <td><textarea id="introduction" name="introduction">$!encoder.htmlEncode( $!userCredentials.userInfo.introduction )</textarea></td>
+    </tr>
+    <tr>
+      <td><label for="jobTitle">$i18n.getString( "job_title" )</label></td>
+      <td><input type="text" id="jobTitle" name="jobTitle" value="$!encoder.htmlEncode( $userCredentials.userInfo.jobTitle )"></td>
+    </tr>
+    <tr>
+      <td><label for="gender">$i18n.getString( "gender" )</label></td>
+      <td><select type="text" id="gender" name="gender">
+        <option value="gender_male" #if( $!userCredentials.userInfo.gender == "gender_male" ) selected="selected"#end>$i18n.getString( "male" )</option>
+        <option value="gender_female" #if( $!userCredentials.userInfo.gender == "gender_female" ) selected="selected"#end>$i18n.getString( "female" )</option>
+        <option value="gender_other" #if( $!userCredentials.userInfo.gender == "gender_other" ) selected="selected"#end>$i18n.getString( "other" )</option>
+      </select></td>
+    </tr>
+    <tr>
+      <td><label for="birthday">$i18n.getString( "birthday" )</label></td>
+      <td><input type="text" id="birthday" name="birthday" value="$!format.formatDate( $!userCredentials.userInfo.birthday )"></td>
+    </tr>
+    <tr>
+      <td><label for="nationality">$i18n.getString( "nationality" )</label></td>
+      <td><input type="text" id="nationality" name="nationality" value="$!encoder.htmlEncode( $!userCredentials.userInfo.nationality )"></td>
+    </tr>
+    <tr>
+      <td><label for="employer">$i18n.getString( "employer" )</label></td>
+      <td><input type="text" id="employer" name="employer" value="$!encoder.htmlEncode( $!userCredentials.userInfo.employer )"></td>
+    </tr>
+    <tr>
+      <td><label for="education">$i18n.getString( "education" )</label></td>
+      <td><textarea id="education" name="education">$!encoder.htmlEncode( $!userCredentials.userInfo.education )</textarea></td>
+    </tr>
+    <tr>
+      <td><label for="interests">$i18n.getString( "interests" )</label></td>
+      <td><textarea id="interests" name="interests">$!encoder.htmlEncode( $!userCredentials.userInfo.interests )</textarea></td>
+    </tr>
+    <tr>
+      <td><label for="languages">$i18n.getString( "languages" )</label></td>
+      <td><textarea id="languages" name="languages">$!encoder.htmlEncode( $!userCredentials.userInfo.languages )</textarea></td>
+    </tr>
+    <tr>
+      <td></td>
+      <td valign="top"><input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/></td>
+    </tr>
+  </table>
+</form>

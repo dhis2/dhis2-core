@@ -1,0 +1,98 @@
+<script type="text/javascript">
+    var i18n_select_one_or_more_object_types = '$encoder.jsEscape( $i18n.getString( "select_one_or_more_object_types" ), "'")';
+</script>
+
+<h3>$i18n.getString( "$exportFormat" ) $i18n.getString( "metadata_export" ) #openHelp( "export" )</h3>
+
+<form id="exportForm" name="exportForm" method="post" action="exportMetaData.action">
+
+<input type="hidden" name="exportFormat" value="$!exportFormat" />
+
+<table width="325">
+
+	<colgroup>
+  		<col width="25">
+ 		<col width="300">
+  	</colgroup>
+
+	<!-- Elements -->
+
+	<tr>
+		<th colspan="2">$i18n.getString( "elements" )</th>
+	</tr>
+	<tr>
+		<td><input id="dataElements" name="dataElements" type="checkbox" value="true" /></td>
+		<td><label for="dataElements">$i18n.getString( 'data_elements' )</label></td>
+  	</tr>
+  	<tr>
+		<td><input id="dataElementGroups" name="dataElementGroups" type="checkbox" value="true" /></td>
+		<td><label for="dataElementGroups">$i18n.getString( 'data_element_groups' )</label></td>
+  	</tr>  	
+    <tr>
+        <td><input id="dataElementGroupSets" name="dataElementGroupSets" type="checkbox" value="true" /></td>
+        <td><label for="dataElementGroupSets">$i18n.getString( 'data_element_group_sets' )</label></td>
+    </tr>   
+  	<tr>
+		<td><input id="indicators" name="indicators" type="checkbox" value="true" /></td>
+		<td><label for="indicators">$i18n.getString( 'indicators' )</label></td>
+  	</tr>
+  	<tr>
+		<td><input id="indicatorGroups" name="indicatorGroups" type="checkbox" value="true" /></td>
+		<td><label for="indicatorGroups">$i18n.getString( 'indicator_groups' )</label></td>
+  	</tr>
+    <tr>
+        <td><input id="indicatorGroupSets" name="indicatorGroupSets" type="checkbox" value="true" /></td>
+        <td><label for="indicatorGroupSets">$i18n.getString( 'indicator_group_sets' )</label></td>
+    </tr>
+	<tr>
+		<td><input id="dataSets" name="dataSets" type="checkbox" value="true" /></td>
+		<td><label for="dataSets">$i18n.getString( 'data_sets' )</label></td>
+  	</tr>
+	<tr>
+		<td><input id="organisationUnits" name="organisationUnits" type="checkbox" value="true" /></td>
+		<td><label for="organisationUnits">$i18n.getString( 'organisation_units' )</label></td>
+  	</tr>
+	<tr>
+		<td><input id="organisationUnitGroups" name="organisationUnitGroups" type="checkbox" value="true" /></td>
+		<td><label for="organisationUnitGroups">$i18n.getString( 'organisation_unit_groups' )</label></td>
+  	</tr>
+	<tr>
+		<td><input id="organisationUnitGroupSets" name="organisationUnitGroupSets" type="checkbox" value="true" /></td>
+		<td><label for="organisationUnitGroupSets">$i18n.getString( 'organisation_unit_group_sets' )</label></td>
+  	</tr>
+    <tr>
+        <td><input id="organisationUnitLevels" name="organisationUnitLevels" type="checkbox" value="true" /></td>
+        <td><label for="organisationUnitLevels">$i18n.getString( 'organisation_unit_levels' )</label></td>
+    </tr>
+    <tr>
+        <td><input id="validationRules" name="validationRules" type="checkbox" value="true" /></td>
+        <td><label for="validationRules">$i18n.getString( 'validation_rules' )</label></td>	
+    </tr>
+    <tr>
+        <td><input id="reports" name="reports" type="checkbox" value="true" /></td>
+        <td><label for="reports">$i18n.getString( 'reports' )</label></td>
+    </tr>
+    <tr>
+        <td><input id="reportTables" name="reportTables" type="checkbox" value="true" /></td>
+        <td><label for="reportTables">$i18n.getString( 'report_tables' )</label></td>
+    </tr>
+    <tr>
+        <td><input id="charts" name="charts" type="checkbox" value="true" /></td>
+        <td><label for="charts">$i18n.getString( 'charts' )</label></td>
+    </tr>
+	
+	<!-- Submit -->
+	
+	<tr>		
+		<td colspan="2">
+			<input type="button" value="$i18n.getString( 'export' )" style="width:34%" onclick="submitMetaDataExportForm()" />
+			<input type="button" value="$i18n.getString( 'select_all' )" style="width:33%" onclick="toggle( 'all' )" />
+			<input type="button" value="$i18n.getString( 'select_none' )" style="width:33%" onclick="toggle( 'none' )" />
+		</td>
+	</tr>
+	
+</table>
+
+</form>
+
+<span id="message"></span>

@@ -1,0 +1,141 @@
+<script type="text/javascript">
+var currentDataElementId = '$!{dataElementId}';
+var currentOptionComboId = '$!{optionComboId}';
+
+$( document ).ready( function() {
+    dhis2.de.insertCommentOptionSet( '$!{commentOptionSet.uid}' );
+
+    $( "#historyTabs" ).tabs();
+} );
+</script>
+
+#set( $width = 40 * $dataElementHistory.historyLength )
+#set( $lastIndex = $dataElementHistory.historyLength - 1 )
+#set( $average = $dataElementHistory.historyPoints.get( $lastIndex ).average )
+#set( $dataValueAuditSize = $dataValueAudits.size() )
+<table>
+	<tr>		
+		<!-- Comment -->
+		<td style="height:24px" valign="bottom">
+            <div class="historyHeader">$i18n.getString( "dataelement_comment" )
+
+			#if ( $dataValue && $dataValue.isFollowup() )
+		        <img id="followup" src="../images/marked.png" alt="$i18n.getString( 'mark_value_for_followup' )" onclick="markValueForFollowup()" style="cursor:pointer"/>
+			#elseif ( $dataValue )
+		        <img id="followup" src="../images/unmarked.png" alt="$i18n.getString( 'unmark_value_for_followup' )" onclick="markValueForFollowup()" style="cursor:pointer"/>
+			#end			
+			</div>
+		</td>
+		<!-- Min-max -->
+		<td style="height:24px" valign="bottom">       
+            <div class="historyHeader">$encoder.htmlEncode( $i18n.getString( "min_max_limits" ) )</div>
+        </td>
+    </tr>
+    <tr>
+		<td valign="top">
+			<div id="commentOptionDiv" style="display:none;"><input type="text" id="commentOptionSet" style="width:240px"></div>
+			<textarea id="commentTextArea" style="height:130px; width:240px;">$!encoder.htmlEncode( $dataValue.comment )</textarea><br>
+			<input type="button" value="$i18n.getString( 'save_comment' )" style="width:130px" onclick="saveComment()">
+		</td>		
+        <td valign="top">
+            <table>
+                <tr>
+                    <td style="background-color:#88be3b; height:26px;">&nbsp;</td>
+                    <td>$encoder.htmlEncode( $i18n.getString( "min_limit" ) ) </td>
+                    <td><input type="text" id="minLimit" style="width:10em" value="$!{dataElementHistory.minLimit}" class="{validate:{digits:true}}" 
+                        #if( !$auth.hasAccess( "dhis-web-dataentry", "saveMinMaxLimits" ) || ${minMaxInvalid} ) disabled="disabled"#end />
+						<span id="minSpan" style="color:red"></span>
+					</td>
+                </tr>
+                <tr>
+                    <td style="background-color:#2e4e83; height:26px;">&nbsp;</td>
+                    <td>$encoder.htmlEncode( $i18n.getString( "max_limit" ) ) </td>
+                    <td><input type="text" id="maxLimit" style="width:10em" value="$!{dataElementHistory.maxLimit}" class="{validate:{digits:true}}" 
+                    	#if( !$auth.hasAccess( "dhis-web-dataentry", "saveMinMaxLimits" ) || ${minMaxInvalid} ) disabled="disabled"#end />
+						<span id="maxSpan" style="color:red"></span>
+					</td>
+                </tr>
+                <tr>
+                    <td style="background-color:#f4f256; height:26px;">&nbsp;</td>
+                    <td>$encoder.htmlEncode( $i18n.getString( "average" ) ) </td>
+                    <td>$!{average}</td>
+                </tr>
+                <tr>
+                	<td colspan="3"><input type="button" value="$i18n.getString( 'save' )" onclick="saveMinMaxLimit()" style="width:100px">
+                		<input type="button" value="$i18n.getString( 'remove' )" onclick="removeMinMaxLimit()" style="width:100px"></td>
+                </tr>
+                <tr>
+                	<td colspan="3" style="height:15px"></td>
+                </tr>
+                <tr>
+                	<td colspan="2" style="background-color: #e0e0e0; height:26px;">$i18n.getString( "stored_by" )</td>
+                	<td>$!encoder.htmlEncode( $storedBy )</td>
+                </tr>
+                <tr>
+                	<td colspan="2" style="background-color: #e0e0e0; height:26px;">$i18n.getString( "last_updated" )</td>
+                	<td>$!format.formatDate( $dataValue.lastUpdated )</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>    <!-- History chart and audit -->
+        <td colspan="2">
+            <div id="historyTabs">
+                <ul>
+                    <li><a href="#historyTabs-chart">$i18n.getString( "dataelement_history" )</a></li>
+                    <li><a href="#historyTabs-audit">$i18n.getString( "audit_trail" )</a></li>
+                </ul>
+                <div id="historyTabs-chart">
+                    #if( $historyInvalid )
+                        <div class="tipText">$encoder.htmlEncode( $i18n.getString( "history_not_valid" ) )</div>
+                    #else
+                        <img id="historyChart"
+                             src="../api/charts/history/data.png?de=${dataElementHistory.dataElement.uid}&co=${dataElementHistory.optionCombo.uid}&ou=${dataElementHistory.organisationUnit.uid}&pe=${periodId}"/>
+                    #end
+                </div>
+                <div id="historyTabs-audit">
+                    #if( $dataValueAuditSize > 0 )
+                        <table id="historyAuditTable">
+                            <thead>
+                                <tr>
+                                    <th>$encoder.htmlEncode( $i18n.getString( "on" ) )</th>
+                                    <th>$encoder.htmlEncode( $i18n.getString( "modified_by" ) )</th>
+                                    <th>$encoder.htmlEncode( $i18n.getString( "value" ) )</th>
+                                    <th>$encoder.htmlEncode( $i18n.getString( "modification" ) )</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            #foreach( $dataValueAudit in $dataValueAudits )
+                                <tr>
+                                    <td>
+                                        $format.formatDateTime( $dataValueAudit.created )
+                                    </td>
+                                    <td>
+                                        #if( $dataValueAudit.modifiedBy )
+                                            $dataValueAudit.modifiedBy
+                                        #else
+                                            $encoder.htmlEncode( $i18n.getString( "no_value" ) )
+                                        #end
+                                    </td>
+                                    <td>
+                                        #if( $dataValueAudit.value )
+                                            $dataValueAudit.value
+                                        #else
+                                            $encoder.htmlEncode( $i18n.getString( "no_value" ) )
+                                        #end
+                                    </td>
+                                    <td>
+                                        $i18n.getString( $dataValueAudit.auditType.getValue() )
+                                    </td>
+                                </tr>
+                            #end
+                            </tbody>
+                        </table>
+                    #else
+                        <div class="tipText">$encoder.htmlEncode( $i18n.getString( "there_is_no_audit_trail_for_this_value" ) )</div>
+                    #end
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,134 @@
+<script>
+	jQuery( document ).ready( function()
+	{
+		showHideUserGroup();
+		
+		validation2( 'addReminderForm', function( form )
+		{
+			form.submit();
+		},{
+			'beforeValidateHandler' : function()
+			{
+				enable('messageType');
+			},
+			'rules' : getValidationRules( "trackedEntityInstanceReminder" )
+		});
+		
+		checkValueIsExist( "name", "validateReminder.action" );
+	});
+
+</script>
+
+<h3>$i18n.getString( "create_new_reminder_message_template" ) #openHelp( "program_stage_template_reminder" )</h3>
+<h5>$programStage.displayName</h5>
+
+<form id="addReminderForm" name="addReminderForm" action="addProgramStageReminder.action" method="post" onsubmit="selectAllById('selectedPropertyIds');" class="inputForm">
+  
+  <input type="hidden" id="programStageId" name="programStageId" value="$programStage.id">
+  <table>
+    <thead>
+      <tr>
+        <th colspan="2" style="width: 590px;">$i18n.getString( "reminder_message_template_details" )</th>
+      </tr>
+    </thead>
+    <tbody>
+		<tr>
+			<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+			<td><input type="text" id="name" name="name" ></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td><label for="whenToSend">$i18n.getString( "send_base_on" )</label></td>
+			<td>
+				<select type="text" id="whenToSend" name="whenToSend" onchange='whenToSendOnChange()'>
+					<option value="" >$i18n.getString("days_scheduled")</option>
+					<option value="2" >$i18n.getString("complete_event")</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="days">$i18n.getString( "send_message" )</label></td>
+			<td><input type="text" id="days" name="days" 
+				onkeyup='setRealDays();' style="width:100px;"/>
+				$i18n.getString('days')
+				<select id='time' name='time' onchange='setRealDays();' style="width:100px;">
+					<option value='-1' >$i18n.getString('before')</option>
+					<option value='1' >$i18n.getString('after')</option>
+				</select>
+				$i18n.getString('scheduled_date')
+				<input type="hidden" id="daysAllowedSendMessage" name="daysAllowedSendMessage" />
+			</td>
+		</tr>
+		<tr>
+			<td><label for="sendTo">$i18n.getString( "recipients" )</label></td>
+			<td>
+				<select type="text" id="sendTo" name="sendTo" onchange="onchangeUserGroup(  )">
+					<option value="1" >$i18n.getString("tracked_entity_sms_only")</option>
+					<option value="3" >$i18n.getString("orgunit_phone_number_sms_only")</option>
+					<option value="2" >$i18n.getString("attribute_users")</option>
+					<option value="4" >$i18n.getString("all_users_in_orgunit_registered")</option>
+					<option value="5" >$i18n.getString("user_group")</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="userGroup">$i18n.getString( "user_group" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+			<td>
+				<select type="text" id="userGroup" name="userGroup" disabled >
+					<option value="">[$i18n.getString("please_select")]</option>
+					#foreach($eachGroup in $userGroups)
+						<option value="$eachGroup.id">$i18n.getString($eachGroup.name)</option>
+					#end	
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="messageType">$i18n.getString( "message_type" )</label></td>
+			<td>
+				<select type="text" id="messageType" name="messageType" disabled class="messageType" >
+					<option value="1">$i18n.getString("direct_sms")</option>
+					<option value="2">$i18n.getString("message")</option>
+					<option value="3">$i18n.getString("both")</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>$i18n.getString( "params" )</td>
+			<td>
+				<select multiple size='4' ondblclick="insertParams(this.value);">
+					<option value="{program-name}">$i18n.getString("program_name")</option>
+					<option value="{program-stage-name}">$i18n.getString("program_stage_name")</option>
+					<option value="{due-date}">$i18n.getString("due_date")</option>'
+					<option value="{days-since-due-date}">$i18n.getString("days_since_due_date")</option>'
+					<option value="{orgunit-name}">$i18n.getString("orgunit_name")</option>
+					#foreach($attribute in $attributes)
+						<option value={attributeid=$attribute.uid}>$attribute.displayName</option>
+					#end
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td><label for="optionSetId">$i18n.getString( "message" )</label></td>
+			<td><textarea onkeyup="getMessageLength()" id="templateMessage" name="templateMessage" class="templateMessage"></textarea></td>
+		</tr>
+		<tr>
+			<td></td>
+			<td id='messageLengthTD'></td>
+			<script></script>
+		</tr>
+	
+	<tbody>
+	 <tr>
+		<td></td>
+      	<td>
+			<input type="submit" value="$i18n.getString( 'add' )" style="width:10em" >
+			<input type="button" value="$i18n.getString( 'cancel' )" style="width:10em" onclick="window.location.href='programStageReminder.action?id=$programStage.id'">
+		</td>
+      </tr>
+  </table>
+</form>
+		
+<script>
+	var i18n_characters_without_params = '$encoder.jsEscape( $i18n.getString( "characters_without_params" ) , "'")';
+</script>
+

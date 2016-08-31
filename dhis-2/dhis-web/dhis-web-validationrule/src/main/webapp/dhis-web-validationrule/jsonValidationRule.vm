@@ -1,0 +1,18 @@
+{ "validationRule":
+  {
+	"name": "$!encoder.jsonEncode( ${validationRule.name} )",
+	"uid": "$!encoder.jsonEncode( ${validationRule.uid} )",
+	"description": "$!encoder.jsonEncode( ${validationRule.description} )",
+	"type": "$!encoder.jsonEncode( ${validationRule.type} )",
+	"importance": "$!encoder.jsonEncode( ${validationRule.importance} )",
+	"ruleType": "$!encoder.jsonEncode( ${validationRule.ruleType} )",
+	"organisationUnitLevel": "$!encoder.jsonEncode( ${validationRule.organisationUnitLevel} )",
+	"periodType": "$!encoder.jsonEncode( ${validationRule.periodType} )",
+	"sequentialSampleCount": "$!encoder.jsonEncode( ${validationRule.sequentialSampleCount} )",
+	"annualSampleCount": "$!encoder.jsonEncode( ${validationRule.annualSampleCount} )",
+	"sequentialSkipCount": "$!encoder.jsonEncode( ${validationRule.sequentialSkipCount} )",
+	"operator": "${validationRule.operator}",
+	"leftSideDescription": "$!encoder.jsonEncode( ${validationRule.leftSide.description} )",
+	"rightSideDescription": "$!encoder.jsonEncode( ${validationRule.rightSide.description} )"
+  }
+}

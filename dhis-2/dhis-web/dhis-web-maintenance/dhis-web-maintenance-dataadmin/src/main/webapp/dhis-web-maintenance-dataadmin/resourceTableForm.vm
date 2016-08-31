@@ -1,0 +1,45 @@
+<script type="text/javascript">
+    var i18n_execute_tasks_confirmation = '$encoder.jsEscape( $i18n.getString( "execute_tasks_confirmation" ), "'" )';
+	var i18n_generating_resource_tables = '$encoder.jsEscape( $i18n.getString( "generating_resource_tables" ), "'" )';
+	var i18n_resource_tables_generated = '$encoder.jsEscape( $i18n.getString( "resource_tables_generated" ), "'" )';
+	var i18n_select_options = '$encoder.jsEscape( $i18n.getString( "select_options" ), "'" )';
+</script>
+
+<style type="text/css">
+ul.resourceTables
+{
+  list-style-type: none;
+}
+
+ul.resourceTables li
+{
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+</style>
+
+<h3>$i18n.getString( "resource_table" ) #openHelp( "resourceTables" )</h3>
+
+<ul class="resourceTables">
+<li>$i18n.getString( "organisation_unit_structure" ) <span style="color:#606060">(_orgunitstructure)</span></li>
+<li>$i18n.getString( "organisation_unit_category_option_combo" ) <span style="color:#606060">(_orgunitstructure)</span></li>
+<li>$i18n.getString( "category_option_group_set_structure" ) <span style="color:#606060">(_categoryoptiongroupsetstructure)</span></li>
+<li>$i18n.getString( "data_element_group_set_structure" ) <span style="color:#606060">(_dataelementgroupsetstructure)</span></li>
+<li>$i18n.getString( "indicator_group_set_structure" ) <span style="color:#606060">(_indicatorgroupsetstructure)</span></li>
+<li>$i18n.getString( "organisation_unit_group_set_structure" ) <span style="color:#606060">(_organisationunitgroupsetstructure)</span></li>
+<li>$i18n.getString( "category_structure" ) <span style="color:#606060">(_categorystructure)</span></li>
+<li>$i18n.getString( "data_element_category_option_combo_name" ) <span style="color:#606060">(_categoryoptioncomboname)</span></li>
+<li>$i18n.getString( "data_element_structure" ) <span style="color:#606060">(_dataelementstructure)</span></li>
+<li>$i18n.getString( "period_structure" ) <span style="color:#606060">(_periodstructure)</span></li>
+<li>$i18n.getString( "date_period_structure" ) <span style="color:#606060">(_dateperiodstructure)</span></li>
+<li>$i18n.getString( "data_element_category_option_combo" ) <span style="color:#606060">(_dataelementcategoryoptioncombo)</span></li>
+</ul>
+
+<p><input type="button" value='$i18n.getString( "generate_resource_tables" )' onclick="generateResourceTable()" style="width:150px"/></p>
+
+<div>
+<table id="notificationTable" class="notificationTable" style="display:none">
+<col width="140">
+<col width="360">
+</table>
+</div>

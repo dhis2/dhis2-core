@@ -1,0 +1,173 @@
+<script type="text/javascript" src="../dhis-web-sms/javascript/sendSMS.js"></script>
+<script type="text/javascript" src="../dhis-web-sms/javascript/patient.js"></script>
+<script type="text/javascript">
+	jQuery(document).ready( function() {
+		validation( "sendSMSForm", function( form ) { sendSMSMessage( form ); } );
+		
+		selection.setListenerFunction( organisationUnitSelected );
+	});
+	
+	var i18n_no_recipient = '$encoder.jsEscape( $i18n.getString( "no_recipient" ) , "'")';
+	var i18n_please_verify_phone = '$encoder.jsEscape( $i18n.getString( "please_verify_phone" ) , "'")';
+	var i18n_please_select_orgunit = '$encoder.jsEscape( $i18n.getString( "please_select_orgunit" ) , "'")';
+	var i18n_list_empty = '$encoder.jsEscape( $i18n.getString( "list_empty" ) , "'")';
+	var i18n_please_select_a_program = '$encoder.jsEscape( $i18n.getString( "please_select_a_program" ) , "'")';
+	var i18n_there_is_no_program = '$encoder.jsEscape( $i18n.getString( "there_is_no_program" ) , "'")';
+	var i18n_can_not_register_patient_for_orgunit = '$encoder.jsEscape( $i18n.getString( "can_not_register_patient_for_orgunit" ), "'")';	
+</script>
+
+<style type="text/css">
+    .statusBar{
+        color: white;
+        padding: 5px 5px;
+        margin: -16px 0 20px -20px;
+        font-weight: bold;
+        background-color: #8FABC7;
+    }
+</style>
+
+<h3>$i18n.getString( "send_sms" )</h3>
+#if ( $!gatewayMap && $!gatewayMap.size() > 0 )
+<div>
+<form id="sendSMSForm" name="sendSMSForm" action="sendSMS.action" onsubmit="selectAllById('recipients')">
+	<input type="hidden" id="orgunitId" name="orgunitId" />
+	<table id="detailsList">
+		<col width="100px"/>
+		<tbody>
+			<tr>
+				<td>$i18n.getString( "send_sms_to_target" )<td>
+				<td>
+					<select id="sendTarget" name="sendTarget" onchange="javascript:toggleBasicSMSGUI( this.value );">
+						<option value="phone">$i18n.getString( "raw_phone_number" )</option>
+						<option value="userGroup">$i18n.getString( "user_group" )</option>
+						<option value="user">$i18n.getString( "assigned_user_number" )</option>
+						<option value="unit">$i18n.getString( "stakeholder_contact_person" )</option>
+						#if( $auth.hasAccess( "dhis-web-sms", "showBeneficiarySMSForm" ) ) 
+						<option value="patient" selected="true">$i18n.getString( "patients_registered" )</option>
+						#end
+					</select>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
+	#parse( "dhis-web-sms/searchPatientCritetia.vm" )
+	
+	<!-- List searching patients -->
+	#parse( "dhis-web-commons/loader/loader.vm" )
+	<div id='listPatientDiv'></div>
+
+	<table>
+		<tbody>
+			<tr><th colspan="2">$i18n.getString( "phone_number" )</th></tr>
+			<tr>
+				<td colspan="2">
+					<select id="recipients" name="recipients" multiple="true" size='10' style="width:600px" class="{validate:{required:true}}" 
+					ondblclick="removePhoneFromList( 'recipients', this.value );"></select>
+				</td>
+			</tr>
+
+			<tr><th colspan="2">$i18n.getString( "message" ) ($i18n.getString( "do_not_send_patient_confidential_messages_using_sms" ))</th></tr>
+			<tr><td colspan="2"><textarea id="text" name="text" rows="5" style="width:600px;" class="{validate:{required:true}}"></textarea></td></tr>
+		</tbody>
+		
+		<tbody>
+			<tr><td><input type="submit" class='large-button' name="send" value="$i18n.getString( 'send' )" /></td></tr>
+		</tbody>
+	</table>	
+</form>
+</div>
+
+#else
+<p>No Sms service available</p>
+#end
+
+<script type="text/javascript">
+
+	var isOrgunitSelected = false;
+
+	function toggleBasicSMSGUI( _value )
+	{
+		window.location.href = "showSendingSMSForm.action?sendTo=" + _value;
+	}
+
+	function selectedOrganisationUnitSendSMS( unitIds )
+	{
+		if ( unitIds && unitIds.length > 0 )
+		{
+			isOrgunitSelected = true;
+		
+			//loadPrograms( getFieldValue( 'level' ) );
+		} else {
+			isOrgunitSelected = false;
+		}
+	}
+	
+	function loadPrograms( _value )
+	{
+		var programList = jQuery( "#programId" );
+
+		if ( _value == "selected" )
+		{
+			jQuery.get( "loadProgramsByUnit.action", {}, function( json )
+			{
+				programList.empty();
+				programList.append( "<option value=''>[ " + i18n_please_select_a_program + " ]</option>" );
+
+				jQuery.each( json.programs, function( i, item )
+				{
+					programList.append( "<option value='" + item.id + "'>" + item.name + "</option>" );
+				} );
+				
+				enable( "programId" );
+				showById( "programBody" );
+			} );
+		} else {
+			hideById( "programBody" );
+			disable( "programId" );
+			programList.empty();
+		}
+	}
+
+	var i18n_male = '$encoder.jsEscape( $i18n.getString( "male" ) , "'")';
+	var i18n_female = '$encoder.jsEscape( $i18n.getString( "female" ) , "'")';
+	var i18n_transgender = '$encoder.jsEscape( $i18n.getString( "transgender" ) , "'")';
+	var i18n_yes = '$encoder.jsEscape( $i18n.getString( "yes" ) , "'")';
+	var i18n_no = '$encoder.jsEscape( $i18n.getString( "no" ) , "'")';
+	var i18n_specify_search_criteria = '$encoder.jsEscape( $i18n.getString( "specify_search_criteria" ) , "'")';
+	var i18n_clear = '$encoder.jsEscape( $i18n.getString( "clear" ) , "'")';
+	
+	// -1: no search anything
+	//  0: show list all patient
+	//  1: search with conditions
+	var statusSearching = -1;
+	isAjax = true;
+	contentDiv = '';
+	registration = true;
+	
+	// ----------------------------------------------------------------
+	// Search field
+	// ----------------------------------------------------------------
+	
+	var searchTextBox = '<input type="text" id="searchText" name="searchText" onkeyup="searchPatientsOnKeyUp( event );" style="width:202px;">';
+	var programComboBox = '<select id="searchText" name="searchText" style="width:205px;">';
+	#foreach ( $program in $programs )
+		#if( $program.type!='3')
+			programComboBox += '<option value="$program.id">$program.displayName</option>';
+		#end
+	#end
+	programComboBox += '</select>';
+	
+	// ----------------------------------------------------------------
+	// Search field
+	// ----------------------------------------------------------------
+	
+	#if( $status == 1 )
+		setFieldValue('selectedOrgunitText', i18n_please_select_village );
+	#elseif( $status == 2 )
+		setFieldValue('selectedOrgunitText', '$encoder.jsEncode( $organisationUnit.name )' );
+	#else
+		setFieldValue('selectedOrgunitText', '$encoder.jsEncode( $organisationUnit.name )' );
+		showById('searchDiv');
+	#end	
+</script>

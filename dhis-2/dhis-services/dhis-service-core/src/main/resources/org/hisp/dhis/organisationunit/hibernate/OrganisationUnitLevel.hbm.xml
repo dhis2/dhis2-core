@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.organisationunit.OrganisationUnitLevel" table="orgunitlevel">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="orgunitlevelid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" not-null="true" length="230" />
+
+    <property name="level" not-null="true" unique="true" />
+    
+    <property name="offlineLevels" />
+
+    <!-- Object Translation -->
+    <set name="translations" table="orgunitleveltranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="orgunitlevelid" foreign-key="fk_objecttranslation_orgunitlevelid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

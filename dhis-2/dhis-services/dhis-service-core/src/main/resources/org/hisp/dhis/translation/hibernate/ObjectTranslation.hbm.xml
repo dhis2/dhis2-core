@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.translation.ObjectTranslation" table="objecttranslation">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="objecttranslationid">
+      <generator class="native" />
+    </id>
+
+    <property name="locale" column="locale" length="15" not-null="true" />
+
+    <property name="property" length="50" not-null="true" type="org.hisp.dhis.common.TranslationPropertyUserType"/>
+
+    <property name="value" column="value" type="text" not-null="true" />
+
+    <filter name="locale" condition="locale = :locale" />
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+</hibernate-mapping>

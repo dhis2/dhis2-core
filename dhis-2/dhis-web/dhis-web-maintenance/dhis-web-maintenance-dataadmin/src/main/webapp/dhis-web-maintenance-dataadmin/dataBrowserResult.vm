@@ -1,0 +1,103 @@
+<script type="text/javascript">
+
+jQuery( document ).ready( function()
+{	
+	contentDiv = 'dataBrowserContent';
+
+	if ( jQuery( '#baseLink' ).length )
+	{
+		var newBaseLink = getFieldValue( 'baseLink' ).replace( 'searchResult.action', 'searchResultByAjax.action' );
+		setFieldValue( 'baseLink', newBaseLink );
+	}
+
+	setTableStyles();
+} );
+
+</script>
+
+<h3>$!encoder.htmlEncode( $grid.title )</h3>
+
+<h5>$!encoder.htmlEncode( $grid.subtitle )</h5>
+
+<div>
+	<input type="button" value="$i18n.getString( 'get_report_as_xls' )" onclick="exportResult( 'xls' )" style="width:140px"/>
+	<input type="button" value="$i18n.getString( 'get_report_as_csv' )" onclick="exportResult( 'csv' )" style="width:140px"/>
+	<input type="button" value="$i18n.getString( 'get_report_as_pdf' )" onclick="exportResult( 'pdf' )" style="width:140px"/>
+	<input type="button" value="$i18n.getString( 'back' )" onclick="window.location.href='displayDataBrowserForm.action'" style="width:10em"/>
+</div>
+
+
+#if ( $summary )
+#set( $title = "$!item $i18n.getString( 'no_hits' )" )
+#else
+#set( $title = "$i18n.getString( 'raw_data' )" )
+#end
+
+<br/>
+<!-- ORGANISATIONUNIT -->
+#if ( $mode == "OU" )
+<div>
+	<a href="displayDataBrowserForm.action">$i18n.getString( "start" )</a>
+	#foreach( $parent in $BreadCrumbOrgUnit )
+		#if( $parent.name == $ParentName )
+			&raquo; <span style="font-weight:bold;">$ParentName</span> ( $title )
+		#else
+			&raquo; <a style="$tmpStyle" href="?mode=$mode&amp;periodTypeId=$periodTypeId&amp;fromDate=$fromDate&amp;toDate=$toDate&amp;showZeroCheckBox=$!showZeroCheckBox&amp;selectedUnitChanger=$parent.id">$parent.name</a>
+		#end
+	#end
+</div>
+
+<!-- DATAELEMENTGROUP -->
+#elseif ( $mode == "DEG" )
+<div>
+	<div style="margin:0 0 10px 0;">
+	<a href="displayDataBrowserForm.action">$i18n.getString( "start" )</a>
+	#if( $parent != "" )
+		&raquo; <a style="$tmpStyle" href="?mode=DEG&amp;periodTypeId=$periodTypeId&amp;fromDate=$fromDate&amp;toDate=$toDate&amp;showZeroCheckBox=$!showZeroCheckBox">$i18n.getString( "data_element_group_list" )</a>
+		&raquo; <span style="font-weight:bold;">$ParentName</span> ( $title )
+	#else
+		&raquo; <span style="font-weight:bold;">$i18n.getString( "data_element_group_list" )</span>
+	#end
+	</div>
+</div>
+
+<!-- ORGANISATIONUNITGROUP -->
+#elseif ( $mode == "OUG" )
+<div>
+	<div style="margin:0 0 10px 0;">
+	<a href="displayDataBrowserForm.action">$i18n.getString( "start" )</a>
+	#if( $parent != "" )
+		&raquo; <a style="$tmpStyle" href="?mode=OUG&amp;periodTypeId=$periodTypeId&amp;fromDate=$fromDate&amp;toDate=$toDate&amp;showZeroCheckBox=$!showZeroCheckBox">$i18n.getString( "orgunit_group_list" )</a>
+		&raquo; <span style="font-weight:bold;">$ParentName</span> ( $title )
+	#else
+		&raquo; <span style="font-weight:bold;">$i18n.getString( "orgunit_group_list" )</span>
+	#end
+	</div>
+</div>
+
+<!-- DATASET -->
+#elseif ( $mode == "DS" )
+<div>
+	<div style="margin:0 0 10px 0;">
+	<a href="displayDataBrowserForm.action">$i18n.getString( "start" )</a> 
+	#if( $parent != "" )
+		&raquo; <a style="$tmpStyle" href="?mode=DS&amp;periodTypeId=$periodTypeId&amp;fromDate=$fromDate&amp;toDate=$toDate&amp;showZeroCheckBox=$!showZeroCheckBox">$i18n.getString( "data_set_list" )</a>
+		&raquo; <span style="font-weight:bold;">$ParentName</span> ( $title )
+	#else
+		&raquo; <span style="font-weight:bold;">$i18n.getString( "data_set_list" )</span>
+	#end
+	</div>
+</div>
+
+#else
+<div>
+	<a href="displayDataBrowserForm.action">$i18n.getString( "start" )</a>
+</div>
+#end
+
+<br/>
+<!-- Data Browser Grid -->
+
+<div id="dataBrowserContent">
+#parse( "/dhis-web-maintenance-dataadmin/dataBrowserGrid.vm" )
+</div>

@@ -1,0 +1,128 @@
+
+<script>
+    $(document).bind('pagechange',function(){
+        $.mobile.loading( 'show' );
+
+        $.ajax({
+            url: '$contextPath/api/currentUser/profile',
+            dataType: 'json'
+        }).success(function(data) {
+            // user account
+            $('#firstNameInput').val(data.firstName);
+            $('#surnameInput').val(data.surname);
+            $('#emailInput').val(data.email);
+            $('#phoneNumberInput').val(data.phoneNumber);
+
+            // profile
+            $('#introductionInput').val(data.introduction);
+            $('#jobTitleInput').val(data.jobTitle);
+
+            $('#genderInput').children().each(function ( idx, item ) {
+                item.selected = item.value == data.gender;
+            });
+
+            $('#genderInput').selectmenu('refresh');
+
+            $('#birthdayInput').val(data.birthday);
+            $('#nationalityInput').val(data.nationality);
+            $('#employerInput').val(data.employer);
+            $('#educationInput').val(data.education);
+            $('#interestsInput').val(data.interests);
+            $('#languagesInput').val(data.languages);
+        }).complete(function() {
+            $.mobile.loading( 'hide' );
+        });
+
+        $('input:submit').bind('click', function(e) {
+            var settings = $('#settings-form').serializeArray();
+
+            settings = _(settings).reduce(function(acc, field) {
+               acc[field.name] = field.value;
+               return acc;
+            }, {});
+
+            $.mobile.loading( 'show' );
+
+            $.ajax({
+                url: '$contextPath/api/currentUser/profile',
+                contentType: 'application/json',
+                data: JSON.stringify( settings ),
+                type: 'POST'
+            }).complete(function() {
+                $.mobile.loading( 'hide' );
+                window.location.href = '../mobile';
+            });
+
+            e.preventDefault();
+        })
+    });
+</script>
+
+<section data-role="page" id="settings-page" data-theme="c">
+
+	<header data-role="header" data-theme="b">
+        <h1 align="center"><img src="$contextPath/dhis-web-commons/css/light_blue/logo_banner.png" /></h1>
+        <a href="index" data-icon="back">$i18n.getString("back")</a>
+	</header>
+
+    <section data-role="content">
+        <form id="settings-form" method="POST">
+        <ul data-role="listview" data-inset="true">
+            <li data-role="list-divider">User Account</li>
+            <li>
+                   <label for="firstNameInput">$i18n.getString("first_name"):</label>
+                   <input id="firstNameInput" name="firstName" type="text" placeholder="First name.." />
+
+                   <label for="surnameInput">$i18n.getString("surname"):</label>
+                   <input id="surnameInput" name="surname" type="text" placeholder="Surname.." />
+
+                   <label for="emailInput">$i18n.getString("email"):</label>
+                   <input id="emailInput" name="email" type="text" placeholder="E-mail.." />
+
+                   <label for="phoneNumberInput">$i18n.getString("phone_number"):</label>
+                   <input id="phoneNumberInput" name="phoneNumber" type="text" placeholder="Phone number.." />
+            </li>
+            <li data-role="list-divider">$i18n.getString("profile")</li>
+            <li>
+                <label for="introductionInput">$i18n.getString("introduction")</label>
+                <textarea id="introductionInput" name="introduction"></textarea>
+
+                <label for="jobTitleInput">$i18n.getString("job_title"):</label>
+                <input id="jobTitleInput" name="jobTitle" type="text" placeholder="Job Title.." />
+
+                <label for="genderInput">$i18n.getString("gender"):</label>
+                <select id="genderInput" name="gender">
+                    <option value="gender_male">$i18n.getString("male")</option>
+                    <option value="gender_female">$i18n.getString("female")</option>
+                    <option value="gender_other">$i18n.getString("other")</option>
+                </select>
+
+                <label for="birthdayInput">$i18n.getString("birthday"):</label>
+                <input id="birthdayInput" name="birthday" type="text" placeholder="yyyy-mm-dd (e.g. 1980-04-02)" />
+
+                <label for="nationalityInput">$i18n.getString("nationality"):</label>
+                <input id="nationalityInput" name="nationality" type="text" placeholder="Nationality.." />
+
+                <label for="employerInput">$i18n.getString("employer"):</label>
+                <input id="employerInput" name="employer" type="text" placeholder="Employer.." />
+
+                <label for="educationInput">$i18n.getString("education"):</label>
+                <textarea id="educationInput" name="education"></textarea>
+
+                <label for="interestsInput">$i18n.getString("interests"):</label>
+                <textarea id="interestsInput" name="interests"></textarea>
+
+                <label for="languagesInput">$i18n.getString("languages"):</label>
+                <textarea id="languagesInput" name="languages"></textarea>
+
+                <input type="submit" value="$i18n.getString("save")" />
+            </li>
+        </ul>
+        </form>
+   	</section>
+
+    <footer data-role="footer" data-theme="b">
+        <h1></h1>
+   	</footer>
+
+</section>

@@ -1,0 +1,12 @@
+{ "table":
+  {
+	"id": "$!{table.id}",
+	"name": "$!encoder.jsonEncode( ${table.name} )",
+	"indicators": "$!{table.indicators.size()}",
+	"periods": "$!{table.periods.size()}",
+	"units": "$!{table.units.size()}",
+	"doIndicators": "$!{table.doIndicators}",
+	"doPeriods": "$!{table.doPeriods}",
+	"doUnits": "$!{table.doUnits}"
+  }
+}

@@ -1,0 +1,1905 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
+
+  <bean id="org.hisp.dhis.preheat.PreheatService" class="org.hisp.dhis.preheat.DefaultPreheatService" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean id="org.hisp.dhis.calendar.CalendarService" class="org.hisp.dhis.calendar.DefaultCalendarService" />
+
+  <bean class="org.hisp.dhis.calendar.impl.Iso8601Calendar" />
+
+  <bean class="org.hisp.dhis.calendar.impl.CopticCalendar" />
+
+  <bean class="org.hisp.dhis.calendar.impl.EthiopianCalendar" />
+
+  <bean class="org.hisp.dhis.calendar.impl.GregorianCalendar" />
+
+  <bean class="org.hisp.dhis.calendar.impl.IslamicCalendar" />
+
+  <bean class="org.hisp.dhis.calendar.impl.NepaliCalendar" />
+
+  <bean class="org.hisp.dhis.calendar.impl.ThaiCalendar" />
+
+  <bean id="org.hisp.dhis.schema.SchemaService" class="org.hisp.dhis.schema.DefaultSchemaService" />
+
+  <bean id="org.hisp.dhis.query.QueryParser" class="org.hisp.dhis.query.DefaultQueryParser" />
+
+  <bean id="org.hisp.dhis.query.CriteriaQueryEngine" class="org.hisp.dhis.query.CriteriaQueryEngine" />
+
+  <bean id="org.hisp.dhis.query.InMemoryQueryEngine" class="org.hisp.dhis.query.InMemoryQueryEngine" />
+
+  <bean id="org.hisp.dhis.query.QueryService" class="org.hisp.dhis.query.DefaultQueryService" />
+
+  <bean id="org.hisp.dhis.schema.PropertyIntrospectorService" class="org.hisp.dhis.schema.Jackson2PropertyIntrospectorService" />
+
+  <bean id="org.hisp.dhis.security.acl.AclService" class="org.hisp.dhis.security.acl.DefaultAclService" />
+
+  <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
+
+  <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
+
+  <bean class="org.hisp.dhis.node.converters.IsEmptyNodePropertyConverter" />
+
+  <bean class="org.hisp.dhis.node.converters.IsNotEmptyNodePropertyConverter" />
+
+  <bean class="org.hisp.dhis.node.converters.SizeNodePropertyConverter" />
+
+  <bean class="org.hisp.dhis.node.serializers.CsvNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.ExcelNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.PdfNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean class="org.hisp.dhis.node.serializers.StAXNodeSerializer" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
+  <bean id="org.hisp.dhis.fieldfilter.FieldParser" class="org.hisp.dhis.fieldfilter.DefaultFieldParser" />
+
+  <bean id="org.hisp.dhis.fieldfilter.FieldFilterService" class="org.hisp.dhis.fieldfilter.DefaultFieldFilterService" />
+
+  <bean id="org.hisp.dhis.render.RenderService" class="org.hisp.dhis.render.DefaultRenderService" />
+
+  <bean id="org.hisp.dhis.schema.validation.SchemaValidator" class="org.hisp.dhis.schema.validation.DefaultSchemaValidator" />
+
+  <!-- Store definitions -->
+
+  <bean id="org.hisp.dhis.report.ReportStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.report.Report" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.chart.ChartStore" class="org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore">
+    <property name="clazz" value="org.hisp.dhis.chart.Chart" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.document.DocumentStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.document.Document" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.reporttable.ReportTableStore" class="org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore">
+    <property name="clazz" value="org.hisp.dhis.reporttable.ReportTable" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.DashboardStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.dashboard.Dashboard" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.DashboardItemStore" class="org.hisp.dhis.dashboard.hibernate.HibernateDashboardItemStore">
+    <property name="clazz" value="org.hisp.dhis.dashboard.DashboardItem" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.interpretation.InterpretationStore" class="org.hisp.dhis.interpretation.hibernate.HibernateInterpretationStore">
+    <property name="clazz" value="org.hisp.dhis.interpretation.Interpretation" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataentryform.DataEntryFormStore" class="org.hisp.dhis.dataentryform.hibernate.HibernateDataEntryFormStore">
+    <property name="clazz" value="org.hisp.dhis.dataentryform.DataEntryForm" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementStore" class="org.hisp.dhis.dataelement.hibernate.HibernateDataElementStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElement" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementOperandStore" class="org.hisp.dhis.dataelement.hibernate.HibernateDataElementOperandStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementOperand" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="cacheable" value="true" />
+    <property name="transientIdentifiableProperties" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementGroupStore" class="org.hisp.dhis.dataelement.hibernate.HibernateDataElementGroupStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementGroupSetStore" class="org.hisp.dhis.dataelement.hibernate.HibernateDataElementGroupSetStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementGroupSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.datavalue.DataValueStore" class="org.hisp.dhis.datavalue.hibernate.HibernateDataValueStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore">
+    <property name="clazz" value="org.hisp.dhis.dataapproval.DataApproval" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalLevelStore">
+    <property name="clazz" value="org.hisp.dhis.dataapproval.DataApprovalLevel" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalWorkflowStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalWorkflowStore">
+    <property name="clazz" value="org.hisp.dhis.dataapproval.DataApprovalWorkflow" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.filter.MetaDataFilterStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.common.filter.MetaDataFilter" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.indicator.IndicatorStore" class="org.hisp.dhis.indicator.hibernate.HibernateIndicatorStore">
+    <property name="clazz" value="org.hisp.dhis.indicator.Indicator" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.indicator.IndicatorTypeStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.indicator.IndicatorType" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.indicator.IndicatorGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.indicator.IndicatorGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.indicator.IndicatorGroupSetStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.indicator.IndicatorGroupSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.period.PeriodStore" class="org.hisp.dhis.period.hibernate.HibernatePeriodStore">
+    <property name="clazz" value="org.hisp.dhis.period.Period" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+    <property name="transientIdentifiableProperties" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.DataSetStore" class="org.hisp.dhis.dataset.hibernate.HibernateDataSetStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.DataSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.LockExceptionStore" class="org.hisp.dhis.dataset.hibernate.HibernateLockExceptionStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.LockException" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="cacheable" value="true" />
+    <property name="dataSetStore" ref="org.hisp.dhis.dataset.DataSetStore" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore"
+    class="org.hisp.dhis.dataset.hibernate.HibernateCompleteDataSetRegistrationStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementStore" class="org.hisp.dhis.minmax.hibernate.HibernateMinMaxDataElementStore">
+    <property name="clazz" value="org.hisp.dhis.minmax.MinMaxDataElement" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.expression.ExpressionStore" class="org.hisp.dhis.hibernate.HibernateGenericStore">
+    <property name="clazz" value="org.hisp.dhis.expression.Expression" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleStore" class="org.hisp.dhis.validation.hibernate.HibernateValidationRuleStore">
+    <property name="clazz" value="org.hisp.dhis.validation.ValidationRule" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.validation.ValidationRuleGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.predictor.PredictorStore" class="org.hisp.dhis.predictor.hibernate.HibernatePredictorStore">
+    <property name="clazz" value="org.hisp.dhis.predictor.Predictor" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.CategoryStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategory" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategoryOption" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.CategoryComboStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryComboStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategoryCombo" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionComboStore"
+    class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionComboStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOptionGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupSetStore" class="org.hisp.dhis.dataelement.hibernate.HibernateCategoryOptionGroupSetStore">
+    <property name="clazz" value="org.hisp.dhis.dataelement.CategoryOptionGroupSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.SectionStore" class="org.hisp.dhis.dataset.hibernate.HibernateSectionStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.Section" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore"
+    class="org.hisp.dhis.organisationunit.hibernate.HibernateOrganisationUnitLevelStore">
+    <property name="clazz" value="org.hisp.dhis.organisationunit.OrganisationUnitLevel" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitStore"
+    class="org.hisp.dhis.organisationunit.hibernate.HibernateOrganisationUnitStore">
+    <property name="clazz" value="org.hisp.dhis.organisationunit.OrganisationUnit" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupStore"
+    class="org.hisp.dhis.organisationunit.hibernate.HibernateOrganisationUnitGroupStore">
+    <property name="clazz" value="org.hisp.dhis.organisationunit.OrganisationUnitGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore"
+    class="org.hisp.dhis.organisationunit.hibernate.HibernateOrganisationUnitGroupSetStore">
+    <property name="clazz" value="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataanalysis.DataAnalysisStore" class="org.hisp.dhis.dataanalysis.jdbc.JdbcDataAnalysisStore">
+    <property name="statementBuilder" ref="statementBuilder" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.datavalue.DataValueAuditStore" class="org.hisp.dhis.datavalue.hibernate.HibernateDataValueAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserStore" class="org.hisp.dhis.user.hibernate.HibernateUserStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.user.User" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.CurrentUserStore" class="org.hisp.dhis.user.hibernate.HibernateCurrentUserStore" />
+
+  <bean id="org.hisp.dhis.user.UserSettingStore" class="org.hisp.dhis.user.hibernate.HibernateUserSettingStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserAuthorityGroupStore" class="org.hisp.dhis.user.hibernate.HibernateUserAuthorityGroupStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.user.UserAuthorityGroup" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserCredentialsStore" class="org.hisp.dhis.user.hibernate.HibernateUserCredentialsStore">
+    <property name="clazz" value="org.hisp.dhis.user.UserCredentials" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.user.UserGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserGroupAccessStore" class="org.hisp.dhis.hibernate.HibernateGenericStore">
+    <property name="clazz" value="org.hisp.dhis.user.UserGroupAccess" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationCriteriaStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.validation.ValidationCriteria" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.message.MessageConversationStore" class="org.hisp.dhis.message.hibernate.HibernateMessageConversationStore">
+    <property name="clazz" value="org.hisp.dhis.message.MessageConversation" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="statementBuilder" ref="statementBuilder" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.translation.TranslationStore" class="org.hisp.dhis.translation.hibernate.HibernateTranslationStore">
+    <property name="clazz" value="org.hisp.dhis.translation.Translation" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.configuration.ConfigurationStore" class="org.hisp.dhis.hibernate.HibernateGenericStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.configuration.Configuration" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.constant.ConstantStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.constant.Constant" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.version.VersionStore" class="org.hisp.dhis.version.hibernate.HibernateVersionStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.version.Version" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.metadata.version.MetadataVersionStore" class="org.hisp.dhis.metadata.version.hibernate.HibernateMetadataVersionStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.metadata.version.MetadataVersion" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <!--
+  -->
+
+  <bean id="org.hisp.dhis.attribute.AttributeStore" class="org.hisp.dhis.attribute.hibernate.HibernateAttributeStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.attribute.Attribute" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.attribute.AttributeValueStore" class="org.hisp.dhis.attribute.hibernate.HibernateAttributeValueStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="clazz" value="org.hisp.dhis.attribute.AttributeValue" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.setting.SystemSettingStore" class="org.hisp.dhis.setting.hibernate.HibernateSystemSettingStore">
+    <property name="clazz" value="org.hisp.dhis.setting.SystemSetting" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.option.OptionSetStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.option.OptionSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.option.OptionStore" class="org.hisp.dhis.option.hibernate.HibernateOptionStore">
+    <property name="clazz" value="org.hisp.dhis.option.Option" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.mapping.MapStore" class="org.hisp.dhis.mapping.hibernate.HibernateMapStore">
+    <property name="clazz" value="org.hisp.dhis.mapping.Map" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.mapping.MapViewStore"
+    class="org.hisp.dhis.mapping.hibernate.HibernateMapViewStore">
+    <property name="clazz" value="org.hisp.dhis.mapping.MapView" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.mapping.MapLayerStore"
+    class="org.hisp.dhis.mapping.hibernate.HibernateMapLayerStore">
+    <property name="clazz" value="org.hisp.dhis.mapping.MapLayer" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.legend.LegendStore"
+    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.legend.Legend" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.legend.LegendSetStore"
+    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.legend.LegendSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.sms.hibernate.IncomingSmsStore"
+    class="org.hisp.dhis.sms.hibernate.HibernateIncomingSmsStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.sms.hibernate.OutboundSmsStore"
+    class="org.hisp.dhis.sms.hibernate.HibernateOutboundSmsStore">
+    <property name="clazz" value="org.hisp.dhis.sms.outbound.OutboundSms" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.i18n.I18nLocaleStore" class="org.hisp.dhis.i18n.hibernate.HibernateI18nLocaleStore">
+    <property name="clazz" value="org.hisp.dhis.i18n.locale.I18nLocale" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramIndicatorStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramIndicatorStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramIndicator" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.relationship.RelationshipStore"
+    class="org.hisp.dhis.relationship.hibernate.HibernateRelationshipStore">
+    <property name="clazz" value="org.hisp.dhis.relationship.Relationship" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.relationship.RelationshipTypeStore"
+    class="org.hisp.dhis.relationship.hibernate.HibernateRelationshipTypeStore">
+    <property name="clazz" value="org.hisp.dhis.relationship.RelationshipType" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageInstanceStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramStageInstanceStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramStageInstance" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramInstanceStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramInstance" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramStageStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramStage" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageSectionStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramStageSectionStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramStageSection" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramStore">
+    <property name="clazz" value="org.hisp.dhis.program.Program" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramTrackedEntityAttributeStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramTrackedEntityAttribute" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramValidationStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramValidationStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramValidation" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramDataElementStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramDataElementStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramDataElement" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramMessageStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramMessageStore">
+    <property name="clazz" value="org.hisp.dhis.program.message.ProgramMessage" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramExpressionStore"
+    class="org.hisp.dhis.hibernate.HibernateGenericStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramExpression" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstance" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="statementBuilder" ref="statementBuilder" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore"
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityAttributeStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityAttribute" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore"
+    class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeValueStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueStore"
+    class="org.hisp.dhis.trackedentitydatavalue.hibernate.HibernateTrackedEntityDataValueStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore"
+    class="org.hisp.dhis.trackedentitydatavalue.hibernate.HibernateTrackedEntityDataValueAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore"
+    class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeValueAuditStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService"
+    class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueAuditService" />
+
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService"
+    class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueAuditService" />
+
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueStore"
+    class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeReservedValueStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService"
+    class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeReservedValueService" />
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupStore"
+    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageDataElementStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramStageDataElementStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramStageDataElement" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleVariableStore"
+    class="org.hisp.dhis.programrule.hibernate.HibernateProgramRuleVariableStore">
+    <property name="clazz" value="org.hisp.dhis.programrule.ProgramRuleVariable" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleStore"
+    class="org.hisp.dhis.programrule.hibernate.HibernateProgramRuleStore">
+    <property name="clazz" value="org.hisp.dhis.programrule.ProgramRule" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleActionStore"
+    class="org.hisp.dhis.programrule.hibernate.HibernateProgramRuleActionStore">
+    <property name="clazz" value="org.hisp.dhis.programrule.ProgramRuleAction" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityStore"
+    class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntity" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.eventreport.EventReportStore"
+    class="org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore">
+    <property name="clazz" value="org.hisp.dhis.eventreport.EventReport" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.eventchart.EventChartStore"
+    class="org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore">
+    <property name="clazz" value="org.hisp.dhis.eventchart.EventChart" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.sms.command.hibernate.SMSCommandStore"
+    class="org.hisp.dhis.sms.command.hibernate.HibernateSMSCommandStore">
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.color.ColorStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.color.Color" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.color.ColorSetStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.color.ColorSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.keyjsonvalue.KeyJsonValueStore" class="org.hisp.dhis.keyjsonvalue.hibernate.HibernateKeyJsonValueStore">
+    <property name="clazz" value="org.hisp.dhis.keyjsonvalue.KeyJsonValue" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore" class="org.hisp.dhis.userkeyjsonvalue.hibernate.HibernateUserKeyJsonValueStore">
+    <property name="clazz" value="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.fileresource.FileResourceStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.fileresource.FileResource" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.fileresource.FileResourceContentStore" class="org.hisp.dhis.fileresource.JCloudsFileResourceContentStore">
+    <property name="configurationProvider" ref="dhisConfigurationProvider" />
+    <property name="locationManager" ref="locationManager" />
+  </bean>
+
+  <!-- File resource tasks -->
+
+  <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
+
+  <bean id="org.hisp.dhis.fileresource.FileResourceCleanUpTask"
+    class="org.hisp.dhis.fileresource.FileResourceCleanUpTask"
+    scope="prototype" />
+
+  <!-- Service definitions -->
+
+  <bean id="org.hisp.dhis.dimension.DimensionService" class="org.hisp.dhis.dimension.DefaultDimensionService" />
+
+  <bean id="org.hisp.dhis.fileresource.FileResourceService" class="org.hisp.dhis.fileresource.DefaultFileResourceService">
+    <property name="fileResourceStore" ref="org.hisp.dhis.fileresource.FileResourceStore" />
+    <property name="fileResourceContentStore" ref="org.hisp.dhis.fileresource.FileResourceContentStore" />
+    <property name="scheduler" ref="scheduler" />
+    <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementOperandService" class="org.hisp.dhis.dataelement.DefaultDataElementOperandService">
+    <property name="dataElementOperandStore" ref="org.hisp.dhis.dataelement.DataElementOperandStore" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.datavalue.DataValueService" class="org.hisp.dhis.datavalue.DefaultDataValueService">
+    <property name="dataValueStore" ref="org.hisp.dhis.datavalue.DataValueStore" />
+    <property name="dataValueAuditService" ref="org.hisp.dhis.datavalue.DataValueAuditService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="fileResourceService" ref="org.hisp.dhis.fileresource.FileResourceService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.datavalue.DataValueAuditService" class="org.hisp.dhis.datavalue.DefaultDataValueAuditService">
+    <property name="dataValueAuditStore" ref="org.hisp.dhis.datavalue.DataValueAuditStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalService">
+    <property name="dataApprovalStore" ref="org.hisp.dhis.dataapproval.DataApprovalStore" />
+    <property name="workflowStore" ref="org.hisp.dhis.dataapproval.DataApprovalWorkflowStore" />
+    <property name="dataApprovalLevelService" ref="org.hisp.dhis.dataapproval.DataApprovalLevelService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalLevelService" class="org.hisp.dhis.dataapproval.DefaultDataApprovalLevelService">
+    <property name="dataApprovalLevelStore" ref="org.hisp.dhis.dataapproval.DataApprovalLevelStore" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementService" class="org.hisp.dhis.dataelement.DefaultDataElementService">
+    <property name="dataElementStore" ref="org.hisp.dhis.dataelement.DataElementStore" />
+    <property name="dataElementGroupStore" ref="org.hisp.dhis.dataelement.DataElementGroupStore" />
+    <property name="dataElementGroupSetStore" ref="org.hisp.dhis.dataelement.DataElementGroupSetStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementService" class="org.hisp.dhis.minmax.DefaultMinMaxDataElementService">
+    <property name="minMaxDataElementStore" ref="org.hisp.dhis.minmax.MinMaxDataElementStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.indicator.IndicatorService" class="org.hisp.dhis.indicator.DefaultIndicatorService">
+    <property name="indicatorStore" ref="org.hisp.dhis.indicator.IndicatorStore" />
+    <property name="indicatorTypeStore" ref="org.hisp.dhis.indicator.IndicatorTypeStore" />
+    <property name="indicatorGroupStore" ref="org.hisp.dhis.indicator.IndicatorGroupStore" />
+    <property name="indicatorGroupSetStore" ref="org.hisp.dhis.indicator.IndicatorGroupSetStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.period.PeriodService" class="org.hisp.dhis.period.DefaultPeriodService">
+    <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.DataSetService" class="org.hisp.dhis.dataset.DefaultDataSetService">
+    <property name="dataSetStore" ref="org.hisp.dhis.dataset.DataSetStore" />
+    <property name="lockExceptionStore" ref="org.hisp.dhis.dataset.LockExceptionStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="dataApprovalService" ref="org.hisp.dhis.dataapproval.DataApprovalService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationService"
+    class="org.hisp.dhis.dataset.DefaultCompleteDataSetRegistrationService">
+    <property name="completeDataSetRegistrationStore" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationStore" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.SectionService" class="org.hisp.dhis.dataset.DefaultSectionService">
+    <property name="sectionStore" ref="org.hisp.dhis.dataset.SectionStore" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataentryform.DataEntryFormService" class="org.hisp.dhis.dataentryform.DefaultDataEntryFormService">
+    <property name="dataEntryFormStore" ref="org.hisp.dhis.dataentryform.DataEntryFormStore" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.expression.ExpressionService" class="org.hisp.dhis.expression.DefaultExpressionService">
+    <property name="expressionStore" ref="org.hisp.dhis.expression.ExpressionStore" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
+    <property name="dimensionService" ref="org.hisp.dhis.dimension.DimensionService" />
+    <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleService" class="org.hisp.dhis.validation.DefaultValidationRuleService">
+    <property name="validationRuleStore" ref="org.hisp.dhis.validation.ValidationRuleStore" />
+    <property name="validationRuleGroupStore" ref="org.hisp.dhis.validation.ValidationRuleGroupStore" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
+    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+  
+  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
+
+  <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
+    <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
+    <property name="categoryOptionStore" ref="org.hisp.dhis.dataelement.CategoryOptionStore" />
+    <property name="categoryComboStore" ref="org.hisp.dhis.dataelement.CategoryComboStore" />
+    <property name="categoryOptionComboStore" ref="org.hisp.dhis.dataelement.CategoryOptionComboStore" />
+    <property name="categoryOptionGroupStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupStore" />
+    <property name="categoryOptionGroupSetStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupSetStore" />
+    <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="deletionManager" ref="deletionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitService" class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitService">
+    <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore" />
+    <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
+    <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"
+    class="org.hisp.dhis.organisationunit.DefaultOrganisationUnitGroupService">
+    <property name="organisationUnitGroupStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" />
+    <property name="organisationUnitGroupSetStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" class="org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService">
+    <property name="dataAnalysisStore" ref="org.hisp.dhis.dataanalysis.DataAnalysisStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" class="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService">
+    <property name="dataAnalysisStore" ref="org.hisp.dhis.dataanalysis.DataAnalysisStore" />
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+    <property name="batchHandlerFactory" ref="batchHandlerFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataanalysis.FollowupAnalysisService" class="org.hisp.dhis.dataanalysis.DefaultFollowupAnalysisService">
+    <property name="dataAnalysisStore" ref="org.hisp.dhis.dataanalysis.DataAnalysisStore" />
+  </bean>
+
+  <bean id="dataAnalysisServiceProvider" class="org.hisp.dhis.common.ServiceProvider">
+    <property name="services">
+      <map>
+        <entry>
+          <key>
+            <value>stddevoutlier</value>
+          </key>
+          <ref bean="org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" />
+        </entry>
+        <entry>
+          <key>
+            <value>minmaxoutlier</value>
+          </key>
+          <ref bean="org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" />
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.user.CurrentUserService" class="org.hisp.dhis.user.DefaultCurrentUserService" />
+
+  <bean id="org.hisp.dhis.user.UserSettingService" class="org.hisp.dhis.user.DefaultUserSettingService">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="userSettingStore" ref="org.hisp.dhis.user.UserSettingStore" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserService" class="org.hisp.dhis.user.DefaultUserService">
+    <property name="userStore" ref="org.hisp.dhis.user.UserStore" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="userCredentialsStore" ref="org.hisp.dhis.user.UserCredentialsStore" />
+    <property name="userAuthorityGroupStore" ref="org.hisp.dhis.user.UserAuthorityGroupStore" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="passwordManager" ref="org.hisp.dhis.security.PasswordManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserGroupService" class="org.hisp.dhis.user.DefaultUserGroupService">
+    <property name="userGroupStore" ref="org.hisp.dhis.user.UserGroupStore" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
+    <property name="cacheManager" ref="cacheManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserGroupAccessService" class="org.hisp.dhis.user.DefaultUserGroupAccessService">
+    <property name="userGroupAccessStore" ref="org.hisp.dhis.user.UserGroupAccessStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationCriteriaService" class="org.hisp.dhis.validation.DefaultValidationCriteriaService">
+    <property name="validationCriteriaStore" ref="org.hisp.dhis.validation.ValidationCriteriaStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.translation.TranslationService" class="org.hisp.dhis.translation.DefaultTranslationService">
+    <property name="translationStore" ref="org.hisp.dhis.translation.TranslationStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.message.MessageService" class="org.hisp.dhis.message.DefaultMessageService">
+    <property name="messageConversationStore" ref="org.hisp.dhis.message.MessageConversationStore" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
+    <property name="emailService" ref="org.hisp.dhis.email.EmailService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="emailMessageSender" class="org.hisp.dhis.message.EmailMessageSender">
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.email.EmailService" class="org.hisp.dhis.email.DefaultEmailService">
+    <property name="emailMessageSender" ref="emailMessageSender" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.configuration.ConfigurationService" class="org.hisp.dhis.configuration.DefaultConfigurationService">
+    <property name="configurationStore" ref="org.hisp.dhis.configuration.ConfigurationStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.constant.ConstantService" class="org.hisp.dhis.constant.DefaultConstantService">
+    <property name="constantStore" ref="org.hisp.dhis.constant.ConstantStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.version.VersionService" class="org.hisp.dhis.version.DefaultVersionService">
+    <property name="versionStore" ref="org.hisp.dhis.version.VersionStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.attribute.AttributeService" class="org.hisp.dhis.attribute.DefaultAttributeService">
+    <property name="attributeStore" ref="org.hisp.dhis.attribute.AttributeStore" />
+    <property name="attributeValueStore" ref="org.hisp.dhis.attribute.AttributeValueStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.common.filter.MetaDataFilterService" class="org.hisp.dhis.commons.filter.DefaultMetaDataFilterService">
+    <property name="metaDataFilterStore" ref="org.hisp.dhis.filter.MetaDataFilterStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.option.OptionService" class="org.hisp.dhis.option.DefaultOptionService">
+    <property name="optionSetStore" ref="org.hisp.dhis.option.OptionSetStore" />
+    <property name="optionStore" ref="org.hisp.dhis.option.OptionStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.mapping.MappingService" class="org.hisp.dhis.mapping.DefaultMappingService">
+    <property name="mapStore" ref="org.hisp.dhis.mapping.MapStore" />
+    <property name="mapViewStore" ref="org.hisp.dhis.mapping.MapViewStore" />
+    <property name="mapLayerStore" ref="org.hisp.dhis.mapping.MapLayerStore" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.legend.LegendService" class="org.hisp.dhis.legend.DefaultLegendService">
+    <property name="legendStore" ref="org.hisp.dhis.legend.LegendStore" />
+    <property name="legendSetStore" ref="org.hisp.dhis.legend.LegendSetStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.security.oauth2.OAuth2ClientStore" class="org.hisp.dhis.security.oauth2.hibernate.HibernateOAuth2ClientStore">
+    <property name="clazz" value="org.hisp.dhis.security.oauth2.OAuth2Client" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="oAuth2ClientService" class="org.hisp.dhis.security.oauth2.DefaultOAuth2ClientService" />
+
+  <bean class="org.hisp.dhis.security.oauth2.OAuth2ClientDeletionHandler" />
+
+  <bean id="org.hisp.dhis.setting.SystemSettingManager" class="org.hisp.dhis.setting.DefaultSystemSettingManager">
+    <property name="systemSettingStore" ref="org.hisp.dhis.setting.SystemSettingStore" />
+    <property name="flags">
+      <list>
+        <value>afghanistan</value>
+        <value>africare</value>
+        <value>akros</value>
+        <value>algeria</value>
+        <value>armenia</value>
+        <value>bangladesh</value>
+        <value>benin</value>
+        <value>bhutan</value>
+        <value>botswana</value>
+        <value>burkina_faso</value>
+        <value>burkina_faso_coat_of_arms</value>
+        <value>burundi</value>
+        <value>cambodia</value>
+        <value>cameroon</value>
+        <value>chad</value>
+        <value>china</value>
+        <value>colombia</value>
+        <value>congo_brazzaville</value>
+        <value>congo_kinshasa</value>
+        <value>demoland</value>
+        <value>ecowas</value>
+        <value>ecuador</value>
+        <value>east_africa_community</value>
+        <value>egypt</value>
+        <value>engender_health</value>
+        <value>eritrea</value>
+        <value>ethiopia</value>
+        <value>fhi360</value>
+        <value>forut</value>
+        <value>gambia</value>
+        <value>ghana</value>
+        <value>global_fund</value>
+        <value>guinea</value>
+        <value>guinea_bissau</value>
+        <value>haiti</value>
+        <value>icap</value>
+        <value>ippf</value>
+        <value>india</value>
+        <value>indonesia</value>
+        <value>irc</value>
+        <value>iran</value>
+        <value>iraq</value>
+        <value>ivory_coast</value>
+        <value>jhpiego</value>
+        <value>kenya</value>
+        <value>kiribati</value>
+        <value>kurdistan</value>
+        <value>laos</value>
+        <value>lesotho</value>
+        <value>liberia</value>
+        <value>malawi</value>
+        <value>mongolia</value>
+        <value>mozambique</value>
+        <value>myanmar</value>
+        <value>mali</value>
+        <value>msf</value>
+        <value>msi</value>
+        <value>namibia</value>
+        <value>nicaragua</value>
+        <value>nepal</value>
+        <value>niger</value>
+        <value>nigeria</value>
+        <value>norway</value>
+        <value>pakistan</value>
+        <value>palestine</value>
+        <value>paraguay</value>
+        <value>philippines</value>
+        <value>pepfar</value>
+        <value>peru</value>
+        <value>psi</value>
+        <value>rwanda</value>
+        <value>senegal</value>
+        <value>sierra_leone</value>
+        <value>sierra_leone_coat_of_arms</value>
+        <value>solomon_islands</value>
+        <value>south_africa</value>
+        <value>south_africa_department_of_health</value>
+        <value>south_sudan</value>
+        <value>sri_lanka</value>
+        <value>sudan</value>
+        <value>swaziland</value>
+        <value>sweden</value>
+        <value>tajikistan</value>
+        <value>tanzania</value>
+        <value>timor_leste</value>
+        <value>republic_of_trinidad_and_tobago</value>
+        <value>togo</value>
+        <value>tonga</value>
+        <value>uganda</value>
+        <value>usaid</value>
+        <value>vietnam</value>
+        <value>vanuatu</value>
+        <value>zambia</value>
+        <value>zanzibar</value>
+        <value>zimbabwe</value>
+        <value>who</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.setting.TranslateSystemSettingManager" class="org.hisp.dhis.setting.DefaultTranslateSystemSettingManager">
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.setting.StyleManager" class="org.hisp.dhis.setting.DefaultStyleManager">
+    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="styles">
+      <map>
+        <entry>
+          <key>
+            <value>light_blue</value>
+          </key>
+          <value>light_blue/light_blue.css</value>
+        </entry>
+        <entry>
+          <key>
+            <value>green</value>
+          </key>
+          <value>green/green.css</value>
+        </entry>
+        <entry>
+          <key>
+            <value>myanmar</value>
+          </key>
+          <value>myanmar/myanmar.css</value>
+        </entry>
+        <entry>
+          <key>
+            <value>vietnam</value>
+          </key>
+          <value>vietnam/vietnam.css</value>
+        </entry>
+        <entry>
+          <key>
+            <value>india</value>
+          </key>
+          <value>india/india.css</value>
+        </entry>
+      </map>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.common.IdentifiableObjectManager" class="org.hisp.dhis.common.DefaultIdentifiableObjectManager" />
+
+  <bean id="org.hisp.dhis.help.HelpManager" class="org.hisp.dhis.help.DefaultHelpManager" />
+
+  <bean id="org.hisp.dhis.appmanager.AppManager" class="org.hisp.dhis.appmanager.DefaultAppManager" />
+
+  <bean id="org.hisp.dhis.system.SystemService" class="org.hisp.dhis.system.DefaultSystemService" />
+
+  <bean id="org.hisp.dhis.color.ColorService" class="org.hisp.dhis.color.DefaultColorService">
+    <property name="colorStore" ref="org.hisp.dhis.color.ColorStore" />
+    <property name="colorSetStore" ref="org.hisp.dhis.color.ColorSetStore" />
+  </bean>
+
+  <!-- SMS Services -->
+
+  <bean id="org.hisp.dhis.sms.MessageQueue" class="org.hisp.dhis.sms.DatabaseSupportedInternalMemoryMessageQueue" />
+
+  <bean id="org.hisp.dhis.sms.config.SmsConfigurationManager" class="org.hisp.dhis.sms.config.DefaultSmsConfigurationManager" />
+
+  <bean id="org.hisp.dhis.sms.incoming.SmsConsumerService" class="org.hisp.dhis.sms.incoming.DefaultSmsConsumerService" />
+  
+  <bean id="org.hisp.dhis.sms.SmsPublisher" class="org.hisp.dhis.sms.SmsPublisher" />
+  
+    <bean id="org.hisp.dhis.sms.SmsConsumerThread" class="org.hisp.dhis.sms.SmsConsumerThread" />
+
+  <bean id="org.hisp.dhis.sms.incoming.IncomingSmsService" class="org.hisp.dhis.sms.incoming.DefaultIncomingSmsService">
+    <property name="incomingSmsStore" ref="org.hisp.dhis.sms.hibernate.IncomingSmsStore" />
+    <property name="incomingSmsQueue" ref="org.hisp.dhis.sms.MessageQueue" />
+  </bean>
+
+  <bean id="org.hisp.dhis.sms.outbound.OutboundSmsService" class="org.hisp.dhis.sms.outbound.DefaultOutboundSmsService">
+    <property name="outboundSmsStore" ref="org.hisp.dhis.sms.hibernate.OutboundSmsStore" />
+  </bean>
+  
+   <bean id="org.hisp.dhis.sms.config.GatewayAdministrationService"
+    class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
+        
+    <bean id="org.hisp.dhis.sms.config.BulkSmsGateway" class="org.hisp.dhis.sms.config.BulkSmsGateway" />
+
+  <bean id="org.hisp.dhis.sms.config.ClickatellGateway" class="org.hisp.dhis.sms.config.ClickatellGateway" />
+  
+  <bean id="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" class="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" />
+
+  <bean id="smsMessageSender" class="org.hisp.dhis.sms.config.SmsMessageSender" />
+
+  <bean id="org.hisp.dhis.sms.task.SendSmsTask" class="org.hisp.dhis.sms.task.SendSmsTask" scope="prototype" />
+    
+  <bean id="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" class="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" />
+  
+    <bean id="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" class="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" />  
+  
+
+  <!-- I18nService -->
+
+  <bean id="org.hisp.dhis.i18n.I18nService" class="org.hisp.dhis.i18n.DefaultI18nService">
+    <property name="translationService" ref="org.hisp.dhis.translation.TranslationService" />
+    <property name="localeService" ref="org.hisp.dhis.i18n.118nLocaleService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.i18n.118nLocaleService" class="org.hisp.dhis.i18n.DefaultI18nLocaleService">
+    <property name="localeStore" ref="org.hisp.dhis.i18n.I18nLocaleStore" />
+  </bean>
+
+  <!-- Tracker services -->
+
+  <bean id="org.hisp.dhis.program.ProgramDataEntryService" class="org.hisp.dhis.program.DefaultProgramDataEntryService">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="programStageInstanceService" ref="org.hisp.dhis.program.ProgramStageInstanceService" />
+    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+    <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
+    <property name="programStageDataElementService" ref="org.hisp.dhis.program.ProgramStageDataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramExpressionService" class="org.hisp.dhis.program.DefaultProgramExpressionService">
+    <property name="programExpressionStore" ref="org.hisp.dhis.program.ProgramExpressionStore" />
+    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramIndicatorService" class="org.hisp.dhis.program.DefaultProgramIndicatorService">
+    <property name="programIndicatorStore" ref="org.hisp.dhis.program.ProgramIndicatorStore" />
+    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="attributeService" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
+    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
+    <property name="statementBuilder" ref="statementBuilder" />
+  </bean>
+
+  <bean id="org.hisp.dhis.relationship.RelationshipService" class="org.hisp.dhis.relationship.DefaultRelationshipService">
+    <property name="relationshipStore" ref="org.hisp.dhis.relationship.RelationshipStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.relationship.RelationshipTypeService"
+    class="org.hisp.dhis.relationship.DefaultRelationshipTypeService">
+    <property name="relationshipTypeStore" ref="org.hisp.dhis.relationship.RelationshipTypeStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageInstanceService"
+    class="org.hisp.dhis.program.DefaultProgramStageInstanceService">
+    <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
+    <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+    <property name="smsSender" ref="smsMessageSender" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="reminderService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramInstanceService" class="org.hisp.dhis.program.DefaultProgramInstanceService" />
+
+  <bean id="org.hisp.dhis.program.ProgramStageService" class="org.hisp.dhis.program.DefaultProgramStageService">
+    <property name="programStageStore" ref="org.hisp.dhis.program.ProgramStageStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
+    <property name="programRuleVariableStore" ref="org.hisp.dhis.programrule.ProgramRuleVariableStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleService" class="org.hisp.dhis.programrule.DefaultProgramRuleService">
+    <property name="programRuleStore" ref="org.hisp.dhis.programrule.ProgramRuleStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleActionService" class="org.hisp.dhis.programrule.DefaultProgramRuleActionService">
+    <property name="programRuleActionStore" ref="org.hisp.dhis.programrule.ProgramRuleActionStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageSectionService" class="org.hisp.dhis.program.DefaultProgramStageSectionService">
+    <property name="programStageSectionStore" ref="org.hisp.dhis.program.ProgramStageSectionStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramService" class="org.hisp.dhis.program.DefaultProgramService">
+    <property name="programStore" ref="org.hisp.dhis.program.ProgramStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="programDataElementStore" ref="org.hisp.dhis.program.ProgramDataElementStore" />
+  </bean>  
+  
+  <bean id="org.hisp.dhis.program.message.ProgramMessageService" class="org.hisp.dhis.program.message.DefaultProgramMessageService">
+  </bean>
+  
+  <bean id="org.hisp.dhis.program.ProgramValidationService" class="org.hisp.dhis.program.DefaultProgramValidationService">
+    <property name="validationStore" ref="org.hisp.dhis.program.ProgramValidationStore" />
+    <property name="expressionService" ref="org.hisp.dhis.program.ProgramExpressionService" />
+    <property name="dataValueService" ref="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceService"
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService" />
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeService">
+    <property name="attributeStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore" />
+    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+    <property name="programAttributeStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService"
+    class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeValueService">
+    <property name="attributeValueStore" ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService"
+    class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueService">
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService"
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityAttributeGroupService">
+    <property name="attributeGroupStore" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupStore" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageDataElementService"
+    class="org.hisp.dhis.program.DefaultProgramStageDataElementService">
+    <property name="programStageDataElementStore" ref="org.hisp.dhis.program.ProgramStageDataElementStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityService" class="org.hisp.dhis.trackedentity.DefaultTrackedEntityService">
+    <property name="trackedEntityStore" ref="org.hisp.dhis.trackedentity.TrackedEntityStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService"
+    class="org.hisp.dhis.trackedentitycomment.DefaultTrackedEntityCommentService">
+    <property name="commentStore" ref="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.predictor.PredictorService" class="org.hisp.dhis.predictor.DefaultPredictorService" />
+
+  <bean id="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore"
+    class="org.hisp.dhis.hibernate.HibernateGenericStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService"
+    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceReminderService">
+    <property name="reminderStore" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderStore"
+    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="transientIdentifiableProperties" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.eventreport.EventReportService" class="org.hisp.dhis.eventreport.DefaultEventReportService">
+    <property name="eventReportStore" ref="org.hisp.dhis.eventreport.EventReportStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.eventchart.EventChartService" class="org.hisp.dhis.eventchart.DefaultEventChartService">
+    <property name="eventChartStore" ref="org.hisp.dhis.eventchart.EventChartStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.keyjsonvalue.KeyJsonValueService" class="org.hisp.dhis.keyjsonvalue.DefaultKeyJsonValueService">
+    <property name="keyJsonValueStore" ref="org.hisp.dhis.keyjsonvalue.KeyJsonValueStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueService" class="org.hisp.dhis.userkeyjsonvalue.DefaultUserKeyJsonValueService">
+    <property name="userKeyJsonValueStore" ref="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore" />
+  </bean>
+
+  <!-- SMS services -->
+
+  <bean id="org.hisp.dhis.sms.command.SMSCommandService" class="org.hisp.dhis.sms.command.DefaultSMSCommandService">
+    <property name="smsCommandStore" ref="org.hisp.dhis.sms.command.hibernate.SMSCommandStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.sms.listener.DataValueSMSListener" class="org.hisp.dhis.sms.listener.DataValueSMSListener" />
+
+  <bean id="org.hisp.dhis.sms.listener.J2MEDataValueSMSListener"
+    class="org.hisp.dhis.sms.listener.J2MEDataValueSMSListener" />
+
+  <bean id="org.hisp.dhis.sms.listener.UnregisteredSMSListener"
+    class="org.hisp.dhis.sms.listener.UnregisteredSMSListener" />
+
+  <bean id="org.hisp.dhis.sms.listener.DhisMessageAlertListener"
+    class="org.hisp.dhis.sms.listener.DhisMessageAlertListener" />
+
+  <bean id="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener"
+    class="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" />
+    
+  <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
+    
+
+  <!-- I18n UI -->
+
+  <bean id="org.hisp.dhis.i18n.locale.LocaleManager" class="org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager">
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
+    <property name="resourceBundleManager" ref="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.i18n.I18nManager" class="org.hisp.dhis.i18n.ui.DefaultI18nManager">
+    <property name="resourceBundleManager" ref="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" />
+    <property name="localeManager">
+      <ref bean="org.hisp.dhis.i18n.locale.LocaleManager" />
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" class="org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager">
+    <property name="globalResourceBundleName" value="i18n_global" />
+    <property name="specificResourceBundleName" value="i18n_module" />
+  </bean>
+
+  <!-- Scheduled task for data monitoring -->
+
+  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
+
+  <!-- Startup routine definitions -->
+
+  <bean id="org.hisp.dhis.startup.InitTableAlteror" class="org.hisp.dhis.startup.InitTableAlteror">
+    <property name="name" value="InitTableAlteror" />
+    <property name="runlevel" value="1" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.period.PeriodTypePopulator" class="org.hisp.dhis.period.PeriodTypePopulator">
+    <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
+    <property name="name" value="PeriodTypePopulator" />
+    <property name="runlevel" value="2" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator"
+    class="org.hisp.dhis.dataelement.DataElementDefaultDimensionPopulator">
+    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+    <property name="name" value="DataElementDefaultDimensionPopulator" />
+    <property name="runlevel" value="3" />
+  </bean>
+
+  <bean id="org.hisp.dhis.common.IdentityPopulator" class="org.hisp.dhis.common.IdentityPopulator">
+    <property name="name" value="IdentityPopulator" />
+    <property name="runlevel" value="4" />
+    <property name="skipInTests" value="true" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="tables">
+      <list>
+        <value>constant</value>
+        <value>attribute</value>
+        <value>indicatortype</value>
+        <value>indicator</value>
+        <value>indicatorgroup</value>
+        <value>indicatorgroupset</value>
+        <value>validationrule</value>
+        <value>validationrulegroup</value>
+        <value>predictor</value>
+        <value>dataset</value>
+        <value>section</value>
+        <value>orgunitlevel</value>
+        <value>organisationunit</value>
+        <value>orgunitgroup</value>
+        <value>orgunitgroupset</value>
+        <value>dataelement</value>
+        <value>dataelementgroup</value>
+        <value>dataelementgroupset</value>
+        <value>dataelementcategory</value>
+        <value>dataelementcategoryoption</value>
+        <value>dataapprovalworkflow</value>
+        <value>categorycombo</value>
+        <value>categoryoptioncombo</value>
+        <value>translation</value>
+        <value>userinfo</value>
+        <value>users</value>
+        <value>usergroup</value>
+        <value>userrole</value>
+        <value>optionset</value>
+        <value>optionvalue</value>
+        <value>validationcriteria</value>
+        <value>trackedentity</value>
+        <value>trackedentityinstance</value>
+        <value>trackedentityattribute</value>
+        <value>trackedentityattributegroup</value>
+        <value>trackedentityinstancereminder</value>
+        <value>program</value>
+        <value>programindicator</value>
+        <value>programstage</value>
+        <value>programstagesection</value>
+        <value>programstagedataelement</value>
+        <value>programinstance</value>
+        <value>programstageinstance</value>
+        <value>programstagesection</value>
+        <value>program_attributes</value>
+        <value>programvalidation</value>
+        <value>programrule</value>
+        <value>programruleaction</value>
+        <value>programrulevariable</value>
+        <value>relationshiptype</value>
+        <value>sqlview</value>
+        <value>dataentryform</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="org.hisp.dhis.startup.TableCreator" class="org.hisp.dhis.startup.TableCreator">
+    <property name="name" value="TableCreator" />
+    <property name="runlevel" value="5" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.startup.TableAlteror" class="org.hisp.dhis.startup.TableAlteror">
+    <property name="name" value="TableAlteror" />
+    <property name="runlevel" value="6" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.startup.TableAlteror" class="org.hisp.dhis.trackedentity.startup.TableAlteror">
+    <property name="statementManager" ref="statementManager" />
+    <property name="name" value="TrackedEntityTableAlteror" />
+    <property name="runlevel" value="7" />
+    <property name="skipInTests" value="true" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.startup.ModelUpgrader" class="org.hisp.dhis.startup.ModelUpgrader">
+    <property name="name" value="ModelUpgrader" />
+    <property name="runlevel" value="7" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.startup.FavoriteDataItemUpgrader" class="org.hisp.dhis.startup.FavoriteDataItemUpgrader">
+    <property name="name" value="FavoriteDataItemUpgrader" />
+    <property name="runlevel" value="9" />
+    <property name="skipInTests" value="true" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataentryform.DataEntryFormUpgrader" class="org.hisp.dhis.dataentryform.DataEntryFormUpgrader">
+    <property name="name" value="FavoriteDataItemUpgrader" />
+    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+    <property name="runlevel" value="10" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.startup.ExpressionUpgrader" class="org.hisp.dhis.startup.ExpressionUpgrader">
+    <property name="name" value="ExpressionUpgrader" />
+    <property name="runlevel" value="11" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.startup.ConfigurationPopulator" class="org.hisp.dhis.startup.ConfigurationPopulator">
+    <property name="name" value="ConfigurationPopulator" />
+    <property name="runlevel" value="12" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.startup.I18nLocalePopulator" class="org.hisp.dhis.startup.I18nLocalePopulator">
+    <property name="name" value="I18nLocalePopulator" />
+    <property name="runlevel" value="13" />
+    <property name="skipInTests" value="true" />
+  </bean>
+
+  <!-- DeletionHandlers -->
+
+  <bean id="org.hisp.dhis.dataapproval.DataApprovalDeletionHandler" class="org.hisp.dhis.dataapproval.DataApprovalDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementDeletionHandler" class="org.hisp.dhis.dataelement.DataElementDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" class="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dataelement.DataElementCategoryOptionDeletionHandler"
+    class="org.hisp.dhis.dataelement.DataElementCategoryOptionDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dataelement.DataElementCategoryOptionComboDeletionHandler"
+    class="org.hisp.dhis.dataelement.DataElementCategoryOptionComboDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementCategoryComboDeletionHandler"
+    class="org.hisp.dhis.dataelement.DataElementCategoryComboDeletionHandler">
+    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementCategoryDimensionDeletionHandler"
+    class="org.hisp.dhis.dataelement.DataElementCategoryDimensionDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.DataSetDeletionHandler" class="org.hisp.dhis.dataset.DataSetDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dataset.CompleteDataSetRegistrationDeletionHandler"
+    class="org.hisp.dhis.dataset.CompleteDataSetRegistrationDeletionHandler">
+    <property name="completeDataSetRegistrationService" ref="org.hisp.dhis.dataset.CompleteDataSetRegistrationService" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.SectionDeletionHandler" class="org.hisp.dhis.dataset.SectionDeletionHandler">
+    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.expression.ExpressionDeletionHandler" class="org.hisp.dhis.expression.ExpressionDeletionHandler">
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.indicator.IndicatorDeletionHandler" class="org.hisp.dhis.indicator.IndicatorDeletionHandler">
+    <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.indicator.IndicatorGroupDeletionHandler" class="org.hisp.dhis.indicator.IndicatorGroupDeletionHandler" />
+
+  <bean id="org.hisp.dhis.indicator.IndicatorGroupSetDeletionHandler" class="org.hisp.dhis.indicator.IndicatorGroupSetDeletionHandler" />
+
+  <bean id="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" class="org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler">
+    <property name="minMaxDataElementService" ref="org.hisp.dhis.minmax.MinMaxDataElementService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleDeletionHandler" class="org.hisp.dhis.validation.ValidationRuleDeletionHandler">
+    <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler"
+    class="org.hisp.dhis.validation.ValidationRuleGroupDeletionHandler" />
+
+  <bean id="org.hisp.dhis.datavalue.DataValueDeletionHandler" class="org.hisp.dhis.datavalue.DataValueDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.datavalue.DataValueAuditDeletionHandler" class="org.hisp.dhis.datavalue.DataValueAuditDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitDeletionHandler"
+    class="org.hisp.dhis.organisationunit.OrganisationUnitDeletionHandler" />
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupDeletionHandler"
+    class="org.hisp.dhis.organisationunit.OrganisationUnitGroupDeletionHandler" />
+
+  <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler"
+    class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" />
+
+  <bean id="org.hisp.dhis.user.UserDeletionHandler" class="org.hisp.dhis.user.UserDeletionHandler" />
+
+  <bean id="org.hisp.dhis.user.UserGroupDeletionHandler" class="org.hisp.dhis.user.UserGroupDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserAuthorityGroupDeletionHandler" class="org.hisp.dhis.user.UserAuthorityGroupDeletionHandler">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserSettingDeletionHandler" class="org.hisp.dhis.user.UserSettingDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dataelement.DataElementCategoryDeletionHandler"
+    class="org.hisp.dhis.dataelement.DataElementCategoryDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler"
+    class="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler" />
+
+  <bean id="org.hisp.dhis.configuration.ConfigurationDeletionHandler" class="org.hisp.dhis.configuration.ConfigurationDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.message.MessageConversationDeletionHandler" class="org.hisp.dhis.message.MessageConversationDeletionHandler">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.translation.TranslationDeletionHandler" class="org.hisp.dhis.translation.TranslationDeletionHandler">
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="translationService" ref="org.hisp.dhis.translation.TranslationService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.attribute.AttributeValueDeletionHandler" class="org.hisp.dhis.attribute.AttributeValueDeletionHandler">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.legend.LegendSetDeletionHandler" class="org.hisp.dhis.legend.LegendSetDeletionHandler" />
+
+  <bean id="org.hisp.dhis.mapping.MapViewDeletionHandler" class="org.hisp.dhis.mapping.MapViewDeletionHandler">
+    <property name="mappingService" ref="org.hisp.dhis.mapping.MappingService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.mapping.MapDeletionHandler" class="org.hisp.dhis.mapping.MapDeletionHandler">
+    <property name="mappingService" ref="org.hisp.dhis.mapping.MappingService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryOptionGroupDeletionHandler" />
+
+  <bean id="org.hisp.dhis.dataelement.CategoryOptionGroupSetDeletionHandler"
+    class="org.hisp.dhis.dataelement.CategoryOptionGroupSetDeletionHandler" />
+
+  <bean id="org.hisp.dhis.program.ProgramInstanceDeletionHandler"
+    class="org.hisp.dhis.program.ProgramInstanceDeletionHandler">
+    <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
+    <property name="commentService" ref="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.relationship.RelationshipDeletionHandler"
+    class="org.hisp.dhis.relationship.RelationshipDeletionHandler">
+    <property name="relationshipSevice" ref="org.hisp.dhis.relationship.RelationshipService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler"
+    class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler">
+    <property name="attributeValueService" ref="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramDeletionHandler" class="org.hisp.dhis.program.ProgramDeletionHandler" />
+
+  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler"
+    class="org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler">
+    <property name="instanceService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceService" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageDataElementDeletionHandler"
+    class="org.hisp.dhis.program.ProgramStageDataElementDeletionHandler">
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageDeletionHandler"
+    class="org.hisp.dhis.program.ProgramStageDeletionHandler">
+    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleDeletionHandler"
+    class="org.hisp.dhis.programrule.ProgramRuleDeletionHandler">
+    <property name="programRuleService" ref="org.hisp.dhis.programrule.ProgramRuleService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler"
+    class="org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler">
+    <property name="programRuleVariableService" ref="org.hisp.dhis.programrule.ProgramRuleVariableService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler"
+    class="org.hisp.dhis.programrule.ProgramRuleActionDeletionHandler">
+    <property name="programRuleActionService" ref="org.hisp.dhis.programrule.ProgramRuleActionService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler"
+    class="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramValidationDeletionHandler"
+    class="org.hisp.dhis.program.ProgramValidationDeletionHandler">
+    <property name="programValidationService"
+      ref="org.hisp.dhis.program.ProgramValidationService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler"
+    class="org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler">
+    <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
+    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageInstanceDeletionHandler"
+    class="org.hisp.dhis.program.ProgramStageInstanceDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramStageSectionDeletionHandler"
+    class="org.hisp.dhis.program.ProgramStageSectionDeletionHandler">
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramIndicatorDeletionHandler"
+    class="org.hisp.dhis.program.ProgramIndicatorDeletionHandler" />
+
+  <bean id="org.hisp.dhis.eventchart.EventChartDeletionHandler"
+    class="org.hisp.dhis.eventchart.EventChartDeletionHandler" />
+
+  <bean id="org.hisp.dhis.eventreport.EventReportDeletionHandler"
+    class="org.hisp.dhis.eventreport.EventReportDeletionHandler" />
+
+  <bean id="org.hisp.dhis.sms.command.SMSCommandDeletionHandler"
+    class="org.hisp.dhis.sms.command.SMSCommandDeletionHandler" />
+
+  <bean id="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler"
+    class="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>    
+
+  <!-- AOP definitions -->
+
+  <aop:config>
+    <aop:aspect ref="deletionInterceptor">
+      <aop:before pointcut="execution( * org.hisp.dhis.common.IdentifiableObjectManager.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataapproval.DataApprovalLevelService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataelement.DataElementService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataelement.DataElementCategoryService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataset.DataSetService.deleteDataSet(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.dataset.SectionService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.indicator.IndicatorService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.expression.ExpressionService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.minmax.MinMaxDataElementService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationRuleService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.period.PeriodService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.organisationunit.OrganisationUnitGroupService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.user.UserService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.user.UserGroupService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.option.OptionService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.attribute.AttributeService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendService.deleteLegend(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.legend.LegendService.deleteLegendSet(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMapView(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.mapping.MappingService.deleteMap(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.i18n.I18nLocaleService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityInstanceService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentity.TrackedEntityAttributeService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.relationship.RelationshipService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.relationship.RelationshipTypeService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageSectionService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramInstanceService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageInstanceService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramStageDataElementService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramValidationService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.program.ProgramIndicatorService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.validation.ValidationCriteriaService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.eventchart.EventChartService.delete*(..) )" method="intercept" />
+      <aop:before pointcut="execution( * org.hisp.dhis.eventreport.EventReportService.delete*(..) )" method="intercept" />
+    </aop:aspect>
+
+    <!--
+    <aop:aspect ref="i18nTranslationInterceptor">
+      <aop:after-returning pointcut="execution( * org.hisp.dhis.dataelement.DataElementService.get*(..) )" method="intercept" returning="idObject"/>
+    </aop:aspect>
+    -->
+  </aop:config>
+
+  <!-- Security import -->
+  <import resource="security.xml" />
+</beans>

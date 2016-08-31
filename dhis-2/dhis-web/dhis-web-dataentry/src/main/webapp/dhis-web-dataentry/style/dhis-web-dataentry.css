@@ -1,0 +1,430 @@
+
+#currentSelection
+{
+  padding: 6px;
+  background-color: #eee;
+  border: 1px solid #bbb;
+  text-align: right;
+  position: fixed;
+  top: 55px;
+  right: 10px;
+  filter: alpha(opacity=85);
+  opacity: 0.85;
+  border-radius: 3px;
+  z-index: 5;
+}
+
+#actions
+{
+  float: right;
+  width: 160px;
+  text-align: right;
+}
+
+#closeCurrentSelection
+{
+  float:left;
+  cursor:pointer;
+  margin-right:5px;
+}
+
+#contentDiv
+{
+  margin-bottom: 8px;
+}
+
+#completenessDiv
+{
+  display: none;
+  width: 399px;
+}
+
+#infoDiv
+{
+  display: none;
+  width: 399px;
+  height: 20px;
+}
+
+#completedByDiv
+{
+  display: none;
+}
+
+.currentRow
+{
+  background-color: #d5ffc5;
+  padding-right: 50px;
+}
+
+.hidden
+{
+  display: none;
+}
+
+.separator
+{
+  color: #aaa;
+  padding: 0 4px;
+}
+
+.selectionBoxRow
+{
+  padding: 2px 0;
+}
+
+.selectionBoxSelect
+{
+  width: 401px;
+}
+
+.selectionLabel
+{
+  display: inline-block;
+  width: 130px;
+}
+
+.formSection td
+{
+  padding-right: 1px;
+  padding-left: 1px;
+  height: 28px;
+  white-space: nowrap;
+}
+
+.formSection th
+{
+  text-align: center;
+  min-width: 46px;
+  background-color: #f3f3f3;
+  border: 1px solid #dadada;
+  color: #444;
+}
+
+.sectionTable
+{
+  border-collapse: collapse;
+}
+
+.sectionTable thead {
+    background-color: #EEEEEE;
+}
+
+.sectionDescription
+{
+  font-size: 13px;
+  color: #777;
+  padding-bottom: 10px;
+}
+
+.sectionFilter
+{
+  padding: 5px;
+  border: solid 1px #f0f0f0;
+  outline: 0;
+  color: #333;
+  height: 14px;
+}
+
+.historyHeader
+{
+  color: #606060;
+  font-size: 17px;
+  padding: 5px 0;
+}
+
+.entryfield,
+.entryoptionset,
+.entryselect,
+.dataelementtotal,
+.indicator
+{
+  text-align: center;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #aaa;
+}
+
+.entryoptionset {
+    width: 85%;
+    max-height: 400px;
+}
+
+.entryselect
+{
+  padding: 4px 1px;
+}
+
+.entryarea
+{
+  min-width: 264px;
+  min-height: 45px;
+  text-align: left;
+  padding: 4px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+.indicatorArea
+{
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+}
+
+.commentlink
+{
+  padding-left: 3px;
+}
+
+textarea:read-only
+{ 
+    background-color: rgb(238, 238, 238) !important;
+}
+
+/* jQuery UI tab style overrides for data value history view */
+
+#historyTabs
+{
+    padding: 0;
+    width:  545px;
+    height: 345px;
+}
+
+#historyTabs.ui-tabs.ui-widget.ui-widget-content
+{
+    border-width: 0;
+}
+
+#historyTabs .ui-tabs-nav
+{
+    border-width: 0px;
+    border-bottom-width: 1px;
+    border-bottom-color: inherit;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+}
+
+#historyTabs.ui-widget-content
+{
+    background: none;
+}
+
+#historyTabs .ui-tabs-panel. ui-widget-content
+{
+    padding-top: 0.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    border-width: 0;
+}
+
+/* History audit table */
+
+#historyAuditTable
+{
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    background-color: #F5F5F5;
+}
+
+#historyAuditTable tbody tr:nth-child( odd )
+{
+    background-color: #EDEDED;
+}
+
+#historyAuditTable td, #historyAuditTable th
+{
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+}
+
+#historyAuditTable td
+{
+    border: 1px solid lightgrey;
+}
+
+#historyAuditTable th
+{
+    background-color: #DFEFFC;
+    border: 1px solid #C5DBEC;
+}
+
+#historyTabs-chart
+{
+    padding-bottom: 0;
+    padding-left: 0;
+}
+
+#historyTabs-audit
+{
+    height: 260px;
+    overflow: auto;
+    padding-top: 0;
+    margin-top: 20px;
+}
+
+#historyTabs table thead th .text
+{
+    position: absolute;
+}
+
+/* FileResource - uploads */
+
+.entryfileresource-input
+{
+    display: none; /* Hidden field */
+}
+
+.upload-field
+{
+    height: 28px;
+    width: 200px;
+    border: 1px solid #aaa;
+    display: table-cell;
+    overflow: hidden;
+    position: relative;
+}
+
+.upload-field-disabled
+{
+    color: #aaa !important;
+    background-color: #f3f3f3 !important;
+    border-color: #dadada !important;
+}
+
+.upload-field-disabled a
+{
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.6;
+}
+
+/* Upload progress display */
+
+.upload-progress
+{
+    z-index: 2;
+}
+
+.upload-progress-bar
+{
+    height: 100%;
+    width: 0;
+    background-color: yellow;
+    position: absolute;
+    -webkit-transition: width 0.5s;
+    -moz-transition: width 0.5s;
+    -o-transition: width 0.5s;
+    -ms-transition: width 0.5s;
+    transition: width 0.5s;
+    z-index: 3;
+}
+
+.upload-progress-bar-complete
+{
+    width: 0;
+    transition: width 0s;
+}
+
+.upload-progress-info
+{
+    font-weight: bold;
+    left: 45%;
+    top: 15%;
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: 4;
+}
+
+/* File metadata display */
+
+.upload-fileinfo
+{
+    padding: 5px;
+    position: absolute;
+    max-width: 95%;
+    z-index: 2;
+    white-space: nowrap;
+
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+.upload-fileinfo-size
+{
+    float: right;
+    text-align: right;
+    padding-left: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.upload-fileinfo-name
+{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    float: none;
+    width: auto;
+}
+
+/* File field and button */
+.upload-button-group
+{
+    display: table-cell;
+}
+
+.upload-button
+{
+    margin: 1px 2px 2px 4px;
+    height: 100%;
+}
+
+/* FA icons for jQuery UI icon hack */
+.ui-icon[class*=" fa-"] {
+    background: none repeat scroll 0 0 transparent;
+    text-indent: 0;
+    margin-top: -0.5em;
+}
+
+.ui-button-icon-only .ui-icon[class*=" fa-"] {
+    margin-left: -7px;
+}
+
+.ui-icon.icon-large {
+    margin-top: -0.75em;
+}
+
+#fileDeleteConfirmationDialog
+{
+    display: none;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+#fileDeleteConfirmationDialog .fa
+{
+    margin-right: 5px;
+}
+
+.confirm-dialog-content
+{
+    display: inline-block;
+    position: absolute;
+    top: 16px;
+}
+
+.select2-container .select2-choice {
+    border-radius: 0;
+}
+
+
+.select2-container .select2-choice .select2-arrow {
+    border-radius: 0;
+}
+
+.select2-chosen {
+    padding-top: 6px;
+}

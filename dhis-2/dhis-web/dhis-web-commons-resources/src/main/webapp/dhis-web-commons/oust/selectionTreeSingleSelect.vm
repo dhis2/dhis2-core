@@ -1,0 +1,35 @@
+<script type="text/javascript" src="../dhis-web-commons/oust/oust.js"></script>
+<script type="text/javascript" src="../dhis-web-commons/oust/selectionTreeSelect.js"></script>
+<script type="text/javascript">
+jQuery(document).ready( function()
+{
+	selectionTreeSelection.setMultipleSelectionAllowed( false );
+	selectedOrganisationUnitList__ = jQuery( "#treeSelectedId" );
+	#if( $required )
+	selectionTreeSelection.setListenerFunction( selectOrganisationUnit__ );
+	#end
+	
+	#if( $cleanAll )						
+	selectionTree.clearSelectedOrganisationUnitsAndBuildTree();			
+	#else
+	selectionTree.buildSelectionTree();
+	#end
+});
+</script>
+
+<table style="padding: 0; margin: 0;">
+	<thead>
+		<tr>
+			<th colspan="2">$i18n.getString( "organisation_unit_selection_tree" )
+			<select id="treeSelectedId" name="treeSelectedId" #if( $required ) class="{validate:{required:true}}" #end multiple="multiple" style="display:none"/>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>											
+				<div id="selectionTree"></div>	
+			</td>
+		</tr>
+	</tbody>
+</table>

@@ -1,0 +1,96 @@
+<script type="text/javascript">
+  var i18n_values_found = '$encoder.jsEscape( $i18n.getString( "values_found" ), "'")';
+  var i18n_max_values_exceeded = '$encoder.jsEscape( $i18n.getString( "max_values_exceeded" ), "'" )';
+  var i18n_no_values_found = '$encoder.jsEscape( $i18n.getString( "no_values_found" ), "'" )';
+  var i18n_value_must_be_a_number = '$encoder.jsEscape( $i18n.getString( "value_must_be_a_number" ) , "'" )';
+  var i18n_value_is_lower_than_min_value = '$encoder.jsEscape( $i18n.getString( "value_is_lower_than_min_value" ) , "'" )';
+  var i18n_value_is_higher_than_max_value = '$encoder.jsEscape( $i18n.getString( "value_is_higher_than_max_value" ) , "'" )';
+  var i18n_mark_value_for_followup = '$encoder.jsEscape( $i18n.getString( "mark_value_for_followup" ) , "'" )';
+  var i18n_unmark_value_for_followup = '$encoder.jsEscape( $i18n.getString( "unmark_value_for_followup" ) , "'" )';
+
+  $( document ).ready( function() {
+    tableSorter( 'listTable' );
+    setTableStyles();
+
+    NUM_RESULT_VALUES = $dataValues.size();
+
+    var maxExceeded = $maxExceeded;
+
+    if( NUM_RESULT_VALUES == 0 )
+    {
+      $( "#analysisResult" ).hide();
+      $( "#downloadButtons input:button" ).attr( "disabled", true );
+      $( "#info" ).show();
+      if( selectedOrganisationUnit.length === 0 )
+      {
+        $( "#info" ).html( i18n_no_organisation_unit_selected );
+      }
+      else
+      {
+        $( "#info" ).html( i18n_no_values_found );
+      }
+    }
+    else if ( maxExceeded )
+    {
+      $( "#info" ).html( i18n_max_values_exceeded );
+      $( "#downloadButtons input:button" ).attr( "disabled", false );
+      $( "#analysisResult" ).show();
+      $( "#controls" ).show();
+    }
+    else
+    {
+      $( "#info" ).html( NUM_RESULT_VALUES + " " + i18n_values_found );
+      $( "#downloadButtons input:button" ).attr( "disabled", false );
+      $( "#analysisResult" ).show();
+      $( "#controls" ).show();
+    }
+  });
+</script>
+
+<table class="listTable" id="listTable" style="width:100%;">
+  <thead>
+    <tr>
+      <th>$i18n.getString( "data_element" )</th>
+      <th>$i18n.getString( "organisation_unit" )</th>
+      <th class="{sorter: false}">$i18n.getString( "period" )</th>
+      <th style="text-align:center" class="{sorter: false}">$i18n.getString( "min" )</th>
+      <th style="width: 100px; text-align:center" class="{sorter: false}">$i18n.getString( "value" )</th>
+      <th style="text-align:center" class="{sorter: false}">$i18n.getString( "max" )</th>
+      <th style="text-align:center" class="{sorter: false}">$i18n.getString( "mark" )</th>
+    </tr>
+  </thead>
+  #set( $count = 0 )
+  <tbody id="list">
+  #foreach( $value in $dataValues )
+  #set( $count = $count + 1 )
+  <tr>
+    <td><span id="value-${count}-name">$encoder.htmlEncode( $value.dataElementName ) $encoder.htmlEncode( $value.categoryOptionComboNameParsed )</span></td>
+
+    <td>$encoder.htmlEncode( $value.sourceName )</td>
+
+    <td value="$format.formatDate($value.period.startDate)">$format.formatPeriod( $value.period )</td>
+
+    <td style="text-align:center">$value.min</td>
+
+    <td style="width:100px; text-align:center;">$encoder.htmlEncode( $value.value )
+      <input type="hidden" id="value-${count}-de" value="$value.dataElementId">
+      <input type="hidden" id="value-${count}-pe" value="$value.periodId">
+      <input type="hidden" id="value-${count}-ou" value="$value.sourceId">
+      <input type="hidden" id="value-${count}-coc" value="$value.categoryOptionComboId">
+      <input type="hidden" id="value-${count}-min" value="$value.min">
+      <input type="hidden" id="value-${count}-max" value="$value.max">
+    </td>
+
+    <td style="text-align:center">$value.max</td>
+
+    <td style="text-align:center">
+        #if ( $value.followup )
+          <img id="value-${count}-followUp" src="../images/marked.png" onclick="markFollowup($count)" style="cursor:pointer">
+        #else
+          <img id="value-${count}-followUp" src="../images/unmarked.png" onclick="markFollowup($count)" style="cursor:pointer">
+        #end
+    </td>
+  </tr>
+  #end
+  </tbody>
+</table>

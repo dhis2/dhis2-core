@@ -1,0 +1,50 @@
+<script type="text/javascript">
+	function saveCompulsoryDataElements()
+	{
+	    selectAllById( "selectedOperands" );
+	    document.getElementById( "compulsoryDataElementsForm" ).submit();
+	}
+</script>
+
+<h3>$i18n.getString( "edit_compulsory_data_elements" )</h3>
+
+<form id="compulsoryDataElementsForm" action="saveCompulsoryDataElements.action" method="post">
+<input type="hidden" name="id" value="$!id"/>
+<table>
+	<tr>
+        <th>$i18n.getString( "available_data_elements" )</th>
+        <td></td>
+        <th>$i18n.getString( "selected_data_elements" )</th>
+    </tr>
+    <tr>
+        <td>
+    	    <select id="availableOperands" name="availableOperands" size="15" style="width:325px" multiple="multiple" ondblclick="moveSelectedById( 'availableOperands', 'selectedOperands' )">
+    	    #foreach( $operand in $availableOperands )
+    	    	<option value="${operand.operandExpression}">$encoder.htmlEncode( $!operand.operandName )</option>
+    	    #end
+   	        </select>
+    	</td>
+    	<td>    	
+    		<input type="button" value="&gt;" title="$i18n.getString( 'move_selected' )" style="width:40px" onclick="moveSelectedById( 'availableOperands', 'selectedOperands' )"/>
+            <br/>
+            <input type="button" value="&lt;" title="$i18n.getString( 'remove_selected' )" style="width:40px" onclick="moveSelectedById( 'selectedOperands', 'availableOperands' )"/>
+        </td>
+        <td>
+            <select id="selectedOperands" name="selectedOperands" size="15" style="width:325px" multiple="multiple" ondblclick="moveSelectedById( 'selectedOperands', 'availableOperands' )">
+            #foreach( $operand in $selectedOperands )
+                <option value="${operand.operandExpression}">$encoder.htmlEncode( $!operand.getPrettyName() )</option>
+            #end
+            </select>
+        </td>        
+    </tr>
+    <tr>
+    	<td colspan="3" style="height:10px"></td>
+    </tr>
+    <tr>
+    	<td>
+    		<input type="button" value="$i18n.getString( 'save' )" onclick="saveCompulsoryDataElements()" style="width:160px"/><input
+    		       type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='dataSet.action'" style="width:160px"/>
+        </td>	
+    </tr>
+</table>
+</form>

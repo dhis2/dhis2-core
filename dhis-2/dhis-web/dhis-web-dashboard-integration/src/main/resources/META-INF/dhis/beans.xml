@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <!-- Dashboard -->
+
+  <bean id="org.hisp.dhis.dashboard.action.InitAction" class="org.hisp.dhis.dashboard.action.InitAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="interpretationService" ref="org.hisp.dhis.interpretation.InterpretationService" />
+  </bean>
+
+  <!-- Message -->
+
+  <bean id="org.hisp.dhis.dashboard.message.action.GetMessagesAction" class="org.hisp.dhis.dashboard.message.action.GetMessagesAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.GetMessageOptionsAction" class="org.hisp.dhis.dashboard.message.action.GetMessageOptionsAction"
+    scope="prototype" />
+
+  <bean id="org.hisp.dhis.dashboard.message.action.SendMessageAction" class="org.hisp.dhis.dashboard.message.action.SendMessageAction"
+    scope="prototype">
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.SendFeedbackAction" class="org.hisp.dhis.dashboard.message.action.SendFeedbackAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.SendReplyAction" class="org.hisp.dhis.dashboard.message.action.SendReplyAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.ReadMessageAction" class="org.hisp.dhis.dashboard.message.action.ReadMessageAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.UnreadMessageAction" class="org.hisp.dhis.dashboard.message.action.UnreadMessageAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.RemoveMessageAction" class="org.hisp.dhis.dashboard.message.action.RemoveMessageAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.ToggleFollowUpAction" class="org.hisp.dhis.dashboard.message.action.ToggleFollowUpAction"
+    scope="prototype">
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dashboard.message.action.UserCountAction" class="org.hisp.dhis.dashboard.message.action.UserCountAction" scope="prototype" />
+
+  <!-- Interpretations -->
+
+  <bean id="org.hisp.dhis.dashboard.interpretation.action.GetInterpretationsAction" class="org.hisp.dhis.dashboard.interpretation.action.GetInterpretationsAction"
+    scope="prototype" />
+
+  <!-- Profile -->
+
+  <bean id="org.hisp.dhis.dashboard.profile.action.GetUserAction" class="org.hisp.dhis.dashboard.profile.action.GetUserAction"
+    scope="prototype" />
+
+</beans>

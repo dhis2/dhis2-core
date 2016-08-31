@@ -1,0 +1,72 @@
+<script type="text/javascript">
+  jQuery(document).ready(function() {
+    validation2('updateOptionSetForm', function(form) {
+      #tblDynamicAttributesJavascript()
+      form.submit()
+    }, {
+      'beforeValidateHandler': function() {
+        listValidator('memberValidator', 'options');
+      }
+    });
+
+    checkValueIsExist("name", "validateOptionSet.action", { id: getFieldValue('id') });
+  });
+
+</script>
+
+<h3>$i18n.getString( "edit_option_set" )</h3>
+
+<form id="updateOptionSetForm" name="updateOptionSetForm" action="updateOptionSet.action" method="post" class="inputForm">
+  <input id='id' name='id' value='$optionSet.id' type='hidden'>
+  <table>
+    <colgroup>
+      <col width="50px"/>
+      <col width="150px"/>
+      <col width="50px"/>
+    </colgroup>
+    <tr>
+      <th colspan='3'>$i18n.getString( "details" )</th>
+    </tr>
+    <tr>
+      <td><label>$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td><input type="text" id="name" name="name" value='$optionSet.name' class="{validate:{required:true,minlength:2}}"/></td>
+    </tr>
+    <tr>
+      <td><label>$i18n.getString( "code" )</label></td>
+      <td><input type="text" id="code" name="code" value='$!optionSet.code' class="{validate:{minlength:2}}"/></td>
+    </tr>
+    <tr>
+      <td><label for="valueType">$i18n.getString( "value_type" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td>
+        <select id="valueType" name="valueType" disabled style="background-color: lightgrey;">
+          <option value="INTEGER" #if( $!optionSet.valueType == 'INTEGER' ) selected="selected" #end >$i18n.getString( "integer" )</option>
+          <option value="INTEGER_POSITIVE" #if( $!optionSet.valueType == 'INTEGER_POSITIVE' ) selected="selected" #end >$i18n.getString( "positive_integer" )</option>
+          <option value="INTEGER_NEGATIVE" #if( $!optionSet.valueType == 'INTEGER_NEGATIVE' ) selected="selected" #end >$i18n.getString( "negative_integer" )</option>
+          <option value="INTEGER_ZERO_OR_POSITIVE" #if( $!optionSet.valueType == 'INTEGER_ZERO_OR_POSITIVE' ) selected="selected" #end >$i18n.getString( "zero_positive_int" )</option>
+          <option value="COORDINATE" #if( $!optionSet.valueType == 'COORDINATE' ) selected="selected" #end >$i18n.getString( "coordinate" )</option>
+          <option value="NUMBER" #if( $!optionSet.valueType == 'NUMBER' ) selected="selected" #end >$i18n.getString( "number" )</option>
+          <option value="UNIT_INTERVAL" #if( $!optionSet.valueType == 'UNIT_INTERVAL' ) selected="selected" #end >$i18n.getString( "unit_interval" )</option>
+          <option value="PERCENTAGE" #if( $!optionSet.valueType == 'PERCENTAGE' ) selected="selected" #end >$i18n.getString( "percentage" )</option>
+          <option value="TEXT" #if( $!optionSet.valueType == 'TEXT' ) selected="selected" #end >$i18n.getString( "text" )</option>
+          <option value="LONG_TEXT" #if( $!optionSet.valueType == 'LONG_TEXT' ) selected="selected" #end >$i18n.getString( "long_text" )</option>
+          <option value="DATE" #if( $!optionSet.valueType == 'DATE' ) selected="selected" #end >$i18n.getString( "date" )</option>
+          <option value="USERNAME" #if( $!optionSet.valueType == 'USERNAME' ) selected="selected" #end >$i18n.getString( "user_name" )</option>
+          <option value="BOOLEAN" #if( $!optionSet.valueType == 'BOOLEAN' ) selected="selected" #end >$i18n.getString( "yes_no" )</option>
+          <option value="TRUE_ONLY" #if( $!optionSet.valueType == 'TRUE_ONLY' ) selected="selected" #end >$i18n.getString( "yes_only" )</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+
+  #tblDynamicAttributes( { "attributes": $attributes, "attributeValues": $attributeValues } )
+
+  <table>
+  <tr>
+    <td></td>
+    <td colspan="2">
+      <input type="submit" value="$i18n.getString( 'update' )" style="width:10em">
+      <input type="button" onclick="window.location.href='optionSet.action'" value="$i18n.getString( 'cancel' )" style="width:10em"/></p>
+    </td>
+  </tr>
+  </table>
+</form>

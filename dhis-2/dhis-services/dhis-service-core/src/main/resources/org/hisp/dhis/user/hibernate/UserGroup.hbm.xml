@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.user.UserGroup" table="usergroup">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="usergroupid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <set name="members" table="usergroupmembers">
+      <cache usage="read-write" />
+      <key column="usergroupid" foreign-key="fk_usergroupmembers_usergroupid" />
+      <many-to-many column="userid" class="org.hisp.dhis.user.User" foreign-key="fk_usergroupmembers_userid" />
+    </set>
+
+    <set name="managedGroups" table="usergroupmanaged">
+      <cache usage="read-write" />
+      <key column="managedbygroupid" />
+      <many-to-many column="managedgroupid" class="org.hisp.dhis.user.UserGroup" />
+    </set>
+
+    <set name="managedByGroups" table="usergroupmanaged" inverse="true">
+      <key column="managedgroupid" foreign-key="fk_usergroupmanaging_managedgroupid" />
+      <many-to-many column="managedbygroupid" class="org.hisp.dhis.user.UserGroup" foreign-key="fk_usergroupmanaging_managedbygroupid" />
+    </set>
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_usergroup_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="usergroupusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="usergroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="usergroupattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="usergroupid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="usergrouptranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="usergroupid" foreign-key="fk_objecttranslation_usergroupid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

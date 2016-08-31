@@ -1,0 +1,55 @@
+<table class="mainPageTable" cellpadding="0">
+	<col id="noCol"/>
+    <col id="deCol"/>
+    <col id="greyCol"/>    	
+    <tr>
+        <th>$i18n.getString( "nr" )</th>
+        <th>$i18n.getString( "data_element" )</th>
+        <th style="text-align:center">$i18n.getString( "greying_area" )</th>     
+    </tr>    
+    
+    #set( $count = 0 )
+    #set( $mark = 0 )    
+    
+    #foreach( $dataElement in $section.dataElements )
+    	
+    	#set( $count = $count + 1 )
+    	#if( $mark == 1 )
+    	    #set( $mark = 0 )
+        #else
+    	   	#set( $mark = 1 )
+	    #end
+	    
+	    <tr #if( $mark == 0 ) style="background-color:#dddddd" #end>
+	    	
+	    	##count
+           <td style="text-align:right">$count</td>
+           
+           ##data element name
+           <td>
+            #if( $useShortName )
+            	$encoder.htmlEncode( $dataElement.displayShortName )
+            #else
+                $encoder.htmlEncode( $dataElement.displayName )
+            #end 	          	
+           </td>
+           
+           ##entry
+           <td style="text-align:center"> 	
+           	  
+           	#set( $greyedField = "false" )       	
+           	#set( $greyedField = $greyedFields.get( "$dataElement.id:$defaultOptionComboId" ) )  
+           	         	           	
+           	#if( $greyedField == "true" )           		           	            	
+           		<input name="entryfieldTxt" id="[$dataElement.id].txt" type="text" disabled="disabled"/>
+           	    <input name="entryfieldBtn" id="[$dataElement.id].btn" type="button" onclick="saveGreyStatus( '$section.id', '$dataElement.id', '' )" value="$i18n.getString( 'enable' )" style="width:70px"/>
+           	#else           	        
+           	    <input name="entryfieldTxt" id="[$dataElement.id].txt" type="text"/>
+                <input name="entryfieldBtn" id="[$dataElement.id].btn" type="button" onclick="saveGreyStatus( '$section.id', '$dataElement.id', '' )" value="$i18n.getString( 'disable' )" style="width:70px"/>
+           	#end
+           	    
+           </td>   
+           
+    	</tr>         
+    #end
+</table>

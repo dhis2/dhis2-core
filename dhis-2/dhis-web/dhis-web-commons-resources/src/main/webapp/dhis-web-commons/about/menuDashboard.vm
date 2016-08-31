@@ -1,0 +1,21 @@
+
+#if ( $keyFlag )
+<img class="dashboardMenuFlag" src="../dhis-web-commons/flags/${keyFlagImage}" onclick="window.location.href='../dhis-web-commons-about/redirect.action'"
+    title="$i18n.getString( 'view_home_page' )">
+#end
+
+<h2>$i18n.getString( "dashboard" )&nbsp;</h2>
+
+<ul>
+    <li><a href="../dhis-web-dashboard-integration/index.action">$i18n.getString( "dashboard" )&nbsp;</a></li>
+    <li><a href="../dhis-web-dashboard-integration/profile.action?id=${currentUser.uid}">$i18n.getString( "profile" )&nbsp;</a></li>
+    <li><a href="../dhis-web-dashboard-integration/message.action">$i18n.getString( "messages" )&nbsp;</a></li>
+    <li><a href="../dhis-web-dashboard-integration/interpretation.action">$i18n.getString( "interpretations" )&nbsp;</a></li>
+</ul>
+
+<h2>$i18n.getString( "dhis2_online" )&nbsp;</h2>
+
+<ul>
+    <li><a href="http://dhis2.org" target="_blank">$i18n.getString( "home_page" )&nbsp;</a></li>
+    <li><a href="https://launchpad.net/dhis2" target="_blank">$i18n.getString( "launchpad_site" )&nbsp;</a></li>
+</ul>

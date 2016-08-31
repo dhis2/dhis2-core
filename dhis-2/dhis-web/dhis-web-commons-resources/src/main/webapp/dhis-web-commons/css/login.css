@@ -1,0 +1,233 @@
+
+*
+{
+  font-family: LiberationSans, sans-serif;
+  line-height: 125%;
+}
+
+html,body
+{
+  background-color: #1d5288;  
+  color: white;
+  font-size: 15px;
+}
+
+a
+{
+  color: #e6eaf1;
+  text-decoration: none;
+}
+
+a:hover
+{
+  color: #fff;
+  text-decoration: underline;
+}
+
+#flagArea
+{
+  position: absolute;
+  top: 22px;
+  left: 52px;
+  border: 1px solid #d5d5d5;
+  border-radius: 2px;
+  max-width: 105px;
+  margin-bottom: 5%;
+}
+
+#titleArea
+{
+  position: absolute;
+  top: 24px;
+  left: 177px;
+  font-size: 19px;
+}
+
+#introArea
+{
+  width: 250px;
+  position: absolute;
+  top: 53px;
+  left: 177px;
+  font-size: 17px;
+  color: #bfd9f2;
+}
+
+#bannerArea
+{
+  margin-bottom: 21px;
+  border: none;
+  text-align: center;
+}
+
+#accountArea
+{
+  position: absolute;
+  top: 22px;
+  right: 17px;
+  padding: 18px 30px 18px 0;
+  font-size: 17px;
+}
+
+#loginField
+{
+  position: relative;
+  margin: 128px auto 0 auto;
+  width: 270px;
+}
+
+#signInLabel
+{
+  padding: 5px 0 1px 0;
+  font-size: 13px;
+}
+
+#submitDiv
+{
+  padding: 3px 0 20px 0;
+}
+
+#loginField input[type=text],input[type=password]
+{
+  width: 255px;
+  height: 22px;
+  border: 1px solid #888;
+  padding: 6px 6px;
+  margin: 4px 0;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.14);
+}
+
+#loginMessage
+{
+  background-color: #3b6da1;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #D0D0D0;
+  padding: 11px;
+  margin: 20px 0;
+  display: block;
+  width: auto;
+  text-align: center;
+  border-radius: 2px;
+}
+
+#notificationArea
+{
+  background-color: #DAEAFA;
+  color: #333;
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 3px;
+}
+
+#notificationArea:empty
+{
+  display: none;
+}
+
+#notificationArea a 
+{
+  color: #2E527C;
+}
+
+#footerArea
+{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 8px 0 7px 0;
+  font-size: 13px;
+  border-top: 1px solid #416f9d;
+  color: #6b90b8;
+  width: 100%;
+}
+
+.innerFooterArea
+{
+  line-height: 26px;
+  display: inline-block;
+  vertical-align: middle;
+}  
+
+#leftFooterArea
+{
+  float: left;
+  margin-left: 50px;
+}
+
+#rightFooterArea
+{
+  float: right;
+  margin-right: 50px;
+}
+
+#localeSelect
+{
+  width: 160px;
+}
+	
+.greenButtonLink
+{
+  padding: 6px 12px;
+  height: 27px;
+  border: 1px solid #67A767;
+  border-radius: 3px;
+  margin-right: 4px;
+  font-family: LiberationSansBold, arial;
+  font-size: 13px;
+  background-color: #1A9B20;
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+.greenButtonLink:hover
+{
+  text-decoration: none;
+  background-color: #1DA223;
+}
+
+.button 
+{
+  font-family: LiberationSansBold, arial;
+  background: -webkit-linear-gradient(top, #f1f1f1, #d1d1d1);
+  background: -moz-linear-gradient(top, #f1f1f1, #d1d1d1);
+  background: -ms-linear-gradient(top, #f1f1f1, #d1d1d1);
+  background: -o-linear-gradient(top, #f1f1f1, #d1d1d1);
+  height: 34px;
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #222;
+  width: 130px;
+}
+
+.button:hover 
+{
+  background: -webkit-linear-gradient(top, #fafafa, #dadada);
+  background: -moz-linear-gradient(top, #fafafa, #dadada);
+  background: -ms-linear-gradient(top, #fafafa, #dadada);
+  background: -o-linear-gradient(top, #fafafa, #dadada);
+  border: 1px solid #333333;
+}
+
+@font-face {
+    font-family: 'LiberationSansRegular';
+    src: url('../fonts/LiberationSans-Regular-webfont.eot');
+    src: url('../fonts/LiberationSans-Regular-webfont.eot?#iefix') format('eot'),
+         url('../fonts/LiberationSans-Regular-webfont.woff') format('woff'),
+         url('../fonts/LiberationSans-Regular-webfont.ttf') format('truetype'),
+         url('../fonts/LiberationSans-Regular-webfont.svg#webfontc8rbNdBe') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'LiberationSansBold';
+    src: url('../fonts/LiberationSans-Bold-webfont.eot');
+    src: url('../fonts/LiberationSans-Bold-webfont.eot?#iefix') format('eot'),
+         url('../fonts/LiberationSans-Bold-webfont.woff') format('woff'),
+         url('../fonts/LiberationSans-Bold-webfont.ttf') format('truetype'),
+         url('../fonts/LiberationSans-Bold-webfont.svg#webfontHyWb8e07') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}

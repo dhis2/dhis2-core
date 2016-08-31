@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <bean id="org.hisp.dhis.system.startup.StartupRoutineExecutor" class="org.hisp.dhis.system.startup.DefaultStartupRoutineExecutor" />
+
+  <bean id="deletionInterceptor" class="org.hisp.dhis.system.deletion.DeletionInterceptor">
+    <property name="deletionManager" ref="deletionManager" />
+  </bean>
+
+  <bean id="deletionManager" class="org.hisp.dhis.system.deletion.DefaultDeletionManager" />
+
+  <bean id="databaseInfoProvider" class="org.hisp.dhis.system.database.HibernateDatabaseInfoProvider" init-method="init">
+    <property name="hibernateConfigurationProvider" ref="hibernateConfigurationProvider" />
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+  
+  <bean id="databaseInfo" class="org.hisp.dhis.system.database.DatabaseInfoFactoryBean">
+    <property name="databaseInfoProvider" ref="databaseInfoProvider" />
+  </bean>
+
+  <bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+    <property name="poolSize" value="10" />
+  </bean>
+
+  <bean id="scheduler" class="org.hisp.dhis.system.scheduling.SpringScheduler">
+    <property name="taskScheduler" ref="taskScheduler" />
+    <property name="taskExecutor" ref="taskScheduler" />
+  </bean>
+
+  <bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
+  
+  <bean id="uriBuilder" class="org.springframework.web.util.UriComponentsBuilder"/>
+ 
+  
+  <bean id="org.hisp.dhis.system.velocity.VelocityManager" class="org.hisp.dhis.system.velocity.VelocityManager" />
+
+  <bean id="notifier" class="org.hisp.dhis.system.notification.InMemoryNotifier" />
+
+  <bean id="logInitializer" class="org.hisp.dhis.system.log.Log4JLogConfigInitializer" init-method="initConfig" />
+  
+</beans>

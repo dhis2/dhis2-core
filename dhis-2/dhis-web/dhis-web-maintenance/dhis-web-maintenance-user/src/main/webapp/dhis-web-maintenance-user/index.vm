@@ -1,0 +1,8 @@
+<h3>$i18n.getString( "dhis-web-maintenance-user" ) #openHelp( "users" )</h3>
+
+<ul class="introList">
+    #if( $security.canView( "user" ) )#introListImgItem( "user.action" "user_by_orgunit" "user" )#end
+    #if( $security.canView( "user" ) )#introListImgItem( "alluser.action" "user" "user" )#end
+    #if( $security.canView( "userRole" ) )#introListImgItem( "allRole.action" "user_role" "user" )#end
+    #if( $security.canView( "userGroup" ) )#introListImgItem( "getAllUserGroups.action" "user_group" "user" )#end
+</ul>

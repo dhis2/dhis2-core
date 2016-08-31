@@ -1,0 +1,190 @@
+<!DOCTYPE HTML>
+<!--[if IE 7]><html #if( $manifest ) manifest="$manifest" #end class="ie7"><![endif]-->
+<!--[if IE 8]><html #if( $manifest ) manifest="$manifest" #end class="ie8"><![endif]-->
+<!--[if IE 9]><html #if( $manifest ) manifest="$manifest" #end class="ie9"><![endif]-->
+<![if !IE]><html #if( $manifest ) manifest="$manifest" #end><![endif]>
+  <head>
+    <title>$encoder.htmlEncode( $applicationTitle )</title>
+    <meta name="description" content="DHIS 2">
+    <meta name="keywords" content="DHIS 2">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link type="text/css" rel="stylesheet" href="../dhis-web-commons/font-awesome/css/font-awesome.min.css?_rev=$!{buildRevision}" />
+    <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/javascripts/jQuery/ui/css/redmond/jquery-ui.css?_rev=$!{buildRevision}" />
+    <link type="text/css" rel="stylesheet" media="screen,print" href="../dhis-web-commons/css/$encoder.htmlEncode( ${keyStyle} )?_rev=$!{buildRevision}" />
+    <link type="text/css" rel="stylesheet" media="screen,print" href="../dhis-web-commons/css/widgets.css?_rev=$!{buildRevision}" />
+    <link type="text/css" rel="stylesheet" media="print" href="../dhis-web-commons/css/print.css?_rev=$!{buildRevision}" />
+    <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/javascripts/jQuery/calendars/css/jquery.calendars.picker.css?_rev=$!{buildRevision}" />
+    <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/select2/select2.css?_rev=$!{buildRevision}" />
+    #foreach ( $style in $stylesheets )
+    <link type="text/css" rel="stylesheet" media="screen" href="${style}?_rev=$!{buildRevision}" />
+    #end
+    <link type="text/css" rel="stylesheet" href="../api/files/style?_rev=$!{buildRevision}" />
+    <link rel="shortcut icon" href="../favicon.ico" />
+    <!-- Material UI fonts -->
+    <link href="../dhis-web-commons/fonts/roboto.css" rel="stylesheet" type="text/css">
+    <link href="../dhis-web-commons/material-design-icons/material-icons.css" rel="stylesheet" type="text/css">
+    <style>
+        html {
+            font-size: 14px;
+        }
+
+        #header * {
+            font-family: 'Roboto';
+        }
+    </style>
+
+    <script type="text/javascript">
+      var dateFormat = 'yy-mm-dd';
+    </script>
+
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/es5-shim.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/es5-sham.min.js?_rev=$!{buildRevision}"></script>
+
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
+
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js?_rev=$!{buildRevision}"></script>
+    <!-- Menu script is up here due to perceived loading time increase -->
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/header-bar.js?_rev=$!{buildRevision}"></script>
+    <script>
+        // Needs to be wrapped in jQuery to be sure the DOM is parsed as the script is not at the bottom.
+        jQuery(function () {
+            Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), undefined, { noLoadingIndicator: true });
+        });
+    </script>
+    <!-- // End menu -->
+    <!--[if lte IE 8]><script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/placeholders.jquery.min.js?_rev=$!{buildRevision}"></script><![endif]-->
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.utils.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.ext.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.metadata.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.tablesorter.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.upload-1.0.2.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.dhisAjaxSelect.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/ui/jquery-ui.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/ui/jquery.blockUI.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.validate.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.validate.ext.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.cookie.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.glob.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.date.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.tmpl.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.autogrow.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.fileupload.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/underscore.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/filesize.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.util.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/commons.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/commons.ajax.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/lists.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/periodType.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/date.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/json2.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/validationRules.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.array.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.select.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.plus.min.js?_rev=$!{buildRevision}"></script>
+	<script type="text/javascript" src="../dhis-web-commons/select2/select2.min.js?_rev=$!{buildRevision}"></script>
+    #if( $keyCalendar == "coptic" || $keyCalendar == "ethiopian" || $keyCalendar == "islamic"  || $keyCalendar == "julian" || $keyCalendar == "nepali" || $keyCalendar == "thai" )
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.${keyCalendar}.min.js?_rev=$!{buildRevision}"></script>
+    #end
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.period.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.picker.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.selected.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.comparator.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.availability.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.trigger.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.sharing.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.validation.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.ss.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.ls.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.idb.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.memory.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.storage.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.contextmenu.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.appcache.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.translate.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/i18nJavaScript.action?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../main.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../request.js?_rev=$!{buildRevision}"></script>
+
+    #foreach( $javascript in $javascripts )
+    <script type="text/javascript" src="${javascript}?_rev=$!{buildRevision}"></script>
+    #end
+    <script type="text/javascript" src="../api/files/script?_rev=$!{buildRevision}"></script>
+    <!-- Create global system calendar -->
+    <script>
+      dhis2.period.format = '$dateFormat.js';
+      #if( $keyCalendar == 'iso8601')
+      dhis2.period.calendar = $.calendars.instance('gregorian');
+      #else
+      dhis2.period.calendar = $.calendars.instance('$keyCalendar');
+      #end
+      dhis2.period.generator = new dhis2.period.PeriodGenerator( dhis2.period.calendar, dhis2.period.format );
+      dhis2.period.picker = new dhis2.period.DatePicker( dhis2.period.calendar, dhis2.period.format );
+    </script>
+  </head>
+
+  #set( $logoBanner = "../api/staticContent/logo_banner" )
+
+  <body>
+    #parse( "macros.vm" )
+    <div id="header">
+      <img id="headerBanner" src="${logoBanner}" onclick="window.location.href='../dhis-web-commons-about/redirect.action'" style="cursor:pointer" title="$i18n.getString( 'view_home_page' )">
+
+      <div id="dhisDropDownMenu"></div>
+    </div>
+    <span id="showLeftBar">
+      <a href="javascript:dhis2.leftBar.showAnimated()" title="$i18n.getString( 'show_menu' )">
+        <i class="fa fa-arrow-right leftBarIcon"></i>
+      </a>
+    </span>
+
+    #if( $hideMenu && $hideMenu == "true" )
+    <style type="text/css">
+      #mainPage { margin-left: 20px; }
+    </style>
+    #else
+    <div id="leftBar">
+      <div id="hideLeftBar">
+        <a href="index.action" title="$i18n.getString( 'show_main_menu' )" id="showMainMenuLink">
+          <i class="fa fa-home leftBarIcon"></i></a>
+        <a href="javascript:dhis2.leftBar.hideAnimated()" title="$i18n.getString( 'hide_menu' )" id="hideMainMenuLink">
+          <i class="fa fa-arrow-left leftBarIcon"></i></a>
+        <a href="javascript:dhis2.leftBar.extendAnimated()" title="$i18n.getString( 'extend_menu' )" id="extendMainMenuLink">
+          <i class="fa fa-arrow-right leftBarIcon"></i></a>
+      </div>
+
+      <div id="leftBarContents">
+        #parse( $menu )
+      </div>
+    </div>
+    #end
+
+    <div id="headerMessage" class="bold"></div>
+
+    <div class="page" id="mainPage"> <!-- Do not set style attr -->
+      #if( !$page )
+        <p>$i18n.getString( "no_page_specified" )</p>
+      #else
+        #parse( $page )
+      #end
+    </div>
+    <script type="text/javascript">
+    #if( $!menuState == "HIDDEN" )
+      dhis2.leftBar.hide();
+    #elseif ( $!menuState == "EXTENDED" )
+      dhis2.leftBar.extend();
+    #end
+    </script>
+
+    <div id="rightBar">
+      <span id="hideRightBar"><a href="javascript:hideHelpContent()" title="$i18n.getString( 'close' )">
+        <i class="fa fa-times leftBarIcon"></i></a>
+      </span>
+      <div id="rightBarContents"></div>
+    </div>
+
+    #googleAnalyticsUA()
+
+  </body>
+</html>

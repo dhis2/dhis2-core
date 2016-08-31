@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.indicator.IndicatorGroup" table="indicatorgroup">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="indicatorgroupid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <set name="members" table="indicatorgroupmembers">
+      <cache usage="read-write" />
+      <key column="indicatorgroupid" foreign-key="fk_indicatorgroupmembers_indicatorgroupid" />
+      <many-to-many class="org.hisp.dhis.indicator.Indicator" column="indicatorid"
+        foreign-key="fk_indicatorgroup_indicatorid" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="indicatorgrouptranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorgroupid" foreign-key="fk_objecttranslation_indicatorgroupid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+
+    <!-- Access properties -->
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicatorgroup_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="indicatorgroupusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="indicatorgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="indicatorgroupattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="indicatorgroupid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <join table="indicatorgroupsetmembers" inverse="true">
+      <key column="indicatorgroupid" />
+      <many-to-one column="indicatorgroupsetid" name="groupSet" />
+    </join>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

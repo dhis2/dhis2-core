@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>$encoder.htmlEncode( $applicationTitle )</title>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.min.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.js"></script>
+    <script type="text/javascript" src="../javascripts/jQuery/jquery.validate.ext.js"></script>
+    <script type="text/javascript" src="../javascripts/useraccount/expired.js"></script>
+    <script type="text/javascript" src="../i18nJavaScript.action"></script>
+    <link type="text/css" rel="stylesheet" href="../css/account.css">
+</head>
+<body>
+
+<div id="accountHeader"></div>
+
+<div id="accountContainer">
+
+<div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
+
+<div id="accountInput">
+
+<h3><span id="create_new_account">$i18n.getString( "expired_password" )</span></h3>
+
+<form id="accountForm">
+
+<table>
+    <tr>
+        <td><label id="label_username" for="username">$i18n.getString( "user_name" )</label></td>
+        <td><input type="text" id="username" name="username" value="$username" disabled autocomplete}="off"></td>
+    </tr>
+    <tr>
+        <td><label id="label_oldpassword" for="oldPassword">$i18n.getString( "old_password" )</label></td>
+        <td><input type="password" id="oldPassword" name="oldPassword" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
+    </tr>
+    <tr>
+        <td><label id="label_password" for="password">$i18n.getString( "new_password" )</label></td>
+        <td><input type="password" id="password" name="password" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
+    </tr>
+    <tr>
+        <td><label id="label_retypePassword" for="retypePassword">$i18n.getString( "confirm_password" )</label></td>
+        <td><input type="password" id="retypePassword" name="retypePassword" autocomplete="off"></td>
+    </tr>
+
+    <tr>
+   		<td></td>
+   		<td><label id="messageSpan" class="error" style="display:none"></label></td>
+   	</tr>
+
+    <tr>
+    	<td></td>
+    	<td><input id="submitButton" type="submit" value="$i18n.getString( 'save' )" style="width:10em"></td>
+    </tr>
+</table>
+
+</form>
+
+</div>
+
+</div>
+
+</body>
+</html>

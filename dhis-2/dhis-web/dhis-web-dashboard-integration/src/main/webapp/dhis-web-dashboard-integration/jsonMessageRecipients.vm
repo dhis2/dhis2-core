@@ -1,0 +1,17 @@
+#set( $userSize = $users.size() )
+#set( $userGroupSize = $userGroups.size() )
+{ "matches": [
+#foreach( $user in $users )
+  {
+    "id": "u:${user.uid}",
+    "text": "$!encoder.jsonEncode( ${user.firstName} ) $!encoder.jsonEncode( ${user.surname} )"
+  }#if( $velocityCount < ( $userSize )),#end
+#end
+#if($userSize > 0 && $userGroupSize > 0 ),#end
+#foreach( $userGroup in $userGroups )
+  {
+    "id": "ug:${userGroup.uid}",
+    "text": "$!encoder.jsonEncode( ${userGroup.name} )"
+  }#if( $velocityCount < ( $userGroupSize ) ),#end
+#end
+]}

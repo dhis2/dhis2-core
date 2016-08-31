@@ -1,0 +1,122 @@
+<script type="text/javascript" src="javascript/attribute.js"></script>
+<script type="text/javascript">
+	jQuery(document).ready(	function()
+	{
+		validation2( 'updateAttributeForm', function( form ) {
+			form.submit();
+		}, {
+			'beforeValidateHandler' : function()
+        	{
+        	},
+			'rules': getValidationRules("attribute")
+		});
+
+		checkValueIsExist( "name", "validateAttribute.action", {id: $attribute.id} );
+		checkValueIsExist( "code", "validateAttribute.action", {id: $attribute.id} );
+
+    $("#optionSet").bind("change", onOptionSetChange);
+    $("#optionSet").change();
+	});
+</script>
+
+<h3>$i18n.getString( "edit_attribute" )</h3>
+
+<form id="updateAttributeForm" action="updateAttribute.action" method="post" class="inputForm">
+<input type="hidden" id="id" name="id" value="$!attribute.id"/>
+
+<table>
+	<col style="width: 100px"/>
+	<col/>
+
+	<tr>
+		<th colspan="2">$i18n.getString( "details" )</th>
+	</tr>
+
+	<tr>
+		<td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+		<td><input type="text" id="name" name="name" value="$!encoder.htmlEncode( $!attribute.name )"/></td>
+	</tr>
+
+	<tr>
+		<td><label for="code">$i18n.getString( "code" )</label></td>
+		<td><input type="text" id="code" name="code" value="$!encoder.htmlEncode( $!attribute.code )"/></td>
+	</tr>
+
+	<tr>
+		<td><label for="mandatory">$i18n.getString( "mandatory" )</td>
+		<td><input type="checkbox" id="mandatory" name="mandatory" value="true" #if( $attribute.mandatory ) checked="checked" #end /></td>
+	</tr>
+
+	<tr>
+		<td><label for="unique">$i18n.getString( "unique" )</td>
+		<td><input type="checkbox" id="unique" name="unique" value="true" #if( $attribute.unique ) checked="checked" #end /></td>
+	</tr>
+
+	<tr>
+		<td style="vertical-align: text-top;">$i18n.getString( "assigned_to" )</td>
+		<td>
+      <input type="checkbox" id="dataElementAttribute" name="dataElementAttribute" value="true" #if( $attribute.dataElementAttribute ) checked="checked" #end /><label for="dataElementAttribute">$i18n.getString( 'data_element' )</label> <br />
+      <input type="checkbox" id="dataElementGroupAttribute" name="dataElementGroupAttribute" value="true" #if( $attribute.dataElementGroupAttribute ) checked="checked" #end /><label for="dataElementGroupAttribute">$i18n.getString( 'data_element_group' )</label> <br />
+      <input type="checkbox" id="indicatorAttribute" name="indicatorAttribute" value="true" #if( $attribute.indicatorAttribute ) checked="checked" #end /><label for="indicatorAttribute">$i18n.getString( 'indicator' )</label> <br />
+      <input type="checkbox" id="indicatorGroupAttribute" name="indicatorGroupAttribute" value="true" #if( $attribute.indicatorGroupAttribute ) checked="checked" #end /><label for="indicatorGroupAttribute">$i18n.getString( 'indicator_group' )</label> <br />
+      <input type="checkbox" id="dataSetAttribute" name="dataSetAttribute" value="true" #if( $attribute.dataSetAttribute ) checked="checked" #end /><label for="dataSetAttribute">$i18n.getString( 'data_set' )</label> <br />
+      <input type="checkbox" id="organisationUnitAttribute" name="organisationUnitAttribute" value="true" #if( $attribute.organisationUnitAttribute ) checked="checked" #end /><label for="organisationUnitAttribute">$i18n.getString( 'organisation_unit' )</label> <br />
+      <input type="checkbox" id="organisationUnitGroupAttribute" name="organisationUnitGroupAttribute" value="true" #if( $attribute.organisationUnitGroupAttribute ) checked="checked" #end /><label for="organisationUnitGroupAttribute">$i18n.getString( 'organisation_unit_group' )</label> <br />
+      <input type="checkbox" id="organisationUnitGroupSetAttribute" name="organisationUnitGroupSetAttribute" value="true" #if( $attribute.organisationUnitGroupSetAttribute ) checked="checked" #end /><label for="organisationUnitGroupSetAttribute">$i18n.getString( 'organisation_unit_group_set' )</label> <br />
+      <input type="checkbox" id="userAttribute" name="userAttribute" value="true" #if( $attribute.userAttribute ) checked="checked" #end /><label for="userAttribute">$i18n.getString( 'user' )</label> <br />
+      <input type="checkbox" id="userGroupAttribute" name="userGroupAttribute" value="true" #if( $attribute.userGroupAttribute ) checked="checked" #end /><label for="userGroupAttribute">$i18n.getString( 'user_group' )</label> <br />
+      <input type="checkbox" id="programAttribute" name="programAttribute" value="true" #if( $attribute.programAttribute ) checked="checked" #end /><label for="programAttribute">$i18n.getString( 'program' )</label> <br />
+      <input type="checkbox" id="programStageAttribute" name="programStageAttribute" value="true" #if( $attribute.programStageAttribute ) checked="checked" #end /><label for="programStageAttribute">$i18n.getString( 'program_stage' )</label> <br />
+      <input type="checkbox" id="trackedEntityAttribute" name="trackedEntityAttribute" value="true" #if( $attribute.trackedEntityAttribute ) checked="checked" #end /><label for="trackedEntityAttribute">$i18n.getString( 'tracked_entity' )</label> <br />
+      <input type="checkbox" id="trackedEntityAttributeAttribute" name="trackedEntityAttributeAttribute" value="true" #if( $attribute.trackedEntityAttributeAttribute ) checked="checked" #end /><label for="trackedEntityAttributeAttribute">$i18n.getString( 'tracked_entity_attribute' )</label> <br />
+      <input type="checkbox" id="categoryOptionAttribute" name="categoryOptionAttribute" value="true" #if( $attribute.categoryOptionAttribute ) checked="checked" #end /><label for="categoryOptionAttribute">$i18n.getString( 'category_option' ) <br />
+      <input type="checkbox" id="categoryOptionGroupAttribute" name="categoryOptionGroupAttribute" value="true" #if( $attribute.categoryOptionGroupAttribute ) checked="checked" #end /><label for="categoryOptionGroupAttribute">$i18n.getString( 'category_option_group' ) <br />
+      <input type="checkbox" id="documentAttribute" name="documentAttribute" value="true" #if( $attribute.documentAttribute ) checked="checked" #end /><label for="documentAttribute">$i18n.getString( 'document' ) <br />
+      <input type="checkbox" id="optionAttribute" name="optionAttribute" value="true" #if( $attribute.optionAttribute ) checked="checked" #end /><label for="optionAttribute">$i18n.getString( 'option' ) <br />
+      <input type="checkbox" id="optionSetAttribute" name="optionSetAttribute" value="true" #if( $attribute.optionSetAttribute ) checked="checked" #end /><label for="optionSetAttribute">$i18n.getString( 'option_set' ) <br />
+      <input type="checkbox" id="constantAttribute" name="constantAttribute" value="true" #if( $attribute.constantAttribute ) checked="checked" #end  /><label for="constantAttribute">$i18n.getString( 'constant' )</label> <br />
+      <input type="checkbox" id="legendSetAttribute" name="legendSetAttribute" value="true" #if( $attribute.legendSetAttribute ) checked="checked" #end /><label for="legendSetAttribute">$i18n.getString( 'legend_set' )</label> <br />
+      <input type="checkbox" id="programIndicatorAttribute" name="programIndicatorAttribute" value="true" #if( $attribute.programIndicatorAttribute ) checked="checked" #end /><label for="programIndicatorAttribute">$i18n.getString( 'program_indicator' )</label> <br />
+      <input type="checkbox" id="sqlViewAttribute" name="sqlViewAttribute" value="true" #if( $attribute.sqlViewAttribute ) checked="checked" #end /><label for="sqlViewAttribute">$i18n.getString( 'sql_view' )</label> <br />
+		</label> <br />
+		</td>
+	</tr>
+
+	<tr>
+		<td><label for="valueType">$i18n.getString( "value_type" )</td>
+		<td>
+			<select id="valueType" name="valueType" style="width: 310px">
+				<option value="TEXT" #if( $attribute.valueType == 'TEXT') selected="selected" #end>$i18n.getString( "text" )</option>
+				<option value="LONG_TEXT" #if( $attribute.valueType == 'LONG_TEXT') selected="selected" #end>$i18n.getString( "long_text" )</option>
+				<option value="BOOLEAN" #if( $attribute.valueType == 'BOOLEAN') selected="selected" #end>$i18n.getString( "yes_no" )</option>
+				<option value="DATE" #if( $attribute.valueType == 'DATE') selected="selected" #end>$i18n.getString( "date" )</option>
+				<option value="NUMBER" #if( $attribute.valueType == 'NUMBER') selected="selected" #end>$i18n.getString( "number" )</option>
+				<option value="INTEGER" #if( $attribute.valueType == 'INTEGER') selected="selected" #end>$i18n.getString( "integer" )</option>
+				<option value="INTEGER_POSITIVE" #if( $attribute.valueType == 'INTEGER_POSITIVE') selected="selected" #end>$i18n.getString( "positive_integer" )</option>
+				<option value="INTEGER_NEGATIVE" #if( $attribute.valueType == 'INTEGER_NEGATIVE') selected="selected" #end>$i18n.getString( "negative_integer" )</option>
+      </select>
+    </td>
+  </tr>
+
+  <tr>
+    <td></td>
+    <td>
+      <select id="optionSet" name="optionSetUid" style="width: 310px">
+        <option value="0">[$i18n.getString('please_select')]</option>
+        #foreach( $optionSet in $optionSets )
+        <option value="$optionSet.uid" #if( $attribute.optionSet && $attribute.optionSet.uid == $optionSet.uid )selected="selected"#end>$optionSet.displayName</option>
+        #end
+      </select>
+    </td>
+  </tr>
+
+	<tr>
+		<td colspan="2">
+			<br/>
+			<input type="submit" value="$i18n.getString( 'save' )" style="width:10em"/>
+			<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='attribute.action'" style="width:10em"/>
+		</td>
+	</tr>
+</table>
+
+</form>

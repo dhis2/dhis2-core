@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramDataElement" table="programdataelement">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programdataelementid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <!-- Object Translation -->
+    <set name="translations" table="programdataelementtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programdataelementid" foreign-key="fk_objecttranslation_programdataelementid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid"
+      foreign-key="fk_programdataelement_program" unique-key="programdataelement_unique_key" not-null="true" />
+    
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+      foreign-key="fk_programdataelement_dataelement" unique-key="programdataelement_unique_key" not-null="true" />
+    
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

@@ -1,0 +1,353 @@
+{
+  "date": "2016-04-07T05:56:36.200+0000",
+  "categoryOptions": [
+    {
+      "name": "default",
+      "id": "xYerKDKCefk",
+      "attributeValues": [ ],
+      "created": "2016-04-07T05:09:39.577+0000",
+      "shortName": "default",
+      "lastUpdated": "2016-04-07T05:09:39.593+0000",
+      "userGroupAccesses": [ ],
+      "code": "default",
+      "organisationUnits": [ ],
+      "publicAccess": "--------"
+    }
+  ],
+  "categories": [
+    {
+      "created": "2016-04-07T05:09:39.586+0000",
+      "name": "default",
+      "id": "GLevLNI9wkl",
+      "publicAccess": "--------",
+      "dataDimension": false,
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ],
+      "lastUpdated": "2016-04-07T05:09:39.796+0000",
+      "userGroupAccesses": [ ],
+      "dataDimensionType": "DISAGGREGATION",
+      "code": "default"
+    }
+  ],
+  "categoryOptionCombos": [
+    {
+      "name": "default",
+      "id": "HllvX50cXC0",
+      "created": "2016-04-07T05:09:39.589+0000",
+      "ignoreApproval": false,
+      "code": "default",
+      "lastUpdated": "2016-04-07T05:09:39.589+0000",
+      "categoryOptions": [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      }
+    }
+  ],
+  "categoryCombos": [
+    {
+      "created": "2016-04-07T05:09:39.588+0000",
+      "id": "bjDvmb4bfuf",
+      "name": "default",
+      "categories": [
+        {
+          "id": "GLevLNI9wkl"
+        }
+      ],
+      "publicAccess": "--------",
+      "userGroupAccesses": [ ],
+      "skipTotal": false,
+      "lastUpdated": "2016-04-07T05:09:39.591+0000",
+      "code": "default",
+      "dataDimensionType": "DISAGGREGATION"
+    }
+  ],
+  "userRoles": [
+    {
+      "name": "Superuser",
+      "id": "yrB6vc5Ip3r",
+      "authorities": [
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "ALL",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
+        "F_DATAELEMENTGROUP_PUBLIC_ADD",
+        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
+        "F_DATAELEMENT_DELETE",
+        "F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD",
+        "F_MAP_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_GROUP_SET_DELETE",
+        "F_CATEGORY_PRIVATE_ADD",
+        "F_INDICATORGROUPSET_PUBLIC_ADD",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP",
+        "F_PROGRAM_ENROLLMENT",
+        "F_REPORTTABLE_EXTERNAL",
+        "F_CATEGORY_OPTION_PRIVATE_ADD",
+        "F_GIS_ADMIN",
+        "F_CATEGORY_OPTION_GROUP_PUBLIC_ADD",
+        "F_REPLICATE_USER",
+        "F_INSERT_CUSTOM_JS_CSS",
+        "F_DATAELEMENTGROUPSET_DELETE",
+        "F_INDICATOR_DELETE",
+        "F_INDICATORTYPE_ADD",
+        "F_VIEW_UNAPPROVED_DATA",
+        "F_INDICATOR_PUBLIC_ADD",
+        "F_INDICATORGROUP_PUBLIC_ADD",
+        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
+        "F_INDICATOR_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_OAUTH2_CLIENT_MANAGE",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_CATEGORY_OPTION_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_DELETE",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_CATEGORY_COMBO_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_INSTANCE_DELETE",
+        "F_DATAELEMENT_PUBLIC_ADD",
+        "F_INDICATORGROUP_DELETE",
+        "F_CATEGORY_OPTION_GROUP_DELETE",
+        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
+        "F_SQLVIEW_EXTERNAL",
+        "F_DATAELEMENTGROUPSET_PRIVATE_ADD",
+        "F_CATEGORY_COMBO_DELETE",
+        "F_CATEGORY_OPTION_GROUP_PRIVATE_ADD",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_INDICATORGROUPSET_PRIVATE_ADD",
+        "F_CATEGORY_PUBLIC_ADD",
+        "F_CHART_PUBLIC_ADD",
+        "F_CATEGORY_COMBO_PUBLIC_ADD",
+        "F_CHART_EXTERNAL",
+        "F_METADATA_EXPORT",
+        "F_PROGRAM_UNENROLLMENT",
+        "F_DATAELEMENTGROUP_PRIVATE_ADD",
+        "F_INDICATORGROUPSET_DELETE",
+        "F_APPROVE_DATA",
+        "F_ACCEPT_DATA_LOWER_LEVELS",
+        "F_CATEGORY_DELETE",
+        "F_TRACKED_ENTITY_DATAVALUE_ADD",
+        "F_INDICATORTYPE_DELETE",
+        "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD",
+        "F_MAP_EXTERNAL",
+        "F_INDICATORGROUP_PRIVATE_ADD",
+        "F_DATAELEMENT_PRIVATE_ADD",
+        "F_TRACKED_ENTITY_DATAVALUE_DELETE",
+        "F_DATAELEMENTGROUP_DELETE",
+        "F_DATAELEMENTGROUPSET_PUBLIC_ADD"
+      ],
+      "created": "2016-04-07T05:12:03.359+0000",
+      "description": "Superuser",
+      "code": "Superuser",
+      "programs": [ ],
+      "lastUpdated": "2016-04-07T05:12:03.359+0000",
+      "dataSets": [ ],
+      "userGroupAccesses": [ ],
+      "publicAccess": "--------"
+    }
+  ],
+  "users": [
+    {
+      "userCredentials": {
+        "userInfo": {
+          "id": "M5zQapPyTZI"
+        },
+        "username": "admin",
+        "catDimensionConstraints": [ ],
+        "externalAuth": false,
+        "code": "admin",
+        "lastUpdated": "2016-04-07T05:12:03.473+0000",
+        "lastLogin": "2016-04-07T05:12:03.379+0000",
+        "passwordLastUpdated": "2016-04-07T05:12:03.380+0000",
+        "cogsDimensionConstraints": [ ],
+        "disabled": false,
+        "created": "2016-04-07T05:12:03.379+0000",
+        "invitation": false,
+        "selfRegistered": false,
+        "userRoles": [
+          {
+            "id": "yrB6vc5Ip3r"
+          }
+        ],
+        "id": "KvMx6c1eoYo"
+      },
+      "lastUpdated": "2016-04-07T05:12:03.342+0000",
+      "firstName": "admin",
+      "organisationUnits": [ ],
+      "code": "admin",
+      "created": "2016-04-07T05:12:03.342+0000",
+      "dataViewOrganisationUnits": [ ],
+      "id": "M5zQapPyTZI",
+      "attributeValues": [ ],
+      "surname": "admin",
+      "teiSearchOrganisationUnits": [ ]
+    }
+  ],
+  "trackedEntities": [
+    {
+      "created": "2016-04-06T17:00:00.000+0000",
+      "code": "Person",
+      "attributeValues": [ ],
+      "description": "Person",
+      "id": "MCPQUTHX1Ze",
+      "name": "Person",
+      "lastUpdated": "2016-04-06T17:00:00.000+0000"
+    }
+  ],
+  "attributes": [
+    {
+      "categoryOptionAttribute": false,
+      "userGroupAttribute": false,
+      "trackedEntityAttribute": false,
+      "organisationUnitAttribute": false,
+      "dataSetAttribute": false,
+      "optionAttribute": false,
+      "id": "azavAWurpqC",
+      "programAttribute": false,
+      "organisationUnitGroupAttribute": false,
+      "dataElementGroupAttribute": false,
+      "created": "2016-04-07T05:12:28.456+0000",
+      "legendSetAttribute": false,
+      "documentAttribute": false,
+      "programStageAttribute": false,
+      "unique": true,
+      "lastUpdated": "2016-04-07T05:12:28.457+0000",
+      "dataElementAttribute": true,
+      "constantAttribute": false,
+      "code": "AttributeCodeA",
+      "userAttribute": false,
+      "indicatorAttribute": false,
+      "organisationUnitGroupSetAttribute": false,
+      "valueType": "TEXT",
+      "name": "AttributeB",
+      "indicatorGroupAttribute": false,
+      "categoryOptionGroupAttribute": false,
+      "mandatory": true,
+      "trackedEntityAttributeAttribute": false,
+      "optionSetAttribute": false
+    }
+  ],
+  "dataElements": [
+    {
+      "lastUpdated": "2016-04-07T05:52:42.170+0000",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "code": "DataElementCodeD",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "aggregationLevels": [ ],
+      "name": "DataElementD",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "azavAWurpqC"
+          },
+          "value": "Value1"
+        }
+      ],
+      "domainType": "AGGREGATE",
+      "shortName": "DataElementShortNameD",
+      "userGroupAccesses": [ ],
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "id": "tV9zeCvDFnC",
+      "aggregationType": "SUM",
+      "created": "2016-04-07T05:52:42.165+0000"
+    },
+    {
+      "shortName": "DataElementShortNameE",
+      "domainType": "AGGREGATE",
+      "aggregationLevels": [ ],
+      "name": "DataElementE",
+      "valueType": "NUMBER",
+      "publicAccess": "rw------",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "code": "DataElementCodeE",
+      "lastUpdated": "2016-04-07T05:53:01.617+0000",
+      "created": "2016-04-07T05:52:42.165+0000",
+      "aggregationType": "SUM",
+      "id": "EpR260eKHzc",
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "zeroIsSignificant": false,
+      "userGroupAccesses": [ ],
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "azavAWurpqC"
+          },
+          "value": "Value2"
+        }
+      ]
+    },
+    {
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "zeroIsSignificant": false,
+      "userGroupAccesses": [ ],
+      "aggregationType": "SUM",
+      "created": "2016-04-07T05:52:42.165+0000",
+      "id": "wakUoWpT16m",
+      "valueType": "NUMBER",
+      "publicAccess": "rw------",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "code": "DataElementCodeF",
+      "lastUpdated": "2016-04-07T05:53:18.513+0000",
+      "shortName": "DataElementShortNameF",
+      "domainType": "AGGREGATE",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "azavAWurpqC"
+          },
+          "value": "Value2"
+        }
+      ],
+      "name": "DataElementF",
+      "aggregationLevels": [ ]
+    },
+    {
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "zeroIsSignificant": false,
+      "userGroupAccesses": [ ],
+      "aggregationType": "SUM",
+      "created": "2016-04-07T05:52:42.165+0000",
+      "valueType": "NUMBER",
+      "publicAccess": "rw------",
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "code": "DataElementCodeG",
+      "lastUpdated": "2016-04-07T05:53:18.513+0000",
+      "shortName": "DataElementShortNameC",
+      "domainType": "AGGREGATE",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "azavAWurpqC"
+          },
+          "value": "Value2"
+        }
+      ],
+      "name": "DataElementG",
+      "aggregationLevels": [ ]
+    }
+  ]
+}

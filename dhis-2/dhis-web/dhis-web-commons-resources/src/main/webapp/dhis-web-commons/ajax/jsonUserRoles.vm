@@ -1,0 +1,14 @@
+#set( $size = $userRoles.size() )
+{ "userRoles": [
+#foreach( $userRole in $userRoles )
+  {
+    "id": ${userRole.id},
+    "name": "$!encoder.jsonEncode( ${userRole.name} )",
+    "description": "$!encoder.jsonEncode( ${userRole.description} )"
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

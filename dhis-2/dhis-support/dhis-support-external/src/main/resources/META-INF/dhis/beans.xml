@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:task="http://www.springframework.org/schema/task"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.2.xsd">
+
+  <context:annotation-config />
+
+  <task:annotation-driven />
+
+  <bean id="dhisConfigurationProvider" class="org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider" init-method="init">
+    <property name="locationManager" ref="locationManager" />  
+  </bean>
+
+  <bean id="locationManager" class="org.hisp.dhis.external.location.DefaultLocationManager" init-method="init">
+    <property name="environmentVariable" value="DHIS2_HOME" />
+    <property name="systemProperty" value="dhis2.home" />
+  </bean>
+
+  <bean id="maxAttempts" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
+    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
+    <property name="dhisProperty" value="META_DATA_SYNC_RETRY" />
+  </bean>
+
+  <bean id="initialInterval" class="org.hisp.dhis.external.conf.DhisConfigurationPropertyFactoryBean">
+    <property name="dhisConfigurationProvider" ref="dhisConfigurationProvider" />
+    <property name="dhisProperty" value="META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC" />
+  </bean>
+
+</beans>

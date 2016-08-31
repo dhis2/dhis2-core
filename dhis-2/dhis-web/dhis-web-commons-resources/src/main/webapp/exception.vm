@@ -1,0 +1,100 @@
+#set( $idCount = 0 )
+
+#macro( printException $exception $preText )
+  <h5>
+    #if( $showStackTrace )
+      <span id="toggle$idCount" class="toggle"><a href="javascript:toggle( $idCount )">[+]</a></span>
+    #end
+    $preText (${exception.class.name}):
+    #if( !$exception.message )
+      null
+    #else
+      $encoder.htmlEncode( $exception.message )
+    #end
+  </h5>
+  #if( $showStackTrace )
+    <div id="stackTrace$idCount" style="display:none">
+      #set( $idCount = $idCount + 1 )
+      <ul>
+        #foreach( $element in $exception.stackTrace )
+          #if( $element.fileName )
+            <li>${element.className}.${element.methodName}(${element.fileName}:${element.lineNumber})</li>
+          #else
+            <li>${element.className}.${element.methodName}($i18n.getString( "unknown_source" ))</li>
+          #end
+        #end
+      </ul>
+    </div>
+  #end
+  #if( $exception.cause )
+    #printException( $exception.cause $i18n.getString( "caused_by" ) )
+  #end
+#end
+
+## -------------------------------------------------------------------------- ##
+
+<html>
+<head>
+  <title>DHIS 2</title>
+  <style>
+  *
+  {
+    font-family: tahoma, sans-serif;
+  }
+
+  .toggle a
+  {
+    font-family: courier, monospace;
+    text-decoration: none;
+  }
+
+  ul
+  {
+    font-size: 10pt;
+    margin-top: 0em;
+  }
+
+  h5
+  {
+    margin-bottom: 0em;
+  }
+  </style>
+  <script type="text/javascript">
+
+  function toggle( idCount )
+  {
+    var stackTraceId = 'stackTrace' + idCount;
+    var toggleId = 'toggle' + idCount;
+    
+    var stackTraceElement = document.getElementById( stackTraceId );
+    var toggleElement = document.getElementById( toggleId );
+    toggleElement = toggleElement.firstChild;
+    
+    if ( stackTraceElement.style.display == 'none' )
+    {
+      stackTraceElement.style.display = 'block';
+      
+      toggleElement.replaceChild( document.createTextNode( '[-]' ), toggleElement.firstChild );
+    }
+    else
+    {
+      stackTraceElement.style.display = 'none';
+      
+      toggleElement.replaceChild( document.createTextNode( '[+]' ), toggleElement.firstChild );
+    }
+  }
+  </script>
+</head>
+<body>
+
+<h2>$i18n.getString( "an_exception_occured" )</h2>
+
+<p>$encoder.htmlEncode( $i18n.getString( "exception_explanation_text" ))</p>
+<p><input type="button" value="$encoder.htmlEncode( $i18n.getString( "go_back" ))" onclick="history.go( -1 )"></p>
+
+#if( $runningAsPortal == "false" )
+#printException( $exception $i18n.getString( "exception" ) )
+#end
+
+</body>
+</html>

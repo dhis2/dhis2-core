@@ -1,0 +1,6 @@
+<div style="margin-bottom:16px" class="hideInPrint">
+<input type="button" value="$i18n.getString( 'print' )" onclick="window.print()" id="printButton" style="width:140px">
+<input type="button" value="$i18n.getString( 'back' )" onclick="javascript:window.location.href='displayViewReportForm.action'" style="width:140px">
+</div>
+
+${content}

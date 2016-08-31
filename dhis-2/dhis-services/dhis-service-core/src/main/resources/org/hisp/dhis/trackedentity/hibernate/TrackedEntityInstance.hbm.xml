@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.trackedentity.TrackedEntityInstance" table="trackedentityinstance">
+
+    <id name="id" column="trackedentityinstanceid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="inactive" column="inactive" />
+
+    <set name="trackedEntityAttributeValues" inverse="true">
+      <key column="trackedentityinstanceid" />
+      <one-to-many class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue" />
+    </set>
+
+    <set name="programInstances">
+      <key column="trackedentityinstanceid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramInstance" />
+    </set>
+
+    <many-to-one name="representative" class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="representativeid"
+      foreign-key="fk_trackedentityinstance_representativeid" lazy="false" />
+
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_trackedentityinstance_organisationunitid" not-null="true" lazy="false" />
+
+    <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+      column="trackedentityid" foreign-key="fk_trackedentityinstance_trackedentityid" lazy="false" />
+
+  </class>
+
+</hibernate-mapping>

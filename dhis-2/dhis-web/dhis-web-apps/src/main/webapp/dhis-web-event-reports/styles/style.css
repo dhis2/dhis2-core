@@ -1,0 +1,1284 @@
+/*
+ * General
+ * Pivot
+ *
+ * Panel
+ * PT Panel
+ *
+ * Combobox
+ * PT Combobox
+ *
+ * Multiselect
+ * PT Multiselect
+ *
+ * Checkbox
+ * PT Checkbox
+ *
+ * Toolbar
+ * PT Toolbar
+ *
+ * Menu
+ * PT Menu
+ *
+ * Button
+ * Tooltip
+ * LoadMask
+ *
+ * PT Grid
+ * PT Window
+ * PT Label
+ * PT Textfield
+ * PT Treepanel
+ * PT Statusbar
+ * PT Accordion
+ * PT Textarea
+*/
+
+/*----------------------------------------------------------------------------
+ * General
+ *--------------------------------------------------------------------------*/
+
+body {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+body,
+.x-body,
+.x-btn-default-small .x-btn-inner,
+.x-btn-default-toolbar-small .x-btn-inner,
+.x-form-item,
+.x-panel-header-text-default,
+.x-grid-cell-inner,
+.x-form-item-label,
+.x-window-header-text-default {
+	font-size: 11px;
+    font-family: arial,sans-serif,ubuntu,consolas;
+}
+
+#init {
+    display: table;
+    margin: 300px auto;
+    font-size: 13px;
+    color: #444;
+}
+
+#init .brand {
+    font-weight: 600;
+    padding-right: 5px;
+}
+
+	/* Scrollbar Webkit */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 7px;
+    border: 0 none;
+}
+
+::-webkit-scrollbar-track:horizontal {
+    background-color: #ddd;
+    margin: 0 2px;
+    border-bottom: 1px solid white;
+}
+::-webkit-scrollbar-thumb:horizontal {
+	background-color: #bbb;
+    border-bottom: 1px solid white;
+}
+
+::-webkit-scrollbar-track:vertical {
+    background-color: #e1e1e1;
+    margin: 1px 0;
+    border-right: 1px solid white;
+}
+::-webkit-scrollbar-thumb:vertical {
+	background-color: #bbb;
+    border-right: 1px solid white;
+}
+
+	/* User select */
+.user-select {
+	-webkit-touch-callout: text;
+	-webkit-user-select: text;
+	-khtml-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	user-select: text;
+}
+
+	/* Scrollbar */
+.x-scroller-vertical {
+	border: 0 none;
+}
+
+	/* Disabled icons */
+.disabled {
+	opacity: 0.4;
+	cursor: default !important;
+}
+
+.disabled-toolbar {
+	opacity: 1;
+/*
+	cursor: default !important;
+*/
+}
+
+	/* Collapse splitter column */
+.x-splitter {
+    display: none;
+}
+
+.fixed {
+	position: fixed;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.cursor-default {
+	cursor: default;
+}
+
+.td-nobreak {
+	white-space: nowrap;
+}
+
+.td-hidden {
+	display: none;
+}
+
+.td-collapsed {
+	display: none;
+}
+
+.td-sortable {
+	background-image: url('../images/arrowupdown.png');
+	background-repeat: no-repeat;
+	background-position: right center;
+	padding-right: 15px !important;
+}
+.td-sortable-asc {
+	background-image: url('../images/arrowup.png');
+}
+.td-sortable-desc {
+	background-image: url('../images/arrowdown.png');
+}
+
+.text-weak {
+	color: #303038;
+}
+
+.align-left {
+	text-align: left !important;
+}
+.align-right {
+	text-align: right !important;
+}
+
+.font-size-0 {
+    font-size: 0 !important;
+}
+
+.ns-form-item-label-top {
+	padding-left: 2px;
+	float: none;
+	clear: none;
+	display: block;
+	margin-bottom: 2px !important;
+    color: #333;
+}
+.ns-form-item-label-top-padding {
+    padding-top: 3px;
+}
+
+.ns-container-default {
+    border: 0 none;
+    background: #fff;
+}
+
+.text-medium {
+    font-weight: 600;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Spinner
+ *--------------------------------------------------------------------------*/
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    margin: 50px auto;
+    background-color: #aaa;
+
+    border-radius: 100%;
+    -webkit-animation: sk-scaleout 0.8s infinite ease-in-out;
+    animation: sk-scaleout 0.8s infinite ease-in-out;
+}
+
+@-webkit-keyframes sk-scaleout {
+    0% {
+        -webkit-transform: scale(0)
+    }
+    100% {
+        -webkit-transform: scale(1.0);
+        opacity: 0;
+    }
+}
+
+@keyframes sk-scaleout {
+    0% {
+        -webkit-transform: scale(0);
+        transform: scale(0);
+    }
+    100% {
+        -webkit-transform: scale(1.0);
+        transform: scale(1.0);
+        opacity: 0;
+    }
+}
+
+
+/*----------------------------------------------------------------------------
+ * Pivot
+ *--------------------------------------------------------------------------*/
+
+table.pivot {
+	border-collapse: collapse;
+	border-spacing: 0px;
+	border: 0 none;
+
+	-webkit-touch-callout: all;
+	-webkit-user-select: all;
+	-khtml-user-select: all;
+	-moz-user-select: all;
+	-ms-user-select: all;
+	user-select: all;
+}
+
+table.pivot.displaydensity-COMFORTABLE td {
+	padding: 7px;
+}
+table.pivot.displaydensity-COMPACT td {
+	padding: 3px;
+}
+
+table.pivot.fontsize-LARGE td {
+	font-size: 13px;
+}
+table.pivot.fontsize-SMALL td {
+	font-size: 10px;
+}
+
+.pivot td {
+	padding: 5px;
+	border: 1px solid #b2b2b2;
+}
+
+.pivot-dim {
+	background-color: #dae6f8;
+	text-align: center;
+}
+.pivot-dim.highlighted {
+	background-color: #c5d8f6;
+}
+.pivot-dim-subtotal {
+	background-color: #cad6e8;
+	text-align: center;
+}
+.pivot-dim-total {
+	background-color: #bac6d8;
+	text-align: center;
+}
+.pivot-dim-total.highlighted {
+	background-color: #adb8c9;
+}
+
+.pivot-dim-label {
+	background-color: #cddaed;
+	white-space: nowrap;
+    text-align: center;
+}
+.pivot-empty {
+	background-color: #cddaed;
+}
+.pivot-transparent-column {
+	background-color: #fff;
+    border-top-color: #fff !important;
+    border-right-color: #fff !important;
+}
+.pivot-transparent-row {
+	background-color: #fff;
+    border-bottom-color: #fff !important;
+    border-left-color: #fff !important;
+}
+
+.pivot-value {
+	background-color: #fff;
+	text-align: right;
+	max-width: 700px;
+}
+.pivot-value.highlighted {
+	background-color: #f3f3f3;
+}
+
+.pivot-value-subtotal {
+	background-color: #f4f4f4;
+	white-space: nowrap;
+	text-align: right;
+}
+.pivot-value-subtotal-total {
+	background-color: #e7e7e7;
+	white-space: nowrap;
+	text-align: right;
+}
+.pivot-value-total {
+	background-color: #e4e4e4;
+	white-space: nowrap;
+	text-align: right;
+}
+.pivot-value-total-subgrandtotal {
+	background-color: #d8d8d8;
+	white-space: nowrap;
+	text-align: right;
+}
+.pivot-value-grandtotal {
+	background-color: #c8c8c8;
+	white-space: nowrap;
+	text-align: right;
+}
+
+	/* Legend */
+.pivot td.legend {
+	padding: 0;
+}
+
+.pivot div.legendCt {
+	display: table;
+	float: right;
+	width: 100%;
+}
+.pivot div.arrowCt {
+	display: table-cell;
+	vertical-align: top;
+	width: 8px;
+}
+.pivot div.arrow {
+	width: 0;
+	height: 0;
+}
+.pivot div.number {
+	display: table-cell;
+}
+
+.pivot div.legendColor {
+	display: table-cell;
+	width: 2px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * NS viewport
+ *--------------------------------------------------------------------------*/
+
+.ns-viewport-text * {
+    padding: 3px 10px;
+    font-size: 13px;
+    color: #777;
+}
+.ns-viewport-text h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    padding: 0 0 8px 0;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Panel
+ *--------------------------------------------------------------------------*/
+
+.x-panel-body {
+    font-size: 11px;
+}
+.x-panel .x-grid-body {
+    border-style: none;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Panel
+ *--------------------------------------------------------------------------*/
+
+.ns-panel-title-data,
+.ns-panel-title-period,
+.ns-panel-title-organisationunit,
+.ns-panel-title-dimension {
+	height: 17px;
+	background-repeat: no-repeat;
+	padding-left: 20px
+}
+
+.ns-panel-title-data {
+	background-image: url(../images/data.png);
+}
+.ns-panel-title-period {
+	background-image: url(../images/period.png);
+}
+.ns-panel-title-organisationunit {
+	background-image: url(../images/organisationunit.png);
+}
+.ns-panel-title-dimension {
+	background-image: url(../images/dataelementgroupset.png);
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Data Selector
+ *--------------------------------------------------------------------------*/
+
+.ns-dxselector .x-mask {
+    background: transparent;
+}
+
+.ns-dxselector.x-item-disabled {
+    opacity: 0.6;
+}
+
+
+/*----------------------------------------------------------------------------
+ * NS form
+ *--------------------------------------------------------------------------*/
+
+.ns-form-widget .x-form-item-label-left { /* (Combo) label */
+	padding-left: 4px;
+	color: #444;
+}
+.ns-form-widget .x-form-text { /* Combo text */
+	font-size: 10px !important;
+	padding: 3px 1px 1px 4px;
+	border-top-left-radius: 1px;
+	border-bottom-left-radius: 1px;
+}
+
+.ns-form-widget .x-form-item { /* (Combo) spacing */
+	margin-bottom: 3px;
+}
+
+.ns-form-widget .x-btn-default-small { /* Button */
+	border-radius: 1px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Combobox
+ *--------------------------------------------------------------------------*/
+
+	/* Combobox text position*/
+.x-webkit .x-form-empty-field {
+    line-height: 14px;
+}
+
+	/* Combobox font size */
+.x-form-text, textarea.x-form-field {
+    font-size: 10px;
+}
+
+	/* Combobox field label font */
+.x-form-item-label {
+    font-size: 11px;
+    color: #111;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Combobox
+ *--------------------------------------------------------------------------*/
+
+	/* Combobox text position*/
+.ns-combo .x-form-text {
+    padding-left: 5px;
+}
+.ns-combo .small .x-form-field {
+	padding-top: 2px;
+}
+
+	/* Combobox border-radius */
+.ns-combo input {
+    border-radius: 1px 0px 0px 0px;
+}
+
+	/* Custom */
+.ns-combo.h21 .x-form-trigger {
+    height: 21px !important;
+}
+.ns-combo.h22 .x-form-trigger {
+    height: 22px !important;
+}
+.ns-combo.h24 .x-form-trigger {
+    height: 24px !important;
+}
+
+    /* Option selector */
+.ns-optionselector .x-boundlist-selected {
+    background-color: #fff;
+    border-color: #fff
+}
+.ns-optionselector .x-boundlist-selected.x-boundlist-item-over {
+    background-color: #ddd;
+    border-color: #ddd
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Trigger
+ *--------------------------------------------------------------------------*/
+
+    /* field default > trigger */
+.ns-trigger-filter .x-form-trigger {
+    height: 22px !important;
+    background: url(../images/clear_20.png) 0 0 no-repeat;
+    border-top: 1px solid #b5b8c8;
+    border-right: 1px solid #b5b8c8;
+}
+    /* field focused > trigger */
+.ns-trigger-filter-focused .x-form-trigger {
+    border: 1px solid #a1a1a1;
+    border-left: 0 none;
+}
+    /* field over > trigger */
+.ns-trigger-filter .x-form-trigger-over {
+    background: url(../images/clear-over_20.png) 0 0 no-repeat;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Multiselect
+ *--------------------------------------------------------------------------*/
+
+	/* Inner border */
+.x-fit-item {
+    border-style: none;
+}
+
+	/* Boundlist (multiselect, comboboxlist etc) */
+.x-boundlist-item {
+    color: #333;
+    padding: 3px 2px 3px 4px;
+    font-size: 10px;
+    border: 1px solid transparent;
+}
+.x-boundlist-item-over {
+    background-color: #e1e1e1;
+    border-color: #e1e1e1;
+}
+.x-boundlist-selected {
+    background-color: #d3d3d3;
+    border-color: #d3d3d3;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Multiselect
+ *--------------------------------------------------------------------------*/
+
+.ns-multiselect {
+    color: #111;
+}
+
+.ns-toolbar-multiselect-left .x-docked-top {
+	border-top-left-radius: 1px;
+	border-right: 0 none;
+}
+.ns-toolbar-multiselect-right .x-docked-top {
+	border-top-right-radius: 1px;
+}
+.ns-toolbar-multiselect-leftright .x-docked-top {
+	border-top-left-radius: 1px;
+	border-top-right-radius: 1px;
+}
+
+	/* Multiselect docked bar font size */
+.ns-toolbar-multiselect-left .ns-toolbar-multiselect-left-label,
+.ns-toolbar-multiselect-right .ns-toolbar-multiselect-right-label,
+.ns-toolbar-multiselect-leftright .ns-toolbar-multiselect-leftright-label {
+    font-size: 11px;
+    color: #222;
+}
+.ns-toolbar-multiselect-left .ns-toolbar-multiselect-left-label {
+	padding-left: 6px;
+}
+.ns-toolbar-multiselect-right .ns-toolbar-multiselect-right-label {
+    padding-right: 7px;
+}
+.ns-toolbar-multiselect-leftright .ns-toolbar-multiselect-leftright-label {
+    padding-left: 4px;
+}
+
+	/* Multiselect boundlist */
+.ns-toolbar-multiselect-left .x-boundlist-item-over,
+.ns-toolbar-multiselect-right .x-boundlist-item-over {
+    background-color: transparent;
+    border-color: transparent;
+}
+.ns-toolbar-multiselect-left .x-boundlist-selected,
+.ns-toolbar-multiselect-right .x-boundlist-selected {
+    background-color: #e5e5e5;
+    border-color: #e5e5e5;
+}
+
+.ns-toolbar-multiselect-left .x-panel-body {
+	border-right: 0 none;
+}
+
+    /* Multiselect dynamic/fixed */
+.ns-multiselect-fixed .x-panel-body {
+    border-bottom: 0 none;
+}
+.ns-multiselect-fixed .x-boundlist-item {
+    color: #777;
+    cursor: auto;
+}
+.ns-multiselect-fixed .x-boundlist-item-over {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.ns-multiselect-dynamic .x-panel-body {
+    border-top: 0 none;
+}
+
+
+
+/*----------------------------------------------------------------------------
+ * Checkbox
+ *--------------------------------------------------------------------------*/
+
+	/* Box label */
+.x-form-cb-label-after {
+    padding-left: 1px;
+    font-size: 11px;
+    color: #333;
+    position: relative;
+	top: -1px;
+}
+
+	/* Icons */
+.x-form-checkbox {
+    background-image: url('../images/checkbox.gif');
+}
+
+.x-form-cb-wrap {
+    padding-top: 2px;
+    line-height: 12px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Checkbox
+ *--------------------------------------------------------------------------*/
+
+.ns-checkbox .x-form-item-label {
+    padding-left: 5px;
+}
+.ns-checkbox .x-form-cb-label-after {
+    margin-left: 3px;
+    font-size: 11px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Toolbar
+ *--------------------------------------------------------------------------*/
+
+	/* Separator */
+.x-toolbar .x-toolbar-separator-horizontal {
+    height: 15px;
+    border-right: 1px solid #f2f2f2;
+}
+
+    /* Disabled */
+.x-toolbar.x-item-disabled {
+    opacity: 1;
+}
+
+	/* Background */
+.x-toolbar-default {
+    border-color: #D0D0D0;
+    background-image: none;
+    background-color: #f3f3f3;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #f1f1f1), color-stop(100%, #f5f5f5));
+    background-image: -webkit-linear-gradient(top, #f1f1f1,#f5f5f5);
+    background-image: -moz-linear-gradient(top, #f1f1f1,#f5f5f5);
+    background-image: -o-linear-gradient(top, #f1f1f1,#f5f5f5);
+    background-image: -ms-linear-gradient(top, #f1f1f1,#f5f5f5);
+    background-image: linear-gradient(top, #f1f1f1,#f5f5f5);
+}
+.ns-toolbar-main {
+    border-color: #D0D0D0;
+    background-image: none;
+    background-color: #f1f1f1;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #e3e3e3), color-stop(100%, #eaeaea));
+    background-image: -webkit-linear-gradient(top, #e3e3e3,#eaeaea);
+    background-image: -moz-linear-gradient(top, #e3e3e3,#eaeaea);
+    background-image: -o-linear-gradient(top, #e3e3e3,#eaeaea);
+    background-image: -ms-linear-gradient(top, #e3e3e3,#eaeaea);
+    background-image: linear-gradient(top, #e3e3e3,#eaeaea);
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Toolbar
+ *--------------------------------------------------------------------------*/
+
+	/* Align menu */
+.ns-toolbar-btn-menu {
+	margin-top: 4px;
+}
+
+/*----------------------------------------------------------------------------
+ * Menu
+ *--------------------------------------------------------------------------*/
+
+.x-menu-body {
+    border-color: #bbb;
+    border-radius: 2px;
+}
+.x-menu-item-active .x-menu-item-link {
+	border-radius: 0;
+	border-color: #e1e1e1;
+	background-color: #e1e1e1;
+	background-image: none;
+}
+.x-menu-body {
+	padding: 0;
+}
+.x-menu-body .x-box-inner {
+	background-color: #fafafa;
+}
+
+	/* Menu item */
+.x-menu-item {
+	background-color: #fafafa;
+}
+
+.x-menu-item-link {
+    padding: 4px 5px 4px 26px;
+}
+	/* Menu item color */
+.x-menu-item-text {
+    color: #111;
+}
+
+/*----------------------------------------------------------------------------
+ * PT Menu
+ *--------------------------------------------------------------------------*/
+
+	/* Menu item icon */
+.ns-menu-item-noicon .x-menu-item-link {
+	padding-left: 10px;
+}
+
+.ns-menu-item-image {
+    background-image:url('../images/dl_image.png');
+    padding-left: 18px;
+}
+.ns-menu-item-tablelayout {
+    background-image:url('../images/dl_tablelayout.png');
+    padding-left: 18px;
+}
+.ns-menu-item-datasource {
+    background-image:url('../images/dl_datasource.png');
+    padding-left: 18px;
+}
+
+.ns-menu-item-selected {
+    background-image:url('../images/check.png');
+    padding-left: 18px;
+}
+.ns-menu-item-unselected {
+    background-image:url('../images/check-un.png');
+    padding-left: 18px;
+}
+
+
+	/* Menu align */
+.ns-btn-menu {
+	margin-top: 2px;
+}
+
+/*----------------------------------------------------------------------------
+ * Button
+ *--------------------------------------------------------------------------*/
+
+.x-btn-arrow {
+	background-image: url('../images/arrow.png') !important;
+}
+
+.x-btn-default-toolbar-small,
+.x-btn-default-toolbar-small-over,
+.x-btn-default-toolbar-small-pressed {
+	border-radius: 1px;
+}
+.x-btn-default-toolbar-small-over,
+.x-btn-default-toolbar-small-pressed {
+	border-color: #bbb;
+}
+
+.x-btn-default-toolbar-small-over {
+	background-image: none;
+    background-color: #f3f3f3;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #f2f2f2), color-stop(100%, #f7f7f7));
+    background-image: -webkit-linear-gradient(top, #f2f2f2,#f7f7f7);
+    background-image: -moz-linear-gradient(top, #f2f2f2,#f7f7f7);
+    background-image: -o-linear-gradient(top, #f2f2f2,#f7f7f7);
+    background-image: -ms-linear-gradient(top, #f2f2f2,#f7f7f7);
+    background-image: linear-gradient(top, #f2f2f2,#f7f7f7);
+}
+
+
+	/* Chart image */
+.x-btn-default-toolbar-small-icon button {
+    width: 32px !important;
+}
+.x-btn-default-toolbar-small-icon .x-btn-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.x-btn-default-small {
+	border-radius: 1px;
+}
+
+.x-btn-default-toolbar-small-pressed {
+	border-color: #aaa;
+    background-image: none;
+    background-color: #d6d6d6;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #d1d1d1), color-stop(100%, #e5e5e5));
+    background-image: -webkit-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: -moz-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: -o-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: -ms-linear-gradient(top, #d1d1d1,#e5e5e5);
+    background-image: linear-gradient(top, #d1d1d1,#e5e5e5);
+}
+
+/*----------------------------------------------------------------------------
+ * PT Button
+ *--------------------------------------------------------------------------*/
+
+.ns-button-icon-gear {
+	width: 22px !important;
+	height: 22px !important;
+	background: url('../images/gear_18.png') no-repeat;
+}
+
+.ns-button-icon-table {
+	background: url('../images/table_14.png') no-repeat;
+}
+.ns-button-icon-chart {
+	background: url('../images/chart_14.png') no-repeat;
+}
+.ns-button-icon-map {
+	background: url('../images/map_14.png') no-repeat;
+}
+
+.ns-button-organisationunitselection .x-btn-center {
+	width: 18px !important;
+}
+
+.ns-button-icon.x-btn-default-toolbar-small-disabled {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=25)";
+    opacity: 0.25;
+}
+
+.ns-button-combotrigger {
+    background-image: url('../images/trigger.gif');
+    background-position: 0 0;
+    width: 17px;
+    border-top-right-radius: 2px;
+}
+.ns-button-combotrigger-disabled,
+.ns-button-combotrigger-disabled * {
+    opacity: 0.8;
+    cursor: default !important;
+}
+
+	/* Link button */
+.ns-linkbutton.x-btn-default-small {
+    border: 1px solid transparent;
+    background: transparent;
+}
+.ns-linkbutton .x-btn-inner {
+    color: #3162c5;
+    padding: 0;
+}
+.ns-linkbutton.x-btn-over .x-btn-inner {
+    text-decoration: underline;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Tooltip
+ *--------------------------------------------------------------------------*/
+
+.x-tip {
+    border-radius: 2px;
+    padding: 1px 4px;
+    border: 1px solid #111;
+    background-color: #111;
+}
+
+.x-tip .x-tip-body {
+	font-size: 10px;
+	color: #fff;
+	-webkit-text-stroke: 0.2px #fff;
+}
+
+.x-tip-anchor {
+	border-top-color: #111;
+}
+
+
+/*----------------------------------------------------------------------------
+ * LoadMask
+ *--------------------------------------------------------------------------*/
+
+.x-mask-msg {
+	padding: 0;
+	border: 0 none;
+	background-image: none;
+	background-color: transparent;
+}
+.x-mask-msg div {
+    background-position: 11px center;
+}
+.x-mask-msg .x-mask-loading {
+	border: 0 none;
+	background-color: #000;
+	color: #fff;
+	border-radius: 2px;
+	padding: 12px 14px 12px 31px;
+	opacity: 0.65;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Grid
+ *--------------------------------------------------------------------------*/
+
+.ns-grid-row-icon-edit,
+.ns-grid-row-icon-overwrite,
+.ns-grid-row-icon-sharing,
+.ns-grid-row-icon-dashboard,
+.ns-grid-row-icon-delete {
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+}
+.ns-grid-row-icon-edit {
+	background: url('../images/grid-edit_16.png') no-repeat;
+}
+.ns-grid-row-icon-overwrite {
+	background: url('../images/grid-save_16.png') no-repeat;
+	margin-left: 4px;
+}
+.ns-grid-row-icon-sharing {
+	background: url('../images/grid-sharing_16.png') no-repeat;
+	margin-left: 4px;
+}
+.ns-grid-row-icon-dashboard {
+	background: url('../images/grid-dashboard_16.png') no-repeat;
+	margin-left: 4px;
+}
+.ns-grid-row-icon-delete {
+	background: url('../images/grid-delete_16.png') no-repeat;
+	margin-left: 4px;
+}
+
+.ns-grid-row-icon-disabled img.ns-grid-row-icon-sharing,
+.ns-grid-row-icon-disabled img.ns-grid-row-icon-dashboard {
+	cursor: pointer !important;
+}
+
+.ns-grid .x-grid-cell-inner,
+.ns-grid .x-grid-cell-inner * {
+	font-size: 10px !important;
+}
+.ns-grid .x-grid-cell-inner {
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+.ns-grid .x-column-header-text {
+	color: #333;
+}
+.ns-grid .x-grid-header-ct {
+	border-bottom-width: 1px !important;
+	border-bottom-color: #d0d0d0;
+}
+.ns-grid .x-grid-body {
+	border: 1px solid #d0d0d0;
+	border-top: 0 none !important;
+}
+
+.ns-grid .x-grid-dirty-cell { /* hide red "dirty" icon */
+	background-image: none;
+}
+.ns-grid .x-grid-row { /* middle align text in row with image */
+	vertical-align: middle;
+}
+.ns-grid .x-grid-row .x-grid-cell { /* remove blurry borders */
+	border-top: 0 none;
+}
+
+.ns-grid .link,
+.ns-grid .link * {
+	cursor: pointer;
+	cursor: hand;
+	color: blue;
+	text-decoration: underline;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Window
+ *--------------------------------------------------------------------------*/
+
+.ns-window-title-favorite {
+    padding-left: 19px;
+    background-image: url('../images/favorite.png');
+}
+.ns-window-title-interpretation {
+    padding-left: 19px;
+    background-image: url('../images/interpretation.png');
+}
+.ns-window-title-datatable {
+    padding-left: 19px;
+    background-image: url('../images/datatable.png');
+}
+.ns-window-title-messagebox {
+    padding-left: 16px;
+    background-position-y: 1px;
+}
+.ns-window-title-messagebox.error {
+    background-image: url('../images/error_m.png');
+}
+.ns-window-title-messagebox.warning {
+    background-image: url('../images/warning.png');
+}
+
+	/* Confirm list */
+.ns-window-confirm-list .x-panel-body {
+    color: #444;
+    font-size: 10px;
+    border-style: none;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Label
+ *--------------------------------------------------------------------------*/
+
+	/* Label heading periods */
+.ns-label-period-heading,
+.ns-label-period-heading-options {
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+    line-height: 18px;
+}
+.ns-label-period-heading-options {
+    background-color: #e1e1e1;
+    padding: 1px 5px;
+    border-radius: 2px
+}
+
+	/* Window bbar info */
+.ns-label-info {
+	font-size: 10px !important;
+	color: #666;
+	padding-left: 4px;
+	height: 22px;
+	line-height: 21px;
+}
+
+	/* Date links */
+.ns-label-date {
+    display: block;
+    font-size: 10px;
+    color: #333;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.ns-label-date:hover {
+    color: #666;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Textfield
+ *--------------------------------------------------------------------------*/
+
+.ns-textfield .x-form-field, .ns-textfield-alt1 .x-form-field {
+    height: 26px;
+    padding-left: 4px;
+    border-radius: 1px;
+    font-size: 11px;
+    color: #333;
+}
+.ns-textfield .x-form-item-label {
+    padding-left: 5px;
+    line-height: 20px;
+}
+.ns-textfield-alt1 .x-form-item-label {
+    padding-left: 5px;
+    line-height: 8px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * Treepanel
+ *--------------------------------------------------------------------------*/
+
+
+.x-tree-icon-leaf {
+	background-image: url('../images/leaf.gif');
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Treepanel
+ *--------------------------------------------------------------------------*/
+
+	/* Node height */
+.ns-tree.x-tree-panel .x-grid-row .x-grid-cell-inner {
+    height: 17px;
+    font-size: 10px;
+}
+
+	/* Selected row background */
+.ns-tree .x-grid-row-selected .x-grid-cell,
+.ns-tree .x-grid-row-selected .x-grid-rowwrap-div {
+    background-color: #e0e0e0;
+    border-radius: 2px 2px 2px 2px;
+}
+
+	/* Hover row background */
+.ns-tree .x-grid-cell {
+    border-radius: 2px 2px 2px 2px;
+}
+
+	/* Treepanel contextmenu */
+#treepanel-contextmenu {
+    border-radius: 3px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #ddd;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Statusbar
+ *--------------------------------------------------------------------------*/
+
+.ns-statusbar .x-panel-body-default {
+	padding: 5px 0 0 6px;
+	border: 0 none;
+	background-color: transparent;
+	color: #111;
+	vertical-align: top;
+	font-size: 10px;
+	line-height: 14px;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Accordion
+ *--------------------------------------------------------------------------*/
+
+	/* accordion title bar, shared */
+.ns-accordion .x-accordion-item .x-accordion-hd {
+	padding: 6px 5px 4px 8px;
+	border: 0 none;
+	cursor: pointer;
+	border-radius: 0;
+    background-image: none;
+    background-color: #e0e0e0;
+    background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #dedede), color-stop(100%, #e6e6e6)) !important;
+    background-image: -webkit-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -moz-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -o-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: -ms-linear-gradient(top, #dddddd, #e6e6e6) !important;
+    background-image: linear-gradient(top, #dddddd, #e6e6e6) !important;
+}
+	/* accordion title dock, default, collapsed */
+.ns-accordion .collapsed .x-accordion-hd {
+	padding-bottom: 5px !important;
+}
+
+	/* accordion title dock outer, shared */
+.ns-accordion .x-accordion-item {
+	border-radius: 1px;
+}
+	/* accordion title dock outer, default */
+.ns-accordion .x-accordion-item {
+	border: 1px solid #c5c5c5;
+	border-bottom: 0 none;
+}
+	/* accordion title dock outer, last */
+.ns-accordion .ns-accordion-last {
+	border: 1px solid #c5c5c5;
+}
+
+	/* accordion title dock text, shared */
+.ns-accordion .x-accordion-hd .x-panel-header-text {
+	font-weight: bold;
+	cursor: pointer;
+}
+
+	/* accordion item body */
+.ns-accordion .x-accordion-body {
+	padding: 1px;
+	border-top: 1px solid #c5c5c5 !important;
+}
+
+.ns-accordion .x-accordion-hd-sibling-expanded {
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+	-o-box-shadow: none;
+	box-shadow: none;
+}
+
+.ns-accordion .ns-toolbar-multiselect-left, .ns-accordion .ns-toolbar-multiselect-right {
+	margin-bottom: 0;
+}
+
+	/* accordion combo box */
+.ns-accordion .ns-combo .x-form-text, .ns-accordion .ns-combo .x-form-trigger {
+	height: 24px;
+	padding-top: 1px;
+}
+	/* accordion combo box label */
+.ns-accordion .ns-combo .x-form-item-label {
+	padding: 4px 0 0;
+}
+
+
+/*----------------------------------------------------------------------------
+ * PT Textarea
+ *--------------------------------------------------------------------------*/
+
+.ns-textarea .x-form-field {
+	font-size: 11px;
+}
+
+.ns-textarea.monospaced textarea {
+	font-family: monospace, consolas, courier new;
+	padding: 4px;
+	border: 0 none;
+}

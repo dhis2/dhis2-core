@@ -1,0 +1,8 @@
+{ "optionSet":
+  {
+    "id": "${optionSet.id}",
+	"uid": "${optionSet.uid}",
+	"name": "$!encoder.jsonEncode( ${optionSet.displayName} )",
+	"optionCount": "$!{optionSet.options.size()}"
+  }
+}

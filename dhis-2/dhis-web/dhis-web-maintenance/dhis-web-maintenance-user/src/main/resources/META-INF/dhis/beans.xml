@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+
+  <bean id="org.hisp.dhis.user.action.NoAction" class="org.hisp.dhis.user.action.NoAction" scope="prototype" />
+
+	<!-- User -->
+
+  <bean id="org.hisp.dhis.user.action.AddUserAction" class="org.hisp.dhis.user.action.AddUserAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="securityService" ref="org.hisp.dhis.security.SecurityService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.DeleteCurrentUserAction" class="org.hisp.dhis.user.action.DeleteCurrentUserAction" scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="passwordManager" ref="org.hisp.dhis.security.PasswordManager" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.GetUserAction" class="org.hisp.dhis.user.action.GetUserAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.GetOrgunitUserListAction" class="org.hisp.dhis.user.action.GetOrgunitUserListAction"
+    scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.GetUserListAction" class="org.hisp.dhis.user.action.GetUserListAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.RemoveUserAction" class="org.hisp.dhis.user.action.RemoveUserAction" scope="prototype">
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.UpdateUserAction" class="org.hisp.dhis.user.action.UpdateUserAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.ValidateUserAction" class="org.hisp.dhis.user.action.ValidateUserAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.ValidateInviteAction" class="org.hisp.dhis.user.action.ValidateInviteAction" scope="prototype"/>
+
+  <bean id="org.hisp.dhis.user.action.SetupTreeAction" class="org.hisp.dhis.user.action.SetupTreeAction" scope="prototype">
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager" />
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+    <property name="i18nService" ref="org.hisp.dhis.i18n.I18nService" />
+    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.DisableUserAction" class="org.hisp.dhis.user.action.DisableUserAction" scope="prototype" />
+  
+	<!-- Role -->
+
+  <bean id="org.hisp.dhis.user.action.AddRoleAction" class="org.hisp.dhis.user.action.AddRoleAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.GetRoleAction" class="org.hisp.dhis.user.action.GetRoleAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+    <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.GetRoleListAction" class="org.hisp.dhis.user.action.GetRoleListAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.RemoveRoleAction" class="org.hisp.dhis.user.action.RemoveRoleAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.UpdateRoleAction" class="org.hisp.dhis.user.action.UpdateRoleAction" scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.ValidateRoleAction" class="org.hisp.dhis.user.action.ValidateRoleAction"
+    scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.user.action.GetSystemAuthoritiesAction" class="org.hisp.dhis.user.action.GetSystemAuthoritiesAction"
+    scope="prototype">
+    <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
+  </bean>
+
+  <!-- User groups -->
+
+  <bean id="org.hisp.dhis.user.action.usergroup.AddUserGroupAction" class="org.hisp.dhis.user.action.usergroup.AddUserGroupAction"
+    scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.usergroup.AddUserGroupFormAction" class="org.hisp.dhis.user.action.usergroup.AddUserGroupFormAction"
+    scope="prototype">
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.usergroup.GetUserGroupListAction" class="org.hisp.dhis.user.action.usergroup.GetUserGroupListAction"
+    scope="prototype">
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.user.action.usergroup.EditUserGroupFormAction" class="org.hisp.dhis.user.action.usergroup.EditUserGroupFormAction"
+    scope="prototype">
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.usergroup.UpdateUserGroupAction" class="org.hisp.dhis.user.action.usergroup.UpdateUserGroupAction"
+    scope="prototype">
+    <property name="userService" ref="org.hisp.dhis.user.UserService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.usergroup.RemoveUserGroupAction" class="org.hisp.dhis.user.action.usergroup.RemoveUserGroupAction"
+    scope="prototype">
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.usergroup.GetUserGroupAction" class="org.hisp.dhis.user.action.usergroup.GetUserGroupAction"
+    scope="prototype">
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.action.usergroup.ValidateUserGroupAction" class="org.hisp.dhis.user.action.usergroup.ValidateUserGroupAction"
+    scope="prototype">
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+  
+</beans>

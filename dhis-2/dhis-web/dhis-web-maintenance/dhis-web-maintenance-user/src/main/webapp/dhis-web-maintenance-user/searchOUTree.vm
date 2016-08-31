@@ -1,0 +1,37 @@
+<script type="text/javascript" src="../dhis-web-commons/ouwt/ouwt.js"></script>
+
+<style type="text/css">
+div#orgUnitTree
+{
+  width: 475px;
+  border: 1px solid #ccc;
+}
+
+.vertical-spacing {
+	padding-top: 20px;
+}
+
+.ui-widget-content {
+    border: none !important;
+}
+</style>
+
+
+<script type="text/javascript">
+  
+	jQuery(document).ready(function(){
+		selection.clearSelected();
+		selection.setOfflineLevel( 1 );
+        selection.setMultipleSelectionAllowed( true );
+        selection.setUnselectAllowed( true );
+        selection.setAutoSelectRoot( false );
+	});
+
+</script>
+
+<div class="vertical-spacing">
+    <div id="orgUnitTree">
+        <ul>
+        </ul>
+    </div>
+</div>

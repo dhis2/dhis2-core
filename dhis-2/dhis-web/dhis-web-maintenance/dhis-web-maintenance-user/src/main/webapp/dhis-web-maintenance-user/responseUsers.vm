@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<users>
+	#foreach($userCredentials in $userCredentialsList)
+	<user>
+	  <id>$userCredentials.id</id>
+	  <username>$encoder.xmlEncode( $userCredentials.username )</username>
+	  <surname>$encoder.xmlEncode( $userCredentials.userInfo.surname )</surname>
+	  <firstName>$encoder.xmlEncode( $userCredentials.userInfo.firstName )</firstName>
+	  <email>$!encoder.xmlEncode( $userCredentials.userInfo.email )</email>
+	  <phoneNumber>$!encoder.xmlEncode( $userCredentials.userInfo.phoneNumber )</phoneNumber>
+	  <numberOrgunit>$userCredentials.userInfo.organisationUnits.size()</numberOrgunit>
+	</user>
+	#end
+	<currentUserName>$currentUsername</currentUserName>
+</users>

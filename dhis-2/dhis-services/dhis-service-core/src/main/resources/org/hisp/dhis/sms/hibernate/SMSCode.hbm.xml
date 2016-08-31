@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+    [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+    >
+<hibernate-mapping package="org.hisp.dhis.sms.command.code">
+	<class name="SMSCode" table="smscodes">
+
+		<id name="id" column="smscodeid">
+			<generator class="increment" />
+		</id>
+
+		<property name="code" />
+
+		<property name="formula" type="text" />
+		
+		<property name="compulsory" />
+
+		<many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement"
+			column="dataelementid" foreign-key="fk_dataelement_dataelementid" />
+
+		<many-to-one name="trackedEntityAttribute"
+			class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" column="trackedentityattributeid"
+			foreign-key="fk_trackedentityattribute_trackedentityattributeid" />
+		<property name="optionId" type="integer" />
+
+	</class>
+</hibernate-mapping> 

@@ -1,0 +1,200 @@
+<style>
+	.generalOverlaps
+	{
+		border: 1px solid #12CD17;
+		display: none;
+		margin: 1em;
+		padding: 1em;
+		width: 500px;
+	}
+	
+	.overlaps
+	{
+		background-color: #BAFFBC;
+	}
+	
+	.overlapsWarning
+	{
+		background-color: #F08080;
+	}
+</style>
+
+<script type="text/javascript">
+	jQuery(document).ready( function() {
+		validation2( "saveSmsConfigurationForm", function( form ) {
+			lockScreen();
+			form.submit();
+		}, {
+			'rules': getValidationRules( 'SMSConfig' )
+		} );
+
+		#if ( $!smsServiceStatus && ( $!smsServiceStatus == "service_started" || $!smsServiceStatus == "service_starting" ) )
+			actionType = "stop";
+			jQuery( "#startStopButton" ).attr( "value", i18n_stop_sms_service );
+		#else
+			actionType = "start";
+			jQuery( "#startStopButton" ).attr( "value", i18n_start_sms_service );
+		#end
+		
+		if ( getFieldValue( 'isSettingAvailable' ) == 'false' )
+		{
+			hideById('listTable');
+			hideById('btnAddGw');
+		}
+		else
+		{
+			showById('listTable');
+			showById('btnAddGw');
+		}
+	} );
+	
+	function refreshIndex( indexDeleted ) {
+		var gwSize = getFieldValue( 'gatewaySize' ); 
+		
+		if ( indexDeleted + 1 < gwSize )
+		{
+			for ( indexDeleted + 1 ; indexDeleted + 1 <= gwSize - 1; indexDeleted++ )
+			{
+				var temp = indexDeleted + 1;
+				
+				document.getElementById('edit'+temp).href = "showUpdateGateWayConfigForm.action?index="+ indexDeleted;
+				
+				var removeLinkTemp = document.getElementById('remove'+temp).getAttribute("href");
+				
+				var newRemoveLink = removeLinkTemp.substring(removeLinkTemp.lastIndexOf(','),removeLinkTemp.length-1);
+				
+				document.getElementById('remove'+temp).href = "javascript:removeGateway("+ indexDeleted + newRemoveLink +")";
+				
+				document.getElementById('tr'+temp).id = "tr" + indexDeleted;
+				
+				document.getElementById('edit'+temp).id = "edit" + indexDeleted;
+				
+				document.getElementById('remove'+temp).id = "remove" + indexDeleted;
+			}			
+		}
+		jQuery( '#gatewaySize' ).val(gwSize - 1);
+		
+		if ( gwSize == 5 )
+		{
+			document.getElementById( 'btnAddGw' ).disabled = false;
+		}
+		
+		if ( gwSize == 1 )
+		{
+			window.location.href='showSMSConfigureForm.action';
+		}
+		//document.getElementById("1").getAttribute("href");		
+	};
+
+	var i18n_confirm_delete = '$encoder.jsEscape( $i18n.getString( "confirm_delete_gateway" ) , "'")';
+	var i18n_stop_sms_service = '$encoder.jsEscape( $i18n.getString( "stop_sms_service" ) , "'")';
+	var i18n_start_sms_service = '$encoder.jsEscape( $i18n.getString( "start_sms_service" ) , "'")';
+	var i18n_sms_service_started = '$encoder.jsEscape( $i18n.getString( "service_started" ) , "'")';
+	var i18n_sms_service_stopped = '$encoder.jsEscape( $i18n.getString( "service_stopped" ) , "'")';
+	var i18n_update_default_gateway_waiting = '$encoder.jsEscape( $i18n.getString( "processing" ) , "'")';
+	var actionType = "start";
+	
+</script>
+
+<h3>$i18n.getString( "sms_service_configuration" )</h3>
+<input id="isSettingAvailable" name="isSettingAvailable" type="hidden" #if ( $!smsConfig ) value="true" #else value="false" #end/>
+<input id="gatewaySize" name="gatewaySize" type="hidden" value="$gatewayConfigMap.keySet().size()"/>
+#set( $gwSizeTemp = $gatewayConfigMap.keySet().size() )
+<form id="saveSmsConfigurationForm" name="saveSmsConfigurationForm" action="saveSmsConfiguration.action" method="post" >
+  <table id="detailsList" border="0">
+		<tr>
+			<td colspan="2">
+				<table id="listTable" class="listTable">
+					<thead>
+						<tr>
+							<th>$i18n.getString("gateways")</th>
+							<th style="text-align:center; width: 140px;">$i18n.getString( "operation" )</th>
+						</tr>
+					</thead>
+					
+					<tbody id="list">
+					#set( $keys = $!gatewayConfigMap.keySet() )
+					#foreach ($key in $!keys )
+						<tr id="tr${key}">
+							#set( $gw = $!gatewayConfigMap.get( $key ) )
+							<td>$!encoder.htmlEncode( $gw.name )</td>
+							<td style="text-align:right">
+							  <a id="default$key" href="javascript:updateDefaultGateway( $key );" title="$i18n.getString( 'mark_as_default' )">
+							  <img #if( $gw.isDefault() ) src="images/wifi-on.png" #else src="images/wifi-off.png" #end alt="$i18n.getString( 'mark_as_default' )"/></a>
+							  <a id="edit$key" href="showUpdateGateWayConfigForm.action?index=$key" title="$i18n.getString( 'edit' )"><img src="../images/edit.png" alt="$i18n.getString( 'edit' )"/></a>		
+							  <a id="remove$key" href="javascript:removeGateway($key,'$!encoder.jsEncode( $gw.name )')" title="$i18n.getString( 'remove' )"><img src="../images/delete.png" alt="$i18n.getString( 'remove' )"/></a>
+							</td>
+						</tr>
+					#end
+					</tbody>					
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" colspan="2">
+				<input type="button" id="btnAddGw" value="$i18n.getString( 'add_gw' )" style="width:13em" #if( $!gwSizeTemp == 5 ) disabled="true" #end onclick="window.location.href='showUpdateGateWayConfigForm.action'"/>
+			</td>
+		</tr>	
+	</tbody>
+	</table>
+</form>
+
+<script type="text/javascript">
+	
+	function reloadStartStopService( type )
+	{
+		jQuery.getJSON( "reloadStartStopService.action",
+		{
+			actionType: type
+		}, function( json ) {
+			if ( json.response == "success" ) {
+				showSuccessMessage( json.message );
+				
+				if ( actionType == "start" )
+				{
+					actionType = "stop";
+					jQuery( "#startStopButton" ).attr( "value", i18n_stop_sms_service );
+					setInnerHTML( "noOverlapsDiv", i18n_sms_service_started );
+				}
+				else if ( actionType == "stop" )
+				{
+					actionType = "start";
+					jQuery( "#startStopButton" ).attr( "value", i18n_start_sms_service );
+					setInnerHTML( "noOverlapsDiv", i18n_sms_service_stopped );
+				}
+			}
+			else {
+				showErrorMessage( json.message, 7000 );
+			}
+		} );
+	}
+	
+	function removeGateway( key, name )
+	{
+		removeItem( key, name, i18n_confirm_delete, "removeGatewayConfig.action");
+	}
+	
+	function updateDefaultGateway( key )
+	{
+		setHeaderWaitMessage( i18n_update_default_gateway_waiting );
+	
+		jQuery.get( 'updateDefaultGateway.action', { index: key }, function( json ) {
+			if ( json.response == "success" )
+			{
+				var list = jQuery( "table.listTable tbody a[id^='default']" );
+		
+				list.each( function( i, item ) {
+				
+					if ( item.id == ('default' + key) )
+					{
+						jQuery('img', this).attr( 'src', 'images/wifi-on.png' );
+					} else {
+						jQuery('img', this).attr( 'src', 'images/wifi-off.png' );
+					}
+				} );
+				
+				hideHeaderMessage();
+			}
+		} );
+	}
+</script>

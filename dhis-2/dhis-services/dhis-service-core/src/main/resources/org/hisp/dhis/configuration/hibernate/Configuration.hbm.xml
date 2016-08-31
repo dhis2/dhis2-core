@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.configuration.Configuration" table="configuration">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="configurationid">
+      <generator class="native" />
+    </id>
+
+    <property name="systemId" column="systemid" />
+
+    <many-to-one name="feedbackRecipients" class="org.hisp.dhis.user.UserGroup"
+        column="feedbackrecipientsid" foreign-key="fk_configuration_feedback_recipients" />
+
+    <many-to-one name="offlineOrganisationUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel"
+        column="offlineorgunitlevelid" foreign-key="fk_configuration_offline_orgunit_level" />
+
+    <many-to-one name="infrastructuralIndicators" class="org.hisp.dhis.indicator.IndicatorGroup"
+        column="infrastructuralindicatorsid" foreign-key="fk_configuration_infrastructural_indicators" />
+
+    <many-to-one name="infrastructuralDataElements" class="org.hisp.dhis.dataelement.DataElementGroup"
+        column="infrastructuraldataelementsid" foreign-key="fk_configuration_infrastructural_dataelements" />
+
+    <many-to-one name="infrastructuralPeriodType" class="org.hisp.dhis.period.PeriodType"
+        column="infrastructuralperiodtypeid" foreign-key="fk_configuration_infrastructural_periodtype" />
+
+    <many-to-one name="selfRegistrationRole" class="org.hisp.dhis.user.UserAuthorityGroup"
+        column="selfregistrationrole" foreign-key="fk_configuration_selfregistrationrole" />
+
+    <many-to-one name="selfRegistrationOrgUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+        column="selfRegistrationOrgUnit" foreign-key="fk_configuration_selfregistrationorgunit" />
+
+    <set name="corsWhitelist" table="configuration_corswhitelist">
+      <cache usage="read-write" />
+      <key column="configurationid" foreign-key="fk_configuration_corswhitelist" />
+      <element type="string" column="corswhitelist" />
+    </set>
+
+  </class>
+</hibernate-mapping>

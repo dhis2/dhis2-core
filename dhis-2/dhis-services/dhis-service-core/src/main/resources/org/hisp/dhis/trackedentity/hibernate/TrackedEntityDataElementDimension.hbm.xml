@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension" table="trackedentitydataelementdimension">
+
+    <id name="id" column="trackedentitydataelementdimensionid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" 
+        column="dataelementid" foreign-key="fk_tedataelementdimension_dataelementid" />
+
+	<many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
+		column="legendsetid" foreign-key="fk_tedataelementdimension_legendsetid" />
+
+    <property name="filter" />
+
+  </class>
+</hibernate-mapping>

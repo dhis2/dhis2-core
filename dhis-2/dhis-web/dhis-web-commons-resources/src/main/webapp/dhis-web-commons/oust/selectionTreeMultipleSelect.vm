@@ -1,0 +1,67 @@
+<script type="text/javascript" src="../dhis-web-commons/oust/oust.js"></script>
+<script type="text/javascript" src="../dhis-web-commons/oust/selectionTreeSelect.js"></script>
+<script type="text/javascript">
+jQuery(document).ready( function()
+{		
+	loadOrganisationUnitGroup();
+	selectionTreeSelection.setMultipleSelectionAllowed( true );
+	selectedOrganisationUnitList__ = jQuery( "#treeSelectedId" );
+	#if( $required )
+	selectionTreeSelection.setListenerFunction( selectOrganisationUnit__ );
+	#end
+	
+	#if( $cleanAll )
+	selectionTree.clearSelectedOrganisationUnitsAndBuildTree();
+	#else
+	selectionTree.buildSelectionTree();
+	#end
+});
+
+function selectedOrganisationUnitXML__( xml )
+{
+    #if( $required )
+    selectedOrganisationUnitList__.empty();
+
+	jQuery.each( jQuery( xml ).find( 'unitId' ), function( i, item ) {
+		var id = item.firstChild.nodeValue;
+		selectedOrganisationUnitList__.append( '<option value="' + id + '" selected="selected">' + id + '</option>' );
+	});
+
+	#end
+
+	selectionTree.buildSelectionTree();
+}
+</script>
+
+<table>
+	<thead>
+		<tr>
+			<th colspan="2">$i18n.getString( "organisation_unit_selection_tree" )
+				<select id="treeSelectedId" name="treeSelectedId" #if( $required ) class="{validate:{required:true}}" #end multiple="multiple" style="display:none"/>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>
+				<div style="width:100%">	
+					<div id="selectionTreeContainer" style="display:none;">
+						#if( $showCtrls )
+						<div id="selectionCtrl">
+							<input type="button" value="$i18n.getString( 'select_at_level' )" onclick="selectOrganisationUnitAtLevel()" style="width:10em"/>
+							<select id="levelList" name="levelList" style="width:10em"/>
+							<input type="button" value="$i18n.getString( 'unselect_at_level' )" onclick="unSelectOrganisationUnitAtLevel()" style="width:10em"/>
+							<input type="button" value="$i18n.getString( 'unselect_all' )" onclick="unSelectAllTree()" style="width:10em"/><br>
+							<input type="button" value="$i18n.getString( 'select_in_group' )" onclick="selectOrganisationUnitByGroup()" style="width:10em">
+							<select id="groupList" name="groupList" style="width:10em"/>
+							<input type="button" value="$i18n.getString( 'unselect_in_group' )" onclick="unSelectOrganisationUnitByGroup()" style="width:10em">
+							<input type="button" value="$i18n.getString( 'select_children' )" onclick="selectChildren()" style="width:10em"/>
+						</div>
+						#end
+						<div id="selectionTree"></div>
+					</div>
+				</div>
+			</td>
+		</tr>
+	</tbody>
+</table>	

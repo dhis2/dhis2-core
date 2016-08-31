@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dashboard.DashboardItem" table="dashboarditem">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="dashboarditemid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <many-to-one name="chart" class="org.hisp.dhis.chart.Chart" column="chartid" foreign-key="fk_dashboarditem_chartid" />
+    
+    <many-to-one name="eventChart" class="org.hisp.dhis.eventchart.EventChart" column="eventchartid" foreign-key="fk_dashboarditem_eventchartid" />
+    
+    <many-to-one name="map" class="org.hisp.dhis.mapping.Map" column="mapid" foreign-key="fk_dashboarditem_mapid" />
+    
+    <many-to-one name="reportTable" class="org.hisp.dhis.reporttable.ReportTable" foreign-key="fk_dashboarditem_reporttableid" />
+    
+    <many-to-one name="eventReport" class="org.hisp.dhis.eventreport.EventReport" foreign-key="fk_dashboarditem_eventreportid" />
+    
+    <list name="users" table="dashboarditem_users">
+      <key column="dashboarditemid" foreign-key="fk_dashboarditem_users_dashboardid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="userid" class="org.hisp.dhis.user.User" foreign-key="fk_dashboarditem_users_userinfoid" />
+    </list>
+    
+    <list name="reports" table="dashboarditem_reports">
+      <key column="dashboarditemid" foreign-key="fk_dashboarditem_reports_dashboardid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="reportid" class="org.hisp.dhis.report.Report" foreign-key="fk_dashboarditem_reports_reportid" />
+    </list>
+ 	
+    <list name="resources" table="dashboarditem_resources">
+      <key column="dashboarditemid" foreign-key="fk_dashboarditem_resources_dashboardid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="resourceid" class="org.hisp.dhis.document.Document" foreign-key="fk_dashboarditem_resources_resourceid" />
+    </list>
+
+    <!-- Object Translation -->
+    <set name="translations" table="dashboarditemtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="dashboarditemid" foreign-key="fk_objecttranslation_dashboarditemid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+    <property name="messages" />
+
+    <property name="appKey" />
+
+    <property name="shape" length="50">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.dashboard.DashboardItemShape</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

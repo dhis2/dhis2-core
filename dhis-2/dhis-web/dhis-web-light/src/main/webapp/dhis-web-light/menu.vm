@@ -1,0 +1,41 @@
+
+#if( $dataSet.alternativeName )
+    #set( $dataSetName = $dataSet.alternativeName )
+#else
+    #set( $dataSetName = $dataSet.displayName )
+#end
+
+#if( $complete == true )
+<div class="header-box" align="center">
+    <h3 style="text-align: left; background-color: #719953; border-color: #719953; color: white;">$i18n.getString("completed")</h3>
+    <p style="text-align: left;">
+        $organisationUnit.name <br />
+        $dataSetName <br />
+        $period.name
+    </p>
+</div>
+#end
+
+<h2>$i18n.getString( "menu" )</h2>
+
+<p>
+<ul>	
+	#if( $auth.hasAccess( "dhis-web-light", "dataEntry" ) )
+		<li><a href="selectOrganisationUnit.action">$i18n.getString( "agregate_reporting" )</a></li>
+	#end
+	
+    <li><a href="messages.action">$i18n.getString( "messages" ) #if($unreadMessageConversationCount > 0)($unreadMessageConversationCount)#end</a></li>
+    <li><a href="getInterpretations.action">$i18n.getString( "interpretations" )</a></li>
+    <li><a href="reports.action">$i18n.getString( "reports" )</a></li>
+    <li><a href="settings.action">$i18n.getString( "settings" )</a></li>		
+</ul>
+</p>
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+    
+	<li><a href="../dhis-web-commons-security/logout.action">$i18n.getString("logout")</a></li>
+    <li style="padding-top: 5px;"><a href="../">$i18n.getString("desktop_version")</a></li>
+</ul>
+</div>

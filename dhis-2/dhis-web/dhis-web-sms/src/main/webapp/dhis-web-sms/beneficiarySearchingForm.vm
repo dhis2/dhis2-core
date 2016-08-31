@@ -1,0 +1,37 @@
+<h2>$i18n.getString( "beneficiary_search" )</h2>
+
+	#if( $validated == true)
+		<div class="header-box">
+			<h3 style="text-align: left;">$i18n.getString("successfully_saved")</h3>
+		</div>
+	#else
+	
+	#end
+
+<form action="searchBeneficiary.action" method="POST">
+<div class="header-box" align="center">
+<input type="hidden" name="orgUnitId" value="$orgUnitId"/>	
+	<p style="text-align: left;">
+		<label>$i18n.getString( "beneficiary_name" )</label>
+		#if( $validationMap.get( "fullName" ) )
+           	<br /><span style="color: #990000;"> $i18n.getString($validationMap.get( "fullName" ))</span>
+     	#end
+		<input type="text" name="patientFullName" value="$!previousValues.get("fullName")" />
+	</p>
+</div>
+
+<div class="header-box" align="center">
+	<p>
+		<input type="submit" style="width: 100%;" value="$i18n.getString("search")" />
+	</p>
+</div>
+
+</form>
+
+<div id="footer">
+<h2>$i18n.getString( "navigate_to" )</h2>
+<ul>
+	<li> <a href="selectRegistrationOrganisationUnit?orgUnitId=$orgUnitId"> $i18n.getString("organisation_unit")</a> </li>
+	<li><a href="index.action">$i18n.getString("home")</a></li>
+</ul>
+</div>

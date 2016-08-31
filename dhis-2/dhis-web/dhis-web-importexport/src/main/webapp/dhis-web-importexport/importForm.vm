@@ -1,0 +1,139 @@
+<script type="text/javascript">
+	jQuery(document).ready(function() {
+		getImportStatus();
+	});
+
+	var i18n_done = '$encoder.jsEscape( $i18n.getString( "done" ), "'" )';
+	var i18n_importing = '$encoder.jsEscape( $i18n.getString( "importing" ), "'" )';
+	var i18n_show_advanced_options = '$encoder.jsEscape( $i18n.getString( "show_advanced_options" ), "'" )';
+	var i18n_hide_advanced_options = '$encoder.jsEscape( $i18n.getString( "hide_advanced_options" ), "'" )';
+	var i18n_completed = '$encoder.jsEscape( $i18n.getString( "completed" ), "'" )';
+	var i18n_current_import_file = '$encoder.jsEscape( $i18n.getString( "current_import_file" ), "'" )';
+</script>
+
+<h3>$i18n.getString( "$importFormat" ) $i18n.getString( "import" ) #openHelp( "import" )</h3>
+
+<form id="importForm" name="importForm" method="post" enctype="multipart/form-data" action="import.action">
+
+<!-- Import options -->
+
+<table width="325">
+
+	<tr>
+		<th>$i18n.getString( "type" )</th>
+	</tr>
+	<tr>
+		<td>
+			<select id="type" name="type" style="width:100%">
+				#if ( $importFormat != "DHIS14XML" )
+				<option value="IMPORT"#if( $type == "IMPORT" ) selected="selected"#end>$i18n.getString( "import" )</option>
+				#end
+				<option value="PREVIEW"#if( $type == "PREVIEW" ) selected="selected"#end>$i18n.getString( "preview" )</option>
+                <option value="ANALYSIS"#if( $type == "ANALYSIS" ) selected="selected"#end>$i18n.getString( "analysis" )</option>   			
+			</select>
+		</td>
+	</tr>
+		
+	#if ( $importFormat == "DHIS14FILE" )
+		
+        <tr>
+	        <td height="10"></td>
+	    </tr>
+	    <tr>
+	        <th>$i18n.getString( "last_updated_leave_blank_for_all" )</th>
+	    </tr>
+	    <tr>
+	    	<td><input type="text" id="lastUpdated" name="lastUpdated" style="width:250px"></td>
+    	</tr>
+		
+		<script type="text/javascript">
+			jQuery(function(){
+				datePicker( 'lastUpdated' );
+			});
+		</script>
+		
+	#else
+	
+        <tr>
+            <td height="10"></td>
+        </tr>       
+        <tr>
+            <th colspan="2">$i18n.getString( "file" )</th>
+        </tr>
+        <tr>
+            <td colspan="2"><input type="file" id="upload" name="upload" size="45"></td>
+        </tr>
+        
+	#end
+	
+</table>
+
+<div id="optionDiv" style="display:none">
+
+<table width="325">
+	
+	<tr>
+		<td height="10"></td>
+	</tr>
+	<tr>
+		<th>$i18n.getString( "accept_incoming_records" )</th>
+	</tr>
+	<tr>
+		<td>
+			<select id="incomingRecords" name="incomingRecords" style="width:100%">
+				<option value="NEW_AND_UPDATES">$i18n.getString( "new_and_updates" )</option>
+				<option value="NEW_NO_UPDATES">$i18n.getString( "new_no_updates" )</option>
+			</select>
+		</td>
+	</tr>	
+	<tr>
+		<td height="10"></td>
+	</tr>
+	<tr>
+		<th>$i18n.getString( "include_datavalues" )</th>
+	</tr>
+	<tr>
+		<td>
+			<select id="dataValues" name="dataValues" style="width:100%">
+				<option value="true">$i18n.getString( "yes" )</option>
+				<option value="false">$i18n.getString( "no" )</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td height="10"></td>
+	</tr>
+	<tr>
+		<th>$i18n.getString( "skip_check_matching" )</th>
+	</tr>
+	<tr>
+		<td>
+			<select id="skipCheckMatching" name="skipCheckMatching" style="width:100%">
+				<option value="false">$i18n.getString( "no" )</option>
+				<option value="true">$i18n.getString( "yes_empty_database" )</option>
+			</select>
+		</td>
+	</tr>
+	
+</table>
+
+</div>
+
+<!-- Submit -->
+
+<table width="325">
+		
+	<tr>
+		<td colspan="2">
+			<input type="submit" value="$i18n.getString( 'import' )" style="width:50%"><input 
+				type="button" id="optionButton" value="$i18n.getString( 'show_advanced_options' )" onclick="showAdvancedOptions()" style="width:50%">
+		</td>
+  	</tr>
+	
+</table>
+
+</form>
+
+<span id="message"></span>
+<span id="info"></span>
+

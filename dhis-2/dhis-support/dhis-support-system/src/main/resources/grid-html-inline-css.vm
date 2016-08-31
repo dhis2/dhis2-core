@@ -1,0 +1,27 @@
+<div style="font-family: sans-serif, arial">
+    <h3>$!encoder.htmlEncode( $grid.title )</h3>
+    <h4>$!encoder.htmlEncode( $grid.subtitle )</h4>
+    <table style="border-collapse: collapse;font-size: 11pt;">
+        <thead>
+            <tr>
+                #foreach( $header in $grid.getVisibleHeaders() )
+                    <th style="background-color: #f3f3f3;font-weight: bold;padding: 8px 4px 7px 4px;border: 1px solid #e7e7e7;#if( $header.meta ) text-align:left #end">$!encoder.htmlEncode( $header.name )</th>
+                #end
+            </tr>
+        </thead>
+        <tbody>
+            #foreach( $row in $grid.getVisibleRows() )
+            <tr>
+                #foreach( $col in $row )
+                    #set( $index = ( $velocityCount - 1 ) )
+                    #if( $grid.getVisibleHeaders().get( $index ).meta )
+                        <td style="text-align:left;padding: 8px 4px 7px 4px;border: 1px solid #e7e7e7;">$!encoder.htmlEncode( $col )</td>
+                    #else
+                        <td style="padding: 8px 4px 7px 4px;border: 1px solid #e7e7e7;">$!encoder.htmlEncode( $col )</td>
+                    #end
+                #end
+            </tr>
+            #end
+        </tbody>
+    </table>
+</div>

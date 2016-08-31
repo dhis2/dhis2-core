@@ -1,0 +1,16 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+<SCRIPT Language="JavaScript">
+function goBack(){
+    location.href = unescape('$returnUrl');
+}
+</SCRIPT>
+</HEAD>
+
+<BODY onLoad="goBack()">
+
+Should have been forwarded <a href="$returnUrl">here</a>.
+
+</BODY>
+</HTML>

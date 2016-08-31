@@ -1,0 +1,23 @@
+<form id="showModemConfigForm" name="showModemConfigForm" action="showModemConfigForm.action" method="post">
+	<table>
+		<tr>
+			<th colspan="2">Modem Configuration</th>
+		</tr>
+		<tr>
+			<td>Port Name :</td>
+			<td><input type="text" id="txtPortName" name="txtPortName"/></td>
+		</tr>
+		<tr>
+			<td>Baud Rate :</td>
+			<td><input type="text" id="txtPortSpeed" name="txtPortSpeed"/></td>
+		</tr>
+		<tr>
+			<td style="text-align:right">
+				<input type="submit" id ="btnAddModem" name ="btnAddModem" value="Add Modem" style="width:8em"/>
+			</td>
+			<td>
+				<input type="button" id ="btnBack" name ="btnBack" value="Back" style="width:8em" onclick="window.location.href='showReceivingPage.action'"/>
+			</td>
+		</tr>
+	</table>
+</form>

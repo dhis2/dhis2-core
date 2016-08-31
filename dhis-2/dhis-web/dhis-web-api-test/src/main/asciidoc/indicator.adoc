@@ -1,0 +1,217 @@
+
+==  **Indicator**
+Fields Description
+include::{snippets}/indicators/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Indicator
+
+Response structure
+include::{snippets}/indicators/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/indicators/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicators/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Indicator or 404.
+
+Example request
+include::{snippets}/indicators/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicators/id/http-response.adoc[]
+
+=== Create Indicator
+
+Example request
+include::{snippets}/indicators/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicators/create/http-response.adoc[]
+
+
+=== Update Indicator
+
+Example request
+include::{snippets}/indicators/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicators/update/http-response.adoc[]
+
+
+=== Delete Indicator
+
+Example request
+include::{snippets}/indicators/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicators/delete/http-response.adoc[]
+
+==  **Indicator Group**
+Fields Description
+include::{snippets}/indicatorGroups/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Indicator Group
+
+Response structure
+include::{snippets}/indicatorGroups/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/indicatorGroups/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroups/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Indicator Group or 404.
+
+Example request
+include::{snippets}/indicatorGroups/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroups/id/http-response.adoc[]
+
+=== Create Indicator Group
+
+Example request
+include::{snippets}/indicatorGroups/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroups/create/http-response.adoc[]
+
+
+=== Update Indicator Group
+
+Example request
+include::{snippets}/indicatorGroups/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroups/update/http-response.adoc[]
+
+
+=== Delete Indicator Group
+
+Example request
+include::{snippets}/indicatorGroups/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroups/delete/http-response.adoc[]
+
+==  **Indicator Group Set**
+Fields Description
+include::{snippets}/indicatorGroupSets/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Indicator Group Set
+
+Response structure
+include::{snippets}/indicatorGroupSets/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/indicatorGroupSets/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroupSets/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Indicator Group Set or 404.
+
+Example request
+include::{snippets}/indicatorGroupSets/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroupSets/id/http-response.adoc[]
+
+=== Create Indicator Group Set
+
+Example request
+include::{snippets}/indicatorGroupSets/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroupSets/create/http-response.adoc[]
+
+
+=== Update Indicator Group Set
+
+Example request
+include::{snippets}/indicatorGroupSets/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroupSets/update/http-response.adoc[]
+
+
+=== Delete Indicator Group Set
+
+Example request
+include::{snippets}/indicatorGroupSets/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorGroupSets/delete/http-response.adoc[]
+
+==  **Indicator Type**
+Fields Description
+include::{snippets}/indicatorGroupSets/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Indicator Type
+
+Response structure
+include::{snippets}/indicatorTypes/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/indicatorTypes/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorTypes/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Indicator Type or 404.
+
+Example request
+include::{snippets}/indicatorTypes/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorTypes/id/http-response.adoc[]
+
+=== Create Indicator Type
+
+Example request
+include::{snippets}/indicatorTypes/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorTypes/create/http-response.adoc[]
+
+
+=== Update Indicator Type
+
+Example request
+include::{snippets}/indicatorTypes/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorTypes/update/http-response.adoc[]
+
+
+=== Delete Indicator Type
+
+Example request
+include::{snippets}/indicatorTypess/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/indicatorTypess/delete/http-response.adoc[]
+

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataentryform.DataEntryForm" table="dataentryform">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="dataentryformid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" not-null="true" unique="true" length="160" />
+
+    <property name="style" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.DisplayDensity</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+	</property>
+
+    <!-- Object Translation -->
+    <set name="translations" table="dataentryformtranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="dataentryformid" foreign-key="fk_objecttranslation_dataentryformid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+	
+    <property name="htmlCode" column="htmlcode" type="text" />
+    
+    <property name="format" />
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

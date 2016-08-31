@@ -1,0 +1,23 @@
+#set( $size = $organisationUnits.size() )
+{ "organisationUnits": [
+#foreach ( $unit in $organisationUnits )
+  {
+    "id": $!{unit.id},
+    "name": "$!encoder.jsonEncode( ${unit.name} )",
+    "shortName": "$!encoder.jsonEncode( ${unit.shortName} )",
+    "code": "$!encoder.jsonEncode( ${unit.code} )",
+    "openingDate": "$!encoder.jsonEncode( ${unit.openingDate.toString()} )",
+    "closedDate": "$!encoder.jsonEncode( ${unit.closedDate.toString()} )",
+    "lastUpdated": "$!encoder.jsonEncode( ${unit.lastUpdated.toString()} )",
+    "active": ${unit.active},
+    "hasChildrenWithCoordinates": $!{unit.hasChildrenWithCoordinates()},
+    "groups": [ #foreach( $group in $unit.groups )${group.id}#if( $velocityCount < $unit.groups.size() ),#end#end ],
+    "dataSets": [ #foreach( $dataSet in $unit.dataSets )${dataSet.id}#if( $velocityCount < $unit.dataSets.size() ),#end#end ],
+    "users": [ #foreach( $user in $unit.users )${user.id}#if( $velocityCount < $unit.users.size() ),#end#end ]
+  }#if( $velocityCount < $size ),#end
+#end
+]
+#if( $usePaging ),
+	"paging":#parse( "/dhis-web-commons/ajax/jsonPaging.vm" )
+#end
+}

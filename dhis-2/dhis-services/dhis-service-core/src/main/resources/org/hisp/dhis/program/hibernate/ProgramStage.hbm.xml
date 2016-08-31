@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.program.ProgramStage" table="programstage">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programstageid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" length="230" />
+
+    <property name="description" type="text" />
+
+    <property name="minDaysFromStart" column="mindaysfromstart" not-null="true" />
+
+    <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid"
+      foreign-key="fk_programstage_program" />
+
+    <property name="repeatable" column="repeatable" not-null="true" />
+
+    <set name="programStageDataElements" order-by="sort_order" cascade="save-update">
+      <key column="programstageid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
+    </set>
+
+    <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
+      column="dataentryformid" foreign-key="fk_programstage_dataentryform" cascade="all" />
+
+    <property name="standardInterval" />
+
+    <set name="programStageSections" order-by="sortOrder" cascade="save-update">
+      <key column="programstageid" />
+      <one-to-many class="org.hisp.dhis.program.ProgramStageSection" />
+    </set>
+
+    <property name="executionDateLabel" column="executiondatelabel" />
+
+    <set name="reminders" order-by="daysAllowedSendMessage" cascade="all">
+      <key column="programStageid" />
+      <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
+    </set>
+
+    <property name="autoGenerateEvent" />
+
+    <property name="validCompleteOnly" />
+
+    <property name="displayGenerateEventBox" />
+
+    <property name="captureCoordinates" />
+
+    <property name="generatedByEnrollmentDate" />
+
+    <property name="blockEntryForm" />
+
+    <property name="remindCompleted" />
+
+    <property name="allowGenerateNextVisit" />
+
+    <property name="openAfterEnrollment" />
+
+    <property name="reportDateToUse" />
+
+    <property name="preGenerateUID" />
+    
+    <property name="hideDueDate" />
+
+    <property name="sortOrder" column="sort_order" />
+
+    <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
+      foreign-key="fk_programstage_periodtypeid" />
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="programstageattributevalues" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programstageid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
+    </set>
+
+    <!-- Object Translation -->
+    <set name="translations" table="programstagetranslations" cascade="delete-orphan">
+      <cache usage="read-write" />
+      <key column="programstageid" foreign-key="fk_objecttranslation_programstageid" />
+
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
+        <column name="objecttranslationid" unique="true" />
+        <filter name="locale" condition="locale = :locale" />
+      </many-to-many>
+    </set>
+
+  </class>
+
+  <filter-def name="locale">
+    <filter-param name="locale" type="string" />
+  </filter-def>
+
+</hibernate-mapping>

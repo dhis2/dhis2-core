@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.sms.incoming.IncomingSms" table="incomingsms">
+
+    <id name="id">
+      <generator class="native" />
+    </id>
+
+    <property name="originator" index="sms_originator_index" not-null="true" />
+
+    <property name="encoding" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.sms.incoming.SmsMessageEncoding</param>
+      </type>
+    </property>
+
+    <property name="sentDate" not-null="true" />
+
+    <property name="receivedDate" not-null="true" />
+
+    <property name="text" />
+
+    <property name="gatewayId" not-null="true" />
+
+    <property name="status" not-null="true" index="sms_status_index">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.sms.incoming.SmsMessageStatus</param>
+      </type>
+    </property>
+    
+    <property name="parsed" />
+    
+    <property name="statusMessage" />
+
+  </class>
+</hibernate-mapping>

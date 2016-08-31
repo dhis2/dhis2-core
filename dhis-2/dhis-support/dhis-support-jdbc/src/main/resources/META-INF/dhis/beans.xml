@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
+  
+  <!-- StatementManager -->
+    
+  <bean id="statementManager" class="org.amplecode.quick.statement.JdbcStatementManager">
+    <property name="jdbcConfiguration" ref="jdbcConfiguration"/>
+  </bean>
+  
+  <bean id="inMemoryStatementManager" class="org.amplecode.quick.statement.JdbcStatementManager">
+    <property name="inMemory" value="true"/>
+  </bean>
+  
+  <!-- BatchHandlerFactory -->
+    
+  <bean id="batchHandlerFactory" class="org.amplecode.quick.factory.DefaultBatchHandlerFactory">
+    <property name="jdbcConfiguration" ref="jdbcConfiguration"/>
+  </bean>
+  
+  <bean id="inMemoryBatchHandlerFactory" class="org.amplecode.quick.factory.DefaultBatchHandlerFactory">
+    <property name="inMemory" value="true"/>
+  </bean>
+  
+  <!-- Interceptor -->
+    
+  <bean id="statementInterceptor" class="org.amplecode.quick.StatementInterceptor">
+    <property name="statementManagers">
+      <list>
+        <ref bean="statementManager"/>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="inMemoryStatementInterceptor" class="org.amplecode.quick.StatementInterceptor">
+    <property name="statementManagers">
+      <list>
+        <ref bean="statementManager"/>
+        <ref bean="inMemoryStatementManager"/>
+      </list>
+    </property>
+  </bean>
+
+  <!-- StatementDialect -->
+    
+  <bean id="statementDialect" class="org.hisp.dhis.jdbc.dialect.StatementDialectFactoryBean" init-method="init">
+	<property name="hibernateConfigurationProvider" ref="hibernateConfigurationProvider"/>
+  </bean>
+
+  <!-- StatementBuilder -->
+    
+  <bean id="statementBuilder" class="org.hisp.dhis.jdbc.statementbuilder.StatementBuilderFactoryBean" init-method="init">
+    <property name="statementDialect" ref="statementDialect"/>
+  </bean>
+
+  <!-- JdbcConfiguration -->
+  
+  <bean id="jdbcConfiguration" class="org.amplecode.quick.configuration.JdbcConfigurationFactoryBean" init-method="init">
+	<property name="dialect" ref="statementDialect"/>
+	<property name="driverClass" ref="driverClass"/>
+    <property name="connectionUrl" ref="url"/>
+    <property name="username" ref="username"/>
+    <property name="password" ref="password"/>
+  </bean>
+  
+</beans>
