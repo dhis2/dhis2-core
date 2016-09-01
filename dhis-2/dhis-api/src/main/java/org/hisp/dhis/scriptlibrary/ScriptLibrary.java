@@ -30,17 +30,23 @@ package org.hisp.dhis.scriptlibrary;
 import java.io.Reader;
 import java.io.IOException;
 import javax.json.JsonValue;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
+import org.springframework.core.io.Resource;
+
 /**
  * @author Carl Leitner <litlfred@gmail.com>
  */
 public interface ScriptLibrary
 {
     abstract public boolean containsScript ( String name );
-    abstract public String[] retrieveDependencies ( String name );
+    abstract public String[] retrieveDirectDependencies(String scriptName);
+    abstract public String[] retrieveDependencies ( String scriptName );
     abstract public Reader retrieveScript ( String name ) throws ScriptNotFoundException;
     abstract public JsonValue  retrieveManifestInfo ( String[] path );
     abstract public String getName();
     abstract public Resource findResource (  String resourceName )
 	throws IOException;
+    abstract public ScriptLibrary getScriptLibrary ( String key );
+    abstract public App getApp();
 }

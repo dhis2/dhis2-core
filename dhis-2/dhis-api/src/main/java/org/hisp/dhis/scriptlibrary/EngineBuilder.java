@@ -28,13 +28,6 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -65,23 +58,25 @@ abstract public class EngineBuilder implements EngineBuilderInterface
     protected void loadDependencies ( ScriptLibrary sl, String scriptName, Engine scriptEngine, IExecutionContext depContext )
     throws ScriptNotFoundException
     {
-        System.out.println ( "Running engine for dependency: " + script );
+        System.out.println ( "Running engine for dependency: " + scriptName );
         String[] libs = sl.retrieveDependencies ( scriptName );
 	System.out.println ( "loading dependencies" );
-	    
+	User user  = depContext.getUser();
+
 	for (String script : libs) {
 	    try
 	    {
-		App appLib;
+		App app;
 		if (  script.startsWith("/apps/" ))
 		{
-		    String depAppName = name.substring(6);
+		    String depAppName = script.substring(6);
 		    depAppName = depAppName.substring(0,depAppName.indexOf("/") - 1);
-		    appLib = sl.getScriptLibrary(depAppName);
+		    ScriptLibrary appLib = sl.getScriptLibrary(depAppName);
+		    app = appLib.getApp();
 		} else {
-		    appLib = sl;
+		    app = sl.getApp();
 		}
-		if (  !appManager.isAccessible ( appLib, user ) )
+		if (  !appManager.isAccessible ( app, user ) )
 		{
 		    //HELP:  This should not be commented out.  Not sure why  the above expression evaluates  to false
 		    //throw new ScriptAccessException ( "Script execution - permission denied on user" );
