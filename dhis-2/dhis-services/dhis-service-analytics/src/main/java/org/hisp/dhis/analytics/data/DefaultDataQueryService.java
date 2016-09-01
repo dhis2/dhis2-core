@@ -65,6 +65,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -117,12 +118,16 @@ public class DefaultDataQueryService
     @Override
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
         String measureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit,
-        boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
-        String approvalLevel, Date relativePeriodDate, String userOrgUnit, I18nFormat format )
+        boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, 
+        IdentifiableProperty outputIdScheme, IdScheme inputIdScheme, OutputFormat outputFormat,
+        String approvalLevel, Date relativePeriodDate, String userOrgUnit )
     {
+        I18nFormat format = i18nManager.getI18nFormat();
+        
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
+        outputFormat = ObjectUtils.firstNonNull( outputFormat, OutputFormat.ANALYTICS );
 
         if ( dimensionParams != null && !dimensionParams.isEmpty() )
         {
@@ -152,6 +157,7 @@ public class DefaultDataQueryService
             .withIncludeNumDen( includeNumDen )
             .withDisplayProperty( displayProperty )
             .withOutputIdScheme( outputIdScheme )
+            .withOutputFormat( outputFormat )
             .withApprovalLevel( approvalLevel ).build();
     }
 

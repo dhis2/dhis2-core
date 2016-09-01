@@ -69,6 +69,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -180,6 +181,11 @@ public class DefaultAnalyticsService
             getAggregatedDataValues( params );
     }
 
+    public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
+    {
+        return null;
+    }
+    
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {

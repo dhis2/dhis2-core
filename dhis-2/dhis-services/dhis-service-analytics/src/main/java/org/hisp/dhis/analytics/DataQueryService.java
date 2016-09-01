@@ -68,6 +68,7 @@ public interface DataQueryService
      * @param displayProperty the property to display for meta-data.
      * @param outputIdScheme the identifier scheme to use in the query response.
      * @param inputIdScheme the identifier scheme to interpret dimension and filters.
+     * @param outputFormat the output format.
      * @param approvalLevel the approval level identifier.
      * @param relativePeriodDate the date to use as basis for relative periods.
      * @param userOrgUnit the user organisation unit to use, overrides current user.
@@ -77,7 +78,7 @@ public interface DataQueryService
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
         boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit,
         boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
-        String approvalLevel, Date relativePeriodDate, String userOrgUnit, I18nFormat format );
+        OutputFormat outputFormat, String approvalLevel, Date relativePeriodDate, String userOrgUnit );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.
