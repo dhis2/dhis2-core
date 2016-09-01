@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
@@ -99,40 +98,6 @@ public class EventChartController
     //--------------------------------------------------------------------------
     // CRUD
     //--------------------------------------------------------------------------
-
-    @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        EventChart eventChart = deserializeJsonEntity( request, response );
-        eventChart.getTranslations().clear();
-
-        eventChartService.saveEventChart( eventChart );
-
-        response.addHeader( "Location", EventChartSchemaDescriptor.API_ENDPOINT + "/" + eventChart.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Event chart created" ), response, request );
-    }
-
-    @Override
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
-    public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        EventChart eventChart = eventChartService.getEventChart( uid );
-
-        if ( eventChart == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event chart does not exist: " + uid ) );
-        }
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-
-        EventChart newEventChart = deserializeJsonEntity( request, response );
-        newEventChart.setTranslations( eventChart.getTranslations() );
-
-        eventChart.mergeWith( newEventChart, params.getMergeMode() );
-
-        eventChartService.updateEventChart( eventChart );
-    }
 
     @Override
     protected EventChart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
@@ -219,15 +184,5 @@ public class EventChartController
         chart.getColumnDimensions().addAll( getDimensions( chart.getColumns() ) );
         chart.getRowDimensions().addAll( getDimensions( chart.getRows() ) );
         chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
-
-        if ( chart.getProgram() != null )
-        {
-            chart.setProgram( programService.getProgram( chart.getProgram().getUid() ) );
-        }
-
-        if ( chart.getProgramStage() != null )
-        {
-            chart.setProgramStage( programStageService.getProgramStage( chart.getProgramStage().getUid() ) );
-        }
     }
 }
