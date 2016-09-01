@@ -1295,13 +1295,6 @@
     <property name="programStageStore" ref="org.hisp.dhis.program.ProgramStageStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.notification.ProgramStageNotificationService"
-    class="org.hisp.dhis.program.notification.DefaultProgramNotificationService">
-    <property name="programMessageService" ref="org.hisp.dhis.program.message.ProgramMessageService" />
-    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
-    <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
-  </bean>
-
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
     <property name="programRuleVariableStore" ref="org.hisp.dhis.programrule.ProgramRuleVariableStore" />
   </bean>
@@ -1384,7 +1377,6 @@
   <bean id="org.hisp.dhis.predictor.PredictorService" class="org.hisp.dhis.predictor.DefaultPredictorService" />
 
   <bean id="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore"
-
     class="org.hisp.dhis.hibernate.HibernateGenericStore">
     <property name="clazz" value="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1400,13 +1392,6 @@
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="transientIdentifiableProperties" value="true" />
-  </bean>
-
-  <bean id="org.hisp.dhis.program.notification.ProgramStageNotificationStore"
-    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.eventreport.EventReportService" class="org.hisp.dhis.eventreport.DefaultEventReportService">

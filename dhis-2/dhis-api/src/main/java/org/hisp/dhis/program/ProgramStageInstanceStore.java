@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Collection;
@@ -119,4 +120,21 @@ public interface ProgramStageInstanceStore
      * @return true/false depending on result
      */
     boolean exists( String uid );
+
+
+    /**
+     * Get all ProgramStageInstances which are due to be notified.
+     * Resolved as all ProgramStageInstances with ProgramStages which again
+     * have matching ProgramStageNotifications. The "match" is done in relation
+     * to the given date.
+     *
+     * @param notificationDate the date for which we are resolving the PSIs.
+     * @return the set of ProgramStageInstance which have ProgramStageNotifications
+     *         coming up on the given Date.
+     */
+    List<ProgramStageInstance> getWithNotificationsOnDate( Date notificationDate );
+
+    List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate psn, Date notificationDate );
+
+//    Map<ProgramStageInstance, Set<ProgramStageNotification>> getNotificationsMapForDate( Date notificationDate );
 }

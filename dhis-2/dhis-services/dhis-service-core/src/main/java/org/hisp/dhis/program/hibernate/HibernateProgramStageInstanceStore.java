@@ -28,7 +28,9 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -42,6 +44,8 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.SchedulingProgramObject;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
@@ -217,6 +221,56 @@ public class HibernateProgramStageInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    @Override
+    public List<ProgramStageInstance> getWithNotificationsOnDate( Date notificationDate )
+    {
+        if ( notificationDate == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        Query query = getQuery(
+            "select psi from ProgramStageInstance as psi " +
+            "inner join psi.programStage.notifications as n " +
+            "where psi.dueDate is not null " +
+            "and n.notificationTrigger = '" + NotificationTrigger.RELATIVE_SCHEDULED.name() + "' " +
+            "and (day(:notificationDate) - day(psi.dueDate)) = n.daysBeforeOrAfter"
+        );
+
+        query.setDate( "notificationDate", notificationDate );
+
+        return query.list();
+    }
+
+
+    // TODO Need to consider reportDate (already reported events) vs. dueDate
+    @SuppressWarnings( "unchecked" )
+    @Override
+    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate notificationTemplate, Date notificationDate )
+    {
+        if ( notificationDate == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        Query query = getQuery(
+            "select psi from ProgramStageInstance as psi " +
+                "inner join psi.programStage as ps " +
+                "where :notificationTemplate in elements(ps.notificationTemplates) " +
+                "and psi.dueDate is not null " +
+                "and n.relativeScheduledDays is not null " +
+                "and n.notificationTrigger = :notificationTrigger " +
+                "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays"
+        );
+
+        query.setString( "notificationTrigger", NotificationTrigger.RELATIVE_SCHEDULED.name() );
+        query.setDate( "notificationDate", notificationDate );
+        query.setEntity( "notificationTemplate", notificationTemplate );
+
+        return query.list();
     }
 
     // -------------------------------------------------------------------------

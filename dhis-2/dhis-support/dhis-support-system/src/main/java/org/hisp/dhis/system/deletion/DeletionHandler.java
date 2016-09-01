@@ -85,6 +85,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramValidation;
 import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -636,6 +637,14 @@ public abstract class DeletionHandler
     }
 
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+    }
+
+    public void allowDeleteProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
+    {
+    }
+
+    public void deleteProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
     {
     }
 
