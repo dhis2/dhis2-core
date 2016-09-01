@@ -97,13 +97,13 @@ public class ClickatellGateway
         return gatewayConfig != null && gatewayConfig instanceof ClickatellGatewayConfig;
     }
 
-    public List<MessageResponseStatus<GatewayResponse>> sendBatch( MessageBatch batch, SmsGatewayConfig config )
+    public List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig config )
     {
         return null;
     }
 
     @Override
-    public MessageResponseStatus<GatewayResponse> send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         ClickatellGatewayConfig clickatellConfiguration = (ClickatellGatewayConfig) config;
         HttpEntity<ClickatellRequestEntity> request =
@@ -150,9 +150,9 @@ public class ClickatellGateway
         return statusCode;
     }
 
-    private MessageResponseStatus<GatewayResponse> handleResponse( HttpStatus httpStatus )
+    private MessageResponseStatus handleResponse( HttpStatus httpStatus )
     {
-        MessageResponseStatus<GatewayResponse> status = new MessageResponseStatus<>();
+        MessageResponseStatus status = new MessageResponseStatus();
         status.setResponseObject( CLICKATELL_GATEWAY_RESPONSE_MAP.get( httpStatus ) );
 
         return status;
