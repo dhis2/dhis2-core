@@ -49,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -62,6 +63,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Ignore( "Work in progess" )
 public class NotificationMessageRendererTest
     extends DhisSpringTest
 {
