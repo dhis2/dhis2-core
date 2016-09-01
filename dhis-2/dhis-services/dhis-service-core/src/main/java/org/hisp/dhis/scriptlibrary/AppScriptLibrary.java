@@ -144,6 +144,7 @@ public class AppScriptLibrary implements ScriptLibrary
 
 
     public ScriptLibrary getScriptLibrary ( String key )
+	throws ScriptNotFoundException
     {
 
         if ( scriptLibraries.containsKey ( key ) )
@@ -153,6 +154,10 @@ public class AppScriptLibrary implements ScriptLibrary
 
         else
         {
+	    App app = getApp(key);
+	    if (app == null) {
+		throw new ScriptNotFoundException("Coult not get app [" + key + "]");
+	    }
             ScriptLibrary sl =  new AppScriptLibrary ( getApp(key), appManager );
             scriptLibraries.put ( key, sl );
             return sl;
@@ -167,7 +172,7 @@ public class AppScriptLibrary implements ScriptLibrary
 	    {
 		String depAppName = name.substring(6);
 		String depResource = depAppName.substring(depAppName.indexOf("/") + 1);
-		depAppName = depAppName.substring(0,depAppName.indexOf("/") - 1);
+		depAppName = depAppName.substring(0,depAppName.indexOf("/") );
 		ScriptLibrary depAppLib = getScriptLibrary(depAppName);
 		Resource r = depAppLib.findResource(depResource);
 		return ( r != null );
@@ -179,7 +184,7 @@ public class AppScriptLibrary implements ScriptLibrary
 	    }
         }
 
-        catch ( IOException e )
+        catch ( Exception e )
         {
             return false;
         }
@@ -194,7 +199,7 @@ public class AppScriptLibrary implements ScriptLibrary
 	    {
 		String depAppName = name.substring(6);
 		String depResource = depAppName.substring(depAppName.indexOf("/") + 1);
-		depAppName = depAppName.substring(0,depAppName.indexOf("/") - 1);
+		depAppName = depAppName.substring(0,depAppName.indexOf("/") );
 		ScriptLibrary depAppLib = getScriptLibrary(depAppName);
 		Resource r = depAppLib.findResource(depResource);
 		return new InputStreamReader ( r.getInputStream() );
@@ -219,18 +224,24 @@ public class AppScriptLibrary implements ScriptLibrary
         try
         {
             JsonObject deps = ( JsonObject )  retrieveManifestInfo (  "script-library/dependencies".split ( "/" ) );
+	    System.out.println("Script " + script + " has direct dependencies: " +deps);
 	    ArrayList<String> sdeps  = new ArrayList();
 	    for (Object o : deps.getJsonArray(script)) {
-		String dep;
+		System.out.println("Checking dep: " + o);
+		String dep = null;
 		if (o instanceof JsonString) {
 		    dep = ((JsonString) o).getString();
+		    System.out.println("Adding JsonString dep: " + dep);
 		} else if (o instanceof String) {
 		    dep = (String) o;
+		    System.out.println("Adding String dep: " + dep);
 		} else {
+		    System.out.println("Skipping dep: " + dep);
 		    continue;
 		}
 		sdeps.add(dep);
 	    }
+	    System.out.println("Deps: " + String.join(" ",sdeps.toArray ( new String[sdeps.size()] )));
 	    return sdeps.toArray ( new String[sdeps.size()] );
         }
 
@@ -249,7 +260,7 @@ public class AppScriptLibrary implements ScriptLibrary
 	    deps.addAll ( Arrays.asList(retrieveDirectDependencies(name)));
 	    ArrayList<String> seen = new ArrayList();
 	    seen.add(name);
-
+	    System.out.println("Retreived direct depenencies in all dependences: " + deps);
 	    while ( ! deps.isEmpty() )
 	    {
 		String script = deps.pop();
@@ -258,21 +269,24 @@ public class AppScriptLibrary implements ScriptLibrary
 		ScriptLibrary depAppLib;
 		String depAppName = null;
 		String depResource = null;
-		if (  name.startsWith("/apps/" ))
+		if (  script.startsWith("/apps/" ))
 		{
-		    depAppName = name.substring(6);
+		    depAppName = script.substring(6);
 		    depResource = depAppName.substring(depAppName.indexOf("/") + 1);
-		    depAppName = depAppName.substring(0,depAppName.indexOf("/") - 1);
-		    depAppLib = getScriptLibrary(depAppName);		    
+		    depAppName = depAppName.substring(0,depAppName.indexOf("/") );
+		    depAppLib = getScriptLibrary(depAppName);	
+		    if (depAppLib == null) {
+			throw new ScriptNotFoundException("Dependent app " + depAppName + " not found in script library ["  + script + "]");
+		    }
 		} 
 		else {
 		    depAppLib = this;
-		    depResource = name;
+		    depResource = script;
 		}
 
 		if (  ! depAppLib.containsScript ( depResource ) )
 		{
-		    throw new ScriptNotFoundException ( "Script " + depResource + " not found in script library [" + name + "]" );
+		    throw new ScriptNotFoundException ( "Script " + depResource + " not found in script library [" + script + "]" );
 		} 
 		
 		
@@ -290,13 +304,13 @@ public class AppScriptLibrary implements ScriptLibrary
 		}
 	    }
 	    Collections.reverse(seen);
-	    seen.remove(seen.size()); //ger rid of the starting script	    
+	    seen.remove(seen.size() -1); //ger rid of the starting script	    
 	    return seen.toArray ( new String[seen.size()] );
 	}
 
         catch ( Exception e )
         {
-            log.info ( "Could not retrieve  deps " + e.toString() );
+            log.error ( "Could not retrieve  deps " , e);
             return new String[0];
         }
     }
@@ -356,7 +370,7 @@ public class AppScriptLibrary implements ScriptLibrary
     public Resource findResource (  String resourceName )
     throws IOException
     {
-        log.info ( "Looking for resource [" + resourceName + "]" );
+        log.info ( "Looking for resource [" + resourceName + "] in " + app.getKey() );
 
         for ( Resource location : locations )
         {

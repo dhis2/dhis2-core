@@ -47,6 +47,7 @@ public interface ScriptLibrary
     abstract public String getName();
     abstract public Resource findResource (  String resourceName )
 	throws IOException;
-    abstract public ScriptLibrary getScriptLibrary ( String key );
+    abstract public ScriptLibrary getScriptLibrary ( String key )
+	throws ScriptNotFoundException;
     abstract public App getApp();
 }

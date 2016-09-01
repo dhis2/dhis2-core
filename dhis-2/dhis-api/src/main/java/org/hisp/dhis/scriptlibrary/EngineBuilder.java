@@ -70,8 +70,11 @@ abstract public class EngineBuilder implements EngineBuilderInterface
 		if (  script.startsWith("/apps/" ))
 		{
 		    String depAppName = script.substring(6);
-		    depAppName = depAppName.substring(0,depAppName.indexOf("/") - 1);
+		    depAppName = depAppName.substring(0,depAppName.indexOf("/") );
 		    ScriptLibrary appLib = sl.getScriptLibrary(depAppName);
+		    if (appLib == null) {
+			throw new ScriptNotFoundException("Referenced app " + depAppName + " could not be found");
+		    }
 		    app = appLib.getApp();
 		} else {
 		    app = sl.getApp();
