@@ -635,6 +635,14 @@ public class DataQueryParams
     {
         return this.aggregationType != null;
     }
+    
+    /**
+     * Indicates whether the this parameters has the given output format specified.
+     */
+    public boolean isOutputFormat( OutputFormat format )
+    {
+        return this.outputFormat != null && this.outputFormat == format;
+    }
 
     /**
      * Creates a mapping between the data periods, based on the data period type
@@ -854,7 +862,8 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether a dimension or filter with the given identifier exists.
+     * Indicates whether a dimension or filter with the given dimension / filter
+     * identifier exists.
      */
     public boolean hasDimensionOrFilter( String key )
     {

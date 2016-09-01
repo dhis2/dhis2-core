@@ -34,6 +34,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
@@ -157,6 +158,19 @@ public class DefaultQueryPlanner
         if ( !nonAggDataElements.isEmpty() )
         {
             violation = "Data elements must be of a value and aggregation type that allow aggregation: " + getUids( nonAggDataElements );
+        }
+        
+        if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
+        {
+            if ( !params.hasDimensionOrFilter( DATA_X_DIM_ID ) )
+            {
+                violation = "A data dimension (dx) must be specified when output format is DATA_VALUE_SET";
+            }
+                        
+            if ( !params.hasDimensionOrFilter( ORGUNIT_DIM_ID ) )
+            {
+                violation = "An organisation unit (ou) dimension must be specified when output format is DATA_VALUE_SET";
+            }
         }
 
         if ( violation != null )
