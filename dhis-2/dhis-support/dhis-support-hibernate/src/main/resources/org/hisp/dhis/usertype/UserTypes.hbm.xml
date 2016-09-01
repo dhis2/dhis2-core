@@ -6,8 +6,15 @@
 <hibernate-mapping>
 
   <!-- AES-128 encrypted string type -->
-  
+
+  <!-- Deprecated implementation of UserType -->
+
   <typedef class="org.jasypt.hibernate4.type.EncryptedStringType" name="AESEncryptedString">
-    <param name="encryptorRegisteredName">strongStringEncryptor</param>
+    <param name="encryptorRegisteredName">hibernateAesStringEncryptor</param>
   </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType" name="Aes128EncryptedString">
+    <param name="namedEncryptor">aes128StringEncryptor</param>
+  </typedef>
+
 </hibernate-mapping>
