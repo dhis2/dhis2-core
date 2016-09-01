@@ -91,9 +91,9 @@ public class SimplisticHttpGetGateWay
         HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
 
     @Override
-    public List<MessageResponseStatus<GatewayResponse>> sendBatch( MessageBatch batch, SmsGatewayConfig gatewayConfig )
+    public List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        List<MessageResponseStatus<GatewayResponse>> statuses = new ArrayList<>();
+        List<MessageResponseStatus> statuses = new ArrayList<>();
 
         for ( OutBoundMessage message : batch.getBatch() )
         {
@@ -110,11 +110,11 @@ public class SimplisticHttpGetGateWay
     }
 
     @Override
-    public MessageResponseStatus<GatewayResponse> send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         GenericHttpGatewayConfig genericHttpConfiguraiton = (GenericHttpGatewayConfig) config;
 
-        MessageResponseStatus<GatewayResponse> status = new MessageResponseStatus<GatewayResponse>();
+        MessageResponseStatus status = new MessageResponseStatus();
 
         UriComponentsBuilder uri = buildUrl( genericHttpConfiguraiton, text, recipients );
 
@@ -141,7 +141,7 @@ public class SimplisticHttpGetGateWay
                     .get( httpConnection.getResponseCode() );
 
                 status.setResponseObject( gatewayResponse );
-                status.setResponseMessage( gatewayResponse.getResponseMessage() );
+                status.setDescription( gatewayResponse.getResponseMessage() );
                 status.setOk( true );
 
                 return status;
@@ -150,7 +150,7 @@ public class SimplisticHttpGetGateWay
             else
             {
                 status.setResponseObject( GatewayResponse.FAILED );
-                status.setResponseMessage( GatewayResponse.FAILED.getResponseMessage() );
+                status.setDescription( GatewayResponse.FAILED.getResponseMessage() );
                 status.setOk( false );
 
                 return status;
@@ -163,7 +163,7 @@ public class SimplisticHttpGetGateWay
             IOUtils.closeSilently( reader );
 
             status.setResponseObject( GatewayResponse.FAILED );
-            status.setResponseMessage( GatewayResponse.FAILED.getResponseMessage() );
+            status.setDescription( GatewayResponse.FAILED.getResponseMessage() );
             status.setOk( false );
 
             return status;

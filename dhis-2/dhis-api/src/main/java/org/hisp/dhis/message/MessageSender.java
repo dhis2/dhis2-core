@@ -39,7 +39,7 @@ import org.hisp.dhis.user.User;
 /**
  * @author Lars Helge Overland
  */
-public interface MessageSender<T>
+public interface MessageSender
 {
     /**
      * Sends a message. The given message will be sent to the given set of
@@ -53,11 +53,11 @@ public interface MessageSender<T>
      * @param forceSend force sending the message despite potential user
      *        settings.
      */
-    MessageResponseStatus<T> sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
+    MessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
 
-    MessageResponseStatus<T> sendMessage( String subject, String text, Set<String> recipient );
+    MessageResponseStatus sendMessage( String subject, String text, Set<String> recipient );
 
-    MessageResponseStatus<T> sendMessage( String subject, String text, String recipient );
+    MessageResponseStatus sendMessage( String subject, String text, String recipient );
    
     MessageResponseSummary sendMessageBatch( MessageBatch batch );
 
