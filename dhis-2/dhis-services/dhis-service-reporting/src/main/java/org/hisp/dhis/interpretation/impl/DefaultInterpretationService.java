@@ -40,6 +40,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -204,7 +205,47 @@ public class DefaultInterpretationService
 
         return count;
     }
+    
+    @Transactional( isolation = Isolation.REPEATABLE_READ )
+    public boolean likeInterpretation( int id )
+    {
+        Interpretation interpretation = getInterpretation( id );
+        
+        if ( interpretation == null )
+        {
+            return false;
+        }
+        
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user == null )
+        {
+            return false;
+        }
+        
+        return interpretation.like( user );
+    }
 
+    @Transactional( isolation = Isolation.REPEATABLE_READ )
+    public boolean unlikeInterpretation( int id )
+    {
+        Interpretation interpretation = getInterpretation( id );
+        
+        if ( interpretation == null )
+        {
+            return false;
+        }
+        
+        User user = currentUserService.getCurrentUser();
+        
+        if ( user == null )
+        {
+            return false;
+        }
+        
+        return interpretation.unlike( user );
+    }
+    
     @Override
     public int countMapInterpretations( Map map )
     {
@@ -224,7 +265,7 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public Interpretation getInterpretationByChartId( int id )
+    public Interpretation getInterpretationByChart( int id )
     {
         return interpretationStore.getByChartId( id );
     }

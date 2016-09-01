@@ -46,7 +46,7 @@ public class SendSmsTask
 {
     @Autowired
     @Resource( name = "smsMessageSender" )
-    private MessageSender<?> smsSender;
+    private MessageSender smsSender;
 
     @Autowired
     private Notifier notifier;
@@ -65,7 +65,7 @@ public class SendSmsTask
 
     private String message;
 
-    private MessageResponseStatus<?> status;
+    private MessageResponseStatus status;
 
     private TaskId taskId;
 
@@ -93,12 +93,12 @@ public class SendSmsTask
         }
     }
 
-    public MessageResponseStatus<?> getStatus()
+    public MessageResponseStatus getStatus()
     {
         return status;
     }
 
-    public void setStatus( MessageResponseStatus<?> status )
+    public void setStatus( MessageResponseStatus status )
     {
         this.status = status;
     }

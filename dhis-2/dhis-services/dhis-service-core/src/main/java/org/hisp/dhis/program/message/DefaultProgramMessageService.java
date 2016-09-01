@@ -93,7 +93,7 @@ public class DefaultProgramMessageService
     private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
-    private List<MessageSender<?>> messageSenders;
+    private List<MessageSender> messageSenders;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -215,7 +215,7 @@ public class DefaultProgramMessageService
 
         for ( MessageBatch batch : batches )
         {
-            for ( MessageSender<?> messageSender : messageSenders )
+            for ( MessageSender messageSender : messageSenders )
             {
                 if ( messageSender.accept( Sets.newHashSet( batch.getDeliveryChannel() ) ) )
                 {

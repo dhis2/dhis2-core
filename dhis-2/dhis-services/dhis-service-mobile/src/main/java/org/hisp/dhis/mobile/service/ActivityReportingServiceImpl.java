@@ -2318,7 +2318,7 @@ public class ActivityReportingServiceImpl
     {
         Chart chart = chartService.getChart( uId );
         org.hisp.dhis.interpretation.Interpretation interpretationCore = interpretationService
-            .getInterpretationByChartId( chart.getId() );
+            .getInterpretationByChart( chart.getId() );
 
         Collection<InterpretationComment> interComments = new HashSet<>();
 
