@@ -28,10 +28,7 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -59,6 +56,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -196,7 +195,7 @@ public class NotificationMessageRendererTest
     @Test
     public void testRenderProgramStageNotification()
     {
-        Pair<String, String> rendered =
+        NotificationMessage rendered =
             NotificationMessageRenderer.render( programStageInstanceA, programNotificationTemplateA );
 
         assertNotNull( rendered );
