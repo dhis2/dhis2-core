@@ -39,45 +39,47 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 
 @JacksonXmlRootElement( localName = "messageResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class MessageResponseStatus<T>
+public class MessageResponseStatus
 {
-    private String responseMessage;
+    private String description;
     
     private boolean ok;
 
-    private T responseObject;
+    private Enum<?> responseObject;
 
     public MessageResponseStatus()
     {
     }
 
-    public MessageResponseStatus( String responseMessage, T response, boolean ok )
+    public MessageResponseStatus( String description, Enum<?> response, boolean ok )
     {
         this.ok = ok;
         this.responseObject = response;
-        this.responseMessage = responseMessage;
+        this.description = description;
     }
 
-    public T getResponseObject()
+    @JsonProperty( value = "status" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Enum<?> getResponseObject()
     {
         return responseObject;
     }
 
-    public void setResponseObject( T response )
+    public void setResponseObject( Enum<?> response )
     {
         this.responseObject = response;
     }
 
-    @JsonProperty( value = "sent" )
+    @JsonProperty( value = "description" )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getResponseMessage()
+    public String getDescription()
     {
-        return responseMessage;
+        return description;
     }
 
-    public void setResponseMessage( String result )
+    public void setDescription( String description )
     {
-        this.responseMessage = result;
+        this.description = description;
     }
 
     public boolean isOk()

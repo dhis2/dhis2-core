@@ -63,7 +63,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
  * @author Lars Helge Overland
  */
 public class EmailMessageSender
-    implements MessageSender<EmailResponse>
+    implements MessageSender
 {
     private static final Log log = LogFactory.getLog( EmailMessageSender.class );
 
@@ -106,7 +106,7 @@ public class EmailMessageSender
      */
     @Async
     @Override
-    public MessageResponseStatus<EmailResponse> sendMessage( String subject, String text, String footer, User sender, Set<User> users,
+    public MessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
         String hostName = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_HOST_NAME );
@@ -116,7 +116,7 @@ public class EmailMessageSender
         boolean tls = (boolean) systemSettingManager.getSystemSetting( SettingKey.EMAIL_TLS );
         String from = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_SENDER );
         
-        MessageResponseStatus<EmailResponse> status = new MessageResponseStatus<>();
+        MessageResponseStatus status = new MessageResponseStatus();
 
         if ( hostName == null )
         {
@@ -157,27 +157,27 @@ public class EmailMessageSender
                 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
                 
-                return new MessageResponseStatus<>( "sent", EmailResponse.SENT, true );
+                return new MessageResponseStatus( "sent", EmailResponse.SENT, true );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Could not send email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus<>( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus<>( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
         }
 
         return status;
     }
 
     @Override
-    public MessageResponseStatus<EmailResponse> sendMessage( String subject, String text, Set<String> recipients )
+    public MessageResponseStatus sendMessage( String subject, String text, Set<String> recipients )
     {
         String hostName = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_HOST_NAME );
         int port = (int) systemSettingManager.getSystemSetting( SettingKey.EMAIL_PORT );
@@ -186,7 +186,7 @@ public class EmailMessageSender
         boolean tls = (boolean) systemSettingManager.getSystemSetting( SettingKey.EMAIL_TLS );
         String from = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_SENDER );
 
-        MessageResponseStatus<EmailResponse> status = new MessageResponseStatus<>();
+        MessageResponseStatus status = new MessageResponseStatus();
 
         if ( hostName == null )
         {
@@ -216,27 +216,27 @@ public class EmailMessageSender
 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
 
-                return new MessageResponseStatus<>( "sent", EmailResponse.SENT, true );
+                return new MessageResponseStatus( "sent", EmailResponse.SENT, true );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new MessageResponseStatus<>( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new MessageResponseStatus<>( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
         }
 
         return status;
     }
 
     @Override
-    public MessageResponseStatus<EmailResponse> sendMessage( String subject, String text, String recipient )
+    public MessageResponseStatus sendMessage( String subject, String text, String recipient )
     {
         return sendMessage( subject, text, Sets.newHashSet( recipient ) );
     }
@@ -244,7 +244,7 @@ public class EmailMessageSender
     @Override
     public MessageResponseSummary sendMessageBatch( MessageBatch batch )
     {
-        List<MessageResponseStatus<EmailResponse>> statuses = new ArrayList<>();
+        List<MessageResponseStatus> statuses = new ArrayList<>();
 
         for ( OutBoundMessage email : batch.getBatch() )
         {
@@ -354,7 +354,7 @@ public class EmailMessageSender
         return title;
     }
 
-    private MessageResponseSummary generateSummary( List<MessageResponseStatus<EmailResponse>> statuses )
+    private MessageResponseSummary generateSummary( List<MessageResponseStatus> statuses )
     {
         MessageResponseSummary summary = new MessageResponseSummary();
 
@@ -366,7 +366,7 @@ public class EmailMessageSender
 
         total = statuses.size();
 
-        for ( MessageResponseStatus<EmailResponse> status : statuses )
+        for ( MessageResponseStatus status : statuses )
         {
             if ( EmailResponse.SENT.equals( status.getResponseObject() ) )
             {
@@ -376,7 +376,7 @@ public class EmailMessageSender
             {
                 ok = false;
 
-                errorMessage = status.getResponseObject().getResponseMessage();
+                errorMessage = status.getDescription();
             }
         }
 
