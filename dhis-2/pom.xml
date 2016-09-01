@@ -239,9 +239,10 @@
                     <format property="now" pattern="yyyy-MM-dd HH:mm:ss" />
                   </tstamp>
                   <mkdir dir="${project.build.outputDirectory}" />
-                  <exec executable="bzr" outputproperty="revision" failifexecutionfails="false">
-                    <arg value="revno" />
-                    <arg value="--tree" />
+                  <exec executable="git" outputproperty="revision" failifexecutionfails="false">
+                    <arg value="rev-parse" />
+                    <arg value="--short" />
+                    <arg value="HEAD" />
                   </exec>
                   <echo file="${project.build.outputDirectory}/build.properties"
                     message="build.version = ${project.version}&#10;build.time = ${now}&#10;build.revision = ${revision}&#10;jasperreports.version = ${jasperreports.version}&#10;" />
