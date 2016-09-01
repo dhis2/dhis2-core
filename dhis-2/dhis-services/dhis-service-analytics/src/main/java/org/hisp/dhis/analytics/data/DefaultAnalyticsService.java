@@ -180,6 +180,35 @@ public class DefaultAnalyticsService
             getAggregatedDataValues( params );
     }
 
+    @Override
+    public Grid getAggregatedDataValues( AnalyticalObject object )
+    {
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+
+        return getAggregatedDataValues( params );
+    }
+
+    @Override
+    public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
+    {
+        Grid grid = getAggregatedDataValues( DataQueryParams.newBuilder( params )
+            .withIncludeNumDen( false ).build() );
+
+        return AnalyticsUtils.getAggregatedDataValueMapping( grid );
+    }
+
+    @Override
+    public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
+    {
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+
+        return getAggregatedDataValueMapping( params );
+    }
+
+    // -------------------------------------------------------------------------
+    // Private business logic methods
+    // -------------------------------------------------------------------------
+
     /**
      * Returns a grid with aggregated data.
      *
@@ -793,31 +822,6 @@ public class DefaultAnalyticsService
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
 
         return reportTable.getGrid( new ListGrid( grid.getMetaData() ), valueMap, params.getDisplayProperty(), false );
-    }
-
-    @Override
-    public Grid getAggregatedDataValues( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
-
-        return getAggregatedDataValues( params );
-    }
-
-    @Override
-    public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
-    {
-        Grid grid = getAggregatedDataValues( DataQueryParams.newBuilder( params )
-            .withIncludeNumDen( false ).build() );
-
-        return AnalyticsUtils.getAggregatedDataValueMapping( grid );
-    }
-
-    @Override
-    public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
-
-        return getAggregatedDataValueMapping( params );
     }
 
     // -------------------------------------------------------------------------
