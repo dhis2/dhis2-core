@@ -913,6 +913,8 @@ public class TableAlteror
 
         executeSql( "alter table datastatisticsevent alter column eventtype type character varying" );
         executeSql( "alter table orgunitlevel drop constraint orgunitlevel_name_key" );
+        
+        executeSql( "update interpretation set likes = 0 where likes is null" );
 
         updateEnums();
 
