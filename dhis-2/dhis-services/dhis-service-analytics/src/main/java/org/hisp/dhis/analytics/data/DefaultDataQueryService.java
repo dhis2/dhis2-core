@@ -119,7 +119,7 @@ public class DefaultDataQueryService
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
         String measureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit,
         boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, 
-        IdentifiableProperty outputIdScheme, IdScheme inputIdScheme, OutputFormat outputFormat,
+        IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
         String approvalLevel, Date relativePeriodDate, String userOrgUnit )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -127,7 +127,6 @@ public class DefaultDataQueryService
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
-        outputFormat = ObjectUtils.firstNonNull( outputFormat, OutputFormat.ANALYTICS );
 
         if ( dimensionParams != null && !dimensionParams.isEmpty() )
         {
@@ -157,7 +156,7 @@ public class DefaultDataQueryService
             .withIncludeNumDen( includeNumDen )
             .withDisplayProperty( displayProperty )
             .withOutputIdScheme( outputIdScheme )
-            .withOutputFormat( outputFormat )
+            .withOutputFormat( OutputFormat.ANALYTICS )
             .withApprovalLevel( approvalLevel ).build();
     }
 

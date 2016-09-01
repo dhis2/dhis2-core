@@ -29,7 +29,10 @@ package org.hisp.dhis.analytics;
  */
 
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
@@ -48,10 +51,13 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.util.Assert;
 
 import com.google.common.collect.Maps;
 
@@ -258,5 +264,40 @@ public class AnalyticsUtils
         }
 
         return map;
+    }
+
+    /**
+     * Generates a data value set based on the given grid with aggregated data.
+     * 
+     * @param grid the grid.
+     * @return a data value set.
+     */
+    public static DataValueSet getDataValueSetFromGrid( Grid grid )
+    {
+        int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
+        int peInx = grid.getIndexOfHeader( PERIOD_DIM_ID );
+        int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
+        int vlInx = grid.getWidth() - 1;
+        
+        Assert.isTrue( dxInx >= 0 );
+        Assert.isTrue( peInx >= 0 );
+        Assert.isTrue( ouInx >= 0 );
+        Assert.isTrue( vlInx >= 0 );
+        
+        DataValueSet dvs = new DataValueSet();
+        
+        for ( List<Object> row : grid.getRows() )
+        {
+            DataValue dv = new DataValue();
+            
+            dv.setDataElement( String.valueOf( row.get( dxInx ) ) );
+            dv.setPeriod( String.valueOf( row.get( peInx ) ) );
+            dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
+            dv.setValue( String.valueOf( row.get( vlInx ) ) );
+            
+            dvs.getDataValues().add( dv );
+        }
+        
+        return dvs;        
     }
 }

@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.DimensionItem;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
@@ -181,17 +182,19 @@ public class DefaultAnalyticsService
             getAggregatedDataValues( params );
     }
 
+    @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
         DataQueryParams query = DataQueryParams.newBuilder( params )
             .withSkipMeta( false )
-            .withSkipData( false ).build();
+            .withSkipData( false )
+            .withIncludeNumDen( false )
+            .withOutputFormat( OutputFormat.DATA_VALUE_SET )
+            .build();
         
         Grid grid = getAggregatedDataValueGridInternal( query );
-        
-        
-        
-        return null;
+                
+        return AnalyticsUtils.getDataValueSetFromGrid( grid );
     }
     
     @Override

@@ -1075,12 +1075,8 @@ public class QueryPlannerTest
         queryPlanner.validate( params );
     }
 
-    /**
-     * Query must contain an organisation unit dimension when output format is
-     * DATA_VALUE_SET.
-     */
     @Test( expected = IllegalQueryException.class )
-    public void validateFailureOutputFormatDataValueSet()
+    public void validateMissingOrgUnitDimensionOutputFormatDataValueSet()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )

@@ -162,14 +162,19 @@ public class DefaultQueryPlanner
         
         if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {
-            if ( !params.hasDimensionOrFilter( DATA_X_DIM_ID ) )
+            if ( !params.hasDimension( DATA_X_DIM_ID ) )
             {
-                violation = "A data dimension (dx) must be specified when output format is DATA_VALUE_SET";
+                violation = "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET";
+            }
+            
+            if ( !params.hasDimension( PERIOD_DIM_ID ) )
+            {
+                violation = "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET";
             }
                         
-            if ( !params.hasDimensionOrFilter( ORGUNIT_DIM_ID ) )
+            if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
-                violation = "An organisation unit (ou) dimension must be specified when output format is DATA_VALUE_SET";
+                violation = "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET";
             }
         }
 
