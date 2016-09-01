@@ -183,6 +183,14 @@ public class DefaultAnalyticsService
 
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withSkipMeta( false )
+            .withSkipData( false ).build();
+        
+        Grid grid = getAggregatedDataValueGridInternal( query );
+        
+        
+        
         return null;
     }
     
