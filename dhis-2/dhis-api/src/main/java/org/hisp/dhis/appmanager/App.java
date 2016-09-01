@@ -78,6 +78,8 @@ public class App
 
     private String baseUrl;
 
+    private String contextPath;
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -89,6 +91,7 @@ public class App
      */
     public void init( String contextPath )
     {
+	this.contextPath = contextPath;
         this.baseUrl = contextPath + "/api/apps";
 
         if ( contextPath != null && folderName != null && launchPath != null )
@@ -105,6 +108,8 @@ public class App
     {
         return folderName;
     }
+
+
 
     // -------------------------------------------------------------------------
     // Get and set methods
@@ -261,6 +266,10 @@ public class App
     public void setBaseUrl( String baseUrl )
     {
         this.baseUrl = baseUrl;
+    }
+
+    public String getContextPath() {
+	return this.contextPath;
     }
 
     // -------------------------------------------------------------------------
