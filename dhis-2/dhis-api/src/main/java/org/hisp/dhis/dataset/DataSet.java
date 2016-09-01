@@ -442,8 +442,8 @@ public class DataSet
     {
         if ( period != null )
         {
-            return ( startDate == null || startDate.compareTo( period.getStartDate() ) <= 0 )
-                && ( endDate == null || endDate.compareTo( period.getEndDate() ) >= 0 );
+            return (startDate == null || startDate.compareTo( period.getStartDate() ) <= 0)
+                && (endDate == null || endDate.compareTo( period.getEndDate() ) >= 0);
         }
 
         return true;
@@ -606,6 +606,7 @@ public class DataSet
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = -Double.MIN_VALUE )
     public int getExpiryDays()
     {
         return expiryDays;
