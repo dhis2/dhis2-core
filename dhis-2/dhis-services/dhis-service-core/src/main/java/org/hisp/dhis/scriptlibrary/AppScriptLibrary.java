@@ -40,8 +40,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -61,7 +64,6 @@ import org.hisp.dhis.datavalue.DefaultDataValueService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scriptlibrary.ScriptLibrary;
 import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -102,9 +104,9 @@ public class AppScriptLibrary implements ScriptLibrary
         {
             locations = Lists.newArrayList (
                             resourceLoader.getResource ( "file:" + appManager.getAppFolderPath() + "/" + appKey   + "/" ),
-                            resourceLoader.getResource ( "classpath*:/apps/" + appKey + "/" ),
+                            resourceLoader.getResource ( "classpath*:/apps/" + appKey + "/" )
 //                            resourceLoader.getResource ( "/apps/" + appKey + "/"   )
-                        );
+		);
 
             for ( Resource location : locations )
             {
@@ -128,30 +130,21 @@ public class AppScriptLibrary implements ScriptLibrary
         }
     }
 
-    protected JsonObject loadDependencies()
-    {
-        try
-        {
-            JsonObject deps = ( JsonObject )  retrieveManifestInfo (  "script-library/dependencies".split ( "/" ) );
-            return deps;
-        }
 
-        catch ( Exception e )
-        {
-            return Json.createObjectBuilder().build(); //return empty
-        }
-
+    public App getApp() {
+	return app;
     }
 
-    protected App getApp(String appName) {
-	return  appManager(appName,this.app.getContextPath());	    
+    public App getApp(String appName) {
+	return  appManager.getApp(appName,this.app.getContextPath());	    
     }
 
     protected Map<String, ScriptLibrary> scriptLibraries = new HashMap<String, ScriptLibrary>();
     protected Map<String, App> apps = new HashMap<String, App>();
-    protected ScriptLibrary getScriptLibrary ( String key )
+
+
+    public ScriptLibrary getScriptLibrary ( String key )
     {
-        String key = app.getKey();
 
         if ( scriptLibraries.containsKey ( key ) )
         {
@@ -160,7 +153,7 @@ public class AppScriptLibrary implements ScriptLibrary
 
         else
         {
-            ScriptLibrary sl =  new AppScriptLibrary ( getApp(depAppName), appManager );
+            ScriptLibrary sl =  new AppScriptLibrary ( getApp(key), appManager );
             scriptLibraries.put ( key, sl );
             return sl;
         }
@@ -176,7 +169,7 @@ public class AppScriptLibrary implements ScriptLibrary
 		String depResource = depAppName.substring(depAppName.indexOf("/") + 1);
 		depAppName = depAppName.substring(0,depAppName.indexOf("/") - 1);
 		ScriptLibrary depAppLib = getScriptLibrary(depAppName);
-		Resource r = depAppLib.findReource(depResource);
+		Resource r = depAppLib.findResource(depResource);
 		return ( r != null );
 	    } 
 	    else 
@@ -203,7 +196,7 @@ public class AppScriptLibrary implements ScriptLibrary
 		String depResource = depAppName.substring(depAppName.indexOf("/") + 1);
 		depAppName = depAppName.substring(0,depAppName.indexOf("/") - 1);
 		ScriptLibrary depAppLib = getScriptLibrary(depAppName);
-		Resource r = depAppLib.findReource(depResource);
+		Resource r = depAppLib.findResource(depResource);
 		return new InputStreamReader ( r.getInputStream() );
 		
 	    } 
@@ -220,13 +213,41 @@ public class AppScriptLibrary implements ScriptLibrary
         }
     }
 
+
+    public String[] retrieveDirectDependencies(String script) 
+    {
+        try
+        {
+            JsonObject deps = ( JsonObject )  retrieveManifestInfo (  "script-library/dependencies".split ( "/" ) );
+	    ArrayList<String> sdeps  = new ArrayList();
+	    for (Object o : deps.getJsonArray(script)) {
+		String dep;
+		if (o instanceof JsonString) {
+		    dep = ((JsonString) o).getString();
+		} else if (o instanceof String) {
+		    dep = (String) o;
+		} else {
+		    continue;
+		}
+		sdeps.add(dep);
+	    }
+	    return sdeps.toArray ( new String[sdeps.size()] );
+        }
+
+        catch ( Exception e )
+        {
+            return new String[0];
+        }
+
+    }
+
+    
     public String[] retrieveDependencies ( String name )
     {
 	try {
-	    JsonObject rDeps = loadDependencies().getJsonArray(name);
-	    Stack<String> deps = new Stacks<String>();
-	    deps.addAll ( rDeps);
-	    ArrayList seen = new ArrayList();
+	    Stack<String> deps = new Stack<String>();
+	    deps.addAll ( Arrays.asList(retrieveDirectDependencies(name)));
+	    ArrayList<String> seen = new ArrayList();
 	    seen.add(name);
 
 	    while ( ! deps.isEmpty() )
@@ -249,35 +270,27 @@ public class AppScriptLibrary implements ScriptLibrary
 		    depResource = name;
 		}
 
-		if (  ! depAppLib.containsScript ( depResouce ) )
+		if (  ! depAppLib.containsScript ( depResource ) )
 		{
-		    throw new ScriptNotFoundException ( "Script " + depReource + " not found in script library [" + name + "]" );
+		    throw new ScriptNotFoundException ( "Script " + depResource + " not found in script library [" + name + "]" );
 		} 
 		
 		
-		Object[] = newDeps = depAppLib.loadDependencies().getJsonArray(depReource);
-		for (Object newDep :  newDeps)  {
-		    String appDep;
-		    if (newDep instanceof JsonString) {
-			appDep = newDep.getString();
-		    } else  if ( newDep instanceof String) {
-			appDep = (String) newDep;
-		    } else {
-			continue;
-		    }
-		    if (!appDep.startWith("/apps/") && depAppName != null) 
+		String[] newDeps = depAppLib.retrieveDirectDependencies(depResource);
+		for (String newDep :  newDeps)  {
+		    if ( (!newDep.startsWith("/apps/")) && depAppName != null) 
 		    {
-			appDep ="/apps/" + depAppName + "/" appDep;
+			newDep = "/apps/" + depAppName + "/" + newDep;
 		    } 
-		    if (seen.contains(appDep)) {
+		    if (seen.contains(newDep)) {
 			continue;
 		    } 
-		    deps.add(appDep);
+		    deps.add(newDep);
 
 		}
 	    }
 	    Collections.reverse(seen);
-	    seen.pop(); //ger rid of the starting script	    
+	    seen.remove(seen.size()); //ger rid of the starting script	    
 	    return seen.toArray ( new String[seen.size()] );
 	}
 
