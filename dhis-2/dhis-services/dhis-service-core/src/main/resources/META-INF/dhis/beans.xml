@@ -347,6 +347,19 @@
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.scriptlibrary.JSClassFilter" class="org.hisp.dhis.scriptlibrary.JSClassFilter">
+    <property name="blacklist">
+      <list>
+	<value>java.io.File</value>
+	<value>java.sql</value>
+	<value>javax.sql</value>
+	<value>javax.script.ScriptEngine</value>
+	<value>javax.script.ScriptEngineManager</value>
+	<value>java.lang.Runtime</value>
+      </list>
+    </property>
+  </bean>
+
   <bean id="org.hisp.dhis.user.UserStore" class="org.hisp.dhis.user.hibernate.HibernateUserStore">
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="clazz" value="org.hisp.dhis.user.User" />

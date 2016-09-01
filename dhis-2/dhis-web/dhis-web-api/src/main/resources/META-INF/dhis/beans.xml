@@ -4,5 +4,17 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 	
   <bean id="contextUtils" class="org.hisp.dhis.webapi.utils.ContextUtils"/>  
+  <bean id="org.hisp.dhis.webapi.service.DefaultEngineBuilder" class="org.hisp.dhis.webapi.service.DefaultEngineBuilder">
+    <property name="engines">
+      <map>
+        <entry>
+          <key>
+            <value>js</value>
+          </key>
+          <value>nashorn</value>
+        </entry>
+      </map>
+    </property>
+  </bean>
 
 </beans>
