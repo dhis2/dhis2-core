@@ -55,6 +55,7 @@ import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
@@ -268,6 +269,7 @@ public class AnalyticsUtils
 
     /**
      * Generates a data value set based on the given grid with aggregated data.
+     * Sets the created and last updated fields to the current date.
      * 
      * @param grid the grid.
      * @return a data value set.
@@ -284,6 +286,8 @@ public class AnalyticsUtils
         Assert.isTrue( ouInx >= 0 );
         Assert.isTrue( vlInx >= 0 );
         
+        String created = DateUtils.getMediumDateString();
+        
         DataValueSet dvs = new DataValueSet();
         
         for ( List<Object> row : grid.getRows() )
@@ -294,6 +298,8 @@ public class AnalyticsUtils
             dv.setPeriod( String.valueOf( row.get( peInx ) ) );
             dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
             dv.setValue( String.valueOf( row.get( vlInx ) ) );
+            dv.setCreated( created );
+            dv.setLastUpdated( created );
             
             dvs.getDataValues().add( dv );
         }
