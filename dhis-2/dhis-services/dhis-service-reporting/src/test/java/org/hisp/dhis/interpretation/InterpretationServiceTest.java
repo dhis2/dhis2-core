@@ -220,14 +220,9 @@ public class InterpretationServiceTest
         assertEquals( 1, interpretationA.getLikes() );
         assertEquals( 1, interpretationA.getLikedBy().size() );
 
-        interpretationService.likeInterpretation( idA );
-
-        assertEquals( 2, interpretationA.getLikes() );
-        assertEquals( 2, interpretationA.getLikedBy().size() );
-
         interpretationService.unlikeInterpretation( idA );
 
-        assertEquals( 1, interpretationA.getLikes() );
-        assertEquals( 1, interpretationA.getLikedBy().size() );
+        assertEquals( 0, interpretationA.getLikes() );
+        assertEquals( 0, interpretationA.getLikedBy().size() );
     }
 }
