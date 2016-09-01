@@ -213,7 +213,7 @@ public class InterpretationServiceTest
         interpretationService.saveInterpretation( interpretationB );
         
         assertEquals( 0, interpretationA.getLikes() );
-        assertEquals( 0, interpretationA.getLikedBy() );
+        assertEquals( 0, interpretationA.getLikedBy().size() );
         
         interpretationService.likeInterpretation( idA );
 
