@@ -356,4 +356,54 @@ public class InterpretationController
 
         interpretationService.updateInterpretation( interpretation );
     }
+
+    // -------------------------------------------------------------------------
+    // Likes
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/{uid}/like", method = RequestMethod.POST )
+    public void like( @PathVariable( "uid" ) String uid,
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    {
+        Interpretation interpretation = interpretationService.getInterpretation( uid );
+
+        if ( interpretation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Interpretation does not exist: " + uid ) );
+        }
+
+        boolean like = interpretationService.likeInterpretation( interpretation.getId() );
+        
+        if ( like )
+        {
+            webMessageService.send( WebMessageUtils.created( "Like added to interpretation" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.conflict( "Could not add like, user had already liked interpretation" ), response, request );
+        }
+    }
+
+    @RequestMapping( value = "/{uid}/like", method = RequestMethod.DELETE )
+    public void unlike( @PathVariable( "uid" ) String uid,
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    {
+        Interpretation interpretation = interpretationService.getInterpretation( uid );
+
+        if ( interpretation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Interpretation does not exist: " + uid ) );
+        }
+
+        boolean like = interpretationService.unlikeInterpretation( interpretation.getId() );
+        
+        if ( like )
+        {
+            webMessageService.send( WebMessageUtils.created( "Like removed from interpretation" ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.conflict( "Could not remove like, user had not previously liked interpretation" ), response, request );
+        }
+    }    
 }

@@ -205,4 +205,29 @@ public class InterpretationServiceTest
 
         assertEquals( 3, count );
     }
+    
+    @Test
+    public void testLikeInterpretation()
+    {
+        int idA = interpretationService.saveInterpretation( interpretationA );
+        interpretationService.saveInterpretation( interpretationB );
+        
+        assertEquals( 0, interpretationA.getLikes() );
+        assertEquals( 0, interpretationA.getLikedBy() );
+        
+        interpretationService.likeInterpretation( idA );
+
+        assertEquals( 1, interpretationA.getLikes() );
+        assertEquals( 1, interpretationA.getLikedBy().size() );
+
+        interpretationService.likeInterpretation( idA );
+
+        assertEquals( 2, interpretationA.getLikes() );
+        assertEquals( 2, interpretationA.getLikedBy().size() );
+
+        interpretationService.unlikeInterpretation( idA );
+
+        assertEquals( 1, interpretationA.getLikes() );
+        assertEquals( 1, interpretationA.getLikedBy().size() );
+    }
 }
