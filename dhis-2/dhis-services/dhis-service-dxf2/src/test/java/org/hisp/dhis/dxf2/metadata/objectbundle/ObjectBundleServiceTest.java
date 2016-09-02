@@ -274,8 +274,6 @@ public class ObjectBundleServiceTest
 
         assertFalse( validate.getTypeReportMap().isEmpty() );
 
-        System.err.println( "V: " + validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5002 ) );
-
         assertEquals( 5, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5002 ).size() );
         assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E4000 ).size() );
     }
@@ -1380,6 +1378,36 @@ public class ObjectBundleServiceTest
 
         assertNotNull( section1.getDataSet() );
         assertNotNull( section2.getDataSet() );
+    }
+
+    @Test
+    public void testCreateOrgUnitWithPersistedParent() throws IOException
+    {
+        OrganisationUnit parentOu = createOrganisationUnit( 'A' );
+        parentOu.setUid( "ImspTQPwCqd" );
+        manager.save( parentOu );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/orgunit_create_with_persisted_parent.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleValidationService.validate( bundle );
+        objectBundleService.commit( bundle );
+
+        assertEquals( 3, manager.getAll( OrganisationUnit.class ).size() );
+
+        assertNull( manager.get( OrganisationUnit.class, "ImspTQPwCqd" ).getParent() );
+
+        assertNotNull( manager.get( OrganisationUnit.class, "bFzxXwTkSWA" ).getParent() );
+        assertEquals( "ImspTQPwCqd", manager.get( OrganisationUnit.class, "bFzxXwTkSWA" ).getParent().getUid() );
+
+        assertNotNull( manager.get( OrganisationUnit.class, "B8eJEMldsP7" ).getParent() );
+        assertEquals( "bFzxXwTkSWA", manager.get( OrganisationUnit.class, "B8eJEMldsP7" ).getParent().getUid() );
     }
 
     private void defaultSetup()

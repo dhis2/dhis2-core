@@ -45,7 +45,7 @@ public interface ObjectBundleHook
     <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
 
     <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
-
+    
     <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle );
 
     <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle );
