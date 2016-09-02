@@ -1381,7 +1381,6 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    @Ignore
     public void testCreateOrgUnitWithPersistedParent() throws IOException
     {
         OrganisationUnit parentOu = createOrganisationUnit( 'A' );
