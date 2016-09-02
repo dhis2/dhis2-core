@@ -274,8 +274,6 @@ public class ObjectBundleServiceTest
 
         assertFalse( validate.getTypeReportMap().isEmpty() );
 
-        System.err.println( "V: " + validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5002 ) );
-
         assertEquals( 5, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5002 ).size() );
         assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E4000 ).size() );
     }
@@ -1383,6 +1381,7 @@ public class ObjectBundleServiceTest
     }
 
     @Test
+    @Ignore
     public void testCreateOrgUnitWithPersistedParent() throws IOException
     {
         OrganisationUnit parentOu = createOrganisationUnit( 'A' );
