@@ -28,16 +28,13 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.junit.Test;
 
 import javax.annotation.Resource;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

@@ -28,34 +28,15 @@ package org.hisp.dhis.trackedentity.action.programindicatorgroup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
+import java.util.Collections;
+import java.util.List;
+
 import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
-import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Viet Nguyen

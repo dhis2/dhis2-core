@@ -32,15 +32,11 @@ import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 /**
  * @author Viet Nguyen
  */
-
 public class ValidateProgramIndicatorGroupAction
     implements Action
 {

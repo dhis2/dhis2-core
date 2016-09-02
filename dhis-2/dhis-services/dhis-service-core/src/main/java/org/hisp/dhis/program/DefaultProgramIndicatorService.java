@@ -31,8 +31,6 @@ package org.hisp.dhis.program;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
@@ -55,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -617,7 +614,6 @@ public class DefaultProgramIndicatorService
     @Transactional
     public int addProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
     {
-        System.out.println( "[service] programIndicatorGroup = " + programIndicatorGroup );
         return programIndicatorGroupStore.save( programIndicatorGroup );
     }
 

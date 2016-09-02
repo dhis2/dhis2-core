@@ -30,17 +30,12 @@ package org.hisp.dhis.trackedentity.action.programindicatorgroup;
 
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;

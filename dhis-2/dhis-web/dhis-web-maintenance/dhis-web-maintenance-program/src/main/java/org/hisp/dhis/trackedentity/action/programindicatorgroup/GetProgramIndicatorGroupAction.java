@@ -33,16 +33,11 @@ import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Viet Nguyen

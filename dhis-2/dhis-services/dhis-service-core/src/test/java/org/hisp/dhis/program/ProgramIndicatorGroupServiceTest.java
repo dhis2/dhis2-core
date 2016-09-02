@@ -33,8 +33,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

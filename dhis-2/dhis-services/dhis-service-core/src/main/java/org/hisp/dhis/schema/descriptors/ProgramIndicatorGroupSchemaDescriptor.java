@@ -34,7 +34,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

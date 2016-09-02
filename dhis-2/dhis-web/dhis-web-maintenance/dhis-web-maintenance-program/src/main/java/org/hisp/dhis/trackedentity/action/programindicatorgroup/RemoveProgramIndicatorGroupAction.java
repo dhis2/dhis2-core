@@ -31,8 +31,6 @@ package org.hisp.dhis.trackedentity.action.programindicatorgroup;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
