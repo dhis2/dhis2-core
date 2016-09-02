@@ -377,6 +377,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String approvalLevel,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String columns,
+        @RequestParam( required = false ) String rows,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -408,6 +410,8 @@ public class AnalyticsController
         @RequestParam( required = false ) String approvalLevel,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String columns,
+        @RequestParam( required = false ) String rows,
         Model model,
         HttpServletResponse response ) throws Exception
     {

@@ -227,7 +227,7 @@ public class DataValueSet
     }
 
     @JsonProperty( value = "dataValues" )
-    @JacksonXmlElementWrapper( localName = "dataValues", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "dataValues", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataValue> getDataValues()
     {
