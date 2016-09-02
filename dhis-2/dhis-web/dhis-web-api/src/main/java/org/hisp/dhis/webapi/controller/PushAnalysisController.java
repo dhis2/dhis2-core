@@ -28,9 +28,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.IOUtils;
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
@@ -71,9 +68,6 @@ public class PushAnalysisController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
     private Scheduler scheduler;
 
     /**
@@ -98,12 +92,9 @@ public class PushAnalysisController
                 WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
         }
 
-        contextUtils
-            .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        // contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        IOUtils.write(
-            pushAnalysisService.generatePushAnalysisForUser( currentUserService.getCurrentUser(), pushAnalysis ),
-            response.getOutputStream() );
+        pushAnalysisService.renderPushAnalysis( pushAnalysis, currentUserService.getCurrentUser(), response.getWriter() );
     }
 
     @RequestMapping( value = "/{uid}/start", method = RequestMethod.GET )

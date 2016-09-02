@@ -28,8 +28,8 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -38,20 +38,22 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.velocity.VelocityManager;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -62,72 +64,26 @@ public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
 
+    @Autowired
     private ReportTableService reportTableService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
 
+    @Autowired
     private ChartService chartService;
 
+    @Autowired
     private I18nManager i18nManager;
 
     @Autowired
     private Notifier notifier;
-
-    public void setReportTableService( ReportTableService reportTableService )
-    {
-        this.reportTableService = reportTableService;
-    }
-
-    public ReportTableService getReportTableService()
-    {
-        return reportTableService;
-    }
-
-    public OrganisationUnitService getOrganisationUnitService()
-    {
-        return organisationUnitService;
-    }
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
-
-    public MessageSender getMessageSender()
-    {
-        return messageSender;
-    }
-
-    public void setMessageSender( MessageSender messageSender )
-    {
-        this.messageSender = messageSender;
-    }
-
-    public ChartService getChartService()
-    {
-        return chartService;
-    }
-
-    public void setChartService( ChartService chartService )
-    {
-        this.chartService = chartService;
-    }
-
-    public I18nManager getI18nManager()
-    {
-        return i18nManager;
-    }
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
-        this.i18nManager = i18nManager;
-    }
-
-    private List<DashboardItemType> supportedItemTypes = Lists
-        .newArrayList( DashboardItemType.MAP, DashboardItemType.CHART, DashboardItemType.REPORT_TABLE,
-            DashboardItemType.EVENT_CHART, DashboardItemType.EVENT_REPORT );
 
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
@@ -164,19 +120,23 @@ public class DefaultPushAnalysisService
 
         Set<User> receivingUsers = new HashSet<>();
 
-        for(UserGroup userGroup : pushAnalysis.getReceivingUserGroups())
+        for ( UserGroup userGroup : pushAnalysis.getReceivingUserGroups() )
         {
             receivingUsers.addAll( userGroup.getMembers() );
         }
 
-        for(User user : receivingUsers)
+        for ( User user : receivingUsers )
         {
             if ( user.hasEmail() )
             {
                 try
                 {
+                    StringWriter writer = new StringWriter();
+
+                    render( pushAnalysis, user, writer );
+
                     messageSender
-                        .sendMessage( pushAnalysis.getName(), generatePushAnalysisForUser( user, pushAnalysis ), "",
+                        .sendMessage( pushAnalysis.getName(), writer.toString(), "",
                             null, Sets.newHashSet( user ), true );
                 }
                 catch ( Exception e )
@@ -187,123 +147,69 @@ public class DefaultPushAnalysisService
         }
     }
 
-    public void runTask( PushAnalysis pushAnalysis )
-    {
-    }
-
     @Override
-    public String generatePushAnalysisForUser( User user, PushAnalysis pushAnalysis )
+    public void renderPushAnalysis( PushAnalysis pushAnalysis, User user, Writer writer )
         throws Exception
     {
-        return generatePushAnalysisHTML( user, pushAnalysis );
+        render( pushAnalysis, user, writer );
     }
 
-    private String generatePushAnalysisHTML( User user, PushAnalysis pushAnalysis )
+    private void render( PushAnalysis pushAnalysis, User user, Writer writer )
         throws Exception
     {
-        /**
-         * Note:
-         *
-         * Gmail strips head and doctype info, and ignores embedded css
-         * Inlining all css, and keeping head in case other clients support it.
-         *
-         **/
-        String result = "" +
-            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" +
-            "<html lang=\"en-GB\" xmlns=\"http://www.w3.org/1999/xhtml\"><head><title>" +
-            pushAnalysis.getName() +
-            "</title><meta name=\"viewport\" content=\"width=device-width\" />" +
-            "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>" +
-            "</head><body><table><tr><td></td><td style=\"max-width:600px!important;display:block!important;margin:0 auto!important;clear:both!important\"><div style=\"max-width:600px!important;padding:0!important;margin:0 auto\">" +
-            "<div style=\"overflow-x:scroll;width:300px;float:left;margin-bottom:20px;max-width:600px;min-width:300px;width:100%\"><table><tr><td>" +
-            "<h1>" + pushAnalysis.getName() + "</h1><p>" + pushAnalysis.getMessage() + "</p>" +
-            "</td></tr></table></div>";
+        user = (user != null ? user : currentUserService.getCurrentUser());
 
-        for ( DashboardItem dashboardItem : pushAnalysis.getDashboard().getItems() )
-        {
-            result += generateHTMLForItem( user, dashboardItem );
-        }
+        final VelocityContext context = new VelocityContext();
 
-        result += "</div></td><td></td></tr></table></body></html>";
+        context.put( "pushAnalysis", pushAnalysis );
+        context.put( "user", user );
+        context.put( "pushAnalysisService", this );
+        context.put( "reportTableService", reportTableService );
 
-        return result;
+        new VelocityManager().getEngine().getTemplate( "push-analysis-main-html.vm" ).merge( context, writer );
     }
 
-    private String generateHTMLForItem( User user, DashboardItem item )
-        throws Exception
+    // Used in vm templates (push-analysis-main-html.vm)
+    public String getItemDataUrl( DashboardItem item, User user )
     {
 
-        String res = "";
-
-        // Skip unsupported types (IE: messages, apps, etc)
-        if ( supportedItemTypes.contains( item.getType() ) )
+        // TODO: Temporary values; Will be replaced when image genrating and uploading is complete.
+        switch ( item.getType().name() )
         {
-            res +=
-                "<div style=\"overflow-x:auto;width:300px;float:left;margin-bottom:20px;max-width:600px;min-width:300px;width:100%\"><table><tr><td>" +
-                    generateHMTLForItemContent( user, item ) +
-                    "</td></tr></table></div>";
+        case "MAP":
+            return "/api/maps/" + item.getMap().getUid() + "/data.png?width=600";
+        case "CHART":
+            return "/api/charts/" + item.getChart().getUid() + "/data.png?width=600";
+        case "EVENT_CHART":
+            return "/api/eventCharts/" + item.getEventChart().getUid() + "/data.png?width=600";
+        default:
+            return "";
         }
-
-        return res;
     }
 
-    // TODO: Get absolute url for images
-    private String generateHMTLForItemContent( User user, DashboardItem item )
+    // Used in vm templates (push-analysis-main-html.vm)
+    public String getItemDataHtml( DashboardItem item, User user )
         throws Exception
     {
-        if ( item.getType() == DashboardItemType.MAP )
-        {
-            return "" +
-                "<h3>" + item.getMap().getDisplayName() + "</h3>" +
-                "<img src='/api/maps/" + item.getMap().getUid() + "/data.png?width=600' width='100%' alt='" +
-                item.getMap().getName() + "' />";
-        }
-        else if ( item.getType() == DashboardItemType.CHART )
-        {
-            return "" +
-                "<h3>" + item.getChart().getDisplayName() + "</h3>" +
-                "<img src='/api/charts/" + item.getChart().getUid() + "/data.png?width=600' width='100%' alt='" +
-                item.getChart().getName() + "' />";
-        }
-        else if ( item.getType() == DashboardItemType.EVENT_CHART )
-        {
-            chartService.getJFreeChart( item.getEventChart(), null, null, i18nManager.getI18nFormat() );
 
-            return "" +
-                "<h3>" + item.getEventChart().getDisplayName() + "</h3>" +
-                "<img src='/api/eventCharts/" + item.getEventChart().getUid() +
-                "/data.png?width=600' width='100%' alt='" +
-                item.getEventChart().getName() + "' />";
-        }
-        else if ( item.getType() == DashboardItemType.REPORT_TABLE )
+        if ( item.getType() == DashboardItemType.REPORT_TABLE )
         {
-            ReportTable reportTable = reportTableService.getReportTable( item.getReportTable().getUid() );
-
-            Date date = new Date();
-            String organisationUnitUid = null;
             StringWriter stringWriter = new StringWriter();
-
-            OrganisationUnit  userOrgUnit = user.getOrganisationUnit();
 
             GridUtils.toHtmlInlineCss(
                 reportTableService
-                    .getReportTableGridByUser( item.getReportTable().getUid(), date, userOrgUnit.getUid(), user ),
+                    .getReportTableGridByUser( item.getReportTable().getUid(), new Date(),
+                        user.getOrganisationUnit().getUid(), user ),
                 stringWriter
             );
 
             // Remove all newlines, R introduced in java 8 and covers all line break characters
             return stringWriter.toString().replaceAll( "\\R", "" );
         }
-        else if ( item.getType() == DashboardItemType.EVENT_REPORT )
-        {
-
-            // TODO: Implement event reports
-            return "";
-        }
         else
         {
+            // TODO: Add Event_report tables as well.
             return "";
         }
     }
-
 }
