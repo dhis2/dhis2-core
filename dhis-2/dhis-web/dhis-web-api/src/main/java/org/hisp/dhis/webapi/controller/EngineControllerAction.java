@@ -62,7 +62,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping (
-    value =  EngineControllerAction.PATH + "/{app}/"
+    value =  EngineControllerAction.PATH + "/{app}"
 )
 public class EngineControllerAction  extends EngineController
 {
@@ -101,8 +101,19 @@ public class EngineControllerAction  extends EngineController
         }
     }
 
+
+
     @RequestMapping (
-        value =   { "/{script}" , "/{script}/**/*"}
+	value =   { "/", "" , "index.js"}
+	)
+    public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
+                             @PathVariable ( "app" ) String appName) 
+    {
+	doIndex(appName,httpResponse,httpRequest);
+    }
+
+    @RequestMapping (
+        value =   { "/{script}", "/{script}" , "/{script}/**/*"}
     )
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
                              @PathVariable ( "app" ) String appName, @PathVariable ( "script" ) String script )
@@ -160,6 +171,9 @@ public class EngineControllerAction  extends EngineController
                 log.error ( "Script " + script + " in " + appName + " had a run time exception:\n" + engine.runException.toString()  , engine.runException );
                 throw engine.runException;
             }
+	    execContext.getOut().flush();
+	    execContext.getOut().close();
+
         }
 
         catch ( ScriptAccessException ea )
