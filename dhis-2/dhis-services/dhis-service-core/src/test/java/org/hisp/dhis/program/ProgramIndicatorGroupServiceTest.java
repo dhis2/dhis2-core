@@ -47,13 +47,11 @@ public class ProgramIndicatorGroupServiceTest
 
 
     private ProgramIndicatorGroup programIndicatorGroupA;
-    private ProgramIndicatorGroupSet programIndicatorGroupSetA;
 
     @Override
     public void setUpTest()
     {
         programIndicatorGroupA = new ProgramIndicatorGroup( "A" );
-        programIndicatorGroupSetA = new ProgramIndicatorGroupSet( "A" );
     }
 
     @Test
@@ -81,33 +79,6 @@ public class ProgramIndicatorGroupServiceTest
         service.deleteProgramIndicatorGroup( programIndicatorGroupA );
 
         assertEquals( null, service.getProgramIndicatorGroup( id ) );
-    }
-
-    @Test
-    public void testAddProgramIndicatorGroupSet()
-    {
-        service.addProgramIndicatorGroupSet( programIndicatorGroupSetA );
-        assertNotNull( programIndicatorGroupSetA.getUid() );
-    }
-
-    @Test
-    public void testUpdateProgramIndicatorGroupSet()
-    {
-        service.addProgramIndicatorGroupSet( programIndicatorGroupSetA );
-
-        programIndicatorGroupSetA.setName( "B" );
-
-        assertEquals( "B", service.getProgramIndicatorGroupSet( programIndicatorGroupSetA.getId() ).getName() );
-    }
-
-    @Test
-    public void testDeleteProgramIndicatorGroupSet()
-    {
-        int id = service.addProgramIndicatorGroupSet( programIndicatorGroupSetA );
-
-        service.deleteProgramIndicatorGroupSet( programIndicatorGroupSetA );
-
-        assertEquals( null, service.getProgramIndicatorGroupSet( id ) );
     }
 
 }
