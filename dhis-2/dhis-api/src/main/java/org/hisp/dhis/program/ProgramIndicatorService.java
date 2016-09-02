@@ -171,7 +171,7 @@ public interface ProgramIndicatorService
 
     List<ProgramIndicatorGroup> getAllProgramIndicatorGroups();
 
-    List<ProgramIndicatorGroup> getProgramIndicatorGroupByName( String name );
+    ProgramIndicatorGroup getProgramIndicatorGroupByName( String name );
 
     List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max );
 
@@ -181,33 +181,4 @@ public interface ProgramIndicatorService
 
     int getProgramIndicatorGroupCountByName( String name );
 
-    // -------------------------------------------------------------------------
-    // ProgramIndicatorGroupSet
-    // -------------------------------------------------------------------------
-
-    int addProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet );
-
-    void updateProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet );
-
-    void deleteProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet );
-
-    ProgramIndicatorGroupSet getProgramIndicatorGroupSet( int id );
-
-    ProgramIndicatorGroupSet getProgramIndicatorGroupSet( int id, boolean i18nGroups );
-
-    ProgramIndicatorGroupSet getProgramIndicatorGroupSet( String uid );
-
-    List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetByName( String name );
-
-    List<ProgramIndicatorGroupSet> getCompulsoryProgramIndicatorGroupSetsWithMembers();
-
-    List<ProgramIndicatorGroupSet> getAllProgramIndicatorGroupSets();
-
-    List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetsBetween( int first, int max );
-
-    List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetsBetweenByName( String name, int first, int max );
-
-    int getProgramIndicatorGroupSetCount();
-
-    int getProgramIndicatorGroupSetCountByName( String name );
 }

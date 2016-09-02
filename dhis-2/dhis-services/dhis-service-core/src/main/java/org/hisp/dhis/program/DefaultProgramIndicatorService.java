@@ -129,14 +129,6 @@ public class DefaultProgramIndicatorService
         this.programIndicatorGroupStore = programIndicatorGroupStore;
     }
 
-    private GenericIdentifiableObjectStore<ProgramIndicatorGroupSet> programIndicatorGroupSetStore;
-
-    public void setprogramIndicatorGroupSetStore( GenericIdentifiableObjectStore<ProgramIndicatorGroupSet> programIndicatorGroupSetStore )
-    {
-        this.programIndicatorGroupSetStore = programIndicatorGroupSetStore;
-    }
-
-
     @Autowired
     private I18nManager i18nManager;
 
@@ -622,21 +614,25 @@ public class DefaultProgramIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup )
+    @Transactional
+    public int addProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
     {
-        return programIndicatorGroupStore.save( ProgramIndicatorGroup );
+        System.out.println( "[service] programIndicatorGroup = " + programIndicatorGroup );
+        return programIndicatorGroupStore.save( programIndicatorGroup );
     }
 
     @Override
-    public void updateProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup )
+    @Transactional
+    public void updateProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
     {
-        programIndicatorGroupStore.update( ProgramIndicatorGroup );
+        programIndicatorGroupStore.update( programIndicatorGroup );
     }
 
     @Override
-    public void deleteProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup )
+    @Transactional
+    public void deleteProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
     {
-        programIndicatorGroupStore.delete( ProgramIndicatorGroup );
+        programIndicatorGroupStore.delete( programIndicatorGroup );
     }
 
     @Override
@@ -671,9 +667,9 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public List<ProgramIndicatorGroup> getProgramIndicatorGroupByName( String name )
+    public ProgramIndicatorGroup getProgramIndicatorGroupByName( String name )
     {
-        return new ArrayList<>( programIndicatorGroupStore.getAllEqName( name ) );
+        return programIndicatorGroupStore.getByName( name );
     }
 
     @Override
@@ -700,99 +696,5 @@ public class DefaultProgramIndicatorService
         return programIndicatorGroupStore.getAllLikeName( name, first, max );
     }
 
-    // -------------------------------------------------------------------------
-    // ProgramIndicatorGroupSet
-    // -------------------------------------------------------------------------
 
-    @Override
-    public int addProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet )
-    {
-        return programIndicatorGroupSetStore.save( groupSet );
-    }
-
-    @Override
-    public void updateProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet )
-    {
-        programIndicatorGroupSetStore.update( groupSet );
-    }
-
-    @Override
-    public void deleteProgramIndicatorGroupSet( ProgramIndicatorGroupSet groupSet )
-    {
-        programIndicatorGroupSetStore.delete( groupSet );
-    }
-
-    @Override
-    public ProgramIndicatorGroupSet getProgramIndicatorGroupSet( int id )
-    {
-        return programIndicatorGroupSetStore.get( id );
-    }
-
-    @Override
-    public ProgramIndicatorGroupSet getProgramIndicatorGroupSet( int id, boolean i18nGroups )
-    {
-        ProgramIndicatorGroupSet groupSet = getProgramIndicatorGroupSet( id );
-
-        if ( i18nGroups )
-        {
-            groupSet.getMembers();
-        }
-
-        return groupSet;
-    }
-
-    @Override
-    public ProgramIndicatorGroupSet getProgramIndicatorGroupSet( String uid )
-    {
-        return programIndicatorGroupSetStore.getByUid( uid );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetByName( String name )
-    {
-        return new ArrayList<>( programIndicatorGroupSetStore.getAllEqName( name ) );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroupSet> getCompulsoryProgramIndicatorGroupSetsWithMembers()
-    {
-        return FilterUtils.filter( getAllProgramIndicatorGroupSets(), new Filter<ProgramIndicatorGroupSet>()
-        {
-            @Override
-            public boolean retain( ProgramIndicatorGroupSet object )
-            {
-                return object.isCompulsory() && object.hasProgramIndicatorGroups();
-            }
-        } );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroupSet> getAllProgramIndicatorGroupSets()
-    {
-        return programIndicatorGroupSetStore.getAll();
-    }
-
-    @Override
-    public int getProgramIndicatorGroupSetCount()
-    {
-        return programIndicatorGroupSetStore.getCount();
-    }
-
-    @Override
-    public int getProgramIndicatorGroupSetCountByName( String name )
-    {
-        return  programIndicatorGroupSetStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetsBetween( int first, int max )
-    {
-        return programIndicatorGroupSetStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<ProgramIndicatorGroupSet> getProgramIndicatorGroupSetsBetweenByName( String name, int first, int max )
-    {
-        return programIndicatorGroupSetStore.getAllLikeName( name, first, max );
-    }
 }

@@ -15,7 +15,8 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="false" length="230" />
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+    <property name="description" column="description"  type="text" />
 
     <set name="members" table="programindicatorgroupmembers">
       <cache usage="read-write" />
@@ -54,11 +55,6 @@
       <key column="programindicatorgroupid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
-
-    <join table="programindicatorgroupsetmembers" inverse="true">
-      <key column="programindicatorgroupid" />
-      <many-to-one column="programindicatorgroupsetid" name="groupSet" />
-    </join>
 
   </class>
 

@@ -58,20 +58,11 @@ public class ProgramIndicatorGroupStoreTest
         this.programIndicatorGroupStore = programIndicatorGroupStore;
     }
 
-    @Resource(name="org.hisp.dhis.program.ProgramIndicatorGroupSetStore")
-    private GenericIdentifiableObjectStore<ProgramIndicatorGroupSet> programIndicatorGroupSetStore;
-
-    public void setIndicatorGroupSetStore( GenericIdentifiableObjectStore<ProgramIndicatorGroupSet> programIndicatorGroupSetStore )
-    {
-        this.programIndicatorGroupSetStore = programIndicatorGroupSetStore;
-    }
     // -----------------------------------------------------
     // Variables
     // -----------------------------------------------------
 
     private ProgramIndicatorGroup programIndicatorGroupA;
-
-    private ProgramIndicatorGroupSet programIndicatorGroupSetA;
 
     // -----------------------------------------------------
     // Set up test
@@ -81,7 +72,6 @@ public class ProgramIndicatorGroupStoreTest
     protected void setUpTest() throws Exception
     {
         programIndicatorGroupA = new ProgramIndicatorGroup( "A" );
-        programIndicatorGroupSetA = new ProgramIndicatorGroupSet( "A" );
     }
 
     // -----------------------------------------------------
@@ -117,33 +107,5 @@ public class ProgramIndicatorGroupStoreTest
 
     }
 
-    @Test
-    public void testCreateProgramIndicatorGroupSet()
-    {
-        programIndicatorGroupSetStore.save( programIndicatorGroupSetA );
-        assertNotNull( programIndicatorGroupSetA.getUid() );
-    }
-
-    @Test
-    public void testUpdateProgramIndicatorGroupSet()
-    {
-        programIndicatorGroupSetStore.save( programIndicatorGroupSetA );
-
-        programIndicatorGroupSetA.setName( "B" );
-        programIndicatorGroupSetStore.save( programIndicatorGroupSetA );
-
-        assertEquals( "B", programIndicatorGroupSetA.getName() );
-    }
-
-    @Test
-    public void testDeleteProgramIndicatorGroupSet()
-    {
-        int id = programIndicatorGroupSetStore.save( programIndicatorGroupSetA );
-
-        programIndicatorGroupSetStore.delete( programIndicatorGroupSetA );
-
-        assertNull( programIndicatorGroupSetStore.get( id ) );
-
-    }
 }
 

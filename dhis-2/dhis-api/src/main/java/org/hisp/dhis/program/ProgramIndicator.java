@@ -42,7 +42,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.indicator.IndicatorGroup;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -260,6 +259,11 @@ public class ProgramIndicator
     public Set<ProgramIndicatorGroup> getGroups()
     {
         return groups;
+    }
+
+    public void setGroups( Set<ProgramIndicatorGroup> groups )
+    {
+        this.groups = groups;
     }
 
     @Override

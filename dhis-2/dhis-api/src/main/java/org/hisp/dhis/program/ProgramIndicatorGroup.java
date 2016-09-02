@@ -39,8 +39,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,14 +47,14 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+
 @JacksonXmlRootElement( localName = "programIndicatorGroup", namespace = DxfNamespaces.DXF_2_0)
 public class ProgramIndicatorGroup
     extends BaseIdentifiableObject
 {
     private Set<ProgramIndicator> members = new HashSet<>();
 
-    private ProgramIndicatorGroupSet groupSet;
-
+    private String description;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -115,11 +114,17 @@ public class ProgramIndicatorGroup
     // Getters and setters
     // -------------------------------------------------------------------------
 
-
-    @Override
-    public boolean haveUniqueNames()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 1 )
+    public String getDescription()
     {
-        return false;
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
     }
 
     @JsonProperty( "programIndicators" )
@@ -136,20 +141,6 @@ public class ProgramIndicatorGroup
         this.members = members;
     }
 
-    @JsonProperty( "programIndicatorGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "programIndicatorGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Required.FALSE )
-    public ProgramIndicatorGroupSet getGroupSet()
-    {
-        return groupSet;
-    }
-
-    public void setGroupSet( ProgramIndicatorGroupSet groupSet )
-    {
-        this.groupSet = groupSet;
-    }
-
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -161,11 +152,13 @@ public class ProgramIndicatorGroup
 
             if ( mergeMode.isReplace() )
             {
-                groupSet = indicatorGroup.getGroupSet();
+                this.name = indicatorGroup.getName();
+                this.description = indicatorGroup.getDescription();
             }
             else if ( mergeMode.isMerge() )
             {
-                groupSet = indicatorGroup.getGroupSet() == null ? groupSet : indicatorGroup.getGroupSet();
+                this.name = indicatorGroup.getName() == null ? this.name : indicatorGroup.getName();
+                this.description = indicatorGroup.getDescription() == null ? this.description : indicatorGroup.getDescription();
             }
 
             removeAllIndicators();
