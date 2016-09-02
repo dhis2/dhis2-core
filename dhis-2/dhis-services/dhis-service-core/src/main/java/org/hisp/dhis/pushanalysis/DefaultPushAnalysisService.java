@@ -157,6 +157,7 @@ public class DefaultPushAnalysisService
     private void render( PushAnalysis pushAnalysis, User user, Writer writer )
         throws Exception
     {
+        StringWriter stringWriter = new StringWriter();
         user = (user != null ? user : currentUserService.getCurrentUser());
 
         final VelocityContext context = new VelocityContext();
@@ -166,7 +167,9 @@ public class DefaultPushAnalysisService
         context.put( "pushAnalysisService", this );
         context.put( "reportTableService", reportTableService );
 
-        new VelocityManager().getEngine().getTemplate( "push-analysis-main-html.vm" ).merge( context, writer );
+        new VelocityManager().getEngine().getTemplate( "push-analysis-main-html.vm" ).merge( context, stringWriter );
+
+        writer.write( stringWriter.toString().replaceAll( "\\R", "" ) );
     }
 
     // Used in vm templates (push-analysis-main-html.vm)
