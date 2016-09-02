@@ -41,6 +41,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
 import javax.json.JsonStructure;
 import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
@@ -301,25 +302,51 @@ public class EngineControllerDSTU3 extends EngineController
         {
             String script = null;
             String op = null;
-            String r = null;
             log.info ( "Checking " + value.toString() );
 
             try
             {
                 op = ( ( JsonObject ) value ).getString ( "operation" );
                 script = ( ( JsonObject ) value ).getString ( "script" );
-                r = ( ( JsonObject ) value ).getString ( "resource" );
+		if ( !op.equals ( operation )
+		     ||  script == null
+		    )
+		{
+		    log.info ( "Skipping: " + script + "/" + op +  " against " + operation + "/" + resource );
+		    continue;
+		}
 
-                if ( !op.equals ( operation )
-                        ||  ( ( resource != null ) && ( ! resource.equals ( r ) ) )
-                        ||  script == null
-                   )
-                {
-                    log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
-                    continue;
-                }
-            }
+		JsonValue rsrc = ( (JsonObject) value).get("resource");
+		if ( rsrc instanceof JsonString) {
+		    String r = ((JsonString) rsrc).getString();
 
+		    if (  ( ( resource != null ) && ( ! resource.equals ( r ) ) ))
+		    {
+			log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
+			continue;
+		    }
+		} 
+		else if (rsrc instanceof JsonArray) 
+		{
+		    for (JsonValue rv : ((JsonArray) rsrc)) {
+			String r = null;
+			try {
+			    r = ((JsonString) rv).getString();
+			    if (   ( ( resource != null ) && ( ! resource.equals ( r )))) 
+			    {
+				log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
+				continue;
+			    }
+			    break; //we have a match
+			} 
+			catch (Exception e) 
+			{
+			    log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource +":\n" + e.toString());
+			    continue;   
+			}
+		    }
+		}
+	    }
             catch ( Exception e )
             {
                 log.info ( "Skipping: " + e.toString() );

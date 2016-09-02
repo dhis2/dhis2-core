@@ -30,8 +30,8 @@ package org.hisp.dhis.web.ohie.fhir.service;
 
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.model.dstu3.resource.BaseResource;
-import ca.uhn.fhir.model.dstu3.resource.Bundle;
+import org.hl7.fhir.dstu3.model.Bundle;
+import org.hl7.fhir.dstu3.model.BaseResource;
 import ca.uhn.fhir.parser.DataFormatException;
 import java.io.IOException;
 import java.util.Map;
