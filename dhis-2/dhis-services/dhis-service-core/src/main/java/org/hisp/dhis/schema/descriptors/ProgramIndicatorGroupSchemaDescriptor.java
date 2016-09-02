@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,31 +28,36 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-
-import java.util.List;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.program.ProgramIndicatorGroup;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-public interface ObjectBundleHook
+public class ProgramIndicatorGroupSchemaDescriptor implements SchemaDescriptor
 {
-    void preImport( ObjectBundle bundle );
+    public static final String SINGULAR = "programIndicatorGroup";
 
-    void postImport( ObjectBundle bundle );
+    public static final String PLURAL = "programIndicatorGroups";
 
-    <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
-    
-    <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle );
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( ProgramIndicatorGroup.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1500 );
 
-    <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
+            Lists.newArrayList( "F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD", " F_PROGRAM_INDICATOR_GROUP_PRIVATE_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_INDICATOR_GROUP_DELETE" ) ) );
 
-    <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle );
-
-    <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle );
-
-    <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle );
+        return schema;
+    }
 }

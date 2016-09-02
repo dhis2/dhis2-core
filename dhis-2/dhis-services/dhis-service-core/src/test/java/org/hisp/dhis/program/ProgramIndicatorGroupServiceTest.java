@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.program;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,31 +28,58 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 
-import java.util.List;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-public interface ObjectBundleHook
+public class ProgramIndicatorGroupServiceTest
+    extends DhisSpringTest
 {
-    void preImport( ObjectBundle bundle );
+    @Autowired
+    private ProgramIndicatorService service;
 
-    void postImport( ObjectBundle bundle );
 
-    <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
+    private ProgramIndicatorGroup programIndicatorGroupA;
 
-    <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
-    
-    <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle );
+    @Override
+    public void setUpTest()
+    {
+        programIndicatorGroupA = new ProgramIndicatorGroup( "A" );
+    }
 
-    <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle );
+    @Test
+    public void testAddProgramIndicatorGroup()
+    {
+        service.addProgramIndicatorGroup( programIndicatorGroupA );
+        assertNotNull( programIndicatorGroupA.getUid() );
+    }
 
-    <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle );
+    @Test
+    public void testUpdateProgramIndicatorGroup()
+    {
+        service.addProgramIndicatorGroup( programIndicatorGroupA );
 
-    <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle );
+        programIndicatorGroupA.setName( "B" );
 
-    <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle );
+        assertEquals( "B", service.getProgramIndicatorGroup( programIndicatorGroupA.getId() ).getName() );
+    }
+
+    @Test
+    public void testDeleteProgramIndicatorGroup()
+    {
+        int id = service.addProgramIndicatorGroup( programIndicatorGroupA );
+
+        service.deleteProgramIndicatorGroup( programIndicatorGroupA );
+
+        assertEquals( null, service.getProgramIndicatorGroup( id ) );
+    }
+
 }
+

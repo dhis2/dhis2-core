@@ -13,6 +13,11 @@ function programIndicatorManagementForm( context ) {
   location.href = 'programIndicator.action?programId=' + context.id;
 }
 
+function programIndicatorGroupManagementForm( context ) {
+  location.href = 'programIndicatorGroup.action?programId=' + context.id;
+}
+
+
 function showUpdateProgramForm( context ) {
   location.href = 'showUpdateProgramForm.action?id=' + context.id;
 }

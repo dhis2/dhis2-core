@@ -1,0 +1,10 @@
+#set( $size = ${programIndicatorGroups.size} )
+{ "programIndicatorGroups": [
+#foreach( ${group} in $!{programIndicatorGroups} )
+{
+"id": "${group.id}",
+"name": "$!encoder.jsonEncode( ${group.name} )"
+}#if( $velocityCount < $size ),#end
+#end
+]
+}
