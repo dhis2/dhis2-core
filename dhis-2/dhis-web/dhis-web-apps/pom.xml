@@ -30,6 +30,15 @@
             </goals>
             <configuration>
               <artifactItems>
+                <!-- Core Resource -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-core-resource</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-core-resource</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
                 <!-- Settings -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
