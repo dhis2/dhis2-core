@@ -7,10 +7,10 @@
     <li data-enabled="canManage"><a data-target-fn="showSharingDialogWithContext"><i class="fa fa-share"></i>&nbsp;&nbsp;$i18n.getString( "sharing_settings" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="showUpdateProgramForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="defineProgramAssociationsForm"><i class="fa fa-plus"></i>&nbsp;&nbsp;$i18n.getString( "assign_program_to_orgunits" )</a></li>
-	<li data-enabled="canDefinedProgramEntryForm"><a data-target-fn="viewProgramEntryForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "design_custom_registration_form" )</a></li>
+		<li data-enabled="canDefinedProgramEntryForm"><a data-target-fn="viewProgramEntryForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "design_custom_registration_form" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="programStageManagement"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_stages" )</a></li>
     <li data-enabled="canUpdate"><a data-target-fn="programIndicatorManagementForm"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_indicators" )</a></li>
-	<li data-enabled="canManageProgramRule"><a data-target-fn="programRule"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_rule" )</a></li>
+		<li data-enabled="canManageProgramRule"><a data-target-fn="programRule"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_program_rule" )</a></li>
     <!--<li data-enabled="canUpdate"><a data-target-fn="validationCriteria"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_validation_criteria" )</a></li>-->
     <li data-enabled="canUpdate"><a data-target-fn="programValidationManagement"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_validation_rules" )</a></li>
     <li data-enabled="canManageTemplateMessage"><a data-target-fn="programReminder"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "view_reminder_message_templates" )</a></li> 
