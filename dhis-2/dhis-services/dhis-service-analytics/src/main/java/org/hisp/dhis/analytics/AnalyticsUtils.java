@@ -67,7 +67,7 @@ import com.google.common.collect.Maps;
  */
 public class AnalyticsUtils
 {
-    private static final String COMMENT_AGG_VALUE = "[aggregated]";
+    private static final String KEY_AGG_VALUE = "[aggregated]";
     
     public static String getDebugDataSql( DataQueryParams params )
     {
@@ -300,7 +300,8 @@ public class AnalyticsUtils
             dv.setPeriod( String.valueOf( row.get( peInx ) ) );
             dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
             dv.setValue( String.valueOf( row.get( vlInx ) ) );
-            dv.setComment( COMMENT_AGG_VALUE );
+            dv.setComment( KEY_AGG_VALUE );
+            dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
             dv.setLastUpdated( created );
             
