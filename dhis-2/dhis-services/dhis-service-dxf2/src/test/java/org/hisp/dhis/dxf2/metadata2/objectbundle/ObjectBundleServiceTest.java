@@ -1380,6 +1380,36 @@ public class ObjectBundleServiceTest
         assertNotNull( section2.getDataSet() );
     }
 
+    @Test
+    public void testCreateOrgUnitWithPersistedParent() throws IOException
+    {
+        OrganisationUnit parentOu = createOrganisationUnit( 'A' );
+        parentOu.setUid( "ImspTQPwCqd" );
+        manager.save( parentOu );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/orgunit_create_with_persisted_parent.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleValidationService.validate( bundle );
+        objectBundleService.commit( bundle );
+
+        assertEquals( 3, manager.getAll( OrganisationUnit.class ).size() );
+
+        assertNull( manager.get( OrganisationUnit.class, "ImspTQPwCqd" ).getParent() );
+
+        assertNotNull( manager.get( OrganisationUnit.class, "bFzxXwTkSWA" ).getParent() );
+        assertEquals( "ImspTQPwCqd", manager.get( OrganisationUnit.class, "bFzxXwTkSWA" ).getParent().getUid() );
+
+        assertNotNull( manager.get( OrganisationUnit.class, "B8eJEMldsP7" ).getParent() );
+        assertEquals( "bFzxXwTkSWA", manager.get( OrganisationUnit.class, "B8eJEMldsP7" ).getParent().getUid() );
+    }
+
     private void defaultSetup()
     {
         DataElement de1 = createDataElement( 'A' );

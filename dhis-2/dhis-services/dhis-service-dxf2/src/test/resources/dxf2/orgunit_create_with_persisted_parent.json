@@ -1,0 +1,25 @@
+{
+  "date": "2016-08-31T16:21:36.359",
+  "organisationUnits": [
+    {
+      "name": "Health Site",
+      "id": "B8eJEMldsP7",
+      "shortName": "Health Site",
+      "featureType": "NONE",
+      "openingDate": "2016-07-31T00:00:00.000",
+      "parent": {
+        "id": "bFzxXwTkSWA"
+      }
+    },
+    {
+      "name": "Project",
+      "id": "bFzxXwTkSWA",
+      "shortName": "Project",
+      "featureType": "NONE",
+      "openingDate": "2016-07-31T00:00:00.000",
+      "parent": {
+        "id": "ImspTQPwCqd"
+      }
+    }
+  ]
+}
