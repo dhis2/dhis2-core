@@ -386,12 +386,6 @@ public class DataValueController
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
 
         // ---------------------------------------------------------------------
-        // Locking validation
-        // ---------------------------------------------------------------------
-
-        validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
-
-        // ---------------------------------------------------------------------
         // Get data value
         // ---------------------------------------------------------------------
 
@@ -442,12 +436,6 @@ public class DataValueController
         Period period = getAndValidatePeriod( pe );
 
         OrganisationUnit organisationUnit = getAndValidateOrganisationUnit( ou );
-
-        // ---------------------------------------------------------------------
-        // Locking validation
-        // ---------------------------------------------------------------------
-
-        validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
         // Get data value
