@@ -107,7 +107,7 @@ public class DataValueSet
     //--------------------------------------------------------------------------
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getIdScheme()
     {
         return idScheme;
@@ -119,7 +119,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getDataElementIdScheme()
     {
         return dataElementIdScheme;
@@ -131,7 +131,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getOrgUnitIdScheme()
     {
         return orgUnitIdScheme;
@@ -143,7 +143,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public Boolean getDryRun()
     {
         return dryRun;
@@ -155,7 +155,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getStrategy()
     {
         return strategy;
@@ -167,7 +167,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getDataSet()
     {
         return dataSet;
@@ -179,7 +179,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getCompleteDate()
     {
         return completeDate;
@@ -191,7 +191,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getPeriod()
     {
         return period;
@@ -203,7 +203,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getOrgUnit()
     {
         return orgUnit;
@@ -215,7 +215,7 @@ public class DataValueSet
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getAttributeOptionCombo()
     {
         return attributeOptionCombo;
@@ -227,7 +227,7 @@ public class DataValueSet
     }
 
     @JsonProperty( value = "dataValues" )
-    @JacksonXmlElementWrapper( localName = "dataValues", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "dataValues", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
     public List<DataValue> getDataValues()
     {

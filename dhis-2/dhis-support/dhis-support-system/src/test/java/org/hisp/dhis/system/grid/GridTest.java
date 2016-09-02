@@ -46,9 +46,10 @@ import org.hisp.dhis.common.GridHeader;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class GridTest
 {
@@ -702,7 +703,25 @@ public class GridTest
         
         assertFalse( gridA.next() );
     }
+
+    @Test
+    public void testAddValuesAsList()
+    {
+        Grid grid = new ListGrid();
+        
+        grid.addRow().addValuesAsList( Lists.newArrayList( "colA1", "colB1", "colC1" ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "colA2", "colB2", "colC2" ) );
+        
+        assertEquals( 2, grid.getHeight() );
+        assertEquals( 3, grid.getWidth() );
+        assertEquals( "colB1", grid.getRow( 0 ).get( 1 ) );
+        assertEquals( "colC2", grid.getRow( 1 ).get( 2 ) );
+    }
     
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
     private static List<Object> getList( Object... items )
     {
         List<Object> list = new ArrayList<>();

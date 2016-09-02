@@ -64,15 +64,23 @@ public class GridHeader
 
     /**
      * @param name   name
+     */
+    public GridHeader( String name )
+    {
+        this.name = name;
+        this.type = String.class.getName();
+        this.hidden = false;
+        this.meta = false;
+    }
+
+    /**
+     * @param name   name
      * @param column column
      */
     public GridHeader( String name, String column )
     {
-        this.name = name;
+        this( name );
         this.column = column;
-        this.type = String.class.getName();
-        this.hidden = false;
-        this.meta = false;
     }
 
     /**
@@ -82,8 +90,7 @@ public class GridHeader
      */
     public GridHeader( String name, String column, String type )
     {
-        this.name = name;
-        this.column = column;
+        this( name, column );
         this.type = type;
     }
 
@@ -96,9 +103,8 @@ public class GridHeader
      */
     public GridHeader( String name, boolean hidden, boolean meta )
     {
-        this.name = name;
+        this( name );
         this.column = name;
-        this.type = String.class.getName();
         this.hidden = hidden;
         this.meta = meta;
     }
@@ -112,9 +118,7 @@ public class GridHeader
      */
     public GridHeader( String name, String column, String type, boolean hidden, boolean meta )
     {
-        this.name = name;
-        this.column = column;
-        this.type = type;
+        this( name, column, type );
         this.hidden = hidden;
         this.meta = meta;
     }
@@ -129,11 +133,7 @@ public class GridHeader
      */
     public GridHeader( String name, String column, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
     {
-        this.name = name;
-        this.column = column;
-        this.type = type;
-        this.hidden = hidden;
-        this.meta = meta;
+        this( name, column, type, hidden, meta );
         this.optionSet = optionSet;
         this.legendSet = legendSet;
     }
