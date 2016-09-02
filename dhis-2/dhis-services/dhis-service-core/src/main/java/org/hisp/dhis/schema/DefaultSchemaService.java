@@ -138,6 +138,7 @@ public class DefaultSchemaService
         add( new ValidationRuleGroupSchemaDescriptor() ).
         add( new ValidationRuleSchemaDescriptor() ).
         add( new PushAnalysisSchemaDescriptor() ).
+        add( new ProgramIndicatorGroupSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
