@@ -51,7 +51,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.scriptlibrary.AppScriptLibrary;
 import org.hisp.dhis.scriptlibrary.Engine;
 import org.hisp.dhis.scriptlibrary.EngineBuilder;
-import org.hisp.dhis.scriptlibrary.EngineSE;
 import org.hisp.dhis.scriptlibrary.ScriptLibrary;
 import org.hisp.dhis.scriptlibrary.ScriptAccessException;
 import org.hisp.dhis.scriptlibrary.ScriptExecutionException;
@@ -59,7 +58,6 @@ import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
 import org.hisp.dhis.scriptlibrary.IExecutionContext;
 import org.hisp.dhis.webapi.scriptlibrary.IExecutionContextHttp;
 import org.hisp.dhis.scriptlibrary.IExecutionContextSE;
-import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpSE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -193,29 +191,5 @@ abstract public class  EngineController
     }
 
 
-    protected void doIndex(String appName,HttpServletResponse httpResponse,HttpServletRequest httpRequest) 
-    {
-	try {
-	    ExecutionContextHttpSE execContext = new ExecutionContextHttpSE();
-	    initExecutionContext ( execContext, appName,  httpRequest, httpResponse );
-	    Engine engine = runEngine( execContext, "index.js" );
-
-	    if ( engine == null )
-	    {
-		throw new ScriptAccessException ( "Could not run engine for index.js");
-	    }
-	    else if ( engine.runException != null )
-	    {
-		log.error ( "Script index.js in " + appName + " had a run time exception:\n" + engine.runException.toString()  , engine.runException );
-		throw engine.runException;
-	    }
-
-	    execContext.getOut().flush();
-	    execContext.getOut().close();
-
-	} catch (Exception e) {
-	    sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "internal script processing error\n" + e.toString()  );
-	}
-    }
 
 }

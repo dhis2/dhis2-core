@@ -113,9 +113,12 @@ public class DefaultEngineBuilder extends EngineBuilder{
 	{
 	    String ext = FilenameUtils.getExtension(scriptName);
 	    log.info("Creating engine on script type:" + ext);
-	    if (ext.equals("xsl")) {
+	    if (ext.equals("xsl") || ext.equals("xslt")) {
 		log.info("Creating XSLT engine on script type");
 		return getEngineXSLT(app,sl,scriptName);
+	    if (ext.equals("xq")) {
+		log.info("Creating XQuery engine on script type");
+		return getEngineXQuery(app,sl,scriptName);
 	    } else {
 		log.info("Creating SE engine on script type");
 		return getEngineSE(app,sl,scriptName);
@@ -135,7 +138,24 @@ public class DefaultEngineBuilder extends EngineBuilder{
 	depContext.setUser ( currentUserService.getCurrentUser() );
 	depContext.setAppName(app.getKey());
 	loadDependencies(sl,scriptName,xsltEngine,depContext);
-	log.info("registering script engine with key: " + scriptKey);
+	log.info("registering xsl script engine with key: " + scriptKey);
+	scriptEngines.put(scriptKey,xsltEngine);
+	return xsltEngine;
+    }
+
+    protected Engine getEngineXQuery(App app, ScriptLibrary sl, String scriptName) 
+	throws ScriptException, ScriptNotFoundException
+    {
+	String scriptKey = sl.getName() + ":" + scriptName;
+	EngineXQuery xqueryEngine;
+	xqueryEngine = new EngineXQuery(app,sl);
+	log.info("Retrieving dependencies for " + scriptName);
+	ExecutionContext depContext = new ExecutionContext();
+	depContext.setApplicationContext(applicationContext); 
+	depContext.setUser ( currentUserService.getCurrentUser() );
+	depContext.setAppName(app.getKey());
+	loadDependencies(sl,scriptName,xqueryEngine,depContext);
+	log.info("registering xquery script engine with key: " + scriptKey);
 	scriptEngines.put(scriptKey,xsltEngine);
 	return xsltEngine;
     }

@@ -52,6 +52,7 @@ import org.hisp.dhis.webapi.controller.EngineController;
 import org.hisp.dhis.webapi.scriptlibrary.IExecutionContextHttp;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpSE;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpXSLT;
+import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpQuery;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,11 +63,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping (
-    value =  EngineControllerAction.PATH + "/{app}"
+    value =  "/{app}"
 )
 public class EngineControllerAction  extends EngineController
 {
-    public static final String PATH = "/action";
+    public static final String PATH = "/ssa";
 
     public class ExecutionContextActionSE extends ExecutionContextHttpSE
     {
@@ -84,7 +85,7 @@ public class EngineControllerAction  extends EngineController
             return super.toString() +   "\n\trequestRemainder=" + requestRemainder + "\n";
         }
     }
-    public class ExecutionContextActionXSLT extends ExecutionContextHttpXSLT
+    public class ExecutionContextAction extends ExecutionContextHttp
     {
         protected String requestRemainder = null;
         public String getRequestRemainder()
@@ -104,16 +105,38 @@ public class EngineControllerAction  extends EngineController
 
 
     @RequestMapping (
-	value =   { "/", "" , "index.js"}
+	value =   {"/{app}/index.js"}
 	)
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
                              @PathVariable ( "app" ) String appName) 
     {
-	doIndex(appName,httpResponse,httpRequest);
+	try {
+	    ExecutionContextHttpSE execContext = new ExecutionContextHttpSE();
+	    initExecutionContext ( execContext, appName,  httpRequest, httpResponse );
+	    Engine engine = runEngine( execContext, "index.js" );
+
+	    if ( engine == null )
+	    {
+		throw new ScriptAccessException ( "Could not run engine for index.js");
+	    }
+	    else if ( engine.runException != null )
+	    {
+		log.error ( "Script index.js in " + appName + " had a run time exception:\n" + engine.runException.toString()  , engine.runException );
+		throw engine.runException;
+	    }
+
+	    execContext.getOut().flush();
+	    execContext.getOut().close();
+
+	} catch (Exception e) {
+	    sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "internal script processing error\n" + e.toString()  );
+	}
+
     }
 
+
     @RequestMapping (
-        value =   { "/{script}", "/{script}" , "/{script}/**/*"}
+        value =   { "/{app}" +PATH +"/{script}", "/{app}"+ PATH +"/{script}/*" , "/{app}" + PATH + "/{script}/**/*"}
     )
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
                              @PathVariable ( "app" ) String appName, @PathVariable ( "script" ) String script )
@@ -206,11 +229,14 @@ public class EngineControllerAction  extends EngineController
         String ext = FilenameUtils.getExtension ( script );
         IExecutionContextHttp execContext;
 
-        if ( ext.compareToIgnoreCase ( "xslt" ) == 0 || ext.compareToIgnoreCase ( "xsl" ) == 0 )
+        if ( ext.compareToIgnoreCase ( "xslt" ) == 0 
+	     || ext.compareToIgnoreCase ( "xsl" ) == 0 
+	     || ext.compareToIgnoreCase ( "xq" ) == 0 
+	    )
         {
-            ExecutionContextActionXSLT execContextXSLT = new ExecutionContextActionXSLT();
-            execContextXSLT.requestRemainder = ContextUtils.getContextPath ( httpRequest );
-            execContext = execContextXSLT;
+            ExecutionContextAction execContextAction = new ExecutionContextAction();
+            execContextAction.requestRemainder = ContextUtils.getContextPath ( httpRequest );
+            execContext = execContextAction;
         }
 
         else
