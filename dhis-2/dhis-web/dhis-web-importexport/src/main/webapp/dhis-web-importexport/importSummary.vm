@@ -46,8 +46,8 @@
 </tr>
 #foreach( $conflict in $summary.conflicts )
 <tr>
-	<td>${conflict.object}</td>
-	<td>$encoder.htmlEncode( $conflict.value )</td>
+	<td>$!{conflict.object}</td>
+	<td>$!encoder.htmlEncode( $conflict.value )</td>
 </tr>
 #end
 </table>

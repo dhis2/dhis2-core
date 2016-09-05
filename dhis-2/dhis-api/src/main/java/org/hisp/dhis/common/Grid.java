@@ -161,6 +161,14 @@ public interface Grid
      * @param values the values to add.
      */
     Grid addValues( Object[] values );
+
+    /**
+     * Adds values in the given array to the end of the current row in the 
+     * specified order.
+     * 
+     * @param values the values to add.
+     */
+    Grid addValuesAsList( List<Object> values );
     
     /**
      * Adds an empty value to the Grid at the current row.

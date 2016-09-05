@@ -227,6 +227,11 @@ public class DataQueryParams
     protected IdentifiableProperty outputIdScheme;
 
     /**
+     * The output format, default is {@link OutputFormat.ANALYTICS}.
+     */
+    protected OutputFormat outputFormat;
+    
+    /**
      * The required approval level identifier for data to be included in query response.
      */
     protected String approvalLevel;
@@ -378,6 +383,7 @@ public class DataQueryParams
         params.includeNumDen = this.includeNumDen;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
+        params.outputFormat = this.outputFormat;
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
@@ -629,6 +635,14 @@ public class DataQueryParams
     {
         return this.aggregationType != null;
     }
+    
+    /**
+     * Indicates whether the this parameters has the given output format specified.
+     */
+    public boolean isOutputFormat( OutputFormat format )
+    {
+        return this.outputFormat != null && this.outputFormat == format;
+    }
 
     /**
      * Creates a mapping between the data periods, based on the data period type
@@ -848,7 +862,8 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether a dimension or filter with the given identifier exists.
+     * Indicates whether a dimension or filter with the given dimension / filter
+     * identifier exists.
      */
     public boolean hasDimensionOrFilter( String key )
     {
@@ -1573,6 +1588,11 @@ public class DataQueryParams
         return outputIdScheme;
     }
 
+    public OutputFormat getOutputFormat()
+    {
+        return outputFormat;
+    }
+
     public String getApprovalLevel()
     {
         return approvalLevel;
@@ -2079,6 +2099,12 @@ public class DataQueryParams
         public Builder withOutputIdScheme( IdentifiableProperty outputIdScheme )
         {
             this.params.outputIdScheme = outputIdScheme;
+            return this;
+        }
+        
+        public Builder withOutputFormat( OutputFormat outputFormat )
+        {
+            this.params.outputFormat = outputFormat;
             return this;
         }
         

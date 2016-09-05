@@ -1707,7 +1707,10 @@ function insertDataValues( json )
         $( '#contentDiv textarea' ).removeAttr( 'readonly' );
 		$( '#completenessDiv' ).show();
 	}
-	
+
+    // Set the data-disabled attribute on any file upload fields
+    $( '#contentDiv .entryfileresource' ).data( 'disabled', json.locked );
+
     // Set data values, works for selects too as data value=select value
 
     $.safeEach( json.dataValues, function( i, value )
