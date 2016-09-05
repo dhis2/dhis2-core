@@ -171,7 +171,10 @@ public class DefaultDataQueryService
 
         if ( object != null )
         {
-            List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, null );
+            String userOrgUnit = object.getRelativeOrganisationUnit() != null ? 
+                object.getRelativeOrganisationUnit().getUid() : null;
+
+            List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
 
             Date date = object.getRelativePeriodDate();
 
