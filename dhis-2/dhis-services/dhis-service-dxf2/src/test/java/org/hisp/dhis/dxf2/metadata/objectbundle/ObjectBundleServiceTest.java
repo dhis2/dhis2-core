@@ -1299,6 +1299,33 @@ public class ObjectBundleServiceTest
     }
 
     @Test
+    public void testCreateMetadataWithDuplicateDataElementUid() throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/de_duplicate_uid.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+
+        System.err.println( "V: " + validate.getErrorReports() );
+
+        objectBundleService.commit( bundle );
+
+        assertEquals( 1, manager.getAll( DataElement.class ).size() );
+
+        // DataElement dataElement = manager.get( DataElement.class, "CCwk5Yx440o" );
+        // assertEquals( "SG4HuKlNEFH", dataElement.getUid() );
+        // assertEquals( "DataElementA", dataElement.getName() );
+    }
+
+    @Test
     public void testCreateOrgUnitWithLevels() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
