@@ -307,6 +307,15 @@ public abstract class AbstractEnrollmentService
             return importSummary;
         }
 
+        if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null ");
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
         updateAttributeValues( enrollment, importOptions );
         programInstance.setFollowup( enrollment.getFollowup() );
         programInstanceService.updateProgramInstance( programInstance );
@@ -392,6 +401,15 @@ public abstract class AbstractEnrollmentService
         programInstance.setIncidentDate( enrollment.getIncidentDate() );
         programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
         programInstance.setFollowup( enrollment.getFollowup() );
+
+        if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null ");
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
 
         if ( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) != enrollment.getStatus() )
         {
