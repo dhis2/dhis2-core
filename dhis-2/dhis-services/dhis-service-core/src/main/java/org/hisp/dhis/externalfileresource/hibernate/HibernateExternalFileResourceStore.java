@@ -41,7 +41,7 @@ public class HibernateExternalFileResourceStore
     @Override
     public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {
-        return (ExternalFileResource) getQuery( "select * from ExternalFileResource where accessToken = :accessToken" )
+        return (ExternalFileResource) getQuery( "FROM ExternalFileResource WHERE accessToken = :accessToken" )
             .setString( "accessToken", accessToken ).uniqueResult();
     }
 }

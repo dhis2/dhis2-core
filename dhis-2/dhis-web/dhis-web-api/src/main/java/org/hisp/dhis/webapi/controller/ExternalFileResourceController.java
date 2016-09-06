@@ -27,9 +27,108 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import org.hisp.dhis.externalfileresource.ExternalFileResource;
+import org.hisp.dhis.externalfileresource.ExternalFileResourceService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 /**
  * @author Stian Sandvold
  */
+@Controller
+@RequestMapping( ExternalFileResourceSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
 public class ExternalFileResourceController
 {
+
+    @Autowired
+    private ExternalFileResourceService externalFileResourceService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
+
+    @RequestMapping( value = "/{accessToken}", method = RequestMethod.GET )
+    public ExternalFileResource getExternalFileResource( @PathVariable String accessToken,
+        HttpServletResponse response )
+    {
+        testExternalFileResource();
+
+        System.out.println( "AccessToken: " + accessToken );
+
+        ExternalFileResource externalFileResource = externalFileResourceService
+            .getExternalFileResourceByAccesstoken( accessToken );
+
+        return externalFileResource;
+
+    }
+
+    public void testExternalFileResource(
+    )
+    {
+
+        File f = new File( "delete_me5.txt" );
+
+        try
+        {
+            FileWriter fileWriter = new FileWriter( f );
+            fileWriter.write( "delete_me5!" );
+            fileWriter.close();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
+
+        FileResource fr = new FileResource();
+
+
+        ByteSource bytes = Files.asByteSource(f);
+        String contentMd5 = null;
+
+        try
+        {
+            contentMd5 = bytes.hash( Hashing.md5() ).toString();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
+
+        fr.setName( "delete_me5.txt" );
+        fr.setContentLength( f.length() );
+        fr.setContentMd5( contentMd5 );
+        fr.setContentType( MimeTypeUtils.TEXT_PLAIN.toString() );
+        fr.setDomain( FileResourceDomain.EXTERNAL );
+        fr.setStorageKey( "delete_me5" );
+
+        fileResourceService.saveFileResource( fr, f );
+
+        ExternalFileResource externalFileResource = new ExternalFileResource();
+
+        externalFileResource.setAccessToken( "TEST" );
+        externalFileResource.setExpires( null );
+        externalFileResource.setFileResource( fr );
+        externalFileResource.setName( "test" );
+
+        externalFileResourceService.saveExternalFileResource( externalFileResource );
+
+    }
+
 }

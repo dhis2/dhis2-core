@@ -27,8 +27,6 @@ package org.hisp.dhis.externalfileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
  * @author Stian Sandvold
  */
@@ -36,8 +34,7 @@ public class DefaultExternalFileResourceService
     implements ExternalFileResourceService
 {
 
-    @Autowired
-    ExternalFileResourceStore externalFileResourceStore;
+    private ExternalFileResourceStore externalFileResourceStore;
 
     @Override
     public ExternalFileResource getExternalFileResourceByAccesstoken( String accessToken )
@@ -49,5 +46,17 @@ public class DefaultExternalFileResourceService
     public void saveExternalFileResource( ExternalFileResource externalFileResource )
     {
         externalFileResourceStore.save( externalFileResource );
+    }
+
+    public void setExternalFileResourceStore(
+        ExternalFileResourceStore externalFileResourceStore )
+    {
+        this.externalFileResourceStore = externalFileResourceStore;
+    }
+
+    public ExternalFileResourceStore getExternalFileResourceStore(
+        ExternalFileResourceStore externalFileResourceStore )
+    {
+        return externalFileResourceStore;
     }
 }
