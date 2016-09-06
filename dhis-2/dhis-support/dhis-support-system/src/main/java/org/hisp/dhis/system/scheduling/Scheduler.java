@@ -107,6 +107,6 @@ public interface Scheduler
      * @param key the task key.
      * @return the task status.
      */
-    ScheduledTaskStatus getNowTaskStatus( String key );
+    ScheduledTaskStatus getCurrentTaskStatus( String key );
 
 }

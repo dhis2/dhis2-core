@@ -188,6 +188,7 @@ $(document).ready(function () {
 
     $("#submitSyncSchedule").unbind("click").click(function (e)
     {
+        location.reload(true);
         e.stopPropagation();
         var button = this;
         $(button).attr("disabled", "disabled");
@@ -203,7 +204,6 @@ $(document).ready(function () {
         else {
             alert('Metadata synchronization is still in progress');
         }
-        $('#schedulingForm').submit();
     });
 
 });

@@ -91,5 +91,5 @@ public interface SchedulingManager
      */
     ScheduledTaskStatus getTaskStatus();
 
-    boolean getNowTaskStatus(String taskKey);
+    boolean isTaskInProgress(String taskKey);
 }

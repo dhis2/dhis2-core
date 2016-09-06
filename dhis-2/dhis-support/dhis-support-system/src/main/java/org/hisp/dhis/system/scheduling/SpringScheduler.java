@@ -52,7 +52,7 @@ public class SpringScheduler
     
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
 
-    private Map<String, ListenableFuture<?>> nowFutures = new HashMap<>();
+    private Map<String, ListenableFuture<?>> currentTasks = new HashMap<>();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -85,10 +85,8 @@ public class SpringScheduler
     @Override
     public void executeTask( String taskKey, Runnable task )
     {
-//        ScheduledFuture<?> nowFuture = taskScheduler.schedule( task, new CronTrigger( cronExpr ) );
-        ListenableFuture<?> nowFuture = taskExecutor.submitListenable( task );
-        nowFutures.put( taskKey, nowFuture );
-//        taskExecutor.execute( task );
+        ListenableFuture<?> future = taskExecutor.submitListenable( task );
+        currentTasks.put( taskKey, future );
     }
 
     @Override
@@ -176,9 +174,9 @@ public class SpringScheduler
     }
 
     @Override
-    public ScheduledTaskStatus getNowTaskStatus( String key )
+    public ScheduledTaskStatus getCurrentTaskStatus( String key )
     {
-        ListenableFuture<?> future = nowFutures.get( key );
+        ListenableFuture<?> future = currentTasks.get( key );
 
         if ( future == null )
         {
