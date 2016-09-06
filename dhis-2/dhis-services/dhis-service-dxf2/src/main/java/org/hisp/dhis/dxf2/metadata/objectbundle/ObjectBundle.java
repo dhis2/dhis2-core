@@ -305,8 +305,6 @@ public class ObjectBundle
             extras.get( identifiableObject.getClass() ).put( identifiableObject.getUid(), new HashMap<>() );
         }
 
-        System.err.println( "PUT object : " + object );
-
         extras.get( identifiableObject.getClass() ).get( identifiableObject.getUid() ).put( key, object );
     }
 

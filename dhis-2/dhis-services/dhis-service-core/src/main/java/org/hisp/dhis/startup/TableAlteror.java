@@ -871,7 +871,7 @@ public class TableAlteror
         executeSql( "update program set enrollmentdatelabel = dateofenrollmentdescription where enrollmentdatelabel is null" );
         executeSql( "update program set incidentdatelabel = dateofincidentdescription where incidentdatelabel is null" );
         executeSql( "update programinstance set incidentdate = dateofincident where incidentdate is null" );
-        executeSql( "alter table programinstance alter column incidentdate set not null" );
+        executeSql( "alter table programinstance alter column incidentdate drop not null" );
         executeSql( "alter table program drop column dateofenrollmentdescription" );
         executeSql( "alter table program drop column dateofincidentdescription" );
         executeSql( "alter table programinstance drop column dateofincident" );

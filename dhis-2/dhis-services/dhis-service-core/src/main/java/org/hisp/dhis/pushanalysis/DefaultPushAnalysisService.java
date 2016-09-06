@@ -39,11 +39,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Resource;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.HashSet;

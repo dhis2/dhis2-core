@@ -33,6 +33,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -1058,7 +1059,7 @@ public class QueryPlannerTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
         
-        queryPlanner.validate( params );        
+        queryPlanner.validate( params );
     }
 
     @Test( expected = IllegalQueryException.class )
@@ -1071,8 +1072,19 @@ public class QueryPlannerTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
         
-        queryPlanner.validate( params );        
+        queryPlanner.validate( params );
     }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateMissingOrgUnitDimensionOutputFormatDataValueSet()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
+            .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
+        
+        queryPlanner.validate( params );
+    }    
     
     // -------------------------------------------------------------------------
     // Supportive methods

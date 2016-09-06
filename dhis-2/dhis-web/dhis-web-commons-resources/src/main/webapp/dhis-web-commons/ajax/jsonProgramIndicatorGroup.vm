@@ -1,0 +1,9 @@
+{ "programIndicatorGroup":
+{
+"id": "${programIndicatorGroup.id}",
+"uid": "${programIndicatorGroup.uid}",
+"name": "$!encoder.jsonEncode( ${programIndicatorGroup.name} )",
+"description": "$!encoder.jsonEncode( ${programIndicatorGroup.description} )",
+"noAttribute": "${programIndicatorGroup.attributes.size()}"
+}
+}

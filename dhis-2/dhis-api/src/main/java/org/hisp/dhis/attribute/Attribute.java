@@ -613,6 +613,7 @@ public class Attribute
             sectionAttribute = attribute.isSectionAttribute();
             mandatory = attribute.isMandatory();
             unique = attribute.isUnique();
+            optionSet = attribute.getOptionSet();
 
             if ( mergeMode.isReplace() )
             {
