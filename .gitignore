@@ -7,7 +7,6 @@ target
 target/**
 *.settings
 .metadata
-build.sh
 .springBeans
 nbactions.xml
 .classpath
