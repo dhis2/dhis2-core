@@ -416,31 +416,6 @@ public class ProgramStageInstanceStoreTest
 
         assertTrue( instances.get( 0 ).getProgramStage().getNotificationTemplates().contains( psnC ) );
     }
-//
-//    @Test
-//    public void testGetNotificationsMapForDate()
-//    {
-//        stageA.setNotificationTemplates( Sets.newHashSet( psnA ) );
-//        programStageService.updateProgramStage( stageA );
-//        programService.updateProgram( programA );
-//
-//        Calendar cal = Calendar.getInstance();
-//        PeriodType.clearTimeOfDay( cal );
-//
-//        Date today = cal.getTime();
-//        cal.add( Calendar.DATE, 2 );
-//        Date inTwoDays = cal.getTime();
-//
-//        programStageInstanceA.setDueDate( inTwoDays );
-//        programStageInstanceStore.save( programStageInstanceA );
-//
-//        Map<ProgramStageInstance, Set<ProgramNotificationTemplate>> instanceSetMap =
-//            programStageInstanceStore.getNotificationsMapForDate( today );
-//
-//        instanceSetMap.forEach( (psi, set) -> System.out.println( "PSI:" + psi + " size: " + set.size() ) );
-//
-//        assertEquals( 1, instanceSetMap.size() );
-//    }
 
     // -------------------------------------------------------------------------
     // Supportive methods
