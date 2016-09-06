@@ -72,7 +72,7 @@ public class SmsDeliveryChannelStrategy
 
         if ( orgUnit != null )
         {
-            message.getRecipients().getPhoneNumbers().add( getOrgnisationUnitRecipient( orgUnit ) );
+            message.getRecipients().getPhoneNumbers().add( getOrganisationUnitRecipient( orgUnit ) );
         }
 
         if ( tei != null )
@@ -116,7 +116,7 @@ public class SmsDeliveryChannelStrategy
     }
 
     @Override
-    public String getOrgnisationUnitRecipient( OrganisationUnit orgUnit )
+    public String getOrganisationUnitRecipient( OrganisationUnit orgUnit )
     {
         if ( orgUnit.getPhoneNumber() == null )
         {
@@ -134,16 +134,14 @@ public class SmsDeliveryChannelStrategy
 
     private TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
     {
-        TrackedEntityInstance tei = null;
-
         if ( message.getRecipients().getTrackedEntityInstance() == null )
         {
-            return tei;
+            return null;
         }
 
         String teiUid = message.getRecipients().getTrackedEntityInstance().getUid();
 
-        tei = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
 
         message.getRecipients().setTrackedEntityInstance( tei );
 
@@ -152,16 +150,14 @@ public class SmsDeliveryChannelStrategy
 
     private OrganisationUnit getOrganisationUnit( ProgramMessage message )
     {
-        OrganisationUnit orgUnit = null;
-
         if ( message.getRecipients().getOrganisationUnit() == null )
         {
-            return orgUnit;
+            return null;
         }
 
         String ou = message.getRecipients().getOrganisationUnit().getUid();
 
-        orgUnit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
 
         message.getRecipients().setOrganisationUnit( orgUnit );
 

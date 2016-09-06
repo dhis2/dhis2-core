@@ -72,7 +72,7 @@ public class EmailDeliveryChannelStrategy
 
         if ( orgUnit != null )
         {
-            message.getRecipients().getEmailAddresses().add( getOrgnisationUnitRecipient( orgUnit ) );
+            message.getRecipients().getEmailAddresses().add( getOrganisationUnitRecipient( orgUnit ) );
         }
 
         if ( tei != null )
@@ -95,8 +95,8 @@ public class EmailDeliveryChannelStrategy
         {
             if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntityInstance()
                 && recipient.getEmailAddresses().isEmpty() )
-            {
-                violation = "No destination found for EMAIL";
+            {                
+                violation = "No destination found for delivery channel " + DeliveryChannel.EMAIL;
             }
         }
 
@@ -116,34 +116,32 @@ public class EmailDeliveryChannelStrategy
     }
 
     @Override
-    public String getOrgnisationUnitRecipient( OrganisationUnit orgUnit )
+    public String getOrganisationUnitRecipient( OrganisationUnit orgUnit )
     {
         if ( orgUnit.getEmail() == null )
         {
-            log.error( "OrganisationUnit does not have email address" );
+            log.error( "OrganisationUnit does not have an email address" );
 
-            throw new IllegalQueryException( "OrganisationUnit does not have email address" );
+            throw new IllegalQueryException( "OrganisationUnit does not have an email address" );
         }
 
         return orgUnit.getEmail();
     }
 
     // ---------------------------------------------------------------------
-    // Supportive Methods
+    // Supportive methods
     // ---------------------------------------------------------------------
 
     private TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
     {
-        TrackedEntityInstance tei = null;
-
         if ( message.getRecipients().getTrackedEntityInstance() == null )
         {
-            return tei;
+            return null;
         }
 
-        String teiUid = message.getRecipients().getTrackedEntityInstance().getUid();
+        String uid = message.getRecipients().getTrackedEntityInstance().getUid();
 
-        tei = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( uid );
 
         message.getRecipients().setTrackedEntityInstance( tei );
 
@@ -152,16 +150,14 @@ public class EmailDeliveryChannelStrategy
 
     private OrganisationUnit getOrganisationUnit( ProgramMessage message )
     {
-        OrganisationUnit orgUnit = null;
-
         if ( message.getRecipients().getOrganisationUnit() == null )
         {
-            return orgUnit;
+            return null;
         }
 
-        String ou = message.getRecipients().getOrganisationUnit().getUid();
+        String uid = message.getRecipients().getOrganisationUnit().getUid();
 
-        orgUnit = organisationUnitService.getOrganisationUnit( ou );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( uid );
 
         message.getRecipients().setOrganisationUnit( orgUnit );
 

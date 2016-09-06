@@ -55,7 +55,7 @@ public abstract class DeliveryChannelStrategy
 
     protected abstract DeliveryChannel getDeliveryChannel();
 
-    protected abstract String getOrgnisationUnitRecipient( OrganisationUnit orgUnit );
+    protected abstract String getOrganisationUnitRecipient( OrganisationUnit orgUnit );
     
     // -------------------------------------------------------------------------
     // Public methods
