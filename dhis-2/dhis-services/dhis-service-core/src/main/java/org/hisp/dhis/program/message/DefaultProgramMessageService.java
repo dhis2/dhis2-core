@@ -337,7 +337,7 @@ public class DefaultProgramMessageService
     {
         for ( ProgramMessage message : messageBatch )
         {
-            if ( message.getStoreCopy() )
+            if ( message.isStoreCopy() )
             {
                 message.setProgramInstance( getProgramInstance( message ) );
                 message.setProgramStageInstance( getProgramStageInstance( message ) );

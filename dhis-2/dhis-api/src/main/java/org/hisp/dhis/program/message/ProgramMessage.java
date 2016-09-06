@@ -194,7 +194,19 @@ public class ProgramMessage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getStoreCopy()
+    public Date getProcessedDate()
+    {
+        return processedDate;
+    }
+
+    public void setProcessedDate( Date processedDate )
+    {
+        this.processedDate = processedDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isStoreCopy()
     {
         return storeCopy;
     }
@@ -202,18 +214,6 @@ public class ProgramMessage
     public void setStoreCopy( boolean storeCopy )
     {
         this.storeCopy = storeCopy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getProcessedDate()
-    {
-        return processedDate;
-    }
-
-    public void setProcessedDate( Date processedAt )
-    {
-        this.processedDate = processedAt;
     }
 
     @Override
