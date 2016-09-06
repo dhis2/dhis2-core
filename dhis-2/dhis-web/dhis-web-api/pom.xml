@@ -15,6 +15,7 @@
   <build>
     <finalName>dhis-web-api</finalName>
   </build>
+>
 
   <dependencies>
     <dependency>

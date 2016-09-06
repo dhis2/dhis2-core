@@ -166,6 +166,7 @@
     <init-param>
       <param-name>contextConfigLocation</param-name>
       <param-value>classpath*:/META-INF/dhis/webapi-ohie.xml</param-value>
+      <param-value>classpath*:/META-INF/dhis/servlet.xml</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
     <async-supported>true</async-supported>
