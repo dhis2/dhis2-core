@@ -305,7 +305,7 @@ public class DefaultProgramMessageService
 
         if ( message.getProgramInstance() == null && message.getProgramStageInstance() == null )
         {
-            violation = "Program instance or Program stage instance must be specified";
+            violation = "Program instance or program stage instance must be specified";
         }
 
         if ( recipients.getTrackedEntityInstance() != null && trackedEntityInstanceService
