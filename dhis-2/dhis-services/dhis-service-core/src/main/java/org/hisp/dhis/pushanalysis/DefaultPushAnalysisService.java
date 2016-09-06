@@ -40,7 +40,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -50,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Date;
@@ -116,7 +119,8 @@ public class DefaultPushAnalysisService
         PushAnalysis pushAnalysis = pushAnalysisStore.get( id );
         notifier.clear( taskId );
 
-        notifier.notify( taskId, "PushAnalysis started" );
+        notifier
+            .notify( taskId, "PushAnalysis " + pushAnalysis.getUid() + " (" + pushAnalysis.getName() + ") started" );
 
         Set<User> receivingUsers = new HashSet<>();
 
@@ -125,6 +129,12 @@ public class DefaultPushAnalysisService
             receivingUsers.addAll( userGroup.getMembers() );
         }
 
+        int missingEmail = 0;
+        int renderFailed = 0;
+        int emailFailed = 0;
+
+        notifier.notify( taskId, "PushAnalysis " + pushAnalysis.getUid() + " found " + receivingUsers.size() +
+            " users in target UserGroups" );
         for ( User user : receivingUsers )
         {
             if ( user.hasEmail() )
@@ -135,16 +145,44 @@ public class DefaultPushAnalysisService
 
                     render( pushAnalysis, user, writer );
 
-                    messageSender
+                    MessageResponseStatus status = messageSender
                         .sendMessage( pushAnalysis.getName(), writer.toString(), "",
                             null, Sets.newHashSet( user ), true );
+
+//                    if ( !status.isOk() )
+//                        {
+//                            emailFailed++;
+//                            notifier.notify( taskId, NotificationLevel.WARN,
+//                                "PushAnalysis " + pushAnalysis.getUid() + " failed to send email: " +
+//                                status.getResponseMessage(), false );
+//                    }
+
                 }
-                catch ( Exception e )
+                catch ( IOException e )
                 {
+                    renderFailed++;
                     e.printStackTrace();
                 }
             }
+            else
+            {
+                missingEmail++;
+            }
         }
+
+        notifier
+            .notify( taskId, NotificationLevel.INFO, "PushAnalysis " + pushAnalysis.getUid() + " results: ",
+                false );
+        notifier.notify( taskId,
+            "Emails sent: " + (receivingUsers.size() - missingEmail - renderFailed - emailFailed) + "/" +
+                receivingUsers.size() );
+        notifier.notify( taskId, "Missing emails: " + missingEmail );
+        notifier.notify( taskId, "Reports failed: " + renderFailed );
+        notifier.notify( taskId, "Email failed: " + emailFailed );
+        notifier
+            .notify( taskId, NotificationLevel.INFO, "PushAnalysis " + pushAnalysis.getUid() + " complete.",
+                true );
+
     }
 
     @Override
@@ -155,7 +193,7 @@ public class DefaultPushAnalysisService
     }
 
     private void render( PushAnalysis pushAnalysis, User user, Writer writer )
-        throws Exception
+        throws IOException
     {
         StringWriter stringWriter = new StringWriter();
         user = (user != null ? user : currentUserService.getCurrentUser());
@@ -177,6 +215,8 @@ public class DefaultPushAnalysisService
     {
 
         // TODO: Temporary values; Will be replaced when image genrating and uploading is complete.
+        // This will be replaced by code that will generate an image, store it as a FileResource, then
+        // return the URL to retrieve the file
         switch ( item.getType().name() )
         {
         case "MAP":
@@ -206,7 +246,6 @@ public class DefaultPushAnalysisService
                 stringWriter
             );
 
-            // Remove all newlines, R introduced in java 8 and covers all line break characters
             return stringWriter.toString().replaceAll( "\\R", "" );
         }
         else
