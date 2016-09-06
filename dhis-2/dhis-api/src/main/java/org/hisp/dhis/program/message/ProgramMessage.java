@@ -30,6 +30,7 @@ package org.hisp.dhis.program.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
@@ -144,7 +145,8 @@ public class ProgramMessage
         this.recipients = programMessagerecipients;
     }
 
-    @JsonProperty( value = "deliveryChannels" )
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "deliveryChannels", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
     public Set<DeliveryChannel> getDeliveryChannels()
     {
