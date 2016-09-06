@@ -1,5 +1,4 @@
-package org.hisp.dhis.chart;
-
+package org.hisp.dhis.externalfileresource;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,28 +27,10 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
-
-public class ChartUtils
+/**
+ * @author Stian Sandvold
+ */
+public interface ExternalFileResourceService
 {
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
-    {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
-        try
-        {
-            ChartUtilities.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
-            return out.toByteArray();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }        
-    }
+
 }
