@@ -201,10 +201,18 @@ public class DefaultSchedulingManager
     public void executeTask( String taskKey )
     {
         Runnable task = tasks.get( taskKey );
-        
-        if (task != null)
+
+        System.out.println( getNowTaskStatus( taskKey )  );
+        if ( task != null && !getNowTaskStatus( taskKey ) )
         {
-            scheduler.executeTask( task );
+            scheduler.executeTask( taskKey, task );
         }
     }
+
+    @Override
+    public boolean getNowTaskStatus(String taskKey)
+    {
+        return ScheduledTaskStatus.RUNNING.equals( scheduler.getNowTaskStatus( taskKey ) );
+    }
+
 }

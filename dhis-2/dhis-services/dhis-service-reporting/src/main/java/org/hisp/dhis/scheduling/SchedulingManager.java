@@ -89,5 +89,7 @@ public interface SchedulingManager
     /**
      * Gets the task status.
      */
-    ScheduledTaskStatus getTaskStatus();   
+    ScheduledTaskStatus getTaskStatus();
+
+    boolean getNowTaskStatus(String taskKey);
 }

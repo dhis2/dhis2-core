@@ -191,12 +191,18 @@ $(document).ready(function () {
         e.stopPropagation();
         var button = this;
         $(button).attr("disabled", "disabled");
-        $.post('executeMetaDataSyncTask.action', {
-            executeNow: true,
-            taskKey: "metadataSyncTask"
-        }, function (json) {
-            $(button).removeAttr("disabled");
-        });
+        if ($('#isSyncInProgress').val() == 'false') {
+
+            $.post('executeMetaDataSyncTask.action', {
+                executeNow: true,
+                taskKey: "metadataSyncTask"
+            }, function(json) {
+                $(button).removeAttr("disabled");
+            });
+        }
+        else {
+            alert('Metadata synchronization is still in progress');
+        }
     });
 
 });

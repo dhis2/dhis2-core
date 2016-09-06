@@ -54,6 +54,8 @@ public interface Scheduler
      */
     void executeTask( Runnable task );
 
+    void executeTask( String taskKey, Runnable task );
+
     /**
      * Execute the given task immediately and return a ListenableFuture.
      *
@@ -98,4 +100,13 @@ public interface Scheduler
      * @return the task status.
      */
     ScheduledTaskStatus getTaskStatus( String key );
+
+    /**
+     * Gets the status for the task with the given key.
+     *
+     * @param key the task key.
+     * @return the task status.
+     */
+    ScheduledTaskStatus getNowTaskStatus( String key );
+
 }
