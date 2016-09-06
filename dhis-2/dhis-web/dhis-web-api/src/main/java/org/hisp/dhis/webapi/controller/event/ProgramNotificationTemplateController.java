@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.event;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -39,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping( value = ProgramNotificationTemplateSchemaDescriptor.API_ENDPOINT )
-//@ApiVersion( include = { ApiVersion.Version.V24 } )
+@ApiVersion( include = { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
 public class ProgramNotificationTemplateController
     extends AbstractCrudController<ProgramNotificationTemplate>
 {
