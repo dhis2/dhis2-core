@@ -117,6 +117,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             handleDefaults( nonPersistedObjects );
             handleDefaults( persistedObjects );
 
+            typeReport.merge( checkDuplicateIds( klass, persistedObjects, nonPersistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
+
             if ( bundle.getImportMode().isCreateAndUpdate() )
             {
                 typeReport.merge( validateSecurity( klass, nonPersistedObjects, bundle, ImportStrategy.CREATE ) );
@@ -448,7 +450,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     {
         List<Class<? extends IdentifiableObject>> klasses = new ArrayList<>();
 
-        schemaService.getMetadataSchemas().forEach( schema -> {
+        schemaService.getMetadataSchemas().forEach( schema ->
+        {
             Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
 
             if ( bundle.getObjectMap().containsKey( klass ) )
@@ -496,7 +499,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
         schema.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
-            .forEach( p -> {
+            .forEach( p ->
+            {
                 if ( skipCheck( p.getKlass() ) || skipCheck( p.getItemKlass() ) )
                 {
                     return;
@@ -556,6 +560,73 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         return preheatErrorReports;
+    }
+
+    private TypeReport checkDuplicateIds( Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects, Preheat preheat, PreheatIdentifier identifier )
+    {
+        TypeReport typeReport = new TypeReport( klass );
+
+        if ( persistedObjects.isEmpty() && nonPersistedObjects.isEmpty() )
+        {
+            return typeReport;
+        }
+
+        Map<Class<?>, String> idMap = new HashMap<>();
+
+        Iterator<IdentifiableObject> iterator = persistedObjects.iterator();
+        int idx = 0;
+
+        while ( iterator.hasNext() )
+        {
+            IdentifiableObject object = iterator.next();
+
+            if ( idMap.containsKey( object.getClass() ) && idMap.get( object.getClass() ).equals( object.getUid() ) )
+            {
+                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() );
+
+                ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
+                objectReport.addErrorReport( errorReport );
+                typeReport.addObjectReport( objectReport );
+                typeReport.getStats().incIgnored();
+
+                iterator.remove();
+            }
+            else
+            {
+                idMap.put( object.getClass(), object.getUid() );
+            }
+
+            idx++;
+        }
+
+        iterator = nonPersistedObjects.iterator();
+        idx = 0;
+
+        while ( iterator.hasNext() )
+        {
+            IdentifiableObject object = iterator.next();
+
+            if ( idMap.containsKey( object.getClass() ) && idMap.get( object.getClass() ).equals( object.getUid() ) )
+            {
+                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() );
+
+                ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
+                objectReport.addErrorReport( errorReport );
+                typeReport.addObjectReport( objectReport );
+                typeReport.getStats().incIgnored();
+
+                iterator.remove();
+            }
+            else
+            {
+                idMap.put( object.getClass(), object.getUid() );
+            }
+
+            idx++;
+        }
+
+        return typeReport;
     }
 
     private TypeReport checkUniqueness( Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, Preheat preheat, PreheatIdentifier identifier )
@@ -621,7 +692,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
             .collect( Collectors.toList() );
 
-        uniqueProperties.forEach( property -> {
+        uniqueProperties.forEach( property ->
+        {
             if ( !uniquenessMap.containsKey( property.getName() ) )
             {
                 uniquenessMap.put( property.getName(), new HashMap<>() );
@@ -766,7 +838,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             return errorReports;
         }
 
-        attributeValues.forEach( attributeValue -> {
+        attributeValues.forEach( attributeValue ->
+        {
             Attribute attribute = preheat.get( identifier, attributeValue.getAttribute() );
 
             if ( attribute == null || !attribute.isUnique() || StringUtils.isEmpty( attributeValue.getValue() ) )
