@@ -47,6 +47,8 @@ public interface FileResourceService
 
     String saveFileResource( FileResource fileResource, File file );
 
+    String saveFileResource( FileResource fileResource, byte[] bytes );
+
     void deleteFileResource( String uid );
     
     ByteSource getFileResourceContent( FileResource fileResource );

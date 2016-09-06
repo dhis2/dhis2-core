@@ -50,7 +50,9 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -78,6 +80,10 @@ public class Interpretation
     private String text;
 
     private List<InterpretationComment> comments = new ArrayList<>();
+    
+    private int likes;
+    
+    private Set<User> likedBy = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -252,6 +258,46 @@ public class Interpretation
     {
         setPublicAccess( AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ ).build() );
     }
+    
+    /**
+     * Attempts to add the given user to the set of users liking this 
+     * interpretation. If user not already present, increments the like count 
+     * with one.
+     * 
+     * @param user the user liking this interpretation.
+     * @return true if the given user had not already liked this interpretation.
+     */
+    public boolean like( User user )
+    {
+        boolean like = this.likedBy.add( user );
+        
+        if ( like )
+        {
+            this.likes++;
+        }
+        
+        return like;
+    }
+
+    /**
+     * Attempts to remove the given user from the set of users liking this 
+     * interpretation. If user not already present, decrease the like count 
+     * with one.
+     * 
+     * @param user the user removing the like from this interpretation.
+     * @return true if the given user had previously liked this interpretation.
+     */
+    public boolean unlike( User user )
+    {
+        boolean unlike = this.likedBy.remove( user );
+        
+        if ( unlike )
+        {
+            this.likes--;
+        }
+        
+        return unlike;
+    }
 
     // -------------------------------------------------------------------------
     // Get and set methods
@@ -390,5 +436,32 @@ public class Interpretation
     public void setComments( List<InterpretationComment> comments )
     {
         this.comments = comments;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getLikes()
+    {
+        return likes;
+    }
+
+    public void setLikes( int likes )
+    {
+        this.likes = likes;
+    }
+
+    @JsonProperty( "likedBy" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "likedBy", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "likeByUser", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<User> getLikedBy()
+    {
+        return likedBy;
+    }
+
+    public void setLikedBy( Set<User> likedBy )
+    {
+        this.likedBy = likedBy;
     }
 }

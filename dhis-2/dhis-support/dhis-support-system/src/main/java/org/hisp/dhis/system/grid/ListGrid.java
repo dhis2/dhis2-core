@@ -321,6 +321,12 @@ public class ListGrid
     }
 
     @Override
+    public Grid addValuesAsList( List<Object> values )
+    {
+        return addValues( values.toArray() );        
+    }
+
+    @Override
     public Grid addEmptyValue()
     {
         addValue( StringUtils.EMPTY );

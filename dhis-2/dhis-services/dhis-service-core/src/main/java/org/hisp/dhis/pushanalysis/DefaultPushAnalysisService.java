@@ -36,7 +36,6 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskId;
@@ -73,17 +72,8 @@ public class DefaultPushAnalysisService
     @Autowired
     private CurrentUserService currentUserService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
     @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
-
-    @Autowired
-    private ChartService chartService;
-
-    @Autowired
-    private I18nManager i18nManager;
 
     @Autowired
     private Notifier notifier;

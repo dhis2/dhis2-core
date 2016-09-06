@@ -1,0 +1,45 @@
+<script type="text/javascript" src="javascript/addProgramIndicatorGroupForm.js"></script>
+
+<h3>$i18n.getString( "create_new_program_indicator_group" )</h3>
+
+<form id="addProgramIndicatorGroupForm" name="addProgramIndicatorGroupForm" action="addProgramIndicatorGroup.action" method="post" class="inputForm">
+
+  <table>
+    <tr>
+      <th colspan="2">$i18n.getString( "program_indicator_group_deltails" )</th>
+    </tr>
+    <tr>
+      <td><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( 'required' )" class="required">*</em></label></td>
+      <td><input type="text" id="name" name="name" /></td>
+    </tr>
+    <tr>
+      <td><label for="description">$i18n.getString( "description" )</label></td>
+      <td><textarea id="description" name="description"></textarea></td>
+    </tr>
+    <tr>
+      <td colspan="2">&nbsp;</td>
+    </tr>
+  </table>
+
+  #jqSelected({
+  "prefix": "pi",
+  "i18n_available": "availableProgramIndicator",
+  "i18n_selected": "selectedProgramIndicator"
+  })
+
+  <table>
+    <colgroup>
+      <col style='width:500px'/>
+      <col/>
+      <col style='width:500px'/>
+    </colgroup>
+    <tr>
+      <td colspan='2'>
+        <input type="submit" value="$i18n.getString( 'add' )" style="width:10em" />
+        <input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='programIndicatorGroup.action'" style="width:10em" />
+      </td>
+    </tr>
+  </table>
+
+</form>
+

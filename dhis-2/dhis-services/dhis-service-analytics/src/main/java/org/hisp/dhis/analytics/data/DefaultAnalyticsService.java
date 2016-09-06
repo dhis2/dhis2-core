@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.DimensionItem;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
@@ -69,6 +70,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -179,6 +181,50 @@ public class DefaultAnalyticsService
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
+
+    @Override
+    public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
+    {
+        DataQueryParams query = DataQueryParams.newBuilder( params )
+            .withSkipMeta( false )
+            .withSkipData( false )
+            .withIncludeNumDen( false )
+            .withOutputFormat( OutputFormat.DATA_VALUE_SET )
+            .build();
+        
+        Grid grid = getAggregatedDataValueGridInternal( query );
+                
+        return AnalyticsUtils.getDataValueSetFromGrid( grid );
+    }
+    
+    @Override
+    public Grid getAggregatedDataValues( AnalyticalObject object )
+    {
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+
+        return getAggregatedDataValues( params );
+    }
+
+    @Override
+    public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
+    {
+        Grid grid = getAggregatedDataValues( DataQueryParams.newBuilder( params )
+            .withIncludeNumDen( false ).build() );
+
+        return AnalyticsUtils.getAggregatedDataValueMapping( grid );
+    }
+
+    @Override
+    public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
+    {
+        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+
+        return getAggregatedDataValueMapping( params );
+    }
+
+    // -------------------------------------------------------------------------
+    // Private business logic methods
+    // -------------------------------------------------------------------------
 
     /**
      * Returns a grid with aggregated data.
@@ -793,31 +839,6 @@ public class DefaultAnalyticsService
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
 
         return reportTable.getGrid( new ListGrid( grid.getMetaData() ), valueMap, params.getDisplayProperty(), false );
-    }
-
-    @Override
-    public Grid getAggregatedDataValues( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
-
-        return getAggregatedDataValues( params );
-    }
-
-    @Override
-    public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
-    {
-        Grid grid = getAggregatedDataValues( DataQueryParams.newBuilder( params )
-            .withIncludeNumDen( false ).build() );
-
-        return AnalyticsUtils.getAggregatedDataValueMapping( grid );
-    }
-
-    @Override
-    public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
-
-        return getAggregatedDataValueMapping( params );
     }
 
     // -------------------------------------------------------------------------

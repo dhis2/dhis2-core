@@ -35,9 +35,12 @@ import com.google.common.collect.Lists;
 
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -138,5 +141,31 @@ public class AnalyticsUtilsTest
         
         assertEquals( 3, map.get( "de1" + DIMENSION_SEP + "ou2" + DIMENSION_SEP + "pe1" ) );
         assertEquals( 5, map.get( "de2" + DIMENSION_SEP + "ou3" + DIMENSION_SEP + "pe2" ) );
+    }
+    
+    @Test
+    public void testGetDataValueSetFromGrid()
+    {
+        Grid grid = new ListGrid();
+        
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", "1" ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", "2" ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", "3" ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", "4" ) );
+        
+        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( grid );
+        
+        assertNotNull( dvs );
+        assertNotNull( dvs.getDataValues() );
+        assertEquals( 4, dvs.getDataValues().size() );
+        
+        assertEquals( "dxA", dvs.getDataValues().get( 1 ).getDataElement() );
+        assertEquals( "ouA", dvs.getDataValues().get( 1 ).getOrgUnit() );
+        assertEquals( "peB", dvs.getDataValues().get( 1 ).getPeriod() );
+        assertEquals( "2", dvs.getDataValues().get( 1 ).getValue() );        
     }
 }

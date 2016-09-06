@@ -13,7 +13,7 @@ jQuery( document ).ready( function() {
 
 <div id="userHeader">$!encoder.htmlEncode( $user.firstName ) $!encoder.htmlEncode( $user.surname  )</div>
 #if( $user.id == $currentUser.id )
-<div id="userProfileLink"><a class="blueButtonLink" href="../dhis-web-commons-about/showUpdateUserProfileForm.action">$i18n.getString( "edit_profile" )</a></div>
+<div id="userProfileLink"><a class="blueButtonLink" href="../dhis-web-user-profile/#/profile">$i18n.getString( "edit_profile" )</a></div>
 #else
 <div id="userProfileLink"><a class="blueButtonLink" href="showSendMessage.action?id=${user.uid}">$i18n.getString( "send_message" )</a></div>
 #end

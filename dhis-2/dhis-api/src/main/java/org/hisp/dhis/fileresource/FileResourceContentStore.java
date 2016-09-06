@@ -46,13 +46,23 @@ public interface FileResourceContentStore
     ByteSource getFileResourceContent( String key );
 
     /**
-     * Save the content of the file to the file store.
+     * Save the contents of the byte array to the file store.
+     *
      * @param fileResource the FileResource object. Must be complete and include the storageKey,
      *                     contentLength, contentMd5 and name.
-     * @param file the file. The file will be consumed and deleted upon completion.
+     * @param bytes the byte array.
      * @return the key on success or null if saving failed.
      */
-    String saveFileResourceContent( FileResource fileResource, File file );
+    String saveFileResourceContent( FileResource fileResource, byte[] bytes );
+
+    /**
+     * Save the contents of the File to the file store.
+     *
+     * @param fileResource the FileResource object.
+     * @param file the File. Will be consumed upon deletion.
+     * @return the key on success or null if saving failed.
+     */
+    String saveFileResourceContent( FileResource fileResource, File file);
 
     /**
      * Delete the content bytes of a file resource.
