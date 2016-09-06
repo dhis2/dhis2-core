@@ -79,7 +79,7 @@ public abstract class DeliveryChannelStrategy
             }
         }
 
-        throw new IllegalQueryException( "Tracked entity does not have value type: " + type.toString() );
+        throw new IllegalQueryException( "Tracked entity does not have any attribute of value type: " + type.toString() );
     }
 
     // -------------------------------------------------------------------------
