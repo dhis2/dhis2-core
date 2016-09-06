@@ -83,6 +83,7 @@ public class NotificationMessageRenderer
     private static final int SMS_CHAR_LIMIT = 160 * 4;  // Four concatenated SMS messages
     private static final int EMAIL_CHAR_LIMIT = 10000;  // Somewhat arbitrarily chosen limits
     private static final int SUBJECT_CHAR_LIMIT = 60;   //
+
     private static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
 
     private static final Pattern VARIABLE_PATTERN = Pattern.compile( "V\\{([a-z_]*)\\}" ); // Matches the variable in group 1
@@ -129,7 +130,8 @@ public class NotificationMessageRenderer
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private static NotificationMessage internalRender( ProgramStageInstance programStageInstance, ProgramNotificationTemplate template, int subjectCharLimit, int messageCharLimit )
+    private static NotificationMessage internalRender(
+        ProgramStageInstance programStageInstance, ProgramNotificationTemplate template, int subjectCharLimit, int messageCharLimit )
     {
         String collatedTemplate = template.getSubjectTemplate() + " " + template.getSubjectTemplate();
 
@@ -137,24 +139,29 @@ public class NotificationMessageRenderer
         Set<String> allAttributes = extractAttributes( collatedTemplate );
 
         Map<String, String> variableToValueMap = resolveVariableValues( allVariables, programStageInstance );
-        Map<String, String> uidToTeiAttributeValueMap = resolveTeiAttributeValues( allAttributes, programStageInstance );
+        Map<String, String> teiAttributeValues = resolveTeiAttributeValues( allAttributes, programStageInstance );
 
-        return replaceExpressions( template, variableToValueMap, uidToTeiAttributeValueMap, subjectCharLimit, messageCharLimit );
+        return createNotificationMessage( template, variableToValueMap, teiAttributeValues, subjectCharLimit, messageCharLimit );
     }
 
-    private static NotificationMessage replaceExpressions( ProgramNotificationTemplate template, Map<String, String> variableToValueMap, Map<String, String> uidToTeiAttributeValueMap, int subjectCharLimit, int messageCharLimit )
+    private static NotificationMessage createNotificationMessage( ProgramNotificationTemplate template, Map<String, String> variableToValueMap,
+        Map<String, String> teiAttributeValueMap, int subjectCharLimit, int messageCharLimit )
     {
-        String subject = template.getSubjectTemplate();
+        String subject = replaceExpressions( template.getSubjectTemplate(), variableToValueMap, teiAttributeValueMap );
+        subject = chopLength( subject, subjectCharLimit );
 
-        subject = replaceWithValues( subject, VARIABLE_PATTERN, variableToValueMap  );
-        subject = replaceWithValues( subject, ATTRIBUTE_PATTERN, uidToTeiAttributeValueMap );
-
-        String message = template.getMessageTemplate();
-
-        message = replaceWithValues( message, VARIABLE_PATTERN, variableToValueMap );
-        message = replaceWithValues( message, ATTRIBUTE_PATTERN, uidToTeiAttributeValueMap );
+        String message = replaceExpressions( template.getMessageTemplate(), variableToValueMap, teiAttributeValueMap );
+        message = chopLength( message, messageCharLimit );
 
         return new NotificationMessage( subject, message );
+    }
+
+    private static String replaceExpressions( String input, Map<String, String> variableMap, Map<String, String> teiAttributeValueMap )
+    {
+        String output = replaceWithValues( input, VARIABLE_PATTERN, variableMap );
+        output = replaceWithValues( output, ATTRIBUTE_PATTERN, teiAttributeValueMap );
+
+        return output;
     }
 
     private static String replaceWithValues( String input, Pattern pattern, Map<String, String> identifierToValueMap )
@@ -165,12 +172,13 @@ public class NotificationMessageRenderer
 
         while ( matcher.find() )
         {
-            String uid = matcher.group(1);
+            String uid = matcher.group( 1 );
             String value = identifierToValueMap.get( uid );
             matcher.appendReplacement( sb, value );
         }
 
         matcher.appendTail( sb );
+
         return matcher.toString();
     }
 
@@ -208,5 +216,10 @@ public class NotificationMessageRenderer
             .getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeUids.contains( av.getAttribute().getUid() ) )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av.getPlainValue() != null ? av.getPlainValue() : CONFIDENTIAL_VALUE_REPLACEMENT ) );
+    }
+
+    private static String chopLength( String input, int limit )
+    {
+        return input.substring( 0, Math.min( input.length(), limit ) );
     }
 }
