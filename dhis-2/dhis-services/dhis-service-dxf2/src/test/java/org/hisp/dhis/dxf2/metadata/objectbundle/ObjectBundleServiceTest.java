@@ -1309,20 +1309,40 @@ public class ObjectBundleServiceTest
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setAtomicMode( AtomicMode.NONE );
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-
-        System.err.println( "V: " + validate.getErrorReports() );
+        objectBundleValidationService.validate( bundle );
 
         objectBundleService.commit( bundle );
 
         assertEquals( 1, manager.getAll( DataElement.class ).size() );
 
-        // DataElement dataElement = manager.get( DataElement.class, "CCwk5Yx440o" );
-        // assertEquals( "SG4HuKlNEFH", dataElement.getUid() );
-        // assertEquals( "DataElementA", dataElement.getName() );
+        DataElement dataElement = manager.get( DataElement.class, "CCwk5Yx440o" );
+        assertEquals( "CCwk5Yx440o", dataElement.getUid() );
+        assertEquals( "DataElementB", dataElement.getName() );
+    }
+
+    @Test
+    public void testCreateMetadataWithDuplicateDataElementUidALL() throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/de_duplicate_uid.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleValidationService.validate( bundle );
+
+        objectBundleService.commit( bundle );
+
+        assertEquals( 0, manager.getAll( DataElement.class ).size() );
     }
 
     @Test
