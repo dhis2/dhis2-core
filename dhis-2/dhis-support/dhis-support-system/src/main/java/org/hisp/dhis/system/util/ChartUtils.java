@@ -1,4 +1,4 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,19 +28,19 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
 
 public class ChartUtils
 {
     public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
+
         try
         {
             ChartUtilities.writeChartAsPNG( out, jFreeChart, width, height );
@@ -50,6 +50,6 @@ public class ChartUtils
         catch ( IOException ex )
         {
             throw new UncheckedIOException( ex );
-        }        
+        }
     }
 }
