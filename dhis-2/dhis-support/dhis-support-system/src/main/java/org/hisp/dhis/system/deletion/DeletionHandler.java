@@ -78,6 +78,7 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -698,6 +699,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteProgramIndicator( ProgramIndicator programIndicator )
+    {
+        return null;
+    }
+
+    public void deleteProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
+    {
+    }
+
+    public String allowDeleteProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
     {
         return null;
     }

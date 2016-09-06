@@ -63,9 +63,9 @@ public class ProgramMessage
 
     private ProgramMessageStatus messageStatus;
 
-    private String text;
-
     private String subject;
+
+    private String text;
 
     private Date processedDate;
 
@@ -88,16 +88,16 @@ public class ProgramMessage
     public ProgramMessage( String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
         ProgramInstance programInstance )
     {
-        this(text, recipients);
-        this.deliveryChannels.addAll( deliveryChannels );
+        this( text, recipients );
+        this.deliveryChannels = deliveryChannels;
         this.programInstance = programInstance;
     }
 
     public ProgramMessage( String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
         ProgramStageInstance programStageInstance )
     {
-        this(text, recipients);
-        this.deliveryChannels.addAll( deliveryChannels );
+        this( text, recipients );
+        this.deliveryChannels = deliveryChannels;
         this.programStageInstance = programStageInstance;
     }
 
@@ -155,30 +155,6 @@ public class ProgramMessage
         this.deliveryChannels = deliveryChannels;
     }
 
-    @JsonProperty( value = "text" )
-    @JacksonXmlProperty( localName = "text" )
-    public String getText()
-    {
-        return text;
-    }
-
-    public void setText( String text )
-    {
-        this.text = text;
-    }
-
-    @JsonProperty( value = "storeCopy" )
-    @JacksonXmlProperty( localName = "storeCopy" )
-    public boolean getStoreCopy()
-    {
-        return storeCopy;
-    }
-
-    public void setStoreCopy( boolean storeCopy )
-    {
-        this.storeCopy = storeCopy;
-    }
-
     @JsonProperty( value = "messageStatus" )
     @JacksonXmlProperty( localName = "messageStatus" )
     public ProgramMessageStatus getMessageStatus()
@@ -201,6 +177,30 @@ public class ProgramMessage
     public void setSubject( String messageSubject )
     {
         this.subject = messageSubject;
+    }
+
+    @JsonProperty( value = "text" )
+    @JacksonXmlProperty( localName = "text" )
+    public String getText()
+    {
+        return text;
+    }
+
+    public void setText( String text )
+    {
+        this.text = text;
+    }
+
+    @JsonProperty( value = "storeCopy" )
+    @JacksonXmlProperty( localName = "storeCopy" )
+    public boolean getStoreCopy()
+    {
+        return storeCopy;
+    }
+
+    public void setStoreCopy( boolean storeCopy )
+    {
+        this.storeCopy = storeCopy;
     }
 
     @JsonProperty( value = "processedDate" )
