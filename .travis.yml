@@ -11,7 +11,7 @@ script:
 branches:
   only:
   - master
-  - /^2\.[0-9]{1,}
+  - /^2\.[0-9]{1,}/
 
 notifications:
   slack:
