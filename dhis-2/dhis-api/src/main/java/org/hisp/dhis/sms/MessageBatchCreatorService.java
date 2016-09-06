@@ -36,7 +36,6 @@ import org.hisp.dhis.sms.outbound.MessageBatch;
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>
 */
-
 public interface MessageBatchCreatorService
 {
     MessageBatch getMessageBatch( List<ProgramMessage> programMessages );
