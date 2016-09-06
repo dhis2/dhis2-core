@@ -34,10 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -48,21 +45,17 @@ public class EmailDeliveryChannelStrategy
     private static final Log log = LogFactory.getLog( EmailDeliveryChannelStrategy.class );
 
     // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public ProgramMessage fillAttributes( ProgramMessage message )
+    public DeliveryChannel getDeliveryChannel()
+    {
+        return DeliveryChannel.EMAIL;
+    }
+
+    @Override
+    public ProgramMessage setAttributes( ProgramMessage message )
     {
         validate( message );
 
@@ -105,14 +98,7 @@ public class EmailDeliveryChannelStrategy
             log.info( "Message validation failed: " + violation );
 
             throw new IllegalQueryException( violation );
-
         }
-    }
-
-    @Override
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return DeliveryChannel.EMAIL;
     }
 
     @Override
@@ -120,47 +106,11 @@ public class EmailDeliveryChannelStrategy
     {
         if ( orgUnit.getEmail() == null )
         {
-            log.error( "OrganisationUnit does not have an email address" );
+            log.error( "Organisation unit does not have an email address" );
 
-            throw new IllegalQueryException( "OrganisationUnit does not have an email address" );
+            throw new IllegalQueryException( "Organisation unit does not have an email address" );
         }
 
         return orgUnit.getEmail();
-    }
-
-    // ---------------------------------------------------------------------
-    // Supportive methods
-    // ---------------------------------------------------------------------
-
-    private TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
-    {
-        if ( message.getRecipients().getTrackedEntityInstance() == null )
-        {
-            return null;
-        }
-
-        String uid = message.getRecipients().getTrackedEntityInstance().getUid();
-
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( uid );
-
-        message.getRecipients().setTrackedEntityInstance( tei );
-
-        return tei;
-    }
-
-    private OrganisationUnit getOrganisationUnit( ProgramMessage message )
-    {
-        if ( message.getRecipients().getOrganisationUnit() == null )
-        {
-            return null;
-        }
-
-        String uid = message.getRecipients().getOrganisationUnit().getUid();
-
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( uid );
-
-        message.getRecipients().setOrganisationUnit( orgUnit );
-
-        return orgUnit;
     }
 }
