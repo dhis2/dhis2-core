@@ -145,26 +145,6 @@ public class NotificationMessageRenderer
         return createNotificationMessage( template, variableToValueMap, teiAttributeValues, subjectCharLimit, messageCharLimit );
     }
 
-    private static NotificationMessage createNotificationMessage( ProgramNotificationTemplate template, Map<String, String> variableToValueMap,
-        Map<String, String> teiAttributeValueMap, int subjectCharLimit, int messageCharLimit )
-    {
-        String subject = replaceExpressions( template.getSubjectTemplate(), variableToValueMap, teiAttributeValueMap );
-        subject = chopLength( subject, subjectCharLimit );
-
-        String message = replaceExpressions( template.getMessageTemplate(), variableToValueMap, teiAttributeValueMap );
-        message = chopLength( message, messageCharLimit );
-
-        return new NotificationMessage( subject, message );
-    }
-
-    private static String replaceExpressions( String input, Map<String, String> variableMap, Map<String, String> teiAttributeValueMap )
-    {
-        String output = replaceWithValues( input, VARIABLE_PATTERN, variableMap );
-        output = replaceWithValues( output, ATTRIBUTE_PATTERN, teiAttributeValueMap );
-
-        return output;
-    }
-
     private static String replaceWithValues( String input, Pattern pattern, Map<String, String> identifierToValueMap )
     {
         Matcher matcher = pattern.matcher( input );
@@ -185,8 +165,8 @@ public class NotificationMessageRenderer
 
     private static Set<String> extractVariables( String input )
     {
-        Map<Boolean, Set<String>> groupedVariables = RegexUtils.getMatches( VARIABLE_PATTERN, input, 1 )
-            .stream().collect( Collectors.groupingBy( VARIABLE_MAP.keySet()::contains, Collectors.toSet() ) );
+        Map<Boolean, Set<String>> groupedVariables = RegexUtils.getMatches( VARIABLE_PATTERN, input, 1 ).stream()
+            .collect( Collectors.groupingBy( VARIABLE_MAP.keySet()::contains, Collectors.toSet() ) );
 
         if ( !groupedVariables.get( false ).isEmpty() )
         {
@@ -220,6 +200,26 @@ public class NotificationMessageRenderer
             .getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeUids.contains( av.getAttribute().getUid() ) )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), NotificationMessageRenderer::plainOrConfidential ) );
+    }
+
+    private static NotificationMessage createNotificationMessage( ProgramNotificationTemplate template, Map<String, String> variableToValueMap,
+        Map<String, String> teiAttributeValueMap, int subjectCharLimit, int messageCharLimit )
+    {
+        String subject = replaceExpressions( template.getSubjectTemplate(), variableToValueMap, teiAttributeValueMap );
+        subject = chopLength( subject, subjectCharLimit );
+
+        String message = replaceExpressions( template.getMessageTemplate(), variableToValueMap, teiAttributeValueMap );
+        message = chopLength( message, messageCharLimit );
+
+        return new NotificationMessage( subject, message );
+    }
+
+    private static String replaceExpressions( String input, Map<String, String> variableMap, Map<String, String> teiAttributeValueMap )
+    {
+        String output = replaceWithValues( input, VARIABLE_PATTERN, variableMap );
+        output = replaceWithValues( output, ATTRIBUTE_PATTERN, teiAttributeValueMap );
+
+        return output;
     }
 
     private static String plainOrConfidential( TrackedEntityAttributeValue av )
