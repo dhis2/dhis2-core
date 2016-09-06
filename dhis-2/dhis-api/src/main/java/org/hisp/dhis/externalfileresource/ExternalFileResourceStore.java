@@ -27,14 +27,12 @@ package org.hisp.dhis.externalfileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+
 /**
  * @author Stian Sandvold
  */
-public interface ExternalFileResourceService
+public interface ExternalFileResourceStore extends GenericIdentifiableObjectStore<ExternalFileResource>
 {
-
-    ExternalFileResource getExternalFileResourceByAccesstoken( String accessToken );
-
-    void saveExternalFileResource( ExternalFileResource externalFileResource );
-
+    ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
 }
