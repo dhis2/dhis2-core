@@ -41,5 +41,5 @@ public enum NotificationTrigger
     /**
      * Scheduled time relative to event's dueDate
      */
-    RELATIVE_SCHEDULED,
+    SCHEDULED,
 }

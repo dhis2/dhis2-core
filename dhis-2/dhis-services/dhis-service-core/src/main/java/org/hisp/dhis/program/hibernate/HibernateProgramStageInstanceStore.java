@@ -236,7 +236,7 @@ public class HibernateProgramStageInstanceStore
             "select psi from ProgramStageInstance as psi " +
             "inner join psi.programStage.notifications as n " +
             "where psi.dueDate is not null " +
-            "and n.notificationTrigger = '" + NotificationTrigger.RELATIVE_SCHEDULED.name() + "' " +
+            "and n.notificationTrigger = '" + NotificationTrigger.SCHEDULED.name() + "' " +
             "and (day(:notificationDate) - day(psi.dueDate)) = n.daysBeforeOrAfter"
         );
 
@@ -266,7 +266,7 @@ public class HibernateProgramStageInstanceStore
                 "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays"
         );
 
-        query.setString( "notificationTrigger", NotificationTrigger.RELATIVE_SCHEDULED.name() );
+        query.setString( "notificationTrigger", NotificationTrigger.SCHEDULED.name() );
         query.setDate( "notificationDate", notificationDate );
         query.setEntity( "notificationTemplate", notificationTemplate );
 

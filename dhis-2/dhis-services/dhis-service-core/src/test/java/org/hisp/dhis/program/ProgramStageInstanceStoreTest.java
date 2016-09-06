@@ -426,7 +426,7 @@ public class ProgramStageInstanceStoreTest
             name,
             "Subject template",
             "Message template",
-            NotificationTrigger.RELATIVE_SCHEDULED,
+            NotificationTrigger.SCHEDULED,
             NotificationRecipient.TRACKED_ENTITY_INSTANCE,
             Sets.newHashSet(),
             daysBeforeOrAfter,
