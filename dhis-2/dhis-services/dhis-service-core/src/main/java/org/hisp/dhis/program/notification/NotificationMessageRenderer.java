@@ -36,6 +36,7 @@ import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.message.DeliveryChannel;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 
@@ -210,12 +211,22 @@ public class NotificationMessageRenderer
 
     private static Map<String, String> resolveTeiAttributeValues( Set<String> attributeUids, ProgramStageInstance programStageInstance )
     {
-        if ( attributeUids.isEmpty() ) return Maps.newHashMap();
+        if ( attributeUids.isEmpty() )
+        {
+            return Maps.newHashMap();
+        }
 
         return programStageInstance
             .getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeUids.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av.getPlainValue() != null ? av.getPlainValue() : CONFIDENTIAL_VALUE_REPLACEMENT ) );
+            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), NotificationMessageRenderer::plainOrConfidential ) );
+    }
+
+    private static String plainOrConfidential( TrackedEntityAttributeValue av )
+    {
+        String plainValue = av.getPlainValue();
+
+        return plainValue != null ? plainValue : CONFIDENTIAL_VALUE_REPLACEMENT;
     }
 
     private static String chopLength( String input, int limit )
