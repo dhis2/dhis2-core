@@ -110,7 +110,7 @@ public abstract class BaseChart
 
     protected transient List<Period> relativePeriods = new ArrayList<>();
 
-    protected transient User user;
+    protected transient User relativeUser;
 
     protected transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
 
@@ -155,7 +155,7 @@ public abstract class BaseChart
 
         for ( String filter : filterDimensions )
         {
-            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, user, true,
+            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
                 organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
             if ( object != null )
@@ -199,7 +199,7 @@ public abstract class BaseChart
     {
         format = null;
         relativePeriods = new ArrayList<>();
-        user = null;
+        relativeUser = null;
         organisationUnitsAtLevel = new ArrayList<>();
         organisationUnitsInGroups = new ArrayList<>();
         dataItemGrid = null;

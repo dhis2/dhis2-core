@@ -153,7 +153,7 @@ public class EventChart
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
         I18nFormat format )
     {
-        this.user = user;
+        this.relativeUser = user;
         this.format = format;
     }
 
@@ -189,7 +189,7 @@ public class EventChart
     {
         String series = columnDimensions.get( 0 );
 
-        DimensionalObject object = getDimensionalObject( series, relativePeriodDate, user, true,
+        DimensionalObject object = getDimensionalObject( series, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         DimensionalObjectUtils.setDimensionItemsForFilters( object, dataItemGrid, true );
@@ -202,7 +202,7 @@ public class EventChart
     {
         String category = rowDimensions.get( 0 );
 
-        DimensionalObject object = getDimensionalObject( category, relativePeriodDate, user, true,
+        DimensionalObject object = getDimensionalObject( category, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         DimensionalObjectUtils.setDimensionItemsForFilters( object, dataItemGrid, true );

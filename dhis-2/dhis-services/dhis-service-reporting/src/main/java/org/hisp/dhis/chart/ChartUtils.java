@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.chart;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,34 +28,28 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
-import java.io.File;
-import java.net.URI;
-import java.util.List;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FileResourceService
+public class ChartUtils
 {
-    FileResource getFileResource( String uid );
-
-    List<FileResource> getFileResources( List<String> uids );
-
-    List<FileResource> getOrphanedFileResources();
-
-    String saveFileResource( FileResource fileResource, File file );
-
-    String saveFileResource( FileResource fileResource, byte[] bytes );
-
-    void deleteFileResource( String uid );
-    
-    ByteSource getFileResourceContent( FileResource fileResource );
-    
-    boolean fileResourceExists( String uid );
-    
-    void updateFileResource( FileResource fileResource );
-
-    URI getSignedGetFileResourceContentUri( String uid );
+    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        
+        try
+        {
+            ChartUtilities.writeChartAsPNG( out, jFreeChart, width, height );
+            out.flush();
+            return out.toByteArray();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }        
+    }
 }

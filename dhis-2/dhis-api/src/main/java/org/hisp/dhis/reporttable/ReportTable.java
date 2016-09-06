@@ -307,6 +307,7 @@ public class ReportTable
         verify( (periods != null && !periods.isEmpty()) || hasRelativePeriods(), "Must contain periods or relative periods" );
 
         this.relativePeriodDate = date;
+        this.relativeOrganisationUnit = organisationUnit;
 
         // Handle report parameters
 
@@ -318,14 +319,12 @@ public class ReportTable
         if ( organisationUnit != null && hasReportParams() && reportParams.isParamParentOrganisationUnit() )
         {
             organisationUnit.setCurrentParent( true );
-            this.relativeOrganisationUnit = organisationUnit;
             addTransientOrganisationUnits( organisationUnit.getChildren() );
             addTransientOrganisationUnit( organisationUnit );
         }
 
         if ( organisationUnit != null && hasReportParams() && reportParams.isParamOrganisationUnit() )
         {
-            this.relativeOrganisationUnit = organisationUnit;
             addTransientOrganisationUnit( organisationUnit );
         }
 
