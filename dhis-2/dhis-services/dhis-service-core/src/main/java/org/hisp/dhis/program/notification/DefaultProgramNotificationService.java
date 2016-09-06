@@ -149,10 +149,10 @@ public class DefaultProgramNotificationService
     {
         NotificationMessage message = NotificationMessageRenderer.render( psi, template );
 
-        ProgramMessage programMessage = new ProgramMessage( message.getMessage(), resolveProgramMessageRecipients( psi, template ) );
+        ProgramMessage programMessage = new ProgramMessage(
+            message.getMessage(), resolveProgramMessageRecipients( psi, template ), template.getDeliveryChannels(), psi );
+
         programMessage.setSubject( message.getSubject() );
-        programMessage.setDeliveryChannels( template.getDeliveryChannels() );
-        programMessage.setProgramStageInstance( psi );
 
         return programMessage;
     }
