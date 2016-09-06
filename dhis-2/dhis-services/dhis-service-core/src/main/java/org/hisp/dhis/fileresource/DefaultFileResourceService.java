@@ -43,6 +43,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -122,17 +123,14 @@ public class DefaultFileResourceService
     @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
-        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
-        fileResourceStore.save( fileResource );
+        return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
+    }
 
-        final ListenableFuture<String> saveContentTask =
-            scheduler.executeTask( () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
-
-        final String uid = fileResource.getUid();
-
-        saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
-
-        return uid;
+    @Override
+    @Transactional
+    public String saveFileResource( FileResource fileResource, byte[] bytes )
+    {
+        return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, bytes ) );
     }
 
     @Override
@@ -191,6 +189,20 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private String saveFileResourceInternal( FileResource fileResource, Callable<String> saveCallable )
+    {
+        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+        fileResourceStore.save( fileResource );
+
+        final ListenableFuture<String> saveContentTask = scheduler.executeTask( saveCallable );
+
+        final String uid = fileResource.getUid();
+
+        saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
+
+        return uid;
+    }
 
     /**
      * TODO Temporary fix. Remove at some point.
