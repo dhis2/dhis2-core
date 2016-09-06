@@ -203,6 +203,7 @@ $(document).ready(function () {
         else {
             alert('Metadata synchronization is still in progress');
         }
+        $('#schedulingForm').submit();
     });
 
 });

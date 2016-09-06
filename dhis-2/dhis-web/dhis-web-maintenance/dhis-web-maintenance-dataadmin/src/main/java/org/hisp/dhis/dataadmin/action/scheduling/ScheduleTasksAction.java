@@ -303,7 +303,7 @@ public class ScheduleTasksAction
         if ( executeNow )
         {
             schedulingManager.executeTask( taskKey );
-            syncInProgress = schedulingManager.getNowTaskStatus( taskKey ); // #TODO: 02/09/16 : expose the result to hidden variable in UI to show alert
+//            syncInProgress = schedulingManager.getNowTaskStatus( taskKey ); // #TODO: 02/09/16 : expose the result to hidden variable in UI to show alert
             return SUCCESS;
         }
 
@@ -452,7 +452,7 @@ public class ScheduleTasksAction
 
         status = schedulingManager.getTaskStatus();
         running = ScheduledTaskStatus.RUNNING.equals( status );
-        syncInProgress = schedulingManager.getNowTaskStatus( taskKey );
+        syncInProgress = schedulingManager.getNowTaskStatus( "metadataSyncTask" );
         levels = organisationUnitService.getOrganisationUnitLevels();
 
         lastResourceTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
