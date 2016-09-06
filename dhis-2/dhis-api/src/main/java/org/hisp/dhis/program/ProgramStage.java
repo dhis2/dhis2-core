@@ -380,7 +380,6 @@ public class ProgramStage
     }
 
     // TODO Deprecate?
-    @Deprecated
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDefaultTemplateMessage()

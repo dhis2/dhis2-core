@@ -134,7 +134,11 @@ public interface ProgramStageInstanceStore
      */
     List<ProgramStageInstance> getWithNotificationsOnDate( Date notificationDate );
 
-    List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate psn, Date notificationDate );
-
-//    Map<ProgramStageInstance, Set<ProgramStageNotification>> getNotificationsMapForDate( Date notificationDate );
+    /**
+     * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
+     * @param template the template.
+     * @param notificationDate the Date for which the notification is scheduled.
+     * @return a list of ProgramStageInstance.
+     */
+    List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 }
