@@ -86,7 +86,7 @@ public class ProgramNotificationTemplate
         this.messageTemplate = messageTemplate;
         this.notificationTrigger = notificationTrigger;
         this.notificationRecipient = notificationRecipient;
-        this.deliveryChannels.addAll( deliveryChannels );
+        this.deliveryChannels = deliveryChannels;
         this.relativeScheduledDays = relativeScheduledDays;
         this.recipientUserGroup = recipientUserGroup;
     }

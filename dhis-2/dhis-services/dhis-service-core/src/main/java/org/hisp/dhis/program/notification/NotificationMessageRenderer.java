@@ -136,7 +136,8 @@ public class NotificationMessageRenderer
 
         boolean hasSmsRecipients = template.getDeliveryChannels().contains( DeliveryChannel.SMS );
 
-        return createNotificationMessage( template, variableToValueMap, teiAttributeValues, SUBJECT_CHAR_LIMIT, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT );
+        return createNotificationMessage(
+            template, variableToValueMap, teiAttributeValues, SUBJECT_CHAR_LIMIT, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT );
     }
 
     // -------------------------------------------------------------------------
@@ -223,10 +224,10 @@ public class NotificationMessageRenderer
         Map<String, String> teiAttributeValueMap, int subjectCharLimit, int messageCharLimit )
     {
         String subject = replaceExpressions( template.getSubjectTemplate(), variableToValueMap, teiAttributeValueMap );
-        subject = chopLength( subject, subjectCharLimit );
+        subject = chop( subject, subjectCharLimit );
 
         String message = replaceExpressions( template.getMessageTemplate(), variableToValueMap, teiAttributeValueMap );
-        message = chopLength( message, messageCharLimit );
+        message = chop( message, messageCharLimit );
 
         return new NotificationMessage( subject, message );
     }
@@ -256,7 +257,7 @@ public class NotificationMessageRenderer
         return plainValue != null ? plainValue : CONFIDENTIAL_VALUE_REPLACEMENT;
     }
 
-    private static String chopLength( String input, int limit )
+    private static String chop( String input, int limit )
     {
         return input.substring( 0, Math.min( input.length(), limit ) );
     }
