@@ -93,7 +93,6 @@ dhis2.db.tmpl = {
 
     chartItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' style='${style}' data-item='${itemId}'></div></li>" +
     "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
-    "<a href='javascript:dhis2.db.viewImage( \"../api/charts/${id}/data?width=820&height=550\", \"${name}\" )'>${i18n_get_as_image}</a>" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"chart\", \"${name}\" )'>${i18n_share}</a>" +
     "<a href='javascript:dhis2.db.exploreChart( \"${id}\" )'>${i18n_explore}</a>" +
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>" +
@@ -103,7 +102,6 @@ dhis2.db.tmpl = {
 
     eventChartItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' style='${style}' data-item='${itemId}'></div></li>" +
     "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
-    "<a href='javascript:dhis2.db.viewImage( \"../api/eventCharts/${id}/data?width=820&height=550\", \"${name}\" )'>${i18n_get_as_image}</a>" +
     "<a href='javascript:dhis2.db.exploreEventChart( \"${id}\" )'>${i18n_explore}</a>" +
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
@@ -112,7 +110,6 @@ dhis2.db.tmpl = {
 
     mapItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' style='${style}' data-item='${itemId}'></div></li>" +
     "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
-    "<a href='javascript:dhis2.db.viewImage( \"../api/maps/${id}/data?width=820&height=550\", \"${name}\" )'>${i18n_get_as_image}</a>" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"map\", \"${name}\" )'>${i18n_share}</a>" +
     "<a href='javascript:dhis2.db.exploreMap( \"${id}\" )'>${i18n_explore}</a>" +
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>" +
@@ -1442,28 +1439,6 @@ dhis2.db.showShareHelp = function () {
 //------------------------------------------------------------------------------
 // Full size view
 //------------------------------------------------------------------------------
-
-dhis2.db.viewImage = function (url, name) {
-    var width = 820,
-        height = 550,
-        title = i18n_viewing + " " + name;
-
-    $("#chartImage").attr("src", url);
-
-    var link = dhis2.db.contextPath + url.substring(2);
-
-    $("#chartImageUrl").html(link);
-    $("#chartImageUrl").attr("href", link);
-
-    $("#chartView").dialog({
-        autoOpen: true,
-        modal: true,
-        height: height + 110,
-        width: width + 40,
-        resizable: false,
-        title: title
-    });
-}
 
 dhis2.db.viewReportDialog = function (url, name) {
     var width = 820,
