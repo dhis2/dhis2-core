@@ -78,11 +78,11 @@ public class NotificationMessageRenderer
 
     private static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
 
-    private static final Pattern VARIABLE_PATTERN = Pattern.compile( "V\\{([a-z_]*)\\}" ); // Matches the variable in group 1
+    private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)\\}" ); // Matches the variable in group 1
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
 
     /**
-     * Maps the variable names to resolver functions.
+     * Maps ProgramStageInstance variable names to resolver functions.
      */
     private static final ImmutableMap<NotificationTemplateVariable, Function<ProgramStageInstance, String>> EVENT_VARIABLE_RESOLVERS
         = new ImmutableMap.Builder<NotificationTemplateVariable, Function<ProgramStageInstance, String>>()
@@ -94,6 +94,9 @@ public class NotificationMessageRenderer
             .put( NotificationTemplateVariable.DAYS_UNTIL_DUE_DATE,  NotificationMessageRenderer::daysUntilDue )
             .build();
 
+    /**
+     * Maps ProgramInstance variable names to resolver functions.
+     */
     private static final ImmutableMap<NotificationTemplateVariable, Function<ProgramInstance, String>> ENROLLMENT_VARIABLE_RESOLVERS
         = new ImmutableMap.Builder<NotificationTemplateVariable, Function<ProgramInstance, String>>()
             .put( NotificationTemplateVariable.PROGRAM_NAME,         ps -> ps.getProgram().getDisplayName() )
