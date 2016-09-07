@@ -81,24 +81,25 @@ public class ProgramMessage
     {
     }
 
-    public ProgramMessage( String text, ProgramMessageRecipients recipients )
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients )
     {
+        this.subject = subject;
         this.text = text;
         this.recipients = recipients;
     }
 
-    public ProgramMessage( String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
         ProgramInstance programInstance )
     {
-        this( text, recipients );
+        this( subject, text, recipients );
         this.deliveryChannels = deliveryChannels;
         this.programInstance = programInstance;
     }
 
-    public ProgramMessage( String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
         ProgramStageInstance programStageInstance )
     {
-        this( text, recipients );
+        this( subject, text, recipients );
         this.deliveryChannels = deliveryChannels;
         this.programStageInstance = programStageInstance;
     }
