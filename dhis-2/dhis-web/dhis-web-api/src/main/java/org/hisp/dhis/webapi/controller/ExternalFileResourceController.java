@@ -27,9 +27,6 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -41,13 +38,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Date;
 
@@ -145,76 +142,6 @@ public class ExternalFileResourceController
         finally
         {
             IOUtils.closeQuietly( inputStream );
-        }
-
-    }
-
-    // Only for testing!!!
-    @RequestMapping( value = "/createTest/{key}", method = RequestMethod.GET )
-    public void testExternalFileResourceTest(
-        @PathVariable String key,
-        HttpServletResponse response
-    )
-    {
-        File f = new File( key + ".txt" );
-
-        try
-        {
-            FileWriter fileWriter = new FileWriter( f );
-            fileWriter.write( key + " content" );
-            fileWriter.close();
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
-
-        FileResource fr = new FileResource();
-
-        ByteSource bytes = Files.asByteSource( f );
-        String contentMd5 = null;
-
-        try
-        {
-            contentMd5 = bytes.hash( Hashing.md5() ).toString();
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
-
-        fr.setName( key + ".txt" );
-        fr.setContentLength( f.length() );
-        fr.setContentMd5( contentMd5 );
-        fr.setContentType( MimeTypeUtils.TEXT_PLAIN.toString() );
-        fr.setDomain( FileResourceDomain.EXTERNAL );
-        fr.setStorageKey( key );
-
-        fileResourceService.saveFileResource( fr, f );
-
-        ExternalFileResource externalFileResource = new ExternalFileResource();
-
-        externalFileResource.setAccessToken( key );
-        externalFileResource.setExpires( null );
-        externalFileResource.setFileResource( fr );
-        externalFileResource.setName( key );
-
-        String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
-
-        System.out.println( accessToken + " :: AccessToken" );
-
-        Writer writer = null;
-
-        try
-        {
-            writer = response.getWriter();
-            writer.write( "AccessToken: " + accessToken );
-            writer.close();
-
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
         }
 
     }

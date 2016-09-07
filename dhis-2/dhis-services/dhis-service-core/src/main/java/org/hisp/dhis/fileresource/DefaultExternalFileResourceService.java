@@ -59,7 +59,7 @@ public class DefaultExternalFileResourceService
         Assert.notNull(externalFileResource.getFileResource());
         Assert.isTrue( externalFileResource.getFileResource().getDomain() == FileResourceDomain.EXTERNAL );
 
-        externalFileResource.setAccessToken( "" );
+        externalFileResource.setAccessToken( ExternalFileResourceTokenGenerator.generate() );
 
         externalFileResourceStore.save( externalFileResource );
 
