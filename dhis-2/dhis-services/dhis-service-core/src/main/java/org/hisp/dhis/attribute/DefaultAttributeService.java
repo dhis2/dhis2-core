@@ -265,6 +265,7 @@ public class DefaultAttributeService
         }
 
         Map<String, AttributeValue> attributeValueMap = attributeValues.stream()
+            .filter( av -> av.getAttribute() != null )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av ) );
 
         Iterator<AttributeValue> iterator = object.getAttributeValues().iterator();
