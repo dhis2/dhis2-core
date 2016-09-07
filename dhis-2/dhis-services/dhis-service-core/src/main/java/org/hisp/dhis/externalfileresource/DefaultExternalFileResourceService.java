@@ -27,7 +27,9 @@ package org.hisp.dhis.externalfileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 /**
  * @author Stian Sandvold
@@ -38,22 +40,30 @@ public class DefaultExternalFileResourceService
 
     private ExternalFileResourceStore externalFileResourceStore;
 
-    @Override
-    public ExternalFileResource getExternalFileResourceByAccesstoken( String accessToken )
-    {
-        return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
-    }
-
-    @Transactional
-    @Override
-    public void saveExternalFileResource( ExternalFileResource externalFileResource )
-    {
-        externalFileResourceStore.save( externalFileResource );
-    }
-
     public void setExternalFileResourceStore(
         ExternalFileResourceStore externalFileResourceStore )
     {
         this.externalFileResourceStore = externalFileResourceStore;
+    }
+
+    @Override
+    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
+    {
+        return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
+    }
+
+    @Override
+    @Transactional
+    public String saveExternalFileResource( ExternalFileResource externalFileResource )
+    {
+        Assert.notNull(externalFileResource);
+        Assert.notNull(externalFileResource.getFileResource());
+        Assert.isTrue( externalFileResource.getFileResource().getDomain() == FileResourceDomain.EXTERNAL );
+
+        externalFileResource.setAccessToken( "" );
+
+        externalFileResourceStore.save( externalFileResource );
+
+        return externalFileResource.getAccessToken();
     }
 }

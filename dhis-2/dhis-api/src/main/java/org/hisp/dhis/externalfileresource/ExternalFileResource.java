@@ -41,10 +41,19 @@ public class ExternalFileResource
     extends BaseIdentifiableObject
 {
 
+    /**
+     * FileResource containing the file we are exposing
+     */
     private FileResource fileResource;
 
+    /**
+     * The accessToken required to identify ExternalFileResources trough the api
+     */
     private String accessToken;
 
+    /**
+     * Date when the resource expires. Null means it never expires
+     */
     private Date expires;
 
     public Date getExpires()

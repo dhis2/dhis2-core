@@ -27,29 +27,35 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.externalfileresource.ExternalFileResource;
 import org.hisp.dhis.externalfileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Date;
 
 /**
@@ -67,16 +73,23 @@ public class ExternalFileResourceController
     @Autowired
     private FileResourceService fileResourceService;
 
-    @Autowired
-    ContextService contextService;
-
+    /**
+     * Returns a file associated with the externalFileResource resolved from the accessToken.
+     *
+     * Only files contained in externalFileResources with a valid accessToken, expiration date null or in the future and
+     * associated with the EXTERNAL domain are files allowed to be served trough this endpoint.     *
+     *
+     * @param accessToken a unique string that resolves to a given externalFileResource
+     * @param response
+     * @throws WebMessageException
+     */
     @RequestMapping( value = "/{accessToken}", method = RequestMethod.GET )
     public void getExternalFileResource( @PathVariable String accessToken,
         HttpServletResponse response )
         throws WebMessageException
     {
         ExternalFileResource externalFileResource = externalFileResourceService
-            .getExternalFileResourceByAccesstoken( accessToken );
+            .getExternalFileResourceByAccessToken( accessToken );
 
         if ( externalFileResource == null )
         {
@@ -85,12 +98,30 @@ public class ExternalFileResourceController
 
         if ( externalFileResource.getExpires() != null && externalFileResource.getExpires().before( new Date() ) )
         {
-            throw new WebMessageException( WebMessageUtils.createWebMessage( "The key you requested has expired", Status.WARNING, HttpStatus.GONE ) );
+            throw new WebMessageException( WebMessageUtils
+                .createWebMessage( "The key you requested has expired", Status.WARNING, HttpStatus.GONE ) );
         }
 
         FileResource fileResource = externalFileResource.getFileResource();
 
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
+        if ( fileResource.getDomain() != FileResourceDomain.EXTERNAL )
+        {
+            throw new WebMessageException( WebMessageUtils.forbidden( "The resource you are trying to access is not publicly available" ) );
+        }
+
+        // ---------------------------------------------------------------------
+        // Attempt to build signed URL request for content and redirect
+        // ---------------------------------------------------------------------
+
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource.getUid() );
+
+        if ( signedGetUri != null )
+        {
+            response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
+            response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
+
+            return;
+        }
 
         // ---------------------------------------------------------------------
         // Build response and return
@@ -108,7 +139,7 @@ public class ExternalFileResourceController
 
         try
         {
-            inputStream = content.openStream();
+            inputStream = fileResourceService.getFileResourceContent( fileResource ).openStream();
             IOUtils.copy( inputStream, response.getOutputStream() );
         }
         catch ( IOException e )
@@ -121,6 +152,61 @@ public class ExternalFileResourceController
         {
             IOUtils.closeQuietly( inputStream );
         }
+
+    }
+
+    // Only for testing!!!
+    @RequestMapping( value = "/createTest/{key}", method = RequestMethod.GET )
+    public void testExternalFileResourceTest(
+        @PathVariable String key
+    )
+    {
+        File f = new File( key + ".txt" );
+
+        try
+        {
+            FileWriter fileWriter = new FileWriter( f );
+            fileWriter.write( key + " content" );
+            fileWriter.close();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
+
+        FileResource fr = new FileResource();
+
+        ByteSource bytes = Files.asByteSource( f );
+        String contentMd5 = null;
+
+        try
+        {
+            contentMd5 = bytes.hash( Hashing.md5() ).toString();
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
+
+        fr.setName( key + ".txt" );
+        fr.setContentLength( f.length() );
+        fr.setContentMd5( contentMd5 );
+        fr.setContentType( MimeTypeUtils.TEXT_PLAIN.toString() );
+        fr.setDomain( FileResourceDomain.EXTERNAL );
+        fr.setStorageKey( key );
+
+        fileResourceService.saveFileResource( fr, f );
+
+        ExternalFileResource externalFileResource = new ExternalFileResource();
+
+        externalFileResource.setAccessToken( key );
+        externalFileResource.setExpires( null );
+        externalFileResource.setFileResource( fr );
+        externalFileResource.setName( key );
+
+        String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
+
+        System.out.println(accessToken + " :: AccessToken");
 
     }
 }

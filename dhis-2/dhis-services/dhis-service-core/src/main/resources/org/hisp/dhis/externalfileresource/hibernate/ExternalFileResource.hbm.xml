@@ -19,8 +19,6 @@
 
         <property name="expires" type="java.util.Date" not-null="false"/>
 
-        <one-to-one name="fileResource" class="org.hisp.dhis.fileresource.FileResource"
-                    foreign-key="fk_fileresource_externalfileresource" />
-
+        <many-to-one name="fileResource" class="org.hisp.dhis.fileresource.FileResource" column="fileresourceid" foreign-key="fk_fileresource_externalfileresource" not-null="true" unique="true" />
     </class>
 </hibernate-mapping>
