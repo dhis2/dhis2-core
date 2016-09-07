@@ -65,6 +65,8 @@ public interface AnalyticalObject
     boolean addDataDimensionItem( DimensionalItemObject object );
     
     boolean removeDataDimensionItem( DimensionalItemObject object );
+    
+    String getTitle();
 
     void clearTransientState();
 }

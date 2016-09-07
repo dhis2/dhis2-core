@@ -114,6 +114,8 @@
 
     <property name="completedOnly" column="completedonly" />
 
+    <property name="title" />
+    
     <set name="interpretations" inverse="true">
       <key column="eventchartid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -183,8 +185,6 @@
     <property name="hideTitle" />
 
     <property name="hideSubtitle" />
-
-    <property name="title" />
 
     <property name="targetLineValue" />
 

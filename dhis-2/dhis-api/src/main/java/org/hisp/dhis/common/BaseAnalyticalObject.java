@@ -141,6 +141,8 @@ public abstract class BaseAnalyticalObject
 
     protected boolean completedOnly;
     
+    protected String title;
+    
     protected Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -200,6 +202,11 @@ public abstract class BaseAnalyticalObject
     public boolean hasSortOrder()
     {
         return sortOrder != 0;
+    }
+    
+    public boolean hasTitle()
+    {
+        return title != null && !title.isEmpty();
     }
 
     protected void addTransientOrganisationUnits( Collection<OrganisationUnit> organisationUnits )
@@ -844,11 +851,13 @@ public abstract class BaseAnalyticalObject
             {
                 relatives = object.getRelatives();
                 aggregationType = object.getAggregationType();
+                title = object.getTitle();
             }
             else if ( mergeMode.isMerge() )
             {
                 relatives = object.getRelatives() == null ? relatives : object.getRelatives();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
+                title = object.getTitle() == null ? title : object.getTitle();
             }
 
             dataDimensionItems.addAll( object.getDataDimensionItems() );
@@ -1142,6 +1151,18 @@ public abstract class BaseAnalyticalObject
     public void setCompletedOnly( boolean completedOnly )
     {
         this.completedOnly = completedOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle( String title )
+    {
+        this.title = title;
     }
 
     @JsonProperty
