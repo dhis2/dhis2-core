@@ -33,23 +33,23 @@ import org.springframework.util.Base64Utils;
 import java.security.SecureRandom;
 
 /**
- * Generates
+ * Generates a base64-encoded string based on a 128-bit random number.
  *
  * @author Halvdan Hoem Grelland
  */
-class ExternalFileResourceTokenGenerator
+public class ExternalFileResourceTokenGenerator
 {
 
     private ExternalFileResourceTokenGenerator()
     {
     }
 
-    public static final int TOKEN_BYTE_LENGTH = 16; // 128 bit
+    private static final int RANDOM_LENGTH = 16; // 128 bit
 
-    public String generate()
+    public static String generate()
     {
         SecureRandom sr = new SecureRandom();
-        byte[] tokenBytes = new byte[ TOKEN_BYTE_LENGTH ];
+        byte[] tokenBytes = new byte[ RANDOM_LENGTH ];
 
         sr.nextBytes( tokenBytes );
 
