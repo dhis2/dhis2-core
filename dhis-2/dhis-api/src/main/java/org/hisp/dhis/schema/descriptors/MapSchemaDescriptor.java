@@ -55,6 +55,7 @@ public class MapSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setShareable( true );
         schema.setOrder( 1420 );
+        schema.setImplicitPrivateAuthority( true );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_MAP_PUBLIC_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_MAP_EXTERNAL" ) ) );
