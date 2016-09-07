@@ -29,10 +29,21 @@ package org.hisp.dhis.pushanalysis;
  */
 
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 import org.apache.velocity.VelocityContext;
+import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.mapgeneration.MapGenerationService;
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskId;
@@ -40,14 +51,20 @@ import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MimeTypeUtils;
 
 import javax.annotation.Resource;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -64,16 +81,37 @@ public class DefaultPushAnalysisService
 {
 
     @Autowired
+    private I18nManager i18nManager;
+
+    @Autowired
     private ReportTableService reportTableService;
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    private ChartService chartService;
+
+    @Autowired
+    private MappingService mappingService;
+
+    @Autowired
+    private MapGenerationService mapGenerationService;
+
+    @Autowired
+    private EventChartService EventChartService;
 
     @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
 
     @Autowired
     private Notifier notifier;
+
+    @Autowired
+    private ExternalFileResourceService externalFileResourceService;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
@@ -199,22 +237,56 @@ public class DefaultPushAnalysisService
 
     // Used in vm templates (push-analysis-main-html.vm)
     public String getItemDataUrl( DashboardItem item, User user )
+        throws IOException
     {
+        // TEMP
+        String BASE_URL = "http://localhost:8080";
 
-        // TODO: Temporary values; Will be replaced when image genrating and uploading is complete.
-        // This will be replaced by code that will generate an image, store it as a FileResource, then
-        // return the URL to retrieve the file
-        switch ( item.getType().name() )
+        FileResource fileResource = createAndUpload( item, user );
+
+        ExternalFileResource externalFileResource = new ExternalFileResource();
+
+        externalFileResource.setFileResource( fileResource );
+        externalFileResource.setExpires( null ); // TEMPORARY!! Need system-setting or something for this
+
+        String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
+
+        return BASE_URL + "/api/externalFileResources/" + accessToken;
+    }
+
+    private FileResource createAndUpload( DashboardItem item, User user )
+        throws IOException
+    {
+        byte[] bytes = null;
+
+        if ( item.getType() == DashboardItemType.CHART )
         {
-        case "MAP":
-            return "/api/maps/" + item.getMap().getUid() + "/data.png?width=600";
-        case "CHART":
-            return "/api/charts/" + item.getChart().getUid() + "/data.png?width=600";
-        case "EVENT_CHART":
-            return "/api/eventCharts/" + item.getEventChart().getUid() + "/data.png?width=600";
-        default:
-            return "";
+            Chart chart = item.getChart();
+            JFreeChart jFreechart = chartService
+                .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
+            bytes = ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 );
         }
+        else if ( item.getType() == DashboardItemType.MAP )
+        {
+            Map map = item.getMap();
+
+            BufferedImage image = mapGenerationService.generateMapImage( map, new Date(), null, 600, 600 );
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            ImageIO.write( image, "PNG", baos );
+
+            bytes = baos.toByteArray();
+        }
+
+        String contentMd5 = ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString();
+
+        FileResource fileResource = new FileResource( item.getUid(), MimeTypeUtils.IMAGE_PNG.toString(), bytes.length,
+            contentMd5, FileResourceDomain.EXTERNAL );
+
+        fileResourceService.saveFileResource( fileResource, bytes );
+
+        return fileResource;
     }
 
     // Used in vm templates (push-analysis-main-html.vm)
