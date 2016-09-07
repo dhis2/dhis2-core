@@ -43,6 +43,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -102,10 +103,12 @@ public class DefaultProgramNotificationService
                 .filter( n -> n.getNotificationTrigger().isScheduled() )
                 .collect( Collectors.toList() );
 
+        Date tomorrow = DateUtils.getDateForTomorrow( 0 );
+
         for ( ProgramNotificationTemplate notification : scheduledNotifications )
         {
             List<ProgramStageInstance> programStageInstances =
-                programStageInstanceStore.getWithScheduledNotifications( notification, DateUtils.getDateForTomorrow( 0 ) );
+                programStageInstanceStore.getWithScheduledNotifications( notification, tomorrow );
 
             MessageBatch batch = createMessageBatch( notification, programStageInstances );
 
