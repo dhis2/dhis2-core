@@ -42,6 +42,7 @@ public interface Scheduler
     String CRON_DAILY_0AM = "0 0 0 * * ?";
     String CRON_DAILY_11PM = "0 0 23 * * ?";
     String CRON_DAILY_2AM = "0 0 2 * * ?";
+    String CRON_DAILY_5AM = "0 0 5 * * ?";
     String CRON_EVERY_MIN = "0 0/1 * * * ?";
     String CRON_EVERY_15MIN = "0 0/15 * * * ?";
     String CRON_TEST = "0 * * * * ?";

@@ -40,17 +40,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ProgramNotificationTask
     extends NoSecurityContextRunnable
 {
-    public static final String NAME = "programNotificationTask";
+    public static final String KEY_TASK = "programNotificationTask";
 
     private static final Log log = LogFactory.getLog( ProgramNotificationTask.class );
 
     @Autowired
     private ProgramNotificationService programNotificationService;
 
+    // -------------------------------------------------------------------------
+    // Runnable implementation
+    // -------------------------------------------------------------------------
+
     @Override
     public void call()
     {
-        log.info( "Running scheduled task " + NAME );
+        log.info( "Running scheduled task " + KEY_TASK );
 
         try
         {
