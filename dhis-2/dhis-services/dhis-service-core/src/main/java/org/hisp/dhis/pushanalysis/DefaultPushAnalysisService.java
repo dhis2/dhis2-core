@@ -30,13 +30,10 @@ package org.hisp.dhis.pushanalysis;
 
 import com.google.common.collect.Sets;
 import org.apache.velocity.VelocityContext;
-import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.sms.MessageResponseStatus;
