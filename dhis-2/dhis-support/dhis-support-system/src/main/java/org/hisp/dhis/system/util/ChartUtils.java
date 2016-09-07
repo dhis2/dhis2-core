@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,15 +28,28 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
 
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
-/**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
-public interface MessageBatchCreatorService
+public class ChartUtils
 {
-    MessageBatch getMessageBatch( List<ProgramMessage> programMessages );
+    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try
+        {
+            ChartUtilities.writeChartAsPNG( out, jFreeChart, width, height );
+            out.flush();
+            return out.toByteArray();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
 }

@@ -1,7 +1,7 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2015, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +28,31 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
+import org.springframework.util.Base64Utils;
 
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
+import java.security.SecureRandom;
 
-public class ChartUtils
+/**
+ * Generates a base64-encoded string based on a 128-bit random number.
+ *
+ * @author Halvdan Hoem Grelland
+ */
+public class ExternalFileResourceTokenGenerator
 {
-    public static byte[] getChartAsPngByteArray( JFreeChart jFreeChart, int width, int height )
+
+    private ExternalFileResourceTokenGenerator()
     {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
-        try
-        {
-            ChartUtilities.writeChartAsPNG( out, jFreeChart, width, height );
-            out.flush();
-            return out.toByteArray();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }        
+    }
+
+    private static final int RANDOM_LENGTH = 16; // 128 bit
+
+    public static String generate()
+    {
+        SecureRandom sr = new SecureRandom();
+        byte[] tokenBytes = new byte[ RANDOM_LENGTH ];
+
+        sr.nextBytes( tokenBytes );
+
+        return Base64Utils.encodeToString( tokenBytes );
     }
 }
