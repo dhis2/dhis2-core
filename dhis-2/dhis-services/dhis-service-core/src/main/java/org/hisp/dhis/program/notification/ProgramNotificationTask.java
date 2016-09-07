@@ -31,13 +31,14 @@ package org.hisp.dhis.program.notification;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.security.NoSecurityContextRunnable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 public class ProgramNotificationTask
-    implements Runnable
+    extends NoSecurityContextRunnable
 {
     public static final String NAME = "programNotificationTask";
 
@@ -47,7 +48,7 @@ public class ProgramNotificationTask
     private ProgramNotificationService programNotificationService;
 
     @Override
-    public void run()
+    public void call()
     {
         log.info( "Running scheduled task " + NAME );
 
