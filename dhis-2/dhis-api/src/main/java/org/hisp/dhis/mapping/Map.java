@@ -29,6 +29,7 @@ package org.hisp.dhis.mapping;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -36,11 +37,14 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -58,6 +62,8 @@ public class Map
     private String basemap;
 
     private List<MapView> mapViews = new ArrayList<>();
+    
+    private Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -141,6 +147,20 @@ public class Map
     public void setMapViews( List<MapView> mapViews )
     {
         this.mapViews = mapViews;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Interpretation> getInterpretations()
+    {
+        return interpretations;
+    }
+
+    public void setInterpretations( Set<Interpretation> interpretations )
+    {
+        this.interpretations = interpretations;
     }
 
     @Override

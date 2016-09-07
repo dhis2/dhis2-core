@@ -114,6 +114,11 @@
 
     <property name="completedOnly" column="completedonly" />
 
+    <set name="interpretations" inverse="true">
+      <key column="eventchartid" />
+      <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
+    </set>
+
     <property name="type" length="40" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.chart.ChartType</param>
