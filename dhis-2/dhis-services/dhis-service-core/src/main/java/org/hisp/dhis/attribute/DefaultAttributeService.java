@@ -30,7 +30,6 @@ package org.hisp.dhis.attribute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
@@ -269,6 +268,7 @@ public class DefaultAttributeService
         }
 
         Map<String, AttributeValue> attributeValueMap = attributeValues.stream()
+            .filter( attributeValue -> attributeValue.getAttribute() != null )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av ) );
 
         Iterator<AttributeValue> iterator = object.getAttributeValues().iterator();
@@ -398,7 +398,7 @@ public class DefaultAttributeService
             JsonNode nId = node.get( "id" );
             JsonNode nValue = node.get( "value" );
 
-            if ( nId == null || nValue == null  || StringUtils.isEmpty( nValue.asText() ) )
+            if ( nId == null || nValue == null || StringUtils.isEmpty( nValue.asText() ) )
             {
                 continue;
             }
@@ -411,7 +411,7 @@ public class DefaultAttributeService
             }
 
             AttributeValue attributeValue = new AttributeValue( nValue.asText(), attribute );
-            attributeValue.setId( nId.asInt());
+            attributeValue.setId( nId.asInt() );
 
             attributeValues.add( attributeValue );
         }
