@@ -30,6 +30,8 @@ package org.hisp.dhis.program.notification;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -37,13 +39,30 @@ import org.apache.commons.logging.LogFactory;
 public class ProgramNotificationTask
     implements Runnable
 {
-    public static final String KEY_TASK = "programNotificationTask";
+    public static final String NAME = "programNotificationTask";
 
     private static final Log log = LogFactory.getLog( ProgramNotificationTask.class );
+
+    @Autowired
+    private ProgramNotificationService programNotificationService;
 
     @Override
     public void run()
     {
+        try
+        {
+            runInternal();
+        }
+        catch ( RuntimeException rte )
+        {
+            log.error( DebugUtils.getStackTrace( rte ) );
 
+            throw rte;
+        }
+    }
+
+    private void runInternal()
+    {
+        programNotificationService.processAndSendUpcomingNotifications();
     }
 }

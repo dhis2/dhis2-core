@@ -1310,6 +1310,11 @@
     <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
   </bean>
 
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationTask"
+    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype">
+
+  </bean>
+
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
     <property name="programRuleVariableStore" ref="org.hisp.dhis.programrule.ProgramRuleVariableStore" />
   </bean>
