@@ -34,8 +34,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -51,7 +53,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "map", namespace = DxfNamespaces.DXF_2_0 )
 public class Map
-    extends BaseIdentifiableObject
+    extends BaseNameableObject implements InterpretableObject
 {
     private Double longitude;
 
@@ -60,6 +62,8 @@ public class Map
     private Integer zoom;
 
     private String basemap;
+    
+    private String title;
     
     private List<MapView> mapViews = new ArrayList<>();
     
@@ -137,6 +141,18 @@ public class Map
     }
 
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle( String title )
+    {
+        this.title = title;
+    }
+
+    @JsonProperty
     @JacksonXmlElementWrapper( localName = "mapViews", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "mapView", namespace = DxfNamespaces.DXF_2_0 )
     public List<MapView> getMapViews()
@@ -179,6 +195,7 @@ public class Map
                 latitude = map.getLatitude();
                 zoom = map.getZoom();
                 basemap = map.getBasemap();
+                title = map.getTitle();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -187,6 +204,7 @@ public class Map
                 latitude = map.getLatitude() == null ? latitude : map.getLatitude();
                 zoom = map.getZoom() == null ? zoom : map.getZoom();
                 basemap = map.getBasemap() == null ? basemap : map.getBasemap();
+                title = map.getTitle() == null ? title : map.getTitle();
             }
 
             mapViews.clear();

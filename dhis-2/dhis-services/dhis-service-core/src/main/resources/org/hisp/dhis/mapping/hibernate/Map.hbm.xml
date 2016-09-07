@@ -16,6 +16,8 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" length="230" />
+    
+    <property name="description" type="text" />
 
     <property name="longitude" />
 
@@ -24,6 +26,8 @@
     <property name="zoom" />
     
     <property name="basemap" />
+    
+    <property name="title" />
 
     <list name="mapViews" table="mapmapviews">
       <cache usage="read-write" />
