@@ -34,17 +34,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -107,10 +105,12 @@ public class DefaultProgramNotificationService
         for ( ProgramNotificationTemplate notification : scheduledNotifications )
         {
             List<ProgramStageInstance> programStageInstances =
-                programStageInstanceStore.getWithScheduledNotifications( notification, tomorrow() );
+                programStageInstanceStore.getWithScheduledNotifications( notification, DateUtils.getDateForTomorrow( 0 ) );
 
             MessageBatch batch = createMessageBatch( notification, programStageInstances );
-            dispatch( batch );
+
+            sendDhisMessages( batch.dhisMessages );
+            sendProgramMessages( batch.programMessages );
         }
 
         clock.logTime( String.format( "Processed and sent ProgramStageNotification messages in %s", clock.time() ) );
@@ -190,20 +190,6 @@ public class DefaultProgramNotificationService
     private void sendProgramMessages( Set<ProgramMessage> messages )
     {
         programMessageService.sendMessages( Lists.newArrayList( messages ) );
-    }
-
-    private void dispatch( MessageBatch batch )
-    {
-        sendDhisMessages( batch.dhisMessages );
-        sendProgramMessages( batch.programMessages );
-    }
-
-    private Date tomorrow() {
-        Calendar tomorrow = Calendar.getInstance();
-        PeriodType.clearTimeOfDay( tomorrow );
-        tomorrow.add( Calendar.DATE, 1 );
-
-        return tomorrow.getTime();
     }
 
     // -------------------------------------------------------------------------
