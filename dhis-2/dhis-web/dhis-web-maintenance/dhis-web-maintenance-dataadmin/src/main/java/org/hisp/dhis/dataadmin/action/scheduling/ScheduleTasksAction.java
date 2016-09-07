@@ -286,11 +286,11 @@ public class ScheduleTasksAction
         return lastDataStatisticSuccess;
     }
 
-    private boolean syncInProgress;
+    private boolean metadataSyncNowInProgress;
 
-    public boolean isSyncInProgress()
+    public boolean isMetadataSyncNowInProgress()
     {
-        return syncInProgress;
+        return metadataSyncNowInProgress;
     }
 
     // -------------------------------------------------------------------------
@@ -451,7 +451,7 @@ public class ScheduleTasksAction
 
         status = schedulingManager.getTaskStatus();
         running = ScheduledTaskStatus.RUNNING.equals( status );
-        syncInProgress = schedulingManager.isTaskInProgress( "metadataSyncTask" );
+        metadataSyncNowInProgress = schedulingManager.isTaskInProgress( "metadataSyncTask" );
         levels = organisationUnitService.getOrganisationUnitLevels();
 
         lastResourceTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );

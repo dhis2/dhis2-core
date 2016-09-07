@@ -20,7 +20,7 @@
     <h3>$i18n.getString( "scheduling_management" ) #openHelp( "scheduling" )</h3>
 
 <input id="isRunning" type="hidden" value="${running}">
-<input id="isSyncInProgress" type="hidden" value="${syncInProgress}">
+<input id="isMetadataSyncNowInProgress" type="hidden" value="${metadataSyncNowInProgress}">
 
 <form id="schedulingForm" action="scheduleTasks.action" method="post">
 

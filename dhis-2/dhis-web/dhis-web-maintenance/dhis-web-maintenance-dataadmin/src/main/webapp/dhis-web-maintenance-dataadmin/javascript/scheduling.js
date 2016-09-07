@@ -192,7 +192,7 @@ $(document).ready(function () {
         e.stopPropagation();
         var button = this;
         $(button).attr("disabled", "disabled");
-        if ($('#isSyncInProgress').val() == 'false') {
+        if ($('#isMetadataSyncNowInProgress').val() == 'false') {
 
             $.post('executeMetaDataSyncTask.action', {
                 executeNow: true,
