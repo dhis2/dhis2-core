@@ -28,9 +28,13 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+
 /**
  * @author Halvdan Hoem Grelland
  */
+@JacksonXmlRootElement( localName = "notificationTrigger", namespace = DxfNamespaces.DXF_2_0 )
 public enum NotificationTrigger
 {
     /**
@@ -41,5 +45,15 @@ public enum NotificationTrigger
     /**
      * Scheduled time relative to event's dueDate
      */
-    SCHEDULED,
+    SCHEDULED;
+
+    public boolean isImmediate()
+    {
+        return this == IMMEDIATE;
+    }
+
+    public boolean isScheduled()
+    {
+        return this == SCHEDULED;
+    }
 }

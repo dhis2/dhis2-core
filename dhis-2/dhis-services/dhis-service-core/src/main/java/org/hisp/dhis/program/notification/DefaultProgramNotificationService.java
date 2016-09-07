@@ -99,7 +99,7 @@ public class DefaultProgramNotificationService
 
         List<ProgramNotificationTemplate> scheduledNotifications =
             identifiableObjectManager.getAll( ProgramNotificationTemplate.class ).stream()
-                .filter( n -> n.getNotificationTrigger() == NotificationTrigger.SCHEDULED )
+                .filter( n -> n.getNotificationTrigger().isScheduled() )
                 .collect( Collectors.toList() );
 
         for ( ProgramNotificationTemplate notification : scheduledNotifications )
