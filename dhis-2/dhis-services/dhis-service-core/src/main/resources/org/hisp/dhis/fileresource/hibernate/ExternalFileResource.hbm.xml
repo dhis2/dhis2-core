@@ -6,7 +6,7 @@
         >
 
 <hibernate-mapping>
-    <class name="org.hisp.dhis.externalfileresource.ExternalFileResource" table="externalfileresource">
+    <class name="org.hisp.dhis.fileresource.ExternalFileResource" table="externalfileresource">
 
         <cache usage="read-write"/>
 

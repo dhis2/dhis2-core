@@ -1,4 +1,4 @@
-package org.hisp.dhis.externalfileresource;
+package org.hisp.dhis.fileresource;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -27,43 +27,24 @@ package org.hisp.dhis.externalfileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
-
 /**
  * @author Stian Sandvold
  */
-public class DefaultExternalFileResourceService
-    implements ExternalFileResourceService
+public interface ExternalFileResourceService
 {
 
-    private ExternalFileResourceStore externalFileResourceStore;
+    /**
+     * Retrieves ExternalFileResource based on accessToken
+     * @param accessToken unique token generated to reference the different ExternalFileResources
+     * @return
+     */
+    ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
 
-    public void setExternalFileResourceStore(
-        ExternalFileResourceStore externalFileResourceStore )
-    {
-        this.externalFileResourceStore = externalFileResourceStore;
-    }
+    /**
+     * Generates an accessToken before persisting the object.
+     * @param externalFileResource
+     * @return accessToken
+     */
+    String saveExternalFileResource( ExternalFileResource externalFileResource );
 
-    @Override
-    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
-    {
-        return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
-    }
-
-    @Override
-    @Transactional
-    public String saveExternalFileResource( ExternalFileResource externalFileResource )
-    {
-        Assert.notNull(externalFileResource);
-        Assert.notNull(externalFileResource.getFileResource());
-        Assert.isTrue( externalFileResource.getFileResource().getDomain() == FileResourceDomain.EXTERNAL );
-
-        externalFileResource.setAccessToken( "" );
-
-        externalFileResourceStore.save( externalFileResource );
-
-        return externalFileResource.getAccessToken();
-    }
 }

@@ -33,11 +33,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.externalfileresource.ExternalFileResource;
-import org.hisp.dhis.externalfileresource.ExternalFileResourceService;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
@@ -51,10 +47,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.util.Date;
 
@@ -75,7 +68,7 @@ public class ExternalFileResourceController
 
     /**
      * Returns a file associated with the externalFileResource resolved from the accessToken.
-     *
+     * <p>
      * Only files contained in externalFileResources with a valid accessToken, expiration date null or in the future and
      * associated with the EXTERNAL domain are files allowed to be served trough this endpoint.     *
      *
@@ -106,7 +99,8 @@ public class ExternalFileResourceController
 
         if ( fileResource.getDomain() != FileResourceDomain.EXTERNAL )
         {
-            throw new WebMessageException( WebMessageUtils.forbidden( "The resource you are trying to access is not publicly available" ) );
+            throw new WebMessageException(
+                WebMessageUtils.forbidden( "The resource you are trying to access is not publicly available" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -158,7 +152,8 @@ public class ExternalFileResourceController
     // Only for testing!!!
     @RequestMapping( value = "/createTest/{key}", method = RequestMethod.GET )
     public void testExternalFileResourceTest(
-        @PathVariable String key
+        @PathVariable String key,
+        HttpServletResponse response
     )
     {
         File f = new File( key + ".txt" );
@@ -206,7 +201,21 @@ public class ExternalFileResourceController
 
         String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
 
-        System.out.println(accessToken + " :: AccessToken");
+        System.out.println( accessToken + " :: AccessToken" );
+
+        Writer writer = null;
+
+        try
+        {
+            writer = response.getWriter();
+            writer.write( "AccessToken: " + accessToken );
+            writer.close();
+
+        }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
 
     }
 }

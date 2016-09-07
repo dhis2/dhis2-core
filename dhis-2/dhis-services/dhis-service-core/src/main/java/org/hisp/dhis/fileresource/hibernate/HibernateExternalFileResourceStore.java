@@ -1,4 +1,4 @@
-package org.hisp.dhis.externalfileresource;
+package org.hisp.dhis.fileresource.hibernate;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -27,12 +27,21 @@ package org.hisp.dhis.externalfileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.fileresource.ExternalFileResourceStore;
 
 /**
  * @author Stian Sandvold
  */
-public interface ExternalFileResourceStore extends GenericIdentifiableObjectStore<ExternalFileResource>
+public class HibernateExternalFileResourceStore
+    extends HibernateIdentifiableObjectStore<ExternalFileResource>
+    implements ExternalFileResourceStore
 {
-    ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
+    @Override
+    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
+    {
+        return (ExternalFileResource) getQuery( "FROM ExternalFileResource WHERE accessToken = :accessToken" )
+            .setString( "accessToken", accessToken ).uniqueResult();
+    }
 }

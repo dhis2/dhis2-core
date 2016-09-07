@@ -745,8 +745,8 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="org.hisp.dhis.externalfileresource.ExternalFileResourceStore" class="org.hisp.dhis.externalfileresource.hibernate.HibernateExternalFileResourceStore">
-    <property name="clazz" value="org.hisp.dhis.externalfileresource.ExternalFileResource" />
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceStore" class="org.hisp.dhis.fileresource.hibernate.HibernateExternalFileResourceStore">
+    <property name="clazz" value="org.hisp.dhis.fileresource.ExternalFileResource" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -779,8 +779,8 @@
     <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
   </bean>
 
-  <bean id="org.hisp.dhis.externalfileresource.ExternalFileResourceService" class="org.hisp.dhis.externalfileresource.DefaultExternalFileResourceService">
-    <property name="externalFileResourceStore" ref="org.hisp.dhis.externalfileresource.ExternalFileResourceStore" />
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceService" class="org.hisp.dhis.fileresource.DefaultExternalFileResourceService">
+    <property name="externalFileResourceStore" ref="org.hisp.dhis.fileresource.ExternalFileResourceStore" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementOperandService" class="org.hisp.dhis.dataelement.DefaultDataElementOperandService">

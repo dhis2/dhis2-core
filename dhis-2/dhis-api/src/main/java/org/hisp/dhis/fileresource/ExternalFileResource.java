@@ -1,4 +1,4 @@
-package org.hisp.dhis.externalfileresource;
+package org.hisp.dhis.fileresource;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -30,7 +30,6 @@ package org.hisp.dhis.externalfileresource;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.fileresource.FileResource;
 
 import java.util.Date;
 
