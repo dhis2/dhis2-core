@@ -78,6 +78,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -966,6 +967,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
         private List<DataElementOperand> dataElementOperands = new ArrayList<>();
         private List<DataElementCategoryDimension> categoryDimensions = new ArrayList<>();
         private List<DataDimensionItem> dataDimensionItems = new ArrayList<>();
+        private List<ObjectTranslation> translations = new ArrayList<>();
 
         private User user;
 
@@ -1016,6 +1018,15 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
             dataElementOperands = Lists.newArrayList( extractDataElementOperands( object, "dataElementOperands" ) );
             categoryDimensions = extractCategoryDimensions( object );
             dataDimensionItems = extractDataDimensionItems( object );
+            translations = extractTranslations( object );
+        }
+
+        private List<ObjectTranslation> extractTranslations( T object )
+        {
+            List<ObjectTranslation> translations = new ArrayList<>( object.getTranslations() );
+            object.getTranslations().clear();
+
+            return translations;
         }
 
         public void delete( T object )
@@ -1053,6 +1064,16 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
             saveDataElementOperands( object, "dataElementOperands", dataElementOperands );
             saveCategoryDimensions( object, categoryDimensions );
             saveDataDimensionItems( object, dataDimensionItems );
+            saveTranslations( object, translations );
+        }
+
+        private void saveTranslations( T object, List<ObjectTranslation> translations )
+        {
+            translations.forEach( objectTranslation ->
+            {
+                sessionFactory.getCurrentSession().saveOrUpdate( objectTranslation );
+                object.getTranslations().add( objectTranslation );
+            } );
         }
 
         private Expression extractExpression( T object, String fieldName )
