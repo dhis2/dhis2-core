@@ -7,6 +7,12 @@ addons:
     - oracle-java8-installer
 script:
 - mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
+
+branches:
+  only:
+  - master
+  - /^2\.[0-9]{1,}/
+
 notifications:
   slack:
     rooms:
