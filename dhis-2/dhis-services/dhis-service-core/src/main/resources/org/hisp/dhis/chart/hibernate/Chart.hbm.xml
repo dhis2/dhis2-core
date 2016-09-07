@@ -50,8 +50,6 @@
 
     <property name="hideSubtitle" />
 
-    <property name="title" />
-
     <property name="targetLineValue" />
 
     <property name="targetLineLabel" />
@@ -149,6 +147,8 @@
     </property>
 
     <property name="completedOnly" column="completedonly" />
+    
+    <property name="title" />
     
     <set name="interpretations" inverse="true">
       <key column="chartid" />

@@ -32,7 +32,7 @@
       <many-to-many column="mapviewid" class="org.hisp.dhis.mapping.MapView"
         foreign-key="fk_mapmapview_mapviewid" />
     </list>
-
+    
     <set name="interpretations" inverse="true">
       <key column="mapid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />

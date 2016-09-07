@@ -74,8 +74,6 @@ public abstract class BaseChart
 
     protected boolean hideSubtitle;
 
-    protected String title;
-
     protected Double targetLineValue;
 
     protected String targetLineLabel;
@@ -181,11 +179,6 @@ public abstract class BaseChart
     public boolean isAnalyticsType( AnalyticsType type )
     {
         return getAnalyticsType().equals( type );
-    }
-
-    public boolean hasTitle()
-    {
-        return title != null && !title.isEmpty();
     }
 
     @Override
@@ -333,18 +326,6 @@ public abstract class BaseChart
     public void setHideSubtitle( Boolean hideSubtitle )
     {
         this.hideSubtitle = hideSubtitle;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTitle()
-    {
-        return this.title;
-    }
-
-    public void setTitle( String title )
-    {
-        this.title = title;
     }
 
     @JsonProperty
@@ -505,7 +486,6 @@ public abstract class BaseChart
                 domainAxisLabel = chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel();
                 type = chart.getType();
-                title = chart.getTitle();
                 targetLineValue = chart.getTargetLineValue();
                 targetLineLabel = chart.getTargetLineLabel();
                 baseLineValue = chart.getBaseLineValue();
@@ -520,7 +500,6 @@ public abstract class BaseChart
                 domainAxisLabel = chart.getDomainAxisLabel() == null ? domainAxisLabel : chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel() == null ? rangeAxisLabel : chart.getRangeAxisLabel();
                 type = chart.getType() == null ? type : chart.getType();
-                title = chart.getTitle() == null ? title : chart.getTitle();
                 targetLineValue = chart.getTargetLineValue() == null ? targetLineValue : chart.getTargetLineValue();
                 targetLineLabel = chart.getTargetLineLabel() == null ? targetLineLabel : chart.getTargetLineLabel();
                 baseLineValue = chart.getBaseLineValue() == null ? baseLineValue : chart.getBaseLineValue();

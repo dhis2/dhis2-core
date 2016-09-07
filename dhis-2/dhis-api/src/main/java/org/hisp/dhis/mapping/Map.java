@@ -60,7 +60,7 @@ public class Map
     private Integer zoom;
 
     private String basemap;
-
+    
     private List<MapView> mapViews = new ArrayList<>();
     
     private Set<Interpretation> interpretations = new HashSet<>();
