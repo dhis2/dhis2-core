@@ -1457,6 +1457,29 @@ public class ObjectBundleServiceTest
         assertEquals( "bFzxXwTkSWA", manager.get( OrganisationUnit.class, "B8eJEMldsP7" ).getParent().getUid() );
     }
 
+    @Test
+    public void testCreateOrgUnitWithTranslations() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/ou_with_translation.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setAtomicMode( AtomicMode.ALL );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        OrganisationUnit root = manager.get( OrganisationUnit.class, "inVD5SdytkT" );
+        assertNull( root.getParent() );
+        assertEquals( 3, root.getChildren().size() );
+        assertEquals( 1, root.getTranslations().size() );
+    }
+
     private void defaultSetup()
     {
         DataElement de1 = createDataElement( 'A' );
