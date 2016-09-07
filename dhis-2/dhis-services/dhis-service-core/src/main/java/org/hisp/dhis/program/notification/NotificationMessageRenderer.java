@@ -30,12 +30,15 @@ package org.hisp.dhis.program.notification;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.message.DeliveryChannel;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -49,8 +52,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @author Halvdan Hoem Grelland
- *
  *
  * Template formats supported:
  *
@@ -65,6 +66,7 @@ import java.util.stream.Collectors;
  *
  * The variable expression names are defined in {@link NotificationTemplateVariable}.
  *
+ * @author Halvdan Hoem Grelland
  */
 public class NotificationMessageRenderer
 {
@@ -82,7 +84,7 @@ public class NotificationMessageRenderer
     /**
      * Maps the variable names to resolver functions.
      */
-    private static final ImmutableMap<NotificationTemplateVariable, Function<ProgramStageInstance, String>> VARIABLE_RESOLVERS
+    private static final ImmutableMap<NotificationTemplateVariable, Function<ProgramStageInstance, String>> EVENT_VARIABLE_RESOLVERS
         = new ImmutableMap.Builder<NotificationTemplateVariable, Function<ProgramStageInstance, String>>()
             .put( NotificationTemplateVariable.PROGRAM_NAME,         psi -> psi.getProgramStage().getProgram().getDisplayName() )
             .put( NotificationTemplateVariable.PROGRAM_STAGE_NAME,   psi -> psi.getProgramStage().getDisplayName() )
@@ -90,6 +92,12 @@ public class NotificationMessageRenderer
             .put( NotificationTemplateVariable.DUE_DATE,             psi -> DateUtils.getMediumDateString( psi.getDueDate() ) )
             .put( NotificationTemplateVariable.DAYS_SINCE_DUE_DATE,  NotificationMessageRenderer::daysSinceDue )
             .put( NotificationTemplateVariable.DAYS_UNTIL_DUE_DATE,  NotificationMessageRenderer::daysUntilDue )
+            .build();
+
+    private static final ImmutableMap<NotificationTemplateVariable, Function<ProgramInstance, String>> ENROLLMENT_VARIABLE_RESOLVERS
+        = new ImmutableMap.Builder<NotificationTemplateVariable, Function<ProgramInstance, String>>()
+            .put( NotificationTemplateVariable.PROGRAM_NAME,         ps -> ps.getProgram().getDisplayName() )
+            .put( NotificationTemplateVariable.ORG_UNIT_NAME,        ps -> ps.getOrganisationUnit().getDisplayName() )
             .build();
 
     // -------------------------------------------------------------------------
@@ -104,13 +112,12 @@ public class NotificationMessageRenderer
 
     public static NotificationMessage render( ProgramStageInstance programStageInstance, ProgramNotificationTemplate template )
     {
-        String collatedTemplate = template.getSubjectTemplate() + " " + template.getSubjectTemplate();
+        Pair<Set<String>, Set<String>> variablesAndAttributes = extractVariablesAndAttributes( template );
 
-        Set<String> allVariables = extractVariables( collatedTemplate );
-        Set<String> allAttributes = extractAttributes( collatedTemplate );
+        TrackedEntityInstance tei = programStageInstance.getProgramInstance().getEntityInstance();
 
-        Map<String, String> variableToValueMap = resolveVariableValues( allVariables, programStageInstance );
-        Map<String, String> teiAttributeValues = resolveTeiAttributeValues( allAttributes, programStageInstance );
+        Map<String, String> variableToValueMap = resolveVariableValues( variablesAndAttributes.getLeft(), programStageInstance );
+        Map<String, String> teiAttributeValues = resolveTeiAttributeValues( variablesAndAttributes.getRight(), tei );
 
         boolean hasSmsRecipients = template.getDeliveryChannels().contains( DeliveryChannel.SMS );
 
@@ -118,9 +125,30 @@ public class NotificationMessageRenderer
             template, variableToValueMap, teiAttributeValues, SUBJECT_CHAR_LIMIT, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT );
     }
 
+    public static NotificationMessage render( ProgramInstance programInstance, ProgramNotificationTemplate template )
+    {
+        Pair<Set<String>, Set<String>> variablesAndAttributes = extractVariablesAndAttributes( template );
+
+        TrackedEntityInstance tei = programInstance.getEntityInstance();
+
+        Map<String, String> variableToValueMap = resolveVariableValues( variablesAndAttributes.getLeft(), programInstance );
+        Map<String, String> teiAttributeValues = resolveTeiAttributeValues( variablesAndAttributes.getRight(), tei );
+
+        boolean hasSmsRecipients = template.getDeliveryChannels().contains( DeliveryChannel.SMS );
+
+        return createNotificationMessage( template, variableToValueMap, teiAttributeValues, SUBJECT_CHAR_LIMIT, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT );
+    }
+
     // -------------------------------------------------------------------------
     // Internal methods
     // -------------------------------------------------------------------------
+
+    private static Pair<Set<String>, Set<String>> extractVariablesAndAttributes( ProgramNotificationTemplate template )
+    {
+        String collatedTemplate = template.getSubjectTemplate() + " " + template.getMessageTemplate();
+
+        return Pair.of( extractVariables( collatedTemplate ), extractAttributes( collatedTemplate ) );
+    }
 
     private static String replaceWithValues( String input, Pattern pattern, Map<String, String> identifierToValueMap )
     {
@@ -166,19 +194,27 @@ public class NotificationMessageRenderer
         return variables.stream()
             .collect( Collectors.toMap(
                 v -> v,
-                v -> VARIABLE_RESOLVERS.get( NotificationTemplateVariable.valueOf( v ) ).apply( programStageInstance ) )
+                v -> EVENT_VARIABLE_RESOLVERS.get( NotificationTemplateVariable.valueOf( v ) ).apply( programStageInstance ) )
             );
     }
 
-    private static Map<String, String> resolveTeiAttributeValues( Set<String> attributeUids, ProgramStageInstance programStageInstance )
+    private static Map<String, String> resolveVariableValues( Set<String> variables, ProgramInstance programInstance )
+    {
+        return variables.stream()
+            .collect( Collectors.toMap(
+                v -> v,
+                v -> ENROLLMENT_VARIABLE_RESOLVERS.get( NotificationTemplateVariable.valueOf( v ) ).apply( programInstance ) )
+            );
+    }
+
+    private static Map<String, String> resolveTeiAttributeValues( Set<String> attributeUids, TrackedEntityInstance tei )
     {
         if ( attributeUids.isEmpty() )
         {
             return Maps.newHashMap();
         }
 
-        return programStageInstance
-            .getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
+        return tei.getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeUids.contains( av.getAttribute().getUid() ) )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), NotificationMessageRenderer::plainOrConfidential ) );
     }
