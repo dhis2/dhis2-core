@@ -33,7 +33,7 @@ import org.springframework.util.Base64Utils;
 import java.security.SecureRandom;
 
 /**
- * Generates a base64-encoded string based on a 128-bit random number.
+ * Generates a base64-encoded string based on a 192-bit random number.
  *
  * @author Halvdan Hoem Grelland
  */
@@ -44,7 +44,8 @@ public class ExternalFileResourceTokenGenerator
     {
     }
 
-    private static final int RANDOM_LENGTH = 16; // 128 bit
+    // 192 bit; must be dividable by 3 to avoid padding "="
+    private static final int RANDOM_LENGTH = 24;
 
     public static String generate()
     {
@@ -53,6 +54,6 @@ public class ExternalFileResourceTokenGenerator
 
         sr.nextBytes( tokenBytes );
 
-        return Base64Utils.encodeToString( tokenBytes );
+        return Base64Utils.encodeToUrlSafeString( tokenBytes );
     }
 }

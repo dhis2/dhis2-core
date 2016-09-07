@@ -1,5 +1,4 @@
 package org.hisp.dhis.fileresource;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,25 +27,12 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Stian Sandvold
  */
-public enum FileResourceDomain
+public interface ExternalFileResourceStore extends GenericIdentifiableObjectStore<ExternalFileResource>
 {
-    DATA_VALUE( "dataValue" ), EXTERNAL( "external" );
-
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
-
-    FileResourceDomain( String containerName )
-    {
-        this.containerName = containerName;
-    }
-
-    public String getContainerName()
-    {
-        return containerName;
-    }
+    ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
 }

@@ -1,5 +1,4 @@
 package org.hisp.dhis.fileresource;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -29,24 +28,23 @@ package org.hisp.dhis.fileresource;
  */
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Stian Sandvold
  */
-public enum FileResourceDomain
+public interface ExternalFileResourceService
 {
-    DATA_VALUE( "dataValue" ), EXTERNAL( "external" );
 
     /**
-     * Container name to use when storing blobs of this FileResourceDomain
+     * Retrieves ExternalFileResource based on accessToken
+     * @param accessToken unique token generated to reference the different ExternalFileResources
+     * @return
      */
-    private String containerName;
+    ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
 
-    FileResourceDomain( String containerName )
-    {
-        this.containerName = containerName;
-    }
+    /**
+     * Generates an accessToken before persisting the object.
+     * @param externalFileResource
+     * @return accessToken
+     */
+    String saveExternalFileResource( ExternalFileResource externalFileResource );
 
-    public String getContainerName()
-    {
-        return containerName;
-    }
 }
