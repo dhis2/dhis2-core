@@ -49,6 +49,8 @@ public class ProgramNotificationTask
     @Override
     public void run()
     {
+        log.info( "Running scheduled task " + NAME );
+
         try
         {
             runInternal();
