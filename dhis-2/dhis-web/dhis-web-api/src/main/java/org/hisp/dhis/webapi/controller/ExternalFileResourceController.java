@@ -27,27 +27,30 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.externalfileresource.ExternalFileResource;
 import org.hisp.dhis.externalfileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -64,71 +67,60 @@ public class ExternalFileResourceController
     @Autowired
     private FileResourceService fileResourceService;
 
+    @Autowired
+    ContextService contextService;
+
     @RequestMapping( value = "/{accessToken}", method = RequestMethod.GET )
-    public ExternalFileResource getExternalFileResource( @PathVariable String accessToken,
+    public void getExternalFileResource( @PathVariable String accessToken,
         HttpServletResponse response )
+        throws WebMessageException
     {
-        testExternalFileResource();
-
-        System.out.println( "AccessToken: " + accessToken );
-
         ExternalFileResource externalFileResource = externalFileResourceService
             .getExternalFileResourceByAccesstoken( accessToken );
 
-        return externalFileResource;
+        if ( externalFileResource == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No file found with key '" + accessToken + "'" ) );
+        }
 
-    }
+        if ( externalFileResource.getExpires() != null && externalFileResource.getExpires().before( new Date() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.createWebMessage( "The key you requested has expired", Status.WARNING, HttpStatus.GONE ) );
+        }
 
-    public void testExternalFileResource(
-    )
-    {
+        FileResource fileResource = externalFileResource.getFileResource();
 
-        File f = new File( "delete_me5.txt" );
+        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
+
+        // ---------------------------------------------------------------------
+        // Build response and return
+        // ---------------------------------------------------------------------
+
+        response.setContentType( fileResource.getContentType() );
+        response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
+        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
+
+        // ---------------------------------------------------------------------
+        // Request signing is not available, stream content back to client
+        // ---------------------------------------------------------------------
+
+        InputStream inputStream = null;
 
         try
         {
-            FileWriter fileWriter = new FileWriter( f );
-            fileWriter.write( "delete_me5!" );
-            fileWriter.close();
+            inputStream = content.openStream();
+            IOUtils.copy( inputStream, response.getOutputStream() );
         }
         catch ( IOException e )
         {
-            e.printStackTrace();
+            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend. " +
+                    "Depending on the provider the root cause could be network or file system related." ) );
         }
-
-        FileResource fr = new FileResource();
-
-
-        ByteSource bytes = Files.asByteSource(f);
-        String contentMd5 = null;
-
-        try
+        finally
         {
-            contentMd5 = bytes.hash( Hashing.md5() ).toString();
+            IOUtils.closeQuietly( inputStream );
         }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
-
-        fr.setName( "delete_me5.txt" );
-        fr.setContentLength( f.length() );
-        fr.setContentMd5( contentMd5 );
-        fr.setContentType( MimeTypeUtils.TEXT_PLAIN.toString() );
-        fr.setDomain( FileResourceDomain.EXTERNAL );
-        fr.setStorageKey( "delete_me5" );
-
-        fileResourceService.saveFileResource( fr, f );
-
-        ExternalFileResource externalFileResource = new ExternalFileResource();
-
-        externalFileResource.setAccessToken( "TEST" );
-        externalFileResource.setExpires( null );
-        externalFileResource.setFileResource( fr );
-        externalFileResource.setName( "test" );
-
-        externalFileResourceService.saveExternalFileResource( externalFileResource );
 
     }
-
 }

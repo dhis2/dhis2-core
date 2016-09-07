@@ -27,6 +27,8 @@ package org.hisp.dhis.externalfileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * @author Stian Sandvold
  */
@@ -42,6 +44,7 @@ public class DefaultExternalFileResourceService
         return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
     }
 
+    @Transactional
     @Override
     public void saveExternalFileResource( ExternalFileResource externalFileResource )
     {
@@ -52,11 +55,5 @@ public class DefaultExternalFileResourceService
         ExternalFileResourceStore externalFileResourceStore )
     {
         this.externalFileResourceStore = externalFileResourceStore;
-    }
-
-    public ExternalFileResourceStore getExternalFileResourceStore(
-        ExternalFileResourceStore externalFileResourceStore )
-    {
-        return externalFileResourceStore;
     }
 }
