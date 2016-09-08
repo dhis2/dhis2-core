@@ -31,6 +31,7 @@ package org.hisp.dhis.pushanalysis;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
@@ -80,27 +81,11 @@ import java.util.Set;
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
-
-    @Autowired
-    private I18nManager i18nManager;
-
-    @Autowired
-    private ReportTableService reportTableService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private ChartService chartService;
-
-    @Autowired
-    private MapGenerationService mapGenerationService;
-
-    @Resource( name = "emailMessageSender" )
-    private MessageSender messageSender;
-
     @Autowired
     private Notifier notifier;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
@@ -109,7 +94,23 @@ public class DefaultPushAnalysisService
     private FileResourceService fileResourceService;
 
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private ReportTableService reportTableService;
+
+    @Autowired
+    private MapGenerationService mapGenerationService;
+
+    @Autowired
+    private ChartService chartService;
+
+    @Autowired
+    private I18nManager i18nManager;
+
+    @Resource( name = "emailMessageSender" )
+    private MessageSender messageSender;
+
 
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
@@ -122,18 +123,6 @@ public class DefaultPushAnalysisService
     public PushAnalysis getByUid( String uid )
     {
         return pushAnalysisStore.getByUid( uid );
-    }
-
-    @Override
-    public boolean stopPushAnalysis( PushAnalysis pushAnalysis )
-    {
-        return false;
-    }
-
-    @Override
-    public boolean startPushAnalysis( PushAnalysis pushAnalysis )
-    {
-        return false;
     }
 
     @Override
@@ -234,6 +223,10 @@ public class DefaultPushAnalysisService
                 e.printStackTrace();
             }
         }
+
+        // Update lastRun date:
+        pushAnalysis.setLastRun( new Date(  ) );
+        pushAnalysisStore.update( pushAnalysis );
     }
 
     @Override

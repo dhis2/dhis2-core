@@ -38,6 +38,12 @@ public class HibernateExternalFileResourceStore
     extends HibernateIdentifiableObjectStore<ExternalFileResource>
     implements ExternalFileResourceStore
 {
+
+    /**
+     * Returns a single ExternalFileResource with the given (unique) accessToken
+     * @param accessToken unique string belonging to a single ExternalFileResource
+     * @return ExternalFileResource
+     */
     @Override
     public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {
