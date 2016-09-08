@@ -28,11 +28,19 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+
+import java.util.Date;
+
 /**
  * @author Halvdan Hoem Grelland
  */
 public interface ProgramNotificationService
 {
-    void processAndSendUpcomingNotifications();
-//    Set<NotificationMessage>
+    void sendScheduledNotificationsForDay( Date date );
+
+    void sendImmediateNotifications( ProgramInstance programInstance );
+
+    void sendImmediateNotifications( ProgramStageInstance programStageInstance );
 }

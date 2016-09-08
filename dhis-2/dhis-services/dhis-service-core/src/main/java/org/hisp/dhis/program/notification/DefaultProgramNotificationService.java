@@ -34,13 +34,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
 import java.util.Date;
@@ -93,7 +95,7 @@ public class DefaultProgramNotificationService
     // -------------------------------------------------------------------------
 
     @Override
-    public void processAndSendUpcomingNotifications()
+    public void sendScheduledNotificationsForDay( Date notificationDate )
     {
         Clock clock = new Clock( log ).startClock()
             .logTime( "Processing ProgramStageNotification messages" );
@@ -103,12 +105,10 @@ public class DefaultProgramNotificationService
                 .filter( n -> n.getNotificationTrigger().isScheduled() )
                 .collect( Collectors.toList() );
 
-        Date tomorrow = DateUtils.getDateForTomorrow( 0 );
-
         for ( ProgramNotificationTemplate notification : scheduledNotifications )
         {
             List<ProgramStageInstance> programStageInstances =
-                programStageInstanceStore.getWithScheduledNotifications( notification, tomorrow );
+                programStageInstanceStore.getWithScheduledNotifications( notification, notificationDate );
 
             MessageBatch batch = createMessageBatch( notification, programStageInstances );
 
@@ -119,6 +119,46 @@ public class DefaultProgramNotificationService
         clock.logTime( String.format( "Processed and sent ProgramStageNotification messages in %s", clock.time() ) );
     }
 
+    @Override
+    public void sendImmediateNotifications( ProgramInstance programInstance )
+    {
+        Set<ProgramNotificationTemplate> templates = programInstance.getProgram().getNotificationTemplates().stream()
+            .filter( n -> n.getNotificationTrigger().isImmediate() )
+            .collect( Collectors.toSet() );
+
+        if ( templates.isEmpty() )
+        {
+            return;
+        }
+
+        for ( ProgramNotificationTemplate template : templates )
+        {
+            MessageBatch batch = createMessageBatch( template, programInstance );
+            sendDhisMessages( batch.dhisMessages );
+            sendProgramMessages( batch.programMessages );
+        }
+    }
+
+    @Override
+    public void sendImmediateNotifications( ProgramStageInstance programStageInstance )
+    {
+        Set<ProgramNotificationTemplate> templates = programStageInstance.getProgramStage().getNotificationTemplates().stream()
+            .filter( n -> n.getNotificationTrigger().isImmediate() )
+            .collect( Collectors.toSet() );
+
+        if ( templates.isEmpty() )
+        {
+            return;
+        }
+
+        for ( ProgramNotificationTemplate template : templates )
+        {
+            MessageBatch batch = createMessageBatch( template, programStageInstance );
+            sendDhisMessages( batch.dhisMessages );
+            sendProgramMessages( batch.programMessages );
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -127,7 +167,6 @@ public class DefaultProgramNotificationService
     {
         MessageBatch batch = new MessageBatch( template );
 
-        // Divide into ProgramMessage and internal DhisMessage based on recipient type
         if ( template.getNotificationRecipient().isExternalRecipient() )
         {
             batch.programMessages.addAll(
@@ -148,15 +187,57 @@ public class DefaultProgramNotificationService
         return batch;
     }
 
+    private MessageBatch createMessageBatch( ProgramNotificationTemplate template, ProgramInstance programInstance )
+    {
+        MessageBatch batch = new MessageBatch( template );
+
+        if ( template.getNotificationRecipient().isExternalRecipient() )
+        {
+            batch.programMessages.add( createProgramMessage( programInstance, template ) );
+        }
+        else
+        {
+            batch.dhisMessages.add( createDhisMessage( programInstance, template ) );
+        }
+
+        return batch;
+    }
+
+    private MessageBatch createMessageBatch( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
+    {
+        MessageBatch batch = new MessageBatch( template );
+
+        if ( template.getNotificationRecipient().isExternalRecipient() )
+        {
+            batch.programMessages.add( createProgramMessage( programStageInstance, template ) );
+        }
+        else
+        {
+            batch.dhisMessages.add( createDhisMessage( programStageInstance, template ) );
+        }
+
+        return batch;
+    }
+
     private ProgramMessage createProgramMessage( ProgramStageInstance psi, ProgramNotificationTemplate template )
     {
         NotificationMessage message = NotificationMessageRenderer.render( psi, template );
 
-        return new ProgramMessage( message.getSubject(), message.getMessage(),
-            resolveProgramMessageRecipients( psi, template ), template.getDeliveryChannels(), psi );
+        return new ProgramMessage(
+            message.getSubject(), message.getMessage(), resolveProgramMessageRecipients( template, psi.getOrganisationUnit(),
+            psi.getProgramInstance().getEntityInstance() ), template.getDeliveryChannels(), psi );
     }
 
-    private ProgramMessageRecipients resolveProgramMessageRecipients( ProgramStageInstance psi, ProgramNotificationTemplate template )
+    private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
+    {
+        NotificationMessage message = NotificationMessageRenderer.render( programInstance, template );
+
+        return new ProgramMessage( message.getSubject(), message.getMessage(),
+            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance.getEntityInstance() ) );
+    }
+
+    private ProgramMessageRecipients resolveProgramMessageRecipients( ProgramNotificationTemplate template,
+        OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -164,11 +245,11 @@ public class DefaultProgramNotificationService
 
         if ( recipientType == NotificationRecipient.ORGANISATION_UNIT_CONTACT )
         {
-            recipients.setOrganisationUnit( psi.getOrganisationUnit() );
+            recipients.setOrganisationUnit( organisationUnit );
         }
         else if ( recipientType == NotificationRecipient.TRACKED_ENTITY_INSTANCE )
         {
-            recipients.setTrackedEntityInstance( psi.getProgramInstance().getEntityInstance() );
+            recipients.setTrackedEntityInstance( trackedEntityInstance );
         }
 
         return recipients;
@@ -179,6 +260,15 @@ public class DefaultProgramNotificationService
         DhisMessage dhisMessage = new DhisMessage();
 
         dhisMessage.message = NotificationMessageRenderer.render( psi, template );
+
+        return dhisMessage;
+    }
+
+    private DhisMessage createDhisMessage( ProgramInstance pi, ProgramNotificationTemplate template )
+    {
+        DhisMessage dhisMessage = new DhisMessage();
+
+        dhisMessage.message = NotificationMessageRenderer.render( pi, template );
 
         return dhisMessage;
     }

@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -70,6 +71,6 @@ public class ProgramNotificationTask
 
     private void runInternal()
     {
-        programNotificationService.processAndSendUpcomingNotifications();
+        programNotificationService.sendScheduledNotificationsForDay( DateUtils.getDateForTomorrow( 0 ) );
     }
 }
