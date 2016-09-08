@@ -240,7 +240,7 @@ public class HibernateProgramStageInstanceStore
                 "and n.relativeScheduledDays is not null " +
                 "and psi.executionDate is not null " + // Event already happened
                 "and n.notificationTrigger = :notificationTrigger " +
-                "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays";
+                "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays"
         );
 
         query.setString( "notificationTrigger", NotificationTrigger.SCHEDULED.name() );
