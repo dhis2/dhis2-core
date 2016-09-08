@@ -702,7 +702,7 @@ public class DefaultAnalyticsService
     {
         if ( !params.isSkipMeta() )
         {
-            Map<Object, Object> metaData = new HashMap<>();
+            Map<String, Object> metaData = new HashMap<>();
 
             // -----------------------------------------------------------------
             // Names element
@@ -832,7 +832,7 @@ public class DefaultAnalyticsService
         addIfEmpty( reportTable.getGridColumns() );
         addIfEmpty( reportTable.getGridRows() );
 
-        reportTable.setTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
+        reportTable.setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
         reportTable.setHideEmptyRows( params.isHideEmptyRows() );
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
