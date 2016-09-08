@@ -231,9 +231,8 @@ public class NotificationMessageRenderer
     private static String replaceExpressions( String input, Map<String, String> variableMap, Map<String, String> teiAttributeValueMap )
     {
         String output = replaceWithValues( input, VARIABLE_PATTERN, variableMap );
-        output = replaceWithValues( output, ATTRIBUTE_PATTERN, teiAttributeValueMap );
 
-        return output;
+        return replaceWithValues( output, ATTRIBUTE_PATTERN, teiAttributeValueMap );
     }
 
     private static NotificationMessage createNotificationMessage( ProgramNotificationTemplate template, Map<String, String> variableToValueMap,
