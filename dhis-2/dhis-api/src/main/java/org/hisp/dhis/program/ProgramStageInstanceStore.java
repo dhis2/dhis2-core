@@ -121,21 +121,9 @@ public interface ProgramStageInstanceStore
      */
     boolean exists( String uid );
 
-
-    /**
-     * Get all ProgramStageInstances which are due to be notified.
-     * Resolved as all ProgramStageInstances with ProgramStages which again
-     * have matching ProgramStageNotifications. The "match" is done in relation
-     * to the given date.
-     *
-     * @param notificationDate the date for which we are resolving the PSIs.
-     * @return the set of ProgramStageInstance which have ProgramStageNotifications
-     *         coming up on the given Date.
-     */
-    List<ProgramStageInstance> getWithNotificationsOnDate( Date notificationDate );
-
     /**
      * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
+     *
      * @param template the template.
      * @param notificationDate the Date for which the notification is scheduled.
      * @return a list of ProgramStageInstance.

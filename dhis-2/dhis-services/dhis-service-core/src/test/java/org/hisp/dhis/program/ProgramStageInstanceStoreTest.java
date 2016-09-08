@@ -44,7 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -371,51 +370,51 @@ public class ProgramStageInstanceStoreTest
         assertEquals( 1, count );
     }
 
-    @Ignore( "Work in progress" )
-    @Test
-    public void testGetWithNotificationsOnDate()
-    {
-        stageA.setNotificationTemplates( Sets.newHashSet( psnA, psnB, psnC ) );
-        programStageService.updateProgramStage( stageA );
-        programService.updateProgram( programA );
-
-        // Dates
-
-        Calendar cal = Calendar.getInstance();
-        PeriodType.clearTimeOfDay( cal );
-
-        Date today = cal.getTime();     // 2016-01-10
-
-        cal.add( Calendar.DATE, 1 );    // 2016-01-11
-        Date tomorrow = cal.getTime();
-
-        cal.add( Calendar.DATE, 1 );    // 2016-01-12
-        Date inTwoDays = cal.getTime();
-
-        cal.add( Calendar.DATE, -4 );   // 2016-01-08
-        Date twoDaysAgo = cal.getTime();
-
-        // Set due in two days
-
-        programStageInstanceA.setDueDate( inTwoDays );
-        programStageInstanceStore.save( programStageInstanceA );
-
-        List<ProgramStageInstance> instances = programStageInstanceStore.getWithNotificationsOnDate( today );
-        assertEquals( 1, instances.size() );
-
-        instances = programStageInstanceStore.getWithNotificationsOnDate( tomorrow );
-        assertTrue( instances.isEmpty() );
-
-        // Set due two days ago
-
-        programStageInstanceA.setDueDate( twoDaysAgo );
-        programStageInstanceStore.update( programStageInstanceA );
-        instances = programStageInstanceStore.getWithNotificationsOnDate( today );
-
-        assertEquals( 1, instances.size() );
-
-        assertTrue( instances.get( 0 ).getProgramStage().getNotificationTemplates().contains( psnC ) );
-    }
+//    @Ignore( "Work in progress" )
+//    @Test
+//    public void testGetWithNotificationsOnDate()
+//    {
+//        stageA.setNotificationTemplates( Sets.newHashSet( psnA, psnB, psnC ) );
+//        programStageService.updateProgramStage( stageA );
+//        programService.updateProgram( programA );
+//
+//        // Dates
+//
+//        Calendar cal = Calendar.getInstance();
+//        PeriodType.clearTimeOfDay( cal );
+//
+//        Date today = cal.getTime();     // 2016-01-10
+//
+//        cal.add( Calendar.DATE, 1 );    // 2016-01-11
+//        Date tomorrow = cal.getTime();
+//
+//        cal.add( Calendar.DATE, 1 );    // 2016-01-12
+//        Date inTwoDays = cal.getTime();
+//
+//        cal.add( Calendar.DATE, -4 );   // 2016-01-08
+//        Date twoDaysAgo = cal.getTime();
+//
+//        // Set due in two days
+//
+//        programStageInstanceA.setDueDate( inTwoDays );
+//        programStageInstanceStore.save( programStageInstanceA );
+//
+//        List<ProgramStageInstance> instances = programStageInstanceStore.getWithNotificationsOnDate( today );
+//        assertEquals( 1, instances.size() );
+//
+//        instances = programStageInstanceStore.getWithNotificationsOnDate( tomorrow );
+//        assertTrue( instances.isEmpty() );
+//
+//        // Set due two days ago
+//
+//        programStageInstanceA.setDueDate( twoDaysAgo );
+//        programStageInstanceStore.update( programStageInstanceA );
+//        instances = programStageInstanceStore.getWithNotificationsOnDate( today );
+//
+//        assertEquals( 1, instances.size() );
+//
+//        assertTrue( instances.get( 0 ).getProgramStage().getNotificationTemplates().contains( psnC ) );
+//    }
 
     // -------------------------------------------------------------------------
     // Supportive methods

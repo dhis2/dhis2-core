@@ -225,36 +225,14 @@ public class HibernateProgramStageInstanceStore
 
     @SuppressWarnings( "unchecked" )
     @Override
-    public List<ProgramStageInstance> getWithNotificationsOnDate( Date notificationDate )
-    {
-        if ( notificationDate == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        Query query = getQuery(
-            "select psi from ProgramStageInstance as psi " +
-            "inner join psi.programStage.notifications as n " +
-            "where psi.dueDate is not null " +
-            "and n.notificationTrigger = '" + NotificationTrigger.SCHEDULED.name() + "' " +
-            "and (day(:notificationDate) - day(psi.dueDate)) = n.daysBeforeOrAfter"
-        );
-
-        query.setDate( "notificationDate", notificationDate );
-
-        return query.list();
-    }
-
-
-    // TODO Need to consider reportDate (already reported events) vs. dueDate
-    @SuppressWarnings( "unchecked" )
-    @Override
     public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate notificationTemplate, Date notificationDate )
     {
         if ( notificationDate == null )
         {
             return Lists.newArrayList();
         }
+
+        // TODO Need to consider reportDate (already reported events) vs. dueDate
 
         Query query = getQuery(
             "select psi from ProgramStageInstance as psi " +
