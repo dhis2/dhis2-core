@@ -37,21 +37,12 @@
                                 <td>
                                     <h3> $!dashboardItem.getDisplayName()</h3>
 
-                                    #if( $dashboardItem.getType() == "MAP" )
-                                        #img( $pushAnalysisService.getItemDataUrl( $dashboardItem, $user) )
-                                    #end
-
-                                    #if( $dashboardItem.getType() == "CHART" )
-                                        #img( $pushAnalysisService.getItemDataUrl( $dashboardItem, $user) )
-                                    #end
-
-                                    #if( $dashboardItem.getType() == "EVENT_CHART" )
-                                        #img( $pushAnalysisService.getItemDataUrl( $dashboardItem, $user) )
-                                    #end
-
                                     #if( $dashboardItem.getType() == "REPORT_TABLE" )
-                                        $pushAnalysisService.getItemDataHtml( $dashboardItem, $user)
+                                        $itemHtml.get( $dashboardItem.getUid() )
+                                    #else
+                                        #img( $itemHtml.get( $dashboardItem.getUid() ) )
                                     #end
+
                                 </td>
                             </tr>
                         </table>

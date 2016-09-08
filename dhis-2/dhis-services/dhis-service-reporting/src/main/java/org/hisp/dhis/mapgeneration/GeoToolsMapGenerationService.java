@@ -28,19 +28,11 @@ package org.hisp.dhis.mapgeneration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
@@ -48,15 +40,19 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.OrganisationUnitWithCoordinatesFilter;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.*;
+import java.util.List;
+
 /**
  * An implementation of MapGenerationService that uses GeoTools to generate
  * maps.
- * 
+ *
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetand@ifi.uio.no>
@@ -64,7 +60,7 @@ import org.springframework.util.Assert;
  */
 public class GeoToolsMapGenerationService
     implements MapGenerationService
-{    
+{
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -89,7 +85,7 @@ public class GeoToolsMapGenerationService
     {
         this.currentUserService = currentUserService;
     }
-    
+
     private I18nManager i18nManager;
 
     public void setI18nManager( I18nManager i18nManager )
@@ -105,9 +101,9 @@ public class GeoToolsMapGenerationService
     public BufferedImage generateMapImage( MapView mapView )
     {
         Map map = new Map();
-        
+
         map.getMapViews().add( mapView );
-        
+
         return generateMapImage( map );
     }
 
@@ -116,58 +112,66 @@ public class GeoToolsMapGenerationService
     {
         return generateMapImage( map, new Date(), null, 512, null );
     }
-    
+
     @Override
     public BufferedImage generateMapImage( Map map, Date date, OrganisationUnit unit, Integer width, Integer height )
     {
+        return generateMapImageForUser( map, date, unit, width, height, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public BufferedImage generateMapImageForUser( Map map, Date date, OrganisationUnit unit, Integer width,
+        Integer height, User user )
+    {
         Assert.isTrue( map != null );
-        
+
         if ( width == null && height == null )
         {
             width = MapUtils.DEFAULT_MAP_WIDTH;
         }
 
         InternalMap internalMap = new InternalMap();
-        
+
         List<MapView> mapViews = new ArrayList<>( map.getMapViews() );
         Collections.reverse( mapViews );
-        
-        User user = currentUserService.getCurrentUser();
-        
+
         for ( MapView mapView : mapViews )
-        {        
+        {
             InternalMapLayer mapLayer = getSingleInternalMapLayer( mapView, user, date );
-            
+
             if ( mapLayer != null )
             {
                 internalMap.getLayers().add( mapLayer );
             }
         }
-        
+
         if ( internalMap.getLayers().isEmpty() )
         {
             return null;
         }
-        
+
         InternalMapLayer dataLayer = internalMap.getFirstDataLayer();
-        
+
         BufferedImage mapImage = MapUtils.render( internalMap, width, height );
 
         if ( dataLayer == null )
         {
+            mapViews.forEach( BaseAnalyticalObject::clearTransientState );
             return mapImage;
         }
         else
-        {         
+        {
             LegendSet legendSet = new LegendSet( dataLayer );
 
             BufferedImage legendImage = legendSet.render( i18nManager.getI18nFormat() );
 
             BufferedImage titleImage = MapUtils.renderTitle( map.getName(), getImageWidth( legendImage, mapImage ) );
-            
+
+            mapViews.forEach( BaseAnalyticalObject::clearTransientState );
             return combineLegendAndMapImages( titleImage, legendImage, mapImage );
         }
     }
+
 
     // -------------------------------------------------------------------------
     // Internal
@@ -190,34 +194,34 @@ public class GeoToolsMapGenerationService
 
         List<OrganisationUnit> atLevels = new ArrayList<>();
         List<OrganisationUnit> inGroups = new ArrayList<>();
-        
+
         if ( mapView.hasOrganisationUnitLevels() )
         {
             atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels( mapView.getOrganisationUnitLevels(), mapView.getOrganisationUnits() ) );
         }
-        
+
         if ( mapView.hasItemOrganisationUnitGroups() )
         {
             inGroups.addAll( organisationUnitService.getOrganisationUnits( mapView.getItemOrganisationUnitGroups(), mapView.getOrganisationUnits() ) );
         }
 
         mapView.init( user, date, null, atLevels, inGroups, null );
-        
+
         List<OrganisationUnit> organisationUnits = mapView.getAllOrganisationUnits();
 
         FilterUtils.filter( organisationUnits, new OrganisationUnitWithCoordinatesFilter() );
-        
+
         java.util.Map<String, OrganisationUnit> uidOuMap = new HashMap<>();
-        
+
         for ( OrganisationUnit ou : organisationUnits )
         {
             uidOuMap.put( ou.getUid(), ou );
         }
-        
+
         String name = mapView.getName();
 
         Period period = null;
-        
+
         if ( !mapView.getPeriods().isEmpty() ) // TODO integrate with BaseAnalyticalObject
         {
             period = mapView.getPeriods().get( 0 );
@@ -226,7 +230,7 @@ public class GeoToolsMapGenerationService
         {
             period = mapView.getRelatives().getRelativePeriods( date, null, false ).get( 0 );
         }
-        
+
         Integer radiusLow = mapView.getRadiusLow() != null ? mapView.getRadiusLow() : DEFAULT_RADIUS_LOW;
         Integer radiusHigh = mapView.getRadiusHigh() != null ? mapView.getRadiusHigh() : DEFAULT_RADIUS_HIGH;
 
@@ -263,32 +267,32 @@ public class GeoToolsMapGenerationService
         else // Thematic layer
         {
             Collection<MapValue> mapValues = getAggregatedMapValues( mapView );
-    
+
             if ( mapValues.isEmpty() )
             {
                 return null;
             }
-            
+
             // Build and set the internal GeoTools map objects for the layer
-            
+
             for ( MapValue mapValue : mapValues )
             {
                 OrganisationUnit orgUnit = uidOuMap.get( mapValue.getOu() );
-                
+
                 if ( orgUnit != null )
                 {
                     mapLayer.addDataMapObject( mapValue.getValue(), orgUnit );
                 }
             }
-    
+
             if ( !mapLayer.hasMapObjects() )
             {
                 return null;
             }
-            
+
             // Create an interval set for this map layer that distributes its map
             // objects into their respective intervals
-            
+
             if ( hasLegendSet )
             {
                 mapLayer.setIntervalSetFromLegendSet( mapView.getLegendSet() );
@@ -299,16 +303,16 @@ public class GeoToolsMapGenerationService
                 mapLayer.setAutomaticIntervalSet( mapLayer.getClasses() );
                 mapLayer.distributeAndUpdateMapObjectsInIntervalSet();
             }
-            
+
             // Update the radius of each map object in this map layer according to
             // its map object's highest and lowest values
-            
+
             mapLayer.applyInterpolatedRadii();
         }
 
         return mapLayer;
     }
-    
+
     /**
      * Returns a list of map values for the given map view. If the map view is
      * not a data layer, an empty list is returned.
@@ -319,7 +323,7 @@ public class GeoToolsMapGenerationService
 
         return getMapValues( grid );
     }
-    
+
     /**
      * Creates a list of aggregated map values.
      */
@@ -333,17 +337,17 @@ public class GeoToolsMapGenerationService
             {
                 int ouIndex = row.size() - 2;
                 int valueIndex = row.size() - 1;
-                
+
                 String ou = (String) row.get( ouIndex );
                 Double value = (Double) row.get( ( valueIndex ) );
-                
+
                 mapValues.add( new MapValue( ou, value ) );
             }
         }
 
         return mapValues;
     }
-    
+
     private BufferedImage combineLegendAndMapImages( BufferedImage titleImage, BufferedImage legendImage, BufferedImage mapImage )
     {
         Assert.isTrue( titleImage != null );
@@ -352,10 +356,10 @@ public class GeoToolsMapGenerationService
         Assert.isTrue( legendImage.getType() == mapImage.getType() );
 
         // Create image, note that image height cannot be less than legend
-        
+
         int width = getImageWidth( legendImage, mapImage );
         int height = Math.max( titleImage.getHeight() + mapImage.getHeight(), ( legendImage.getHeight() + 1 ) );
-        
+
         BufferedImage finalImage = new BufferedImage( width, height, mapImage.getType() );
 
         // Draw the two images onto the final image with the legend to the left
@@ -367,7 +371,7 @@ public class GeoToolsMapGenerationService
 
         return finalImage;
     }
-    
+
     private int getImageWidth( BufferedImage legendImage, BufferedImage mapImage )
     {
         return ( legendImage != null ? legendImage.getWidth() : 0 ) + ( mapImage != null ? mapImage.getWidth() : 0 );

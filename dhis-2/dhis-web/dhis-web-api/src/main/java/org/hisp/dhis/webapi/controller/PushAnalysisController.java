@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
@@ -92,50 +93,13 @@ public class PushAnalysisController
                 WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
         }
 
-        // contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        contextUtils
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        pushAnalysisService.renderPushAnalysis( pushAnalysis, currentUserService.getCurrentUser(), response.getWriter() );
+        pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
     }
 
-    @RequestMapping( value = "/{uid}/start", method = RequestMethod.GET )
-    public void startPushAnalysis(
-        @PathVariable String uid,
-        HttpServletResponse response
-    )
-        throws Exception
-    {
-        PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
-        if ( pushAnalysis == null )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
-        }
 
-        if ( !pushAnalysisService.startPushAnalysis( pushAnalysis ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict(
-                "Could not start push analysis. Push analysis is already running, or no interval has been set for this push analysis." ) );
-        }
-    }
-
-    @RequestMapping( value = "/{uid}/stop", method = RequestMethod.GET )
-    public void stopPushAnalysis(
-        @PathVariable String uid,
-        HttpServletResponse response
-    )
-        throws Exception
-    {
-        PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
-        if ( pushAnalysis == null )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
-        }
-
-        pushAnalysisService.stopPushAnalysis( pushAnalysis );
-    }
-
-    // Temporary
     @RequestMapping( value = "/{uid}/run", method = RequestMethod.GET )
     public void sendPushAnalysis(
         @PathVariable() String uid,
@@ -151,8 +115,13 @@ public class PushAnalysisController
                 WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
         }
 
-        PushAnalysisTask task = new PushAnalysisTask( pushAnalysis.getId(), new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ), pushAnalysisService );
+        PushAnalysisTask task = new PushAnalysisTask( pushAnalysis.getId(),
+            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ), pushAnalysisService );
         scheduler.executeTask( task );
+
+        response.setStatus( 200 );
+        response.getWriter().write( "PushAnalysis '" + pushAnalysis.getName() + "' started." );
+        response.getWriter().close();
     }
 
 }

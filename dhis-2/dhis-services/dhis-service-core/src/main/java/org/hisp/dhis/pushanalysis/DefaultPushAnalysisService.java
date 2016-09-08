@@ -36,17 +36,18 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.DashboardItem;
-import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
+import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -67,8 +68,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -93,13 +94,7 @@ public class DefaultPushAnalysisService
     private ChartService chartService;
 
     @Autowired
-    private MappingService mappingService;
-
-    @Autowired
     private MapGenerationService mapGenerationService;
-
-    @Autowired
-    private EventChartService EventChartService;
 
     @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
@@ -112,6 +107,9 @@ public class DefaultPushAnalysisService
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
@@ -141,176 +139,288 @@ public class DefaultPushAnalysisService
     @Override
     public void runPushAnalysis( int id, TaskId taskId )
     {
+
+        //--------------------------------------------------------------------------
+        // Set up
+        //--------------------------------------------------------------------------
+
         PushAnalysis pushAnalysis = pushAnalysisStore.get( id );
+        Set<User> receivingUsers = new HashSet<>();
         notifier.clear( taskId );
 
-        notifier
-            .notify( taskId, "PushAnalysis " + pushAnalysis.getUid() + " (" + pushAnalysis.getName() + ") started" );
+        //--------------------------------------------------------------------------
+        // Pre-check
+        //--------------------------------------------------------------------------
 
-        Set<User> receivingUsers = new HashSet<>();
+        notifier.notify( taskId, "Starting pre-check on PushAnalysis" );
+
+        if ( pushAnalysis == null )
+        {
+            notifier.notify( taskId, NotificationLevel.ERROR,
+                "PushAnalysis with id '" + id + "' was not found. Terminating PushAnalysis", true );
+            return;
+        }
+
+        if ( pushAnalysis.getReceivingUserGroups().size() == 0 )
+        {
+            notifier.notify( taskId, NotificationLevel.ERROR,
+                "PushAnalysis with id '" + id + "' has no userGroups assigned. Terminating PushAnalysis.", true );
+            return;
+        }
+
+        if ( pushAnalysis.getDashboard() == null )
+        {
+            notifier.notify( taskId, NotificationLevel.ERROR,
+                "PushAnalysis with id '" + id + "' has no dashboard assigned. Terminating PushAnalysis.", true );
+            return;
+        }
+
+        if ( systemSettingManager.getInstanceBaseUrl() == null )
+        {
+            notifier.notify( taskId, NotificationLevel.ERROR,
+                "Missing system setting '" + SettingKey.INSTANCE_BASE_URL.getName() + "'. Terminating PushAnalysis.",
+                true );
+            return;
+        }
+
+        notifier.notify( taskId, "pre-check completed successfully" );
+
+        //--------------------------------------------------------------------------
+        // Compose list of users that can receive PushAnalysis
+        //--------------------------------------------------------------------------
+
+        notifier.notify( taskId, "Composing list of receiving users" );
 
         for ( UserGroup userGroup : pushAnalysis.getReceivingUserGroups() )
         {
-            receivingUsers.addAll( userGroup.getMembers() );
+            for ( User user : userGroup.getMembers() )
+            {
+                if ( !user.hasEmail() )
+                {
+                    notifier.notify( taskId, NotificationLevel.WARN,
+                        "Skipping user: User '" + user.getUsername() + "' is missing a valid email.", false );
+                    continue;
+                }
+
+                receivingUsers.add( user );
+            }
         }
 
-        int missingEmail = 0;
-        int renderFailed = 0;
-        int emailFailed = 0;
+        notifier.notify( taskId, "List composed. " + receivingUsers.size() + " eligible users found." );
 
-        notifier.notify( taskId, "PushAnalysis " + pushAnalysis.getUid() + " found " + receivingUsers.size() +
-            " users in target UserGroups" );
+        //--------------------------------------------------------------------------
+        // Generating reports
+        //--------------------------------------------------------------------------
+
+        notifier.notify( taskId, "Generating and sending reports" );
+
         for ( User user : receivingUsers )
         {
-            if ( user.hasEmail() )
+            try
             {
-                try
-                {
-                    StringWriter writer = new StringWriter();
+                String title = "Report: " + pushAnalysis.getName();
+                String html = generateHtmlReport( pushAnalysis, user, taskId );
 
-                    render( pushAnalysis, user, writer );
+                // TODO: Better handling of messageStatus
+                MessageResponseStatus status = messageSender
+                    .sendMessage( title, html, "", null, Sets.newHashSet( user ), true );
 
-                    MessageResponseStatus status = messageSender
-                        .sendMessage( pushAnalysis.getName(), writer.toString(), "",
-                            null, Sets.newHashSet( user ), true );
-
-//                    if ( !status.isOk() )
-//                        {
-//                            emailFailed++;
-//                            notifier.notify( taskId, NotificationLevel.WARN,
-//                                "PushAnalysis " + pushAnalysis.getUid() + " failed to send email: " +
-//                                status.getResponseMessage(), false );
-//                    }
-
-                }
-                catch ( IOException e )
-                {
-                    renderFailed++;
-                    e.printStackTrace();
-                }
             }
-            else
+            catch ( Exception e )
             {
-                missingEmail++;
+                notifier.notify( taskId, NotificationLevel.ERROR,
+                    "Could not create or send report for PushAnalysis '" + pushAnalysis.getName() + "' and User '" +
+                        user.getUsername() + "': " + e.getMessage(), false );
+                e.printStackTrace();
             }
         }
-
-        notifier
-            .notify( taskId, NotificationLevel.INFO, "PushAnalysis " + pushAnalysis.getUid() + " results: ",
-                false );
-        notifier.notify( taskId,
-            "Emails sent: " + (receivingUsers.size() - missingEmail - renderFailed - emailFailed) + "/" +
-                receivingUsers.size() );
-        notifier.notify( taskId, "Missing emails: " + missingEmail );
-        notifier.notify( taskId, "Reports failed: " + renderFailed );
-        notifier.notify( taskId, "Email failed: " + emailFailed );
-        notifier
-            .notify( taskId, NotificationLevel.INFO, "PushAnalysis " + pushAnalysis.getUid() + " complete.",
-                true );
-
     }
 
     @Override
-    public void renderPushAnalysis( PushAnalysis pushAnalysis, User user, Writer writer )
+    public String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
         throws Exception
     {
-        render( pushAnalysis, user, writer );
-    }
+        if ( taskId == null )
+        {
+            taskId = new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() );
+            notifier.clear( taskId );
+        }
 
-    private void render( PushAnalysis pushAnalysis, User user, Writer writer )
-        throws IOException
-    {
-        StringWriter stringWriter = new StringWriter();
-        user = (user != null ? user : currentUserService.getCurrentUser());
+        user = user == null ? currentUserService.getCurrentUser() : user;
+        notifier.notify( taskId, "Generating PushAnalysis for user '" + user.getUsername() + "'." );
+
+        //--------------------------------------------------------------------------
+        // Pre-process the dashboardItem and store them as Strings
+        //--------------------------------------------------------------------------
+
+        HashMap<String, String> itemHtml = new HashMap<>();
+
+        for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
+        {
+            itemHtml.put( item.getUid(), getItemHtml( item, user, taskId ) );
+        }
+
+        //--------------------------------------------------------------------------
+        // Set up template context, including pre-processed dashboard items
+        //--------------------------------------------------------------------------
 
         final VelocityContext context = new VelocityContext();
 
         context.put( "pushAnalysis", pushAnalysis );
-        context.put( "user", user );
-        context.put( "pushAnalysisService", this );
-        context.put( "reportTableService", reportTableService );
+        context.put( "itemHtml", itemHtml );
+
+        //--------------------------------------------------------------------------
+        // Render the template and return the result after removing all newline characters
+        //--------------------------------------------------------------------------
+
+        StringWriter stringWriter = new StringWriter();
 
         new VelocityManager().getEngine().getTemplate( "push-analysis-main-html.vm" ).merge( context, stringWriter );
 
-        writer.write( stringWriter.toString().replaceAll( "\\R", "" ) );
+        notifier.notify( taskId, "Finished generating PushAnalysis for user '" + user.getUsername() + "'." );
+
+        return stringWriter.toString().replaceAll( "\\R", "" );
+
     }
 
-    // Used in vm templates (push-analysis-main-html.vm)
-    public String getItemDataUrl( DashboardItem item, User user )
+    //--------------------------------------------------------------------------
+    // Helper methods
+    //--------------------------------------------------------------------------
+
+    private String getItemHtml( DashboardItem item, User user, TaskId taskId )
+        throws Exception
+    {
+
+        switch ( item.getType() )
+        {
+        case MAP:
+            return generateMapHtml( item.getMap(), user );
+        case CHART:
+            return generateChartHtml( item.getChart(), user );
+        case EVENT_CHART:
+            return generateEventChartHtml( item.getEventChart(), user );
+        case REPORT_TABLE:
+            return generateReportTableHtml( item.getReportTable(), user );
+        case EVENT_REPORT:
+            // TODO: Add support for EventReports
+            return "";
+        default:
+            notifier.notify( taskId, NotificationLevel.WARN,
+                "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false );
+            return "";
+        }
+
+    }
+
+    /**
+     * Returns an absolute URL to an image representing the map input
+     *
+     * @param map  map to render and upload
+     * @param user user to generate chart for
+     * @return absolute URL to uploaded image
+     * @throws IOException
+     */
+    private String generateMapHtml( Map map, User user )
         throws IOException
     {
-        // TEMP
-        String BASE_URL = "http://localhost:8080";
 
-        FileResource fileResource = createAndUpload( item, user );
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 600, 600, user );
+
+        ImageIO.write( image, "PNG", baos );
+
+        return uploadImage( map.getUid(), baos.toByteArray() );
+
+    }
+
+    /**
+     * Returns an absolute URL to an image representing the chart input
+     *
+     * @param chart chart to render and upload
+     * @param user  user to generate chart for
+     * @return absolute URL to uploaded image
+     * @throws IOException
+     */
+    private String generateChartHtml( Chart chart, User user )
+        throws IOException
+    {
+        JFreeChart jFreechart = chartService
+            .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
+
+        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 ) );
+    }
+
+    /**
+     * Returns an absolute URL to an image representing the eventChart input
+     *
+     * @param chart eventChart to render and upload
+     * @param user  user to generate eventChart for
+     * @return absolute URL to uploaded image
+     * @throws IOException
+     */
+    private String generateEventChartHtml( EventChart chart, User user )
+        throws IOException
+    {
+        JFreeChart jFreechart = chartService
+            .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
+
+        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 ) );
+    }
+
+    /**
+     * Builds a HTML table representing the ReportTable input
+     *
+     * @param reportTable reportTable to generate HTML for
+     * @param user        user to generate reportTable data for
+     * @return a HTML representation of the reportTable
+     * @throws Exception
+     */
+    private String generateReportTableHtml( ReportTable reportTable, User user )
+        throws Exception
+    {
+        StringWriter stringWriter = new StringWriter();
+
+        GridUtils.toHtmlInlineCss(
+            reportTableService
+                .getReportTableGridByUser( reportTable.getUid(), new Date(),
+                    user.getOrganisationUnit().getUid(), user ),
+            stringWriter
+        );
+
+        return stringWriter.toString().replaceAll( "\\R", "" );
+    }
+
+    /**
+     * Uploads a byte array using FileResource and ExternalFileResource
+     *
+     * @param name  name of the file to be stored
+     * @param bytes the byte array representing the file to be stored
+     * @return url pointing to the uploaded resource
+     * @throws IOException
+     */
+    private String uploadImage( String name, byte[] bytes )
+        throws IOException
+    {
+        FileResource fileResource = new FileResource(
+            name,
+            MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from PushAnalysis is PNG.
+            bytes.length,
+            ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
+            FileResourceDomain.EXTERNAL // All files generated with PushAnalysis should belong to the EXTERNAL domain
+        );
+
+        fileResourceService.saveFileResource( fileResource, bytes );
 
         ExternalFileResource externalFileResource = new ExternalFileResource();
 
         externalFileResource.setFileResource( fileResource );
-        externalFileResource.setExpires( null ); // TEMPORARY!! Need system-setting or something for this
+        externalFileResource.setExpires( null ); // TODO: Need system-setting or something for this
 
         String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
 
-        return BASE_URL + "/api/externalFileResources/" + accessToken;
+        return systemSettingManager.getInstanceBaseUrl() + "/api/externalFileResources/" + accessToken;
+
     }
 
-    private FileResource createAndUpload( DashboardItem item, User user )
-        throws IOException
-    {
-        byte[] bytes = null;
-
-        if ( item.getType() == DashboardItemType.CHART )
-        {
-            Chart chart = item.getChart();
-            JFreeChart jFreechart = chartService
-                .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
-            bytes = ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 );
-        }
-        else if ( item.getType() == DashboardItemType.MAP )
-        {
-            Map map = item.getMap();
-
-            BufferedImage image = mapGenerationService.generateMapImage( map, new Date(), null, 600, 600 );
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            ImageIO.write( image, "PNG", baos );
-
-            bytes = baos.toByteArray();
-        }
-
-        String contentMd5 = ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString();
-
-        FileResource fileResource = new FileResource( item.getUid(), MimeTypeUtils.IMAGE_PNG.toString(), bytes.length,
-            contentMd5, FileResourceDomain.EXTERNAL );
-
-        fileResourceService.saveFileResource( fileResource, bytes );
-
-        return fileResource;
-    }
-
-    // Used in vm templates (push-analysis-main-html.vm)
-    public String getItemDataHtml( DashboardItem item, User user )
-        throws Exception
-    {
-
-        if ( item.getType() == DashboardItemType.REPORT_TABLE )
-        {
-            StringWriter stringWriter = new StringWriter();
-
-            GridUtils.toHtmlInlineCss(
-                reportTableService
-                    .getReportTableGridByUser( item.getReportTable().getUid(), new Date(),
-                        user.getOrganisationUnit().getUid(), user ),
-                stringWriter
-            );
-
-            return stringWriter.toString().replaceAll( "\\R", "" );
-        }
-        else
-        {
-            // TODO: Add Event_report tables as well.
-            return "";
-        }
-    }
 }

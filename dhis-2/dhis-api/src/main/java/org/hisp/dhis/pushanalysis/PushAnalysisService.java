@@ -31,8 +31,6 @@ package org.hisp.dhis.pushanalysis;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.user.User;
 
-import java.io.Writer;
-
 /**
  * @author Stian Sandvold
  */
@@ -44,7 +42,8 @@ public interface PushAnalysisService
 
     boolean startPushAnalysis( PushAnalysis pushAnalysis );
 
-    void renderPushAnalysis( PushAnalysis pushAnalysis, User user, Writer writer ) throws Exception;
+    String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
+        throws Exception;
 
     void runPushAnalysis( int id, TaskId taskId );
 
