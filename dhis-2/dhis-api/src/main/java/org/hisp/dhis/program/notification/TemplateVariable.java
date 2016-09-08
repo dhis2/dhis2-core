@@ -28,55 +28,14 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
- * Defines the variable expression names for a {@link ProgramNotificationTemplate}.
- *
- * The supported variables expression names are:
- *
- * <ul>
- *     <li>program_name</li>
- *     <li>program_stage_name</li>
- *     <li>org_unit_name</li>
- *     <li>due_date</li>
- *     <li>days_since_due_date</li>
- *     <li>days_until_due_date</li>
- * </ul>
- *
  * @author Halvdan Hoem Grelland
  */
-public enum NotificationTemplateVariable
+public interface TemplateVariable
 {
-    PROGRAM_NAME( "program_name" ),
-    PROGRAM_STAGE_NAME( "program_stage_name" ),
-    ORG_UNIT_NAME( "org_unit_name" ),
-    DUE_DATE( "due_date" ),
-    DAYS_SINCE_DUE_DATE( "days_since_due_date" ),
-    DAYS_UNTIL_DUE_DATE( "days_until_due_date" );
-
-    public static final EnumSet<NotificationTemplateVariable> all
-        = EnumSet.allOf( NotificationTemplateVariable.class );
-
-    public static final Set<String> allExpressionNames =
-        all.stream().map( NotificationTemplateVariable::getExpressionName ).collect( Collectors.toSet() );
-
-    private final String expressionName;
-
-    NotificationTemplateVariable( String expressionName )
-    {
-        this.expressionName = expressionName;
-    }
-
-    public String getExpressionName()
-    {
-        return expressionName;
-    }
-
-    public static boolean isExpressionName( String string )
-    {
-        return allExpressionNames.contains( string );
-    }
+    String name();
+    String getExpressionName();
+    Set<String> getAllValidExpressionNames();
 }
