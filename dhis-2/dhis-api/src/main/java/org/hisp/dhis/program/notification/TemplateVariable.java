@@ -28,14 +28,11 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 /**
  * @author Halvdan Hoem Grelland
  */
 public interface TemplateVariable
 {
     String name();
-    String getExpressionName();
-    Set<String> getAllValidExpressionNames();
+    String getVariableName();
 }

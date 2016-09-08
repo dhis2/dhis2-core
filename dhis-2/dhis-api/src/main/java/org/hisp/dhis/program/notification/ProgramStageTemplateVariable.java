@@ -61,26 +61,20 @@ public enum ProgramStageTemplateVariable
 
     private static final Set<String> allValidExpressionNames =
         EnumSet.allOf( ProgramStageTemplateVariable.class ).stream()
-            .map( ProgramStageTemplateVariable::getExpressionName )
+            .map( ProgramStageTemplateVariable::getVariableName )
             .collect( Collectors.toSet() );
 
-    private final String expressionName;
+    private final String variableName;
 
-    ProgramStageTemplateVariable( String expressionName )
+    ProgramStageTemplateVariable( String variableName )
     {
-        this.expressionName = expressionName;
+        this.variableName = variableName;
     }
 
     @Override
-    public String getExpressionName()
+    public String getVariableName()
     {
-        return expressionName;
-    }
-
-    @Override
-    public Set<String> getAllValidExpressionNames()
-    {
-        return allValidExpressionNames;
+        return variableName;
     }
 
     public static boolean isValidExpressionName( String expressionName )

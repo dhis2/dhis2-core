@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Defines the variable expression names for a {@link ProgramNotificationTemplate}
+ * Defines the variables for a {@link ProgramNotificationTemplate}.
  * on a {@link org.hisp.dhis.program.Program Program}.
  *
  * The supported variable names are:
@@ -53,27 +53,21 @@ public enum ProgramTemplateVariable
 
     private static final Set<String> allValidExpressionNames =
         EnumSet.allOf( ProgramTemplateVariable.class ).stream()
-            .map( ProgramTemplateVariable::getExpressionName )
+            .map( ProgramTemplateVariable::getVariableName )
             .collect( Collectors.toSet() );
 
 
-    private final String expressionName;
+    private final String variableName;
 
-    ProgramTemplateVariable( String expressionName )
+    ProgramTemplateVariable( String variableName )
     {
-        this.expressionName = expressionName;
+        this.variableName = variableName;
     }
 
     @Override
-    public String getExpressionName()
+    public String getVariableName()
     {
-        return expressionName;
-    }
-
-    @Override
-    public Set<String> getAllValidExpressionNames()
-    {
-        return allValidExpressionNames;
+        return variableName;
     }
 
     public static boolean isValidExpressionName( String expressionName )
