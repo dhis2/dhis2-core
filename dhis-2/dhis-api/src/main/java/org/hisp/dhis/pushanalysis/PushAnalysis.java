@@ -41,6 +41,8 @@ import java.util.Date;
 import java.util.Set;
 
 /**
+ * PushAnalysis generates reports based on a Dashboard, and sends them to UserGroups
+ * at given Intervals.
  * @author Stian Sandvold
  */
 @JacksonXmlRootElement( localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0 )
@@ -48,21 +50,38 @@ public class PushAnalysis
     extends BaseIdentifiableObject
 {
 
+    /**
+     * PushAnalysis uses a dashboard to base it's reports on
+     */
     private Dashboard dashboard;
 
+    /**
+     * PushAnalysis reports are sent to one or more userGroups
+     */
     private Set<UserGroup> receivingUserGroups;
 
+    /**
+     * The name will be used in the report title
+     */
     private String name;
 
+    /**
+     * The message will be written in the report. Used to explain or describe reports to users
+     */
     private String message;
 
+    /**
+     * Indicates whether or not reports should be generated and sent to users automatically at given intervals
+     */
     private boolean enabled;
 
+    /**
+     * The Date of the last successful run
+     */
     private Date lastRun;
 
     public PushAnalysis()
     {
-
     }
 
     @JsonProperty
@@ -77,10 +96,6 @@ public class PushAnalysis
         this.lastRun = lastRun;
     }
 
-    public PushAnalysis( String name )
-    {
-        this.name = name;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -171,6 +186,12 @@ public class PushAnalysis
     public boolean getEnabled()
     {
         return this.enabled;
+    }
+
+    @Override
+    public boolean haveUniqueNames()
+    {
+        return false;
     }
 
 

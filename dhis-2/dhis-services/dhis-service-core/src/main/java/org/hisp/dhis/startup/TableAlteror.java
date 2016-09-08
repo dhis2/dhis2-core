@@ -915,7 +915,17 @@ public class TableAlteror
         executeSql( "alter table orgunitlevel drop constraint orgunitlevel_name_key" );
         
         executeSql( "update interpretation set likes = 0 where likes is null" );
+        
+        executeSql( "update chart set regressiontype = 'NONE' where regression is false or regression is null" );
+        executeSql( "update chart set regressiontype = 'LINEAR' where regression is true" );
+        executeSql( "alter table chart alter column regressiontype set not null" );
+        executeSql( "alter table chart drop column regression" );
 
+        executeSql( "update eventchart set regressiontype = 'NONE' where regression is false or regression is null" );
+        executeSql( "update eventchart set regressiontype = 'LINEAR' where regression is true" );
+        executeSql( "alter table eventchart alter column regressiontype set not null" );
+        executeSql( "alter table eventchart drop column regression" );
+        
         updateEnums();
 
         oauth2();

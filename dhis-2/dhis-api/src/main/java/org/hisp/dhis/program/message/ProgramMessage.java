@@ -30,8 +30,11 @@ package org.hisp.dhis.program.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.ProgramInstance;
@@ -45,7 +48,6 @@ import java.util.Set;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 @JacksonXmlRootElement( localName = "programMessage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramMessage
     extends BaseIdentifiableObject
@@ -63,9 +65,9 @@ public class ProgramMessage
 
     private ProgramMessageStatus messageStatus;
 
-    private String text;
-
     private String subject;
+
+    private String text;
 
     private Date processedDate;
 
@@ -79,25 +81,26 @@ public class ProgramMessage
     {
     }
 
-    public ProgramMessage( String text, ProgramMessageRecipients recipients )
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients )
     {
+        this.subject = subject;
         this.text = text;
         this.recipients = recipients;
     }
 
-    public ProgramMessage( String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
         ProgramInstance programInstance )
     {
-        this(text, recipients);
-        this.deliveryChannels.addAll( deliveryChannels );
+        this( subject, text, recipients );
+        this.deliveryChannels = deliveryChannels;
         this.programInstance = programInstance;
     }
 
-    public ProgramMessage( String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
+    public ProgramMessage( String subject, String text, ProgramMessageRecipients recipients, Set<DeliveryChannel> deliveryChannels,
         ProgramStageInstance programStageInstance )
     {
-        this(text, recipients);
-        this.deliveryChannels.addAll( deliveryChannels );
+        this( subject, text, recipients );
+        this.deliveryChannels = deliveryChannels;
         this.programStageInstance = programStageInstance;
     }
 
@@ -105,9 +108,9 @@ public class ProgramMessage
     // Setters and getters
     // -------------------------------------------------------------------------
 
-    @JsonProperty( value = "programInstance" )
+    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "programInstance" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramInstance getProgramInstance()
     {
         return programInstance;
@@ -118,9 +121,9 @@ public class ProgramMessage
         this.programInstance = programInstance;
     }
 
-    @JsonProperty( value = "programStageInstance" )
+    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "programStageInstance" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStageInstance getProgramStageInstance()
     {
         return programStageInstance;
@@ -131,8 +134,8 @@ public class ProgramMessage
         this.programStageInstance = programStageInstance;
     }
 
-    @JsonProperty( value = "recipients" )
-    @JacksonXmlProperty( localName = "recipients" )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramMessageRecipients getRecipients()
     {
         return recipients;
@@ -143,8 +146,9 @@ public class ProgramMessage
         this.recipients = programMessagerecipients;
     }
 
-    @JsonProperty( value = "deliveryChannels" )
-    @JacksonXmlProperty( localName = "deliveryChannels" )
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "deliveryChannels", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
     public Set<DeliveryChannel> getDeliveryChannels()
     {
         return deliveryChannels;
@@ -155,32 +159,8 @@ public class ProgramMessage
         this.deliveryChannels = deliveryChannels;
     }
 
-    @JsonProperty( value = "text" )
-    @JacksonXmlProperty( localName = "text" )
-    public String getText()
-    {
-        return text;
-    }
-
-    public void setText( String text )
-    {
-        this.text = text;
-    }
-
-    @JsonProperty( value = "storeCopy" )
-    @JacksonXmlProperty( localName = "storeCopy" )
-    public boolean getStoreCopy()
-    {
-        return storeCopy;
-    }
-
-    public void setStoreCopy( boolean storeCopy )
-    {
-        this.storeCopy = storeCopy;
-    }
-
-    @JsonProperty( value = "messageStatus" )
-    @JacksonXmlProperty( localName = "messageStatus" )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramMessageStatus getMessageStatus()
     {
         return messageStatus;
@@ -191,8 +171,8 @@ public class ProgramMessage
         this.messageStatus = messageStatus;
     }
 
-    @JsonProperty( value = "subject" )
-    @JacksonXmlProperty( localName = "subject" )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSubject()
     {
         return subject;
@@ -203,22 +183,53 @@ public class ProgramMessage
         this.subject = messageSubject;
     }
 
-    @JsonProperty( value = "processedDate" )
-    @JacksonXmlProperty( localName = "processedDate" )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getText()
+    {
+        return text;
+    }
+
+    public void setText( String text )
+    {
+        this.text = text;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getProcessedDate()
     {
         return processedDate;
     }
 
-    public void setProcessedDate( Date processedAt )
+    public void setProcessedDate( Date processedDate )
     {
-        this.processedDate = processedAt;
+        this.processedDate = processedDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isStoreCopy()
+    {
+        return storeCopy;
+    }
+
+    public void setStoreCopy( boolean storeCopy )
+    {
+        this.storeCopy = storeCopy;
     }
 
     @Override
     public String toString()
     {
-        return "ProgramMessage: [id : " + this.id + ", " + "uid :" + this.uid + ", " + this.text + ", " + this.subject
-            + ", " + this.deliveryChannels.toString() + "]";
+        return MoreObjects.toStringHelper( this )
+            .add( "uid", uid )
+            .add( "program stage instance", programStageInstance )
+            .add( "program instance", programInstance )
+            .add( "recipients", recipients )
+            .add( "delivery channels", deliveryChannels )
+            .add( "subject", subject )
+            .add( "text", text )
+            .toString();
     }
 }

@@ -204,14 +204,14 @@ public class DefaultProgramMessageService
     {
         List<MessageResponseSummary> summaries = new ArrayList<>();
 
-        List<ProgramMessage> filledProgramMessages = new ArrayList<>();
+        List<ProgramMessage> populatedProgramMessages = new ArrayList<>();
 
         for ( ProgramMessage message : programMessages )
         {
-            filledProgramMessages.add( fillAttributesBasedOnStrategy( message ) );
+            populatedProgramMessages.add( setAttributesBasedOnStrategy( message ) );
         }
 
-        List<MessageBatch> batches = createBatches( filledProgramMessages );
+        List<MessageBatch> batches = createBatches( populatedProgramMessages );
 
         for ( MessageBatch batch : batches )
         {
@@ -221,15 +221,15 @@ public class DefaultProgramMessageService
                 {
                     if ( messageSender.isServiceReady() )
                     {
-                        log.info( "Invoking " + messageSender.getClass().getSimpleName() );
+                        log.info( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
 
                         summaries.add( messageSender.sendMessageBatch( batch ) );
                     }
                     else
                     {
-                        log.error( "No server/gateway configuration found for " + messageSender.getDeliveryChannel() );
+                        log.error( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel() );
 
-                        summaries.add( new MessageResponseSummary( "No server/gateway configuration found for " + messageSender.getDeliveryChannel(),
+                        summaries.add( new MessageResponseSummary( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel(),
                             messageSender.getDeliveryChannel(), MessageBatchStatus.FAILED ) );
                     }
                 }
@@ -264,7 +264,7 @@ public class DefaultProgramMessageService
 
         if ( user != null && !programs.contains( programInstance.getProgram() ) )
         {
-            throw new IllegalQueryException( "User does not have access to the required program." );
+            throw new IllegalQueryException( "User does not have access to the required program" );
         }
     }
 
@@ -275,7 +275,7 @@ public class DefaultProgramMessageService
 
         if ( !params.hasProgramInstance() && !params.hasProgramStageInstance() )
         {
-            violation = "ProgramInstance or ProgramStageInstance must be provided.";
+            violation = "Program instance or program stage instance must be provided";
         }
 
         if ( violation != null )
@@ -300,24 +300,24 @@ public class DefaultProgramMessageService
 
         if ( message.getDeliveryChannels() == null || message.getDeliveryChannels().isEmpty() )
         {
-            violation = "Delivery Channel must be provided";
+            violation = "Delivery channel must be specified";
         }
 
         if ( message.getProgramInstance() == null && message.getProgramStageInstance() == null )
         {
-            violation = "ProgramInstance or ProgramStageInstance must be provided";
+            violation = "Program instance or program stage instance must be specified";
         }
 
         if ( recipients.getTrackedEntityInstance() != null && trackedEntityInstanceService
             .getTrackedEntityInstance( recipients.getTrackedEntityInstance().getUid() ) == null )
         {
-            violation = "TrackedEntity does not exist";
+            violation = "Tracked entity does not exist";
         }
 
         if ( recipients.getOrganisationUnit() != null
             && organisationUnitService.getOrganisationUnit( recipients.getOrganisationUnit().getUid() ) == null )
         {
-            violation = "OrganisationUnit does not exist";
+            violation = "Organisation unit does not exist";
         }
 
         if ( violation != null )
@@ -337,7 +337,7 @@ public class DefaultProgramMessageService
     {
         for ( ProgramMessage message : messageBatch )
         {
-            if ( message.getStoreCopy() )
+            if ( message.isStoreCopy() )
             {
                 message.setProgramInstance( getProgramInstance( message ) );
                 message.setProgramStageInstance( getProgramStageInstance( message ) );
@@ -387,7 +387,7 @@ public class DefaultProgramMessageService
         return null;
     }
 
-    private ProgramMessage fillAttributesBasedOnStrategy( ProgramMessage message )
+    private ProgramMessage setAttributesBasedOnStrategy( ProgramMessage message )
     {
         Set<DeliveryChannel> channels = message.getDeliveryChannels();
 
@@ -397,7 +397,7 @@ public class DefaultProgramMessageService
             {
                 if ( strategy.getDeliveryChannel().equals( channel ) )
                 {
-                    strategy.fillAttributes( message );
+                    strategy.setAttributes( message );
                 }
             }
         }

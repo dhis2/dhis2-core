@@ -139,6 +139,7 @@ public class DefaultSchemaService
         add( new ValidationRuleSchemaDescriptor() ).
         add( new PushAnalysisSchemaDescriptor() ).
         add( new ProgramIndicatorGroupSchemaDescriptor() ).
+        add( new ExternalFileResourceSchemaDescriptor() ).
         add( new OptionGroupSchemaDescriptor() ).
         add( new OptionGroupSetSchemaDescriptor()).
         build();

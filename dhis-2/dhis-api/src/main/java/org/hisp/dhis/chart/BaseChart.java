@@ -43,6 +43,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -68,13 +69,11 @@ public abstract class BaseChart
 
     protected boolean hideLegend;
 
-    protected boolean regression;
-
     protected boolean hideTitle;
 
     protected boolean hideSubtitle;
 
-    protected String title;
+    protected RegressionType regressionType;
 
     protected Double targetLineValue;
 
@@ -95,7 +94,7 @@ public abstract class BaseChart
     protected Integer rangeAxisSteps; // Minimum 1
 
     protected Integer rangeAxisDecimals;
-
+    
     // -------------------------------------------------------------------------
     // Dimensional properties
     // -------------------------------------------------------------------------
@@ -110,7 +109,7 @@ public abstract class BaseChart
 
     protected transient List<Period> relativePeriods = new ArrayList<>();
 
-    protected transient User user;
+    protected transient User relativeUser;
 
     protected transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
 
@@ -155,7 +154,7 @@ public abstract class BaseChart
 
         for ( String filter : filterDimensions )
         {
-            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, user, true,
+            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
                 organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
             if ( object != null )
@@ -183,11 +182,6 @@ public abstract class BaseChart
         return getAnalyticsType().equals( type );
     }
 
-    public boolean hasTitle()
-    {
-        return title != null && !title.isEmpty();
-    }
-
     @Override
     public boolean haveUniqueNames()
     {
@@ -199,12 +193,17 @@ public abstract class BaseChart
     {
         format = null;
         relativePeriods = new ArrayList<>();
-        user = null;
+        relativeUser = null;
         organisationUnitsAtLevel = new ArrayList<>();
         organisationUnitsInGroups = new ArrayList<>();
         dataItemGrid = null;
 
         clearTransientChartStateProperties();
+    }
+    
+    public boolean isRegression()
+    {
+        return regressionType == null || RegressionType.NONE != regressionType;
     }
 
     // -------------------------------------------------------------------------
@@ -301,18 +300,6 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRegression()
-    {
-        return regression;
-    }
-
-    public void setRegression( boolean regression )
-    {
-        this.regression = regression;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isHideTitle()
     {
         return hideTitle;
@@ -337,14 +324,14 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTitle()
+    public RegressionType getRegressionType()
     {
-        return this.title;
+        return regressionType;
     }
 
-    public void setTitle( String title )
+    public void setRegressionType( RegressionType regressionType )
     {
-        this.title = title;
+        this.regressionType = regressionType;
     }
 
     @JsonProperty
@@ -494,7 +481,6 @@ public abstract class BaseChart
             BaseChart chart = (BaseChart) other;
 
             hideLegend = chart.isHideLegend();
-            regression = chart.isRegression();
             hideTitle = chart.isHideTitle();
             hideSubtitle = chart.isHideSubtitle();
             showData = chart.isShowData();
@@ -505,7 +491,7 @@ public abstract class BaseChart
                 domainAxisLabel = chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel();
                 type = chart.getType();
-                title = chart.getTitle();
+                regressionType = chart.getRegressionType();
                 targetLineValue = chart.getTargetLineValue();
                 targetLineLabel = chart.getTargetLineLabel();
                 baseLineValue = chart.getBaseLineValue();
@@ -520,7 +506,7 @@ public abstract class BaseChart
                 domainAxisLabel = chart.getDomainAxisLabel() == null ? domainAxisLabel : chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel() == null ? rangeAxisLabel : chart.getRangeAxisLabel();
                 type = chart.getType() == null ? type : chart.getType();
-                title = chart.getTitle() == null ? title : chart.getTitle();
+                regressionType = chart.getRegressionType() == null ? regressionType : chart.getRegressionType();
                 targetLineValue = chart.getTargetLineValue() == null ? targetLineValue : chart.getTargetLineValue();
                 targetLineLabel = chart.getTargetLineLabel() == null ? targetLineLabel : chart.getTargetLineLabel();
                 baseLineValue = chart.getBaseLineValue() == null ? baseLineValue : chart.getBaseLineValue();

@@ -44,13 +44,17 @@
 
     <property name="hideLegend" />
 
-    <property name="regression" />
+    <property name="regressionType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.RegressionType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <property name="hideTitle" />
 
     <property name="hideSubtitle" />
-
-    <property name="title" />
 
     <property name="targetLineValue" />
 
@@ -149,6 +153,13 @@
     </property>
 
     <property name="completedOnly" column="completedonly" />
+    
+    <property name="title" />
+    
+    <set name="interpretations" inverse="true">
+      <key column="chartid" />
+      <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
+    </set>
 
     <property name="showData" />
 

@@ -87,6 +87,18 @@ public class InterpretationServiceTest
     }
 
     @Test
+    public void testConstruct()
+    {
+        Interpretation interprA = new Interpretation( chartA, null, "Interpretation" );
+        Interpretation interprB = new Interpretation( chartA, null, "Interpretation" );
+        
+        assertEquals( chartA, interprA.getChart() );
+        assertEquals( chartA, interprB.getChart() );
+        assertTrue( chartA.getInterpretations().contains( interprA ) );
+        assertTrue( chartA.getInterpretations().contains( interprB ) );
+    }
+    
+    @Test
     public void testSaveGet()
     {
         int idA = interpretationService.saveInterpretation( interpretationA );

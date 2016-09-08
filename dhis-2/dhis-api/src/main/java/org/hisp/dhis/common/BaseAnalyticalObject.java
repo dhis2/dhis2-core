@@ -48,6 +48,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.ConfigurablePeriod;
@@ -66,8 +67,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.DimensionalObject.*;
@@ -137,6 +140,10 @@ public abstract class BaseAnalyticalObject
     protected AggregationType aggregationType;
 
     protected boolean completedOnly;
+    
+    protected String title;
+    
+    protected Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Analytical properties
@@ -195,6 +202,11 @@ public abstract class BaseAnalyticalObject
     public boolean hasSortOrder()
     {
         return sortOrder != 0;
+    }
+    
+    public boolean hasTitle()
+    {
+        return title != null && !title.isEmpty();
     }
 
     protected void addTransientOrganisationUnits( Collection<OrganisationUnit> organisationUnits )
@@ -839,11 +851,13 @@ public abstract class BaseAnalyticalObject
             {
                 relatives = object.getRelatives();
                 aggregationType = object.getAggregationType();
+                title = object.getTitle();
             }
             else if ( mergeMode.isMerge() )
             {
                 relatives = object.getRelatives() == null ? relatives : object.getRelatives();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
+                title = object.getTitle() == null ? title : object.getTitle();
             }
 
             dataDimensionItems.addAll( object.getDataDimensionItems() );
@@ -1137,6 +1151,32 @@ public abstract class BaseAnalyticalObject
     public void setCompletedOnly( boolean completedOnly )
     {
         this.completedOnly = completedOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle( String title )
+    {
+        this.title = title;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "interpretation", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Interpretation> getInterpretations()
+    {
+        return interpretations;
+    }
+
+    public void setInterpretations( Set<Interpretation> interpretations )
+    {
+        this.interpretations = interpretations;
     }
 
     // -------------------------------------------------------------------------

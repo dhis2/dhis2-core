@@ -212,7 +212,7 @@ public class ReportTable
     /**
      * The title of the report table grid.
      */
-    private transient String title;
+    private transient String gridTitle;
 
     @Override
     protected void clearTransientStateProperties()
@@ -220,7 +220,7 @@ public class ReportTable
         gridColumns = new ArrayList<>();
         gridRows = new ArrayList<>();
         reportingPeriodName = null;
-        title = null;
+        gridTitle = null;
     }
 
     // -------------------------------------------------------------------------
@@ -307,6 +307,7 @@ public class ReportTable
         verify( (periods != null && !periods.isEmpty()) || hasRelativePeriods(), "Must contain periods or relative periods" );
 
         this.relativePeriodDate = date;
+        this.relativeOrganisationUnit = organisationUnit;
 
         // Handle report parameters
 
@@ -318,14 +319,12 @@ public class ReportTable
         if ( organisationUnit != null && hasReportParams() && reportParams.isParamParentOrganisationUnit() )
         {
             organisationUnit.setCurrentParent( true );
-            this.relativeOrganisationUnit = organisationUnit;
             addTransientOrganisationUnits( organisationUnit.getChildren() );
             addTransientOrganisationUnit( organisationUnit );
         }
 
         if ( organisationUnit != null && hasReportParams() && reportParams.isParamOrganisationUnit() )
         {
-            this.relativeOrganisationUnit = organisationUnit;
             addTransientOrganisationUnit( organisationUnit );
         }
 
@@ -374,7 +373,7 @@ public class ReportTable
         addIfEmpty( gridColumns );
         addIfEmpty( gridRows );
 
-        title = IdentifiableObjectUtils.join( filterItems );
+        gridTitle = IdentifiableObjectUtils.join( filterItems );
     }
 
     @Override
@@ -538,11 +537,11 @@ public class ReportTable
         if ( name != null )
         {
             grid.setTitle( name );
-            grid.setSubtitle( title );
+            grid.setSubtitle( gridTitle );
         }
         else
         {
-            grid.setTitle( title );
+            grid.setTitle( gridTitle );
         }
 
         // ---------------------------------------------------------------------
@@ -1003,16 +1002,16 @@ public class ReportTable
     }
 
     @JsonIgnore
-    public String getTitle()
+    public String getGridTitle()
     {
-        return title;
+        return gridTitle;
     }
 
-    public void setTitle( String title )
+    public void setGridTitle( String gridTitle )
     {
-        this.title = title;
+        this.gridTitle = gridTitle;
     }
-
+    
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
