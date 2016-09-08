@@ -15,7 +15,7 @@
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="daysBeforeOrAfter" column="daysbeforeorafter" not-null="false" />
+    <property name="relativeScheduledDays" column="relativeScheduledDays" not-null="false" />
 
     <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup"
       column="usergroupid" foreign-key="fk_programstagenotification_usergroup" not-null="false" />
@@ -24,7 +24,7 @@
 
     <property name="messageTemplate" column="messagetemplate" not-null="false" />
 
-    <property name="getNotificationTriggerType" column="notificationtrigger">
+    <property name="notificationTrigger" column="notificationtrigger">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.notification.NotificationTrigger</param>
         <param name="useNamed">true</param>
@@ -32,7 +32,7 @@
       </type>
     </property>
 
-    <property name="getNotificationRecipient" column="notificationrecipienttype">
+    <property name="notificationRecipient" column="notificationrecipienttype">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.program.notification.NotificationRecipient</param>
         <param name="useNamed">true</param>

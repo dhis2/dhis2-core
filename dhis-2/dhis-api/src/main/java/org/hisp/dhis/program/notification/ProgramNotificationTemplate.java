@@ -91,7 +91,6 @@ public class ProgramNotificationTemplate
         this.recipientUserGroup = recipientUserGroup;
     }
 
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -180,6 +179,16 @@ public class ProgramNotificationTemplate
     public void setRecipientUserGroup( UserGroup recipientUserGroup )
     {
         this.recipientUserGroup = recipientUserGroup;
+    }
+
+    // -------------------------------------------------------------------------
+    // IdObject overrides
+    // -------------------------------------------------------------------------
+
+    @Override
+    public boolean haveUniqueNames()
+    {
+        return false;
     }
 
     @Override

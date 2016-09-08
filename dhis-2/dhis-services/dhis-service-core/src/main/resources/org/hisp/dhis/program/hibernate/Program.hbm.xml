@@ -79,9 +79,15 @@
       <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
     </set>
 
+    <!-- TODO Deprecate this -->
     <set name="instanceReminders" order-by="daysAllowedSendMessage" cascade="all">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
+    </set>
+
+    <set name="notificationTemplates" cascade="all">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
 
     <property name="selectEnrollmentDatesInFuture" />

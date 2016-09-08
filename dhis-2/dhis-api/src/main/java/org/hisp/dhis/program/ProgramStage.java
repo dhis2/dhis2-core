@@ -217,7 +217,7 @@ public class ProgramStage
     @JsonProperty( "programNotificationTemplates" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramNotificationTemplate> getNotificationTemplates()
     {
         return notificationTemplates;
