@@ -42,10 +42,12 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -99,7 +101,14 @@ public class PushAnalysisController
         pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
     }
 
-
+    /**
+     * This endpoint let's the user manually trigger a PushAnalysis run.
+     *
+     * @param uid      of the PushAnalysis to run
+     * @param response
+     * @throws Exception
+     */
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{uid}/run", method = RequestMethod.GET )
     public void sendPushAnalysis(
         @PathVariable() String uid,
@@ -115,13 +124,10 @@ public class PushAnalysisController
                 WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
         }
 
-        PushAnalysisTask task = new PushAnalysisTask( pushAnalysis.getId(),
-            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ), pushAnalysisService );
-        scheduler.executeTask( task );
-
-        response.setStatus( 200 );
-        response.getWriter().write( "PushAnalysis '" + pushAnalysis.getName() + "' started." );
-        response.getWriter().close();
+        scheduler.executeTask( new PushAnalysisTask(
+            pushAnalysis.getId(),
+            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
+            pushAnalysisService ) );
     }
 
 }
