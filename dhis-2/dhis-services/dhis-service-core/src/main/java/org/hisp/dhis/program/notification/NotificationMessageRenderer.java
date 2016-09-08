@@ -167,7 +167,7 @@ public class NotificationMessageRenderer
     private static Set<String> extractProgramStageVariables( String input )
     {
         Map<Boolean, Set<String>> groupedVariables = RegexUtils.getMatches( VARIABLE_PATTERN, input, 1 ).stream()
-            .collect( Collectors.groupingBy( ProgramStageTemplateVariable::isValidExpressionName, Collectors.toSet() ) );
+            .collect( Collectors.groupingBy( ProgramStageTemplateVariable::isValidVariableName, Collectors.toSet() ) );
 
         warnOfUnrecognizedVariables( groupedVariables.get( false ) );
 
@@ -177,7 +177,7 @@ public class NotificationMessageRenderer
     private static Set<String> extractProgramVariables( String input )
     {
         Map<Boolean, Set<String>> groupedVariables = RegexUtils.getMatches( VARIABLE_PATTERN, input, 1 ).stream()
-            .collect( Collectors.groupingBy( ProgramTemplateVariable::isValidExpressionName, Collectors.toSet() ) );
+            .collect( Collectors.groupingBy( ProgramTemplateVariable::isValidVariableName, Collectors.toSet() ) );
 
         warnOfUnrecognizedVariables( groupedVariables.get( false ) );
 

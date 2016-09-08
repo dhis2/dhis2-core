@@ -71,7 +71,7 @@ public enum ProgramTemplateVariable
         return variableName;
     }
 
-    public static boolean isValidExpressionName( String expressionName )
+    public static boolean isValidVariableName( String expressionName )
     {
         return allValidExpressionNames.contains( expressionName );
     }
