@@ -702,7 +702,7 @@ public class DefaultAnalyticsService
     {
         if ( !params.isSkipMeta() )
         {
-            Map<Object, Object> metaData = new HashMap<>();
+            Map<String, Object> metaData = new HashMap<>();
 
             // -----------------------------------------------------------------
             // Names element
