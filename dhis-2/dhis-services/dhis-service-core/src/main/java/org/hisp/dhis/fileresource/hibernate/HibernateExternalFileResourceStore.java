@@ -1,5 +1,4 @@
-package org.hisp.dhis.fileresource;
-
+package org.hisp.dhis.fileresource.hibernate;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,25 +27,27 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.fileresource.ExternalFileResourceStore;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Stian Sandvold
  */
-public enum FileResourceDomain
+public class HibernateExternalFileResourceStore
+    extends HibernateIdentifiableObjectStore<ExternalFileResource>
+    implements ExternalFileResourceStore
 {
-    DATA_VALUE( "dataValue" ), EXTERNAL( "external" );
 
     /**
-     * Container name to use when storing blobs of this FileResourceDomain
+     * Returns a single ExternalFileResource with the given (unique) accessToken
+     * @param accessToken unique string belonging to a single ExternalFileResource
+     * @return ExternalFileResource
      */
-    private String containerName;
-
-    FileResourceDomain( String containerName )
+    @Override
+    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {
-        this.containerName = containerName;
-    }
-
-    public String getContainerName()
-    {
-        return containerName;
+        return (ExternalFileResource) getQuery( "FROM ExternalFileResource WHERE accessToken = :accessToken" )
+            .setString( "accessToken", accessToken ).uniqueResult();
     }
 }

@@ -1,5 +1,4 @@
-package org.hisp.dhis.fileresource;
-
+package org.hisp.dhis.pushanalysis.scheduling;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,25 +27,42 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.pushanalysis.PushAnalysisService;
+import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.security.NoSecurityContextRunnable;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Stian Sandvold
  */
-public enum FileResourceDomain
+public class PushAnalysisTask
+    extends NoSecurityContextRunnable
 {
-    DATA_VALUE( "dataValue" ), EXTERNAL( "external" );
 
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
+    private int pushAnalysisId;
+    private TaskId taskId;
+    private PushAnalysisService pushAnalysisService;
+    private static final Log log = LogFactory.getLog( PushAnalysisTask.class );
 
-    FileResourceDomain( String containerName )
+
+    public PushAnalysisTask( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
     {
-        this.containerName = containerName;
+        this.pushAnalysisId = pushAnalysisId;
+        this.taskId = taskId;
+        this.pushAnalysisService = pushAnalysisService;
     }
 
-    public String getContainerName()
+    @Override
+    public void call()
     {
-        return containerName;
+        try
+        {
+            pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        } catch( Exception ex ) {
+            log.error( DebugUtils.getStackTrace( ex ));
+            throw ex;
+        }
     }
 }

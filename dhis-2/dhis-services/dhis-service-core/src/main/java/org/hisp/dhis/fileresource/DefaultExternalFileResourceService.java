@@ -1,5 +1,4 @@
 package org.hisp.dhis.fileresource;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,25 +27,42 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Stian Sandvold
  */
-public enum FileResourceDomain
+public class DefaultExternalFileResourceService
+    implements ExternalFileResourceService
 {
-    DATA_VALUE( "dataValue" ), EXTERNAL( "external" );
 
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
+    private ExternalFileResourceStore externalFileResourceStore;
 
-    FileResourceDomain( String containerName )
+    public void setExternalFileResourceStore(
+        ExternalFileResourceStore externalFileResourceStore )
     {
-        this.containerName = containerName;
+        this.externalFileResourceStore = externalFileResourceStore;
     }
 
-    public String getContainerName()
+    @Override
+    public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {
-        return containerName;
+        return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );
+    }
+
+    @Override
+    @Transactional
+    public String saveExternalFileResource( ExternalFileResource externalFileResource )
+    {
+        Assert.notNull(externalFileResource);
+        Assert.notNull(externalFileResource.getFileResource());
+        Assert.isTrue( externalFileResource.getFileResource().getDomain() == FileResourceDomain.EXTERNAL );
+
+        externalFileResource.setAccessToken( ExternalFileResourceTokenGenerator.generate() );
+
+        externalFileResourceStore.save( externalFileResource );
+
+        return externalFileResource.getAccessToken();
     }
 }

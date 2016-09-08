@@ -7,11 +7,6 @@
 
 
   <bean id="org.hisp.dhis.pushanalysis.PushAnalysisService" class="org.hisp.dhis.pushanalysis.DefaultPushAnalysisService">
-    <property name="reportTableService" ref="org.hisp.dhis.reporttable.ReportTableService" />
-    <property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
-    <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
-    <property name="messageSender" ref="emailMessageSender" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="pushAnalysisStore" ref="org.hisp.dhis.pushanalysis.PushAnalysisStore" />
   </bean>
 
