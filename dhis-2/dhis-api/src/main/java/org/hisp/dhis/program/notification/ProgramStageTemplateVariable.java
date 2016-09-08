@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
  *     <li>due_date</li>
  *     <li>days_since_due_date</li>
  *     <li>days_until_due_date</li>
+ *     <li>current_date</li>
  * </ul>
  *
  * @author Halvdan Hoem Grelland
@@ -57,7 +58,8 @@ public enum ProgramStageTemplateVariable
     ORG_UNIT_NAME( "org_unit_name" ),
     DUE_DATE( "due_date" ),
     DAYS_SINCE_DUE_DATE( "days_since_due_date" ),
-    DAYS_UNTIL_DUE_DATE( "days_until_due_date" );
+    DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
+    CURRENT_DATE( "current_date" );
 
     private static final Set<String> allValidExpressionNames =
         EnumSet.allOf( ProgramStageTemplateVariable.class ).stream()

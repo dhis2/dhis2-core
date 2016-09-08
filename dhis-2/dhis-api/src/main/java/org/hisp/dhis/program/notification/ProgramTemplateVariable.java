@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
  * <ul>
  *     <li>program_name</li>
  *     <li>org_unit_name</li>
+ *     <li>current_date</li>
  * </ul>
  *
  * @author Halvdan Hoem Grelland
@@ -49,13 +50,13 @@ public enum ProgramTemplateVariable
     implements TemplateVariable
 {
     PROGRAM_NAME( "program_name" ),
-    ORG_UNIT_NAME( "org_unit_name" );
+    ORG_UNIT_NAME( "org_unit_name" ),
+    CURRENT_DATE( "current_date" );
 
     private static final Set<String> allValidExpressionNames =
         EnumSet.allOf( ProgramTemplateVariable.class ).stream()
             .map( ProgramTemplateVariable::getVariableName )
             .collect( Collectors.toSet() );
-
 
     private final String variableName;
 
