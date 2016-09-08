@@ -707,7 +707,7 @@ public class DefaultAnalyticsService
             uidNameMap.putAll( cocNameMap );
             uidNameMap.put( DATA_X_DIM_ID, DISPLAY_NAME_DATA_X );
 
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );            
 
             // -----------------------------------------------------------------
             // Item order elements
@@ -747,6 +747,11 @@ public class DefaultAnalyticsService
             if ( params.isShowHierarchy() )
             {
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+            }
+            
+            if ( params.isDimensionItemMeta() )
+            {
+                metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getUidDimensionalItemMap( params ) );
             }
 
             grid.setMetaData( metaData );

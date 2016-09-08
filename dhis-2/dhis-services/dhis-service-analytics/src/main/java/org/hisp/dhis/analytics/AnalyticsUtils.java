@@ -321,8 +321,28 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and names for the given dimensional
-     * objects.
+     * Returns a mapping between identifiers and dimensional item object for the 
+     * given query.
+     *
+     * @param params the data query parameters.
+     * @return a mapping between identifiers and names.
+     */
+    public static Map<String, DimensionalItemObject> getUidDimensionalItemMap( DataQueryParams params )
+    {
+        List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
+        
+        Map<String, DimensionalItemObject> map = new HashMap<>();
+        
+        for ( DimensionalObject dimension : dimensions )
+        {
+            dimension.getItems().stream().forEach( i -> map.put( i.getDimensionItem(), i ) );
+        }
+        
+        return map;
+    }
+
+    /**
+     * Returns a mapping between identifiers and names for the given query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
@@ -368,7 +388,7 @@ public class AnalyticsUtils
 
     /**
      * Returns a mapping between the category option combo identifiers and names
-     * in the given grid.
+     * for the given query.
      *
      * @param params the data query parameters.
      * @param a mapping between identifiers and names.

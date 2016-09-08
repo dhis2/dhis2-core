@@ -152,6 +152,27 @@ public class AnalyticsUtilsTest
     }
     
     @Test
+    public void testGetUidDimensionalItemMap()
+    {
+        DataElement deA = createDataElement( 'A' );
+        Indicator inA = createIndicator( 'A', null );
+        DataSet dsA = createDataSet( 'A' );
+
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( dx )
+            .withDisplayProperty( DisplayProperty.NAME )
+            .build();
+        
+        Map<String, DimensionalItemObject> map = AnalyticsUtils.getUidDimensionalItemMap( params );
+        
+        assertEquals( map.get( deA.getUid() ), deA );
+        assertEquals( map.get( inA.getUid() ), inA );
+        assertEquals( map.get( dsA.getUid() ), dsA );
+    }
+    
+    @Test
     public void testGetUidNameMap()
     {
         DataElement deA = createDataElement( 'A' );
