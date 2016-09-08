@@ -1,5 +1,10 @@
 $(document).ready(function () {
 
+    if($('#metadataSyncStatus').val())
+    {
+        alert($('#metadataSyncStatus').val());
+    }
+
     if ($('#isRunning').val() == 'true') 
     {
         $('.scheduling').attr('disabled', 'disabled');
@@ -186,24 +191,10 @@ $(document).ready(function () {
         defaultScheduler();
     });
 
-    $("#submitSyncSchedule").unbind("click").click(function (e)
+    $("#submitSyncNow").unbind("click").click(function (e)
     {
-        location.reload(true);
         e.stopPropagation();
-        var button = this;
-        $(button).attr("disabled", "disabled");
-        if ($('#isMetadataSyncNowInProgress').val() == 'false') {
-
-            $.post('executeMetaDataSyncTask.action', {
-                executeNow: true,
-                taskKey: "metadataSyncTask"
-            }, function(json) {
-                $(button).removeAttr("disabled");
-            });
-        }
-        else {
-            alert('Metadata synchronization is still in progress');
-        }
+        $("#metadataSyncNowForm").submit();
     });
 
 });

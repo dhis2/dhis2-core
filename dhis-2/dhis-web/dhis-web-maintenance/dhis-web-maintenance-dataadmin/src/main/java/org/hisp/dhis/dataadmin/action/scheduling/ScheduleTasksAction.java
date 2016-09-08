@@ -72,6 +72,8 @@ public class ScheduleTasksAction
     private static final String STRATEGY_LAST_3_YEARS_DAILY = "last3YearsDaily";
     private static final String STRATEGY_ENABLED = "enabled";
     private static final String STRATEGY_EVERY_MIDNIGHT = "everyMidNight";
+    private static final String TASK_STARTED = "task_started";
+    private static final String TASK_ALREADY_RUNNING = "task_already_running";
 
     private static final Log log = LogFactory.getLog( ScheduleTasksAction.class );
 
@@ -286,11 +288,11 @@ public class ScheduleTasksAction
         return lastDataStatisticSuccess;
     }
 
-    private boolean metadataSyncNowInProgress;
-
-    public boolean isMetadataSyncNowInProgress()
+    private String metadataSyncStatus;
+    public String getMetadataSyncStatus(){ return metadataSyncStatus; }
+    public void setMetadataSyncStatus(String metadataSyncStatus )
     {
-        return metadataSyncNowInProgress;
+        this.metadataSyncStatus = metadataSyncStatus;
     }
 
     // -------------------------------------------------------------------------
@@ -302,8 +304,16 @@ public class ScheduleTasksAction
     {
         if ( executeNow )
         {
-            schedulingManager.executeTask( taskKey );
-            return SUCCESS;
+            if(schedulingManager.isTaskInProgress( TASK_META_DATA_SYNC ))
+            {
+                metadataSyncStatus = TASK_ALREADY_RUNNING;
+            }
+            else
+            {
+                schedulingManager.executeTask( TASK_META_DATA_SYNC );
+                metadataSyncStatus = TASK_STARTED;
+            }
+
         }
 
         if ( schedule )
@@ -451,7 +461,6 @@ public class ScheduleTasksAction
 
         status = schedulingManager.getTaskStatus();
         running = ScheduledTaskStatus.RUNNING.equals( status );
-        metadataSyncNowInProgress = schedulingManager.isTaskInProgress( "metadataSyncTask" );
         levels = organisationUnitService.getOrganisationUnitLevels();
 
         lastResourceTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );

@@ -20,7 +20,6 @@
     <h3>$i18n.getString( "scheduling_management" ) #openHelp( "scheduling" )</h3>
 
 <input id="isRunning" type="hidden" value="${running}">
-<input id="isMetadataSyncNowInProgress" type="hidden" value="${metadataSyncNowInProgress}">
 
 <form id="schedulingForm" action="scheduleTasks.action" method="post">
 
@@ -98,6 +97,7 @@
             <option value="disabled">$i18n.getString( "disabled" )</option>
             <option value="enabled"#if( $metadataSyncStrategy && $metadataSyncStrategy == "enabled" ) selected="selected"#end>$i18n.getString( "enabled" )</option>
         </select>
+      <input id="submitSyncNow" type="button" style="width:140px" value="$i18n.getString( 'Sync Now' )"/>
     </div>
 
     <div id="scheduler" class="setting settingIndent schedulerWrapper scheduling">
@@ -156,10 +156,6 @@
             </div>
         </div>
         <input type="text" id="metadataSyncCron" name="metadataSyncCron" class="scheduling" value="${metadataSyncCron}" hidden>
-
-        <div class="syncStartButton">
-            <input id="submitSyncSchedule" type="button" style="width:140px" value="$i18n.getString( 'Sync Now' )"/>
-        </div>
     </div>
 
 <!-- SMS -->
@@ -192,5 +188,12 @@
 </div>
 
 </form>
-
+<form id="metadataSyncNowForm" method="post" action="executeMetaDataSyncTask.action">
+    <input type="hidden" id="metadataSyncStatus" name="metadataSyncStatus" type="hidden"
+    #if ( ${metadataSyncStatus} ==  'task_already_running')
+           value="$i18n.getString( 'metadata_sync_in_progress' )"
+    #elseif ( ${metadataSyncStatus} == "task_started" )
+           value="$i18n.getString( 'metadata_sync_has_started' )"
+    #end
+</form>
 <span id="info">$i18n.getString( "scheduling_is" ) $!i18n.getString( $!status.key )</span>
