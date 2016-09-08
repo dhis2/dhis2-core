@@ -232,8 +232,6 @@ public class HibernateProgramStageInstanceStore
             return Lists.newArrayList();
         }
 
-        // TODO Need to consider reportDate (already reported events) vs. dueDate
-
         Query query = getQuery(
             "select psi from ProgramStageInstance as psi " +
                 "inner join psi.programStage as ps " +
