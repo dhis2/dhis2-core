@@ -34,6 +34,15 @@
 
     <tr>
       <td colspan="2">
+        <select id="sharing" style="width: 204px;">
+          <option value="true">$i18n.getString( 'include_sharing' )</option>
+          <option value="false">$i18n.getString( 'exclude_sharing' )</option>
+        </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td colspan="2">
         <input type="button" value="$i18n.getString( 'export' )" style="width:204px;" onclick="exportMetaData();"/>
       </td>
     </tr>
