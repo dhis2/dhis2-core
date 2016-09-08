@@ -28,10 +28,13 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,6 +61,12 @@ public class DefaultOptionService
     {
         this.optionStore = optionStore;
     }
+
+    @Autowired
+    private OptionGroupStore optionGroupStore;
+
+    @Autowired
+    private OptionGroupSetStore optionGroupSetStore;
 
     // -------------------------------------------------------------------------
     // OptionService implementation
@@ -157,6 +166,196 @@ public class DefaultOptionService
     public void deleteOption( Option option  )
     {
         optionStore.delete( option );
+    }
+
+    // -------------------------------------------------------------------------
+    // OptionGroup
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int saveOptionGroup( OptionGroup group )
+    {
+        return optionGroupStore.save( group );
+    }
+
+    @Override
+    public void updateOptionGroup( OptionGroup group )
+    {
+        optionGroupStore.update( group );
+    }
+
+    @Override
+    public OptionGroup getOptionGroup( int id )
+    {
+        return optionGroupStore.get( id );
+    }
+
+    @Override
+    public OptionGroup getOptionGroup( String uid )
+    {
+        return optionGroupStore.getByUid( uid );
+    }
+
+    @Override
+    public List<OptionGroup> getOptionGroupsByUid( Collection<String> uids )
+    {
+        return optionGroupStore.getByUid( uids );
+    }
+
+    @Override
+    public void deleteOptionGroup( OptionGroup group )
+    {
+        optionGroupStore.delete( group );
+    }
+
+    @Override
+    public List<OptionGroup> getOptionGroupsBetween( int first, int max )
+    {
+        return optionGroupStore.getAllOrderedName( first, max );
+    }
+
+    @Override
+    public List<OptionGroup> getOptionGroupsBetweenByName( int first, int max, String name )
+    {
+        return optionGroupStore.getAllLikeName( name, first, max );
+    }
+
+    @Override
+    public List<OptionGroup> getAllOptionGroups()
+    {
+        return optionGroupStore.getAll();
+    }
+
+    @Override
+    public List<OptionGroup> getOptionGroups( OptionGroupSet groupSet )
+    {
+        return optionGroupStore.getOptionGroups( groupSet );
+    }
+
+    @Override
+    public OptionGroup getOptionGroupByName( String name )
+    {
+        return optionGroupStore.getByName( name );
+    }
+
+    @Override
+    public OptionGroup getOptionGroupByCode( String code )
+    {
+        return optionGroupStore.getByCode( code );
+    }
+
+    @Override
+    public OptionGroup getOptionGroupByShortName( String shortName )
+    {
+        List<OptionGroup> OptionGroups = new ArrayList<>(
+            optionGroupStore.getAllEqShortName( shortName ) );
+
+        if ( OptionGroups.isEmpty() )
+        {
+            return null;
+        }
+
+        return OptionGroups.get( 0 );
+    }
+
+    @Override
+    public int getOptionGroupCount()
+    {
+        return optionGroupStore.getCount();
+    }
+
+    @Override
+    public int getOptionGroupCountByName( String name )
+    {
+        return optionGroupStore.getCountLikeName( name );
+    }
+
+    // -------------------------------------------------------------------------
+    // OptionGroupSet
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int saveOptionGroupSet( OptionGroupSet group )
+    {
+        return optionGroupSetStore.save( group );
+    }
+
+    @Override
+    public void updateOptionGroupSet( OptionGroupSet group )
+    {
+        optionGroupSetStore.update( group );
+    }
+
+    @Override
+    public OptionGroupSet getOptionGroupSet( int id )
+    {
+        return optionGroupSetStore.get( id );
+    }
+
+    @Override
+    public OptionGroupSet getOptionGroupSet( String uid )
+    {
+        return optionGroupSetStore.getByUid( uid );
+    }
+
+    @Override
+    public List<OptionGroupSet> getOptionGroupSetsByUid( Collection<String> uids )
+    {
+        return optionGroupSetStore.getByUid( uids );
+    }
+
+    @Override
+    public void deleteOptionGroupSet( OptionGroupSet group )
+    {
+        optionGroupSetStore.delete( group );
+    }
+
+    @Override
+    public List<OptionGroupSet> getOptionGroupSetsBetween( int first, int max )
+    {
+        return optionGroupSetStore.getAllOrderedName( first, max );
+    }
+
+    @Override
+    public List<OptionGroupSet> getOptionGroupSetsBetweenByName( int first, int max, String name )
+    {
+        return optionGroupSetStore.getAllLikeName( name, first, max );
+    }
+
+    @Override
+    public List<OptionGroupSet> getAllOptionGroupSets()
+    {
+        return optionGroupSetStore.getAll();
+    }
+
+    @Override
+    public List<OptionGroupSet> getDisaggregationOptionGroupSetsNoAcl()
+    {
+        return optionGroupSetStore.getOptionGroupSetsNoAcl( DataDimensionType.DISAGGREGATION, true );
+    }
+
+    @Override
+    public List<OptionGroupSet> getAttributeOptionGroupSetsNoAcl()
+    {
+        return optionGroupSetStore.getOptionGroupSetsNoAcl( DataDimensionType.ATTRIBUTE, true );
+    }
+
+    @Override
+    public OptionGroupSet getOptionGroupSetByName( String name )
+    {
+        return optionGroupSetStore.getByName( name );
+    }
+
+    @Override
+    public int getOptionGroupSetCount()
+    {
+        return optionGroupSetStore.getCount();
+    }
+
+    @Override
+    public int getOptionGroupSetCountByName( String name )
+    {
+        return optionGroupSetStore.getCountLikeName( name );
     }
     
 }

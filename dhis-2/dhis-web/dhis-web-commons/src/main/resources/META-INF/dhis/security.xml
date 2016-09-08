@@ -438,6 +438,12 @@
         <value>F_OPTIONSET_PUBLIC_ADD</value>
         <value>F_OPTIONSET_PRIVATE_ADD</value>
         <value>F_OPTIONSET_DELETE</value>
+        <value>F_OPTIONGROUP_PUBLIC_ADD</value>
+        <value>F_OPTIONGROUP_PRIVATE_ADD</value>
+        <value>F_OPTIONGROUP_DELETE</value>
+        <value>F_OPTIONGROUPSET_PUBLIC_ADD</value>
+        <value>F_OPTIONGROUPSET_PRIVATE_ADD</value>
+        <value>F_OPTIONGROUPSET_DELETE</value>
       </set>
     </property>
   </bean>

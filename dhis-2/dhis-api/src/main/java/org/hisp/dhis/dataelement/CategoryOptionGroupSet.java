@@ -153,10 +153,7 @@ public class CategoryOptionGroupSet
         return dataDimensionType;
     }
 
-    public void setDataDimensionType( DataDimensionType dataDimensionType )
-    {
-        this.dataDimensionType = dataDimensionType;
-    }
+    public void setDataDimensionType( DataDimensionType dataDimensionType ) { this.dataDimensionType = dataDimensionType; }
 
     // -------------------------------------------------------------------------
     // Logic
