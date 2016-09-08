@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" length="230" />
-    
+
     <property name="description" type="text" />
 
     <property name="longitude" />
@@ -24,19 +24,19 @@
     <property name="latitude" />
 
     <property name="zoom" />
-    
+
     <property name="basemap" />
-    
+
     <property name="title" />
 
-    <list name="mapViews" table="mapmapviews">
+    <list name="mapViews" table="mapmapviews" cascade="all">
       <cache usage="read-write" />
       <key column="mapid" foreign-key="fk_mapmapview_mapid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="mapviewid" class="org.hisp.dhis.mapping.MapView"
         foreign-key="fk_mapmapview_mapviewid" />
     </list>
-    
+
     <set name="interpretations" inverse="true">
       <key column="mapid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
