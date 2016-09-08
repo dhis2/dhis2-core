@@ -198,7 +198,7 @@ public class DashboardItem
         InterpretableObject object = getEmbeddedItem();
         
         return object != null ? object.getInterpretations().
-            stream().mapToInt( Interpretation::getLikes ).sum() : null;        
+            stream().mapToInt( Interpretation::getLikes ).sum() : 0;        
     }
     
     /**
