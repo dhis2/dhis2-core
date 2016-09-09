@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -29,27 +29,16 @@ package org.hisp.dhis.analytics;
  */
 
 /**
-* Represents keys for the meta data part of analytics responses.
-* 
-* @author Lars Helge Overland
-*/
-public enum AnalyticsMetaDataKey
+ * @author Lars Helge Overland
+ */
+public interface DataDimensionalItemObject
+    extends DimensionalItemObject
 {
-    NAMES( "names" ),
-    DIMENSION_ITEMS( "dimensionItems" ),
-    PAGER( "pager" ),
-    ORG_UNIT_HIERARCHY( "ouHierarchy" ),
-    ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" );
+    String getAggregateExportCategoryOptionCombo();
     
-    private String key;
-
-    private AnalyticsMetaDataKey( String key )
-    {
-        this.key = key;
-    }
-
-    public String getKey()
-    {
-        return key;
-    }
+    boolean hasAggregateExportCategoryOptionCombo();
+    
+    String getAggregateExportAttributeOptionCombo();
+    
+    boolean hasAggregateExportAttributeOptionCombo();
 }
