@@ -65,7 +65,6 @@ public class PushAnalysis
      */
     private Set<UserGroup> recipientUserGroups;
 
-
     /**
      * Indicates whether or not reports should be generated and sent to users automatically at given intervals
      */
