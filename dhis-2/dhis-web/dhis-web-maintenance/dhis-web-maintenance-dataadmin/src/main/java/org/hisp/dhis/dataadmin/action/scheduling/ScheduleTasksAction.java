@@ -28,25 +28,7 @@ package org.hisp.dhis.dataadmin.action.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_ANALYTICS_ALL;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_ANALYTICS_LAST_3_YEARS;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_DATA_SYNCH;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_MONITORING_LAST_DAY;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_RESOURCE_TABLE;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_RESOURCE_TABLE_15_MINS;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SMS_SCHEDULER;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_META_DATA_SYNC;
-import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SEND_SCHEDULED_SMS;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_0AM;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_15MIN;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_11PM;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_8AM;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
@@ -59,7 +41,26 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.scheduling.ScheduledTaskStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_ANALYTICS_ALL;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_ANALYTICS_LAST_3_YEARS;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_DATA_SYNCH;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_META_DATA_SYNC;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_MONITORING_LAST_DAY;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_RESOURCE_TABLE;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_RESOURCE_TABLE_15_MINS;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SCHEDULED_PROGRAM_NOTIFICATIONS;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SEND_SCHEDULED_SMS;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SMS_SCHEDULER;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_0AM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_11PM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_5AM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_8AM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_15MIN;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
 
 /**
  * @author Lars Helge Overland
@@ -177,6 +178,18 @@ public class ScheduleTasksAction
         this.smsSchedulerStrategy = smsSchedulerStrategy;
     }
 
+    private String programNotificationSchedulerStrategy;
+
+    public String getProgramNotificationSchedulerStrategy()
+    {
+        return programNotificationSchedulerStrategy;
+    }
+
+    public void setProgramNotificationSchedulerStrategy( String programNotificationSchedulerStrategy )
+    {
+        this.programNotificationSchedulerStrategy = programNotificationSchedulerStrategy;
+    }
+
     private String dataStatisticsStrategy;
 
     public String getDataStatisticsStrategy()
@@ -279,6 +292,13 @@ public class ScheduleTasksAction
         return lastSmsSchedulerSuccess;
     }
 
+    private Date lastProgramNotificationSchedulerSuccess;
+
+    public Date getLastProgramNotificationSchedulerSuccess()
+    {
+        return lastProgramNotificationSchedulerSuccess;
+    }
+
     private Date lastDataStatisticSuccess;
 
     public Date getLastDataStatisticSuccess()
@@ -365,13 +385,23 @@ public class ScheduleTasksAction
                 // SMS Scheduler
                 // -------------------------------------------------------------
                 
-                if ( STRATEGY_EVERY_MIDNIGHT.equals( smsSchedulerStrategy ) )   
+                if ( STRATEGY_EVERY_MIDNIGHT.equals( smsSchedulerStrategy ) )
                 {
                     cronKeyMap.putValue( CRON_DAILY_11PM, TASK_SMS_SCHEDULER );
                     cronKeyMap.putValue( CRON_DAILY_8AM, TASK_SEND_SCHEDULED_SMS );
                 }
 
+                // -------------------------------------------------------------
+                // Program notifications scheduler
+                // -------------------------------------------------------------
+
+                if ( STRATEGY_EVERY_MIDNIGHT.equals( programNotificationSchedulerStrategy ) )
+                {
+                    cronKeyMap.putValue( CRON_DAILY_5AM, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                }
+
                 schedulingManager.scheduleTasks( cronKeyMap );
+
             }
         }
         else

@@ -1303,16 +1303,11 @@
     <property name="programStageStore" ref="org.hisp.dhis.program.ProgramStageStore" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.notification.ProgramStageNotificationService"
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationService"
     class="org.hisp.dhis.program.notification.DefaultProgramNotificationService">
     <property name="programMessageService" ref="org.hisp.dhis.program.message.ProgramMessageService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.program.notification.ProgramNotificationTask"
-    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype">
-
   </bean>
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
@@ -1459,7 +1454,6 @@
     class="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" />
     
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
-    
 
   <!-- I18n UI -->
 
@@ -1483,6 +1477,11 @@
   <!-- Scheduled task for data monitoring -->
 
   <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
+
+  <!-- Scheduled task for scheduled program notifications -->
+
+  <bean id="scheduledProgramNotificationsTask"
+    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
 
   <!-- Startup routine definitions -->
 

@@ -178,6 +178,15 @@
 <input type="button" style="width:140px" onclick="window.location.href='executeTask.action?taskKey=sendScheduledMessageTaskNow'" value="$i18n.getString( 'Run Now' )"/>
 </div>
 
+<!-- Program notifications -->
+
+<div class="setting settingIndent">
+    <select id="programNotificationSchedulerStrategy" name="programNotificationSchedulerStrategy" class="scheduling">
+        <option value="disabled">$i18n.getString( "disabled" )</option>
+        <option value="everyMidNight"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "everyMidNight" ) selected="selected"#end>$i18n.getString( "all_daily" )</option>
+    </select>
+</div>
+
 <!-- Submit -->
 
 <div class="setting">

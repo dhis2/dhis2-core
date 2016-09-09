@@ -49,6 +49,7 @@ public interface SchedulingManager
     String TASK_SMS_SCHEDULER = "smsSchedulerTask";
     String TASK_SEND_SCHEDULED_SMS = "sendScheduledMessageTask";
     String TASK_SEND_SCHEDULED_SMS_NOW = "sendScheduledMessageTaskNow";
+    String TASK_SCHEDULED_PROGRAM_NOTIFICATIONS = "scheduledProgramNotificationsTask";
     
     /**
      * Schedules all tasks.
