@@ -38,9 +38,37 @@ import java.util.Date;
  */
 public interface ProgramNotificationService
 {
-    void sendScheduledNotificationsForDay( Date date );
+    /**
+     * Send all scheduled notifications for the given day.
+     *
+     * Queries for any upcoming ProgramStageInstances which have a
+     * {@link ProgramNotificationTemplate} scheduled for the given day,
+     * creates the messages and immediately dispatches them.
+     *
+     * Potentially a time consuming job, depending on the amount of
+     * configured notifications, the amount of recipients, the message
+     * types (SMS, email, dhis message) and the amount of events resolved
+     * by the query.
+     *
+     * Due to the time consuming nature of the process this method
+     * should be wrapped in an asynchronous task.
+     *
+     * @param day the Date representing the day relative to the
+     *             scheduled notifications for which to send messages.
+     */
+    void sendScheduledNotificationsForDay( Date day );
 
-    void sendImmediateNotifications( ProgramInstance programInstance );
-
+    /**
+     * Send immediate notifications for the {@link ProgramStageInstance }, if any.
+     *
+     * @param programStageInstance the ProgramStageInstance.
+     */
     void sendImmediateNotifications( ProgramStageInstance programStageInstance );
+
+    /**
+     * Send immediate notifications for the {@link ProgramInstance }, if any.
+     *
+     * @param programInstance the ProgramInstance.
+     */
+    void sendImmediateNotifications( ProgramInstance programInstance );
 }
