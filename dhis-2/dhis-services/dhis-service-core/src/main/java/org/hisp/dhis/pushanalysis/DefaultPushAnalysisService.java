@@ -70,11 +70,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.*;
 
 /**
  * @author Stian Sandvold
@@ -238,7 +234,11 @@ public class DefaultPushAnalysisService
     {
         notifier.clear( taskId );
 
-        pushAnalysisStore.getAll().forEach( pushAnalysis -> {
+        List<PushAnalysis> list = pushAnalysisStore.getAll();
+
+        log( taskId, NotificationLevel.INFO, "Found " + list.size() + " PushAnalysis", false, null);
+
+        list.forEach( pushAnalysis -> {
             if ( pushAnalysis.getEnabled() )
             {
                 log( taskId, NotificationLevel.INFO, "Starting PushAnalysis '" + pushAnalysis.getUid() + "'.", false,

@@ -29,13 +29,14 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-import com.vividsolutions.jts.util.Assert;
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Stian Sandvold
@@ -71,6 +72,7 @@ public class ExternalFileResourceStoreTest
         externalFileResourceA.setFileResource( fileResourceA );
         externalFileResourceA.setName( "TEST" );
         externalFileResourceA.setExpires( null );
+        externalFileResourceA.setAccessToken( ExternalFileResourceTokenGenerator.generate() );
 
         externalFileResourceStore.save( externalFileResourceA );
 
@@ -79,7 +81,7 @@ public class ExternalFileResourceStoreTest
     @Test
     public void testGetExternalFileResourceByAccessToken()
     {
-        Assert.equals(
+        assertEquals(
             externalFileResourceA,
             externalFileResourceStore.getExternalFileResourceByAccessToken( externalFileResourceA.getAccessToken() )
         );
