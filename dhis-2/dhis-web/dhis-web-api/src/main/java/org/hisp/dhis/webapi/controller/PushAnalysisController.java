@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
@@ -60,6 +62,7 @@ import javax.servlet.http.HttpServletResponse;
 public class PushAnalysisController
     extends AbstractCrudController<PushAnalysis>
 {
+    private static final Log logger = LogFactory.getLog( PushAnalysisController.class );
 
     @Autowired
     private PushAnalysisService pushAnalysisService;
@@ -72,6 +75,18 @@ public class PushAnalysisController
 
     @Autowired
     private Scheduler scheduler;
+
+
+    // Temp!
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @RequestMapping( value = "/runAll", method = RequestMethod.GET )
+    public void runAllPushAnalysis()
+    {
+        scheduler.executeTask( new PushAnalysisTask(
+            -1,
+            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
+            pushAnalysisService ) );
+    }
 
     /**
      * Endpoint that renders the same content as a Push Analysis email would contain, for the logged in user.
@@ -98,6 +113,8 @@ public class PushAnalysisController
         contextUtils
             .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
+        logger.info(
+            "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
         pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
     }
 

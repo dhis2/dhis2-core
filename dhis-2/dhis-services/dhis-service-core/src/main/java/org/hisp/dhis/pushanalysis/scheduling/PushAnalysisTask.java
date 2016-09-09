@@ -29,7 +29,6 @@ package org.hisp.dhis.pushanalysis.scheduling;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
@@ -40,7 +39,6 @@ import org.hisp.dhis.security.NoSecurityContextRunnable;
 public class PushAnalysisTask
     extends NoSecurityContextRunnable
 {
-
     private int pushAnalysisId;
     private TaskId taskId;
     private PushAnalysisService pushAnalysisService;
@@ -57,12 +55,15 @@ public class PushAnalysisTask
     @Override
     public void call()
     {
-        try
+        if(pushAnalysisId != -1)
         {
+            log.info( "Manually triggered PushAnalysis started." );
             pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
-        } catch( Exception ex ) {
-            log.error( DebugUtils.getStackTrace( ex ));
-            throw ex;
+        }
+        else
+        {
+            log.info( "Scheduled PushAnalysis started: Running all PushAnalysis" );
+            pushAnalysisService.runAllPushAnalysis( taskId );
         }
     }
 }
