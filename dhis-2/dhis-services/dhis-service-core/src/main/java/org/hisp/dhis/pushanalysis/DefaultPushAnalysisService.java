@@ -291,7 +291,8 @@ public class DefaultPushAnalysisService
         case CHART:
             return generateChartHtml( item.getChart(), user );
         case EVENT_CHART:
-            return generateEventChartHtml( item.getEventChart(), user );
+            // TODO: Add support for EventCharts
+            return "";
         case REPORT_TABLE:
             return generateReportTableHtml( item.getReportTable(), user );
         case EVENT_REPORT:
@@ -336,23 +337,6 @@ public class DefaultPushAnalysisService
      * @throws IOException
      */
     private String generateChartHtml( Chart chart, User user )
-        throws IOException
-    {
-        JFreeChart jFreechart = chartService
-            .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
-
-        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 ) );
-    }
-
-    /**
-     * Returns an absolute URL to an image representing the eventChart input
-     *
-     * @param chart eventChart to render and upload
-     * @param user  user to generate eventChart for
-     * @return absolute URL to uploaded image
-     * @throws IOException
-     */
-    private String generateEventChartHtml( EventChart chart, User user )
         throws IOException
     {
         JFreeChart jFreechart = chartService
