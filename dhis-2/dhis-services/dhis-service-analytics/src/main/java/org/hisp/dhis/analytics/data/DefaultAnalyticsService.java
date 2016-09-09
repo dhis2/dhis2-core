@@ -182,6 +182,7 @@ public class DefaultAnalyticsService
         DataQueryParams query = DataQueryParams.newBuilder( params )
             .withSkipMeta( false )
             .withSkipData( false )
+            .withDimensionItemMeta( true )
             .withIncludeNumDen( false )
             .withOutputFormat( OutputFormat.DATA_VALUE_SET )
             .build();

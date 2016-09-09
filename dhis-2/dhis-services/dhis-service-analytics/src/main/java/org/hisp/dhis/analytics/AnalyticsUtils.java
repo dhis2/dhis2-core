@@ -47,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -285,6 +286,7 @@ public class AnalyticsUtils
      * @param grid the grid.
      * @return a data value set.
      */
+    @SuppressWarnings("unchecked")
     public static DataValueSet getDataValueSetFromGrid( Grid grid )
     {
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
@@ -299,13 +301,18 @@ public class AnalyticsUtils
         
         String created = DateUtils.getMediumDateString();
         
+        Map<String, DimensionalItemObject> itemMap = (Map<String, DimensionalItemObject>) grid.
+            getMetaData().get( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey() );
+        
         DataValueSet dvs = new DataValueSet();
         
         for ( List<Object> row : grid.getRows() )
         {
+            String dx = String.valueOf( row.get( dxInx ) );
+            
             DataValue dv = new DataValue();
             
-            dv.setDataElement( String.valueOf( row.get( dxInx ) ) );
+            dv.setDataElement( dx );
             dv.setPeriod( String.valueOf( row.get( peInx ) ) );
             dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
             dv.setValue( String.valueOf( row.get( vlInx ) ) );
@@ -313,7 +320,24 @@ public class AnalyticsUtils
             dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
             dv.setLastUpdated( created );
-            
+
+            if ( itemMap != null && itemMap.containsKey( dx ) )
+            {
+                DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
+                
+                Assert.isTrue( item != null );
+                
+                if ( item.hasAggregateExportCategoryOptionCombo() )
+                {
+                    dv.setCategoryOptionCombo( item.getAggregateExportCategoryOptionCombo() );
+                }
+                
+                if ( item.hasAggregateExportAttributeOptionCombo() )
+                {
+                    dv.setAttributeOptionCombo( item.getAggregateExportAttributeOptionCombo() );
+                }
+            }
+                        
             dvs.getDataValues().add( dv );
         }
         
