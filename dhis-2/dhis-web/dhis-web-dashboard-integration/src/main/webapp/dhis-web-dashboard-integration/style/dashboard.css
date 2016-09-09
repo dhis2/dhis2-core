@@ -160,11 +160,13 @@
   padding: 0 0 3px 0;
   border-bottom: 1px solid #e0e0e0;
   cursor: move;
+  color: #3162C5;
 }
 
 .itemHeader a
 {
   margin-left: 5px;
+  margin-right: 5px;
 }
 
 .itemList
@@ -277,6 +279,13 @@
 {
   display: inline-block;
   padding: 9px 3% 7px 3%;
+}
+
+.fa-comments-o,
+.fa-thumbs-o-up
+{
+  margin-right: 3px;
+  margin-left: 3px;
 }
 
 .dragIcon

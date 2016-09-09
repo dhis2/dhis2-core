@@ -92,44 +92,56 @@ dhis2.db.tmpl = {
     "{{if canManage}}<a class='addLink' href='javascript:dhis2.db.addItemContent( \"${type}\", \"${id}\" )'>${i18n_add}</a>{{/if}}</li>",
 
     chartItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' style='${style}' data-item='${itemId}'></div></li>" +
-    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
+    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>|" +
+    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
+    "<a href='javascript:dhis2.db.exploreChart( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"chart\", \"${name}\" )'>${i18n_share}</a>" +
-    "<a href='javascript:dhis2.db.exploreChart( \"${id}\" )'>${i18n_explore}</a>" +
-    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>" +
+    "{{if interpretationCount > 0}}<a href='#' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
+    "{{if interpretationLikeCount > 0}}<a href='#' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
     "<div id='plugin-${itemId}' style='font-family:sans-serif !important'></div>" +
     "</div></li>",
-
+    
     eventChartItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' style='${style}' data-item='${itemId}'></div></li>" +
-    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
-    "<a href='javascript:dhis2.db.exploreEventChart( \"${id}\" )'>${i18n_explore}</a>" +
-    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>" +
+    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>|" +
+    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
+    "<a href='javascript:dhis2.db.exploreEventChart( \"${id}\" )'>${i18n_explore}</a>|" +
+    "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"eventChart\", \"${name}\" )'>${i18n_share}</a>" +
+    "{{if interpretationCount > 0}}<a href='#' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
+    "{{if interpretationLikeCount > 0}}<a href='#' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
     "<div id='plugin-${itemId}'></div>" +
     "</div></li>",
 
     mapItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' style='${style}' data-item='${itemId}'></div></li>" +
-    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
+    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>|" +
+    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
+    "<a href='javascript:dhis2.db.exploreMap( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"map\", \"${name}\" )'>${i18n_share}</a>" +
-    "<a href='javascript:dhis2.db.exploreMap( \"${id}\" )'>${i18n_explore}</a>" +
-    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>" +
+    "{{if interpretationCount > 0}}<a href='#' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
+    "{{if interpretationLikeCount > 0}}<a href='#' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
     "<div id='plugin-${itemId}' style='width:100%; height:${height}px'></div>" +
     "</div></li>",
 
     reportTableItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' data-item='${itemId}'></div></li>" +
-    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
+    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>|" +
+    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
+    "<a href='javascript:dhis2.db.exploreReportTable( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"reportTable\", \"${name}\" )'>${i18n_share}</a>" +
-    "<a href='javascript:dhis2.db.exploreReportTable( \"${id}\" )'>${i18n_explore}</a>" +
-    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\", true )'>${i18n_resize}</a>" +
+    "{{if interpretationCount > 0}}<a href='#' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
+    "{{if interpretationLikeCount > 0}}<a href='#' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
     "<div id='plugin-${itemId}'></div>" +
     "</div></li>",
 
     eventReportItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' data-item='${itemId}'></div></li>" +
-    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>" +
-    "<a href='javascript:dhis2.db.exploreEventReport( \"${id}\" )'>${i18n_explore}</a>" +
-    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\", true )'>${i18n_resize}</a>" +
+    "<li id='li-${itemId}' class='liItem'><div class='item' id='${itemId}' style='${style}'><div class='itemHeader'><a href='javascript:dhis2.db.removeItem( \"${itemId}\" )'>${i18n_remove}</a>|" +
+    "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\", true )'>${i18n_resize}</a>|" +
+    "<a href='javascript:dhis2.db.exploreEventReport( \"${id}\" )'>${i18n_explore}</a>|" +
+    "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"eventReport\", \"${name}\" )'>${i18n_share}</a>" +
+    "{{if interpretationCount > 0}}<a href='#' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
+    "{{if interpretationLikeCount > 0}}<a href='#' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
     "<div id='plugin-${itemId}'></div>" +
     "</div></li>",
@@ -605,7 +617,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
             "i18n_remove": i18n_remove,
             "i18n_get_as_image": i18n_get_as_image,
             "i18n_share": i18n_share_interpretation,
-            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position
+            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position,
+            "interpretationCount": dashboardItem.interpretationCount,
+            "interpretationLikeCount": dashboardItem.interpretationLikeCount
         });
         dhis2.db.preOrAppend($d, content, prepend);
 
@@ -650,7 +664,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
             "i18n_get_as_image": i18n_get_as_image,
             "i18n_share": i18n_share_interpretation,
             "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position,
-            "i18n_explore": i18n_explore
+            "i18n_explore": i18n_explore,
+            "interpretationCount": dashboardItem.interpretationCount,
+            "interpretationLikeCount": dashboardItem.interpretationLikeCount
         });
         dhis2.db.preOrAppend($d, content, prepend);
 
@@ -695,7 +711,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
             "i18n_remove": i18n_remove,
             "i18n_get_as_image": i18n_get_as_image,
             "i18n_share": i18n_share_interpretation,
-            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position
+            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position,
+            "interpretationCount": dashboardItem.interpretationCount,
+            "interpretationLikeCount": dashboardItem.interpretationLikeCount
         });
         dhis2.db.preOrAppend($d, content, prepend);
 
@@ -721,7 +739,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
             "style": tableStyle,
             "i18n_remove": i18n_remove,
             "i18n_share": i18n_share_interpretation,
-            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position
+            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position,
+            "interpretationCount": dashboardItem.interpretationCount,
+            "interpretationLikeCount": dashboardItem.interpretationLikeCount
         });
         dhis2.db.preOrAppend($d, content, prepend);
 
@@ -749,7 +769,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
             "style": tableStyle,
             "i18n_remove": i18n_remove,
             "i18n_share": i18n_share_interpretation,
-            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position
+            "i18n_click_and_drag_to_new_position": i18n_click_and_drag_to_new_position,
+            "interpretationCount": dashboardItem.interpretationCount,
+            "interpretationLikeCount": dashboardItem.interpretationLikeCount
         });
         dhis2.db.preOrAppend($d, content, prepend);
 
