@@ -37,12 +37,17 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -51,10 +56,14 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -309,5 +318,90 @@ public class AnalyticsUtils
         }
         
         return dvs;        
+    }
+
+    /**
+     * Returns a mapping between identifiers and names for the given dimensional
+     * objects.
+     *
+     * @param params the data query parameters.
+     * @return a mapping between identifiers and names.
+     */
+    public static Map<String, String> getUidNameMap( DataQueryParams params )
+    {
+        List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
+
+        Map<String, String> map = new HashMap<>();
+
+        Calendar calendar = PeriodType.getCalendar();
+
+        for ( DimensionalObject dimension : dimensions )
+        {
+            List<DimensionalItemObject> items = new ArrayList<>( dimension.getItems() );
+
+            for ( DimensionalItemObject object : items )
+            {
+                if ( DimensionType.PERIOD.equals( dimension.getDimensionType() ) && !calendar.isIso8601() )
+                {
+                    Period period = (Period) object;
+                    DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), period.getDisplayName() );
+                }
+                else
+                {
+                    map.put( object.getDimensionItem(), object.getDisplayProperty( params.getDisplayProperty() ) );
+                }
+
+                if ( DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() ) && params.isHierarchyMeta() )
+                {
+                    OrganisationUnit unit = (OrganisationUnit) object;
+
+                    map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( unit.getAncestors(), params.getDisplayProperty() ) );
+                }
+            }
+
+            map.put( dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ) );
+        }
+
+        return map;
+    }
+
+    /**
+     * Returns a mapping between the category option combo identifiers and names
+     * in the given grid.
+     *
+     * @param params the data query parameters.
+     * @param a mapping between identifiers and names.
+     */
+    public static Map<String, String> getCocNameMap( DataQueryParams params )
+    {
+        Map<String, String> metaData = new HashMap<>();
+
+        List<DimensionalItemObject> des = params.getAllDataElements();
+
+        if ( des != null && !des.isEmpty() )
+        {
+            Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
+
+            for ( DimensionalItemObject de : des )
+            {
+                DataElement dataElement = (DataElement) de;
+
+                if ( dataElement.hasCategoryCombo() )
+                {
+                    categoryCombos.add( dataElement.getCategoryCombo() );
+                }
+            }
+
+            for ( DataElementCategoryCombo cc : categoryCombos )
+            {
+                for ( DataElementCategoryOptionCombo coc : cc.getOptionCombos() )
+                {
+                    metaData.put( coc.getUid(), coc.getName() );
+                }
+            }
+        }
+
+        return metaData;
     }
 }

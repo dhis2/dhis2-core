@@ -396,6 +396,7 @@ public class AccountController
             user.setPhoneNumber( phoneNumber );
             user.setEmployer( employer );
             user.getOrganisationUnits().add( orgUnit );
+            user.getDataViewOrganisationUnits().add( orgUnit );
 
             credentials = new UserCredentials();
             credentials.setUsername( username );
