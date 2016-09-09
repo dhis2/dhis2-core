@@ -54,6 +54,7 @@ public class EventChartSchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setShareable( true );
         schema.setOrder( 1540 );
+        schema.setImplicitPrivateAuthority( true );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_EVENTCHART_PUBLIC_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_EVENTCHART_EXTERNAL" ) ) );

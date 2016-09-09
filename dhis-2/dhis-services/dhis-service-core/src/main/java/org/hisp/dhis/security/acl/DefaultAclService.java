@@ -184,7 +184,7 @@ public class DefaultAclService implements AclService
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ) );
         anyAuthorities.addAll( schema.getAuthorityByType( AuthorityType.CREATE_PUBLIC ) );
 
-        return canAccess( user, anyAuthorities ) && (!schema.isShareable() || canWrite( user, object ));
+        return schema.isImplicitPrivateAuthority() || canAccess( user, anyAuthorities ) && (!schema.isShareable() || canWrite( user, object ));
     }
 
     @Override

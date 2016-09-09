@@ -29,8 +29,15 @@ package org.hisp.dhis.security.acl;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,5 +123,140 @@ public class AclServiceTest
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
 
         assertTrue( aclService.canUpdate( user, dataElement ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicDashboard()
+    {
+        User user = createUser( 'A' );
+        UserAuthorityGroup userAuthorityGroup = createUserAuthorityGroup( 'A' );
+        userAuthorityGroup.getAuthorities().add( "F_DATAELEMENT_PRIVATE_ADD" );
+        user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+
+        assertFalse( aclService.canCreatePublic( user, Dashboard.class ) );
+        assertTrue( aclService.canCreatePrivate( user, Dashboard.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateDashboard()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setAutoFields();
+        dashboard.setUser( user );
+        dashboard.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, dashboard ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicChart()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        assertFalse( aclService.canCreatePublic( user, Chart.class ) );
+        assertTrue( aclService.canCreatePrivate( user, Chart.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateChart()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        Chart chart = new Chart( "Chart" );
+        chart.setAutoFields();
+        chart.setUser( user );
+        chart.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, chart ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicMap()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        assertFalse( aclService.canCreatePublic( user, Map.class ) );
+        assertTrue( aclService.canCreatePrivate( user, Map.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateMap()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        Map map = new Map();
+        map.setAutoFields();
+        map.setUser( user );
+        map.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, map ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicReportTable()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        assertFalse( aclService.canCreatePublic( user, ReportTable.class ) );
+        assertTrue( aclService.canCreatePrivate( user, ReportTable.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateReportTable()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setUser( user );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, reportTable ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicEventChart()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        assertFalse( aclService.canCreatePublic( user, EventChart.class ) );
+        assertTrue( aclService.canCreatePrivate( user, EventChart.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateEventChart()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        EventChart eventChart = new EventChart();
+        eventChart.setAutoFields();
+        eventChart.setUser( user );
+        eventChart.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, eventChart ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicEventReport()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        assertFalse( aclService.canCreatePublic( user, EventReport.class ) );
+        assertTrue( aclService.canCreatePrivate( user, EventReport.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateEventReport()
+    {
+        User user = createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
+
+        EventReport eventReport = new EventReport();
+        eventReport.setAutoFields();
+        eventReport.setUser( user );
+        eventReport.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, eventReport ) );
     }
 }
