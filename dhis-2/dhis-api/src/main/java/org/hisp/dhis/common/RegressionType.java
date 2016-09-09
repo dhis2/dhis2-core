@@ -1,4 +1,4 @@
-package org.hisp.dhis.pushanalysis;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,44 +28,13 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.user.User;
-
 /**
- * @author Stian Sandvold
+ * @author Lars Helge Overland
  */
-public interface PushAnalysisService
+public enum RegressionType
 {
-    /**
-     * Returns a PushAnalysis with the given UID
-     * @param uid uid of the PushAnalysis
-     * @return PushAnalysis
-     */
-    PushAnalysis getByUid( String uid );
-
-    /**
-     * Returns a String, consisting of HTML representing the PushAnalysis report.
-     * This report is generated based on the associated Dashboard, as well as the user supplied
-     * @param pushAnalysis PushAnalysis to generate report from
-     * @param user User to base data on
-     * @param taskId TaskId to track process
-     * @return String containing a HTML report
-     * @throws
-     */
-    String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
-        throws Exception;
-
-    /**
-     * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,
-     * using generateHtmlReport to generate the reports for each individual user in the UserGroups.
-     * @param id of the PushAnalysis
-     * @param taskId to track process
-     */
-    void runPushAnalysis( int id, TaskId taskId );
-
-    /**
-     * Runs all PushAnalysis in the database. Skips disabled PushAnalysis.
-     * @param taskId to track process
-     */
-    void runAllPushAnalysis( TaskId taskId );
+    NONE,
+    LINEAR,
+    POLYNOMIAL,
+    LOESS
 }

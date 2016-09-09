@@ -43,6 +43,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -68,11 +69,11 @@ public abstract class BaseChart
 
     protected boolean hideLegend;
 
-    protected boolean regression;
-
     protected boolean hideTitle;
 
     protected boolean hideSubtitle;
+
+    protected RegressionType regressionType;
 
     protected Double targetLineValue;
 
@@ -93,7 +94,7 @@ public abstract class BaseChart
     protected Integer rangeAxisSteps; // Minimum 1
 
     protected Integer rangeAxisDecimals;
-
+    
     // -------------------------------------------------------------------------
     // Dimensional properties
     // -------------------------------------------------------------------------
@@ -199,6 +200,11 @@ public abstract class BaseChart
 
         clearTransientChartStateProperties();
     }
+    
+    public boolean isRegression()
+    {
+        return regressionType == null || RegressionType.NONE != regressionType;
+    }
 
     // -------------------------------------------------------------------------
     // Getters and setters for transient properties
@@ -294,18 +300,6 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRegression()
-    {
-        return regression;
-    }
-
-    public void setRegression( boolean regression )
-    {
-        this.regression = regression;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isHideTitle()
     {
         return hideTitle;
@@ -326,6 +320,18 @@ public abstract class BaseChart
     public void setHideSubtitle( Boolean hideSubtitle )
     {
         this.hideSubtitle = hideSubtitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RegressionType getRegressionType()
+    {
+        return regressionType;
+    }
+
+    public void setRegressionType( RegressionType regressionType )
+    {
+        this.regressionType = regressionType;
     }
 
     @JsonProperty
@@ -475,7 +481,6 @@ public abstract class BaseChart
             BaseChart chart = (BaseChart) other;
 
             hideLegend = chart.isHideLegend();
-            regression = chart.isRegression();
             hideTitle = chart.isHideTitle();
             hideSubtitle = chart.isHideSubtitle();
             showData = chart.isShowData();
@@ -486,6 +491,7 @@ public abstract class BaseChart
                 domainAxisLabel = chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel();
                 type = chart.getType();
+                regressionType = chart.getRegressionType();
                 targetLineValue = chart.getTargetLineValue();
                 targetLineLabel = chart.getTargetLineLabel();
                 baseLineValue = chart.getBaseLineValue();
@@ -500,6 +506,7 @@ public abstract class BaseChart
                 domainAxisLabel = chart.getDomainAxisLabel() == null ? domainAxisLabel : chart.getDomainAxisLabel();
                 rangeAxisLabel = chart.getRangeAxisLabel() == null ? rangeAxisLabel : chart.getRangeAxisLabel();
                 type = chart.getType() == null ? type : chart.getType();
+                regressionType = chart.getRegressionType() == null ? regressionType : chart.getRegressionType();
                 targetLineValue = chart.getTargetLineValue() == null ? targetLineValue : chart.getTargetLineValue();
                 targetLineLabel = chart.getTargetLineLabel() == null ? targetLineLabel : chart.getTargetLineLabel();
                 baseLineValue = chart.getBaseLineValue() == null ? baseLineValue : chart.getBaseLineValue();

@@ -1,0 +1,61 @@
+#macro( img $url )
+<img src="$url"/>
+#end
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html lang="en-GB" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title> $!pushAnalysis.getName</title>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
+</head>
+
+<body>
+<table>
+    <tr>
+        <td></td>
+        <td style="max-width:600px!important;display:block!important;margin:0 auto!important;clear:both!important">
+            <div style="max-width:600px!important;padding:0!important;margin:0 auto">
+                <div style="overflow-x:scroll;width:300px;float:left;margin-bottom:20px;max-width:600px;min-width:300px;width:100%">
+                    <table>
+                        <tr>
+                            <td>
+                                <h1> $!pushAnalysis.getName()</h1>
+                                <p> $!pushAnalysis.getMessage()</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                #foreach( $dashboardItem in $pushAnalysis.getDashboard().getItems() )
+
+                    <div style="overflow-x:auto;width:300px;float:left;margin-bottom:20px;max-width:600px;min-width:300px;width:100%">
+                        <table>
+                            <tr>
+                                <td>
+                                    <h3> $!dashboardItem.getDisplayName()</h3>
+
+                                    #if( $dashboardItem.getType() == "REPORT_TABLE" )
+                                        $itemHtml.get( $dashboardItem.getUid() )
+                                    #else
+                                        #img( $itemHtml.get( $dashboardItem.getUid() ) )
+                                    #end
+
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                #end
+
+            </div>
+        </td>
+        <td>
+        </td>
+    </tr>
+</table>
+</body>
+
+</html>

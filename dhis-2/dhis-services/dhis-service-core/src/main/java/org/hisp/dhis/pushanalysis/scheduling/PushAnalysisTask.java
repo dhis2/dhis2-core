@@ -1,5 +1,4 @@
-package org.hisp.dhis.pushanalysis;
-
+package org.hisp.dhis.pushanalysis.scheduling;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,44 +27,43 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.security.NoSecurityContextRunnable;
 
 /**
  * @author Stian Sandvold
  */
-public interface PushAnalysisService
+public class PushAnalysisTask
+    extends NoSecurityContextRunnable
 {
-    /**
-     * Returns a PushAnalysis with the given UID
-     * @param uid uid of the PushAnalysis
-     * @return PushAnalysis
-     */
-    PushAnalysis getByUid( String uid );
+    private int pushAnalysisId;
+    private TaskId taskId;
+    private PushAnalysisService pushAnalysisService;
+    private static final Log log = LogFactory.getLog( PushAnalysisTask.class );
 
-    /**
-     * Returns a String, consisting of HTML representing the PushAnalysis report.
-     * This report is generated based on the associated Dashboard, as well as the user supplied
-     * @param pushAnalysis PushAnalysis to generate report from
-     * @param user User to base data on
-     * @param taskId TaskId to track process
-     * @return String containing a HTML report
-     * @throws
-     */
-    String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
-        throws Exception;
 
-    /**
-     * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,
-     * using generateHtmlReport to generate the reports for each individual user in the UserGroups.
-     * @param id of the PushAnalysis
-     * @param taskId to track process
-     */
-    void runPushAnalysis( int id, TaskId taskId );
+    public PushAnalysisTask( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
+    {
+        this.pushAnalysisId = pushAnalysisId;
+        this.taskId = taskId;
+        this.pushAnalysisService = pushAnalysisService;
+    }
 
-    /**
-     * Runs all PushAnalysis in the database. Skips disabled PushAnalysis.
-     * @param taskId to track process
-     */
-    void runAllPushAnalysis( TaskId taskId );
+    @Override
+    public void call()
+    {
+        if(pushAnalysisId != -1)
+        {
+            log.info( "Manually triggered PushAnalysis started." );
+            pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        }
+        else
+        {
+            log.info( "Scheduled PushAnalysis started: Running all PushAnalysis" );
+            pushAnalysisService.runAllPushAnalysis( taskId );
+        }
+    }
 }

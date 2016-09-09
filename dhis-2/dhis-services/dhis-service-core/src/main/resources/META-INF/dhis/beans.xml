@@ -745,6 +745,11 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceStore" class="org.hisp.dhis.fileresource.hibernate.HibernateExternalFileResourceStore">
+    <property name="clazz" value="org.hisp.dhis.fileresource.ExternalFileResource" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
   <bean id="org.hisp.dhis.fileresource.FileResourceContentStore" class="org.hisp.dhis.fileresource.JCloudsFileResourceContentStore">
     <property name="configurationProvider" ref="dhisConfigurationProvider" />
     <property name="locationManager" ref="locationManager" />
@@ -772,6 +777,10 @@
     <property name="fileResourceContentStore" ref="org.hisp.dhis.fileresource.FileResourceContentStore" />
     <property name="scheduler" ref="scheduler" />
     <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
+  </bean>
+
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceService" class="org.hisp.dhis.fileresource.DefaultExternalFileResourceService">
+    <property name="externalFileResourceStore" ref="org.hisp.dhis.fileresource.ExternalFileResourceStore" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementOperandService" class="org.hisp.dhis.dataelement.DefaultDataElementOperandService">

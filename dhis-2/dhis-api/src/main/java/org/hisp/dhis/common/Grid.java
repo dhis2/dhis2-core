@@ -80,21 +80,21 @@ public interface Grid
      * Returns all header values.
      */
     List<GridHeader> getHeaders();
-    
+        
     /**
      * Returns map of meta-data.
      */
-    Map<Object, Object> getMetaData();
+    Map<String, Object> getMetaData();
     
     /**
      * Sets map of meta-data.
      */
-    void setMetaData( Map<Object, Object> metaData );
+    void setMetaData( Map<String, Object> metaData );
     
     /**
      * Adds a key-value pair to meta-data.
      */
-    void addMetaData( Object key, Object value );
+    void addMetaData( String key, Object value );
     
     /**
      * Returns all visible headers, ie. headers which are not hidden.
