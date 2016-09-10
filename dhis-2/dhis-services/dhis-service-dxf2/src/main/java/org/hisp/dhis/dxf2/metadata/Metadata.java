@@ -68,8 +68,8 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.mapping.MapLayer;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -209,7 +209,7 @@ public class Metadata
 
     private List<LegendSet> legendSets = new ArrayList<>();
 
-    private List<MapLayer> mapLayers = new ArrayList<>();
+    private List<ExternalMapLayer> externalMapLayers = new ArrayList<>();
 
     private List<DataEntryForm> dataEntryForms = new ArrayList<>();
 
@@ -900,16 +900,16 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "mapLayers", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "mapLayer", namespace = DxfNamespaces.DXF_2_0 )
-    public List<MapLayer> getMapLayers()
+    @JacksonXmlElementWrapper( localName = "externalMapLayers", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ExternalMapLayer> getExternalMapLayers()
     {
-        return mapLayers;
+        return externalMapLayers;
     }
 
-    public void setMapLayers( List<MapLayer> mapLayers )
+    public void setExternalMapLayers( List<ExternalMapLayer> externalMapLayers )
     {
-        this.mapLayers = mapLayers;
+        this.externalMapLayers = externalMapLayers;
     }
 
     @JsonProperty
@@ -1244,7 +1244,7 @@ public class Metadata
             ", mapViews=" + mapViews +
             ", legends=" + legends +
             ", legendSets=" + legendSets +
-            ", mapLayers=" + mapLayers +
+            ", externalMapLayers=" + externalMapLayers +
             ", sections=" + sections +
             ", dataSets=" + dataSets +
             ", programs=" + programs +
