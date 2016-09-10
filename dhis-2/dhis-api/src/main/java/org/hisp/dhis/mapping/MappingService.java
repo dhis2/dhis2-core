@@ -28,10 +28,10 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+
+import java.util.List;
 
 /**
  * @author Jan Henrik Overland
@@ -101,30 +101,23 @@ public interface MappingService
 
     List<MapView> getMapViewsBetweenByName( String name, int first, int max );
 
+
     // -------------------------------------------------------------------------
-    // MapLayer
+    // ExternalMapLayer
     // -------------------------------------------------------------------------
 
-    int addMapLayer( MapLayer mapLayer );
+    int addExternalMapLayer( ExternalMapLayer mapLayer );
 
-    void updateMapLayer( MapLayer mapLayer );
+    void updateExternalMapLayer( ExternalMapLayer mapLayer );
 
-    void addOrUpdateMapLayer( String name, String type, String url, String layers, String time, String fillColor,
-        double fillOpacity, String strokeColor, int strokeWidth );
+    void deleteExternalMapLayer( ExternalMapLayer mapLayer );
 
-    void deleteMapLayer( MapLayer mapLayer );
+    ExternalMapLayer getExternalMapLayer( int id );
 
-    MapLayer getMapLayer( int id );
+    ExternalMapLayer getExternalMapLayer( String uid );
 
-    MapLayer getMapLayer( String uid );
+    ExternalMapLayer getExternalMapLayerByName( String name );
 
-    MapLayer getMapLayerByName( String name );
+    List<ExternalMapLayer> getAllExternalMapLayers();
 
-    List<MapLayer> getMapLayersByType( String type );
-
-    MapLayer getMapLayerByMapSource( String mapSource );
-
-    List<MapLayer> getAllMapLayers();
-    
-    int countMapViewMaps( MapView mapView );
 }
