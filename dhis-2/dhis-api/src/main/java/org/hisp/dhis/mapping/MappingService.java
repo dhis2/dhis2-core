@@ -101,6 +101,7 @@ public interface MappingService
 
     List<MapView> getMapViewsBetweenByName( String name, int first, int max );
 
+    int countMapViewMaps( MapView mapView );
 
     // -------------------------------------------------------------------------
     // ExternalMapLayer

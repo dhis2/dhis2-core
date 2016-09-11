@@ -96,7 +96,7 @@ public class DefaultSchemaService
         add( new InterpretationSchemaDescriptor() ).
         add( new LegendSchemaDescriptor() ).
         add( new LegendSetSchemaDescriptor() ).
-        add( new MapLayerSchemaDescriptor() ).
+        add( new ExternalMapLayerSchemaDescriptor() ).
         add( new MapSchemaDescriptor() ).
         add( new MapViewSchemaDescriptor() ).
         add( new MessageConversationSchemaDescriptor() ).

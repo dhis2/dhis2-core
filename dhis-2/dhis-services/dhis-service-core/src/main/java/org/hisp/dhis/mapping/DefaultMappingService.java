@@ -68,13 +68,6 @@ public class DefaultMappingService
         this.mapViewStore = mapViewStore;
     }
 
-    private MapLayerStore mapLayerStore;
-
-    public void setMapLayerStore( MapLayerStore mapLayerStore )
-    {
-        this.mapLayerStore = mapLayerStore;
-    }
-
     private ExternalMapLayerStore externalMapLayerStore;
 
     public void setExternalMapLayerStore( ExternalMapLayerStore externalMapLayerStore )
@@ -244,6 +237,13 @@ public class DefaultMappingService
     {
         return mapViewStore.getAllLikeName( name, first, max );
     }
+
+    @Override
+    public int countMapViewMaps( MapView mapView )
+    {
+        return mapStore.countMapViewMaps( mapView );
+    }
+
 
     //-------------------------------------------
     // ExternalMapLayer

@@ -59,7 +59,7 @@
 
     <property name="mapService" column="mapservice"  type="org.hisp.dhis.mapping.MapService"/>
 
-    <many-to-one name="legendset" class="org.hisp.dhis.legend.LegendSet"
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
       column="legendsetid" foreign-key="fk_externalmaplayer_legendsetid" />
 
     <!-- Object Translation -->
