@@ -35,7 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
  */
 @JacksonXmlRootElement( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicator
-    extends BaseDimensionalItemObject
+    extends BaseDataDimensionalItemObject
 {
     public static final String SEPARATOR_ID = "\\.";
     public static final String SEP_OBJECT = ":";

@@ -49,7 +49,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -956,7 +955,6 @@ public class OrganisationUnit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
     public String getComment()
     {
         return comment;
