@@ -50,14 +50,14 @@ public interface AppManager
      * @param contextPath the context path of this instance.
      * @return list of installed apps
      */
-    List<App> getApps( String contextPath );
+    List<App> getApps ( String contextPath );
 
     /**
      * Returns a list of all installed apps with AppType equal the given Type
      *
      * @return list of installed apps with given AppType
      */
-    List<App> getAppsByType( AppType appType, Collection<App> apps );
+    List<App> getAppsByType ( AppType appType, Collection<App> apps );
 
     /**
      * Returns a list of all installed apps with name equal the given name
@@ -65,7 +65,7 @@ public interface AppManager
      *
      * @return list of installed apps with given name
      */
-    List<App> getAppsByName( String name, Collection<App> apps, String operator );
+    List<App> getAppsByName ( String name, Collection<App> apps, String operator );
 
     /**
      * Return a list of all installed apps with given filter list
@@ -74,7 +74,7 @@ public interface AppManager
      * @param filter
      * @return Return a list of all installed apps with given filter list
      */
-    List<App> filterApps( List<String> filter, String contextPath );
+    List<App> filterApps ( List<String> filter, String contextPath );
 
     /**
      * Returns the app with the given key (folder name).
@@ -83,7 +83,7 @@ public interface AppManager
      * @param contextPath the context path of this instance.
      * @return the app with the given key.
      */
-    App getApp( String key, String contextPath );
+    App getApp ( String key, String contextPath );
 
     /**
      * Returns apps which are accessible to the current user.
@@ -91,7 +91,7 @@ public interface AppManager
      * @param contextPath the context path of this instance.
      * @return apps which are accessible to the current user.
      */
-    List<App> getAccessibleApps( String contextPath );
+    List<App> getAccessibleApps ( String contextPath );
 
     /**
      * Installs the app.
@@ -100,8 +100,8 @@ public interface AppManager
      * @param fileName the name of the app file.
      * @throws IOException if the app manifest file could not be read.
      */
-    AppStatus installApp( File file, String fileName )
-        throws IOException;
+    AppStatus installApp ( File file, String fileName )
+    throws IOException;
 
     /**
      * Does the app with name appName exist?
@@ -109,7 +109,7 @@ public interface AppManager
      * @param appName
      * @return
      */
-    boolean exists( String appName );
+    boolean exists ( String appName );
 
     /**
      * Deletes the app with the given name.
@@ -120,7 +120,7 @@ public interface AppManager
      * the given name or if the app could not be removed from the file
      * system.
      */
-    boolean deleteApp( String name, boolean deleteAppData );
+    boolean deleteApp ( String name, boolean deleteAppData );
 
     /**
      * Reload list of apps.
@@ -146,7 +146,7 @@ public interface AppManager
      *
      * @param appStoreUrl
      */
-    void setAppStoreUrl( String appStoreUrl );
+    void setAppStoreUrl ( String appStoreUrl );
 
     /**
      * Indicates whether the given app is accessible to the current user.
@@ -154,7 +154,7 @@ public interface AppManager
      * @param app the app.
      * @return true if app is accessible.
      */
-    boolean isAccessible( App app );
+    boolean isAccessible ( App app );
 
     /**
      * Indicates whether the given app is accessible to the given user.
@@ -163,7 +163,7 @@ public interface AppManager
      * @param user the user.
      * @return true if app is accessible.
      */
-    boolean isAccessible( App app, User user );
+    boolean isAccessible ( App app, User user );
 
     /**
      * Returns the app associated with the namespace, or null if no app is associated.
@@ -171,5 +171,5 @@ public interface AppManager
      * @param namespace the namespace to check
      * @return App or null
      */
-    App getAppByNamespace( String namespace );
+    App getAppByNamespace ( String namespace );
 }

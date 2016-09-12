@@ -40,14 +40,14 @@ import org.springframework.core.io.Resource;
 public interface ScriptLibrary
 {
     abstract public boolean containsScript ( String name );
-    abstract public String[] retrieveDirectDependencies(String scriptName);
+    abstract public String[] retrieveDirectDependencies ( String scriptName );
     abstract public String[] retrieveDependencies ( String scriptName );
     abstract public Reader retrieveScript ( String name ) throws ScriptNotFoundException;
     abstract public JsonValue  retrieveManifestInfo ( String[] path );
     abstract public String getName();
     abstract public Resource findResource (  String resourceName )
-	throws IOException;
+    throws IOException;
     abstract public ScriptLibrary getScriptLibrary ( String key )
-	throws ScriptNotFoundException;
+    throws ScriptNotFoundException;
     abstract public App getApp();
 }

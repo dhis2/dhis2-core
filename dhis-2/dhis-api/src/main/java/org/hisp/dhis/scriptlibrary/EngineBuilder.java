@@ -60,46 +60,56 @@ abstract public class EngineBuilder implements EngineBuilderInterface
     {
         System.out.println ( "Running engine for dependency: " + scriptName );
         String[] libs = sl.retrieveDependencies ( scriptName );
-	System.out.println ( "loading dependencies" );
-	User user  = depContext.getUser();
+        System.out.println ( "loading dependencies" );
+        User user  = depContext.getUser();
 
-	for (String script : libs) {
-	    try
-	    {
-		App app;
-		if (  script.startsWith("/apps/" ))
-		{
-		    String depAppName = script.substring(6);
-		    depAppName = depAppName.substring(0,depAppName.indexOf("/") );
-		    ScriptLibrary appLib = sl.getScriptLibrary(depAppName);
-		    if (appLib == null) {
-			throw new ScriptNotFoundException("Referenced app " + depAppName + " could not be found");
-		    }
-		    app = appLib.getApp();
-		} else {
-		    app = sl.getApp();
-		}
-		if (  !appManager.isAccessible ( app, user ) )
-		{
-		    //HELP:  This should not be commented out.  Not sure why  the above expression evaluates  to false
-		    //throw new ScriptAccessException ( "Script execution - permission denied on user" );
-		}
+        for ( String script : libs )
+        {
+            try
+            {
+                App app;
 
-		depContext.setScriptName ( script );
-		scriptEngine.setExecutionContext ( depContext );
-		scriptEngine.run();
+                if (  script.startsWith ( "/apps/" ) )
+                {
+                    String depAppName = script.substring ( 6 );
+                    depAppName = depAppName.substring ( 0, depAppName.indexOf ( "/" ) );
+                    ScriptLibrary appLib = sl.getScriptLibrary ( depAppName );
 
-		if ( scriptEngine.runException != null )
-		{
-		    throw scriptEngine.runException;
-		}
-	    }
-	    catch ( Exception e )
-	    {
-		throw new ScriptNotFoundException ( "Could not load dependency " + script + " for " + scriptName + "\n"  + e.toString() );
-	    }
+                    if ( appLib == null )
+                    {
+                        throw new ScriptNotFoundException ( "Referenced app " + depAppName + " could not be found" );
+                    }
 
-	}
+                    app = appLib.getApp();
+                }
+
+                else
+                {
+                    app = sl.getApp();
+                }
+
+                if (  !appManager.isAccessible ( app, user ) )
+                {
+                    //HELP:  This should not be commented out.  Not sure why  the above expression evaluates  to false
+                    //throw new ScriptAccessException ( "Script execution - permission denied on user" );
+                }
+
+                depContext.setScriptName ( script );
+                scriptEngine.setExecutionContext ( depContext );
+                scriptEngine.run();
+
+                if ( scriptEngine.runException != null )
+                {
+                    throw scriptEngine.runException;
+                }
+            }
+
+            catch ( Exception e )
+            {
+                throw new ScriptNotFoundException ( "Could not load dependency " + script + " for " + scriptName + "\n"  + e.toString() );
+            }
+
+        }
     }
 
     @Override
@@ -130,6 +140,7 @@ abstract public class EngineBuilder implements EngineBuilderInterface
             //HELP:  This should not be commented out.  Not sure what the above expression evaluates  to false
             //throw new ScriptAccessException ( "Script execution - permission denied on user" );
         }
+
         Engine engine = getEngine ( app, sl, scriptName );
         execute (  engine, execContext );
         return engine;

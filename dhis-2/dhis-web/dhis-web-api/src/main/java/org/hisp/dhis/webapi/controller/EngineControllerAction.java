@@ -105,38 +105,43 @@ public class EngineControllerAction  extends EngineController
 
 
     @RequestMapping (
-	value =   {"/{app}/index.js"}
-	)
+        value =   {"/{app}/index.js"}
+    )
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                             @PathVariable ( "app" ) String appName) 
+                             @PathVariable ( "app" ) String appName )
     {
-	try {
-	    ExecutionContextHttpSE execContext = new ExecutionContextHttpSE();
-	    initExecutionContext ( execContext, appName,  httpRequest, httpResponse );
-	    Engine engine = runEngine( execContext, "index.js" );
+        try
+        {
+            ExecutionContextHttpSE execContext = new ExecutionContextHttpSE();
+            initExecutionContext ( execContext, appName,  httpRequest, httpResponse );
+            Engine engine = runEngine ( execContext, "index.js" );
 
-	    if ( engine == null )
-	    {
-		throw new ScriptAccessException ( "Could not run engine for index.js");
-	    }
-	    else if ( engine.runException != null )
-	    {
-		log.error ( "Script index.js in " + appName + " had a run time exception:\n" + engine.runException.toString()  , engine.runException );
-		throw engine.runException;
-	    }
+            if ( engine == null )
+            {
+                throw new ScriptAccessException ( "Could not run engine for index.js" );
+            }
 
-	    execContext.getOut().flush();
-	    execContext.getOut().close();
+            else if ( engine.runException != null )
+            {
+                log.error ( "Script index.js in " + appName + " had a run time exception:\n" + engine.runException.toString()  , engine.runException );
+                throw engine.runException;
+            }
 
-	} catch (Exception e) {
-	    sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "internal script processing error\n" + e.toString()  );
-	}
+            execContext.getOut().flush();
+            execContext.getOut().close();
+
+        }
+
+        catch ( Exception e )
+        {
+            sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "internal script processing error\n" + e.toString()  );
+        }
 
     }
 
 
     @RequestMapping (
-        value =   { "/{app}" +PATH +"/{script}", "/{app}"+ PATH +"/{script}/*" , "/{app}" + PATH + "/{script}/**/*"}
+        value =   { "/{app}" + PATH + "/{script}", "/{app}" + PATH + "/{script}/*" , "/{app}" + PATH + "/{script}/**/*"}
     )
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
                              @PathVariable ( "app" ) String appName, @PathVariable ( "script" ) String script )
@@ -194,8 +199,9 @@ public class EngineControllerAction  extends EngineController
                 log.error ( "Script " + script + " in " + appName + " had a run time exception:\n" + engine.runException.toString()  , engine.runException );
                 throw engine.runException;
             }
-	    execContext.getOut().flush();
-	    execContext.getOut().close();
+
+            execContext.getOut().flush();
+            execContext.getOut().close();
 
         }
 
@@ -229,10 +235,10 @@ public class EngineControllerAction  extends EngineController
         String ext = FilenameUtils.getExtension ( script );
         IExecutionContextHttp execContext;
 
-        if ( ext.compareToIgnoreCase ( "xslt" ) == 0 
-	     || ext.compareToIgnoreCase ( "xsl" ) == 0 
-	     || ext.compareToIgnoreCase ( "xq" ) == 0 
-	    )
+        if ( ext.compareToIgnoreCase ( "xslt" ) == 0
+                || ext.compareToIgnoreCase ( "xsl" ) == 0
+                || ext.compareToIgnoreCase ( "xq" ) == 0
+           )
         {
             ExecutionContextAction execContextAction = new ExecutionContextAction();
             execContextAction.requestRemainder = ContextUtils.getContextPath ( httpRequest );

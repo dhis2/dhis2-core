@@ -194,13 +194,13 @@ public class EngineControllerDSTU2 extends EngineController
     }
 
     @RequestMapping (
-	value =   { "/", "" , "index.js"}
-	)
+        value =   { "/", "" , "index.js"}
+    )
 
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                             @PathVariable ( "app" ) String appName) 
+                             @PathVariable ( "app" ) String appName )
     {
-	doIndex(appName,httpResponse,httpRequest);
+        doIndex ( appName, httpResponse, httpRequest );
     }
 
 
@@ -308,45 +308,56 @@ public class EngineControllerDSTU2 extends EngineController
             {
                 op = ( ( JsonObject ) value ).getString ( "operation" );
                 script = ( ( JsonObject ) value ).getString ( "script" );
-		if ( !op.equals ( operation )
-		     ||  script == null
-		    )
-		{
-		    log.info ( "Skipping: " + script + "/" + op +  " against " + operation + "/" + resource );
-		    continue;
-		}
 
-		JsonValue rsrc = ( (JsonObject) value).get("resource");
-		if ( rsrc instanceof JsonString) {
-		    String r = ((JsonString) rsrc).getString();
+                if ( !op.equals ( operation )
+                        ||  script == null
+                   )
+                {
+                    log.info ( "Skipping: " + script + "/" + op +  " against " + operation + "/" + resource );
+                    continue;
+                }
 
-		    if (  ( ( resource != null ) && ( ! resource.equals ( r ) ) ))
-		    {
-			log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
-			continue;
-		    }
-		} 
-		else if (rsrc instanceof JsonArray) 
-		{
-		    for (JsonValue rv : ((JsonArray) rsrc)) {
-			String r = null;
-			try {
-			    r = ((JsonString) rv).getString();
-			    if (   ( ( resource != null ) && ( ! resource.equals ( r )))) 
-			    {
-				log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
-				continue;
-			    }
-			    break;  //we have a match
-			} 
-			catch (Exception e) 
-			{
-			    log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource +":\n" + e.toString());
-			    continue;   
-			}
-		    }
-		}
-	    }
+                JsonValue rsrc = ( ( JsonObject ) value ).get ( "resource" );
+
+                if ( rsrc instanceof JsonString )
+                {
+                    String r = ( ( JsonString ) rsrc ).getString();
+
+                    if (  ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
+                    {
+                        log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
+                        continue;
+                    }
+                }
+
+                else if ( rsrc instanceof JsonArray )
+                {
+                    for ( JsonValue rv : ( ( JsonArray ) rsrc ) )
+                    {
+                        String r = null;
+
+                        try
+                        {
+                            r = ( ( JsonString ) rv ).getString();
+
+                            if (   ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
+                            {
+                                log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
+                                continue;
+                            }
+
+                            break;  //we have a match
+                        }
+
+                        catch ( Exception e )
+                        {
+                            log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource + ":\n" + e.toString() );
+                            continue;
+                        }
+                    }
+                }
+            }
+
             catch ( Exception e )
             {
                 log.info ( "Skipping: " + e.toString() );
