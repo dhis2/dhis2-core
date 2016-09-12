@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.controller.mapping;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,18 +28,13 @@ package org.hisp.dhis.webapi.controller.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.mapping.MapLayer;
-import org.hisp.dhis.schema.descriptors.MapLayerSchemaDescriptor;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-@Controller
-@RequestMapping( value = MapLayerSchemaDescriptor.API_ENDPOINT )
-public class MapLayerController
-    extends AbstractCrudController<MapLayer>
+public enum RegressionType
 {
+    NONE,
+    LINEAR,
+    POLYNOMIAL,
+    LOESS
 }

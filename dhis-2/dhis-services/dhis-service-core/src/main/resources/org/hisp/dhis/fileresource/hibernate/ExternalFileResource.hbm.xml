@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.fileresource.ExternalFileResource" table="externalfileresource">
+
+        <cache usage="read-write"/>
+
+        <id name="id" column="externalfileresourceid">
+            <generator class="native"/>
+        </id>
+        &identifiableProperties;
+
+        <property name="accessToken" type="java.lang.String" not-null="false"/>
+
+        <property name="expires" type="java.util.Date" not-null="false"/>
+
+        <many-to-one name="fileResource" class="org.hisp.dhis.fileresource.FileResource" column="fileresourceid" foreign-key="fk_fileresource_externalfileresource" not-null="true" unique="true" />
+    </class>
+</hibernate-mapping>

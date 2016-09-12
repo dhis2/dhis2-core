@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,28 +28,15 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.mapping.MapLayer;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.Set;
+
+import org.hisp.dhis.interpretation.Interpretation;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class MapLayerSchemaDescriptor implements SchemaDescriptor
+* @author Lars Helge Overland
+*/
+public interface InterpretableObject
+    extends IdentifiableObject
 {
-    public static final String SINGULAR = "mapLayer";
-
-    public static final String PLURAL = "mapLayers";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( MapLayer.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 2000 );
-
-        return schema;
-    }
+    Set<Interpretation> getInterpretations();
 }

@@ -28,12 +28,13 @@ package org.hisp.dhis.mapgeneration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.awt.image.BufferedImage;
-import java.util.Date;
-
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.user.User;
+
+import java.awt.image.BufferedImage;
+import java.util.Date;
 
 /**
  * The MapGenerationService interface generates map images from Map objects.
@@ -78,4 +79,6 @@ public interface MapGenerationService
      * @return the rendered map image or null if there is no data for the map view.
      */
     BufferedImage generateMapImage( Map map, Date date, OrganisationUnit unit, Integer width, Integer height );
+
+    BufferedImage generateMapImageForUser( Map map, Date date, OrganisationUnit unit, Integer width, Integer height, User user );
 }

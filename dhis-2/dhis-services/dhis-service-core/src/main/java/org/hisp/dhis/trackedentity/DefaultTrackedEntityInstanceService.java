@@ -210,7 +210,7 @@ public class DefaultTrackedEntityInstanceService
             }
         }
 
-        Map<Object, Object> metaData = new HashMap<>();
+        Map<String, Object> metaData = new HashMap<>();
 
         if ( params.isPaging() )
         {

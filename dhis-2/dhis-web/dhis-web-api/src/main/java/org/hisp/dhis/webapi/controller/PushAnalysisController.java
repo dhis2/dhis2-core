@@ -28,21 +28,28 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
+import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
+import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
+import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -52,8 +59,10 @@ import javax.servlet.http.HttpServletResponse;
 @Controller
 @RequestMapping( PushAnalysisSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
-public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
+public class PushAnalysisController
+    extends AbstractCrudController<PushAnalysis>
 {
+    private static final Log logger = LogFactory.getLog( PushAnalysisController.class );
 
     @Autowired
     private PushAnalysisService pushAnalysisService;
@@ -63,6 +72,21 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
 
     @Autowired
     private CurrentUserService currentUserService;
+
+    @Autowired
+    private Scheduler scheduler;
+
+
+    // Temp!
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    @RequestMapping( value = "/runAll", method = RequestMethod.GET )
+    public void runAllPushAnalysis()
+    {
+        scheduler.executeTask( new PushAnalysisTask(
+            -1,
+            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
+            pushAnalysisService ) );
+    }
 
     /**
      * Endpoint that renders the same content as a Push Analysis email would contain, for the logged in user.
@@ -89,50 +113,19 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
         contextUtils
             .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        IOUtils.write(
-            pushAnalysisService.generatePushAnalysisForUser( currentUserService.getCurrentUser(), pushAnalysis ),
-            response.getOutputStream() );
+        logger.info(
+            "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
+        pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
     }
 
-    @RequestMapping( value = "/{uid}/start", method = RequestMethod.GET )
-    public void startPushAnalysis(
-        @PathVariable String uid,
-        HttpServletResponse response
-    )
-        throws Exception
-    {
-        PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
-        if ( pushAnalysis == null )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
-        }
-
-        if ( !pushAnalysisService.startPushAnalysis( pushAnalysis ) )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict(
-                "Could not start push analysis. Push analysis is already running, or no interval has been set for this push analysis." ) );
-        }
-    }
-
-    @RequestMapping( value = "/{uid}/stop", method = RequestMethod.GET )
-    public void stopPushAnalysis(
-        @PathVariable String uid,
-        HttpServletResponse response
-    )
-        throws Exception
-    {
-        PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
-        if ( pushAnalysis == null )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
-        }
-
-        pushAnalysisService.stopPushAnalysis( pushAnalysis );
-    }
-
-    // Temporary
+    /**
+     * This endpoint let's the user manually trigger a PushAnalysis run.
+     *
+     * @param uid      of the PushAnalysis to run
+     * @param response
+     * @throws Exception
+     */
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{uid}/run", method = RequestMethod.GET )
     public void sendPushAnalysis(
         @PathVariable() String uid,
@@ -148,7 +141,10 @@ public class PushAnalysisController extends AbstractCrudController<PushAnalysis>
                 WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
         }
 
-        pushAnalysisService.runPushAnalysis( pushAnalysis );
+        scheduler.executeTask( new PushAnalysisTask(
+            pushAnalysis.getId(),
+            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
+            pushAnalysisService ) );
     }
 
 }

@@ -96,7 +96,7 @@ public class DefaultSchemaService
         add( new InterpretationSchemaDescriptor() ).
         add( new LegendSchemaDescriptor() ).
         add( new LegendSetSchemaDescriptor() ).
-        add( new MapLayerSchemaDescriptor() ).
+        add( new ExternalMapLayerSchemaDescriptor() ).
         add( new MapSchemaDescriptor() ).
         add( new MapViewSchemaDescriptor() ).
         add( new MessageConversationSchemaDescriptor() ).
@@ -139,6 +139,7 @@ public class DefaultSchemaService
         add( new ValidationRuleSchemaDescriptor() ).
         add( new PushAnalysisSchemaDescriptor() ).
         add( new ProgramIndicatorGroupSchemaDescriptor() ).
+        add( new ExternalFileResourceSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
