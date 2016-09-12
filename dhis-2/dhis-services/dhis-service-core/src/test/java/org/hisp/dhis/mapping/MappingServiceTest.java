@@ -46,6 +46,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Lars Helge Overland
  */
@@ -63,6 +65,9 @@ public class MappingServiceTest
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private MappingService mappingService;
     
     private IndicatorGroup indicatorGroup;
 
@@ -77,6 +82,10 @@ public class MappingServiceTest
     private PeriodType periodType;
 
     private Period period;
+
+    private ExternalMapLayer externalMapLayerA;
+
+    private ExternalMapLayer externalMapLayerB;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -110,17 +119,35 @@ public class MappingServiceTest
         periodType = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
         period = createPeriod( periodType, getDate( 2000, 1, 1 ), getDate( 2000, 2, 1 ) );
         periodService.addPeriod( period );
-    }
-    
-    @Test
-    public void testAddGetMap()
-    {
-        //TODO
+
+        externalMapLayerA = new ExternalMapLayer( "A" );
+        externalMapLayerB = new ExternalMapLayer( "B" );
     }
 
     @Test
-    public void testDeleteMap()
+    public void testAddExternalMapLayer()
     {
-        //TODO
+        int id = mappingService.addExternalMapLayer( externalMapLayerA );
+
+        assertNotNull( mappingService.getExternalMapLayer( id ));
     }
+
+    @Test
+    public void testDeleteExternalMapLayer()
+    {
+        int id = mappingService.addExternalMapLayer( externalMapLayerA );
+
+        mappingService.deleteExternalMapLayer( externalMapLayerA );
+
+        assertNull( mappingService.getExternalMapLayer( id ) );
+    }
+
+    @Test
+    public void testGetAllExternalMapLayer()
+    {
+        mappingService.addExternalMapLayer( externalMapLayerA );
+        mappingService.addExternalMapLayer( externalMapLayerB );
+
+        assertEquals( 2, mappingService.getAllExternalMapLayers().size() );
+    }    
 }
