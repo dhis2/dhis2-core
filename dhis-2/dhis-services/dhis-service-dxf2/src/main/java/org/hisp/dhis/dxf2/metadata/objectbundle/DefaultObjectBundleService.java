@@ -159,7 +159,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
             if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
         }
 
-        objectBundleHooks.forEach( hook -> hook.postImport( bundle ) );
+        if ( !bundle.getImportMode().isDelete() )
+        {
+            objectBundleHooks.forEach( hook -> hook.postImport( bundle ) );
+        }
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
