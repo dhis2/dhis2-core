@@ -374,10 +374,10 @@ public class ScheduleTasksAction
                     cronKeyMap.putValue( CRON_EVERY_MIN, TASK_DATA_SYNCH );
                 }
 
-                if(STRATEGY_ENABLED.equals(metadataSyncStrategy ))
+                if( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
                 {
                     cronKeyMap.putValue( metadataSyncCron, TASK_META_DATA_SYNC );
-                    systemSettingManager.saveSystemSetting(SettingKey.METADATA_SYNC_CRON,metadataSyncCron);
+                    systemSettingManager.saveSystemSetting( SettingKey.METADATA_SYNC_CRON,metadataSyncCron );
                     systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
                 }
 
