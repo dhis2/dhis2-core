@@ -43,10 +43,16 @@ public interface Scheduler
     String CRON_DAILY_11PM = "0 0 23 * * ?";
     String CRON_DAILY_2AM = "0 0 2 * * ?";
     String CRON_DAILY_5AM = "0 0 5 * * ?";
+    String CRON_DAILY_6AM = "0 0 6 * * ?";
+    String CRON_DAILY_7AM = "0 0 7 * * ?";
+    String CRON_DAILY_8AM = "0 0 8 * * ?";
+
+    String CRON_DAILY_XAM = "0 0 X * * ?"; // TODO Remove this?
+
     String CRON_EVERY_MIN = "0 0/1 * * * ?";
     String CRON_EVERY_15MIN = "0 0/15 * * * ?";
+
     String CRON_TEST = "0 * * * * ?";
-    String CRON_DAILY_8AM = "0 0 8 * * ?";
     
     /**
      * Execute the given task immediately.

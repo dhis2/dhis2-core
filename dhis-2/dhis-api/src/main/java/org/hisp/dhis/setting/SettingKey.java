@@ -129,12 +129,13 @@ public enum SettingKey
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true ),
     MAPZEN_SEARCH_API_KEY( "keyMapzenSearchApiKey", "search-Se1CFzK", String.class ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
-    LAST_SUCCESSFUL_METADATA_SYNC("keyLastMetaDataSyncSuccess", Date.class),
-    METADATAVERSION_ENABLED("keyVersionEnabled",Boolean.FALSE, Boolean.class),
-    METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),
-    METADATA_LAST_FAILED_TIME("keyMetadataLastFailedTime", Date.class  ),
+    LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
+    METADATAVERSION_ENABLED( "keyVersionEnabled",Boolean.FALSE, Boolean.class),
+    METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
+    METADATA_LAST_FAILED_TIME("keyMetadataLastFailedTime", Date.class ),
     METADATA_SYNC_CRON( "metaDataSyncCron",String.class ),
-    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class);
+    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
+    LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class );
 
     private final String name;
     

@@ -374,7 +374,7 @@ public class ScheduleTasksAction
                     cronKeyMap.putValue( CRON_EVERY_MIN, TASK_DATA_SYNCH );
                 }
 
-                if( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
+                if ( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
                 {
                     cronKeyMap.putValue( metadataSyncCron, TASK_META_DATA_SYNC );
                     systemSettingManager.saveSystemSetting( SettingKey.METADATA_SYNC_CRON,metadataSyncCron );
@@ -461,7 +461,6 @@ public class ScheduleTasksAction
                 smsSchedulerStrategy = STRATEGY_EVERY_MIDNIGHT;
             }
 
-
             // -------------------------------------------------------------
             // Metadata sync Scheduler
             // -------------------------------------------------------------
@@ -470,6 +469,16 @@ public class ScheduleTasksAction
             {
                 metadataSyncStrategy = STRATEGY_ENABLED;
                 metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
+            }
+
+            // -------------------------------------------------------------
+            // Program notifications scheduler
+            // -------------------------------------------------------------
+
+            if ( keys.contains( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS ) )
+            {
+                // TODO WTH is going on here?
+                programNotificationSchedulerStrategy = STRATEGY_ENABLED;
             }
         }
 
@@ -485,6 +494,7 @@ public class ScheduleTasksAction
         lastDataStatisticSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_STATISTIC );
         lastDataSyncSuccess = synchronizationManager.getLastSynchSuccess();
         lastMetaDataSyncSuccess = (Date)systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        lastProgramNotificationSchedulerSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS );
 
         log.info( "Status: " + status );
         log.info( "Running: " + running );
