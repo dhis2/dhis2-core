@@ -5,9 +5,9 @@
 	#set ( $startPage 		= $paging.startPage )
 	#set ( $numberOfPages	= $paging.numberOfPages )
 	
-	<input type="hidden" id="baseLink" value="$!baseLink"/>
-	<input type="hidden" id="currentPage" value="$!currentPage"/>
-	<input type="hidden" id="numberOfPages" value="$!numberOfPages"/>
+	<input type="hidden" id="baseLink" value="$encoder.htmlEncode( $!baseLink )"/>
+	<input type="hidden" id="currentPage" value="$encoder.htmlEncode( $!currentPage )"/>
+	<input type="hidden" id="numberOfPages" value="$encoder.htmlEncode( $!numberOfPages )"/>
 	#if ( $numberOfPages > 0 )
 		<table style="background-color: #ebf0f6;" width='100%'>
 			<tr>
