@@ -102,7 +102,10 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 public interface AnalyticsService
 {
     /**
-     * Generates aggregated values for the given query.
+     * Generates aggregated values for the given query. 
+     * 
+     * If meta data is included in the query, the meta data map of the grid
+     * will contain keys described in {@link AnalyticsMetaDataKey}.
      * 
      * @param params the data query parameters.
      * @return aggregated data as a Grid object.
@@ -114,6 +117,9 @@ public interface AnalyticsService
      * represent a table with dimensions used as columns and rows as specified
      * in columns and rows dimension arguments. If columns and rows are null or
      * empty, the normalized table will be returned.
+     * 
+     * If meta data is included in the query, the meta data map of the grid
+     * will contain keys described in {@link AnalyticsMetaDataKey}.
      * 
      * @param params the data query parameters.
      * @param columns the identifiers of the dimensions to use as columns.

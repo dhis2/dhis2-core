@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,35 +28,17 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class ProgramTrackedEntityAttributeSchemaDescriptor implements SchemaDescriptor
+public interface DataDimensionalItemObject
+    extends DimensionalItemObject
 {
-    public static final String SINGULAR = "programTrackedEntityAttribute";
-
-    public static final String PLURAL = "programTrackedEntityAttributes";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ProgramTrackedEntityAttribute.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1500 );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
-
-        return schema;
-    }
+    String getAggregateExportCategoryOptionCombo();
+    
+    boolean hasAggregateExportCategoryOptionCombo();
+    
+    String getAggregateExportAttributeOptionCombo();
+    
+    boolean hasAggregateExportAttributeOptionCombo();
 }

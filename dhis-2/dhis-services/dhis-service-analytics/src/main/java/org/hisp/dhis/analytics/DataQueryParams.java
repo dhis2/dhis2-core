@@ -193,6 +193,12 @@ public class DataQueryParams
     protected boolean hierarchyMeta;
     
     /**
+     * Indicates whether a identifier to dimension item object mapping should be
+     * part of the meta data reponse.
+     */
+    protected boolean dimensionItemMeta;
+    
+    /**
      * Indicates whether the maximum number of records to include the response
      * should be ignored.
      */
@@ -377,6 +383,7 @@ public class DataQueryParams
         params.skipRounding = this.skipRounding;
         params.completedOnly = this.completedOnly;
         params.hierarchyMeta = this.hierarchyMeta;
+        params.dimensionItemMeta = this.dimensionItemMeta;
         params.ignoreLimit = this.ignoreLimit;
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
@@ -1558,6 +1565,11 @@ public class DataQueryParams
         return hierarchyMeta;
     }
 
+    public boolean isDimensionItemMeta()
+    {
+        return dimensionItemMeta;
+    }
+
     public boolean isIgnoreLimit()
     {
         return ignoreLimit;
@@ -2069,6 +2081,12 @@ public class DataQueryParams
         public Builder withHierarchyMeta( boolean hierarchyMeta )
         {
             this.params.hierarchyMeta = hierarchyMeta;
+            return this;
+        }
+        
+        public Builder withDimensionItemMeta( boolean dimensionItemMeta )
+        {
+            this.params.dimensionItemMeta = dimensionItemMeta;
             return this;
         }
 
