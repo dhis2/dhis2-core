@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>dhis-web-ohie</artifactId>
-  <packaging>jar</packaging>
+  <packaging>war</packaging>
   <name>DHIS OHIE Implementations</name>
 
   <build>

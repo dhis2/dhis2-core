@@ -54,7 +54,7 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-web-ohie</artifactId>
       <version>${project.version}</version>
-      <type>jar</type>
+      <type>war</type>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
