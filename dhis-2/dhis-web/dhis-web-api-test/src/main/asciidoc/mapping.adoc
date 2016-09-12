@@ -1,0 +1,114 @@
+
+==  **Map**
+Fields Description
+include::{snippets}/maps/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available Map
+
+Response structure
+include::{snippets}/maps/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/maps/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/maps/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that Map or 404.
+
+Example request
+include::{snippets}/maps/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/maps/id/http-response.adoc[]
+
+=== Create Map
+
+Example request
+include::{snippets}/maps/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/maps/create/http-response.adoc[]
+
+
+=== Update Map
+
+Example request
+include::{snippets}/maps/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/maps/update/http-response.adoc[]
+
+
+=== Delete Map
+
+Example request
+include::{snippets}/maps/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/maps/delete/http-response.adoc[]
+
+
+
+
+==  **External Map Layer**
+Fields Description
+include::{snippets}/externalMapLayers/id/response-fields.adoc[]
+
+=== Listing
+
+==== List all
+A `GET` request will list all available External Map Layer
+
+Response structure
+include::{snippets}/externalMapLayers/all/response-fields.adoc[]
+
+Example request
+include::{snippets}/externalMapLayers/all/curl-request.adoc[]
+
+Example response
+include::{snippets}/externalMapLayers/all/http-response.adoc[]
+
+==== By id
+
+A `GET` request with a specified identifier will return that External Map Layer or 404.
+
+Example request
+include::{snippets}/externalMapLayers/id/curl-request.adoc[]
+
+Example response
+include::{snippets}/externalMapLayers/id/http-response.adoc[]
+
+=== Create External Map Layer
+
+Example request
+include::{snippets}/externalMapLayers/create/curl-request.adoc[]
+
+Example response
+include::{snippets}/externalMapLayers/create/http-response.adoc[]
+
+
+=== Update External Map Layer
+
+Example request
+include::{snippets}/externalMapLayers/update/curl-request.adoc[]
+
+Example response
+include::{snippets}/externalMapLayers/update/http-response.adoc[]
+
+
+=== Delete External Map Layer
+
+Example request
+include::{snippets}/externalMapLayers/delete/curl-request.adoc[]
+
+Example response
+include::{snippets}/externalMapLayers/delete/http-response.adoc[]
+
+
+
