@@ -33,9 +33,9 @@ package org.hisp.dhis.mapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public enum MapService
 {
-    WMS, TMS, XYZ
+    WMS, 
+    TMS, 
+    XYZ
 }
