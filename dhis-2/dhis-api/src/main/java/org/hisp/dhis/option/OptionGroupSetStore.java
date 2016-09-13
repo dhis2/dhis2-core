@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.option;
 
 /*
  *
@@ -30,11 +30,12 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.common.GenericDimensionalObjectStore;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum ImageFormat
+public interface OptionGroupSetStore
+    extends GenericDimensionalObjectStore<OptionGroupSet>
 {
-    PNG,
-    JPG
 }

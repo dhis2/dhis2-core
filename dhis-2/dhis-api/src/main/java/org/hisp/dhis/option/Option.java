@@ -46,6 +46,10 @@ public class Option
 {
     private OptionSet optionSet;
 
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
     public Option()
     {
         setAutoFields();
@@ -58,6 +62,10 @@ public class Option
         this.code = code;
     }
 
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
     @Override
     public boolean haveUniqueNames()
     {
@@ -69,6 +77,11 @@ public class Option
     {
         return false;
     }
+
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
     @Override
     @JsonProperty
@@ -91,4 +104,5 @@ public class Option
     {
         this.optionSet = optionSet;
     }
+
 }
