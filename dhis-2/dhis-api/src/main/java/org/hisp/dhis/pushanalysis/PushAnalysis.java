@@ -75,6 +75,11 @@ public class PushAnalysis
      */
     private Date lastRun;
 
+    /**
+     * Cron Expression when the Push Analysis should be ran
+     */
+    private String cronExpression;
+
     public PushAnalysis()
     {
     }
@@ -189,5 +194,13 @@ public class PushAnalysis
         return false;
     }
 
+    public String getCronExpression()
+    {
+        return cronExpression;
+    }
 
+    public void setCronExpression( String cronExpression )
+    {
+        this.cronExpression = cronExpression;
+    }
 }

@@ -60,6 +60,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.*;
+import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
@@ -115,6 +117,15 @@ public class DefaultPushAnalysisService
     public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         this.pushAnalysisStore = pushAnalysisStore;
+    }
+
+    //----------------------------------------------------------------------
+    // Listener to populate scheduler
+    //----------------------------------------------------------------------
+    @EventListener
+    public void handleContextRefresh( ContextRefreshedEvent event)
+    {
+        log.info( "### ### CONTEXT REFRESHED!!" );
     }
 
     //----------------------------------------------------------------------

@@ -28,18 +28,18 @@ package org.hisp.dhis.system.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ScheduledFuture;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.util.concurrent.ListenableFuture;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledFuture;
 
 /**
  * {@link Scheduler} implementation for use within the Spring framework.
@@ -49,7 +49,7 @@ public class SpringScheduler
     implements Scheduler
 {
     private static final Log log = LogFactory.getLog( SpringScheduler.class );
-    
+
     private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
 
     // -------------------------------------------------------------------------
@@ -62,7 +62,7 @@ public class SpringScheduler
     {
         this.taskScheduler = taskScheduler;
     }
-    
+
     private AsyncListenableTaskExecutor taskExecutor;
 
     public void setTaskExecutor( AsyncListenableTaskExecutor taskExecutor )
@@ -88,64 +88,75 @@ public class SpringScheduler
 
     @Override
     public boolean scheduleTask( String key, Runnable task, String cronExpr )
-    {        
+    {
         if ( key != null && !futures.containsKey( key ) )
         {
             ScheduledFuture<?> future = taskScheduler.schedule( task, new CronTrigger( cronExpr ) );
-            
+
             futures.put( key, future );
-            
+
             log.info( "Scheduled task with key: " + key + " and cron: " + cronExpr );
-            
+
             return true;
         }
-        
+
         return false;
     }
-    
+
     @Override
     public boolean stopTask( String key )
-    {        
+    {
         if ( key != null )
         {
             ScheduledFuture<?> future = futures.get( key );
-            
+
             boolean result = future != null && future.cancel( true );
-            
+
             futures.remove( key );
-            
+
             log.info( "Stopped task with key: " + key + " successfully: " + result );
-            
+
             return result;
         }
-        
+
         return false;
     }
-    
+
+    @Override
+    public boolean refreshTask( String key, Runnable task, String cronExpr )
+    {
+        if( getTaskStatus( key ) != ScheduledTaskStatus.NOT_STARTED )
+        {
+            stopTask( key );
+        }
+
+        return scheduleTask( key, task, cronExpr );
+    }
+
     @Override
     public void stopAllTasks()
     {
         Iterator<String> keys = futures.keySet().iterator();
-        
+
         while ( keys.hasNext() )
         {
             String key = keys.next();
-            
+
             ScheduledFuture<?> future = futures.get( key );
-            
+
             boolean result = future != null && future.cancel( true );
-            
+
             keys.remove();
-            
+
             log.info( "Stopped task with key: " + key + " successfully: " + result );
         }
     }
 
     @Override
     public ScheduledTaskStatus getTaskStatus( String key )
-    {        
+    {
         ScheduledFuture<?> future = futures.get( key );
-        
+
         if ( future == null )
         {
             return ScheduledTaskStatus.NOT_STARTED;
@@ -161,6 +172,6 @@ public class SpringScheduler
         else
         {
             return ScheduledTaskStatus.RUNNING;
-        }   
+        }
     }
 }
