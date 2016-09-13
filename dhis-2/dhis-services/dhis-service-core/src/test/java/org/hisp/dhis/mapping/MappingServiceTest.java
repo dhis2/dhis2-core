@@ -46,9 +46,13 @@ import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+<<<<<<< HEAD
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
+=======
+import static org.junit.Assert.*;
+>>>>>>> upstream/master
 
 /**
  * @author Lars Helge Overland
@@ -89,7 +93,10 @@ public class MappingServiceTest
 
     private ExternalMapLayer externalMapLayerB;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/master
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -127,7 +134,10 @@ public class MappingServiceTest
         externalMapLayerB = new ExternalMapLayer( "B" );
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/master
     @Test
     public void testAddExternalMapLayer()
     {
@@ -153,6 +163,10 @@ public class MappingServiceTest
         mappingService.addExternalMapLayer( externalMapLayerB );
 
         assertEquals( 2, mappingService.getAllExternalMapLayers().size() );
+<<<<<<< HEAD
     }
     
+=======
+    }    
+>>>>>>> upstream/master
 }

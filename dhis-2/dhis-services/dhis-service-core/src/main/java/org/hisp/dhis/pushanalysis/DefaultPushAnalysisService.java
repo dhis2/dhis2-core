@@ -33,7 +33,6 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.tools.ant.taskdefs.condition.Not;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
@@ -79,8 +78,7 @@ import java.util.*;
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
-
-    private static final Log logger = LogFactory.getLog( DefaultPushAnalysisService.class );
+    private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
 
     @Autowired
     private Notifier notifier;
@@ -119,6 +117,10 @@ public class DefaultPushAnalysisService
         this.pushAnalysisStore = pushAnalysisStore;
     }
 
+    //----------------------------------------------------------------------
+    // PushAnalysisService implementation
+    //----------------------------------------------------------------------
+
     @Override
     public PushAnalysis getByUid( String uid )
     {
@@ -128,18 +130,17 @@ public class DefaultPushAnalysisService
     @Override
     public void runPushAnalysis( int id, TaskId taskId )
     {
-
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // Set up
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
         PushAnalysis pushAnalysis = pushAnalysisStore.get( id );
         Set<User> receivingUsers = new HashSet<>();
         notifier.clear( taskId );
 
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // Pre-check
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
         log( taskId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
 
@@ -174,9 +175,9 @@ public class DefaultPushAnalysisService
 
         log( taskId, NotificationLevel.INFO, "pre-check completed successfully", false, null );
 
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // Compose list of users that can receive PushAnalysis
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
         log( taskId, NotificationLevel.INFO, "Composing list of receiving users", false, null );
 
@@ -198,9 +199,9 @@ public class DefaultPushAnalysisService
         log( taskId, NotificationLevel.INFO, "List composed. " + receivingUsers.size() + " eligible users found.",
             false, null );
 
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // Generating reports
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
         log( taskId, NotificationLevel.INFO, "Generating and sending reports", false, null );
 
@@ -212,6 +213,7 @@ public class DefaultPushAnalysisService
                 String html = generateHtmlReport( pushAnalysis, user, taskId );
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
+                @SuppressWarnings("unused")
                 MessageResponseStatus status = messageSender
                     .sendMessage( title, html, "", null, Sets.newHashSet( user ), true );
 
@@ -270,9 +272,9 @@ public class DefaultPushAnalysisService
         log( taskId, NotificationLevel.INFO, "Generating PushAnalysis for user '" + user.getUsername() + "'.", false,
             null );
 
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // Pre-process the dashboardItem and store them as Strings
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
         HashMap<String, String> itemHtml = new HashMap<>();
 
@@ -281,18 +283,18 @@ public class DefaultPushAnalysisService
             itemHtml.put( item.getUid(), getItemHtml( item, user, taskId ) );
         }
 
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // Set up template context, including pre-processed dashboard items
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
 
         final VelocityContext context = new VelocityContext();
 
         context.put( "pushAnalysis", pushAnalysis );
         context.put( "itemHtml", itemHtml );
 
-        //--------------------------------------------------------------------------
-        // Render the template and return the result after removing all newline characters
-        //--------------------------------------------------------------------------
+        //----------------------------------------------------------------------
+        // Render template and return result after removing newline characters
+        //----------------------------------------------------------------------
 
         StringWriter stringWriter = new StringWriter();
 
@@ -306,7 +308,7 @@ public class DefaultPushAnalysisService
     }
 
     //--------------------------------------------------------------------------
-    // Helper methods
+    // Supportive methods
     //--------------------------------------------------------------------------
 
     private String getItemHtml( DashboardItem item, User user, TaskId taskId )
@@ -332,7 +334,6 @@ public class DefaultPushAnalysisService
                 "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
             return "";
         }
-
     }
 
     /**
@@ -346,7 +347,6 @@ public class DefaultPushAnalysisService
     private String generateMapHtml( Map map, User user )
         throws IOException
     {
-
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 600, 600, user );
@@ -354,7 +354,6 @@ public class DefaultPushAnalysisService
         ImageIO.write( image, "PNG", baos );
 
         return uploadImage( map.getUid(), baos.toByteArray() );
-
     }
 
     /**
@@ -437,15 +436,14 @@ public class DefaultPushAnalysisService
         switch ( notificationLevel )
         {
         case INFO:
-            logger.info( message );
+            log.info( message );
             break;
         case WARN:
-            logger.warn( message, exception );
+            log.warn( message, exception );
             break;
         case ERROR:
-            logger.error( message, exception );
+            log.error( message, exception );
             break;
         }
     }
-
 }

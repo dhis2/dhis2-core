@@ -28,11 +28,10 @@ package org.hisp.dhis.webportal.menu.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.webportal.menu.MenuState;
 import org.hisp.dhis.webportal.menu.MenuStateManager;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.opensymphony.xwork2.Action;
 
 public class SetMenuStateAction
     implements Action
@@ -60,11 +59,20 @@ public class SetMenuStateAction
     {
         if ( state != null )
         {
-            MenuState menuState = MenuState.valueOf( state.toUpperCase() );
-            
+            MenuState menuState;
+
+            try
+            {
+                menuState = MenuState.valueOf( state.toUpperCase() );
+            }
+            catch ( IllegalArgumentException ex )
+            {
+                return INPUT;
+            }
+
             manager.setMenuState( menuState );
         }
-        
+
         return SUCCESS;
     }
 }

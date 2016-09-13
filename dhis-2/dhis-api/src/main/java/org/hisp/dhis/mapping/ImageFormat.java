@@ -33,9 +33,16 @@ package org.hisp.dhis.mapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+<<<<<<< HEAD
 
 
 public enum ImageFormat
 {
     PNG, JPG
+=======
+public enum ImageFormat
+{
+    PNG, 
+    JPG
+>>>>>>> upstream/master
 }
