@@ -74,7 +74,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * @author Stian Sandvold

@@ -76,18 +76,6 @@ public class PushAnalysisController
     @Autowired
     private Scheduler scheduler;
 
-
-    // Temp!
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @RequestMapping( value = "/runAll", method = RequestMethod.GET )
-    public void runAllPushAnalysis()
-    {
-        scheduler.executeTask( new PushAnalysisTask(
-            -1,
-            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
-            pushAnalysisService ) );
-    }
-
     /**
      * Endpoint that renders the same content as a Push Analysis email would contain, for the logged in user.
      * Used for users to preview the content of Push Analysis
