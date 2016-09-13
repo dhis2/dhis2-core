@@ -395,16 +395,11 @@ var d2Controllers = angular.module('d2Controllers', [])
         if( $scope.location && $scope.location.lng && $scope.location.lat ){
             $modalInstance.close( $scope.location );
     	}
-<<<<<<< HEAD
     	else{
     		//notify user
             NotificationService.showNotifcationDialog($translate.instant("error"),
                 $translate.instant("nothing_captured"));
             return;
-=======
-    	else{ //notify user            
-            userNotification('error', 'nothing_captured' );
->>>>>>> abyot-dhis2-core
     	}
     };
     
