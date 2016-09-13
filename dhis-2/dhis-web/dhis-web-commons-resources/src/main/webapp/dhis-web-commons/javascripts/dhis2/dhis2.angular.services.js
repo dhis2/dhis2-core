@@ -972,7 +972,15 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
 
 }])
-
+.service('NotificationService', function (DialogService) {
+    this.showNotifcationDialog = function(errorMsgheader, errorMsgBody){
+        var dialogOptions = {
+            headerText: errorMsgheader,
+            bodyText: errorMsgBody
+        };
+        DialogService.showDialog({}, dialogOptions);
+    };
+})
 .service('Paginator', function () {
     this.page = 1;
     this.pageSize = 50;
@@ -1041,7 +1049,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
 })
 
-.service('GridColumnService', function ($http, URLS, SessionStorageService) {
+.service('GridColumnService', function ($http, URLS, $translate, SessionStorageService, NotificationService) {
     return {
         columnExists: function (cols, id) {
             var colExists = false;
@@ -1079,6 +1087,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     SessionStorageService.set("gridColumns", {id:name, columns:response.data.gridColumns});
                     return response.data.gridColumns;
                 } else {
+                    NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_invalid"));
                     return null;
                 }
             }, function (error) {
@@ -1086,7 +1095,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 if (gridColumnsFromSessionStore && gridColumnsFromSessionStore.columns) {
                     return gridColumnsFromSessionStore.columns;
                 }
-                return {status:"ERROR", data:error.data};
+                NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_fetch_failed"));
+                return null;
             });
             return promise;
         }
