@@ -32,9 +32,10 @@ var d2Controllers = angular.module('d2Controllers', [])
 .controller('MapController',
         function($scope, 
                 $modalInstance,
+                $translate,
                 CurrentSelection,
                 DHIS2URL,
-                DialogService,
+                NotificationService,
                 location) {
     
     $scope.home = function(){        
@@ -54,11 +55,8 @@ var d2Controllers = angular.module('d2Controllers', [])
     	}
     	else{
     		//notify user
-            var dialogOptions = {
-                headerText: 'error',
-                bodyText: 'nothing_captured'
-            };
-            DialogService.showDialog({}, dialogOptions);
+            NotificationService.showNotifcationDialog($translate.instant("error"),
+                $translate.instant("nothing_captured"));
             return;
     	}
     };

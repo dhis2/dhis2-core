@@ -328,7 +328,7 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
-.directive('d2FileInput', function(DHIS2EventService, DHIS2EventFactory, FileService, DialogService){
+.directive('d2FileInput', function($translate, DHIS2EventService, DHIS2EventFactory, FileService, NotificationService){
 
     return {
         restrict: "A",
@@ -367,11 +367,8 @@ var d2Directives = angular.module('d2Directives', [])
                         }
                     }
                     else{
-                        var dialogOptions = {
-                            headerText: 'error',
-                            bodyText: 'file_upload_failed'
-                        };
-                        DialogService.showDialog({}, dialogOptions);
+                        NotificationService.showNotifcationDialog($translate.instant("error"),
+                            $translate.instant("file_upload_failed"));
                     }
 
                 });
@@ -381,7 +378,7 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
-.directive('d2FileInputDelete', function($parse, $timeout, FileService, DialogService){
+.directive('d2FileInputDelete', function($parse, $timeout, $translate, FileService, NotificationService){
 
     return {
         restrict: "A",
@@ -399,11 +396,8 @@ var d2Directives = angular.module('d2Directives', [])
                         });
                     }
                     else{
-                        var dialogOptions = {
-                            headerText: 'error',
-                            bodyText: 'file_missing'
-                        };
-                        DialogService.showDialog({}, dialogOptions);
+                        NotificationService.showNotifcationDialog($translate.instant("error"),
+                            $translate.instant("file_missing"));
                     }
                 });
             }

@@ -363,7 +363,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for dealing with custom form */
-.service('CustomFormService', function ($translate, DialogService) {
+.service('CustomFormService', function ($translate, NotificationService) {
 
     return {
         getForProgramStage: function (programStage, programStageDataElements) {
@@ -554,11 +554,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 }
                             }
                             else{
-                                var dialogOptions = {
-                                    headerText: 'error',
-                                    bodyText: 'custom_form_has_invalid_dataelement'
-                                };
-                                DialogService.showDialog({}, dialogOptions);
+                                NotificationService.showNotifcationDialog($translate.instant("error"),
+                                    $translate.instant("custom_form_has_invalid_dataelement"));
+
                                 return;
                             }
                             
@@ -729,11 +727,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             }
                         }
                         else{
-                            var dialogOptions = {
-                                headerText: 'error',
-                                bodyText: 'custom_form_has_invalid_attribute'
-                            };
-                            DialogService.showDialog({}, dialogOptions);
+                            NotificationService.showNotifcationDialog($translate.instant("error"),
+                                $translate.instant("custom_form_has_invalid_attribute"));
                             return;
                         }
                     }
@@ -980,6 +975,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         };
         DialogService.showDialog({}, dialogOptions);
     };
+
+    this.showNotifcationWithOptions = function(dialogDefaults, dialogOptions){
+        DialogService.showDialog(dialogDefaults, dialogOptions);
+    };
+
 })
 .service('Paginator', function () {
     this.page = 1;
@@ -1551,7 +1551,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for executing tracker rules and broadcasting results */
-.service('TrackerRulesExecutionService', function(VariableService, DateUtils, DialogService, DHIS2EventFactory, RulesFactory, CalendarService, OptionSetService, $rootScope, $q, $log, $filter, orderByFilter){
+.service('TrackerRulesExecutionService', function($translate, VariableService, DateUtils, NotificationService, DHIS2EventFactory, RulesFactory, CalendarService, OptionSetService, $rootScope, $q, $log, $filter, orderByFilter){
     var NUMBER_OF_EVENTS_IN_SCOPE = 10;
 
     //Variables for storing scope and rules in memory from rules execution to rules execution:
@@ -2568,11 +2568,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     } else if (effect.action === "SHOWERROR") {
                         if (effect.trackedEntityAttribute) {                        
                             if(effect.ineffect) {
-                                var dialogOptions = {
-                                    headerText: 'validation_error',
-                                    bodyText: effect.content + (effect.data ? effect.data : "")
-                                };
-                                DialogService.showDialog({}, dialogOptions);
+                                var headerText =  $translate.instant('validation_error');
+                                var bodyText = effect.content + (effect.data ? effect.data : "");
+
+                                NotificationService.showNotifcationDialog(headerText, bodyText);
                                 selectedTei[effect.trackedEntityAttribute.id] = tei[effect.trackedEntityAttribute.id];
                             }
                         }
@@ -2623,11 +2622,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         }
                     }
                     else if(effect.action === "SHOWERROR" && effect.dataElement.id){
-                        var dialogOptions = {
-                            headerText: 'validation_error',
-                            bodyText: effect.content + (effect.data ? effect.data : "")
-                        };
-                        DialogService.showDialog({}, dialogOptions);
+                        var headerTxt =  $translate.instant('validation_error');
+                        var bodyTxt = effect.content + (effect.data ? effect.data : "");
+                        NotificationService.showNotifcationDialog(headerTxt, bodyTxt);
 
                         currentEvent[effect.dataElement.id] = currentEventOriginialValue[effect.dataElement.id];
                     }
@@ -2824,7 +2821,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     }
 })
 
-.service('AuditHistoryDataService', function( $http, $translate, DialogService) {
+.service('AuditHistoryDataService', function( $http, $translate, NotificationService) {
     this.getAuditHistoryData = function(dataId, dataType ) {
         var url="";
         if (dataType === "attribute") {
@@ -2838,11 +2835,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return response.data;
         }, function( response ) {
             if( response && response.data && response.data.status === 'ERROR' ) {
-                var dialogOptions = {
-                    headerText: response.data.status,
-                    bodyText: response.data.message ? response.data.message : $translate.instant('unable_to_fetch_data_from_server')
-                };
-                DialogService.showDialog({}, dialogOptions);
+                var headerText = response.data.status;
+                var bodyText = response.data.message ? response.data.message : $translate.instant('unable_to_fetch_data_from_server');
+                NotificationService.showNotifcationDialog(headerText, bodyText);
             }
         });
         return promise;
