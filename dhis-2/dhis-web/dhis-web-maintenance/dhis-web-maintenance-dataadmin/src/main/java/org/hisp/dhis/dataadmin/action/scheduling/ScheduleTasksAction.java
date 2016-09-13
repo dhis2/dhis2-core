@@ -430,7 +430,10 @@ public class ScheduleTasksAction
                             break;
                     }
 
-                    cronKeyMap.putValue( cron, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                    if ( cron != null )
+                    {
+                        cronKeyMap.putValue( cron, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                    }
                 }
 
                 // -------------------------------------------------------------
@@ -518,8 +521,8 @@ public class ScheduleTasksAction
 
             if ( keys.contains( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS ) )
             {
-                // TODO WTH is going on here?
-                programNotificationSchedulerStrategy = STRATEGY_ENABLED;
+                String cronForSchedule = schedulingManager.getCronForTask( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                // TODO Reverse mapping ot form value
             }
         }
 

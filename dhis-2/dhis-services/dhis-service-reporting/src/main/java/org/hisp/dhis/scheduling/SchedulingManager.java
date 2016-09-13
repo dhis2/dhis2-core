@@ -75,13 +75,21 @@ public interface SchedulingManager
      * Stops all tasks.
      */
     void stopTasks();
-    
+
+    /**
+     * Resolve the cron expression mapped for the given task key, or null if none.
+     *
+     * @param taskKey the key of the task, not null.
+     * @return the cron for the task or null.
+     */
+    String getCronForTask( final String taskKey )
+
     /**
      * Gets a mapping of cron expressions and list of task keys for all scheduled
      * tasks.
      */
     ListMap<String, String> getCronKeyMap();
-    
+
     /**
      * Gets all keys currently scheduled for any task.
      */
