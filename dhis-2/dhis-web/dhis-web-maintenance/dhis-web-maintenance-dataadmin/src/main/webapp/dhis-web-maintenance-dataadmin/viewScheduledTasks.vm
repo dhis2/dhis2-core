@@ -180,6 +180,12 @@
 
 <!-- Program notifications -->
 
+<div class="settingHeader">$i18n.getString( "program_notifications_scheduler")</div>
+
+<div class="settingLabel settingIndent">$i18n.getString( "program_notifications_scheduler_strategy" )</div>
+
+<div class="settingLabel settingIndent tipText">$i18n.getString( "last_success" ): $!format.formatDateTime( $!lastProgramNotificationSchedulerSuccess )</div>
+
 <div class="setting settingIndent">
     <select id="programNotificationSchedulerStrategy" name="programNotificationSchedulerStrategy" class="scheduling">
         <option value="disabled">$i18n.getString( "disabled" )</option>
