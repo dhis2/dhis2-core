@@ -29,6 +29,7 @@ package org.hisp.dhis.dataadmin.action.scheduling;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
@@ -58,6 +59,8 @@ import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SMS_SCHEDULER;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_0AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_11PM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_5AM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_6AM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_7AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_8AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_15MIN;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
@@ -73,6 +76,11 @@ public class ScheduleTasksAction
     private static final String STRATEGY_LAST_3_YEARS_DAILY = "last3YearsDaily";
     private static final String STRATEGY_ENABLED = "enabled";
     private static final String STRATEGY_EVERY_MIDNIGHT = "everyMidNight";
+
+    private static final String STRATEGY_DAILY_5_AM = "dailyFiveAM";
+    private static final String STRATEGY_DAILY_6_AM = "dailySixAM";
+    private static final String STRATEGY_DAILY_7_AM = "dailySevenAM";
+    private static final String STRATEGY_DAILY_8_AM = "dailyEightAM";
 
     private static final Log log = LogFactory.getLog( ScheduleTasksAction.class );
 
@@ -328,6 +336,10 @@ public class ScheduleTasksAction
             }
             else
             {
+                // -------------------------------------------------------------
+                // Build new schedule
+                // -------------------------------------------------------------
+
                 ListMap<String, String> cronKeyMap = new ListMap<>();
                 
                 // -------------------------------------------------------------
@@ -384,7 +396,7 @@ public class ScheduleTasksAction
                 // -------------------------------------------------------------
                 // SMS Scheduler
                 // -------------------------------------------------------------
-                
+
                 if ( STRATEGY_EVERY_MIDNIGHT.equals( smsSchedulerStrategy ) )
                 {
                     cronKeyMap.putValue( CRON_DAILY_11PM, TASK_SMS_SCHEDULER );
@@ -395,10 +407,35 @@ public class ScheduleTasksAction
                 // Program notifications scheduler
                 // -------------------------------------------------------------
 
-                if ( STRATEGY_EVERY_MIDNIGHT.equals( programNotificationSchedulerStrategy ) )
+                if ( StringUtils.isNotEmpty( programNotificationSchedulerStrategy ) )
                 {
-                    cronKeyMap.putValue( CRON_DAILY_5AM, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                    String cron = null;
+
+                    switch ( programNotificationSchedulerStrategy )
+                    {
+                        case STRATEGY_DAILY_5_AM:
+                            cron = CRON_DAILY_5AM;
+                            break;
+                        case STRATEGY_DAILY_6_AM:
+                            cron = CRON_DAILY_6AM;
+                            break;
+                        case STRATEGY_DAILY_7_AM:
+                            cron = CRON_DAILY_7AM;
+                            break;
+                        case STRATEGY_DAILY_8_AM:
+                            cron = CRON_DAILY_8AM;
+                            break;
+                        default:
+                            log.warn( "Unrecognized scheduling strategy for program notifications: " + programNotificationSchedulerStrategy );
+                            break;
+                    }
+
+                    cronKeyMap.putValue( cron, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
                 }
+
+                // -------------------------------------------------------------
+                // Commit new schedule
+                // -------------------------------------------------------------
 
                 schedulingManager.scheduleTasks( cronKeyMap );
 
@@ -406,6 +443,10 @@ public class ScheduleTasksAction
         }
         else
         {
+            // -------------------------------------------------------------
+            // Populate fields
+            // -------------------------------------------------------------
+
             Collection<String> keys = schedulingManager.getScheduledKeys();
 
             // -----------------------------------------------------------------

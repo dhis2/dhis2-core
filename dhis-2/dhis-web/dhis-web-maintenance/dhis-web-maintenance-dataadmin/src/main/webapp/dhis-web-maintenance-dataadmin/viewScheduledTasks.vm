@@ -189,7 +189,10 @@
 <div class="setting settingIndent">
     <select id="programNotificationSchedulerStrategy" name="programNotificationSchedulerStrategy" class="scheduling">
         <option value="disabled">$i18n.getString( "disabled" )</option>
-        <option value="everyMidNight"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "everyMidNight" ) selected="selected"#end>$i18n.getString( "all_daily" )</option>
+        <option value="dailyFiveAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyFiveAM" ) selected="selected"#end>$i18n.getString( "daily_5_am" )</option>
+        <option value="dailySixAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySixAM" ) selected="selected"#end>$i18n.getString( "daily_6_am" )</option>
+        <option value="dailySevenAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySevenAM" ) selected="selected"#end>$i18n.getString( "daily_7_am" )</option>
+        <option value="dailyEightAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyEightAM" ) selected="selected"#end>$i18n.getString( "daily_8_am" )</option>
     </select>
 </div>
 
