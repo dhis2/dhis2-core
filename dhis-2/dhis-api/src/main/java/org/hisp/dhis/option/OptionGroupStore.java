@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.option;
 
 /*
  *
@@ -30,19 +30,20 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.GenericDimensionalObjectStore;
+
+import java.util.List;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-<<<<<<< HEAD
 
+public interface OptionGroupStore
+    extends GenericDimensionalObjectStore<OptionGroup>
+{
+    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
 
-public enum MapLayerPosition
-{
-    BASEMAP, OVERLAY
-=======
-public enum MapLayerPosition
-{
-    BASEMAP, 
-    OVERLAY
->>>>>>> upstream/master
+    List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }
+

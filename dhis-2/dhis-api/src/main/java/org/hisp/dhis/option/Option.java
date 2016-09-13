@@ -30,12 +30,16 @@ package org.hisp.dhis.option;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Chau Thu Tran
@@ -45,6 +49,12 @@ public class Option
     extends BaseIdentifiableObject
 {
     private OptionSet optionSet;
+
+    private Set<OptionGroup> groups = new HashSet<>(  );
+
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
 
     public Option()
     {
@@ -58,6 +68,10 @@ public class Option
         this.code = code;
     }
 
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
     @Override
     public boolean haveUniqueNames()
     {
@@ -69,6 +83,39 @@ public class Option
     {
         return false;
     }
+
+
+    public void addOptionGroup( OptionGroup group )
+    {
+        groups.add( group );
+        group.getMembers().add( this );
+    }
+
+    public void removeOptionGroup( OptionGroup group )
+    {
+        groups.remove( group );
+        group.getMembers().remove( this );
+    }
+
+    public void updateOptionGroups( Set<OptionGroup> updates )
+    {
+        for ( OptionGroup group : new HashSet<>( groups ) )
+        {
+            if ( !updates.contains( group ) )
+            {
+                removeOptionGroup( group );
+            }
+        }
+
+        for ( OptionGroup group : updates )
+        {
+            addOptionGroup( group );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
 
     @Override
     @JsonProperty
@@ -91,4 +138,13 @@ public class Option
     {
         this.optionSet = optionSet;
     }
+
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "optionGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<OptionGroup> getGroups() { return groups; }
+
+    public void setGroups( Set<OptionGroup> groups ) { this.groups = groups; }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.option;
 
 /*
  *
@@ -30,19 +30,33 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.GenericDhisSpringTest;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-<<<<<<< HEAD
 
 
-public enum MapLayerPosition
+public class OptionGroupSetStoreTest
+    extends GenericDhisSpringTest<OptionGroupSet>
 {
-    BASEMAP, OVERLAY
-=======
-public enum MapLayerPosition
-{
-    BASEMAP, 
-    OVERLAY
->>>>>>> upstream/master
+
+    private OptionGroupSet[] objects =
+    {
+        new OptionGroupSet( "OptionGroupSetA" ),
+        new OptionGroupSet( "OptionGroupSetB" ),
+        new OptionGroupSet( "OptionGroupSetC" )
+    };
+
+    @Override
+    protected OptionGroupSet[] getObjects()
+    {
+        return objects;
+    }
+
+    @Override
+    protected String getGenericBeanId()
+    {
+        return "org.hisp.dhis.option.OptionGroupSetStore";
+    }
 }

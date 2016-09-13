@@ -33,9 +33,18 @@ package org.hisp.dhis.mapping;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 
 /**
+<<<<<<< HEAD
+ * @author Jan Henrik Overland
+=======
  * @author Viet Nguyen <viet@dhis2.org>
+>>>>>>> upstream/master
  */
 public interface ExternalMapLayerStore
     extends GenericIdentifiableObjectStore<ExternalMapLayer>
 {
+<<<<<<< HEAD
+    String ID = ExternalMapLayerStore.class.getName();
+
+=======
+>>>>>>> upstream/master
 }

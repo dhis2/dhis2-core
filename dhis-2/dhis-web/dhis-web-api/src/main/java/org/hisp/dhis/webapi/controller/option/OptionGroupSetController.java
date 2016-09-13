@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.webapi.controller.option;
 
 /*
  *
@@ -30,19 +30,19 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.option.OptionGroupSet;
+import org.hisp.dhis.schema.descriptors.OptionGroupSetSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-<<<<<<< HEAD
 
-
-public enum MapLayerPosition
+@Controller
+@RequestMapping( value = OptionGroupSetSchemaDescriptor.API_ENDPOINT )
+public class OptionGroupSetController
+    extends AbstractCrudController<OptionGroupSet>
 {
-    BASEMAP, OVERLAY
-=======
-public enum MapLayerPosition
-{
-    BASEMAP, 
-    OVERLAY
->>>>>>> upstream/master
 }

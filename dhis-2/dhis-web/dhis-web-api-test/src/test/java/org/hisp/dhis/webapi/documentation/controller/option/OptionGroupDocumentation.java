@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.webapi.documentation.controller.option;
 
 /*
  *
@@ -30,19 +30,15 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-<<<<<<< HEAD
 
 
-public enum MapLayerPosition
+public class OptionGroupDocumentation
+    extends AbstractWebApiTest<OptionGroup>
 {
-    BASEMAP, OVERLAY
-=======
-public enum MapLayerPosition
-{
-    BASEMAP, 
-    OVERLAY
->>>>>>> upstream/master
 }

@@ -42,6 +42,10 @@ import org.hisp.dhis.legend.LegendSet;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+<<<<<<< HEAD
+
+=======
+>>>>>>> upstream/master
 @JacksonXmlRootElement( localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0 )
 public class ExternalMapLayer
     extends BaseIdentifiableObject
@@ -81,6 +85,53 @@ public class ExternalMapLayer
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+<<<<<<< HEAD
+    public MapService getMapService() { return mapService; }
+
+    public void setMapService( MapService mapService ) { this.mapService = mapService;}
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getUrl() { return url; }
+
+    public void setUrl( String url ) { this.url = url; }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAttribution() { return attribution; }
+
+    public void setAttribution( String attribution ) { this.attribution = attribution; }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLayers() { return layers; }
+
+    public void setLayers( String layers ) { this.layers = layers; }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImageFormat getImageFormat() { return imageFormat; }
+
+    public void setImageFormat( ImageFormat imageFormat ) { this.imageFormat = imageFormat; }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MapLayerPosition getMapLayerPosition() { return mapLayerPosition; }
+
+    public void setMapLayerPosition( MapLayerPosition mapLayerPosition ) { this.mapLayerPosition = mapLayerPosition; }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSet getLegendSet() { return legendSet; }
+
+    public void setLegendSet( LegendSet legendSet ) { this.legendSet = legendSet;}
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLegendSetUrl() { return legendSetUrl; }
+
+    public void setLegendSetUrl( String legendSetUrl ) { this.legendSetUrl = legendSetUrl; }
+=======
     public MapService getMapService()
     {
         return mapService;
@@ -174,6 +225,7 @@ public class ExternalMapLayer
     {
         this.legendSetUrl = legendSetUrl;
     }
+>>>>>>> upstream/master
 
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
@@ -184,6 +236,10 @@ public class ExternalMapLayer
         {
             ExternalMapLayer mapLayer = (ExternalMapLayer) other;
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> upstream/master
             if ( mergeMode.isReplace() )
             {
                 url = mapLayer.getUrl();

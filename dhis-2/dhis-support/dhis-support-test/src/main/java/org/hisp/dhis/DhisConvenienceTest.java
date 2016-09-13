@@ -542,16 +542,16 @@ public abstract class DhisConvenienceTest
 
         return categoryOptionCombo;
     }
-    
+
     public static DataElementCategoryOptionCombo createCategoryOptionCombo( char uniqueCharacter )
     {
         DataElementCategoryOptionCombo coc = new DataElementCategoryOptionCombo();
         coc.setAutoFields();
-        
+
         coc.setUid( BASE_COC_UID + uniqueCharacter );
         coc.setName( "CategoryOptionCombo" + uniqueCharacter );
         coc.setName( "CategoryOptionComboCode" + uniqueCharacter );
-        
+
         return coc;
     }
 
