@@ -46,6 +46,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
+import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
@@ -141,6 +143,12 @@ public class DefaultMetadataImportService implements MetadataImportService
     public MetadataImportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         MetadataImportParams params = new MetadataImportParams();
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
+
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
@@ -150,6 +158,13 @@ public class DefaultMetadataImportService implements MetadataImportService
         params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL ) );
         params.setMergeMode( getEnumWithDefault( MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
+
+        if ( getBooleanWithDefault( parameters, "async", false ) )
+        {
+            TaskId taskId = new TaskId( TaskCategory.METADATA_IMPORT, params.getUser() );
+            notifier.clear( taskId );
+            params.setTaskId( taskId );
+        }
 
         return params;
     }
