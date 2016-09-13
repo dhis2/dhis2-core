@@ -56,19 +56,14 @@ public class PushAnalysis
     private Dashboard dashboard;
 
     /**
-     * PushAnalysis reports are sent to one or more userGroups
-     */
-    private Set<UserGroup> receivingUserGroups;
-
-    /**
-     * The name will be used in the report title
-     */
-    private String name;
-
-    /**
      * The message will be written in the report. Used to explain or describe reports to users
      */
     private String message;
+
+    /**
+     * PushAnalysis reports are sent to one or more userGroups
+     */
+    private Set<UserGroup> recipientUserGroups;
 
     /**
      * Indicates whether or not reports should be generated and sent to users automatically at given intervals
@@ -111,14 +106,14 @@ public class PushAnalysis
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroup> getReceivingUserGroups()
+    public Set<UserGroup> getRecipientUserGroups()
     {
-        return receivingUserGroups;
+        return recipientUserGroups;
     }
 
-    public void setReceivingUserGroups( Set<UserGroup> receivingUserGroups )
+    public void setRecipientUserGroups( Set<UserGroup> recipientUserGroups )
     {
-        this.receivingUserGroups = receivingUserGroups;
+        this.recipientUserGroups = recipientUserGroups;
     }
 
     @JsonProperty
@@ -159,7 +154,7 @@ public class PushAnalysis
             if ( mergeMode.isReplace() )
             {
                 dashboard = pushAnalysis.getDashboard();
-                receivingUserGroups = pushAnalysis.getReceivingUserGroups();
+                recipientUserGroups = pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName();
                 message = pushAnalysis.getMessage();
             }
@@ -167,9 +162,9 @@ public class PushAnalysis
             if ( mergeMode.isMerge() )
             {
                 dashboard = pushAnalysis.getDashboard() == null ? dashboard : pushAnalysis.getDashboard();
-                receivingUserGroups = pushAnalysis.getReceivingUserGroups() == null ?
-                    receivingUserGroups :
-                    pushAnalysis.getReceivingUserGroups();
+                recipientUserGroups = pushAnalysis.getRecipientUserGroups() == null ?
+                    recipientUserGroups :
+                    pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName() == null ? name : pushAnalysis.getName();
                 message = pushAnalysis.getMessage() == null ? message : pushAnalysis.getMessage();
             }

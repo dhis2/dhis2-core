@@ -17,9 +17,9 @@ var i18n_please_select_unit = '$encoder.jsEscape( $i18n.getString( "select_organ
 
 <h3>$i18n.getString( "report_table_parameters" )</h3>
 
-<input type="hidden" id="uid" name="uid" value="$!{uid}" />
-<input type="hidden" id="mode" name="mode" value="$!{mode}" />
-<input type="hidden" id="type" name="type" value="$!{type}" />
+<input type="hidden" id="uid" name="uid" value="$!encoder.htmlEncode( $!{uid} )" />
+<input type="hidden" id="mode" name="mode" value="$!encoder.htmlEncode( $!{mode} )" />
+<input type="hidden" id="type" name="type" value="$!encoder.htmlEncode( $!{type} )" />
 
 <table>
 	

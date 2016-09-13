@@ -53,6 +53,7 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
@@ -392,6 +393,10 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             map.setLatitude( 952175.62553525 );
             map.setLongitude( -1378543.6774686 );
             return (T) map;
+        }
+        else if ( ExternalMapLayer.class.isAssignableFrom( clazz ) )
+        {
+            return (T) new ExternalMapLayer( "ExternalMapLayer" + uniqueName );
         }
         else if ( OptionGroup.class.isAssignableFrom( clazz ) )
         {
