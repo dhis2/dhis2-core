@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.trackedentity.action.programindicatorgroup;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,19 +28,50 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.opensymphony.xwork2.Action;
 
 /**
- * @author Jan Henrik Overland
+ * @author Viet Nguyen
  */
-public interface MapLayerStore
-    extends GenericIdentifiableObjectStore<MapLayer>
+public class ShowAddProgramIndicatorGroupAction
+    implements Action
 {
-    String ID = MapLayerStore.class.getName();
+    // -------------------------------------------------------------------------
+    // Dependency
+    // -------------------------------------------------------------------------
 
-    List<MapLayer> getMapLayersByType( String type );
+    @Autowired
+    private ProgramIndicatorService programIndicatorService;
 
-    MapLayer getMapLayerByMapSource( String mapSource );
+    // -------------------------------------------------------------------------
+    // Output
+    // -------------------------------------------------------------------------
+
+    private List<ProgramIndicator> programIndicators;
+
+    public List<ProgramIndicator> getProgramIndicators()
+    {
+        return programIndicators;
+    }
+
+    // -------------------------------------------------------------------------
+    // Action implementation
+    // -------------------------------------------------------------------------
+
+    @Override
+    public String execute()
+    {
+        programIndicators = programIndicatorService.getAllProgramIndicators();
+        Collections.sort( programIndicators, IdentifiableObjectNameComparator.INSTANCE );
+
+        return SUCCESS;
+    }
 }

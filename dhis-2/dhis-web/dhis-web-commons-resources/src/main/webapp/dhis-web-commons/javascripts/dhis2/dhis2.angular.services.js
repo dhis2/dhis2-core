@@ -2910,6 +2910,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             displayName: response.organisationUnits[0].displayName,
                             id: response.organisationUnits[0].id
                         });
+                    } else if (response && response.id) {
+                        def.resolve(response);
                     } else {
                         def.resolve(null);
                     }

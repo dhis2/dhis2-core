@@ -160,14 +160,14 @@ public class DefaultChartService
     {
         this.analyticsService = analyticsService;
     }
-    
+
     private EventAnalyticsService eventAnalyticsService;
-    
+
     public void setEventAnalyticsService( EventAnalyticsService eventAnalyticsService )
     {
         this.eventAnalyticsService = eventAnalyticsService;
     }
-    
+
     // -------------------------------------------------------------------------
     // ChartService implementation
     // -------------------------------------------------------------------------
@@ -177,7 +177,7 @@ public class DefaultChartService
     {
         return chartStore;
     }
-    
+
     @Override
     public JFreeChart getJFreeChart( int id, I18nFormat format )
     {
@@ -195,7 +195,13 @@ public class DefaultChartService
     @Override
     public JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format )
     {
-        User user = currentUserService.getCurrentUser();
+        return getJFreeChart( chart, date, organisationUnit, format, currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public JFreeChart getJFreeChart( BaseChart chart, Date date, OrganisationUnit organisationUnit, I18nFormat format, User currentUser )
+    {
+        User user = (currentUser != null ? currentUser : currentUserService.getCurrentUser());
 
         if ( organisationUnit == null && user != null )
         {
@@ -566,7 +572,7 @@ public class DefaultChartService
         {
             Number number = dataSet.getValue( 0, 0 );
             ValueDataset valueDataSet = new DefaultValueDataset( number );
-            
+
             return getGaugeChart( chart, valueDataSet );
         }
         else
@@ -583,7 +589,7 @@ public class DefaultChartService
         JFreeChart jFreeChart = new JFreeChart( chart.getName(), TITLE_FONT, plot, !chart.isHideLegend() );
 
         setBasicConfig( jFreeChart, chart );
-        
+
         if ( chart.isTargetLine() )
         {
             plot.addRangeMarker( getMarker( chart.getTargetLineValue(), chart.getTargetLineLabel() ) );
@@ -658,22 +664,22 @@ public class DefaultChartService
 
         CategoryAxis xAxis = plot.getDomainAxis();
         xAxis.setCategoryLabelPositions( CategoryLabelPositions.UP_45 );
-        
+
         return stackedBarChart;
     }
-    
+
     private JFreeChart getMultiplePieChart( BaseChart chart, CategoryDataset[] dataSets )
     {
         JFreeChart multiplePieChart = ChartFactory.createMultiplePieChart( chart.getName(), dataSets[0], TableOrder.BY_ROW,
             !chart.isHideLegend(), false, false );
 
         setBasicConfig( multiplePieChart, chart );
-        
+
         if ( multiplePieChart.getLegend() != null )
         {
             multiplePieChart.getLegend().setItemFont( SUB_TITLE_FONT );
         }
-        
+
         MultiplePiePlot multiplePiePlot = (MultiplePiePlot) multiplePieChart.getPlot();
         JFreeChart pieChart = multiplePiePlot.getPieChart();
         pieChart.setBackgroundPaint( COLOR_TRANSPARENT );
@@ -697,23 +703,23 @@ public class DefaultChartService
 
         return multiplePieChart;
     }
-    
+
     private JFreeChart getGaugeChart( BaseChart chart, ValueDataset dataSet )
     {
         MeterPlot meterPlot = new MeterPlot( dataSet );
 
         meterPlot.setUnits( "" );
         meterPlot.setRange( new Range( 0.0d, 100d ) );
-                
+
         for ( int i = 0; i < 10; i++ )
         {
             double start = i * 10;
             double end = start + 10;
             String label = String.valueOf( start );
-            
+
             meterPlot.addInterval( new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
         }
-        
+
         meterPlot.setMeterAngle(180);
         meterPlot.setDialBackgroundPaint( COLOR_LIGHT_GRAY );
         meterPlot.setDialShape( DialShape.CHORD );
@@ -724,11 +730,11 @@ public class DefaultChartService
         meterPlot.setTickPaint( COLOR_LIGHTER_GRAY );
         meterPlot.setValueFont( TITLE_FONT );
         meterPlot.setValuePaint( Color.BLACK );
-        
+
         JFreeChart meterChart = new JFreeChart( chart.getName(), meterPlot );
         setBasicConfig( meterChart, chart );
         meterChart.removeLegend();
-        
+
         return meterChart;
     }
 
@@ -739,15 +745,15 @@ public class DefaultChartService
     private void setBasicConfig( JFreeChart jFreeChart, BaseChart chart)
     {
         jFreeChart.getTitle().setFont( TITLE_FONT );
-        
+
         jFreeChart.setBackgroundPaint( COLOR_TRANSPARENT );
         jFreeChart.setAntiAlias( true );
-        
+
         if ( !chart.isHideTitle() )
         {
             jFreeChart.addSubtitle( getSubTitle( chart ) );
         }
-        
+
         Plot plot = jFreeChart.getPlot();
         plot.setBackgroundPaint( COLOR_TRANSPARENT );
         plot.setOutlinePaint( COLOR_TRANSPARENT );
@@ -758,17 +764,17 @@ public class DefaultChartService
         TextTitle textTitle = new TextTitle();
 
         String title = chart.hasTitle() ? chart.getTitle() : chart.generateTitle();
-        
+
         textTitle.setFont( SUB_TITLE_FONT );
         textTitle.setText( title );
-        
+
         return textTitle;
     }
 
     private CategoryDataset[] getCategoryDataSet( BaseChart chart )
     {
         Map<String, Object> valueMap = new HashMap<>();
-        
+
         if ( chart.isAnalyticsType( AnalyticsType.AGGREGATE ) )
         {
             valueMap = analyticsService.getAggregatedDataValueMapping( chart );
@@ -776,9 +782,9 @@ public class DefaultChartService
         else if ( chart.isAnalyticsType( AnalyticsType.EVENT ) )
         {
             Grid grid = eventAnalyticsService.getAggregatedEventData( chart );
-                        
+
             chart.setDataItemGrid( grid );
-                        
+
             valueMap = GridUtils.getMetaValueMapping( grid, ( grid.getWidth() - 1 ) );
         }
 
@@ -788,27 +794,27 @@ public class DefaultChartService
         SimpleRegression regression = new SimpleRegression();
 
         BaseAnalyticalObject.sortKeys( valueMap );
-        
+
         List<NameableObject> seriez = new ArrayList<>( chart.series() );
         List<NameableObject> categories = new ArrayList<>( chart.category() );
-        
+
         if ( chart.hasSortOrder() )
         {
             categories = getSortedCategories( categories, chart, valueMap );
         }
-        
+
         for ( NameableObject series : seriez )
         {
             double categoryIndex = 0;
-            
+
             for ( NameableObject category : categories )
             {
                 categoryIndex++;
 
                 String key = getKey( series, category, chart.getAnalyticsType() );
-                
+
                 Object object = valueMap.get( key );
-                
+
                 Number value = object != null && object instanceof Number ? (Number) object : null;
 
                 regularDataSet.addValue( value, series.getShortName(), category.getShortName() );
@@ -839,7 +845,7 @@ public class DefaultChartService
 
         return new CategoryDataset[]{ regularDataSet, regressionDataSet };
     }
-    
+
     /**
      * Creates a key based on the given input. Sorts the key on its components
      * to remove significance of column order.
@@ -850,10 +856,10 @@ public class DefaultChartService
 
         // Replace potential operand separator with dimension separator
 
-        key = AnalyticsType.AGGREGATE.equals( analyticsType ) ? key.replace( DataElementOperand.SEPARATOR, DIMENSION_SEP ) : key; 
-        
+        key = AnalyticsType.AGGREGATE.equals( analyticsType ) ? key.replace( DataElementOperand.SEPARATOR, DIMENSION_SEP ) : key;
+
         // TODO fix issue with keys including -.
-        
+
         return BaseAnalyticalObject.sortKey( key );
     }
 
@@ -864,28 +870,28 @@ public class DefaultChartService
     private List<NameableObject> getSortedCategories( List<NameableObject> categories, BaseChart chart, Map<String, Object> valueMap )
     {
         NameableObject series = chart.series().get( 0 );
-        
+
         int sortOrder = chart.getSortOrder();
-        
+
         List<NumericSortWrapper<NameableObject>> list = new ArrayList<>();
-        
+
         for ( NameableObject category : categories )
         {
             String key = getKey( series, category, chart.getAnalyticsType() );
-            
+
             Object value = valueMap.get( key );
-            
+
             if ( value != null && value instanceof Number )
             {
                 list.add( new NumericSortWrapper<NameableObject>( category, (Double ) value, sortOrder ) );
             }
         }
-        
+
         Collections.sort( list );
-        
+
         return NumericSortWrapper.getObjectList( list );
     }
-    
+
     // -------------------------------------------------------------------------
     // CRUD operations
     // -------------------------------------------------------------------------

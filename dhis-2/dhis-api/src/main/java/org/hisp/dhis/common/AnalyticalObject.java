@@ -40,7 +40,7 @@ import java.util.Map;
 * @author Lars Helge Overland
 */
 public interface AnalyticalObject
-    extends IdentifiableObject
+    extends IdentifiableObject, InterpretableObject
 {
     void populateAnalyticalProperties();
     
@@ -65,6 +65,8 @@ public interface AnalyticalObject
     boolean addDataDimensionItem( DimensionalItemObject object );
     
     boolean removeDataDimensionItem( DimensionalItemObject object );
+    
+    String getTitle();
 
     void clearTransientState();
 }

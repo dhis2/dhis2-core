@@ -39,8 +39,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -79,12 +77,6 @@ public class EventChartController
 
     @Autowired
     private DimensionService dimensionService;
-
-    @Autowired
-    private ProgramService programService;
-
-    @Autowired
-    private ProgramStageService programStageService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;

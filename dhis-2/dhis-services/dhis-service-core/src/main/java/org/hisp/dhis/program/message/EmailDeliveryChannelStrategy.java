@@ -34,10 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -48,21 +45,17 @@ public class EmailDeliveryChannelStrategy
     private static final Log log = LogFactory.getLog( EmailDeliveryChannelStrategy.class );
 
     // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public ProgramMessage fillAttributes( ProgramMessage message )
+    public DeliveryChannel getDeliveryChannel()
+    {
+        return DeliveryChannel.EMAIL;
+    }
+
+    @Override
+    public ProgramMessage setAttributes( ProgramMessage message )
     {
         validate( message );
 
@@ -72,7 +65,7 @@ public class EmailDeliveryChannelStrategy
 
         if ( orgUnit != null )
         {
-            message.getRecipients().getEmailAddresses().add( getOrgnisationUnitRecipient( orgUnit ) );
+            message.getRecipients().getEmailAddresses().add( getOrganisationUnitRecipient( orgUnit ) );
         }
 
         if ( tei != null )
@@ -95,8 +88,8 @@ public class EmailDeliveryChannelStrategy
         {
             if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntityInstance()
                 && recipient.getEmailAddresses().isEmpty() )
-            {
-                violation = "No destination found for EMAIL";
+            {                
+                violation = "No destination found for delivery channel " + DeliveryChannel.EMAIL;
             }
         }
 
@@ -105,66 +98,19 @@ public class EmailDeliveryChannelStrategy
             log.info( "Message validation failed: " + violation );
 
             throw new IllegalQueryException( violation );
-
         }
     }
 
     @Override
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return DeliveryChannel.EMAIL;
-    }
-
-    @Override
-    public String getOrgnisationUnitRecipient( OrganisationUnit orgUnit )
+    public String getOrganisationUnitRecipient( OrganisationUnit orgUnit )
     {
         if ( orgUnit.getEmail() == null )
         {
-            log.error( "OrganisationUnit does not have email address" );
+            log.error( "Organisation unit does not have an email address" );
 
-            throw new IllegalQueryException( "OrganisationUnit does not have email address" );
+            throw new IllegalQueryException( "Organisation unit does not have an email address" );
         }
 
         return orgUnit.getEmail();
-    }
-
-    // ---------------------------------------------------------------------
-    // Supportive Methods
-    // ---------------------------------------------------------------------
-
-    private TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
-    {
-        TrackedEntityInstance tei = null;
-
-        if ( message.getRecipients().getTrackedEntityInstance() == null )
-        {
-            return tei;
-        }
-
-        String teiUid = message.getRecipients().getTrackedEntityInstance().getUid();
-
-        tei = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
-
-        message.getRecipients().setTrackedEntityInstance( tei );
-
-        return tei;
-    }
-
-    private OrganisationUnit getOrganisationUnit( ProgramMessage message )
-    {
-        OrganisationUnit orgUnit = null;
-
-        if ( message.getRecipients().getOrganisationUnit() == null )
-        {
-            return orgUnit;
-        }
-
-        String ou = message.getRecipients().getOrganisationUnit().getUid();
-
-        orgUnit = organisationUnitService.getOrganisationUnit( ou );
-
-        message.getRecipients().setOrganisationUnit( orgUnit );
-
-        return orgUnit;
     }
 }

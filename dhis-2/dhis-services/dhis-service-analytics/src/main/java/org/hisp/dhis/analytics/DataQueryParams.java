@@ -193,6 +193,12 @@ public class DataQueryParams
     protected boolean hierarchyMeta;
     
     /**
+     * Indicates whether a identifier to dimension item object mapping should be
+     * part of the meta data reponse.
+     */
+    protected boolean dimensionItemMeta;
+    
+    /**
      * Indicates whether the maximum number of records to include the response
      * should be ignored.
      */
@@ -226,6 +232,11 @@ public class DataQueryParams
      */
     protected IdentifiableProperty outputIdScheme;
 
+    /**
+     * The output format, default is {@link OutputFormat.ANALYTICS}.
+     */
+    protected OutputFormat outputFormat;
+    
     /**
      * The required approval level identifier for data to be included in query response.
      */
@@ -372,12 +383,14 @@ public class DataQueryParams
         params.skipRounding = this.skipRounding;
         params.completedOnly = this.completedOnly;
         params.hierarchyMeta = this.hierarchyMeta;
+        params.dimensionItemMeta = this.dimensionItemMeta;
         params.ignoreLimit = this.ignoreLimit;
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
         params.includeNumDen = this.includeNumDen;
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
+        params.outputFormat = this.outputFormat;
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
@@ -629,6 +642,14 @@ public class DataQueryParams
     {
         return this.aggregationType != null;
     }
+    
+    /**
+     * Indicates whether the this parameters has the given output format specified.
+     */
+    public boolean isOutputFormat( OutputFormat format )
+    {
+        return this.outputFormat != null && this.outputFormat == format;
+    }
 
     /**
      * Creates a mapping between the data periods, based on the data period type
@@ -848,7 +869,8 @@ public class DataQueryParams
     }
     
     /**
-     * Indicates whether a dimension or filter with the given identifier exists.
+     * Indicates whether a dimension or filter with the given dimension / filter
+     * identifier exists.
      */
     public boolean hasDimensionOrFilter( String key )
     {
@@ -1543,6 +1565,11 @@ public class DataQueryParams
         return hierarchyMeta;
     }
 
+    public boolean isDimensionItemMeta()
+    {
+        return dimensionItemMeta;
+    }
+
     public boolean isIgnoreLimit()
     {
         return ignoreLimit;
@@ -1571,6 +1598,11 @@ public class DataQueryParams
     public IdentifiableProperty getOutputIdScheme()
     {
         return outputIdScheme;
+    }
+
+    public OutputFormat getOutputFormat()
+    {
+        return outputFormat;
     }
 
     public String getApprovalLevel()
@@ -2051,6 +2083,12 @@ public class DataQueryParams
             this.params.hierarchyMeta = hierarchyMeta;
             return this;
         }
+        
+        public Builder withDimensionItemMeta( boolean dimensionItemMeta )
+        {
+            this.params.dimensionItemMeta = dimensionItemMeta;
+            return this;
+        }
 
         public Builder withHideEmptyRows( boolean hideEmptyRows )
         {
@@ -2079,6 +2117,12 @@ public class DataQueryParams
         public Builder withOutputIdScheme( IdentifiableProperty outputIdScheme )
         {
             this.params.outputIdScheme = outputIdScheme;
+            return this;
+        }
+        
+        public Builder withOutputFormat( OutputFormat outputFormat )
+        {
+            this.params.outputFormat = outputFormat;
             return this;
         }
         

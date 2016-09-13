@@ -83,9 +83,8 @@ public class BulkSmsGateway
     // Implementation
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "unchecked" )
     @Override
-    public List<MessageResponseStatus<GatewayResponse>> sendBatch( MessageBatch smsBatch, SmsGatewayConfig config )
+    public List<MessageResponseStatus> sendBatch( MessageBatch smsBatch, SmsGatewayConfig config )
     {
         BulkSmsGatewayConfig bulkSmsConfig = (BulkSmsGatewayConfig) config;
 
@@ -102,7 +101,7 @@ public class BulkSmsGateway
     }
 
     @Override
-    public MessageResponseStatus<GatewayResponse> send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         UriComponentsBuilder uriBuilder = createUri( (BulkSmsGatewayConfig) config, recipients, SubmissionType.SINGLE );
         uriBuilder.queryParam( "message", text );
@@ -123,7 +122,7 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private MessageResponseStatus<GatewayResponse> send( UriComponentsBuilder uriBuilder )
+    private MessageResponseStatus send( UriComponentsBuilder uriBuilder )
     {
         ResponseEntity<String> responseEntity = null;
 
@@ -188,9 +187,9 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private MessageResponseStatus<GatewayResponse> getResponse( ResponseEntity<String> responseEntity )
+    private MessageResponseStatus getResponse( ResponseEntity<String> responseEntity )
     {
-        MessageResponseStatus<GatewayResponse> status = new MessageResponseStatus<GatewayResponse>();
+        MessageResponseStatus status = new MessageResponseStatus();
 
         if ( responseEntity == null )
         {
@@ -207,7 +206,7 @@ public class BulkSmsGateway
         gatewayResponse.setBatchId( StringUtils.split( response, "|" )[2] );
 
         status.setResponseObject( gatewayResponse );
-        status.setResponseMessage( gatewayResponse.getResponseMessage() );
+        status.setDescription( gatewayResponse.getResponseMessage() );
 
         return status;
     }

@@ -65,6 +65,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -117,9 +118,12 @@ public class DefaultDataQueryService
     @Override
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
         String measureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit,
-        boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
-        String approvalLevel, Date relativePeriodDate, String userOrgUnit, I18nFormat format )
+        boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, 
+        IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
+        String approvalLevel, Date relativePeriodDate, String userOrgUnit )
     {
+        I18nFormat format = i18nManager.getI18nFormat();
+        
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
         inputIdScheme = ObjectUtils.firstNonNull( inputIdScheme, IdScheme.UID );
@@ -152,6 +156,7 @@ public class DefaultDataQueryService
             .withIncludeNumDen( includeNumDen )
             .withDisplayProperty( displayProperty )
             .withOutputIdScheme( outputIdScheme )
+            .withOutputFormat( OutputFormat.ANALYTICS )
             .withApprovalLevel( approvalLevel ).build();
     }
 
@@ -166,7 +171,10 @@ public class DefaultDataQueryService
 
         if ( object != null )
         {
-            List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, null );
+            String userOrgUnit = object.getRelativeOrganisationUnit() != null ? 
+                object.getRelativeOrganisationUnit().getUid() : null;
+
+            List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
 
             Date date = object.getRelativePeriodDate();
 

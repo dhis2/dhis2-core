@@ -149,6 +149,13 @@
 
     <property name="completedOnly" column="completedonly" />
 
+    <property name="title" />
+    
+    <set name="interpretations" inverse="true">
+      <key column="reporttableid" />
+      <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
+    </set>
+
     <property name="digitGroupSeparator" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.DigitGroupSeparator</param>

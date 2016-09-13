@@ -87,6 +87,18 @@ public class InterpretationServiceTest
     }
 
     @Test
+    public void testConstruct()
+    {
+        Interpretation interprA = new Interpretation( chartA, null, "Interpretation" );
+        Interpretation interprB = new Interpretation( chartA, null, "Interpretation" );
+        
+        assertEquals( chartA, interprA.getChart() );
+        assertEquals( chartA, interprB.getChart() );
+        assertTrue( chartA.getInterpretations().contains( interprA ) );
+        assertTrue( chartA.getInterpretations().contains( interprB ) );
+    }
+    
+    @Test
     public void testSaveGet()
     {
         int idA = interpretationService.saveInterpretation( interpretationA );
@@ -204,5 +216,25 @@ public class InterpretationServiceTest
         long count = interpretationService.getNewInterpretationCount();
 
         assertEquals( 3, count );
+    }
+    
+    @Test
+    public void testLikeInterpretation()
+    {
+        int idA = interpretationService.saveInterpretation( interpretationA );
+        interpretationService.saveInterpretation( interpretationB );
+        
+        assertEquals( 0, interpretationA.getLikes() );
+        assertEquals( 0, interpretationA.getLikedBy().size() );
+        
+        interpretationService.likeInterpretation( idA );
+
+        assertEquals( 1, interpretationA.getLikes() );
+        assertEquals( 1, interpretationA.getLikedBy().size() );
+
+        interpretationService.unlikeInterpretation( idA );
+
+        assertEquals( 0, interpretationA.getLikes() );
+        assertEquals( 0, interpretationA.getLikedBy().size() );
     }
 }

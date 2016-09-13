@@ -24,6 +24,12 @@
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programindicator_program" not-null="true" />
 
+    <set name="groups" table="programindicatorgroupmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <many-to-many class="org.hisp.dhis.program.ProgramIndicatorGroup" column="programindicatorgroupid" />
+    </set>
+
     <property name="expression" type="text" />
 
     <property name="filter" type="text" />
@@ -41,6 +47,10 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_programindicator_legendset" />
 
+    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
+	
+    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
+	
     <property name="displayInForm" />
 
     <!-- Object Translation -->

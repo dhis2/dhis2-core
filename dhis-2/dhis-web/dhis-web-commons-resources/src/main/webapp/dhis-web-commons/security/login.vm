@@ -71,11 +71,11 @@
             #if( $failed == true )
             <div id="loginMessage">Wrong username or password</div>
             #end
-            <div id="notificationArea">
-              #if ( $keyApplicationNotification )
-                $!{keyApplicationNotification}
-              #end
+            #if ( $keyApplicationNotification )
+            <div id="notificationArea">              
+              $!{keyApplicationNotification}
             </div>
+            #end
             <!--[if lte IE 8]>
             <div id="notificationArea" style="color: white; background-color: red;">$i18n.getString( "unsupported_browser" )</div>
             <![endif]-->

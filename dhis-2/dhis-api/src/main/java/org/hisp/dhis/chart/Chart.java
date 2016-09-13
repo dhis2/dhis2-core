@@ -80,7 +80,7 @@ public class Chart
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
         I18nFormat format )
     {
-        this.user = user;
+        this.relativeUser = user;
         this.relativePeriodDate = date;
         this.relativeOrganisationUnit = organisationUnit;
         this.organisationUnitsAtLevel = organisationUnitsAtLevel;
@@ -95,7 +95,7 @@ public class Chart
     @Override
     public List<DimensionalItemObject> series()
     {
-        DimensionalObject object = getDimensionalObject( series, relativePeriodDate, user, true,
+        DimensionalObject object = getDimensionalObject( series, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         return object != null ? object.getItems() : null;
@@ -104,7 +104,7 @@ public class Chart
     @Override
     public List<DimensionalItemObject> category()
     {
-        DimensionalObject object = getDimensionalObject( category, relativePeriodDate, user, true,
+        DimensionalObject object = getDimensionalObject( category, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         return object != null ? object.getItems() : null;

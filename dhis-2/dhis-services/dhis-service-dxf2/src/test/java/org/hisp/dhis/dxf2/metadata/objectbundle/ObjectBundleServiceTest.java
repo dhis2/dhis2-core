@@ -274,8 +274,6 @@ public class ObjectBundleServiceTest
 
         assertFalse( validate.getTypeReportMap().isEmpty() );
 
-        System.err.println( "V: " + validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5002 ) );
-
         assertEquals( 5, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E5002 ).size() );
         assertEquals( 3, validate.getErrorReportsByCode( DataElement.class, ErrorCode.E4000 ).size() );
     }
@@ -1301,6 +1299,53 @@ public class ObjectBundleServiceTest
     }
 
     @Test
+    public void testCreateMetadataWithDuplicateDataElementUid() throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/de_duplicate_uid.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setAtomicMode( AtomicMode.NONE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleValidationService.validate( bundle );
+
+        objectBundleService.commit( bundle );
+
+        assertEquals( 1, manager.getAll( DataElement.class ).size() );
+
+        DataElement dataElement = manager.get( DataElement.class, "CCwk5Yx440o" );
+        assertEquals( "CCwk5Yx440o", dataElement.getUid() );
+        assertEquals( "DataElementB", dataElement.getName() );
+    }
+
+    @Test
+    public void testCreateMetadataWithDuplicateDataElementUidALL() throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/de_duplicate_uid.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleValidationService.validate( bundle );
+
+        objectBundleService.commit( bundle );
+
+        assertEquals( 0, manager.getAll( DataElement.class ).size() );
+    }
+
+    @Test
     public void testCreateOrgUnitWithLevels() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
@@ -1380,6 +1425,59 @@ public class ObjectBundleServiceTest
 
         assertNotNull( section1.getDataSet() );
         assertNotNull( section2.getDataSet() );
+    }
+
+    @Test
+    public void testCreateOrgUnitWithPersistedParent() throws IOException
+    {
+        OrganisationUnit parentOu = createOrganisationUnit( 'A' );
+        parentOu.setUid( "ImspTQPwCqd" );
+        manager.save( parentOu );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/orgunit_create_with_persisted_parent.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleValidationService.validate( bundle );
+        objectBundleService.commit( bundle );
+
+        assertEquals( 3, manager.getAll( OrganisationUnit.class ).size() );
+
+        assertNull( manager.get( OrganisationUnit.class, "ImspTQPwCqd" ).getParent() );
+
+        assertNotNull( manager.get( OrganisationUnit.class, "bFzxXwTkSWA" ).getParent() );
+        assertEquals( "ImspTQPwCqd", manager.get( OrganisationUnit.class, "bFzxXwTkSWA" ).getParent().getUid() );
+
+        assertNotNull( manager.get( OrganisationUnit.class, "B8eJEMldsP7" ).getParent() );
+        assertEquals( "bFzxXwTkSWA", manager.get( OrganisationUnit.class, "B8eJEMldsP7" ).getParent().getUid() );
+    }
+
+    @Test
+    public void testCreateOrgUnitWithTranslations() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/ou_with_translation.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setAtomicMode( AtomicMode.ALL );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        OrganisationUnit root = manager.get( OrganisationUnit.class, "inVD5SdytkT" );
+        assertNull( root.getParent() );
+        assertEquals( 3, root.getChildren().size() );
+        assertEquals( 1, root.getTranslations().size() );
     }
 
     private void defaultSetup()

@@ -159,7 +159,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
             if ( FlushMode.AUTO == bundle.getFlushMode() ) session.flush();
         }
 
-        objectBundleHooks.forEach( hook -> hook.postImport( bundle ) );
+        if ( !bundle.getImportMode().isDelete() )
+        {
+            objectBundleHooks.forEach( hook -> hook.postImport( bundle ) );
+        }
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
@@ -190,10 +193,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getTaskId(), message );
         }
 
-        for ( IdentifiableObject object : objects )
-        {
-            objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) );
-        }
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle ) ) );
 
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
@@ -244,22 +244,21 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getTaskId(), message );
         }
 
-        for ( IdentifiableObject object : objects )
+        objects.forEach( object ->
         {
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
             objectBundleHooks.forEach( hook -> hook.preUpdate( object, persistedObject, bundle ) );
-        }
+        } );
 
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
             IdentifiableObject object = objects.get( idx );
+            IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
             if ( Preheat.isDefault( object ) ) continue;
 
             ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
             typeReport.addObjectReport( objectReport );
-
-            IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
             preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 

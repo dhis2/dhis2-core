@@ -467,9 +467,9 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.mapping.MapLayerStore"
-    class="org.hisp.dhis.mapping.hibernate.HibernateMapLayerStore">
-    <property name="clazz" value="org.hisp.dhis.mapping.MapLayer" />
+  <bean id="org.hisp.dhis.mapping.ExternalMapLayerStore"
+    class="org.hisp.dhis.mapping.hibernate.HibernateExternalMapLayerStore">
+    <property name="clazz" value="org.hisp.dhis.mapping.ExternalMapLayer" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
@@ -506,6 +506,12 @@
   <bean id="org.hisp.dhis.program.ProgramIndicatorStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramIndicatorStore">
     <property name="clazz" value="org.hisp.dhis.program.ProgramIndicator" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramIndicatorGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramIndicatorGroup" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
@@ -739,6 +745,11 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceStore" class="org.hisp.dhis.fileresource.hibernate.HibernateExternalFileResourceStore">
+    <property name="clazz" value="org.hisp.dhis.fileresource.ExternalFileResource" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
   <bean id="org.hisp.dhis.fileresource.FileResourceContentStore" class="org.hisp.dhis.fileresource.JCloudsFileResourceContentStore">
     <property name="configurationProvider" ref="dhisConfigurationProvider" />
     <property name="locationManager" ref="locationManager" />
@@ -766,6 +777,10 @@
     <property name="fileResourceContentStore" ref="org.hisp.dhis.fileresource.FileResourceContentStore" />
     <property name="scheduler" ref="scheduler" />
     <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
+  </bean>
+
+  <bean id="org.hisp.dhis.fileresource.ExternalFileResourceService" class="org.hisp.dhis.fileresource.DefaultExternalFileResourceService">
+    <property name="externalFileResourceStore" ref="org.hisp.dhis.fileresource.ExternalFileResourceStore" />
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementOperandService" class="org.hisp.dhis.dataelement.DefaultDataElementOperandService">
@@ -1019,7 +1034,7 @@
   <bean id="org.hisp.dhis.mapping.MappingService" class="org.hisp.dhis.mapping.DefaultMappingService">
     <property name="mapStore" ref="org.hisp.dhis.mapping.MapStore" />
     <property name="mapViewStore" ref="org.hisp.dhis.mapping.MapViewStore" />
-    <property name="mapLayerStore" ref="org.hisp.dhis.mapping.MapLayerStore" />
+    <property name="externalMapLayerStore" ref="org.hisp.dhis.mapping.ExternalMapLayerStore" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
@@ -1116,6 +1131,7 @@
         <value>peru</value>
         <value>psi</value>
         <value>rwanda</value>
+        <value>save_the_children</value>
         <value>senegal</value>
         <value>sierra_leone</value>
         <value>sierra_leone_coat_of_arms</value>
@@ -1268,6 +1284,7 @@
     <property name="attributeService" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
     <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
     <property name="statementBuilder" ref="statementBuilder" />
+    <property name="programIndicatorGroupStore" ref="org.hisp.dhis.program.ProgramIndicatorGroupStore" />
   </bean>
 
   <bean id="org.hisp.dhis.relationship.RelationshipService" class="org.hisp.dhis.relationship.DefaultRelationshipService">

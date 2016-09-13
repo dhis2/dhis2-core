@@ -32,6 +32,8 @@ package org.hisp.dhis.dxf2.datavalue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -89,13 +91,27 @@ public class DataValue
         String creat = getCreated();
         return creat != null && !creat.isEmpty();
     }
+    
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "dataElement", dataElement )
+            .add( "period", period )
+            .add( "orgUnit", orgUnit )
+            .add( "categoryOptionCombo", categoryOptionCombo )
+            .add( "attributeOptionCombo", attributeOptionCombo )
+            .add( "value", value )
+            .add( "comment", comment )
+            .toString();
+    }
 
     //--------------------------------------------------------------------------
     // Getters and setters
     //--------------------------------------------------------------------------
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getDataElement()
     {
         return dataElement;
@@ -107,7 +123,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getPeriod()
     {
         return period;
@@ -119,7 +135,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getOrgUnit()
     {
         return orgUnit;
@@ -131,7 +147,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getCategoryOptionCombo()
     {
         return categoryOptionCombo;
@@ -143,7 +159,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getAttributeOptionCombo()
     {
         return attributeOptionCombo;
@@ -155,7 +171,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getValue()
     {
         return value;
@@ -167,7 +183,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getStoredBy()
     {
         return storedBy;
@@ -179,7 +195,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getCreated()
     {
         return created;
@@ -191,7 +207,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getLastUpdated()
     {
         return lastUpdated;
@@ -203,7 +219,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public String getComment()
     {
         return comment;
@@ -215,7 +231,7 @@ public class DataValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( isAttribute = true )
     public Boolean getFollowup()
     {
         return followup;

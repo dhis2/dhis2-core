@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping.hibernate;
+package org.hisp.dhis.trackedentity.action.programindicatorgroup;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,46 +28,47 @@ package org.hisp.dhis.mapping.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.mapping.MapLayer;
-import org.hisp.dhis.mapping.MapLayerStore;
-
-import java.util.List;
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.program.ProgramIndicatorGroup;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Jan Henrik Overland
+ * @author Viet Nguyen
  */
-public class HibernateMapLayerStore
-    extends HibernateIdentifiableObjectStore<MapLayer>
-    implements MapLayerStore
+public class RemoveProgramIndicatorGroupAction
+    implements Action
 {
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<MapLayer> getMapLayersByType( String type )
-    {
-        Criteria criteria = getSession().createCriteria( MapLayer.class );
-        criteria.add( Restrictions.eq( "type", type ) );
+    // -------------------------------------------------------------------------
+    // Dependency
+    // -------------------------------------------------------------------------
 
-        return criteria.list();
+    @Autowired
+    private ProgramIndicatorService programIndicatorService;
+
+    // -------------------------------------------------------------------------
+    // Input/Output
+    // -------------------------------------------------------------------------
+
+    private int id;
+
+    public void setId( int id )
+    {
+        this.id = id;
     }
 
-    @SuppressWarnings( "unchecked" )
-    public List<MapLayer> getMapLayersByMapSourceType( String mapSourceType )
-    {
-        Criteria criteria = getSession().createCriteria( MapLayer.class );
-        criteria.add( Restrictions.eq( "mapSourceType", mapSourceType ) );
-
-        return criteria.list();
-    }
+    // -------------------------------------------------------------------------
+    // Action implementation
+    // -------------------------------------------------------------------------
 
     @Override
-    public MapLayer getMapLayerByMapSource( String mapSource )
+    public String execute()
+        throws Exception
     {
-        Criteria criteria = getSession().createCriteria( MapLayer.class );
-        criteria.add( Restrictions.eq( "mapSource", mapSource ) );
+        ProgramIndicatorGroup programIndicatorGroup = programIndicatorService.getProgramIndicatorGroup( id );
 
-        return (MapLayer) criteria.uniqueResult();
+        programIndicatorService.deleteProgramIndicatorGroup( programIndicatorGroup );
+
+        return SUCCESS;
     }
 }

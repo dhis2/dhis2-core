@@ -30,11 +30,12 @@ package org.hisp.dhis.program;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -42,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.RegexUtils;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -50,7 +52,7 @@ import java.util.regex.Pattern;
  */
 @JacksonXmlRootElement( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicator
-    extends BaseDimensionalItemObject
+    extends BaseDataDimensionalItemObject
 {
     public static final String SEPARATOR_ID = "\\.";
     public static final String SEP_OBJECT = ":";
@@ -100,6 +102,8 @@ public class ProgramIndicator
 
     private Boolean displayInForm;
 
+    private Set<ProgramIndicatorGroup> groups = new HashSet<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -142,6 +146,34 @@ public class ProgramIndicator
         return Sets.union(
             RegexUtils.getMatches( DATAELEMENT_PATTERN, input, 2 ),
             RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 ) );
+    }
+
+    public void addProgramIndicatorGroup( ProgramIndicatorGroup group )
+    {
+        groups.add( group );
+        group.getMembers().add( this );
+    }
+
+    public void removeIndicatorGroup( ProgramIndicatorGroup group )
+    {
+        groups.remove( group );
+        group.getMembers().remove( this );
+    }
+
+    public void updateIndicatorGroups( Set<ProgramIndicatorGroup> updates )
+    {
+        for ( ProgramIndicatorGroup group : new HashSet<>( groups ) )
+        {
+            if ( !updates.contains( group ) )
+            {
+                removeIndicatorGroup( group );
+            }
+        }
+
+        for ( ProgramIndicatorGroup group : updates )
+        {
+            addProgramIndicatorGroup( group );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -217,6 +249,21 @@ public class ProgramIndicator
     public void setDisplayInForm( Boolean displayInForm )
     {
         this.displayInForm = displayInForm;
+    }
+
+
+    @JsonProperty( "programIndicatorGroups" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programIndicatorGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programIndicatorGroups", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramIndicatorGroup> getGroups()
+    {
+        return groups;
+    }
+
+    public void setGroups( Set<ProgramIndicatorGroup> groups )
+    {
+        this.groups = groups;
     }
 
     @Override

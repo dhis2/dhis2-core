@@ -29,27 +29,20 @@ package org.hisp.dhis.webapi.controller.event;
  */
 
 import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventreport.EventReport;
-import org.hisp.dhis.eventreport.EventReportService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.descriptors.EventReportSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
@@ -63,16 +56,7 @@ public class EventReportController
     extends AbstractCrudController<EventReport>
 {
     @Autowired
-    private EventReportService eventReportService;
-
-    @Autowired
     private DimensionService dimensionService;
-
-    @Autowired
-    private ProgramService programService;
-
-    @Autowired
-    private ProgramStageService programStageService;
 
     @Autowired
     private I18nManager i18nManager;
@@ -82,41 +66,12 @@ public class EventReportController
     //--------------------------------------------------------------------------
 
     @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    protected EventReport deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
-        EventReport eventReport = deserializeJsonEntity( request, response );
-        eventReport.getTranslations().clear();
-
+        EventReport eventReport = super.deserializeJsonEntity( request, response );
         mergeEventReport( eventReport );
 
-        eventReportService.saveEventReport( eventReport );
-
-        response.addHeader( "Location", EventReportSchemaDescriptor.API_ENDPOINT + "/" + eventReport.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Event report created" ), response, request );
-    }
-
-    @Override
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
-    public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        EventReport eventReport = eventReportService.getEventReport( uid );
-
-        if ( eventReport == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Event report does not exist: " + uid ) );
-        }
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-
-        EventReport newReport = deserializeJsonEntity( request, response );
-        newReport.setTranslations( eventReport.getTranslations() );
-
-        mergeEventReport( newReport );
-
-        eventReport.mergeWith( newReport, params.getMergeMode() );
-
-        eventReportService.updateEventReport( eventReport );
+        return eventReport;
     }
 
     //--------------------------------------------------------------------------
@@ -163,15 +118,5 @@ public class EventReportController
         report.getColumnDimensions().addAll( getDimensions( report.getColumns() ) );
         report.getRowDimensions().addAll( getDimensions( report.getRows() ) );
         report.getFilterDimensions().addAll( getDimensions( report.getFilters() ) );
-
-        if ( report.getProgram() != null )
-        {
-            report.setProgram( programService.getProgram( report.getProgram().getUid() ) );
-        }
-
-        if ( report.getProgramStage() != null )
-        {
-            report.setProgramStage( programStageService.getProgramStage( report.getProgramStage().getUid() ) );
-        }
     }
 }

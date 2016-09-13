@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 
 /**
  * Configurable mock implementation of AnalyticsService for testing purposes.
@@ -62,6 +63,12 @@ public class MockAnalyticsService
         throw new NotImplementedException( "" );
     }
 
+    @Override
+    public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
+    {
+        throw new NotImplementedException( "" );
+    }
+    
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {

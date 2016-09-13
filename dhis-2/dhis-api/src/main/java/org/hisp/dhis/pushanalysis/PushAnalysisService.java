@@ -28,6 +28,7 @@ package org.hisp.dhis.pushanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.user.User;
 
 /**
@@ -35,15 +36,36 @@ import org.hisp.dhis.user.User;
  */
 public interface PushAnalysisService
 {
+    /**
+     * Returns a PushAnalysis with the given UID
+     * @param uid uid of the PushAnalysis
+     * @return PushAnalysis
+     */
     PushAnalysis getByUid( String uid );
 
-    boolean stopPushAnalysis( PushAnalysis pushAnalysis );
-
-    boolean startPushAnalysis( PushAnalysis pushAnalysis );
-
-    void runPushAnalysis( PushAnalysis pushAnalysis );
-
-    String generatePushAnalysisForUser( User user, PushAnalysis pushAnalysis )
+    /**
+     * Returns a String, consisting of HTML representing the PushAnalysis report.
+     * This report is generated based on the associated Dashboard, as well as the user supplied
+     * @param pushAnalysis PushAnalysis to generate report from
+     * @param user User to base data on
+     * @param taskId TaskId to track process
+     * @return String containing a HTML report
+     * @throws
+     */
+    String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
         throws Exception;
 
+    /**
+     * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,
+     * using generateHtmlReport to generate the reports for each individual user in the UserGroups.
+     * @param id of the PushAnalysis
+     * @param taskId to track process
+     */
+    void runPushAnalysis( int id, TaskId taskId );
+
+    /**
+     * Runs all PushAnalysis in the database. Skips disabled PushAnalysis.
+     * @param taskId to track process
+     */
+    void runAllPushAnalysis( TaskId taskId );
 }

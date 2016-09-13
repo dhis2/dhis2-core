@@ -31,10 +31,11 @@ package org.hisp.dhis.program.message;
 import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 
@@ -43,19 +44,23 @@ import org.hisp.dhis.common.ValueType;
  */
 public abstract class DeliveryChannelStrategy
 {
-    private static final Log log = LogFactory.getLog( DeliveryChannelStrategy.class );
+    @Autowired
+    protected OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    protected TrackedEntityInstanceService trackedEntityInstanceService;
 
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------
-    
-    protected abstract ProgramMessage fillAttributes( ProgramMessage message );
-
-    protected abstract void validate( ProgramMessage message );
 
     protected abstract DeliveryChannel getDeliveryChannel();
 
-    protected abstract String getOrgnisationUnitRecipient( OrganisationUnit orgUnit );
+    protected abstract ProgramMessage setAttributes( ProgramMessage message );
+
+    protected abstract void validate( ProgramMessage message );
+
+    protected abstract String getOrganisationUnitRecipient( OrganisationUnit orgUnit );
     
     // -------------------------------------------------------------------------
     // Public methods
@@ -67,14 +72,49 @@ public abstract class DeliveryChannelStrategy
 
         for ( TrackedEntityAttributeValue value : attributeValues )
         {
-            if ( value.getAttribute().getValueType().equals( type ) )
+            if ( value != null && value.getAttribute().getValueType().equals( type ) &&
+                value.getPlainValue() != null && !value.getPlainValue().trim().isEmpty() )
             {
                 return value.getPlainValue();
             }
         }
 
-        log.error( "TrackedEntity does not have " + type.toString() );
+        throw new IllegalQueryException( "Tracked entity does not have any attribute of value type: " + type.toString() );
+    }
 
-        throw new IllegalQueryException( "TrackedEntity does not have " + type.toString() );
+    // -------------------------------------------------------------------------
+    // Public methods
+    // -------------------------------------------------------------------------
+    
+    protected TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
+    {
+        if ( message.getRecipients().getTrackedEntityInstance() == null )
+        {
+            return null;
+        }
+
+        String uid = message.getRecipients().getTrackedEntityInstance().getUid();
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( uid );
+
+        message.getRecipients().setTrackedEntityInstance( tei );
+
+        return tei;
+    }
+
+    protected OrganisationUnit getOrganisationUnit( ProgramMessage message )
+    {
+        if ( message.getRecipients().getOrganisationUnit() == null )
+        {
+            return null;
+        }
+
+        String uid = message.getRecipients().getOrganisationUnit().getUid();
+
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( uid );
+
+        message.getRecipients().setOrganisationUnit( orgUnit );
+
+        return orgUnit;
     }
 }
