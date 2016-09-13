@@ -43,6 +43,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskCategory;
@@ -53,6 +54,7 @@ import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -60,7 +62,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.*;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
@@ -72,6 +74,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author Stian Sandvold
@@ -87,6 +90,9 @@ public class DefaultPushAnalysisService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private Scheduler scheduler;
 
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
@@ -120,12 +126,30 @@ public class DefaultPushAnalysisService
     }
 
     //----------------------------------------------------------------------
-    // Listener to populate scheduler
+    // Scheduling methods
     //----------------------------------------------------------------------
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent event)
     {
         log.info( "### ### CONTEXT REFRESHED!!" );
+
+        List<PushAnalysis> pushAnalyses = pushAnalysisStore.getAll();
+
+        for(PushAnalysis pushAnalysis : pushAnalyses)
+        {
+            scheduler.refreshTask(
+                pushAnalysis.getSchedulingKey(),
+                new PushAnalysisTask(
+                    pushAnalysis.getId(),
+                    new TaskId(
+                        TaskCategory.PUSH_ANALYSIS,
+                        currentUserService.getCurrentUser()
+                    ),
+                    this
+                ),
+                pushAnalysis.getCronExpression()
+            );
+        }
     }
 
     //----------------------------------------------------------------------

@@ -203,4 +203,9 @@ public class PushAnalysis
     {
         this.cronExpression = cronExpression;
     }
+
+    public String getSchedulingKey()
+    {
+        return "PushAnalysis:" + getUid();
+    }
 }
