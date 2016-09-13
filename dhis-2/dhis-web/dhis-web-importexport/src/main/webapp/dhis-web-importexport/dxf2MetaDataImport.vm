@@ -58,10 +58,6 @@
 </tr>
 <tr>
 	<td></td>
-	<td><a href="javascript:toggleOptions()">$i18n.getString( "more_options" )</a></td>
-</tr>
-<tr>
-	<td></td>
 	<td><input type="button" value="$i18n.getString( 'import' )" style="width:120px" onclick="importMetaData()"/></td>
 </tr>
 </table>
