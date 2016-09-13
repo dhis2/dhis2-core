@@ -1338,7 +1338,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         return processedValue;
     };
 
-    var pushVariable = function(variables, variablename, varValue, allValues, varType, variablefound, variablePrefix, variableEventDate) {
+    var pushVariable = function(variables, variablename, varValue, allValues, varType, variablefound, variablePrefix, variableEventDate, useCodeForOptionSet) {
 
         var processedValues = [];
 
@@ -1348,6 +1348,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
         variables[variablename] = {
             variableValue:processSingleValue(varValue, varType),
+            useCodeForOptionSet:useCodeForOptionSet,
             variableType:varType,
             hasValue:variablefound,
             variableEventDate:variableEventDate,
@@ -1357,8 +1358,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         return variables;
     };
     
-    var getDataElementValueOrCode = function(programVariable, event, dataElementId, allDes, optionSets) {
-        return programVariable.useCodeForOptionSet && allDes[dataElementId].dataElement.optionSet ? 
+    var getDataElementValueOrCode = function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
+        return useCodeForOptionSet && allDes && allDes[dataElementId].dataElement.optionSet ? 
                                             OptionSetService.getCode(optionSets[allDes[dataElementId].dataElement.optionSet.id].options, event[dataElementId])
                                             : event[dataElementId];
     };
@@ -1366,6 +1367,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     return {
         processValue: function(value, type) {
             return processSingleValue(value,type);
+        },
+        getDataElementValueOrCode: function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
+            return getDataElementValueOrCode(useCodeForOptionSet, event, dataElementId, allDes, optionSets);
         },
         getVariables: function(allProgramRules, executingEvent, evs, allDes, selectedEntity, selectedEnrollment, optionSets) {
 
@@ -1400,11 +1404,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(event[dataElementId] !== null) {
                                 if(angular.isDefined(event[dataElementId])
                                         && event[dataElementId] !== ""){
-                                    var value = getDataElementValueOrCode(programVariable, event, dataElementId, allDes, optionSets);
+                                    var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
                                             
                                     allValues.push(value);
                                     valueFound = true;
-                                    variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate);
+                                    variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate, programVariable.useCodeForOptionSet);
                                 }
                             }
                         });
@@ -1420,11 +1424,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         if(angular.isDefined(event[dataElementId])
                             && event[dataElementId] !== null 
                             && event[dataElementId] !== ""){
-                            var value = getDataElementValueOrCode(programVariable, event, dataElementId, allDes, optionSets);
+                            var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
                                     
                             allValues.push(value);
                             valueFound = true;
-                            variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate);
+                            variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate, programVariable.useCodeForOptionSet);
                         }
                     });
                 }
@@ -1432,10 +1436,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     if(angular.isDefined(executingEvent[dataElementId])
                         && executingEvent[dataElementId] !== null 
                         && executingEvent[dataElementId] !== ""){
-                        var value = getDataElementValueOrCode(programVariable, executingEvent, dataElementId, allDes, optionSets);
+                        var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, executingEvent, dataElementId, allDes, optionSets);
                             
                         valueFound = true;
-                        variables = pushVariable(variables, programVariable.displayName, value, null, allDes[dataElementId].dataElement.valueType, valueFound, '#', executingEvent.eventDate );
+                        variables = pushVariable(variables, programVariable.displayName, value, null, allDes[dataElementId].dataElement.valueType, valueFound, '#', executingEvent.eventDate, programVariable.useCodeForOptionSet );
                     }
                 }
                 else if(programVariable.programRuleVariableSourceType === "DATAELEMENT_PREVIOUS_EVENT" && evs){
@@ -1451,7 +1455,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(!currentEventPassed && evs.all[i] !== executingEvent &&
                                 angular.isDefined(evs.all[i][dataElementId])
                                 && evs.all[i][dataElementId] !== "") {
-                                previousvalue = getDataElementValueOrCode(programVariable, evs.all[i], dataElementId, allDes, optionSets);
+                                previousvalue = getDataElementValueOrCode(programVariable.useCodeForOptionSet, evs.all[i], dataElementId, allDes, optionSets);
                                 previousEventDate = evs.all[i].eventDate;
                                 allValues.push(value);
                                 valueFound = true;
@@ -1459,7 +1463,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             else if(evs.all[i] === executingEvent) {
                                 //We have iterated to the newest event - store the last collected variable value - if any is found:
                                 if(valueFound) {
-                                    variables = pushVariable(variables, programVariable.displayName, previousvalue, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', previousEventDate);
+                                    variables = pushVariable(variables, programVariable.displayName, previousvalue, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', previousEventDate, programVariable.useCodeForOptionSet);
                                 }
                                 //Set currentEventPassed, ending the iteration:
                                 currentEventPassed = true;
@@ -1483,7 +1487,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     null, 
                                     attribute.type ? attribute.type : attribute.valueType, valueFound, 
                                     'A', 
-                                    '' );
+                                    '',
+                                    programVariable.useCodeForOptionSet);
                             }
                         }
                     });
@@ -1506,43 +1511,43 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     if(dataElementId && allDes) {
                         var dataElement = allDes[dataElementId];
                         if( dataElement ) {
-                            variables = pushVariable(variables, programVariable.displayName, "", null, dataElement.dataElement.valueType, false, '#', '' );
+                            variables = pushVariable(variables, programVariable.displayName, "", null, dataElement.dataElement.valueType, false, '#', '', programVariable.useCodeForOptionSet );
                         }
                         else {
                             $log.warn("Variable #{" + programVariable.displayName + "} is linked to a dataelement that is not part of the program");
-                            variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '' );
+                            variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '', programVariable.useCodeForOptionSet );
                         }
                     }
                     else if (programVariable.trackedEntityAttribute) {
                         //The variable is an attribute, set correct prefix and a blank value
-                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, 'A', '' );
+                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, 'A', '', programVariable.useCodeForOptionSet );
                     }
                     else {
                         //Fallback for calculated(assigned) values:
-                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '' );
+                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '', programVariable.useCodeForOptionSet );
                     }
                 }
             });
 
             //add context variables:
             //last parameter "valuefound" is always true for event date
-            variables = pushVariable(variables, 'current_date', DateUtils.getToday(), null, 'DATE', true, 'V', '' );
+            variables = pushVariable(variables, 'current_date', DateUtils.getToday(), null, 'DATE', true, 'V', '', false );
 
-            variables = pushVariable(variables, 'event_date', executingEvent.eventDate, null, 'DATE', true, 'V', '' );
+            variables = pushVariable(variables, 'event_date', executingEvent.eventDate, null, 'DATE', true, 'V', '', false );
             variables = pushVariable(variables, 'due_date', executingEvent.dueDate, null, 'DATE', true, 'V', '' );
-            variables = pushVariable(variables, 'event_count', evs ? evs.all.length : 0, null, 'INTEGER', true, 'V', '' );
+            variables = pushVariable(variables, 'event_count', evs ? evs.all.length : 0, null, 'INTEGER', true, 'V', '', false );
 
-            variables = pushVariable(variables, 'enrollment_date', selectedEnrollment ? selectedEnrollment.enrollmentDate : '', null, 'DATE', selectedEnrollment ? true : false, 'V', '' );
-            variables = pushVariable(variables, 'enrollment_id', selectedEnrollment ? selectedEnrollment.enrollment : '', null, 'TEXT',  selectedEnrollment ? true : false, 'V', '');
-            variables = pushVariable(variables, 'event_id', executingEvent ? executingEvent.event : '', null, 'TEXT',  executingEvent ? true : false, 'V', executingEvent ? executingEvent.eventDate : false);
+            variables = pushVariable(variables, 'enrollment_date', selectedEnrollment ? selectedEnrollment.enrollmentDate : '', null, 'DATE', selectedEnrollment ? true : false, 'V', '', false );
+            variables = pushVariable(variables, 'enrollment_id', selectedEnrollment ? selectedEnrollment.enrollment : '', null, 'TEXT',  selectedEnrollment ? true : false, 'V', '', false );
+            variables = pushVariable(variables, 'event_id', executingEvent ? executingEvent.event : '', null, 'TEXT',  executingEvent ? true : false, 'V', executingEvent ? executingEvent.eventDate : false, false);
 
-            variables = pushVariable(variables, 'incident_date', selectedEnrollment ? selectedEnrollment.incidentDate : '', null, 'DATE',  selectedEnrollment ? true : false, 'V', '');
-            variables = pushVariable(variables, 'enrollment_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '');
-            variables = pushVariable(variables, 'tei_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '');
+            variables = pushVariable(variables, 'incident_date', selectedEnrollment ? selectedEnrollment.incidentDate : '', null, 'DATE',  selectedEnrollment ? true : false, 'V', '', false);
+            variables = pushVariable(variables, 'enrollment_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '', false);
+            variables = pushVariable(variables, 'tei_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '', false);
 
             //Push all constant values:
             angular.forEach(allProgramRules.constants, function(constant){
-                variables = pushVariable(variables, constant.id, constant.value, null, 'INTEGER', true, 'C', '');
+                variables = pushVariable(variables, constant.id, constant.value, null, 'INTEGER', true, 'C', '', false);
             });
 
             return variables;
@@ -2386,34 +2391,37 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         //In case the rule is of type "assign variable" and the rule is effective,
                         //the variable data result needs to be applied to the correct variable:
                         else if($rootScope.ruleeffects[ruleEffectKey][action.id].action === "ASSIGN" && $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect){
-                            //from earlier evaluation, the data portion of the ruleeffect now contains the value of the variable to be assign.
-                            //the content portion of the ruleeffect defines the name for the variable, when dollar is removed:
+                            //from earlier evaluation, the data portion of the ruleeffect now contains the value of the variable to be assigned.
+                            //the content portion of the ruleeffect defines the name for the variable, when the qualidisers are removed:
                             var variabletoassign = $rootScope.ruleeffects[ruleEffectKey][action.id].content ?
                                 $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("}","") : null;
 
-                            if((!variabletoassign || !angular.isDefined(variablesHash[variabletoassign])) && !$rootScope.ruleeffects[ruleEffectKey][action.id].dataElement){
+                            if(variabletoassign || !angular.isDefined(variablesHash[variabletoassign])){
+                                //If a variable is mentioned in the content of the rule, but does not exist in the variables hash, show a warning:
                                 $log.warn("Variable " + variabletoassign + " was not defined.");
                             }
 
-                            var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
-
-                            //Even if the variable is not defined: we assign it:
                             if(variablesHash[variabletoassign] &&
                                 variablesHash[variabletoassign].variableValue !== updatedValue){
                                 //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
                                 updatedEffectsExits = true;
-                                //Then we assign the new value:
+                                
+                                var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
+                                
                                 var valueType = determineValueType(updatedValue);
-
-                                var processedValue = VariableService.processValue(updatedValue, valueType);
+                                
+                                if($rootScope.ruleeffects[ruleEffectKey][action.id].dataElement) {
+                                    updatedValue = VariableService.getDataElementValueOrCode(variablesHash[variabletoassign].useCodeForOptionSet, executingEvent, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
+                                }
+                                updatedValue = VariableService.processValue(updatedValue, valueType);
 
                                 variablesHash[variabletoassign] = {
-                                    variableValue:processedValue,
+                                    variableValue:updatedValue,
                                     variableType:valueType,
                                     hasValue:true,
                                     variableEventDate:'',
                                     variablePrefix:'#',
-                                    allValues:[processedValue]
+                                    allValues:[updatedValue]
                                 };
                             }
                         }
