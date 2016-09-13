@@ -92,10 +92,6 @@ public interface OptionService
 
     void deleteOptionGroup( OptionGroup group );
 
-    List<OptionGroup> getOptionGroupsBetween( int first, int max );
-
-    List<OptionGroup> getOptionGroupsBetweenByName( int first, int max, String name );
-
     List<OptionGroup> getAllOptionGroups();
 
     List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
@@ -126,15 +122,7 @@ public interface OptionService
 
     void deleteOptionGroupSet( OptionGroupSet group );
 
-    List<OptionGroupSet> getOptionGroupSetsBetween( int first, int max );
-
-    List<OptionGroupSet> getOptionGroupSetsBetweenByName( int first, int max, String name );
-
     List<OptionGroupSet> getAllOptionGroupSets();
-
-    List<OptionGroupSet> getDisaggregationOptionGroupSetsNoAcl();
-
-    List<OptionGroupSet> getAttributeOptionGroupSetsNoAcl();
 
     OptionGroupSet getOptionGroupSetByName( String name );
 

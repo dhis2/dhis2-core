@@ -42,8 +42,6 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.HashSet;
@@ -52,7 +50,7 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement( localName = "optionGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class OptionGroup
     extends BaseDimensionalItemObject
 
@@ -60,8 +58,6 @@ public class OptionGroup
     private Set<Option> members = new HashSet<>();
 
     private String description;
-
-    private OptionGroupSet groupSet;
 
     private DataDimensionType dataDimensionType;
 
@@ -96,30 +92,28 @@ public class OptionGroup
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 1 )
-    public String getDescription() { return description; }
+    public String getDescription()
+    {
+        return description;
+    }
 
-    public void setDescription( String description ) { this.description = description; }
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
 
     @JsonProperty( "options" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "options", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Option> getMembers() { return members; }
-
-    public void setMembers( Set<Option> members ) { this.members = members; }
-
-    @JsonProperty( "optionGroupSet" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Required.FALSE )
-    public OptionGroupSet getGroupSet()
+    public Set<Option> getMembers()
     {
-        return groupSet;
+        return members;
     }
 
-    public void setGroupSet( OptionGroupSet groupSet )
+    public void setMembers( Set<Option> members )
     {
-        this.groupSet = groupSet;
+        this.members = members;
     }
 
     @JsonProperty
@@ -178,16 +172,14 @@ public class OptionGroup
 
         if ( other.getClass().isInstance( this ) )
         {
-            OptionGroup optionGroup = ( OptionGroup ) other;
+            OptionGroup optionGroup = (OptionGroup) other;
 
             if ( mergeMode.isReplace() )
             {
-                groupSet = optionGroup.getGroupSet();
                 dataDimensionType = optionGroup.getDataDimensionType();
             }
             else if ( mergeMode.isMerge() )
             {
-                groupSet = optionGroup.getGroupSet() == null ? groupSet : optionGroup.getGroupSet();
                 dataDimensionType = optionGroup.getDataDimensionType() == null ? dataDimensionType : optionGroup.getDataDimensionType();
             }
 

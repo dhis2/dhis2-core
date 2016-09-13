@@ -59,11 +59,6 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <join table="optiongroupsetmembers" inverse="true">
-      <key column="optiongroupid" />
-      <many-to-one column="optiongroupsetid" name="groupSet" />
-    </join>
-
   </class>
 
 

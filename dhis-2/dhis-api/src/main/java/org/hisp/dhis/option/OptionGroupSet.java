@@ -62,6 +62,8 @@ public class OptionGroupSet
 
     private DataDimensionType dataDimensionType;
 
+    private OptionSet optionSet;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -105,6 +107,19 @@ public class OptionGroupSet
         this.dataDimensionType = dataDimensionType;
     }
 
+    @JsonProperty( "optionSet" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "optionSet", namespace = DxfNamespaces.DXF_2_0 )
+    public OptionSet getOptionSet()
+    {
+        return optionSet;
+    }
+
+    public void setOptionSet( OptionSet optionSet )
+    {
+        this.optionSet = optionSet;
+    }
+
     // -------------------------------------------------------------------------
     // Dimensional object
     // -------------------------------------------------------------------------
@@ -145,25 +160,15 @@ public class OptionGroupSet
     public void addOptionGroup( OptionGroup optionGroup )
     {
         members.add( optionGroup );
-        optionGroup.setGroupSet( this );
     }
 
     public void removeOptionGroup( OptionGroup optionGroup )
     {
         members.remove( optionGroup );
-        optionGroup.setGroupSet( null );
     }
 
     public void removeAllOptionGroups()
     {
-        for ( OptionGroup optionGroup : members )
-        {
-            if ( optionGroup.getGroupSet() != null && optionGroup.getGroupSet().equals( this ) )
-            {
-                optionGroup.setGroupSet( null );
-            }
-        }
-
         members.clear();
     }
 
@@ -217,11 +222,13 @@ public class OptionGroupSet
 
             if ( mergeMode.isReplace() )
             {
+                optionSet = optionGroupSet.getOptionSet();
                 dataDimensionType = optionGroupSet.getDataDimensionType();
             }
             else if ( mergeMode.isMerge() )
             {
                 dataDimensionType = optionGroupSet.getDataDimensionType() == null ? dataDimensionType : optionGroupSet.getDataDimensionType();
+                optionSet = optionGroupSet.getOptionSet() == null ? optionSet : optionGroupSet.getOptionSet();
             }
 
             members.clear();

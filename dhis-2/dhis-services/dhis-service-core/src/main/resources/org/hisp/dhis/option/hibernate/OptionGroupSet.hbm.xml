@@ -31,6 +31,8 @@
 
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
 
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" foreign-key="fk_optiongroupset_optionsetid" />
+
     <!-- Object Translation -->
     <set name="translations" table="optiongroupsettranslations" cascade="delete-orphan">
       <cache usage="read-write" />

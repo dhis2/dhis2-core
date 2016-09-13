@@ -30,10 +30,7 @@ package org.hisp.dhis.option;
  *
  */
 
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
-
-import java.util.List;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -41,5 +38,4 @@ import java.util.List;
 public interface OptionGroupSetStore
     extends GenericDimensionalObjectStore<OptionGroupSet>
 {
-    List<OptionGroupSet> getOptionGroupSetsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }

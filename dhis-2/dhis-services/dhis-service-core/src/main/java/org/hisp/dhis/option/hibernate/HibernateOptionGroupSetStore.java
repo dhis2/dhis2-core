@@ -30,13 +30,9 @@ package org.hisp.dhis.option.hibernate;
  *
  */
 
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupSetStore;
-
-import java.util.List;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -45,12 +41,4 @@ public class HibernateOptionGroupSetStore
     extends HibernateIdentifiableObjectStore<OptionGroupSet>
     implements OptionGroupSetStore
 {
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<OptionGroupSet> getOptionGroupSetsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
-    {
-        return getCriteria(
-            Restrictions.eq( "dataDimensionType", dataDimensionType ),
-            Restrictions.eq( "dataDimension", dataDimension ) ).list();
-    }
 }

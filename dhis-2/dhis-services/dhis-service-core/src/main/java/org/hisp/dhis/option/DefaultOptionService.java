@@ -28,7 +28,6 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,16 +88,28 @@ public class DefaultOptionService
     }
 
     @Override
-    public OptionSet getOptionSet( int id ) { return optionSetStore.get( id ); }
+    public OptionSet getOptionSet( int id )
+    {
+        return optionSetStore.get( id );
+    }
 
     @Override
-    public OptionSet getOptionSet( String uid ) { return optionSetStore.getByUid( uid ); }
+    public OptionSet getOptionSet( String uid )
+    {
+        return optionSetStore.getByUid( uid );
+    }
 
     @Override
-    public OptionSet getOptionSetByName( String name ) { return optionSetStore.getByName( name ); }
+    public OptionSet getOptionSetByName( String name )
+    {
+        return optionSetStore.getByName( name );
+    }
 
     @Override
-    public OptionSet getOptionSetByCode( String code ) { return optionSetStore.getByCode( code ); }
+    public OptionSet getOptionSetByCode( String code )
+    {
+        return optionSetStore.getByCode( code );
+    }
 
     @Override
     public void deleteOptionSet( OptionSet optionSet )
@@ -107,7 +118,10 @@ public class DefaultOptionService
     }
 
     @Override
-    public List<OptionSet> getAllOptionSets() { return optionSetStore.getAll() ; }
+    public List<OptionSet> getAllOptionSets()
+    {
+        return optionSetStore.getAll();
+    }
 
     // -------------------------------------------------------------------------
     // Option
@@ -147,23 +161,29 @@ public class DefaultOptionService
     @Override
     public void updateOption( Option option )
     {
-        optionStore.update( option ); 
+        optionStore.update( option );
     }
-    
-    @Override
-    public Option getOption( int id ) { return optionStore.get( id ); }
 
     @Override
-    public Option getOptionByCode( String code ) { return  optionStore.getByCode( code ) ; }
-    
+    public Option getOption( int id )
+    {
+        return optionStore.get( id );
+    }
+
+    @Override
+    public Option getOptionByCode( String code )
+    {
+        return optionStore.getByCode( code );
+    }
+
     @Override
     public List<Option> getOptions( OptionSet optionSet, String option, Integer min, Integer max )
     {
-        return optionStore.getOptions( optionSet, option, min, max ) ;
+        return optionStore.getOptions( optionSet, option, min, max );
     }
-    
+
     @Override
-    public void deleteOption( Option option  )
+    public void deleteOption( Option option )
     {
         optionStore.delete( option );
     }
@@ -206,18 +226,6 @@ public class DefaultOptionService
     public void deleteOptionGroup( OptionGroup group )
     {
         optionGroupStore.delete( group );
-    }
-
-    @Override
-    public List<OptionGroup> getOptionGroupsBetween( int first, int max )
-    {
-        return optionGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<OptionGroup> getOptionGroupsBetweenByName( int first, int max, String name )
-    {
-        return optionGroupStore.getAllLikeName( name, first, max );
     }
 
     @Override
@@ -311,33 +319,9 @@ public class DefaultOptionService
     }
 
     @Override
-    public List<OptionGroupSet> getOptionGroupSetsBetween( int first, int max )
-    {
-        return optionGroupSetStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<OptionGroupSet> getOptionGroupSetsBetweenByName( int first, int max, String name )
-    {
-        return optionGroupSetStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
     public List<OptionGroupSet> getAllOptionGroupSets()
     {
         return optionGroupSetStore.getAll();
-    }
-
-    @Override
-    public List<OptionGroupSet> getDisaggregationOptionGroupSetsNoAcl()
-    {
-        return optionGroupSetStore.getOptionGroupSetsNoAcl( DataDimensionType.DISAGGREGATION, true );
-    }
-
-    @Override
-    public List<OptionGroupSet> getAttributeOptionGroupSetsNoAcl()
-    {
-        return optionGroupSetStore.getOptionGroupSetsNoAcl( DataDimensionType.ATTRIBUTE, true );
     }
 
     @Override
@@ -357,5 +341,5 @@ public class DefaultOptionService
     {
         return optionGroupSetStore.getCountLikeName( name );
     }
-    
+
 }
