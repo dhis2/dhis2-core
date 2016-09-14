@@ -53,9 +53,6 @@ public class PushAnalysisTask
     @Override
     public void call()
     {
-        // TEMP
-
-        System.out.println("Testing PushAnalysis Scheduling!!");
-        // pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
     }
 }

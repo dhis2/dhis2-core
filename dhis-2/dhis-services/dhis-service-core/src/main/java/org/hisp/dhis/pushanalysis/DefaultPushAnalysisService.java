@@ -117,6 +117,8 @@ public class DefaultPushAnalysisService
     @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
 
+    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>(  );
+
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
     public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
@@ -186,6 +188,12 @@ public class DefaultPushAnalysisService
         //----------------------------------------------------------------------
 
         log( taskId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
+
+        if( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
+        {
+            log( taskId, NotificationLevel.ERROR, "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null);
+            return;
+        }
 
         if ( pushAnalysis == null )
         {
@@ -272,6 +280,8 @@ public class DefaultPushAnalysisService
         // Update lastRun date:
         pushAnalysis.setLastRun( new Date() );
         pushAnalysisStore.update( pushAnalysis );
+
+        setPushAnalysisIsRunningFlag( pushAnalysis, false );
     }
 
     @Override
@@ -489,4 +499,26 @@ public class DefaultPushAnalysisService
             break;
         }
     }
+
+    /**
+     * synchronized method for claiming and releasing a flag that indicates whether a given
+     * push analysis is currently running. This is to avoid race conditions from multiple api requests.
+     * when setting the flag to true (running), the method will return false if the flag is already set to true,
+     * indicating the push analysis is already running.
+     * @param pushAnalysis to run
+     * @param running indicates whether to claim (true) or release (false) flag.
+     * @return true if the flag was claimed or released, false if the flag was already claimed
+     */
+    private synchronized boolean setPushAnalysisIsRunningFlag( PushAnalysis pushAnalysis, boolean running )
+    {
+        if( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
+        {
+            return false;
+        }
+
+        pushAnalysisIsRunning.put( pushAnalysis, running );
+
+        return true;
+    }
+
 }
