@@ -175,7 +175,7 @@
     <option value="disabled">$i18n.getString( "disabled" )</option>
     <option value="everyMidNight"#if ( $smsSchedulerStrategy && $smsSchedulerStrategy == "everyMidNight" ) selected="selected"#end>$i18n.getString( "all_daily" )</option>
 </select>
-<input type="button" style="width:140px" onclick="window.location.href='executeTask.action?taskKey=sendScheduledMessageTaskNow'" value="$i18n.getString( 'Run Now' )"/>
+<input type="button" style="width:140px" onclick="window.location.href='executeTask.action?taskKey=sendScheduledMessageTaskNow'" value="$i18n.getString( 'run_now' )"/>
 </div>
 
 <!-- Program notifications -->
@@ -195,6 +195,7 @@
         <option value="dailySevenAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySevenAM" ) selected="selected"#end>${dailyStr} 7:00</option>
         <option value="dailyEightAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyEightAM" ) selected="selected"#end>${dailyStr} 8:00</option>
     </select>
+    <input type="button" style="width:140px" onclick="window.location.href='executeTask.action?taskKey=scheduledProgramNotificationsTask'" value="$i18n.getString( 'run_now' )"/>
 </div>
 
 <!-- Submit -->
