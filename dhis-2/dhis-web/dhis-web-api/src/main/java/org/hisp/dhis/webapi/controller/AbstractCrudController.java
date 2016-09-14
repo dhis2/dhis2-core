@@ -945,6 +945,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( "Collection " + pvProperty + " does not have an item with ID: " + pvItemId ) );
         }
 
+        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), owningObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
         Collection<IdentifiableObject> collection;
 
         if ( property.isOwner() )
@@ -963,11 +968,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), owningObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
 
         // if it already contains this object, don't add it. It might be a list and not set, and we don't want duplicates.
         if ( collection.contains( inverseObject ) )
