@@ -79,44 +79,34 @@ public class ProgramNotificationTask
     @Override
     public void call()
     {
-        log.info( "Running scheduled task " + KEY_TASK );
+        final Clock clock = new Clock().startClock();
 
+        notifier.notify( taskId, "Generating and sending scheduled program notifications" );
+        
         try
         {
-            final Clock clock = new Clock().startClock();
+            runInternal();
 
-            notifier.notify( taskId, "Generating and sending scheduled program notifications" );
-            try
-            {
-                runInternal();
-
-                notifier.notify( taskId, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
-            }
-            catch ( RuntimeException rte )
-            {
-                String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-
-                notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + rte.getMessage(), true );
-
-                messageService.sendSystemNotification(
-                    "Generating and sending scheduled program notifications failed",
-                    "The process failed, please check the server logs. Time of failure: " + new DateTime().toString() + ". " +
-                    "System:" + title + " " +
-                    "Message: " + rte.getMessage() + " " +
-                    "Cause: " + DebugUtils.getStackTrace( rte.getCause() )
-                );
-
-                throw rte;
-            }
-
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new DateTime( clock.getStartTime() ) );
+            notifier.notify( taskId, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
         catch ( RuntimeException rte )
         {
-            log.error( DebugUtils.getStackTrace( rte ) );
+            String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+
+            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + rte.getMessage(), true );
+
+            messageService.sendSystemNotification(
+                "Generating and sending scheduled program notifications failed",
+                "The process failed, please check the server logs. Time of failure: " + new DateTime().toString() + ". " +
+                "System:" + title + " " +
+                "Message: " + rte.getMessage() + " " +
+                "Cause: " + DebugUtils.getStackTrace( rte.getCause() )
+            );
 
             throw rte;
         }
+
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new DateTime( clock.getStartTime() ) );
     }
 
     private void runInternal()
