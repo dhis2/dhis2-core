@@ -147,6 +147,7 @@ public class DefaultSchedulingManager
         return (ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
     }
 
+    @Override
     public String getCronForTask( final String taskKey )
     {
         return getCronKeyMap().entrySet().stream()

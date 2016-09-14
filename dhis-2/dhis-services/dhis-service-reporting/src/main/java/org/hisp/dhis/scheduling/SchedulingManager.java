@@ -82,7 +82,7 @@ public interface SchedulingManager
      * @param taskKey the key of the task, not null.
      * @return the cron for the task or null.
      */
-    String getCronForTask( final String taskKey )
+    String getCronForTask( final String taskKey );
 
     /**
      * Gets a mapping of cron expressions and list of task keys for all scheduled

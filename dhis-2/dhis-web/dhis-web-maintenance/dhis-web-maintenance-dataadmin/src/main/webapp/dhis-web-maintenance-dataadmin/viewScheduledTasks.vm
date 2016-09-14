@@ -180,7 +180,7 @@
 
 <!-- Program notifications -->
 
-<div class="settingHeader">$i18n.getString( "program_notifications_scheduler")</div>
+<div class="settingHeader">$i18n.getString( "program_notifications_scheduler" )</div>
 
 <div class="settingLabel settingIndent">$i18n.getString( "program_notifications_scheduler_strategy" )</div>
 

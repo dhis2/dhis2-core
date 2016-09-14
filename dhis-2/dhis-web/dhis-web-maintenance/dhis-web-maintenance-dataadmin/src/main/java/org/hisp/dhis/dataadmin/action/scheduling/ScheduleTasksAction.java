@@ -28,6 +28,8 @@ package org.hisp.dhis.dataadmin.action.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -81,6 +83,13 @@ public class ScheduleTasksAction
     private static final String STRATEGY_DAILY_6_AM = "dailySixAM";
     private static final String STRATEGY_DAILY_7_AM = "dailySevenAM";
     private static final String STRATEGY_DAILY_8_AM = "dailyEightAM";
+
+    private BiMap<String, String> STRATEGY_TO_CRON = new ImmutableBiMap.Builder<String, String>()
+        .put( STRATEGY_DAILY_5_AM, CRON_DAILY_5AM )
+        .put( STRATEGY_DAILY_6_AM, CRON_DAILY_6AM )
+        .put( STRATEGY_DAILY_7_AM, CRON_DAILY_7AM )
+        .put( STRATEGY_DAILY_8_AM, CRON_DAILY_8AM )
+        .build();
 
     private static final Log log = LogFactory.getLog( ScheduleTasksAction.class );
 
@@ -409,28 +418,13 @@ public class ScheduleTasksAction
 
                 if ( StringUtils.isNotEmpty( programNotificationSchedulerStrategy ) )
                 {
-                    String cron = null;
+                    String cron = STRATEGY_TO_CRON.get( programNotificationSchedulerStrategy );
 
-                    switch ( programNotificationSchedulerStrategy )
+                    if ( cron == null )
                     {
-                        case STRATEGY_DAILY_5_AM:
-                            cron = CRON_DAILY_5AM;
-                            break;
-                        case STRATEGY_DAILY_6_AM:
-                            cron = CRON_DAILY_6AM;
-                            break;
-                        case STRATEGY_DAILY_7_AM:
-                            cron = CRON_DAILY_7AM;
-                            break;
-                        case STRATEGY_DAILY_8_AM:
-                            cron = CRON_DAILY_8AM;
-                            break;
-                        default:
-                            log.warn( "Unrecognized scheduling strategy for program notifications: " + programNotificationSchedulerStrategy );
-                            break;
+                        log.warn( "Unrecognized scheduling strategy for program notifications: " + programNotificationSchedulerStrategy );
                     }
-
-                    if ( cron != null )
+                    else
                     {
                         cronKeyMap.putValue( cron, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
                     }
@@ -521,8 +515,12 @@ public class ScheduleTasksAction
 
             if ( keys.contains( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS ) )
             {
-                String cronForSchedule = schedulingManager.getCronForTask( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
-                // TODO Reverse mapping ot form value
+                String cron = schedulingManager.getCronForTask( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+
+                if ( cron != null )
+                {
+                    programNotificationSchedulerStrategy = STRATEGY_TO_CRON.inverse().get( cron );
+                }
             }
         }
 
