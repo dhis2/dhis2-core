@@ -355,6 +355,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             object = renderService.fromXml( payload, getEntityClass() );
         }
 
+        prePatchEntity( persistedObject, object );
+
         properties = getPersistedProperties( properties );
 
         if ( properties.isEmpty() || object == null )
@@ -375,6 +377,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preheatService.refresh( persistedObject );
         manager.update( persistedObject );
+
+        postPatchEntity( persistedObject );
     }
 
     private List<String> getJsonProperties( String payload ) throws IOException
@@ -1016,6 +1020,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void postDeleteEntity()
+    {
+    }
+
+    protected void prePatchEntity( T entity, T newEntity )
+    {
+    }
+
+    protected void postPatchEntity( T entity )
     {
     }
 
