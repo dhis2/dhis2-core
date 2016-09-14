@@ -28,8 +28,6 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
@@ -49,10 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ProgramNotificationTask
     extends NoSecurityContextRunnable
 {
-    public static final String KEY_TASK = "scheduledProgramNotificationsTask";
-
-    private static final Log log = LogFactory.getLog( ProgramNotificationTask.class );
-
     @Autowired
     private ProgramNotificationService programNotificationService;
 
@@ -82,7 +76,7 @@ public class ProgramNotificationTask
         final Clock clock = new Clock().startClock();
 
         notifier.notify( taskId, "Generating and sending scheduled program notifications" );
-        
+
         try
         {
             runInternal();
