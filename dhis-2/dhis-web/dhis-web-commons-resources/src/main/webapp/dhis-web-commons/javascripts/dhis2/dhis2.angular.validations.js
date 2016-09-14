@@ -148,7 +148,7 @@ d2Directives.directive('d2NumberValidator', function() {
     };
 })
 
-.directive("d2OptionValidator", function($translate, DialogService) {
+.directive("d2OptionValidator", function($translate, NotificationService) {
     return {
         restrict: "A",         
         require: "ngModel",         
@@ -161,13 +161,10 @@ d2Directives.directive('d2NumberValidator', function() {
                 var res = !value ? !isRequired : true;
                 
                 if(!res){
-                	var dialogOptions = {
-		                headerText: 'validation_error',
-		                bodyText: 'option_required'
-		            };		
-		            DialogService.showDialog({}, dialogOptions);
+                    var headerText = $translate.instant("validation_error");
+                    var bodyText = $translate.instant("option_required");
+                    NotificationService.showNotifcationDialog(headerText, bodyText);
                 }
-                
                 return res;
             };
         }
