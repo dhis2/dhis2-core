@@ -741,7 +741,7 @@ var d2Directives = angular.module('d2Directives', [])
                 }
                             
                 var modalInstance = $modal.open({
-                    templateUrl: 'views/map.html',
+                    templateUrl: '../dhis-web-commons/angular-forms/map.html',
                     controller: 'MapController',
                     windowClass: 'modal-map-window',
                     resolve: {
