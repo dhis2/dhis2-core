@@ -1,4 +1,4 @@
-d2Directives.directive('d2GoogleMap', function ($http, $translate, $q, $window, storage, CurrentSelection, DialogService) {
+d2Directives.directive('d2GoogleMap', function ($http, $translate, $q, $window, storage, CurrentSelection, NotificationService) {
     
     function lazyLoadApi() {
         var googleMapApiUrl = 'https://maps.google.com/maps/api/js?callback=initMap';
@@ -7,12 +7,8 @@ d2Directives.directive('d2GoogleMap', function ($http, $translate, $q, $window, 
             googleMapApiUrl += '&key=' + storedFormat.keyGoogleMapsApiKey;
         }
         else{
-            var dialogOptions = {
-                headerText: 'warning',
-                bodyText: 'missing_google_map_api_key'
-            };
-
-            DialogService.showDialog({}, dialogOptions);
+            NotificationService.showNotifcationDialog($translate.instant("warning"),
+                $translate.instant("missing_google_map_api_key"));
         }	
        
         var deferred = $q.defer();
