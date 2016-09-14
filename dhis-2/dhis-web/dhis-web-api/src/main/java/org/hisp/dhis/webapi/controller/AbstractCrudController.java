@@ -355,6 +355,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             object = renderService.fromXml( payload, getEntityClass() );
         }
 
+        prePatchEntity( persistedObject, object );
+
         properties = getPersistedProperties( properties );
 
         if ( properties.isEmpty() || object == null )
@@ -375,6 +377,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preheatService.refresh( persistedObject );
         manager.update( persistedObject );
+
+        postPatchEntity( persistedObject );
     }
 
     private List<String> getJsonProperties( String payload ) throws IOException
@@ -820,6 +824,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( "Collection " + pvProperty + " does not have an item with ID: " + pvItemId ) );
         }
 
+        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), owningObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
         Collection<IdentifiableObject> collection;
 
         if ( property.isOwner() )
@@ -838,11 +847,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), owningObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
 
         // if it already contains this object, don't add it. It might be a list and not set, and we don't want duplicates.
         if ( collection.contains( inverseObject ) )
@@ -1016,6 +1020,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void postDeleteEntity()
+    {
+    }
+
+    protected void prePatchEntity( T entity, T newEntity )
+    {
+    }
+
+    protected void postPatchEntity( T entity )
     {
     }
 
