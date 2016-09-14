@@ -699,12 +699,12 @@ var d2Directives = angular.module('d2Directives', [])
         restrict: 'E',            
         templateUrl: "../dhis-web-commons/angular-forms/coordinate-input.html",
         scope: {
-            id: '@',
-            prStDe: '=',
+            id: '@',            
             d2Object: '=',
             d2Disabled: '@',
             d2CallbackFunction: '&d2Function',
-            d2CallbackFunctionParam: '@d2FunctionParam',
+            d2CallbackFunctionParamText: '@d2FunctionParamText',
+            d2CallbackFunctionParamCoordinate: '@d2FunctionParamCoordinate',
             d2Required: '@',
             d2LatSaved: '=',
             d2LngSaved: '=',
@@ -759,14 +759,14 @@ var d2Directives = angular.module('d2Directives', [])
                         if( $scope.d2CoordinateFormat === 'TEXT' ){                        
                             $scope.d2Object[$scope.id] = location.lng + ',' + location.lat;
                             if( angular.isDefined( $scope.d2CallbackFunction ) ){
-                                $scope.d2CallbackFunction( {arg1: $scope.prStDe} );
+                                $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParamText} );
                             }
                         }
                         else{
                             $scope.d2Object.coordinate.latitude = location.lat;
                             $scope.d2Object.coordinate.longitude = location.lng;
                             if( angular.isDefined( $scope.d2CallbackFunction ) ){
-                                $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParam} );
+                                $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParamCoordinate} );
                             }
                         }                                                
                     }
