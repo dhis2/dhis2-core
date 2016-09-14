@@ -31,11 +31,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
-import org.hisp.dhis.scheduling.TaskCategory;
-import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -43,14 +39,12 @@ import java.util.List;
 /**
  * @author Stian Sandvold
  */
-public class PushAnalysisObjectBundleHook implements ObjectBundleHook
+public class PushAnalysisObjectBundleHook
+    implements ObjectBundleHook
 {
 
     @Autowired
     private Scheduler scheduler;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     @Autowired
     private PushAnalysisService pushAnalysisService;
@@ -64,7 +58,7 @@ public class PushAnalysisObjectBundleHook implements ObjectBundleHook
     @Override
     public void postImport( ObjectBundle bundle )
     {
-        return;
+        System.out.println("POST IMPORT");
     }
 
     @Override
@@ -78,7 +72,7 @@ public class PushAnalysisObjectBundleHook implements ObjectBundleHook
     public <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass,
         List<T> objects, ObjectBundle bundle )
     {
-        return;
+        System.out.println("POST TYPE IMPORT");
     }
 
     @Override
@@ -90,19 +84,7 @@ public class PushAnalysisObjectBundleHook implements ObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle )
     {
-        PushAnalysis pushAnalysis = (PushAnalysis) persistedObject;
-        scheduler.refreshTask(
-            pushAnalysis.getSchedulingKey(),
-            new PushAnalysisTask(
-                pushAnalysis.getId(),
-                new TaskId(
-                    TaskCategory.PUSH_ANALYSIS,
-                    currentUserService.getCurrentUser()
-                ),
-                pushAnalysisService
-            ),
-            pushAnalysis.getCronExpression()
-        );
+        pushAnalysisService.refreshPushAnalysisScheduling( (PushAnalysis) persistedObject );
     }
 
     @Override
@@ -114,19 +96,7 @@ public class PushAnalysisObjectBundleHook implements ObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle )
     {
-        PushAnalysis pushAnalysis = (PushAnalysis) persistedObject;
-        scheduler.refreshTask(
-            pushAnalysis.getSchedulingKey(),
-            new PushAnalysisTask(
-                pushAnalysis.getId(),
-                new TaskId(
-                    TaskCategory.PUSH_ANALYSIS,
-                    currentUserService.getCurrentUser()
-                ),
-                pushAnalysisService
-            ),
-            pushAnalysis.getCronExpression()
-        );
+        pushAnalysisService.refreshPushAnalysisScheduling( (PushAnalysis) persistedObject );
     }
 
     @Override

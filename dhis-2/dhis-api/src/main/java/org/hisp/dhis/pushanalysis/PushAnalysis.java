@@ -194,6 +194,8 @@ public class PushAnalysis
         return false;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCronExpression()
     {
         return cronExpression;
@@ -207,5 +209,10 @@ public class PushAnalysis
     public String getSchedulingKey()
     {
         return "PushAnalysis:" + getUid();
+    }
+
+    public boolean canSchedule()
+    {
+        return (cronExpression != null && !cronExpression.isEmpty()) && enabled;
     }
 }

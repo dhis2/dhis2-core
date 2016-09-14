@@ -128,27 +128,36 @@ public class DefaultPushAnalysisService
     // Scheduling methods
     //----------------------------------------------------------------------
     @EventListener
-    public void handleContextRefresh( ContextRefreshedEvent event)
+    public void handleContextRefresh( ContextRefreshedEvent event )
     {
-        log.info( "### ### CONTEXT REFRESHED!!" );
-
         List<PushAnalysis> pushAnalyses = pushAnalysisStore.getAll();
 
-        for(PushAnalysis pushAnalysis : pushAnalyses)
+        for ( PushAnalysis pushAnalysis : pushAnalyses )
         {
-            scheduler.refreshTask(
-                pushAnalysis.getSchedulingKey(),
-                new PushAnalysisTask(
-                    pushAnalysis.getId(),
-                    new TaskId(
-                        TaskCategory.PUSH_ANALYSIS,
-                        currentUserService.getCurrentUser()
-                    ),
-                    this
-                ),
-                pushAnalysis.getCronExpression()
-            );
+            if ( pushAnalysis.canSchedule() )
+                refreshPushAnalysisScheduling( pushAnalysis );
         }
+    }
+
+    public boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis )
+    {
+        if ( !pushAnalysis.canSchedule() )
+        {
+            return false;
+        }
+
+        return scheduler.refreshTask(
+            pushAnalysis.getSchedulingKey(),
+            new PushAnalysisTask(
+                pushAnalysis.getId(),
+                new TaskId(
+                    TaskCategory.PUSH_ANALYSIS,
+                    currentUserService.getCurrentUser()
+                ),
+                this
+            ),
+            pushAnalysis.getCronExpression()
+        );
     }
 
     //----------------------------------------------------------------------
@@ -247,7 +256,7 @@ public class DefaultPushAnalysisService
                 String html = generateHtmlReport( pushAnalysis, user, taskId );
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
-                @SuppressWarnings("unused")
+                @SuppressWarnings( "unused" )
                 MessageResponseStatus status = messageSender
                     .sendMessage( title, html, "", null, Sets.newHashSet( user ), true );
 
@@ -272,7 +281,7 @@ public class DefaultPushAnalysisService
 
         List<PushAnalysis> list = pushAnalysisStore.getAll();
 
-        log( taskId, NotificationLevel.INFO, "Found " + list.size() + " PushAnalysis", false, null);
+        log( taskId, NotificationLevel.INFO, "Found " + list.size() + " PushAnalysis", false, null );
 
         list.forEach( pushAnalysis -> {
             if ( pushAnalysis.getEnabled() )
@@ -288,7 +297,7 @@ public class DefaultPushAnalysisService
             }
         } );
 
-        log( taskId, NotificationLevel.INFO, "Finished running all PushAnalysis.", true, null);
+        log( taskId, NotificationLevel.INFO, "Finished running all PushAnalysis.", true, null );
 
     }
 

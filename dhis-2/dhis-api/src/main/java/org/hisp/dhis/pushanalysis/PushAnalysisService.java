@@ -30,12 +30,22 @@ package org.hisp.dhis.pushanalysis;
 
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.user.User;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 
 /**
  * @author Stian Sandvold
  */
 public interface PushAnalysisService
 {
+
+    /**
+     * Handles populating the scheduler with Push Analysis when ContextRefreshedEvent is broadcast
+     * @param event
+     */
+    @EventListener
+    void handleContextRefresh( ContextRefreshedEvent event);
+
     /**
      * Returns a PushAnalysis with the given UID
      * @param uid uid of the PushAnalysis
@@ -68,4 +78,10 @@ public interface PushAnalysisService
      * @param taskId to track process
      */
     void runAllPushAnalysis( TaskId taskId );
+
+    /**
+     * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled
+     * @param pushAnalysis
+     */
+    boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis );
 }
