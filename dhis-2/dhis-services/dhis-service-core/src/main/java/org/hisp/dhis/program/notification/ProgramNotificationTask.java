@@ -31,7 +31,9 @@ package org.hisp.dhis.program.notification;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,12 +43,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ProgramNotificationTask
     extends NoSecurityContextRunnable
 {
-    public static final String KEY_TASK = "programNotificationTask";
+    public static final String KEY_TASK = "scheduledProgramNotificationsTask";
 
     private static final Log log = LogFactory.getLog( ProgramNotificationTask.class );
 
     @Autowired
     private ProgramNotificationService programNotificationService;
+
+    @Autowired
+    private Notifier notifier;
+
+    private TaskId taskId;
+
+    public void setTaskId( TaskId taskId )
+    {
+        this.taskId = taskId;
+    }
 
     // -------------------------------------------------------------------------
     // Runnable implementation
