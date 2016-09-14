@@ -183,7 +183,7 @@ public class DefaultSchedulingManager
         }
         
         String firstTask = cronKeyMap.keySet().iterator().next();
-        
+
         return scheduler.getTaskStatus( firstTask );
     }
 

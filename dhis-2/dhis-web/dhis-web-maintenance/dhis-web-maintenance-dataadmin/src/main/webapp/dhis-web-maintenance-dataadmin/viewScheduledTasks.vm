@@ -189,10 +189,11 @@
 <div class="setting settingIndent">
     <select id="programNotificationSchedulerStrategy" name="programNotificationSchedulerStrategy" class="scheduling">
         <option value="disabled">$i18n.getString( "disabled" )</option>
-        <option value="dailyFiveAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyFiveAM" ) selected="selected"#end>$i18n.getString( "daily_5_am" )</option>
-        <option value="dailySixAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySixAM" ) selected="selected"#end>$i18n.getString( "daily_6_am" )</option>
-        <option value="dailySevenAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySevenAM" ) selected="selected"#end>$i18n.getString( "daily_7_am" )</option>
-        <option value="dailyEightAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyEightAM" ) selected="selected"#end>$i18n.getString( "daily_8_am" )</option>
+        #set( $dailyStr = $i18n.getString( "daily") )
+        <option value="dailyFiveAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyFiveAM" ) selected="selected"#end>${dailyStr} 5:00</option>
+        <option value="dailySixAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySixAM" ) selected="selected"#end>${dailyStr} 6:00</option>
+        <option value="dailySevenAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySevenAM" ) selected="selected"#end>${dailyStr} 7:00</option>
+        <option value="dailyEightAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyEightAM" ) selected="selected"#end>${dailyStr} 8:00</option>
     </select>
 </div>
 
