@@ -31,10 +31,16 @@ package org.hisp.dhis.program.notification;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -49,6 +55,12 @@ public class ProgramNotificationTask
 
     @Autowired
     private ProgramNotificationService programNotificationService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private MessageService messageService;
 
     @Autowired
     private Notifier notifier;
@@ -71,7 +83,33 @@ public class ProgramNotificationTask
 
         try
         {
-            runInternal();
+            final Clock clock = new Clock().startClock();
+
+            notifier.notify( taskId, "Generating and sending scheduled program notifications" );
+            try
+            {
+                runInternal();
+
+                notifier.notify( taskId, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
+            }
+            catch ( RuntimeException rte )
+            {
+                String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+
+                notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + rte.getMessage(), true );
+
+                messageService.sendSystemNotification(
+                    "Generating and sending scheduled program notifications failed",
+                    "The process failed, please check the server logs. Time of failure: " + new DateTime().toString() + ". " +
+                    "System:" + title + " " +
+                    "Message: " + rte.getMessage() + " " +
+                    "Cause: " + DebugUtils.getStackTrace( rte.getCause() )
+                );
+
+                throw rte;
+            }
+
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new DateTime( clock.getStartTime() ) );
         }
         catch ( RuntimeException rte )
         {
