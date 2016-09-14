@@ -1095,7 +1095,6 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 if (gridColumnsFromSessionStore && gridColumnsFromSessionStore.columns) {
                     return gridColumnsFromSessionStore.columns;
                 }
-                NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_fetch_failed"));
                 return null;
             });
             return promise;
