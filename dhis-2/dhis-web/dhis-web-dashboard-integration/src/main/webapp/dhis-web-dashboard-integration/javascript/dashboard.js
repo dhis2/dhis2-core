@@ -1441,6 +1441,8 @@ dhis2.db.shareInterpretation = function () {
                 $("#shareForm").dialog("close");
                 $("#interpretationArea").val("");
                 setHeaderDelayMessage(i18n_interpretation_was_shared);
+                
+                //Reload page or update the model (TBD)
             },
             error: function(xhr, status, error) {
 				setHeaderDelayMessage(xhr.responseText);
