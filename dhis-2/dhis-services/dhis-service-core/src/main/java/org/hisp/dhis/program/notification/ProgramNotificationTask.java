@@ -41,6 +41,8 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
+
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -100,7 +102,7 @@ public class ProgramNotificationTask
             throw rte;
         }
 
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new DateTime( clock.getStartTime() ) );
+        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new Date( clock.getStartTime() ) );
     }
 
     private void runInternal()
