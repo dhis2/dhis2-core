@@ -37,6 +37,9 @@ import javax.script.SimpleScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.script.ScriptContext;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.stream.StreamResult;
+import org.apache.commons.io.IOUtils;
 import org.basex.core.*;
 import org.basex.query.*;
 import org.basex.query.value.*;
@@ -49,17 +52,17 @@ import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
 import org.hisp.dhis.scriptlibrary.ScriptAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+
 public class EngineXQuery extends Engine
 {
     @Autowired
     protected  AppManager appManager;
 
-    protected TransformerFactory factory = TransformerFactory.newInstance();
-
     public EngineXQuery ( App app, ScriptLibrary sl )
     {
         super ( app, sl );
     }
+
 
     @Override
     protected Object eval ( IExecutionContext execContext )
@@ -72,7 +75,7 @@ public class EngineXQuery extends Engine
 	    QueryProcessor qp = new QueryProcessor(query, context);
 	    qp.context(execContext);
 
-            Source text = new StreamSource ( execContext.getIn() );
+            StreamSource text = new StreamSource ( execContext.getIn() );
             StreamResult outXQ = new StreamResult ( execContext.getOut() );
 	    
 	    Value result = qp.value();

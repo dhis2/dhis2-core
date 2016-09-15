@@ -55,6 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.scriptlibrary.Engine;
 import org.hisp.dhis.scriptlibrary.EngineBuilder;
 import org.hisp.dhis.scriptlibrary.EngineSE;
+import org.hisp.dhis.scriptlibrary.EngineXQuery;
 import org.hisp.dhis.scriptlibrary.EngineXSLT;
 import org.hisp.dhis.scriptlibrary.ExecutionContext;
 import org.hisp.dhis.scriptlibrary.ExecutionContextSE;
@@ -116,7 +117,7 @@ public class DefaultEngineBuilder extends EngineBuilder{
 	    if (ext.equals("xsl") || ext.equals("xslt")) {
 		log.info("Creating XSLT engine on script type");
 		return getEngineXSLT(app,sl,scriptName);
-	    if (ext.equals("xq")) {
+	    } else if (ext.equals("xq")) {
 		log.info("Creating XQuery engine on script type");
 		return getEngineXQuery(app,sl,scriptName);
 	    } else {
@@ -156,8 +157,8 @@ public class DefaultEngineBuilder extends EngineBuilder{
 	depContext.setAppName(app.getKey());
 	loadDependencies(sl,scriptName,xqueryEngine,depContext);
 	log.info("registering xquery script engine with key: " + scriptKey);
-	scriptEngines.put(scriptKey,xsltEngine);
-	return xsltEngine;
+	scriptEngines.put(scriptKey,xqueryEngine);
+	return xqueryEngine;
     }
 
     protected Engine getEngineSE(App app, ScriptLibrary sl, String scriptName)  

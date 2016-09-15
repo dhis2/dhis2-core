@@ -193,16 +193,6 @@ public class EngineControllerDSTU2 extends EngineController
 
     }
 
-    @RequestMapping (
-        value =   { "/", "" , "index.js"}
-    )
-
-    public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                             @PathVariable ( "app" ) String appName )
-    {
-        doIndex ( appName, httpResponse, httpRequest );
-    }
-
 
     protected DSTU2Processor fhirProcessor  = new DSTU2Processor();
 

@@ -45,11 +45,24 @@ import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 import javax.script.SimpleScriptContext;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
-
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ExecutionContextSE extends ExecutionContext implements IExecutionContextSE
 {
 
+
+    @Autowired
+    protected SessionFactory sessionFactory;
+
+    public Session getCurrentSession()
+    {
+	return sessionFactory.getCurrentSession();
+    }
+    
+
+    
     public JsonValue createJson ( ScriptObjectMirror som )
     {
         if ( som.isArray() )
