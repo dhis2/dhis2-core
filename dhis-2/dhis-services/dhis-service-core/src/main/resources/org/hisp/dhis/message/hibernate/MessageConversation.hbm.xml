@@ -62,9 +62,9 @@
       foreign-key="fk_messageconversation_user_userid" />
 
   </class>
-
+  
   <filter-def name="userMessageUser">
     <filter-param name="userid" type="int" />
   </filter-def>
-
+  
 </hibernate-mapping>
