@@ -1317,6 +1317,7 @@
     <property name="programMessageService" ref="org.hisp.dhis.program.message.ProgramMessageService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
+    <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
   </bean>
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
