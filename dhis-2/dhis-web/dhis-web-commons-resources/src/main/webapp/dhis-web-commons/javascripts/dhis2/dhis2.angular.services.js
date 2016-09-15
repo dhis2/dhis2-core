@@ -1088,14 +1088,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     return response.data.gridColumns;
                 } else {
                     NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_invalid"));
-                    return null;
+                    return [];
                 }
             }, function (error) {
                 var gridColumnsFromSessionStore = SessionStorageService.get("gridColumns",name);
                 if (gridColumnsFromSessionStore && gridColumnsFromSessionStore.columns) {
                     return gridColumnsFromSessionStore.columns;
                 }
-                return null;
+                return [];
             });
             return promise;
         }
