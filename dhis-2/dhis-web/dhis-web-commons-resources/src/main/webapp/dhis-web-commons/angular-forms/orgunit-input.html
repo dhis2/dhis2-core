@@ -4,7 +4,7 @@
         <button class="btn btn-danger hideInPrint trim" type="button" title="{{'remove' | translate}}" ng-click="removeSelectedOrgUnit(id)" ng-if="d2Object[id]"> 
             <i class="fa fa-trash-o"></i> 
         </button> 
-        <button class="btn btn-default hideInPrint trim" type="button" title="{{'get_from_tree' | translate}}" ng-click="showOrgUnitTree(id)"> 
+        <button class="btn btn-default hideInPrint trim" type="button" title="{{'get_from_tree' | translate}}" ng-disabled="d2Disabled" ng-click="showOrgUnitTree(id)"> 
             <i class="fa fa-plus-square-o"></i> 
         </button> 
     </span> 

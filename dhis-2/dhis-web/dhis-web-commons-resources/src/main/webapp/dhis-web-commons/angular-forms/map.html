@@ -2,12 +2,12 @@
     <h2>
         {{'point_and_click_for_coordinate'| translate}}        
     </h2>
-</div>
-<div class="modal-body">
-	<div class="align-center">
+    <div class="align-center">
         <span id='polygon-label'></span>
     </div>
-    <d2-google-map location="location" id="map-container" class="small-vertical-spacing"></d2-google-map>
+</div>
+<div class="modal-body map-area">    
+    <leaflet lf-center="center" geojson="currentGeojson" defaults="mapDefaults" markers="marker"></leaflet>
 </div>
 <div class="modal-footer">
     <button class="btn btn-primary" data-ng-click="captureCoordinate()">{{'capture'| translate}}</button>

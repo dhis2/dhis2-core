@@ -1,31 +1,36 @@
-<div class="input-group">
-    <input type="number" 
-           ng-model="d2Object.coordinate.latitude" 
-           placeholder="{{'latitude'| translate}}"
-           ng-class="{'input-success': d2LatSaved || latitudeSaved}"
-           name="latitude" 
-           d2-coordinate-validator
-           ng-required="false"
-           d2-function="saveCoordinate(arg1)"
-           ng-blur="saveCoordinate('LAT')"
-           class="form-control no-right-radius"/>
-    <span class="input-group-btn empty-span"></span>
-    <input type="number" 
-           ng-model="d2Object.coordinate.longitude" 
-           placeholder="{{'longitude'| translate}}"
-           ng-class="{'input-success': d2LngSaved || longitudeSaved}"
-           name="longitude" 
-           d2-coordinate-validator
-           ng-required="false"
-           d2-function="saveCoordinate(arg1)"
-           ng-blur="saveCoordinate('LNG')"
-           class="form-control no-left-radius no-right-radius"/>
-    <span class="input-group-btn hideInPrint">
-        <button class="btn btn-grp trim hideInPrint" 
-                type="button" 
-                title="{{'get_from_map'| translate}}"
-                ng-click="showMap(d2Object)"> 
-            <i class="fa fa-map-marker"></i>                             
-        </button>
-    </span>
+<div  ng-form="coordinateForm">
+    <div class="input-group">
+        <input type="number" 
+               ng-model="coordinateObject.coordinate.latitude" 
+               placeholder="{{'latitude'| translate}}"
+               ng-class="{'input-success': d2LatSaved}"
+               name="latitude" 
+               d2-coordinate-validator
+               ng-required="d2Required"
+               ng-disabled="d2Disabled"
+               ng-blur="saveD2Coordinate()"
+               class="form-control no-right-radius"/>
+        <span class="input-group-btn empty-span"></span>
+        <input type="number" 
+               ng-model="coordinateObject.coordinate.longitude" 
+               placeholder="{{'longitude'| translate}}"
+               ng-class="{'input-success': d2LngSaved}"
+               name="longitude" 
+               d2-coordinate-validator
+               ng-required="d2Required"
+               ng-disabled="d2Disabled"
+               ng-blur="saveD2Coordinate()"
+               class="form-control no-left-radius no-right-radius"/>
+        <span class="input-group-btn hideInPrint">
+            <button class="btn btn-grp trim hideInPrint" 
+                    type="button"
+                    ng-disabled="{{d2Disabled}}"
+                    title="{{'get_from_map'| translate}}"
+                    ng-click="showMap(coordinateObject)"> 
+                <i class="fa fa-map-marker"></i>                             
+            </button>
+        </span>    
+    </div>
+    <div ng-messages="coordinateForm.latitude.$error" ng-if="coordinateInteracted(coordinateForm.latitude)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html"></div>
+    <div ng-messages="coordinateForm.longitude.$error" ng-if="coordinateInteracted(coordinateForm.longitude)" class="required" ng-messages-include="../dhis-web-commons/angular-forms/error-messages.html"></div>
 </div>

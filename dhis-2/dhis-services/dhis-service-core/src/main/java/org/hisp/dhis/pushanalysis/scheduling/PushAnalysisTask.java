@@ -27,9 +27,6 @@ package org.hisp.dhis.pushanalysis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
@@ -40,12 +37,11 @@ import org.hisp.dhis.security.NoSecurityContextRunnable;
 public class PushAnalysisTask
     extends NoSecurityContextRunnable
 {
-
     private int pushAnalysisId;
-    private TaskId taskId;
-    private PushAnalysisService pushAnalysisService;
-    private static final Log log = LogFactory.getLog( PushAnalysisTask.class );
 
+    private TaskId taskId;
+
+    private PushAnalysisService pushAnalysisService;
 
     public PushAnalysisTask( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
     {
@@ -57,12 +53,6 @@ public class PushAnalysisTask
     @Override
     public void call()
     {
-        try
-        {
-            pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
-        } catch( Exception ex ) {
-            log.error( DebugUtils.getStackTrace( ex ));
-            throw ex;
-        }
+        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
     }
 }

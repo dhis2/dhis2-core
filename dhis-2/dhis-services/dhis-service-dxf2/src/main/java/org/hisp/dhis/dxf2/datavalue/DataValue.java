@@ -32,6 +32,8 @@ package org.hisp.dhis.dxf2.datavalue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -88,6 +90,20 @@ public class DataValue
     {
         String creat = getCreated();
         return creat != null && !creat.isEmpty();
+    }
+    
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "dataElement", dataElement )
+            .add( "period", period )
+            .add( "orgUnit", orgUnit )
+            .add( "categoryOptionCombo", categoryOptionCombo )
+            .add( "attributeOptionCombo", attributeOptionCombo )
+            .add( "value", value )
+            .add( "comment", comment )
+            .toString();
     }
 
     //--------------------------------------------------------------------------

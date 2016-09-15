@@ -28,6 +28,8 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
@@ -60,6 +62,7 @@ import javax.servlet.http.HttpServletResponse;
 public class PushAnalysisController
     extends AbstractCrudController<PushAnalysis>
 {
+    private static final Log logger = LogFactory.getLog( PushAnalysisController.class );
 
     @Autowired
     private PushAnalysisService pushAnalysisService;
@@ -98,6 +101,8 @@ public class PushAnalysisController
         contextUtils
             .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
+        logger.info(
+            "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
         pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
     }
 
@@ -105,14 +110,12 @@ public class PushAnalysisController
      * This endpoint let's the user manually trigger a PushAnalysis run.
      *
      * @param uid      of the PushAnalysis to run
-     * @param response
      * @throws Exception
      */
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{uid}/run", method = RequestMethod.GET )
     public void sendPushAnalysis(
-        @PathVariable() String uid,
-        HttpServletResponse response
+        @PathVariable() String uid
     )
         throws Exception
     {
@@ -130,4 +133,27 @@ public class PushAnalysisController
             pushAnalysisService ) );
     }
 
+    @Override
+    protected void preDeleteEntity( PushAnalysis pushAnalysis )
+    {
+        scheduler.stopTask( pushAnalysis.getSchedulingKey() );
+    }
+
+    @Override
+    protected void postUpdateEntity( PushAnalysis pushAnalysis )
+    {
+        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
+    }
+
+    @Override
+    protected void postCreateEntity( PushAnalysis pushAnalysis )
+    {
+        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
+    }
+
+    @Override
+    protected void postPatchEntity( PushAnalysis pushAnalysis )
+    {
+        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
+    }
 }

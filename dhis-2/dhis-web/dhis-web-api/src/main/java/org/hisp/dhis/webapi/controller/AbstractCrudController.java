@@ -106,6 +106,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
@@ -355,6 +356,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             object = renderService.fromXml( payload, getEntityClass() );
         }
 
+        prePatchEntity( persistedObject, object );
+
         properties = getPersistedProperties( properties );
 
         if ( properties.isEmpty() || object == null )
@@ -375,6 +378,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preheatService.refresh( persistedObject );
         manager.update( persistedObject );
+
+        postPatchEntity( persistedObject );
     }
 
     private List<String> getJsonProperties( String payload ) throws IOException
@@ -757,7 +762,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return rootNode;
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -771,7 +776,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = MediaType.APPLICATION_XML_VALUE )
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -785,8 +790,86 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
     }
 
-    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = { RequestMethod.POST, RequestMethod.PUT } )
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void replaceCollectionItemsJson(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
+
+        clearCollectionItems( pvUid, pvProperty );
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        {
+            addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+    }
+
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    public void replaceCollectionItemsXml(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
+
+        clearCollectionItems( pvUid, pvProperty );
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        {
+            addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+    }
+
     @SuppressWarnings( "unchecked" )
+    private void clearCollectionItems( String pvUid, String pvProperty ) throws WebMessageException, InvocationTargetException, IllegalAccessException
+    {
+        List<T> objects = getEntity( pvUid );
+
+        if ( objects.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        if ( !getSchema().haveProperty( pvProperty ) )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+        }
+
+        Property property = getSchema().getProperty( pvProperty );
+
+        if ( !property.isCollection() || !property.isIdentifiableObject() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
+        }
+
+        IdentifiableObject persistedObject = objects.get( 0 );
+        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( persistedObject );
+
+        if ( property.isOwner() )
+        {
+            collection.clear();
+            manager.update( persistedObject );
+            manager.refresh( persistedObject );
+        }
+        else
+        {
+            for ( IdentifiableObject itemObject : collection )
+            {
+                Schema itemSchema = getSchema( property.getItemKlass() );
+                Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
+                Collection<IdentifiableObject> itemCollection = (Collection<IdentifiableObject>) itemProperty.getGetterMethod().invoke( itemObject );
+                itemCollection.remove( persistedObject );
+
+                manager.update( itemObject );
+                manager.refresh( itemObject );
+            }
+        }
+    }
+
+    @SuppressWarnings( "unchecked" )
+    @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
     public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -820,6 +903,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( "Collection " + pvProperty + " does not have an item with ID: " + pvItemId ) );
         }
 
+        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), owningObject ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
         Collection<IdentifiableObject> collection;
 
         if ( property.isOwner() )
@@ -838,11 +926,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), owningObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
 
         // if it already contains this object, don't add it. It might be a list and not set, and we don't want duplicates.
         if ( collection.contains( inverseObject ) )
@@ -1016,6 +1099,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void postDeleteEntity()
+    {
+    }
+
+    protected void prePatchEntity( T entity, T newEntity )
+    {
+    }
+
+    protected void postPatchEntity( T entity )
     {
     }
 
