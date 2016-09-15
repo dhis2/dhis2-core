@@ -875,13 +875,4 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
-    {
-        return null;
-    }
-
-    public void deletePushAnalysis( PushAnalysis pushAnalysis )
-    {
-
-    }
 }
