@@ -39,6 +39,7 @@ import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -95,6 +96,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
@@ -652,7 +654,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         // TODO optimize this using field filter (collection filtering)
         if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
         {
-            rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node -> {
+            rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node ->
+            {
                 node.getChildren().stream()
                     .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !((SimpleNode) child).getValue().equals( pvItemId ) )
                     .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
@@ -665,6 +668,112 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         return rootNode;
+    }
+
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void addCollectionItemsJson(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        {
+            addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+    }
+
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
+    public void addCollectionItemsXml(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        {
+            addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+    }
+
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    public void replaceCollectionItemsJson(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
+
+        clearCollectionItems( pvUid, pvProperty );
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        {
+            addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+    }
+
+    @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    public void replaceCollectionItemsXml(
+        @PathVariable( "uid" ) String pvUid,
+        @PathVariable( "property" ) String pvProperty,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
+
+        clearCollectionItems( pvUid, pvProperty );
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        {
+            addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private void clearCollectionItems( String pvUid, String pvProperty ) throws WebMessageException, InvocationTargetException, IllegalAccessException
+    {
+        List<T> objects = getEntity( pvUid );
+
+        if ( objects.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        if ( !getSchema().haveProperty( pvProperty ) )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+        }
+
+        Property property = getSchema().getProperty( pvProperty );
+
+        if ( !property.isCollection() || !property.isIdentifiableObject() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
+        }
+
+        IdentifiableObject persistedObject = objects.get( 0 );
+        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( persistedObject );
+
+        if ( property.isOwner() )
+        {
+            collection.clear();
+            manager.update( persistedObject );
+            manager.refresh( persistedObject );
+        }
+        else
+        {
+            for ( IdentifiableObject itemObject : collection )
+            {
+                Schema itemSchema = getSchema( property.getItemKlass() );
+                Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
+                Collection<IdentifiableObject> itemCollection = (Collection<IdentifiableObject>) itemProperty.getGetterMethod().invoke( itemObject );
+                itemCollection.remove( persistedObject );
+
+                manager.update( itemObject );
+                manager.refresh( itemObject );
+            }
+        }
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = { RequestMethod.POST, RequestMethod.PUT } )
