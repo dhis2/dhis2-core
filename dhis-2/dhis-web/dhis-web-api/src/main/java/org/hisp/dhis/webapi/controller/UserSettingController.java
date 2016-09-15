@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
@@ -55,6 +54,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,9 +78,6 @@ public class UserSettingController
 
     @Autowired
     private WebMessageService webMessageService;
-
-    @Autowired
-    private RenderService renderService;
 
     private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
         UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
@@ -173,7 +170,7 @@ public class UserSettingController
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public void getUserSettingsByUser( @RequestParam( required = false ) String user,
+    public @ResponseBody Map<String, Serializable> getUserSettingsByUser( @RequestParam( required = false ) String user,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         HttpServletRequest request, HttpServletResponse response )
         throws WebMessageException, IOException
@@ -187,8 +184,7 @@ public class UserSettingController
             us = currentUserService.getCurrentUser();
         }
 
-        renderService.toJson( response.getOutputStream(), userSettingService
-            .getUserSettingsWithFallbackByUserAsMap( us, USER_SETTING_NAMES, useFallback ) );
+        return userSettingService.getUserSettingsWithFallbackByUserAsMap( us, USER_SETTING_NAMES, useFallback );
     }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.DELETE )
