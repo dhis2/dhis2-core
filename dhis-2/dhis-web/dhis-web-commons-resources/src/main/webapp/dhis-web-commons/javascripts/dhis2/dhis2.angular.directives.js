@@ -653,9 +653,9 @@ var d2Directives = angular.module('d2Directives', [])
             selectedOrgUnit: '=',
             id: '@',
             d2Object: '=',
-            d2Disabled: '@',
-            d2CallbackFunction: '&d2Function',
-            d2Required: '@'
+            d2Disabled: '=',
+            d2Required: '=',
+            d2CallbackFunction: '&d2Function'
         },
         controller: function($scope, $modal){
             
@@ -700,12 +700,12 @@ var d2Directives = angular.module('d2Directives', [])
         templateUrl: "../dhis-web-commons/angular-forms/coordinate-input.html",
         scope: {
             id: '@',            
-            d2Object: '=',
-            d2Disabled: '@',
+            d2Object: '=',            
             d2CallbackFunction: '&d2Function',
             d2CallbackFunctionParamText: '=d2FunctionParamText',
             d2CallbackFunctionParamCoordinate: '=d2FunctionParamCoordinate',
-            d2Required: '@',
+            d2Disabled: '=',
+            d2Required: '=',
             d2LatSaved: '=',
             d2LngSaved: '=',
             d2CoordinateFormat: '='
