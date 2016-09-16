@@ -397,11 +397,11 @@ public class DataElementStoreTest
         DataSet dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         DataSet dataSetB = createDataSet( 'B', new MonthlyPeriodType() );
 
-        dataSetA.getDataElements().add( dataElementA );
-        dataSetA.getDataElements().add( dataElementC );
-        dataSetA.getDataElements().add( dataElementF );
-        dataSetB.getDataElements().add( dataElementD );
-        dataSetB.getDataElements().add( dataElementF );
+        dataSetA.addDataSetElement( dataElementA );
+        dataSetA.addDataSetElement( dataElementC );
+        dataSetA.addDataSetElement( dataElementF );
+        dataSetB.addDataSetElement( dataElementD );
+        dataSetB.addDataSetElement( dataElementF );
 
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );

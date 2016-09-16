@@ -55,9 +55,9 @@ public class DataElementTest
         DataSet dataSetB = new DataSet( "B", periodType );
         DataSet dataSetC = new DataSet( "C", periodType );
         
-        element.getDataSets().add( dataSetA );
-        element.getDataSets().add( dataSetB );
-        element.getDataSets().add( dataSetC );
+        element.addDataSetElement( dataSetA );
+        element.addDataSetElement( dataSetB );
+        element.addDataSetElement( dataSetC );
         
         assertEquals( periodType, element.getPeriodType() );
     }
@@ -71,12 +71,12 @@ public class DataElementTest
         DataSet dataSetB = new DataSet( "B", new MonthlyPeriodType() );
         DataSet dataSetC = new DataSet( "C", new QuarterlyPeriodType() );
         
-        element.getDataSets().add( dataSetA );
-        element.getDataSets().add( dataSetB );
+        element.addDataSetElement( dataSetA );
+        element.addDataSetElement( dataSetB );
         
         assertTrue( element.periodTypeIsValid() );
 
-        element.getDataSets().add( dataSetC );
+        element.addDataSetElement( dataSetC );
         
         assertFalse( element.periodTypeIsValid() );
     }
