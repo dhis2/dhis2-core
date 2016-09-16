@@ -260,7 +260,7 @@ public class LoadFormAction
         // Section / default form
         // ---------------------------------------------------------------------
 
-        List<DataElement> dataElements = new ArrayList<>( dataElementService.getDataElements( dataSet, null, null ) );
+        List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
 
         if ( dataElements.isEmpty() )
         {

@@ -192,12 +192,6 @@ public class DataElement
         updates.forEach( this::addDataElementGroup );
     }
 
-    public boolean addDataSetElement( DataSetElement element )
-    {
-        dataSetElements.add( element );
-        return element.getDataSet().getDataSetElements().add( element );
-    }
-
     /**
      * Adds a data set element using the given data set, this data element and
      * no category combo.
@@ -207,13 +201,13 @@ public class DataElement
     public boolean addDataSetElement( DataSet dataSet )
     {
         DataSetElement element = new DataSetElement( dataSet, this, null );
-        return addDataSetElement( element );
+        return dataSetElements.add( element );
     }
 
-    public void removeDataSetElement( DataSetElement element )
+    public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
-        element.getDataSet().getDataSetElements().remove( element );
+        return element.getDataSet().getDataSetElements().remove( element );
     }
 
     /**

@@ -34,7 +34,6 @@ import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.comparator.DataElementCategoryComboSizeComparator;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -332,12 +331,6 @@ public class DefaultDataElementService
     }
 
     @Override
-    public List<DataElement> getDataElementsByDataSets( Collection<DataSet> dataSets )
-    {
-        return dataElementStore.getDataElementsByDataSets( dataSets );
-    }
-
-    @Override
     public List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel )
     {
         return dataElementStore.getDataElementsByAggregationLevel( aggregationLevel );
@@ -360,12 +353,6 @@ public class DefaultDataElementService
         }
 
         return map;
-    }
-
-    @Override
-    public List<DataElement> getDataElements( DataSet dataSet, String key, Integer max )
-    {
-        return dataElementStore.get( dataSet, key, max );
     }
 
     // -------------------------------------------------------------------------

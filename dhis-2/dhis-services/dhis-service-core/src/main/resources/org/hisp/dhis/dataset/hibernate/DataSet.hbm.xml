@@ -24,7 +24,7 @@
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
-    <set name="dataSetElements" table="datasetmembers" cascade="all-delete-orphan">
+    <set name="dataSetElements" table="datasetmembers" cascade="all-delete-orphan" inverse="true">
       <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" not-null="true" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>

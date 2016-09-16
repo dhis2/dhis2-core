@@ -289,12 +289,6 @@ public class DataSet
         sources.addAll( updates );
     }
 
-    public boolean addDataSetElement( DataSetElement element )
-    {
-        dataSetElements.add( element );
-        return element.getDataElement().getDataSetElements().add( element );
-    }
-    
     /**
      * Adds a data set element using this data set, the given data element and
      * no category combo.
@@ -304,7 +298,7 @@ public class DataSet
     public boolean addDataSetElement( DataElement dataElement )
     {
         DataSetElement element = new DataSetElement( this, dataElement, null );
-        return addDataSetElement( element );
+        return dataSetElements.add( element );
     }
 
     public boolean removeDataSetElement( DataSetElement element )
@@ -839,7 +833,7 @@ public class DataSet
             }
 
             dataSetElements.clear();            
-            dataSet.getDataSetElements().forEach( this::addDataSetElement );
+            dataSet.getDataSetElements().forEach( e -> dataSetElements.add( e ) );
 
             indicators.clear();
             dataSet.getIndicators().forEach( this::addIndicator );

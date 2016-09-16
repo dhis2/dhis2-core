@@ -31,7 +31,6 @@ package org.hisp.dhis.dataelement;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
@@ -263,14 +262,6 @@ public interface DataElementService
     List<DataElement> getDataElementsWithDataSets();
 
     /**
-     * Returns all DataElements which are assigned to any of the given DataSets.
-     *
-     * @param dataSets the collection of DataSets.
-     * @return all DataElements which are assigned to any of the given DataSets.
-     */
-    List<DataElement> getDataElementsByDataSets( Collection<DataSet> dataSets );
-
-    /**
      * Returns all DataElements which have the given aggregation level assigned.
      *
      * @param aggregationLevel the aggregation level.
@@ -435,8 +426,6 @@ public interface DataElementService
     int getDataElementGroupCount();
 
     int getDataElementGroupCountByName( String name );
-
-    List<DataElement> getDataElements( DataSet dataSet, String key, Integer max );
 
     // -------------------------------------------------------------------------
     // DataElementGroupSet

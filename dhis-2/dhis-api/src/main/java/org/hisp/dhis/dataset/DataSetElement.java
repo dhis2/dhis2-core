@@ -19,10 +19,12 @@ public class DataSetElement
 
     public DataSetElement()
     {
+        setAutoFields();
     }
     
     public DataSetElement( DataSet dataSet, DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
+        setAutoFields();
         this.dataSet = dataSet;
         this.dataElement = dataElement;
         this.categoryCombo = categoryCombo;
