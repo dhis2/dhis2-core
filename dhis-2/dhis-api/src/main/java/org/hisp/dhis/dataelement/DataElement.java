@@ -206,7 +206,7 @@ public class DataElement
      */
     public boolean addDataSetElement( DataSet dataSet )
     {
-        DataSetElement element = new DataSetElement( this, dataSet, null );
+        DataSetElement element = new DataSetElement( dataSet, this, null );
         return addDataSetElement( element );
     }
 

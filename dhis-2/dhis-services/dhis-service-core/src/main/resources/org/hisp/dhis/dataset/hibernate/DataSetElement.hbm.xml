@@ -6,18 +6,18 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataset.DataSetElement" table="datasetelement">
+  <class name="org.hisp.dhis.dataset.DataSetElement" table="datasetmembers">
 
     <id name="id" column="programstagedataelementid">
       <generator class="native" />
     </id>
     &identifiableProperties;
 
-    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-      foreign-key="fk_datasetelement_dataelementid" unique-key="datasetelement_unique_key" />
-
     <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
       foreign-key="fk_datasetelement_datasetid" unique-key="datasetelement_unique_key" />
+
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+      foreign-key="fk_datasetelement_dataelementid" unique-key="datasetelement_unique_key" />
 
     <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo" column="categorycomboid"
       foreign-key="fk_datasetelement_categorycomboid" />

@@ -7,10 +7,10 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 public class DataSetElement
     extends BaseIdentifiableObject
 {
-    private DataElement dataElement;
-
     private DataSet dataSet;
     
+    private DataElement dataElement;
+
     private DataElementCategoryCombo categoryCombo;
 
     // -------------------------------------------------------------------------
@@ -21,10 +21,10 @@ public class DataSetElement
     {
     }
     
-    public DataSetElement( DataElement dataElement, DataSet dataSet, DataElementCategoryCombo categoryCombo )
+    public DataSetElement( DataSet dataSet, DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
-        this.dataElement = dataElement;
         this.dataSet = dataSet;
+        this.dataElement = dataElement;
         this.categoryCombo = categoryCombo;
     }
 
@@ -75,22 +75,12 @@ public class DataSetElement
         
         DataSetElement element = (DataSetElement) other;
         
-        return getDataElement().equals( element.getDataElement() ) && getDataSet().equals( element.getDataSet() );
+        return getDataSet().equals( element.getDataSet() ) && getDataElement().equals( element.getDataElement() );
     }
 
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
-
-    public DataElement getDataElement()
-    {
-        return dataElement;
-    }
-
-    public void setDataElement( DataElement dataElement )
-    {
-        this.dataElement = dataElement;
-    }
 
     public DataSet getDataSet()
     {
@@ -100,6 +90,16 @@ public class DataSetElement
     public void setDataSet( DataSet dataSet )
     {
         this.dataSet = dataSet;
+    }
+
+    public DataElement getDataElement()
+    {
+        return dataElement;
+    }
+
+    public void setDataElement( DataElement dataElement )
+    {
+        this.dataElement = dataElement;
     }
 
     public DataElementCategoryCombo getCategoryCombo()

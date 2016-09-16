@@ -303,7 +303,7 @@ public class DataSet
      */
     public boolean addDataSetElement( DataElement dataElement )
     {
-        DataSetElement element = new DataSetElement( dataElement, this, null );
+        DataSetElement element = new DataSetElement( this, dataElement, null );
         return addDataSetElement( element );
     }
 
@@ -312,19 +312,6 @@ public class DataSet
         dataSetElements.remove( element );
         return element.getDataElement().getDataSetElements().remove( element );
     }
-
-    /*
-    public void updateDataElements( Set<DataElement> updates )
-    {
-        Set<DataElement> toRemove = Sets.difference( dataElements, updates );
-        Set<DataElement> toAdd = Sets.difference( updates, dataElements );
-
-        toRemove.stream().forEach( d -> d.getDataSets().remove( this ) );
-        toAdd.stream().forEach( d -> d.getDataSets().add( this ) );
-
-        dataElements.clear();
-        dataElements.addAll( updates );
-    }*/
 
     public void addIndicator( Indicator indicator )
     {
