@@ -226,7 +226,7 @@ public class DefaultQueryParser implements QueryParser
                 throw new QueryParserException( "Unknown path property: " + paths[i] + " (" + path + ")" );
             }
 
-            if ( currentProperty.isSimple() && i != (paths.length - 1) )
+            if ( (currentProperty.isSimple() && !currentProperty.isCollection()) && i != (paths.length - 1) )
             {
                 throw new QueryParserException( "Simple type was found before finished parsing path expression, please check your path string." );
             }
