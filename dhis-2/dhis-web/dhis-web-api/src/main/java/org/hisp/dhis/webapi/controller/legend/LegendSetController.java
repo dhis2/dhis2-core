@@ -101,7 +101,6 @@ public class LegendSetController
         }
 
         LegendSet newLegendSet = renderService.fromJson( request.getInputStream(), LegendSet.class );
-        newLegendSet.setTranslations( legendSet.getTranslations() );
         newLegendSet.getLegends().forEach( legendService::addLegend );
 
         legendSet.mergeWith( newLegendSet, params.getMergeMode() );

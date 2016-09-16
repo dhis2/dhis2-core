@@ -50,7 +50,7 @@ public class InOperator extends Operator
     @Override
     public Criterion getHibernateCriterion( Property property )
     {
-        return Restrictions.in( property.getFieldName(), getValue( Collection.class, property.getKlass(), args.get( 0 ) ) );
+        return Restrictions.in( property.getFieldName(), getValue( Collection.class, property.getItemKlass(), args.get( 0 ) ) );
     }
 
     @Override
@@ -63,6 +63,32 @@ public class InOperator extends Operator
             return false;
         }
 
+        if ( Collection.class.isInstance( value ) )
+        {
+            Collection<?> valueItems = (Collection<?>) value;
+
+            for ( Object item : items )
+            {
+                if ( compareCollection( item, valueItems ) )
+                {
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            if ( compareCollection( value, items ) )
+            {
+                return true;
+            }
+        }
+
+
+        return false;
+    }
+
+    private boolean compareCollection( Object value, Collection<?> items )
+    {
         Type type = new Type( value );
 
         for ( Object item : items )
