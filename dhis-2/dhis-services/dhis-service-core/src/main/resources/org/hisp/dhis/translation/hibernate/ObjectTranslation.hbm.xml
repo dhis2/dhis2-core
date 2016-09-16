@@ -18,11 +18,6 @@
 
     <property name="value" column="value" type="text" not-null="true" />
 
-    <filter name="locale" condition="locale = :locale" />
-
   </class>
 
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 </hibernate-mapping>
