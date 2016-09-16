@@ -624,7 +624,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T parsed = deserializeJsonEntity( request, response );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
-        ((BaseIdentifiableObject) parsed).setTranslations( objects.get( 0 ).getTranslations() );
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
@@ -663,7 +662,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T parsed = deserializeXmlEntity( request, response );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
-        ((BaseIdentifiableObject) parsed).setTranslations( objects.get( 0 ).getTranslations() );
 
         preUpdateEntity( objects.get( 0 ), parsed );
 

@@ -1,7 +1,5 @@
 package org.hisp.dhis.commons.collection;
 
-import java.util.Collection;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -33,6 +31,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
+import java.util.Collection;
 
 /**
  * Map which allows storing a {@link java.util.concurrent.Callable}
@@ -97,6 +96,24 @@ public class CachingMap<K, V>
         }
         
         return value;
+    }
+
+    /**
+     * Returns the cached value if available or executes the Callable and returns
+     * the value, which is also cached. If the value produced, the defualt value
+     * will be returned. Will not attempt to fetch values for null keys, to 
+     * avoid potentially expensive and pointless operations.
+     *
+     * @param key the key.
+     * @param callable the Callable.
+     * @param defaultValue the default value.
+     * @return the return value of the Callable, either from cache or immediate execution.
+     */
+    public V get( K key, Callable<V> callable, V defaultValue )
+    {
+        V value = get( key, callable );
+        
+        return value != null ? value : defaultValue;
     }
     
     /**

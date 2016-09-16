@@ -154,40 +154,6 @@ public interface TrackedEntityAttributeService
     List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInList();
 
     /**
-     * Returns {@link TrackedEntityAttribute} list with paging
-     *
-     * @param name   Keyword for searching by name
-     * @param offset Offset to start results collection from
-     * @param max    Maximum number of results
-     * @return a collection of all TrackedEntityAttribute, or an empty
-     * collection if there are no TrackedEntityAttributes.
-     */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesBetweenByName( String name, int offset, int max );
-
-    /**
-     * Returns The number of all TrackedEntityAttribute available
-     */
-    int getTrackedEntityAttributeCount();
-
-    /**
-     * Returns {@link TrackedEntityAttribute} list with paging
-     *
-     * @param offset Offset to start results collection from
-     * @param max    Maximum number of results
-     * @return a collection of all TrackedEntityAttribute, or an empty
-     * collection if there are no TrackedEntityAttributes.
-     */
-    List<TrackedEntityAttribute> getTrackedEntityAttributesBetween( int offset, int max );
-
-    /**
-     * Returns The number of TrackedEntityAttributes with the key searched
-     *
-     * @param name Keyword for searching by name
-     * @return A number
-     */
-    int getTrackedEntityAttributeCountByName( String name );
-
-    /**
      * Validate scope of tracked entity attribute. Will return true if attribute is non-unique.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute

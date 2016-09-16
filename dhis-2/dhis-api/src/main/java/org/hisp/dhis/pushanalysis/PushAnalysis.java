@@ -43,6 +43,7 @@ import java.util.Set;
 /**
  * PushAnalysis generates reports based on a Dashboard, and sends them to UserGroups
  * at given Intervals.
+ *
  * @author Stian Sandvold
  */
 @JacksonXmlRootElement( localName = "pushanalysis", namespace = DxfNamespaces.DXF_2_0 )
@@ -76,9 +77,14 @@ public class PushAnalysis
     private Date lastRun;
 
     /**
-     * Cron Expression when the Push Analysis should be ran
+     * The frequency of which the push analysis should run (daily, weekly, monthly)
      */
-    private String cronExpression;
+    private SchedulingFrequency schedulingFrequency;
+
+    /**
+     * Which day in the frequency the job should run
+     */
+    private Integer schedulingDayOfFrequency;
 
     public PushAnalysis()
     {
@@ -95,7 +101,6 @@ public class PushAnalysis
     {
         this.lastRun = lastRun;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -145,6 +150,58 @@ public class PushAnalysis
         this.message = message;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean getEnabled()
+    {
+        return this.enabled;
+    }
+
+    public void setEnabled( boolean enabled )
+    {
+        this.enabled = enabled;
+    }
+
+    public String getSchedulingKey()
+    {
+        return "PushAnalysis:" + getUid();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public SchedulingFrequency getSchedulingFrequency()
+    {
+        return schedulingFrequency;
+    }
+
+    public void setSchedulingFrequency( SchedulingFrequency schedulingFrequency )
+    {
+        this.schedulingFrequency = schedulingFrequency;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getSchedulingDayOfFrequency()
+    {
+        return schedulingDayOfFrequency;
+    }
+
+    public void setSchedulingDayOfFrequency( Integer schedulingDayOfFrequency )
+    {
+        this.schedulingDayOfFrequency = schedulingDayOfFrequency;
+    }
+
+    public boolean canSchedule()
+    {
+        return (schedulingFrequency != null && enabled);
+    }
+
+    @Override
+    public boolean haveUniqueNames()
+    {
+        return false;
+    }
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -162,6 +219,8 @@ public class PushAnalysis
                 recipientUserGroups = pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName();
                 message = pushAnalysis.getMessage();
+                schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency();
+                schedulingFrequency = pushAnalysis.getSchedulingFrequency();
             }
 
             if ( mergeMode.isMerge() )
@@ -172,47 +231,14 @@ public class PushAnalysis
                     pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName() == null ? name : pushAnalysis.getName();
                 message = pushAnalysis.getMessage() == null ? message : pushAnalysis.getMessage();
+                schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency() == null ?
+                    schedulingDayOfFrequency :
+                    pushAnalysis.getSchedulingDayOfFrequency();
+                schedulingFrequency = pushAnalysis.getSchedulingFrequency() == null ?
+                    schedulingFrequency :
+                    pushAnalysis.getSchedulingFrequency();
             }
         }
     }
 
-    public void setEnabled( boolean enabled )
-    {
-        this.enabled = enabled;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getEnabled()
-    {
-        return this.enabled;
-    }
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCronExpression()
-    {
-        return cronExpression;
-    }
-
-    public void setCronExpression( String cronExpression )
-    {
-        this.cronExpression = cronExpression;
-    }
-
-    public String getSchedulingKey()
-    {
-        return "PushAnalysis:" + getUid();
-    }
-
-    public boolean canSchedule()
-    {
-        return (cronExpression != null && !cronExpression.isEmpty()) && enabled;
-    }
 }

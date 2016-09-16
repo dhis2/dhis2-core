@@ -187,30 +187,6 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesBetweenByName( String name, int offset, int max )
-    {
-        return attributeStore.getAllLikeName( name, offset, max );
-    }
-
-    @Override
-    public int getTrackedEntityAttributeCount()
-    {
-        return attributeStore.getCount();
-    }
-
-    @Override
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesBetween( int offset, int max )
-    {
-        return attributeStore.getAllOrderedName( offset, max );
-    }
-
-    @Override
-    public int getTrackedEntityAttributeCountByName( String name )
-    {
-        return attributeStore.getCountLikeName( name );
-    }
-
-    @Override
     public String validateScope( TrackedEntityAttribute trackedEntityAttribute,
         String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit, Program program )
     {

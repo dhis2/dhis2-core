@@ -20,20 +20,6 @@
 		
 	<property name="created" not-null="true" type="timestamp" />
 
-    <!-- Object Translation -->
-    <set name="translations" table="interpretationcommenttranslations" cascade="delete-orphan">
-      <key column="interpretationcommentid" foreign-key="fk_objecttranslation_interpretationcommentid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
-    </set>
-
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>
