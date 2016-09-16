@@ -38,7 +38,6 @@ import org.hisp.dhis.period.PeriodType;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -200,15 +199,6 @@ public interface DataSetService
      * @return a list of data sets.
      */
     List<DataSet> getDataSetsByUidNoAcl( Collection<String> uids );
-
-    /**
-     * Returns a collection of data elements associated with the given
-     * corresponding data set.
-     *
-     * @param dataSet the data set object.
-     * @return a list of data elements.
-     */
-    Set<DataElement> getDataElements( DataSet dataSet );
 
     /**
      * Returns all DataSets that can be collected through mobile (one

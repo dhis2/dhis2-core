@@ -196,10 +196,10 @@ public class PredictorServiceTest
         joinDataSetToSource( dataSetMonthly, sourceF );
         joinDataSetToSource( dataSetMonthly, sourceG );
 
-        dataSetMonthly.getDataElements().add( dataElementA );
-        dataSetMonthly.getDataElements().add( dataElementB );
-        dataSetMonthly.getDataElements().add( dataElementC );
-        dataSetMonthly.getDataElements().add( dataElementD );
+        dataSetMonthly.addDataSetElement( dataElementA );
+        dataSetMonthly.addDataSetElement( dataElementB );
+        dataSetMonthly.addDataSetElement( dataElementC );
+        dataSetMonthly.addDataSetElement( dataElementD );
 
         dataElementA.getDataSets().add( dataSetMonthly );
         dataElementB.getDataSets().add( dataSetMonthly );

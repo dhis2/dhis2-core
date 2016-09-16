@@ -153,10 +153,12 @@ public class DefaultDataSetService
 
         if ( dataSet != null )
         {
+            /* TODO
             if ( i18nDataElements )
             {
                 dataSet.getDataElements();
             }
+            */
 
             if ( i18nIndicators )
             {
@@ -243,13 +245,7 @@ public class DefaultDataSetService
     {
         return dataSetStore.getByUidNoAcl( uids );
     }
-
-    @Override
-    public Set<DataElement> getDataElements( DataSet dataSet )
-    {
-        return dataSet.getDataElements();
-    }
-
+    
     @Override
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
