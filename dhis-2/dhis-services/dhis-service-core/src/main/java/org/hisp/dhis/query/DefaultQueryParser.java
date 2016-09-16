@@ -185,11 +185,11 @@ public class DefaultQueryParser implements QueryParser
             }
             case "in":
             {
-                return Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getKlass(), arg ) );
+                return Restrictions.in( path, QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg ) );
             }
             case "!in":
             {
-                return Restrictions.notIn( path, QueryUtils.parseValue( Collection.class, property.getKlass(), arg ) );
+                return Restrictions.notIn( path, QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg ) );
             }
             case "null":
             {
