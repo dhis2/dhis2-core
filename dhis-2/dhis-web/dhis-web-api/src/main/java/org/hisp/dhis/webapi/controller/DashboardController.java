@@ -115,8 +115,6 @@ public class DashboardController
         }
 
         Dashboard newDashboard = renderService.fromJson( request.getInputStream(), Dashboard.class );
-        newDashboard.setTranslations( dashboard.getTranslations() );
-
         dashboard.setName( newDashboard.getName() ); // TODO Name only for now
 
         dashboardService.updateDashboard( dashboard );
