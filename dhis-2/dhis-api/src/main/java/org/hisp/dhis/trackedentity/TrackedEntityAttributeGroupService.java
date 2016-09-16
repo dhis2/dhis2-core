@@ -100,42 +100,4 @@ public interface TrackedEntityAttributeGroupService
      *         List if there are no TrackedEntityAttributeGroups.
      */
     List<TrackedEntityAttributeGroup> getAllTrackedEntityAttributeGroups();
-
-    /**
-     * Returns The number of TrackedEntityAttributeGroups with the key searched
-     * 
-     * @param name Keyword for searching by name
-     * 
-     * @return A number
-     * 
-     */
-    Integer getTrackedEntityAttributeGroupCountByName( String name );
-
-    /**
-     * Returns {@link TrackedEntityAttribute} list with paging
-     * 
-     * @param name Keyword for searching by name
-     * @param min
-     * @param max
-     * @return a List of all TrackedEntityAttribute, or an empty
-     *         List if there are no TrackedEntityAttributes.
-     */
-    List<TrackedEntityAttributeGroup> getTrackedEntityAttributeGroupsBetweenByName( String name,
-        int min, int max );
-
-    /**
-     * Returns The number of all TrackedEntityAttribute available
-     * 
-     */
-    Integer getTrackedEntityAttributeGroupCount();
-
-    /**
-     * Returns {@link TrackedEntityAttribute} list with paging
-     * 
-     * @param min
-     * @param max
-     * @return a List of all TrackedEntityAttribute, or an empty
-     *         List if there are no TrackedEntityAttributes.
-     */
-    List<TrackedEntityAttributeGroup> getTrackedEntityAttributeGroupsBetween( int min, int max );
 }

@@ -96,29 +96,4 @@ public class DefaultTrackedEntityAttributeGroupService
     {
         return attributeGroupStore.getAll();
     }
-
-    @Override
-    public Integer getTrackedEntityAttributeGroupCountByName( String name )
-    {
-        return attributeGroupStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<TrackedEntityAttributeGroup> getTrackedEntityAttributeGroupsBetweenByName( String name, int min, int max )
-    {
-        return attributeGroupStore.getAllLikeName( name, min, max );
-    }
-
-    @Override
-    public Integer getTrackedEntityAttributeGroupCount()
-    {
-        return attributeGroupStore.getCount();
-    }
-
-    @Override
-    public List<TrackedEntityAttributeGroup> getTrackedEntityAttributeGroupsBetween( int min, int max )
-    {
-        return attributeGroupStore.getAllOrderedName( min, max );
-    }
-
 }
