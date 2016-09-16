@@ -75,6 +75,11 @@ public class PushAnalysis
      */
     private Date lastRun;
 
+    /**
+     * Cron Expression when the Push Analysis should be ran
+     */
+    private String cronExpression;
+
     public PushAnalysis()
     {
     }
@@ -189,5 +194,25 @@ public class PushAnalysis
         return false;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCronExpression()
+    {
+        return cronExpression;
+    }
 
+    public void setCronExpression( String cronExpression )
+    {
+        this.cronExpression = cronExpression;
+    }
+
+    public String getSchedulingKey()
+    {
+        return "PushAnalysis:" + getUid();
+    }
+
+    public boolean canSchedule()
+    {
+        return (cronExpression != null && !cronExpression.isEmpty()) && enabled;
+    }
 }

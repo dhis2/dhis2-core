@@ -16,6 +16,7 @@
         <property name="message" column="message" type="text" length="255" not-null="false" unique="false" />
         <property name="enabled" column="enabled" not-null="true" />
         <property name="lastRun" column="lastrun" not-null="false" />
+        <property name="cronExpression" column="cronexpression" not-null="false" />
         <many-to-one name="dashboard" column="dashboard" class="org.hisp.dhis.dashboard.Dashboard" not-null="true"/>
 
         <set name="recipientUserGroups" table="pushanalysisrecipientusergroups" >

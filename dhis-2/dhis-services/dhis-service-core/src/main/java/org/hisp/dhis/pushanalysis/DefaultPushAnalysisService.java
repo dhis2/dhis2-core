@@ -43,6 +43,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.pushanalysis.scheduling.PushAnalysisTask;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.scheduling.TaskCategory;
@@ -53,6 +54,7 @@ import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.system.util.ChartUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -60,6 +62,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
@@ -87,6 +91,9 @@ public class DefaultPushAnalysisService
     private SystemSettingManager systemSettingManager;
 
     @Autowired
+    private Scheduler scheduler;
+
+    @Autowired
     private ExternalFileResourceService externalFileResourceService;
 
     @Autowired
@@ -110,11 +117,49 @@ public class DefaultPushAnalysisService
     @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
 
+    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>(  );
+
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
     public void setPushAnalysisStore( GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
         this.pushAnalysisStore = pushAnalysisStore;
+    }
+
+    //----------------------------------------------------------------------
+    // Scheduling methods
+    //----------------------------------------------------------------------
+    @EventListener
+    public void handleContextRefresh( ContextRefreshedEvent event )
+    {
+        List<PushAnalysis> pushAnalyses = pushAnalysisStore.getAll();
+
+        for ( PushAnalysis pushAnalysis : pushAnalyses )
+        {
+            if ( pushAnalysis.canSchedule() )
+                refreshPushAnalysisScheduling( pushAnalysis );
+        }
+    }
+
+    public boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis )
+    {
+        if ( !pushAnalysis.canSchedule() )
+        {
+            return false;
+        }
+
+        return scheduler.refreshTask(
+            pushAnalysis.getSchedulingKey(),
+            new PushAnalysisTask(
+                pushAnalysis.getId(),
+                new TaskId(
+                    TaskCategory.PUSH_ANALYSIS,
+                    currentUserService.getCurrentUser()
+                ),
+                this
+            ),
+            pushAnalysis.getCronExpression()
+        );
     }
 
     //----------------------------------------------------------------------
@@ -143,6 +188,12 @@ public class DefaultPushAnalysisService
         //----------------------------------------------------------------------
 
         log( taskId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
+
+        if( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
+        {
+            log( taskId, NotificationLevel.ERROR, "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null);
+            return;
+        }
 
         if ( pushAnalysis == null )
         {
@@ -213,7 +264,7 @@ public class DefaultPushAnalysisService
                 String html = generateHtmlReport( pushAnalysis, user, taskId );
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
-                @SuppressWarnings("unused")
+                @SuppressWarnings( "unused" )
                 MessageResponseStatus status = messageSender
                     .sendMessage( title, html, "", null, Sets.newHashSet( user ), true );
 
@@ -229,6 +280,8 @@ public class DefaultPushAnalysisService
         // Update lastRun date:
         pushAnalysis.setLastRun( new Date() );
         pushAnalysisStore.update( pushAnalysis );
+
+        setPushAnalysisIsRunningFlag( pushAnalysis, false );
     }
 
     @Override
@@ -238,7 +291,7 @@ public class DefaultPushAnalysisService
 
         List<PushAnalysis> list = pushAnalysisStore.getAll();
 
-        log( taskId, NotificationLevel.INFO, "Found " + list.size() + " PushAnalysis", false, null);
+        log( taskId, NotificationLevel.INFO, "Found " + list.size() + " PushAnalysis", false, null );
 
         list.forEach( pushAnalysis -> {
             if ( pushAnalysis.getEnabled() )
@@ -254,7 +307,7 @@ public class DefaultPushAnalysisService
             }
         } );
 
-        log( taskId, NotificationLevel.INFO, "Finished running all PushAnalysis.", true, null);
+        log( taskId, NotificationLevel.INFO, "Finished running all PushAnalysis.", true, null );
 
     }
 
@@ -446,4 +499,26 @@ public class DefaultPushAnalysisService
             break;
         }
     }
+
+    /**
+     * synchronized method for claiming and releasing a flag that indicates whether a given
+     * push analysis is currently running. This is to avoid race conditions from multiple api requests.
+     * when setting the flag to true (running), the method will return false if the flag is already set to true,
+     * indicating the push analysis is already running.
+     * @param pushAnalysis to run
+     * @param running indicates whether to claim (true) or release (false) flag.
+     * @return true if the flag was claimed or released, false if the flag was already claimed
+     */
+    private synchronized boolean setPushAnalysisIsRunningFlag( PushAnalysis pushAnalysis, boolean running )
+    {
+        if( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
+        {
+            return false;
+        }
+
+        pushAnalysisIsRunning.put( pushAnalysis, running );
+
+        return true;
+    }
+
 }
