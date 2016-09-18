@@ -3,18 +3,6 @@
 
 var d2Services = angular.module('d2Services', ['ngResource'])
 
-.constant("URLS",function(){
-    var dhis2Url = "../api/25/";
-    var userDataStoreUrl = dhis2Url+"userDataStore/";
-    var gridColumnsUrl = userDataStoreUrl+"gridColumns/";
-
-    return {
-        DHIS2URL: dhis2Url,
-        USERDATASTORE_URL: userDataStoreUrl,
-        GRIDCOLUMNS_URL: gridColumnsUrl
-    }
-}())
-
 /* Factory for loading translation strings */
 .factory('i18nLoader', function ($q, $http, SessionStorageService) {
 
@@ -1051,7 +1039,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
 })
 
-.service('GridColumnService', function ($http, URLS, $translate, SessionStorageService, NotificationService) {
+.service('GridColumnService', function ($http, DHIS2URL, $translate, SessionStorageService, NotificationService) {
+    var GRIDCOLUMNS_URL = DHIS2URL+'/userDataStore/gridColumns/';
     return {
         columnExists: function (cols, id) {
             var colExists = false;
@@ -1070,7 +1059,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             var method = created ? "put":"post";
             var promise = $http({
                 method: method,
-                url: URLS.GRIDCOLUMNS_URL+name,
+                url: GRIDCOLUMNS_URL+name,
                 data: {"gridColumns": gridColumns},
                 headers: {'Content-Type': 'application/json;charset=UTF-8'}
             }).then(function (response) {
@@ -1084,20 +1073,20 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return promise;
         },
         get: function (name) {
-            var promise = $http.get(URLS.GRIDCOLUMNS_URL+name).then(function (response) {
+            var promise = $http.get(GRIDCOLUMNS_URL+name).then(function (response) {
                 if (response && response.data && response.data.gridColumns) {
                     SessionStorageService.set("gridColumns", {id:name, columns:response.data.gridColumns});
                     return response.data.gridColumns;
                 } else {
                     NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_invalid"));
-                    return [];
+                    return null;
                 }
             }, function (error) {
                 var gridColumnsFromSessionStore = SessionStorageService.get("gridColumns",name);
                 if (gridColumnsFromSessionStore && gridColumnsFromSessionStore.columns) {
                     return gridColumnsFromSessionStore.columns;
                 }
-                return [];
+                return null;
             });
             return promise;
         }
