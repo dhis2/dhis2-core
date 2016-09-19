@@ -140,6 +140,8 @@ public class DefaultSchemaService
         add( new PushAnalysisSchemaDescriptor() ).
         add( new ProgramIndicatorGroupSchemaDescriptor() ).
         add( new ExternalFileResourceSchemaDescriptor() ).
+        add( new OptionGroupSchemaDescriptor() ).
+        add( new OptionGroupSetSchemaDescriptor()).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

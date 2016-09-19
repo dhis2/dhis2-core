@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.option;
 
 /*
  *
@@ -30,11 +30,20 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.GenericDimensionalObjectStore;
+
+import java.util.List;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum ImageFormat
+
+public interface OptionGroupStore
+    extends GenericDimensionalObjectStore<OptionGroup>
 {
-    PNG,
-    JPG
+    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
+
+    List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }
+

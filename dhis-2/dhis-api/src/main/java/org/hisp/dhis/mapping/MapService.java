@@ -35,7 +35,7 @@ package org.hisp.dhis.mapping;
  */
 public enum MapService
 {
-    WMS, 
-    TMS, 
+    WMS,
+    TMS,
     XYZ
 }
