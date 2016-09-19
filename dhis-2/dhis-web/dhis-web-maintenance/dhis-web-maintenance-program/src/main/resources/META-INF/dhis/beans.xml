@@ -554,6 +554,15 @@
     </property>
   </bean>
 
+  <!-- Program notifications -->
+
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramNotificationAction"
+    scope="prototype">
+    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
   <!-- Program reminder -->
 
   <bean

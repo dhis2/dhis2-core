@@ -78,14 +78,90 @@
             <tr>
                 <td><label for="deliveryChannels">$i18n.getString( "message_type" )</label></td>
                 <td>
-                    <input type="checkbox" name="deliveryChannels[]" value="SMS">
-                    <input type="checkbox" name="deliveryChannels[]" value="EMAIL">
+                    <label for="sms_cb">$i18n.getString( "sms" )</label>
+                    <input type="checkbox" id="sms_cb" name="deliveryChannels[]" value="SMS">
+
+                    <label for="email_cb">$i18n.getString( "email" )</label>
+                    <input type="checkbox" id="email_cb" name="deliveryChannels[]" value="EMAIL">
                 </td>
             </tr>
             <tr>
-                <!-- TODO editor thing -->
+                <td>$i18n.getString( "params" )</td>
+                <td>
+                    <select multiple size="4" ondblclick="insertInActive( this.value );">
+                        <option value="V{program_name}">$i18n.getString( "program_name" )</option>
+                        <option value="V{org_unit_name}">$i18n.getString( "org_unit_name" )</option>
+                        <option value="V{current_date}">$i18n.getString( "current_date" )</option>
+                        #foreach( $attr in $attributes )
+                            <option value="A{$attr.uid}">$attr.displayName</option>
+                        #end
+                    </select>
+                </td>
             </tr>
-
+            <tr>
+                <td>
+                    <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>
+                </td>
+                <td>
+                    <textarea id="subjectTemplate" name="subjectTemplate"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="messageTemplate">$i18n.getString( "message_template" )</label>
+                </td>
+                <td>
+                    <textarea id="messageTemplate" name="messageTemplate"></textarea>
+                </td>
+            </tr>
         </tbody>
     </table>
 </form>
+
+<script>
+function insertInActive( text ) {
+    insertAtCaret( activeTextAreaId( 'messageTemplate' ), text );
+}
+
+function activeTextAreaId( defaultId ) {
+    console.log( document.activeElement.id );
+    return document.activeElement.tagName === 'TEXTAREA' ? document.activeElement.id : defaultId;
+}
+
+function insertAtCaret(areaId, text) {
+    var txtarea = document.getElementById(areaId);
+    if (!txtarea) { return; }
+
+    var scrollPos = txtarea.scrollTop;
+    var strPos = 0;
+    var br = ((txtarea.selectionStart || txtarea.selectionStart == '0') ?
+        "ff" : (document.selection ? "ie" : false ) );
+    if (br == "ie") {
+        txtarea.focus();
+        var range = document.selection.createRange();
+        range.moveStart ('character', -txtarea.value.length);
+        strPos = range.text.length;
+    } else if (br == "ff") {
+        strPos = txtarea.selectionStart;
+    }
+
+    var front = (txtarea.value).substring(0, strPos);
+    var back = (txtarea.value).substring(strPos, txtarea.value.length);
+    txtarea.value = front + text + back;
+    strPos = strPos + text.length;
+    if (br == "ie") {
+        txtarea.focus();
+        var ieRange = document.selection.createRange();
+        ieRange.moveStart ('character', -txtarea.value.length);
+        ieRange.moveStart ('character', strPos);
+        ieRange.moveEnd ('character', 0);
+        ieRange.select();
+    } else if (br == "ff") {
+        txtarea.selectionStart = strPos;
+        txtarea.selectionEnd = strPos;
+        txtarea.focus();
+    }
+
+    txtarea.scrollTop = scrollPos;
+}
+</script>

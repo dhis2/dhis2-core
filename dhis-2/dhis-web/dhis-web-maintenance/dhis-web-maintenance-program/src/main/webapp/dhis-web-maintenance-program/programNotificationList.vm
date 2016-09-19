@@ -16,7 +16,8 @@
             <table width="100%">
                 <tr valign="bottom">
                     <td align="right">
-                        <input type="button" value="$i18n.getString( "add_new" )" onclick="javascript:alert('TODO');" style="width: 70px;">
+                        <input type="button" value="$i18n.getString( "add_new" )"
+                               onclick="window.location.href='showAddProgramNotification.action?id=$program.id'" style="width: 70px;">
                     </td>
                 </tr>
             </table>
