@@ -279,8 +279,8 @@ dhis2.db.openManageDashboardForm = function () {
             $("#manageDashboardForm").dialog({
                 autoOpen: true,
                 modal: true,
-                width: 500,
-                height: 380,
+                width: 405,
+                height: 430,
                 resizable: false,
                 title: name
             });
