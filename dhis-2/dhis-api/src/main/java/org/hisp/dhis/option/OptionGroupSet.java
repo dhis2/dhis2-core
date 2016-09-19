@@ -39,7 +39,6 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -59,8 +58,6 @@ public class OptionGroupSet
     extends BaseDimensionalObject
 {
     private List<OptionGroup> members = new ArrayList<>();
-
-    private DataDimensionType dataDimensionType;
 
     private OptionSet optionSet;
 
@@ -93,18 +90,6 @@ public class OptionGroupSet
     public void setMembers( List<OptionGroup> members )
     {
         this.members = members;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataDimensionType getDataDimensionType()
-    {
-        return dataDimensionType;
-    }
-
-    public void setDataDimensionType( DataDimensionType dataDimensionType )
-    {
-        this.dataDimensionType = dataDimensionType;
     }
 
     @JsonProperty( "optionSet" )
@@ -223,11 +208,9 @@ public class OptionGroupSet
             if ( mergeMode.isReplace() )
             {
                 optionSet = optionGroupSet.getOptionSet();
-                dataDimensionType = optionGroupSet.getDataDimensionType();
             }
             else if ( mergeMode.isMerge() )
             {
-                dataDimensionType = optionGroupSet.getDataDimensionType() == null ? dataDimensionType : optionGroupSet.getDataDimensionType();
                 optionSet = optionGroupSet.getOptionSet() == null ? optionSet : optionGroupSet.getOptionSet();
             }
 

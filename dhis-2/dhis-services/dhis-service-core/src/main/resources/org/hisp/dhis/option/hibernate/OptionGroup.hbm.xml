@@ -26,8 +26,6 @@
         foreign-key="fk_optiongroupmembers_optiongroupid" />
     </set>
 
-    <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" />
-
     <!-- Dynamic attribute values -->
 
     <set name="attributeValues" table="optiongroupattributevalues" cascade="delete-orphan">

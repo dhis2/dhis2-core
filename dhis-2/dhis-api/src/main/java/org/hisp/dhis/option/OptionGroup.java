@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -57,9 +56,6 @@ public class OptionGroup
     private Set<Option> members = new HashSet<>();
 
     private String description;
-
-    private DataDimensionType dataDimensionType;
-
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -115,18 +111,6 @@ public class OptionGroup
         this.members = members;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataDimensionType getDataDimensionType()
-    {
-        return dataDimensionType;
-    }
-
-    public void setDataDimensionType( DataDimensionType dataDimensionType )
-    {
-        this.dataDimensionType = dataDimensionType;
-    }
-
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -171,21 +155,9 @@ public class OptionGroup
         {
             OptionGroup optionGroup = (OptionGroup) other;
 
-            if ( mergeMode.isReplace() )
-            {
-                dataDimensionType = optionGroup.getDataDimensionType();
-            }
-            else if ( mergeMode.isMerge() )
-            {
-                dataDimensionType = optionGroup.getDataDimensionType() == null ? dataDimensionType : optionGroup.getDataDimensionType();
-            }
-
             removeAllOptions();
 
-            for ( Option option : optionGroup.getMembers() )
-            {
-                addOption( option );
-            }
+            optionGroup.getMembers().forEach( this::addOption );
         }
     }
 }
