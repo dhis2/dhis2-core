@@ -276,12 +276,11 @@ dhis2.db.openManageDashboardForm = function () {
         $.getJSON("../api/dashboards/" + dhis2.db.current(), function (data) {
             var name = data.name;
             $("#dashboardRename").val(name);
-
             $("#manageDashboardForm").dialog({
                 autoOpen: true,
                 modal: true,
                 width: 405,
-                height: 345,
+                height: 430,
                 resizable: false,
                 title: name
             });
@@ -345,6 +344,14 @@ dhis2.db.removeDashboard = function () {
                 dhis2.db.renderDashboardListLoadFirst();
             }
         });
+    }
+}
+
+
+dhis2.db.translateDashboard = function () {
+    if (undefined !== dhis2.db.current()) {
+        var currentPage = "/dhis-web-dashboard-integration/index.action"
+        document.location.href = "../dhis-web-commons/i18n.action?className=Dashboard&uid=" + dhis2.db.current() + "&returnUrl=" + currentPage;
     }
 }
 
