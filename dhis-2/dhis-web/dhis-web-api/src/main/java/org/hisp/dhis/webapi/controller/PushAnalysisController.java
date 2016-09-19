@@ -103,7 +103,10 @@ public class PushAnalysisController
 
         logger.info(
             "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
-        pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
+        String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
+
+        response.getWriter().write( result );
+        response.getWriter().close();
     }
 
     /**
