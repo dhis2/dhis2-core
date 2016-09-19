@@ -29,7 +29,10 @@ package org.hisp.dhis.program.notification;
  */
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -38,22 +41,54 @@ import org.hisp.dhis.common.DxfNamespaces;
 public enum NotificationTrigger
 {
     /**
-     * Trigger immediately on event
+     * Program enrollment.
      */
-    IMMEDIATE,
+    ENROLLMENT,
 
     /**
-     * Scheduled time relative to event's dueDate
+     * Program or ProgramStage completion.
      */
-    SCHEDULED;
+    COMPLETION,
 
+    /**
+     * Scheduled days relative to the dueDate of the ProgramStageInstance (event).
+     */
+    SCHEDULED_DAYS_DUE_DATE,
+
+    /**
+     * Scheduled days relative to the incidentDate of the ProgramInstance (enrollment).
+     */
+    SCHEDULED_DAYS_INCIDENT_DATE;
+
+    private static final Set<NotificationTrigger> IMMEDIATE_TRIGGERS =
+        new ImmutableSet.Builder<NotificationTrigger>().add( ENROLLMENT, COMPLETION ).build();
+
+    private static final Set<NotificationTrigger> SCHEDULED_TRIGGERS =
+        new ImmutableSet.Builder<NotificationTrigger>().add( SCHEDULED_DAYS_DUE_DATE, SCHEDULED_DAYS_INCIDENT_DATE ).build();
+
+    private static final Set<NotificationTrigger> APPLICABLE_TO_PROGRAM_INSTANCE =
+        new ImmutableSet.Builder<NotificationTrigger>().add( ENROLLMENT, COMPLETION, SCHEDULED_DAYS_INCIDENT_DATE ).build();
+
+    private static final Set<NotificationTrigger> APPLICABLE_TO_PROGRAM_STAGE_INSTANCE =
+        new ImmutableSet.Builder<NotificationTrigger>().add( COMPLETION, SCHEDULED_DAYS_DUE_DATE ).build();
+    
     public boolean isImmediate()
     {
-        return this == IMMEDIATE;
+        return IMMEDIATE_TRIGGERS.contains( this );
     }
 
     public boolean isScheduled()
     {
-        return this == SCHEDULED;
+        return SCHEDULED_TRIGGERS.contains( this );
+    }
+
+    public boolean isApplicableToProgramStageInstance()
+    {
+        return APPLICABLE_TO_PROGRAM_STAGE_INSTANCE.contains( this );
+    }
+
+    public boolean isApplicableToProgramInstance()
+    {
+        return APPLICABLE_TO_PROGRAM_INSTANCE.contains( this );
     }
 }
