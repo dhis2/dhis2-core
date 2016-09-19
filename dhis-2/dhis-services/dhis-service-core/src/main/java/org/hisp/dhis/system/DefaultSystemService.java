@@ -31,6 +31,8 @@ package org.hisp.dhis.system;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
@@ -110,21 +112,15 @@ public class DefaultSystemService
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
 
-        //MDInfo
         Boolean metadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
         Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
         Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
         String remoteInstanceURL = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL );
-
+        String metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
         MetadataVersion currentVersion = versionStore.getCurrentVersion();
-
-
-        System.out.println( currentVersion.getName() + "current version ka nam" );
-        System.out.println( "metadata version enabled    " + metadataVersionEnabled );
         Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
 
         Date now = new Date();
-
         SystemInfo info = systemInfo.instance();
 
         info.setCalendar( calendarService.getSystemCalendar().name() );
@@ -134,44 +130,47 @@ public class DefaultSystemService
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
 
-        //MDInfo
-        info.setCurrentVersion( currentVersion.getName() );
         info.setMetadataVersionEnabled( metadataVersionEnabled );
         if ( currentVersion != null )
         {
+            info.setCurrentVersion( currentVersion.getName() );
             info.setVersionCreated( true );
         }
         info.setLastSuccessfulMetadataSync( lastSuccessfulMetadataSync );
         info.setMetadataLastFailedTime( metadataLastFailedTime );
         info.setRemoteInstanceURL( remoteInstanceURL );
-
-        System.out.println( "Current version from system info --> " + info.getCurrentVersion() );
-        System.out.println( "metadata version enabled from system info --> " + info.getMetadataVersionEnabled() );
+        info.setMetaDataSyncCron( metadataSyncCron );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
-
 
         return info;
     }
 
     private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
     {
+        Date result;
+        DateTimeFormatter dateFormat = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" );
+
         if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
         {
             return null;
         }
-        else if( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null)
+        else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
         {
-            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
+            result = (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
+//            return dateFormat.parseDateTime( result.toString() ).toDate();
+            return result;
         }
 
         if ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 )
         {
-            return lastFailedMetadataSyncTime;
+            result = lastFailedMetadataSyncTime;
         }
         else
         {
-            return lastSuccessfulMetadataSyncTime;
+            result = lastSuccessfulMetadataSyncTime;
         }
+//        return dateFormat.parseDateTime( result.toString() ).toDate();
+        return result;
     }
 
 

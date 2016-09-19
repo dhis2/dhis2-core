@@ -118,6 +118,7 @@ public class SystemInfo
     private Date lastMetadataVersionSyncAttempt;
     private String remoteInstanceURL;
     private boolean versionCreated;
+    private String metaDataSyncCron;
 
     public SystemInfo instance()
     {
@@ -567,4 +568,24 @@ public class SystemInfo
     {
         this.versionCreated = versionCreated;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean getVersionCreated()
+    {
+        return versionCreated;
+    }
+
+    public void setMetaDataSyncCron( String metaDataSyncCron )
+    {
+        this.metaDataSyncCron = metaDataSyncCron;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getMetaDataSyncCron()
+    {
+        return metaDataSyncCron;
+    }
+
 }
