@@ -224,6 +224,7 @@ public class PushAnalysis
                 recipientUserGroups = pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName();
                 message = pushAnalysis.getMessage();
+                enabled = pushAnalysis.getEnabled();
                 schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency();
                 schedulingFrequency = pushAnalysis.getSchedulingFrequency();
             }
@@ -236,6 +237,7 @@ public class PushAnalysis
                     pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName() == null ? name : pushAnalysis.getName();
                 message = pushAnalysis.getMessage() == null ? message : pushAnalysis.getMessage();
+                enabled = pushAnalysis.getEnabled();
                 schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency() == null ?
                     schedulingDayOfFrequency :
                     pushAnalysis.getSchedulingDayOfFrequency();
