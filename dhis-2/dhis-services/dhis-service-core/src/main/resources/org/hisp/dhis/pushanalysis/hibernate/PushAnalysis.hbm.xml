@@ -13,6 +13,7 @@
         &identifiableProperties;
 
         <property name="name" column="name" length="255" not-null="true" unique="false"/>
+        <property name="title" column="title" length="255" not-null="false" unique="false"/>
         <property name="message" column="message" type="text" length="255" not-null="false" unique="false"/>
         <property name="enabled" column="enabled" not-null="true"/>
         <property name="lastRun" column="lastrun" not-null="false"/>
