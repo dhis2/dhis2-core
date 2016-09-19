@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.webapi.controller.option;
 
 /*
  *
@@ -30,11 +30,18 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ImageFormat
+@Controller
+@RequestMapping( value = OptionSetSchemaDescriptor.API_ENDPOINT )
+public class OptionSetController
+    extends AbstractCrudController<OptionSet>
 {
-    PNG,
-    JPG
 }

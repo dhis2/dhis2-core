@@ -79,7 +79,7 @@ public class ProgramIndicatorGroup
         programIndicator.getGroups().add( this );
     }
 
-    public void removeIndicator( ProgramIndicator indicator )
+    public void removeProgramIndicator( ProgramIndicator indicator )
     {
         members.remove( indicator );
         indicator.getGroups().remove( this );
@@ -91,7 +91,7 @@ public class ProgramIndicatorGroup
         {
             if ( !updates.contains( indicator ) )
             {
-                removeIndicator( indicator );
+                removeProgramIndicator( indicator );
             }
         }
 
@@ -105,7 +105,7 @@ public class ProgramIndicatorGroup
     // Logic
     // -------------------------------------------------------------------------
 
-    public void removeAllIndicators()
+    public void removeAllProgramIndicators()
     {
         members.clear();
     }
@@ -161,7 +161,7 @@ public class ProgramIndicatorGroup
                 this.description = indicatorGroup.getDescription() == null ? this.description : indicatorGroup.getDescription();
             }
 
-            removeAllIndicators();
+            removeAllProgramIndicators();
 
             for ( ProgramIndicator indicator : indicatorGroup.getMembers() )
             {

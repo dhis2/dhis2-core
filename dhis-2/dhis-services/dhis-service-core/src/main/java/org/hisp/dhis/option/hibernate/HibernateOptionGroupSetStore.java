@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.option.hibernate;
 
 /*
  *
@@ -30,11 +30,15 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.option.OptionGroupSet;
+import org.hisp.dhis.option.OptionGroupSetStore;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum ImageFormat
+public class HibernateOptionGroupSetStore
+    extends HibernateIdentifiableObjectStore<OptionGroupSet>
+    implements OptionGroupSetStore
 {
-    PNG,
-    JPG
 }

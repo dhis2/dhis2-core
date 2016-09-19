@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.webapi.documentation.controller.option;
 
 /*
  *
@@ -30,11 +30,15 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum ImageFormat
+
+
+public class OptionDocumentation
+    extends AbstractWebApiTest<Option>
 {
-    PNG,
-    JPG
 }

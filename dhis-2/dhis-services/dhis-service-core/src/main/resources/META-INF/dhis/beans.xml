@@ -454,6 +454,18 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.option.OptionGroupStore" class="org.hisp.dhis.option.hibernate.HibernateOptionGroupStore">
+    <property name="clazz" value="org.hisp.dhis.option.OptionGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.option.OptionGroupSetStore" class="org.hisp.dhis.option.hibernate.HibernateOptionGroupSetStore">
+    <property name="clazz" value="org.hisp.dhis.option.OptionGroupSet" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.mapping.MapStore" class="org.hisp.dhis.mapping.hibernate.HibernateMapStore">
     <property name="clazz" value="org.hisp.dhis.mapping.Map" />
     <property name="sessionFactory" ref="sessionFactory" />

@@ -28,6 +28,7 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -74,4 +75,59 @@ public interface OptionService
     void deleteOption( Option option  );
         
     List<Option> getOptions( OptionSet optionSet, String option, Integer min, Integer max );
+
+    // -------------------------------------------------------------------------
+    // OptionGroup
+    // -------------------------------------------------------------------------
+
+    int saveOptionGroup( OptionGroup group );
+
+    void updateOptionGroup( OptionGroup group );
+
+    OptionGroup getOptionGroup( int id );
+
+    OptionGroup getOptionGroup( String uid );
+
+    List<OptionGroup> getOptionGroupsByUid( Collection<String> uids );
+
+    void deleteOptionGroup( OptionGroup group );
+
+    List<OptionGroup> getAllOptionGroups();
+
+    List<OptionGroup> getOptionGroups( OptionGroupSet groupSet );
+
+    OptionGroup getOptionGroupByName( String name );
+
+    OptionGroup getOptionGroupByCode( String code );
+
+    OptionGroup getOptionGroupByShortName( String shortName );
+
+    int getOptionGroupCount();
+
+    int getOptionGroupCountByName( String name );
+
+    // -------------------------------------------------------------------------
+    // OptionGroupSet
+    // -------------------------------------------------------------------------
+
+    int saveOptionGroupSet( OptionGroupSet group );
+
+    void updateOptionGroupSet( OptionGroupSet group );
+
+    OptionGroupSet getOptionGroupSet( int id );
+
+    OptionGroupSet getOptionGroupSet( String uid );
+
+    List<OptionGroupSet> getOptionGroupSetsByUid( Collection<String> uids );
+
+    void deleteOptionGroupSet( OptionGroupSet group );
+
+    List<OptionGroupSet> getAllOptionGroupSets();
+
+    OptionGroupSet getOptionGroupSetByName( String name );
+
+    int getOptionGroupSetCount();
+
+    int getOptionGroupSetCountByName( String name );
+
 }
