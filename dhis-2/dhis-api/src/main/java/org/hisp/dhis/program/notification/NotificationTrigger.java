@@ -58,19 +58,28 @@ public enum NotificationTrigger
     /**
      * Scheduled days relative to the incidentDate of the ProgramInstance (enrollment).
      */
-    SCHEDULED_DAYS_INCIDENT_DATE;
+    SCHEDULED_DAYS_INCIDENT_DATE,
+
+    /**
+     * Scheduled days relative to the enrollmentDate of the ProgramInstance (enrollment).
+     */
+    SCHEDULED_DAYS_ENROLLMENT_DATE;
 
     private static final Set<NotificationTrigger> IMMEDIATE_TRIGGERS =
-        new ImmutableSet.Builder<NotificationTrigger>().add( ENROLLMENT, COMPLETION ).build();
+        new ImmutableSet.Builder<NotificationTrigger>()
+            .add( ENROLLMENT, COMPLETION ).build();
 
     private static final Set<NotificationTrigger> SCHEDULED_TRIGGERS =
-        new ImmutableSet.Builder<NotificationTrigger>().add( SCHEDULED_DAYS_DUE_DATE, SCHEDULED_DAYS_INCIDENT_DATE ).build();
+        new ImmutableSet.Builder<NotificationTrigger>()
+            .add( SCHEDULED_DAYS_DUE_DATE, SCHEDULED_DAYS_INCIDENT_DATE, SCHEDULED_DAYS_ENROLLMENT_DATE ).build();
 
     private static final Set<NotificationTrigger> APPLICABLE_TO_PROGRAM_INSTANCE =
-        new ImmutableSet.Builder<NotificationTrigger>().add( ENROLLMENT, COMPLETION, SCHEDULED_DAYS_INCIDENT_DATE ).build();
+        new ImmutableSet.Builder<NotificationTrigger>()
+            .add( ENROLLMENT, COMPLETION, SCHEDULED_DAYS_INCIDENT_DATE, SCHEDULED_DAYS_ENROLLMENT_DATE ).build();
 
     private static final Set<NotificationTrigger> APPLICABLE_TO_PROGRAM_STAGE_INSTANCE =
-        new ImmutableSet.Builder<NotificationTrigger>().add( COMPLETION, SCHEDULED_DAYS_DUE_DATE ).build();
+        new ImmutableSet.Builder<NotificationTrigger>()
+            .add( COMPLETION, SCHEDULED_DAYS_DUE_DATE ).build();
     
     public boolean isImmediate()
     {
