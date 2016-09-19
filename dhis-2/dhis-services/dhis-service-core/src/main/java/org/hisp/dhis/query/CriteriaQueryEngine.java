@@ -191,7 +191,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
                     {
                         Property property = query.getSchema().getProperty( restriction.getPath() );
 
-                        if ( property.isSimple() && property.isPersisted() )
+                        if ( (property.isSimple() && !property.isCollection()) && property.isPersisted() )
                         {
                             criteriaQuery.getCriterions().add( criterion );
                             criterionIterator.remove();
