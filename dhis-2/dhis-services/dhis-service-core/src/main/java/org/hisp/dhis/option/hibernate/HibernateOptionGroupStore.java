@@ -1,4 +1,4 @@
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.option.hibernate;
 
 /*
  *
@@ -30,11 +30,36 @@ package org.hisp.dhis.mapping;
  *
  */
 
+import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.option.OptionGroupSet;
+import org.hisp.dhis.option.OptionGroupStore;
+
+import java.util.List;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public enum ImageFormat
+
+public class HibernateOptionGroupStore
+    extends HibernateIdentifiableObjectStore<OptionGroup>
+    implements OptionGroupStore
 {
-    PNG,
-    JPG
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<OptionGroup> getOptionGroups( OptionGroupSet groupSet )
+    {
+        return getSharingCriteria( Restrictions.eq( "groupSet", groupSet ) ).list();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension )
+    {
+        return getCriteria(
+            Restrictions.eq( "dataDimensionType", dataDimensionType ),
+            Restrictions.eq( "dataDimension", dataDimension ) ).list();
+    }
 }

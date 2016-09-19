@@ -68,7 +68,7 @@ public class MappingServiceTest
 
     @Autowired
     private MappingService mappingService;
-    
+
     private IndicatorGroup indicatorGroup;
 
     private IndicatorType indicatorType;
@@ -149,5 +149,5 @@ public class MappingServiceTest
         mappingService.addExternalMapLayer( externalMapLayerB );
 
         assertEquals( 2, mappingService.getAllExternalMapLayers().size() );
-    }    
+    }
 }
