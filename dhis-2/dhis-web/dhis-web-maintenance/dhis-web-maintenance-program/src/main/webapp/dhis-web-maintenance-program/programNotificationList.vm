@@ -1,8 +1,12 @@
 <h3>$i18n.getString( "program_notifications" )</h3>
 
+<h5>$encoder.htmlEncode( $program.displayName )</h5>
+
 <div id="contextMenu" class="contextMenu" style="width: 250px;">
     <ul id="contextMenuItems" class="contextMenuItems">
-        <li><!-- TODO--></li>
+        <li><a data-target-fn="showUpdateProgramNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+        <li><a data-target-fn="removeProgramNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+        <li><a data-target-fn="showProgramNotificationDetails"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
     </ul>
 </div>
 

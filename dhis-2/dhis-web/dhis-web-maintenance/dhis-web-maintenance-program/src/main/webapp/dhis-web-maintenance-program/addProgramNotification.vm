@@ -1,0 +1,31 @@
+
+<h3>$i18n.getString( "create_new_program_notification" )</h3>
+<h5>$encoder.htmlEncode( $program.displayName )</h5>
+
+<form id="addProgramNotificationForm" name="addProgramNotificationForm">
+    <input type="hidden" id="programid" name="programId" value="$program.id">
+
+    <table>
+        <thead>
+            <tr>
+                <th colspan="2" style="width: 590px;">$i18n.getString( "configure_program_notification" )</th><!-- TODO What to name this? -->
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label>
+                </td>
+                <td>
+                    <input type="text" id="name" name="name" />
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    <label for=""
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</form>
