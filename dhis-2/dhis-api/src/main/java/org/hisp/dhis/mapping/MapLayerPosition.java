@@ -33,8 +33,16 @@ package org.hisp.dhis.mapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+<<<<<<< HEAD
+
+
+public enum MapLayerPosition
+{
+    BASEMAP, OVERLAY
+=======
 public enum MapLayerPosition
 {
     BASEMAP, 
     OVERLAY
+>>>>>>> upstream/master
 }

@@ -33,9 +33,17 @@ package org.hisp.dhis.mapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+<<<<<<< HEAD
+
+
+public enum MapService
+{
+    WMS, TMS, XYZ
+=======
 public enum MapService
 {
     WMS, 
     TMS, 
     XYZ
+>>>>>>> upstream/master
 }
