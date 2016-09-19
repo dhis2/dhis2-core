@@ -89,7 +89,7 @@ public class PushAnalysisController
         @PathVariable() String uid,
         HttpServletResponse response
     )
-        throws Exception
+        throws WebMessageException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
         if ( pushAnalysis == null )
@@ -103,10 +103,20 @@ public class PushAnalysisController
 
         logger.info(
             "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
-        String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
 
-        response.getWriter().write( result );
-        response.getWriter().close();
+        try
+        {
+            String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
+            response.getWriter().write( result );
+            response.getWriter().close();
+
+        }
+        catch ( Exception e )
+        {
+            logger.error( "Failed to render push analysis" );
+            e.printStackTrace();
+        }
+
     }
 
     /**
