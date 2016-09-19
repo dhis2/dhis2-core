@@ -6,7 +6,8 @@
                ng-class="{'input-success': d2LatSaved}"
                name="latitude" 
                d2-coordinate-validator
-               ng-required="false"
+               ng-required="d2Required"
+               ng-disabled="d2Disabled"
                ng-blur="saveD2Coordinate()"
                class="form-control no-right-radius"/>
         <span class="input-group-btn empty-span"></span>
@@ -16,12 +17,14 @@
                ng-class="{'input-success': d2LngSaved}"
                name="longitude" 
                d2-coordinate-validator
-               ng-required="false"
+               ng-required="d2Required"
+               ng-disabled="d2Disabled"
                ng-blur="saveD2Coordinate()"
                class="form-control no-left-radius no-right-radius"/>
         <span class="input-group-btn hideInPrint">
             <button class="btn btn-grp trim hideInPrint" 
-                    type="button" 
+                    type="button"
+                    ng-disabled="{{d2Disabled}}"
                     title="{{'get_from_map'| translate}}"
                     ng-click="showMap(coordinateObject)"> 
                 <i class="fa fa-map-marker"></i>                             

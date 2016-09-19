@@ -47,11 +47,7 @@
     <set name="translations" table="dashboarditemtranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="dashboarditemid" foreign-key="fk_objecttranslation_dashboarditemid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <property name="messages" />
@@ -67,9 +63,5 @@
     </property>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

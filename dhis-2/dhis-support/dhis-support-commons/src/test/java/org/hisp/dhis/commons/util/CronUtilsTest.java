@@ -1,4 +1,4 @@
-package org.hisp.dhis.pushanalysis.scheduling;
+package org.hisp.dhis.commons.util;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -27,32 +27,43 @@ package org.hisp.dhis.pushanalysis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Stian Sandvold
  */
-public class PushAnalysisTask
-    extends NoSecurityContextRunnable
+public class CronUtilsTest
 {
-    private int pushAnalysisId;
-
-    private TaskId taskId;
-
-    private PushAnalysisService pushAnalysisService;
-
-    public PushAnalysisTask( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
+    @Test
+    public void getCronExpresion()
     {
-        this.pushAnalysisId = pushAnalysisId;
-        this.taskId = taskId;
-        this.pushAnalysisService = pushAnalysisService;
+        assertEquals( "1 2 3 4 5 6", CronUtils.getCronExpression( "1", "2", "3", "4", "5", "6" ) );
     }
 
-    @Override
-    public void call()
+    @Test
+    public void getDailyCronExpression()
     {
-        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
+        assertEquals( "0 0 0 */1 * *", CronUtils.getDailyCronExpression( 0, 0 ) );
+    }
+
+    @Test
+    public void getWeeklyCronExpressionForAllWeekdays()
+    {
+        assertEquals( "0 0 0 * * SUN", CronUtils.getWeeklyCronExpression( 0, 0, 0 ) );
+        assertEquals( "0 0 0 * * MON", CronUtils.getWeeklyCronExpression( 0, 0, 1 ) );
+        assertEquals( "0 0 0 * * TUE", CronUtils.getWeeklyCronExpression( 0, 0, 2 ) );
+        assertEquals( "0 0 0 * * WED", CronUtils.getWeeklyCronExpression( 0, 0, 3 ) );
+        assertEquals( "0 0 0 * * THU", CronUtils.getWeeklyCronExpression( 0, 0, 4 ) );
+        assertEquals( "0 0 0 * * FRI", CronUtils.getWeeklyCronExpression( 0, 0, 5 ) );
+        assertEquals( "0 0 0 * * SAT", CronUtils.getWeeklyCronExpression( 0, 0, 6 ) );
+        assertEquals( "0 0 0 * * SUN", CronUtils.getWeeklyCronExpression( 0, 0, 7 ) );
+    }
+
+    @Test
+    public void getMonthlyCronExpression()
+    {
+        assertEquals( "0 0 0 15 */1 *", CronUtils.getMonthlyCronExpression( 0, 0, 15 ) );
     }
 }

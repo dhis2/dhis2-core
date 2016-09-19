@@ -1,4 +1,4 @@
-package org.hisp.dhis.pushanalysis.scheduling;
+package org.hisp.dhis.pushanalysis;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -27,32 +27,12 @@ package org.hisp.dhis.pushanalysis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.pushanalysis.PushAnalysisService;
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
-
 /**
  * @author Stian Sandvold
  */
-public class PushAnalysisTask
-    extends NoSecurityContextRunnable
+public enum SchedulingFrequency
 {
-    private int pushAnalysisId;
-
-    private TaskId taskId;
-
-    private PushAnalysisService pushAnalysisService;
-
-    public PushAnalysisTask( int pushAnalysisId, TaskId taskId, PushAnalysisService pushAnalysisService )
-    {
-        this.pushAnalysisId = pushAnalysisId;
-        this.taskId = taskId;
-        this.pushAnalysisService = pushAnalysisService;
-    }
-
-    @Override
-    public void call()
-    {
-        pushAnalysisService.runPushAnalysis( pushAnalysisId, taskId );
-    }
+    DAILY,
+    WEEKLY,
+    MONTHLY
 }

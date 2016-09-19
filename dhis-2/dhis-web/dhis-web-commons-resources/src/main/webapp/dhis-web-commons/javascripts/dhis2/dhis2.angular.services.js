@@ -3,18 +3,6 @@
 
 var d2Services = angular.module('d2Services', ['ngResource'])
 
-.constant("URLS",function(){
-    var dhis2Url = "../api/25/";
-    var userDataStoreUrl = dhis2Url+"userDataStore/";
-    var gridColumnsUrl = userDataStoreUrl+"gridColumns/";
-
-    return {
-        DHIS2URL: dhis2Url,
-        USERDATASTORE_URL: userDataStoreUrl,
-        GRIDCOLUMNS_URL: gridColumnsUrl
-    }
-}())
-
 /* Factory for loading translation strings */
 .factory('i18nLoader', function ($q, $http, SessionStorageService) {
 
@@ -519,20 +507,16 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     </span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "COORDINATE") {
-                                            newInputField = '<span class="input-group hideInPrint"> ' +
-                                                            ' <input type="text" ' +
-                                                            ' d2-custom-coordinate-validator ' +
-                                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
-                                                            ' placeholder="{{\'latitude_longitude_format\' | translate}}" ' +
-                                                            commonInputFieldProperty + '>' +
-                                                            '<span class="input-group-btn input-group-btn-no-width"> ' +
-                                                                '<button class="btn btn-grp default-btn-height" type="button" title="{{\'get_from_map\' | translate}}" ' +
-                                                                    ' ng-class="{true: \'disable-clicks\'} [isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed]" ' +
-                                                                    'ng-click="showDataElementMap(currentEvent,\'' + fieldId + '\', outerForm.' + fieldId + ')"> ' +
-                                                                    '<i class="fa fa-map-marker"></i> ' +
-                                                                '</button> ' + 
-                                                            '</span>' +
-                                                            '</span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
+                                    	newInputField = '<d2-map ' + 
+                                    							' id=" ' + fieldId + '" ' +
+						                                        ' d2-object="currentEvent" ' + 
+						                                        ' d2-coordinate-format="\'TEXT\'" ' + 
+						                                        ' d2-disabled="isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
+					                                            ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
+						                                        ' d2-function="saveDatavalue(arg1)" ' +						                                        
+						                                        ' d2-function-param-text="prStDes.' + fieldId + '" ' +
+						                                        ' d2-function-param-coordinate="\'LATLNG\'" > ' +
+						                                '</d2-map>';
                                     }
                                     else if (prStDe.dataElement.valueType === "ORGANISATION_UNIT") {
                                     	newInputField = '<d2-org-unit-tree ' +
@@ -700,19 +684,25 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     '</span>';
                                 }
                                 else if (att.valueType === "COORDINATE") {
-                                    newInputField = '<span class="input-group"> ' +
-                                                        ' <input type="text" ' +
-                                                        ' placeholder="{{\'latitude_longitude_format\' | translate}}" ' +
-                                                        ' d2-custom-coordinate-validator ' +
-                                                        ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
-                                                        commonInputFieldProperty + '>' +
-                                                        '<span class="input-group-btn input-group-btn-no-width"> ' +
-                                                            '<button class="btn btn-grp default-btn-height" type="button" title="{{\'get_from_map\' | translate}}" ' +
-                                                                ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
-                                                                'ng-click="showAttributeMap(selectedTei,\'' + attId + '\')"> ' +
-                                                                '<i class="fa fa-map-marker"></i> ' +
-                                                            '</button> ' + 
-                                                        '</span></span>';
+                                	newInputField = '<d2-map ' + 
+                            								' id=" ' + attId + '" ' +
+						                                    ' d2-object="selectedTei" ' +  
+						                                    ' d2-value="selectedTei.' + attId + '" ' +
+						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
+					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+						                                    ' d2-coordinate-format="\'TEXT\'" > ' +
+						                            '</d2-map>';
+                                }
+                                else if (prStDe.dataElement.valueType === "ORGANISATION_UNIT") {
+                                	newInputField = '<d2-org-unit-tree ' +
+				                                            ' selected-org-unit="selectedOrgUnit" ' +
+				                                            ' id=" ' + attId + '" ' +
+				                                            ' d2-object="selectedTei" ' +  
+						                                    ' d2-value="selectedTei.' + attId + '" ' +
+						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
+					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+					                                        ' d2-function="teiValueUpdated()" >' +
+				                                    ' </d2-org-unit-tree>';
                                 }
                                 else if (att.valueType === "LONG_TEXT") {
                                     newInputField = '<span><textarea row ="3" ' +
@@ -1049,7 +1039,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
 })
 
-.service('GridColumnService', function ($http, URLS, $translate, SessionStorageService, NotificationService) {
+.service('GridColumnService', function ($http, DHIS2URL, $translate, SessionStorageService, NotificationService) {
+    var GRIDCOLUMNS_URL = DHIS2URL+'/userDataStore/gridColumns/';
     return {
         columnExists: function (cols, id) {
             var colExists = false;
@@ -1068,7 +1059,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             var method = created ? "put":"post";
             var promise = $http({
                 method: method,
-                url: URLS.GRIDCOLUMNS_URL+name,
+                url: GRIDCOLUMNS_URL+name,
                 data: {"gridColumns": gridColumns},
                 headers: {'Content-Type': 'application/json;charset=UTF-8'}
             }).then(function (response) {
@@ -1082,7 +1073,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return promise;
         },
         get: function (name) {
-            var promise = $http.get(URLS.GRIDCOLUMNS_URL+name).then(function (response) {
+            var promise = $http.get(GRIDCOLUMNS_URL+name).then(function (response) {
                 if (response && response.data && response.data.gridColumns) {
                     SessionStorageService.set("gridColumns", {id:name, columns:response.data.gridColumns});
                     return response.data.gridColumns;
@@ -1095,7 +1086,6 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 if (gridColumnsFromSessionStore && gridColumnsFromSessionStore.columns) {
                     return gridColumnsFromSessionStore.columns;
                 }
-                NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_fetch_failed"));
                 return null;
             });
             return promise;

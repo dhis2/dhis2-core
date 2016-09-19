@@ -46,10 +46,10 @@ public interface Scheduler
     String CRON_EVERY_15MIN = "0 0/15 * * * ?";
     String CRON_TEST = "0 * * * * ?";
     String CRON_DAILY_8AM = "0 0 8 * * ?";
-    
+
     /**
      * Execute the given task immediately.
-     * 
+     *
      * @task the task to execute.
      */
     void executeTask( Runnable task );
@@ -62,13 +62,13 @@ public interface Scheduler
      * @return a ListenableFuture representing the result of the task.
      */
     <T> ListenableFuture<T> executeTask( Callable<T> callable );
-    
+
     /**
      * Schedule the given task for future execution. The task can be referenced
      * later through the given task key. A task cannot be scheduled if another
      * task with the same key is already scheduled. The task must be unique for
      * the task but can have an arbitrary value.
-     * 
+     *
      * @param key the task key, cannot be null.
      * @param task the task to schedule.
      * @param cronExpr the cron expression to use for the task scheduling.
@@ -76,24 +76,34 @@ public interface Scheduler
      *         operation, false if not.
      */
     boolean scheduleTask( String key, Runnable task, String cronExpr );
-    
+
     /**
      * Deactivates scheduling of the task with the given key.
-     * 
+     *
      * @param key the task key.
      * @return true if the task was deactivated as a result of this operation,
      *         false if not.
      */
     boolean stopTask( String key );
-    
+
+    /**
+     * Stops and starts a task with the given key. If no key exists, still start a new task
+     * @param key the task key, cannot be null.
+     * @param task the task to schedule
+     * @param cronExpr the cronExpression to use for the task scheduling.
+     * @return true if the task was scheduled for execution as a result of this
+     *         operation, false if not.
+     */
+    boolean refreshTask( String key, Runnable task, String cronExpr );
+
     /**
      * Deactivates scheduling for all tasks.
      */
     void stopAllTasks();
-    
+
     /**
      * Gets the status for the task with the given key.
-     * 
+     *
      * @param key the task key.
      * @return the task status.
      */

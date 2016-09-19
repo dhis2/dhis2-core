@@ -457,6 +457,20 @@ public abstract class AbstractEnrollmentService
 
             return importSummary;
         }
+        
+        if( program.getCaptureCoordinates() )
+        {
+            if ( enrollment.getCoordinate().isValid() )
+            {
+                programInstance.setLatitude( enrollment.getCoordinate().getLatitude() );
+                programInstance.setLongitude( enrollment.getCoordinate().getLongitude() );
+            }
+            else
+            {
+                programInstance.setLatitude( null );
+                programInstance.setLongitude( null );
+            }
+        }
 
         if ( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) != enrollment.getStatus() )
         {
@@ -468,9 +482,9 @@ public abstract class AbstractEnrollmentService
             {
                 programInstanceService.completeProgramInstanceStatus( programInstance );
             }
-            else
+            else if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
             {
-                return new ImportSummary( ImportStatus.ERROR, "Re-enrollment is not allowed, please create a new enrollment." ).incrementIgnored();
+                programInstanceService.incompleteProgramInstanceStatus( programInstance );
             }
         }
 
