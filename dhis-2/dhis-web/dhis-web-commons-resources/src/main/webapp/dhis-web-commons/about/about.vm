@@ -14,17 +14,12 @@
   <dt>$i18n.getString( "last_analytics_table_runtime" ):</dt><dd>$!info.lastAnalyticsTableRuntime</dd>
   <dt>$i18n.getString( "environment_variable" ):</dt><dd>$!info.environmentVariable</dd>
 
-  <h4>${info.versionCreated}</h4>
-  #if ( $info.versionCreated )
+  #if ( $info.versionCreated && $info.metadataVersionEnabled )
     <dt>$i18n.getString( "metadata_version" ):</dt><dd>$!info.currentVersion</dd>
-  #else
-    <dt>$i18n.getString( "metadata_version" ):</dt><dd>$i18n.getString( "no_versions_exists" )</dd>
   #end
 
-  #if ( $info.metadataVersionEnabled && $info.remoteInstanceURL != "")
-    #if($!info.lastMetadataVersionSyncAttempt)
-      <dt>$i18n.getString( "last_attempt_time" ):</dt><dd>$!info.lastMetadataVersionSyncAttempt</dd>
-    #end
+  #if ( $!info.metaDataSyncCron && $info.remoteInstanceURL != "" && $!info.lastMetadataVersionSyncAttempt)
+    <dt>$i18n.getString( "last_attempt_time" ):</dt><dd>$!info.lastMetadataVersionSyncAttempt</dd>
   #end
 
   #if ( $currentUserIsSuper )
