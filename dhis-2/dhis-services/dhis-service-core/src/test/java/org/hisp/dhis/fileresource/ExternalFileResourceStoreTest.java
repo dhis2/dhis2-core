@@ -30,17 +30,19 @@ package org.hisp.dhis.fileresource;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import org.hisp.dhis.DhisSpringTest;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Stian Sandvold
  */
+@Ignore
 public class ExternalFileResourceStoreTest
     extends DhisSpringTest
 {

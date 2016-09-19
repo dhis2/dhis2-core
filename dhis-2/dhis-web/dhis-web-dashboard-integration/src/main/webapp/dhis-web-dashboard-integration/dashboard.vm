@@ -120,6 +120,8 @@ jQuery( document ).ready( function() {
     <div><a class="greyButtonLink" href="javascript:dhis2.db.addMessagesContent()">$i18n.getString( "messages" )</a></div>
     <h4>$i18n.getString( "delete_current_dashboard" )</h4>
     <div><a class="greyButtonLink" href="javascript:dhis2.db.removeDashboard()">$i18n.getString( "delete" )</a></div>
+    <h4>$i18n.getString( "translate_current_dashboard" )</h4>
+    <div><a class="greyButtonLink" href="javascript:dhis2.db.translateDashboard()">$i18n.getString( "translate" )</a></div>
 </div>
 
 <div id="orgUnitSelectorForm" class="page">

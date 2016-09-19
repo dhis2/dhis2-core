@@ -88,8 +88,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-mapping</artifactId>
-                  <!-- <version>${apps.version}</version> -->
-                  <version>2.24-SNAPSHOT</version>
+                  <version>${apps.version}</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-mapping</outputDirectory>
                   <includes>**/*.*</includes>
