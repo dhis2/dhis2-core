@@ -31,10 +31,10 @@ package org.hisp.dhis.query;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.hibernate.HibernateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -97,7 +97,8 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     {
         List<T> sorted = new ArrayList<>( objects );
 
-        sorted.sort( ( o1, o2 ) -> {
+        sorted.sort( ( o1, o2 ) ->
+        {
             for ( Order order : query.getOrders() )
             {
                 int result = order.compare( o1, o2 );
@@ -122,24 +123,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             if ( Restriction.class.isInstance( criterion ) )
             {
                 Restriction restriction = (Restriction) criterion;
-                Object value = getValue( query, object, restriction.getPath() );
-
-                if ( !Collection.class.isInstance( value ) )
-                {
-                    testResult = restriction.getOperator().test( value );
-                }
-                else
-                {
-                    Collection<?> collection = (Collection<?>) value;
-
-                    for ( Object item : collection )
-                    {
-                        if ( restriction.getOperator().test( item ) )
-                        {
-                            testResult = true;
-                        }
-                    }
-                }
+                testResult = testAnd( query, object, Lists.newArrayList( restriction ) );
             }
             else if ( Conjunction.class.isInstance( criterion ) )
             {
