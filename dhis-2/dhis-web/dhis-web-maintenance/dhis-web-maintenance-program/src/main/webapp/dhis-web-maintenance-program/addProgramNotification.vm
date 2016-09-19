@@ -23,9 +23,69 @@
             </tr>
             <tr>
                 <td>
-                    <label for=""
+                    <label for="notificationTrigger">$i18n.getString( "trigger_by" )</label>
+                </td>
+                <td>
+                    <select type="text" id="notificationTrigger" name="notificationTrigger">
+                        <option value="ENROLLMENT">$i18n.getString( "program_enrollment" )</option>
+                        <option value="SCHEDULED_DAYS_INCIDENT_DATE">$i18n.getString( "days_scheduled_incident_date" )</option>
+                        <option value="SCHEDULED_DAYS_ENROLLMENT_DATE">$i18n.getString( "days_scheduled_enrollment_date" )</option>
+                        <option value="COMPLETION">$i18n.getString( "program_completion" )</option>
+                    </select>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>
+                </td>
+                <td>
+                    <input type="text" id="days" name="days" style="width:100px;">
+                        $i18n.getString( "days" )
+                        <select id="daysModifier" name="daysModifier" style="width:100px;">
+                            <option value="-1">$i18n.getString( "before") </option>
+                            <option value="1">$i18n.getString( "after" )</option>
+                        </select>
+                        $i18n.getString( "scheduled_date" )
+                    <input type="hidden" id="relativeScheduledDays" name="relativeScheduledDays" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="notificationRecipient">$i18n.getString( "recipients" )</label>
+                </td>
+                <td>
+                    <select type="text" id="notificationRecipient" name="notificationRecipient">
+                        <option value="TRACKED_ENTITY_INSTANCE">$i18n.getString( "tracked_entity_instance" )</option>
+                        <option value="ORGANISATION_UNIT_CONTACT">$i18n.getString( "orgunit_contact" )</option>
+                        <option value="USERS_AT_ORGANISATION_UNIT">$i18n.getString( "users_at_orgunit" )</option>
+                        <option value="USER_GROUP">$i18n.getString( "user_group" )</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="userGroup">$i18n.getString( "user_group" )</label>
+                </td>
+                <td>
+                    <select type="text" id="userGroup" name="userGroup" class="userGroup" disabled>
+                        <option value="">[$i18n.getString("please_select")]</option>
+                        #foreach( $group in $!userGroups )
+                            <option value="$group.uid">$i18n.getString( $group.displayName )</option>
+                        #end
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="deliveryChannels">$i18n.getString( "message_type" )</label></td>
+                <td>
+                    <input type="checkbox" name="deliveryChannels[]" value="SMS">
+                    <input type="checkbox" name="deliveryChannels[]" value="EMAIL">
+                </td>
+            </tr>
+            <tr>
+                <!-- TODO editor thing -->
+            </tr>
+
         </tbody>
     </table>
 </form>
