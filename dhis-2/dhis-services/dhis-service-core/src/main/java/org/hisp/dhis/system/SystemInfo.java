@@ -61,11 +61,11 @@ public class SystemInfo
     private String dateFormat;
 
     private Date serverDate;
-    
+
     private Date lastAnalyticsTableSuccess;
-    
+
     private String intervalSinceLastAnalyticsTableSuccess;
-    
+
     private String lastAnalyticsTableRuntime;
 
     // -------------------------------------------------------------------------
@@ -77,13 +77,13 @@ public class SystemInfo
     private String revision;
 
     private Date buildTime;
-    
+
     private String jasperReportsVersion;
 
     private String environmentVariable;
 
     private String fileStoreProvider;
-    
+
     private String readOnlyMode;
 
     private String javaVersion;
@@ -101,21 +101,28 @@ public class SystemInfo
     private String externalDirectory;
 
     private DatabaseInfo databaseInfo;
-    
+
     private Integer readReplicaCount;
 
     private String memoryInfo;
 
     private Integer cpuCores;
-    
+
     private boolean encryption;
-    
+
     private String systemId;
-    
+    private String currentVersion;
+    private Boolean metadataVersionEnabled;
+    private Date lastSuccessfulMetadataSync;
+    private Date metadataLastFailedTime;
+    private Date lastMetadataVersionSyncAttempt;
+    private String remoteInstanceURL;
+    private boolean versionCreated;
+
     public SystemInfo instance()
     {
         SystemInfo info = new SystemInfo();
-        BeanUtils.copyProperties( this, info );        
+        BeanUtils.copyProperties( this, info );
         return info;
     }
 
@@ -137,13 +144,13 @@ public class SystemInfo
         this.cpuCores = null;
         this.systemId = null;
         this.readReplicaCount = null;
-        
+
         if ( this.databaseInfo != null )
         {
             this.databaseInfo.clearSensitiveInfo();
         }
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -326,7 +333,7 @@ public class SystemInfo
     public void setReadOnlyMode( String readOnlyMode )
     {
         this.readOnlyMode = readOnlyMode;
-    }    
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -482,5 +489,82 @@ public class SystemInfo
     public void setSystemId( String systemId )
     {
         this.systemId = systemId;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCurrentVersion()
+    {
+        return currentVersion;
+    }
+
+    public void setCurrentVersion( String currentVersionName )
+    {
+        this.currentVersion = currentVersionName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getMetadataVersionEnabled()
+    {
+        return metadataVersionEnabled;
+    }
+
+    public void setMetadataVersionEnabled( Boolean metadataVersionEnabled )
+    {
+        this.metadataVersionEnabled = metadataVersionEnabled;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastSuccessfulMetadataSync()
+    {
+        return lastSuccessfulMetadataSync;
+    }
+
+    public void setLastSuccessfulMetadataSync( Date lastSuccessfulMetadataSync )
+    {
+        this.lastSuccessfulMetadataSync = lastSuccessfulMetadataSync;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getMetadataLastFailedTime()
+    {
+        return metadataLastFailedTime;
+    }
+
+    public void setMetadataLastFailedTime( Date metadataLastFailedTime )
+    {
+        this.metadataLastFailedTime = metadataLastFailedTime;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastMetadataVersionSyncAttempt()
+    {
+        return lastMetadataVersionSyncAttempt;
+    }
+
+    public void setLastMetadataVersionSyncAttempt( Date lastMetadataVersionSyncAttempt )
+    {
+        this.lastMetadataVersionSyncAttempt = lastMetadataVersionSyncAttempt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getRemoteInstanceURL()
+    {
+        return remoteInstanceURL;
+    }
+
+    public void setRemoteInstanceURL( String remoteInstanceURL )
+    {
+        this.remoteInstanceURL = remoteInstanceURL;
+    }
+
+    public void setVersionCreated( boolean versionCreated )
+    {
+        this.versionCreated = versionCreated;
     }
 }
