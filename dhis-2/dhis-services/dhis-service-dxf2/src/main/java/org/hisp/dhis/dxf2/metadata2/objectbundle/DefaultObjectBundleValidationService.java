@@ -255,6 +255,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 if ( !aclService.canCreate( bundle.getUser(), klass ) )
                 {
                     ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                    objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                     objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3000, identifier.getIdentifiersWithName( bundle.getUser() ),
                         identifier.getIdentifiersWithName( object ) ) );
 
@@ -271,6 +272,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     if ( !aclService.canUpdate( bundle.getUser(), object ) )
                     {
                         ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                         objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3001, identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) ) );
 
@@ -285,6 +287,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     if ( !aclService.canDelete( bundle.getUser(), object ) )
                     {
                         ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                        objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                         objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3002, identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) ) );
 
@@ -322,6 +325,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             if ( object != null && object.getId() > 0 )
             {
                 ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ) );
 
@@ -359,6 +363,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 if ( Preheat.isDefaultClass( identifiableObject.getClass() ) ) continue;
 
                 ObjectReport objectReport = new ObjectReport( klass, idx, object != null ? object.getUid() : null );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ) );
 
@@ -396,6 +401,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 if ( Preheat.isDefaultClass( identifiableObject.getClass() ) ) continue;
 
                 ObjectReport objectReport = new ObjectReport( klass, idx, object != null ? object.getUid() : null );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) ) );
 
@@ -431,6 +437,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             if ( !validationErrorReports.isEmpty() )
             {
                 ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReports( validationErrorReports );
 
                 typeReport.addObjectReport( objectReport );
@@ -586,6 +593,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() );
 
                 ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( errorReport );
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -612,6 +620,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass() );
 
                 ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReport( errorReport );
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -661,6 +670,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             if ( !errorReports.isEmpty() )
             {
                 ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReports( errorReports );
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -744,6 +754,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             if ( !errorReports.isEmpty() )
             {
                 ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReports( errorReports );
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -801,6 +812,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             if ( !errorReports.isEmpty() )
             {
                 ObjectReport objectReport = new ObjectReport( object.getClass(), idx );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
                 objectReport.addErrorReports( errorReports );
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();

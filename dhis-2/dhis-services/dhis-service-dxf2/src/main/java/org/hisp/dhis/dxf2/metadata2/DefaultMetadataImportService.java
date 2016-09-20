@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata2;
  */
 
 import com.google.common.base.Enums;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.MergeMode;
@@ -36,6 +37,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.metadata2.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata2.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundleParams;
@@ -43,6 +45,7 @@ import org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -115,6 +118,33 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         log.info( "(" + bundle.getUsername() + ") Import:Done took " + timer.toString() );
 
+        Lists.newArrayList( report.getTypeReportMap().keySet() ).forEach( typeReportKey ->
+        {
+            if ( report.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
+            {
+                report.getTypeReportMap().remove( typeReportKey );
+                return;
+            }
+
+            TypeReport typeReport = report.getTypeReportMap().get( typeReportKey );
+
+            if ( ImportReportMode.ERRORS == params.getImportReportMode() )
+            {
+                Lists.newArrayList( typeReport.getObjectReportMap().keySet() ).forEach( objectReportKey ->
+                {
+                    if ( typeReport.getObjectReportMap().get( objectReportKey ).getErrorReportsByCode().isEmpty() )
+                    {
+                        typeReport.getObjectReportMap().remove( objectReportKey );
+                    }
+                } );
+            }
+
+            if ( ImportReportMode.DEBUG != params.getImportReportMode() )
+            {
+                typeReport.getObjectReports().forEach( objectReport -> objectReport.setDisplayName( null ) );
+            }
+        } );
+
         return report;
     }
 
@@ -131,6 +161,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL ) );
         params.setMergeMode( getEnumWithDefault( MergeMode.class, parameters, "mergeMode", MergeMode.MERGE ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
+        params.setImportReportMode( getEnumWithDefault( ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS ) );
 
         return params;
     }

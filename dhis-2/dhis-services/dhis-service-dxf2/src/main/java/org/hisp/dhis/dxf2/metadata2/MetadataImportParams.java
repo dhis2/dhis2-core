@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata2;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dxf2.metadata2.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -63,6 +64,8 @@ public class MetadataImportParams
     private MergeMode mergeMode = MergeMode.MERGE;
 
     private FlushMode flushMode = FlushMode.AUTO;
+
+    private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
     private boolean skipSharing;
 
@@ -154,6 +157,16 @@ public class MetadataImportParams
         this.flushMode = flushMode;
     }
 
+    public ImportReportMode getImportReportMode()
+    {
+        return importReportMode;
+    }
+
+    public void setImportReportMode( ImportReportMode importReportMode )
+    {
+        this.importReportMode = importReportMode;
+    }
+
     public boolean isSkipSharing()
     {
         return skipSharing;
@@ -223,8 +236,8 @@ public class MetadataImportParams
     {
         ObjectBundleParams params = new ObjectBundleParams();
         params.setUser( user );
-        params.setSkipSharing(skipSharing);
-        params.setSkipValidation( skipValidation);
+        params.setSkipSharing( skipSharing );
+        params.setSkipValidation( skipValidation );
         params.setImportStrategy( importStrategy );
         params.setAtomicMode( atomicMode );
         params.setObjects( objects );
@@ -233,6 +246,7 @@ public class MetadataImportParams
         params.setObjectBundleMode( importMode );
         params.setMergeMode( mergeMode );
         params.setFlushMode( flushMode );
+        params.setImportReportMode( importReportMode );
 
         return params;
     }
