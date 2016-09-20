@@ -34,8 +34,6 @@
 
     <!-- Access properties -->
 
-    <property name="externalAccess" />
-
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_externalmaplayer_userid" />
 
     <property name="publicAccess" length="8" />
