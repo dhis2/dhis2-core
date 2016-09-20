@@ -121,7 +121,11 @@ public class MappingServiceTest
         periodService.addPeriod( period );
 
         externalMapLayerA = new ExternalMapLayer( "A" );
+        externalMapLayerA.setMapService( MapService.TMS );
+        externalMapLayerA.setUrl( "testurl" );
         externalMapLayerB = new ExternalMapLayer( "B" );
+        externalMapLayerB.setMapService( MapService.WMS );
+        externalMapLayerB.setUrl( "testurl" );
     }
 
     @Test
