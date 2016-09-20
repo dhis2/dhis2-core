@@ -34,6 +34,8 @@ import org.hisp.dhis.datavalue.DataValue;
 
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -149,5 +151,19 @@ public class DataValueBatchHandler
             getLongDateString( value.getLastUpdated() ),
             value.getComment(),
             value.isFollowup() );
+    }
+
+    @Override
+    public DataValue mapRow( ResultSet resultSet )
+        throws SQLException
+    {
+        DataValue dv = new DataValue();
+        
+        dv.setValue( resultSet.getString( "value" ) );
+        dv.setStoredBy( resultSet.getString( "storedBy" ) );
+        dv.setComment( resultSet.getString( "comment" ) );
+        dv.setFollowup( resultSet.getBoolean( "followup" ) );
+        
+        return dv;
     }
 }

@@ -31,8 +31,11 @@ package org.hisp.dhis.jdbc.batchhandler;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.datavalue.DataValueAudit;
 
 /**
@@ -124,5 +127,19 @@ public class DataValueAuditBatchHandler
             dataValueAudit.getModifiedBy(),
             dataValueAudit.getCreated(),
             dataValueAudit.getAuditType().toString() );
+    }
+
+    @Override
+    public DataValueAudit mapRow( ResultSet resultSet )
+        throws SQLException
+    {
+        DataValueAudit dva = new DataValueAudit();
+        
+        dva.setValue( resultSet.getString( "value" ) );
+        dva.setModifiedBy( resultSet.getString( "modifiedby" ) );
+        dva.setCreated( resultSet.getDate( "created" ) );
+        dva.setAuditType( AuditType.valueOf( resultSet.getString( "audittype" ) ) );
+        
+        return dva;
     }
 }

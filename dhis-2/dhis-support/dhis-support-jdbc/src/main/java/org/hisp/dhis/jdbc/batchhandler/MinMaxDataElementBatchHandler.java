@@ -31,6 +31,8 @@ package org.hisp.dhis.jdbc.batchhandler;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -120,5 +122,18 @@ public class MinMaxDataElementBatchHandler
             dataElement.getMin(),
             dataElement.getMax(),
             dataElement.isGenerated() );
+    }
+
+    @Override
+    public MinMaxDataElement mapRow( ResultSet resultSet )
+        throws SQLException
+    {
+        MinMaxDataElement mde = new MinMaxDataElement();
+        
+        mde.setMin( resultSet.getInt( "minimumvalue" ) );
+        mde.setMax( resultSet.getInt( "maximumvalue" ) );
+        mde.setGenerated( resultSet.getBoolean( "generatedvalue" ) );
+        
+        return mde;
     }
 }

@@ -172,6 +172,19 @@ public class CompleteDataSetRegistrationBatchHandlerTest
     }
 
     @Test
+    public void testFindObject()
+    {
+        registrationService.saveCompleteDataSetRegistration( regA );
+        registrationService.saveCompleteDataSetRegistration( regD );
+        
+        CompleteDataSetRegistration retrievedRegA = batchHandler.findObject( regA );
+        
+        assertNotNull( retrievedRegA.getStoredBy() );
+        
+        assertEquals( retrievedRegA.getStoredBy(), regA.getStoredBy() );
+    }
+    
+    @Test
     public void testObjectExists()
     {
         registrationService.saveCompleteDataSetRegistration( regA );

@@ -34,6 +34,8 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -135,5 +137,16 @@ public class CompleteDataSetRegistrationBatchHandler
             registration.getAttributeOptionCombo().getId(),
             getLongDateString( registration.getDate() ),
             registration.getStoredBy() );
+    }
+
+    @Override
+    public CompleteDataSetRegistration mapRow( ResultSet resultSet )
+        throws SQLException
+    {
+        CompleteDataSetRegistration cdr = new CompleteDataSetRegistration();
+        
+        cdr.setStoredBy( resultSet.getString( "storedby" ) );
+        
+        return cdr;
     }
 }

@@ -63,6 +63,12 @@ public class MockBatchHandler<T>
     }
 
     @Override
+    public T findObject( T arg )
+    {
+        return null;
+    }
+    
+    @Override
     public void updateObject( T object )
     {
         updates.add( object );        
