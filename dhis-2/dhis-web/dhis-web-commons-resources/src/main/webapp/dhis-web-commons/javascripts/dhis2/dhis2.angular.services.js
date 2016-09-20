@@ -693,7 +693,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 						                                    ' d2-coordinate-format="\'TEXT\'" > ' +
 						                            '</d2-map>';
                                 }
-                                else if (prStDe.dataElement.valueType === "ORGANISATION_UNIT") {
+                                else if (att.valueType === "ORGANISATION_UNIT") {
                                 	newInputField = '<d2-org-unit-tree ' +
 				                                            ' selected-org-unit="selectedOrgUnit" ' +
 				                                            ' id=" ' + attId + '" ' +
