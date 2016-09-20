@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -68,7 +69,7 @@ public class MetadataImportParams
 
     private FlushMode flushMode = FlushMode.AUTO;
 
-    private ImportReportMode importReportMode = ImportReportMode.FULL;
+    private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
     private boolean skipSharing;
 

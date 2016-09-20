@@ -33,7 +33,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
-import org.hisp.dhis.dxf2.metadata.ImportReportMode;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -67,7 +67,7 @@ public class ObjectBundleParams
 
     private FlushMode flushMode = FlushMode.AUTO;
 
-    private ImportReportMode importReportMode = ImportReportMode.FULL;
+    private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
     private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
 

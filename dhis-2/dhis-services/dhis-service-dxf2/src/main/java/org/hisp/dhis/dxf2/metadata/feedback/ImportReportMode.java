@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.dxf2.metadata.feedback;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -33,6 +33,7 @@ package org.hisp.dhis.dxf2.metadata;
  */
 public enum ImportReportMode
 {
+    DEBUG,
     FULL,
     ERRORS
 }
