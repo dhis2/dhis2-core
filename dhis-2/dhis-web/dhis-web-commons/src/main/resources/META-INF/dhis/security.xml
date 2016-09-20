@@ -447,6 +447,9 @@
         <value>F_OPTIONGROUPSET_DELETE</value>
         <value>F_PUSHANALYSIS_ADD</value>
         <value>F_PUSHANALYSIS_DELETE</value>
+        <value>F_EXTERNALMAPLAYER_ADD</value>
+        <value>F_EXTERNALMAPLAYER_DELETE</value>
+
       </set>
     </property>
   </bean>

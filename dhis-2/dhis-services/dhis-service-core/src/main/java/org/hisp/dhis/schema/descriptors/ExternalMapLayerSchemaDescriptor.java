@@ -30,9 +30,12 @@ package org.hisp.dhis.schema.descriptors;
  *
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -53,6 +56,9 @@ public class ExternalMapLayerSchemaDescriptor implements SchemaDescriptor
         Schema schema = new Schema( ExternalMapLayer.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 2000 );
+
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_EXTERNALMAPLAYER_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_EXTERNALMAPLAYER_DELETE" ) ) );
 
         return schema;
     }
