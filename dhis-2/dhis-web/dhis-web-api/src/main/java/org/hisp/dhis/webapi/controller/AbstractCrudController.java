@@ -53,6 +53,7 @@ import org.hisp.dhis.dxf2.metadata.ImportTypeSummary;
 import org.hisp.dhis.dxf2.metadata2.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata2.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata2.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata2.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -566,6 +567,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         preCreateEntity( parsed );
 
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.addObject( parsed );
 
@@ -635,6 +637,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         preCreateEntity( parsed );
 
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.addObject( parsed );
 
@@ -730,6 +733,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         preUpdateEntity( parsed );
 
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.addObject( parsed );
 
@@ -802,6 +806,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         preUpdateEntity( parsed );
 
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.addObject( parsed );
 
@@ -868,7 +873,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         // TODO optimize this using field filter (collection filtering)
         if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
         {
-            rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node -> {
+            rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node ->
+            {
                 node.getChildren().stream()
                     .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !((SimpleNode) child).getValue().equals( pvItemId ) )
                     .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
