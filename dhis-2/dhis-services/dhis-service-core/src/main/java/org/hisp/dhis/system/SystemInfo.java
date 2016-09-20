@@ -112,17 +112,13 @@ public class SystemInfo
 
     private String systemId;
 
-    private String currentVersion;
+    private String systemMetadataVersion;
 
-    private Boolean metadataVersionEnabled;
+    private Boolean isMetadataVersionEnabled;
 
     private Date lastMetadataVersionSyncAttempt;
 
-    private String remoteInstanceURL;
-
-    private boolean metadataVersionExist;
-
-    private String metadataSyncCron;
+    private boolean isMetadataSyncEnabled;
 
     public SystemInfo instance()
     {
@@ -498,26 +494,26 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCurrentVersion()
+    public String getSystemMetadataVersion()
     {
-        return currentVersion;
+        return systemMetadataVersion;
     }
 
-    public void setCurrentVersion( String currentVersionName )
+    public void setSystemMetadataVersion( String systemMetadataVersion )
     {
-        this.currentVersion = currentVersionName;
+        this.systemMetadataVersion = systemMetadataVersion;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getMetadataVersionEnabled()
+    public Boolean getIsMetadataVersionEnabled()
     {
-        return metadataVersionEnabled;
+        return isMetadataVersionEnabled;
     }
 
-    public void setMetadataVersionEnabled( Boolean metadataVersionEnabled )
+    public void setIsMetadataVersionEnabled( Boolean isMetadataVersionEnabled )
     {
-        this.metadataVersionEnabled = metadataVersionEnabled;
+        this.isMetadataVersionEnabled = isMetadataVersionEnabled;
     }
 
     @JsonProperty
@@ -532,40 +528,16 @@ public class SystemInfo
         this.lastMetadataVersionSyncAttempt = lastMetadataVersionSyncAttempt;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRemoteInstanceURL()
+    public void setIsMetadataSyncEnabled( boolean isMetadataSyncEnabled )
     {
-        return remoteInstanceURL;
-    }
-
-    public void setRemoteInstanceURL( String remoteInstanceURL )
-    {
-        this.remoteInstanceURL = remoteInstanceURL;
-    }
-
-    public void setMetadataVersionExist( boolean metadataVersionExist )
-    {
-        this.metadataVersionExist = metadataVersionExist;
+        this.isMetadataSyncEnabled = isMetadataSyncEnabled;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getMetadataVersionExist()
+    public boolean getIsMetadataSyncEnabled()
     {
-        return metadataVersionExist;
-    }
-
-    public void setMetadataSyncCron( String metadataSyncCron )
-    {
-        this.metadataSyncCron = metadataSyncCron;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMetadataSyncCron()
-    {
-        return metadataSyncCron;
+        return isMetadataSyncEnabled;
     }
 
 }

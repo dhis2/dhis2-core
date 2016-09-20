@@ -44,7 +44,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.hisp.dhis.metadata.version.MetadataVersionStore;
+import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -63,7 +63,7 @@ public class DefaultSystemService
     implements SystemService
 {
     @Autowired
-    private MetadataVersionStore versionStore;
+    private MetadataVersionService versionService;
 
     @Autowired
     private LocationManager locationManager;
@@ -110,14 +110,6 @@ public class DefaultSystemService
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
 
-        Boolean metadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
-        Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
-        Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
-        String remoteInstanceURL = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL );
-        String metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
-        MetadataVersion currentVersion = versionStore.getCurrentVersion();
-        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
-
         Date now = new Date();
         SystemInfo info = systemInfo.instance();
 
@@ -128,22 +120,12 @@ public class DefaultSystemService
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
 
-        info.setMetadataVersionEnabled( metadataVersionEnabled );
-        if ( currentVersion != null )
-        {
-            info.setCurrentVersion( currentVersion.getName() );
-            info.setMetadataVersionExist( true );
-        }
-        info.setRemoteInstanceURL( remoteInstanceURL );
-        info.setMetadataSyncCron( metadataSyncCron );
-        info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
-
+        setSystemMetadataVersionInfo(info);
         return info;
     }
 
     private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
     {
-        Date result;
 
         if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
         {
@@ -151,22 +133,19 @@ public class DefaultSystemService
         }
         else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
         {
-            result = (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
-            return result;
+            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
         }
 
         if ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 )
         {
-            result = lastFailedMetadataSyncTime;
+            return lastFailedMetadataSyncTime;
         }
         else
         {
-            result = lastSuccessfulMetadataSyncTime;
+            return lastSuccessfulMetadataSyncTime;
         }
 
-        return result;
     }
-
 
     private SystemInfo getFixedSystemInfo()
     {
@@ -267,5 +246,33 @@ public class DefaultSystemService
         info.setSystemId( config.getSystemId() );
 
         return info;
+    }
+
+    private void setSystemMetadataVersionInfo(SystemInfo info)
+    {
+        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
+        Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
+        String metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
+        MetadataVersion systemMetadataVersion = versionService.getCurrentVersion();
+        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
+
+        info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
+
+        if ( systemMetadataVersion != null )
+        {
+            info.setSystemMetadataVersion( systemMetadataVersion.getName() );
+        }
+
+        if ( metadataSyncCron == null || metadataSyncCron.isEmpty() )
+        {
+            info.setIsMetadataSyncEnabled( false );
+        }
+        else
+        {
+            info.setIsMetadataSyncEnabled( true );
+        }
+
+        info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 }
