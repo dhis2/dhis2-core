@@ -28,11 +28,15 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.amplecode.quick.JdbcConfiguration;
-import org.amplecode.quick.batchhandler.AbstractBatchHandler;
+import org.hisp.quick.JdbcConfiguration;
+import org.hisp.quick.batchhandler.AbstractBatchHandler;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -46,7 +50,7 @@ public class CompleteDataSetRegistrationBatchHandler
  
     public CompleteDataSetRegistrationBatchHandler( JdbcConfiguration config )
     {
-        super( config, true );
+        super( config );
     }
 
     // -------------------------------------------------------------------------
@@ -54,66 +58,95 @@ public class CompleteDataSetRegistrationBatchHandler
     // -------------------------------------------------------------------------
 
     @Override
-    protected void setTableName()
+    public String getTableName()
     {
-        statementBuilder.setTableName( "completedatasetregistration" );
+        return "completedatasetregistration";
     }
 
     @Override
-    protected void setIdentifierColumns()
+    public String getAutoIncrementColumn()
     {
-        statementBuilder.setIdentifierColumn( "datasetid" );
-        statementBuilder.setIdentifierColumn( "periodid" );
-        statementBuilder.setIdentifierColumn( "sourceid" );
-        statementBuilder.setIdentifierColumn( "attributeoptioncomboid" );
+        return null;
+    }
+
+    @Override
+    public boolean isInclusiveUniqueColumns()
+    {
+        return true;
     }
     
     @Override
-    protected void setIdentifierValues( CompleteDataSetRegistration registration )
+    public List<String> getIdentifierColumns()
+    {
+        return getStringList(
+            "datasetid",
+            "periodid",
+            "sourceid",
+            "attributeoptioncomboid" );
+    }
+    
+    @Override
+    public List<Object> getIdentifierValues( CompleteDataSetRegistration registration )
+    {
+        return getObjectList(
+            registration.getDataSet().getId(),
+            registration.getPeriod().getId(),
+            registration.getSource().getId(),
+            registration.getAttributeOptionCombo().getId() );
+    }
+
+    @Override
+    public List<String> getUniqueColumns()
+    {
+        return getStringList(
+            "datasetid",
+            "periodid",
+            "sourceid",
+            "attributeoptioncomboid" );
+    }
+    
+    @Override
+    public List<Object> getUniqueValues( CompleteDataSetRegistration registration )
     {        
-        statementBuilder.setIdentifierValue( registration.getDataSet().getId() );
-        statementBuilder.setIdentifierValue( registration.getPeriod().getId() );
-        statementBuilder.setIdentifierValue( registration.getSource().getId() );
-        statementBuilder.setIdentifierValue( registration.getAttributeOptionCombo().getId() );
+        return getObjectList(
+            registration.getDataSet().getId(),
+            registration.getPeriod().getId(),
+            registration.getSource().getId(),
+            registration.getAttributeOptionCombo().getId() );
     }
 
     @Override
-    protected void setUniqueColumns()
+    public List<String> getColumns()
     {
-        statementBuilder.setUniqueColumn( "datasetid" );
-        statementBuilder.setUniqueColumn( "periodid" );
-        statementBuilder.setUniqueColumn( "sourceid" );
-        statementBuilder.setIdentifierColumn( "attributeoptioncomboid" );
+        return getStringList(
+            "datasetid",
+            "periodid",
+            "sourceid",
+            "attributeoptioncomboid",
+            "date",
+            "storedby" );
     }
     
     @Override
-    protected void setUniqueValues( CompleteDataSetRegistration registration )
-    {        
-        statementBuilder.setUniqueValue( registration.getDataSet().getId() );
-        statementBuilder.setUniqueValue( registration.getPeriod().getId() );
-        statementBuilder.setUniqueValue( registration.getSource().getId() );
-        statementBuilder.setUniqueValue( registration.getAttributeOptionCombo().getId() );
+    public List<Object> getValues( CompleteDataSetRegistration registration )
+    {
+        return getObjectList(
+            registration.getDataSet().getId(),
+            registration.getPeriod().getId(),
+            registration.getSource().getId(),
+            registration.getAttributeOptionCombo().getId(),
+            getLongDateString( registration.getDate() ),
+            registration.getStoredBy() );
     }
 
     @Override
-    protected void setColumns()
+    public CompleteDataSetRegistration mapRow( ResultSet resultSet )
+        throws SQLException
     {
-        statementBuilder.setColumn( "datasetid" );
-        statementBuilder.setColumn( "periodid" );
-        statementBuilder.setColumn( "sourceid" );
-        statementBuilder.setColumn( "attributeoptioncomboid" );
-        statementBuilder.setColumn( "date" );
-        statementBuilder.setColumn( "storedby" );
-    }
-    
-    @Override
-    public void setValues( CompleteDataSetRegistration registration )
-    {
-        statementBuilder.setValue( registration.getDataSet().getId() );
-        statementBuilder.setValue( registration.getPeriod().getId() );
-        statementBuilder.setValue( registration.getSource().getId() );
-        statementBuilder.setValue( registration.getAttributeOptionCombo().getId() );
-        statementBuilder.setValue( getLongDateString( registration.getDate() ) );
-        statementBuilder.setValue( registration.getStoredBy() );
+        CompleteDataSetRegistration cdr = new CompleteDataSetRegistration();
+        
+        cdr.setStoredBy( resultSet.getString( "storedby" ) );
+        
+        return cdr;
     }
 }

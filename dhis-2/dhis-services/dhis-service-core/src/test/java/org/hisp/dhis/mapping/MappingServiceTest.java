@@ -68,7 +68,7 @@ public class MappingServiceTest
 
     @Autowired
     private MappingService mappingService;
-    
+
     private IndicatorGroup indicatorGroup;
 
     private IndicatorType indicatorType;
@@ -121,7 +121,11 @@ public class MappingServiceTest
         periodService.addPeriod( period );
 
         externalMapLayerA = new ExternalMapLayer( "A" );
+        externalMapLayerA.setMapService( MapService.TMS );
+        externalMapLayerA.setUrl( "testurl" );
         externalMapLayerB = new ExternalMapLayer( "B" );
+        externalMapLayerB.setMapService( MapService.WMS );
+        externalMapLayerB.setUrl( "testurl" );
     }
 
     @Test
@@ -149,5 +153,5 @@ public class MappingServiceTest
         mappingService.addExternalMapLayer( externalMapLayerB );
 
         assertEquals( 2, mappingService.getAllExternalMapLayers().size() );
-    }    
+    }
 }

@@ -153,7 +153,7 @@ public class UserSettingController
 
             if ( credentials != null )
             {
-                user = credentials.getUser();
+                user = credentials.getUserInfo();
             }
             else
             {

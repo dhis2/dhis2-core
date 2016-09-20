@@ -37,6 +37,7 @@ import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
@@ -117,7 +118,7 @@ public class DefaultPushAnalysisService
     @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
 
-    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>(  );
+    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>();
 
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
@@ -158,7 +159,7 @@ public class DefaultPushAnalysisService
                 ),
                 this
             ),
-            pushAnalysis.getCronExpression()
+            getPushAnalysisCronExpression( pushAnalysis )
         );
     }
 
@@ -189,9 +190,10 @@ public class DefaultPushAnalysisService
 
         log( taskId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
 
-        if( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
+        if ( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
         {
-            log( taskId, NotificationLevel.ERROR, "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null);
+            log( taskId, NotificationLevel.ERROR,
+                "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null );
             return;
         }
 
@@ -402,7 +404,7 @@ public class DefaultPushAnalysisService
     {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 600, 600, user );
+        BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 578, 440, user );
 
         ImageIO.write( image, "PNG", baos );
 
@@ -423,7 +425,7 @@ public class DefaultPushAnalysisService
         JFreeChart jFreechart = chartService
             .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
 
-        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 ) );
+        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 578, 440 ) );
     }
 
     /**
@@ -505,13 +507,14 @@ public class DefaultPushAnalysisService
      * push analysis is currently running. This is to avoid race conditions from multiple api requests.
      * when setting the flag to true (running), the method will return false if the flag is already set to true,
      * indicating the push analysis is already running.
+     *
      * @param pushAnalysis to run
-     * @param running indicates whether to claim (true) or release (false) flag.
+     * @param running      indicates whether to claim (true) or release (false) flag.
      * @return true if the flag was claimed or released, false if the flag was already claimed
      */
     private synchronized boolean setPushAnalysisIsRunningFlag( PushAnalysis pushAnalysis, boolean running )
     {
-        if( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
+        if ( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
         {
             return false;
         }
@@ -519,6 +522,27 @@ public class DefaultPushAnalysisService
         pushAnalysisIsRunning.put( pushAnalysis, running );
 
         return true;
+    }
+
+    /**
+     * Returns the correct cronExpression for the pushAnalysis
+     *
+     * @param pushAnalysis
+     * @return
+     */
+    private String getPushAnalysisCronExpression( PushAnalysis pushAnalysis )
+    {
+        switch ( pushAnalysis.getSchedulingFrequency() )
+        {
+        case DAILY:
+            return CronUtils.getDailyCronExpression( 0, 4 );
+        case WEEKLY:
+            return CronUtils.getWeeklyCronExpression( 0, 4, pushAnalysis.getSchedulingDayOfFrequency() );
+        case MONTHLY:
+            return CronUtils.getMonthlyCronExpression( 0, 4, pushAnalysis.getSchedulingDayOfFrequency() );
+        default:
+            return null;
+        }
     }
 
 }

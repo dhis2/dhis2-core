@@ -147,7 +147,6 @@ public class MapController
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         Map newMap = deserializeJsonEntity( request, response );
-        newMap.setTranslations( map.getTranslations() );
 
         map.mergeWith( newMap, params.getMergeMode() );
 

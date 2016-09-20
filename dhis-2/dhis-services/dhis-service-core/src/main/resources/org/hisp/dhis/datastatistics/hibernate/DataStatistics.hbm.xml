@@ -32,22 +32,6 @@
     <property name="savedDataValues" column="datavalues" type="double"/>
     <property name="users" column="users" type="int"/>
 
-
-    <!-- Object Translation -->
-    <set name="translations" table="statisticstranslations" cascade="delete-orphan">
-      <cache usage="read-write" />
-      <key column="statisticsid" foreign-key="fk_objecttranslation_statisticsid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
-    </set>
-
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>
