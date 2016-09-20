@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.metadata;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ReportMode
+public enum ImportReportMode
 {
     FULL,
     ERRORS

@@ -68,6 +68,8 @@ public class MetadataImportParams
 
     private FlushMode flushMode = FlushMode.AUTO;
 
+    private ImportReportMode importReportMode = ImportReportMode.FULL;
+
     private boolean skipSharing;
 
     private boolean skipValidation;
@@ -168,6 +170,16 @@ public class MetadataImportParams
     public void setFlushMode( FlushMode flushMode )
     {
         this.flushMode = flushMode;
+    }
+
+    public ImportReportMode getImportReportMode()
+    {
+        return importReportMode;
+    }
+
+    public void setImportReportMode( ImportReportMode importReportMode )
+    {
+        this.importReportMode = importReportMode;
     }
 
     public boolean isSkipSharing()
@@ -292,6 +304,7 @@ public class MetadataImportParams
         params.setObjectBundleMode( importMode );
         params.setMergeMode( mergeMode );
         params.setFlushMode( flushMode );
+        params.setImportReportMode( importReportMode );
 
         return params;
     }
