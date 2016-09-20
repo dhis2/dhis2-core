@@ -349,7 +349,7 @@ public class UserController
         userReplica.setUid( CodeGenerator.generateCode() );
         userReplica.setCode( null );
         userReplica.setCreated( new Date() );
-        
+
         UserCredentials credentialsReplica = new UserCredentials();
         credentialsReplica.mergeWith( existingUser.getUserCredentials(), MergeMode.MERGE );
         credentialsReplica.setUid( CodeGenerator.generateCode() );
