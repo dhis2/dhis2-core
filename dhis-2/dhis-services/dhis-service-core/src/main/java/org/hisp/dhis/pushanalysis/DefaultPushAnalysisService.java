@@ -404,7 +404,7 @@ public class DefaultPushAnalysisService
     {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 600, 600, user );
+        BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 578, 440, user );
 
         ImageIO.write( image, "PNG", baos );
 
@@ -425,7 +425,7 @@ public class DefaultPushAnalysisService
         JFreeChart jFreechart = chartService
             .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
 
-        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 ) );
+        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 578, 440 ) );
     }
 
     /**
