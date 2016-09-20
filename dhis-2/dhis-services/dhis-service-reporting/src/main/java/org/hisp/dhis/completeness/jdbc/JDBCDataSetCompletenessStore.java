@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.amplecode.quick.StatementManager;
+import org.hisp.quick.StatementManager;
 import org.hisp.dhis.completeness.DataSetCompletenessStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jdbc.StatementBuilder;

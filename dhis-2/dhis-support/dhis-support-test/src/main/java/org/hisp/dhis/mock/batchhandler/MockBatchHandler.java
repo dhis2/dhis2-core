@@ -31,8 +31,8 @@ package org.hisp.dhis.mock.batchhandler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.JdbcConfiguration;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.JdbcConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -57,17 +57,17 @@ public class MockBatchHandler<T>
     }
 
     @Override
-    public BatchHandler<T> setTableName( String name )
-    {
-        return this;
-    }
-
-    @Override
     public boolean addObject( T object )
     {
         return inserts.add( object );
     }
 
+    @Override
+    public T findObject( T arg )
+    {
+        return null;
+    }
+    
     @Override
     public void updateObject( T object )
     {

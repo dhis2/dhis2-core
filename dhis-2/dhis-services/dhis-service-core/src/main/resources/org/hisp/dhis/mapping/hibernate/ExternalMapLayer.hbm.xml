@@ -21,7 +21,7 @@
 
     <property name="legendSetUrl" column="legendseturl" type="text" />
 
-    <property name="mapLayerPosition" column="maplayerposition" type="org.hisp.dhis.mapping.MapLayerPosition"/>
+    <property name="mapLayerPosition" column="maplayerposition" type="org.hisp.dhis.mapping.MapLayerPosition" />
 
     <property name="layers" column="layers" type="text" />
 
