@@ -55,6 +55,11 @@ public class ObjectReport
      */
     private String uid;
 
+    /**
+     * Name to be used if ImportReportMode is DEBUG
+     */
+    private String displayName;
+
     private Map<ErrorCode, List<ErrorReport>> errorReportsByCode = new HashMap<>();
 
     public ObjectReport( Class<?> klass, Integer index )
@@ -124,6 +129,18 @@ public class ObjectReport
     public String getUid()
     {
         return uid;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonProperty
