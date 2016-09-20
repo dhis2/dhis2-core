@@ -18,8 +18,8 @@
     <dt>$i18n.getString( "metadata_version" ):</dt><dd>$!info.currentVersion</dd>
   #end
 
-  #if ( $!info.metaDataSyncCron && $info.remoteInstanceURL != "" && $!info.lastMetadataVersionSyncAttempt)
-    <dt>$i18n.getString( "last_attempt_time" ):</dt><dd>$!info.lastMetadataVersionSyncAttempt</dd>
+  #if ( $!info.metadataSyncCron && $info.remoteInstanceURL != "" && $!info.lastMetadataVersionSyncAttempt)
+    <dt>$i18n.getString( "last_sync_attempt_time" ):</dt><dd>$!format.formatDateTime( $!info.lastMetadataVersionSyncAttempt )</dd>
   #end
 
   #if ( $currentUserIsSuper )

@@ -135,7 +135,7 @@ public class DefaultSystemService
             info.setMetadataVersionExist( true );
         }
         info.setRemoteInstanceURL( remoteInstanceURL );
-        info.setMetaDataSyncCron( metadataSyncCron );
+        info.setMetadataSyncCron( metadataSyncCron );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
 
         return info;

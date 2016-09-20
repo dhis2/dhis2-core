@@ -122,7 +122,7 @@ public class SystemInfo
 
     private boolean metadataVersionExist;
 
-    private String metaDataSyncCron;
+    private String metadataSyncCron;
 
     public SystemInfo instance()
     {
@@ -556,16 +556,16 @@ public class SystemInfo
         return metadataVersionExist;
     }
 
-    public void setMetaDataSyncCron( String metaDataSyncCron )
+    public void setMetadataSyncCron( String metadataSyncCron )
     {
-        this.metaDataSyncCron = metaDataSyncCron;
+        this.metadataSyncCron = metadataSyncCron;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMetaDataSyncCron()
+    public String getMetadataSyncCron()
     {
-        return metaDataSyncCron;
+        return metadataSyncCron;
     }
 
 }
