@@ -33,6 +33,7 @@ import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -52,6 +53,10 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.option.OptionGroupSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -392,6 +397,24 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         else if ( ExternalMapLayer.class.isAssignableFrom( clazz ) )
         {
             return (T) new ExternalMapLayer( "ExternalMapLayer" + uniqueName );
+        }
+        else if ( OptionGroup.class.isAssignableFrom( clazz ) )
+        {
+            OptionGroup optionGroup = new OptionGroup( "OptionGroup" + uniqueName );
+            optionGroup.setShortName( "Group" + uniqueName );
+            return (T) optionGroup;
+        }
+        else if ( OptionGroupSet.class.isAssignableFrom( clazz ) )
+        {
+            return (T) new OptionGroupSet( "OptionGroupSet" + uniqueName );
+        }
+        else if ( Option.class.isAssignableFrom( clazz ) )
+        {
+            return (T) new Option( "Option" + uniqueName, "code" + uniqueName );
+        }
+        else if ( OptionSet.class.isAssignableFrom( clazz ))
+        {
+            return (T) new OptionSet( "OptionSet" +uniqueName, ValueType.TEXT );
         }
 
         return null;

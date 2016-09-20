@@ -19,6 +19,8 @@
 
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid" not-null="true" foreign-key="fk_dataapprovalworkflow_periodtypeid" />
 
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo" column="categorycomboid" foreign-key="fk_dataapprovalworkflow_categorycomboid" />
+
     <set name="levels" table="dataapprovalworkflowlevels">
       <cache usage="read-write" />
       <key column="workflowid" foreign-key="fk_dataapprovalworkflowlevels_workflowid" />
@@ -34,11 +36,7 @@
     <set name="translations" table="dataapprovalworkflowtranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="workflowid" foreign-key="fk_objecttranslation_workflowid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->
@@ -53,9 +51,5 @@
     </set>
 
     </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

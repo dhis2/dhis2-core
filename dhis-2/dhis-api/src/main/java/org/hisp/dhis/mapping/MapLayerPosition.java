@@ -35,6 +35,6 @@ package org.hisp.dhis.mapping;
  */
 public enum MapLayerPosition
 {
-    BASEMAP, 
+    BASEMAP,
     OVERLAY
 }

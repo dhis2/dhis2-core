@@ -96,28 +96,4 @@ public class DefaultTrackedEntityService
     {
         return trackedEntityStore.getAll();
     }
-
-    @Override
-    public Integer getTrackedEntityCountByName( String name )
-    {
-        return trackedEntityStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<TrackedEntity> getTrackedEntityBetweenByName( String name, int min, int max )
-    {
-        return trackedEntityStore.getAllLikeName( name, min, max );
-    }
-
-    @Override
-    public Integer getTrackedEntityCount()
-    {
-        return trackedEntityStore.getCount();
-    }
-
-    @Override
-    public List<TrackedEntity> getTrackedEntitysBetween( int min, int max )
-    {
-        return trackedEntityStore.getAllOrderedName( min, max );
-    }
 }
