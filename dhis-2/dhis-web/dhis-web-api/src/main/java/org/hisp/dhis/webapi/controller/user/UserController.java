@@ -37,6 +37,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -420,6 +421,7 @@ public class UserController
         }
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.addObject( parsed );
 
@@ -460,6 +462,7 @@ public class UserController
         }
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.addObject( parsed );
 
