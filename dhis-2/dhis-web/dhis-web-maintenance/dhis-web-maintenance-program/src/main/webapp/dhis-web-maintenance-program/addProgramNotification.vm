@@ -2,7 +2,7 @@
 <h3>$i18n.getString( "create_new_program_notification" )</h3>
 <h5>$encoder.htmlEncode( $program.displayName )</h5>
 
-<form id="addProgramNotificationForm" name="addProgramNotificationForm">
+<form id="addProgramNotificationForm" name="addProgramNotificationForm" class="inputForm">
     <input type="hidden" id="programid" name="programId" value="$program.id">
 
     <table>
@@ -39,7 +39,7 @@
                     <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>
                 </td>
                 <td>
-                    <input type="text" id="days" name="days" style="width:100px;">
+                    <input type="number" min="0" max="300" id="days" name="days" style="width:60px;">
                         $i18n.getString( "days" )
                         <select id="daysModifier" name="daysModifier" style="width:100px;">
                             <option value="-1">$i18n.getString( "before") </option>
@@ -88,7 +88,7 @@
             <tr>
                 <td>$i18n.getString( "params" )</td>
                 <td>
-                    <select multiple size="4" ondblclick="insertInActive( this.value );">
+                    <select multiple size="4" id="params">
                         <option value="V{program_name}">$i18n.getString( "program_name" )</option>
                         <option value="V{org_unit_name}">$i18n.getString( "org_unit_name" )</option>
                         <option value="V{current_date}">$i18n.getString( "current_date" )</option>
@@ -103,7 +103,7 @@
                     <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>
                 </td>
                 <td>
-                    <textarea id="subjectTemplate" name="subjectTemplate"></textarea>
+                    <textarea id="subjectTemplate" name="subjectTemplate" style="height:2em;"></textarea>
                 </td>
             </tr>
             <tr>
@@ -111,7 +111,16 @@
                     <label for="messageTemplate">$i18n.getString( "message_template" )</label>
                 </td>
                 <td>
-                    <textarea id="messageTemplate" name="messageTemplate"></textarea>
+                    <textarea id="messageTemplate" maxlength="" name="messageTemplate"></textarea>
+                </td>
+            </tr>
+        </tbody>
+        <tbody>
+            <tr>
+                <td></td>
+                <td>
+                    <button type="button" id="save" style="width: 10em;">$i18n.getString( 'add' )</button>
+                    <button type="button" id="cancel" style="width: 10em;">$i18n.getString( 'cancel' )</button>
                 </td>
             </tr>
         </tbody>
@@ -119,49 +128,63 @@
 </form>
 
 <script>
-function insertInActive( text ) {
-    insertAtCaret( activeTextAreaId( 'messageTemplate' ), text );
-}
 
-function activeTextAreaId( defaultId ) {
-    console.log( document.activeElement.id );
-    return document.activeElement.tagName === 'TEXTAREA' ? document.activeElement.id : defaultId;
-}
+( function( $ ) {
+    $.fn.serializeFormJSON = function () {
 
-function insertAtCaret(areaId, text) {
-    var txtarea = document.getElementById(areaId);
-    if (!txtarea) { return; }
+        var o = {};
+        var a = this.serializeArray();
+        $.each(a, function () {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
 
-    var scrollPos = txtarea.scrollTop;
-    var strPos = 0;
-    var br = ((txtarea.selectionStart || txtarea.selectionStart == '0') ?
-        "ff" : (document.selection ? "ie" : false ) );
-    if (br == "ie") {
-        txtarea.focus();
-        var range = document.selection.createRange();
-        range.moveStart ('character', -txtarea.value.length);
-        strPos = range.text.length;
-    } else if (br == "ff") {
-        strPos = txtarea.selectionStart;
-    }
+    var params = document.getElementById ( 'params' );
+    var focusedTextArea = document.getElementById( 'subjectTemplate' );
+    var subjectTemplateTextArea = document.getElementById( 'subjectTemplate' );
+    var messageTemplateTextArea = document.getElementById( 'messageTemplate' );
+    var saveButton = document.getElementById( 'save' );
+    var cancelButton = document.getElementById( 'cancel' );
 
-    var front = (txtarea.value).substring(0, strPos);
-    var back = (txtarea.value).substring(strPos, txtarea.value.length);
-    txtarea.value = front + text + back;
-    strPos = strPos + text.length;
-    if (br == "ie") {
-        txtarea.focus();
-        var ieRange = document.selection.createRange();
-        ieRange.moveStart ('character', -txtarea.value.length);
-        ieRange.moveStart ('character', strPos);
-        ieRange.moveEnd ('character', 0);
-        ieRange.select();
-    } else if (br == "ff") {
-        txtarea.selectionStart = strPos;
-        txtarea.selectionEnd = strPos;
-        txtarea.focus();
-    }
+    // Event handlers
 
-    txtarea.scrollTop = scrollPos;
-}
+    subjectTemplateTextArea.onfocus = function() {
+        focusedTextArea = subjectTemplateTextArea;
+    };
+
+    messageTemplateTextArea.onfocus = function() {
+        focusedTextArea = messageTemplateTextArea;
+    };
+
+    // Click handlers
+
+    params.ondblclick = function() {
+        insertTextCommon( focusedTextArea.id, params.value );
+    };
+
+    saveButton.onclick = function() {
+        save();
+    };
+
+    cancelButton.onclick = function() {
+        window.location.href = 'programNotification.action?id=$program.id';
+    };
+
+    // Internal
+
+    function save() {
+        var form = $( '#addProgramNotificationForm' );
+
+        console.log( form.serializeFormJSON() );
+    };
+
+} )( jQuery );
 </script>

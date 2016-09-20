@@ -186,7 +186,7 @@ public class NotificationMessageRendererTest
                 "Some name",
                 "Subject template",
                 "Message template",
-                NotificationTrigger.SCHEDULED,
+                NotificationTrigger.SCHEDULED_DAYS_DUE_DATE,
                 NotificationRecipient.TRACKED_ENTITY_INSTANCE,
                 Collections.singleton( DeliveryChannel.EMAIL ),
                 -2,

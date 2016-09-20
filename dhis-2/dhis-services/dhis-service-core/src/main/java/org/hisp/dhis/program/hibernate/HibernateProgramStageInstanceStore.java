@@ -243,7 +243,7 @@ public class HibernateProgramStageInstanceStore
                 "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays"
         );
 
-        query.setString( "notificationTrigger", NotificationTrigger.SCHEDULED.name() );
+        query.setString( "notificationTrigger", NotificationTrigger.SCHEDULED_DAYS_DUE_DATE.name() );
         query.setDate( "notificationDate", notificationDate );
         query.setEntity( "notificationTemplate", notificationTemplate );
 
