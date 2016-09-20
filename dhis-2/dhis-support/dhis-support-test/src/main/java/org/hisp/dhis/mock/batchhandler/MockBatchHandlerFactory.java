@@ -31,8 +31,8 @@ package org.hisp.dhis.mock.batchhandler;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.BatchHandlerFactory;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 
 /**
  * @author Lars Helge Overland

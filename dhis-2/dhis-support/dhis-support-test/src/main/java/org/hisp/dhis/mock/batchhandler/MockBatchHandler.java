@@ -31,8 +31,8 @@ package org.hisp.dhis.mock.batchhandler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.JdbcConfiguration;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.JdbcConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -54,12 +54,6 @@ public class MockBatchHandler<T>
     public JdbcConfiguration getConfiguration()
     {
         return null;
-    }
-
-    @Override
-    public BatchHandler<T> setTableName( String name )
-    {
-        return this;
     }
 
     @Override

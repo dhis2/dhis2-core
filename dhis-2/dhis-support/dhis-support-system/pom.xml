@@ -157,7 +157,7 @@
       <artifactId>staxwax</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.amplecode</groupId>
+      <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
     </dependency>
     <dependency>

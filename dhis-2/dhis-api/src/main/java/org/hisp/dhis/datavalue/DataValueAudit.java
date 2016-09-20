@@ -30,6 +30,8 @@ package org.hisp.dhis.datavalue;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.base.MoreObjects;
+
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
@@ -133,6 +135,21 @@ public class DataValueAudit
             && Objects.equals( this.modifiedBy, other.modifiedBy )
             && Objects.equals( this.created, other.created )
             && Objects.equals( this.auditType, other.auditType );
+    }
+    
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "data element", dataElement )
+            .add( "period", period )
+            .add( "organisation unit", organisationUnit )
+            .add( "category option combo", categoryOptionCombo )
+            .add( "attribute option combo", attributeOptionCombo )
+            .add( "value", value )
+            .add( "modified by", modifiedBy )
+            .add( "created", created )
+            .add( "audit type", auditType ).toString();
     }
 
     // -------------------------------------------------------------------------
