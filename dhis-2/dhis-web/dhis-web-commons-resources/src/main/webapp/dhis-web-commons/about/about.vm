@@ -14,7 +14,7 @@
   <dt>$i18n.getString( "last_analytics_table_runtime" ):</dt><dd>$!info.lastAnalyticsTableRuntime</dd>
   <dt>$i18n.getString( "environment_variable" ):</dt><dd>$!info.environmentVariable</dd>
 
-  #if ( $info.versionCreated && $info.metadataVersionEnabled )
+  #if ( $info.metadataVersionExist && $info.metadataVersionEnabled )
     <dt>$i18n.getString( "metadata_version" ):</dt><dd>$!info.currentVersion</dd>
   #end
 

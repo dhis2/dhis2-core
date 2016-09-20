@@ -111,13 +111,17 @@ public class SystemInfo
     private boolean encryption;
 
     private String systemId;
+
     private String currentVersion;
+
     private Boolean metadataVersionEnabled;
-    private Date lastSuccessfulMetadataSync;
-    private Date metadataLastFailedTime;
+
     private Date lastMetadataVersionSyncAttempt;
+
     private String remoteInstanceURL;
-    private boolean versionCreated;
+
+    private boolean metadataVersionExist;
+
     private String metaDataSyncCron;
 
     public SystemInfo instance()
@@ -518,30 +522,6 @@ public class SystemInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastSuccessfulMetadataSync()
-    {
-        return lastSuccessfulMetadataSync;
-    }
-
-    public void setLastSuccessfulMetadataSync( Date lastSuccessfulMetadataSync )
-    {
-        this.lastSuccessfulMetadataSync = lastSuccessfulMetadataSync;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getMetadataLastFailedTime()
-    {
-        return metadataLastFailedTime;
-    }
-
-    public void setMetadataLastFailedTime( Date metadataLastFailedTime )
-    {
-        this.metadataLastFailedTime = metadataLastFailedTime;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getLastMetadataVersionSyncAttempt()
     {
         return lastMetadataVersionSyncAttempt;
@@ -564,16 +544,16 @@ public class SystemInfo
         this.remoteInstanceURL = remoteInstanceURL;
     }
 
-    public void setVersionCreated( boolean versionCreated )
+    public void setMetadataVersionExist( boolean metadataVersionExist )
     {
-        this.versionCreated = versionCreated;
+        this.metadataVersionExist = metadataVersionExist;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getVersionCreated()
+    public boolean getMetadataVersionExist()
     {
-        return versionCreated;
+        return metadataVersionExist;
     }
 
     public void setMetaDataSyncCron( String metaDataSyncCron )

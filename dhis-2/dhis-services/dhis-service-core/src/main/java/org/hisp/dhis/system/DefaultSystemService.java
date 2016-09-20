@@ -31,8 +31,6 @@ package org.hisp.dhis.system;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
@@ -134,10 +132,8 @@ public class DefaultSystemService
         if ( currentVersion != null )
         {
             info.setCurrentVersion( currentVersion.getName() );
-            info.setVersionCreated( true );
+            info.setMetadataVersionExist( true );
         }
-        info.setLastSuccessfulMetadataSync( lastSuccessfulMetadataSync );
-        info.setMetadataLastFailedTime( metadataLastFailedTime );
         info.setRemoteInstanceURL( remoteInstanceURL );
         info.setMetaDataSyncCron( metadataSyncCron );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
@@ -148,7 +144,6 @@ public class DefaultSystemService
     private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
     {
         Date result;
-        DateTimeFormatter dateFormat = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" );
 
         if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
         {
@@ -157,7 +152,6 @@ public class DefaultSystemService
         else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
         {
             result = (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
-//            return dateFormat.parseDateTime( result.toString() ).toDate();
             return result;
         }
 
@@ -169,7 +163,7 @@ public class DefaultSystemService
         {
             result = lastSuccessfulMetadataSyncTime;
         }
-//        return dateFormat.parseDateTime( result.toString() ).toDate();
+
         return result;
     }
 
