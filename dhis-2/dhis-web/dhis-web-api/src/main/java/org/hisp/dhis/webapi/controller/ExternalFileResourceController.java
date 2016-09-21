@@ -94,12 +94,6 @@ public class ExternalFileResourceController
 
         FileResource fileResource = externalFileResource.getFileResource();
 
-        if ( fileResource.getDomain() != FileResourceDomain.EXTERNAL )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.forbidden( "The resource you are trying to access is not publicly available" ) );
-        }
-
         // ---------------------------------------------------------------------
         // Attempt to build signed URL request for content and redirect
         // ---------------------------------------------------------------------
