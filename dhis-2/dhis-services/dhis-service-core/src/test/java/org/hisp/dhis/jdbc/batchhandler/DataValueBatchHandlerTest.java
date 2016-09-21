@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.util.Date;
 import java.util.List;
@@ -207,6 +208,7 @@ public class DataValueBatchHandlerTest
         dataValueService.addDataValue( dataValueC );
         
         DataValue retrievedDataValueA = batchHandler.findObject( dataValueA );
+        DataValue retrievedDataValueB = batchHandler.findObject( dataValueB );
         
         assertNotNull( dataValueA.getValue() );
         assertNotNull( dataValueA.getComment() );
@@ -216,6 +218,8 @@ public class DataValueBatchHandlerTest
         assertEquals( dataValueA.getComment(), retrievedDataValueA.getComment() );
         assertEquals( dataValueA.getStoredBy(), retrievedDataValueA.getStoredBy() );
         assertEquals( dataValueA.isFollowup(), retrievedDataValueA.isFollowup() );
+        
+        assertNull( retrievedDataValueB );
     }
 
     @Test
