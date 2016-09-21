@@ -2,8 +2,9 @@
 <h3>$i18n.getString( "create_new_program_notification" )</h3>
 <h5>$encoder.htmlEncode( $program.displayName )</h5>
 
-<form id="addProgramNotificationForm" name="addProgramNotificationForm" class="inputForm">
-    <input type="hidden" id="programid" name="programId" value="$program.id">
+<div class="inputForm">
+    <input type="hidden" id="programUid" value="$program.uid">
+    <input type="hidden" id="programId" value="$program.id">
 
     <table>
         <thead>
@@ -62,7 +63,7 @@
                     </select>
                 </td>
             </tr>
-            <tr>
+            <tr id="userGroupContainer" style="display: none;">
                 <td>
                     <label for="userGroup">$i18n.getString( "user_group" )</label>
                 </td>
@@ -76,13 +77,14 @@
                 </td>
             </tr>
             <tr>
-                <td><label for="deliveryChannels">$i18n.getString( "message_type" )</label></td>
+                <td><label for="deliveryChannelsForm">$i18n.getString( "message_type" )</label></td>
                 <td>
-                    <label for="sms_cb">$i18n.getString( "sms" )</label>
-                    <input type="checkbox" id="sms_cb" name="deliveryChannels[]" value="SMS">
-
-                    <label for="email_cb">$i18n.getString( "email" )</label>
-                    <input type="checkbox" id="email_cb" name="deliveryChannels[]" value="EMAIL">
+                    <form id="deliveryChannelsForm">
+                        <label for="sms_cb">$i18n.getString( "sms" )</label>
+                        <input type="checkbox" id="sms_cb" name="deliveryChannels[]" value="SMS">
+                        <label for="email_cb">$i18n.getString( "email" )</label>
+                        <input type="checkbox" id="email_cb" name="deliveryChannels[]" value="EMAIL">
+                    </form>
                 </td>
             </tr>
             <tr>
@@ -125,34 +127,22 @@
             </tr>
         </tbody>
     </table>
-</form>
+</div>
 
 <script>
 
-( function( $ ) {
-    $.fn.serializeFormJSON = function () {
-
-        var o = {};
-        var a = this.serializeArray();
-        $.each(a, function () {
-            if (o[this.name]) {
-                if (!o[this.name].push) {
-                    o[this.name] = [o[this.name]];
-                }
-                o[this.name].push(this.value || '');
-            } else {
-                o[this.name] = this.value || '';
-            }
-        });
-        return o;
-    };
-
-    var params = document.getElementById ( 'params' );
-    var focusedTextArea = document.getElementById( 'subjectTemplate' );
-    var subjectTemplateTextArea = document.getElementById( 'subjectTemplate' );
-    var messageTemplateTextArea = document.getElementById( 'messageTemplate' );
-    var saveButton = document.getElementById( 'save' );
-    var cancelButton = document.getElementById( 'cancel' );
+( function ( $ ) {
+    var params = $( '#params' );
+    var focusedTextArea = $( '#subjectTemplate' );
+    var recipientSelector = $( '#notificationRecipient' );
+    var userGroup = $( '#userGroup' );
+    var userGroupContainer = $( '#userGroupContainer' );
+    var subjectTemplateTextArea = $( '#subjectTemplate' );
+    var messageTemplateTextArea = $( '#messageTemplate' );
+    var saveButton = $( '#save' );
+    var cancelButton = $( '#cancel' );
+    var programId = $( '#programId' ).value;
+    var programUid = $( '#programUid' ).value;
 
     // Event handlers
 
@@ -165,6 +155,17 @@
     };
 
     // Click handlers
+
+    recipientSelector.onchange = function( e ) {
+        if ( recipientSelector.value === 'USER_GROUP' ) {
+            userGroupContainer.style.display = 'table-row';
+            userGroup.disabled = false;
+        } else {
+            userGroupContainer.style.display = 'none';
+            userGroup.value = "";
+            userGroup.disabled = true;
+        }
+    };
 
     params.ondblclick = function() {
         insertTextCommon( focusedTextArea.id, params.value );
@@ -180,11 +181,69 @@
 
     // Internal
 
-    function save() {
-        var form = $( '#addProgramNotificationForm' );
-
-        console.log( form.serializeFormJSON() );
+    function getSelectedDeliveryChannels() {
+        return Array.prototype.slice.call(
+            document.forms[ 'deliveryChannelsForm' ].elements[ 'deliveryChannels[]' ] )
+            .filter( function( cb ) { return cb.checked; } )
+            .map( function( cb ) { return cb.value; } );
     };
 
-} )( jQuery );
+    function getUserGroup() {
+        var uid = $( '#userGroup' ).value || undefined;
+        return ( uid === undefined ) ? undefined : { 'id' : uid };
+    };
+
+    function getScheduledDays() {
+        return ( $( '#days' ).value || 0 ) * ( $( '#daysModifier' ).value );
+    };
+
+    function formAsJson() {
+        return {
+            name : $( '#name' ).value || '',
+            notificationTrigger : $( '#notificationTrigger' ).value,
+            relativeScheduledDays : getScheduledDays(),
+            notificationRecipient : $( '#notificationRecipient' ).value,
+            recipientUserGroup : getUserGroup(),
+            deliveryChannels : getSelectedDeliveryChannels(),
+            subjectTemplate : $( '#subjectTemplate' ).value,
+            messageTemplate : $( '#messageTemplate' ).value
+        };
+    };
+
+    function save() {
+        var jsonData = formAsJson();
+        var program = { 'uid' : programUid };
+
+        saveProgramNotificationTemplate( jsonData )
+            .done( function ( result ) {
+                var uid = result.response.uid;
+                saveToProgram( uid );
+            } )
+            .fail( function() {
+                console.log( "failed" );
+            } );
+    };
+
+    function saveProgramNotificationTemplate( jsonData ) {
+        return jQuery.ajax( {
+            url : '../api/programNotificationTemplates',
+            dataType : 'json',
+            data : JSON.stringify( jsonData ),
+            contentType : 'application/json',
+            type : 'POST'
+        } );
+    };
+
+    function saveToProgram( uid ) {
+        jQuery.ajax( {
+            url : '../api/programs/' + programUid + '/notificationTemplates/' + uid,
+            type : 'POST',
+        } ).success( function( result ) {
+            window.location.href = 'programNotification.action?id=' + programId;
+        } ).fail( function( boo ) {
+            console.log( "saving to program failed" );
+        } );
+    };
+
+} )( document.querySelector.bind( document ) );
 </script>
