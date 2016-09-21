@@ -21,11 +21,11 @@
 
     <property name="legendSetUrl" column="legendseturl" type="text" />
 
-    <property name="mapLayerPosition" column="maplayerposition" type="org.hisp.dhis.mapping.MapLayerPosition" />
+    <property name="mapLayerPosition" column="maplayerposition" type="org.hisp.dhis.mapping.MapLayerPosition" not-null="true" />
 
     <property name="layers" column="layers" type="text" />
 
-    <property name="imageFormat" column="imageformat" type="org.hisp.dhis.mapping.ImageFormat" />
+    <property name="imageFormat" column="imageformat" type="org.hisp.dhis.mapping.ImageFormat"  not-null="true"/>
 
     <property name="mapService" column="mapservice"  type="org.hisp.dhis.mapping.MapService" not-null="true"/>
 

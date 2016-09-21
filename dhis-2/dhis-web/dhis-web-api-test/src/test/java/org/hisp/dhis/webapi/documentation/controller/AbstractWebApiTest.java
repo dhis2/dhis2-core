@@ -53,6 +53,8 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.ImageFormat;
+import org.hisp.dhis.mapping.MapLayerPosition;
 import org.hisp.dhis.mapping.MapService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -400,6 +402,8 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             ExternalMapLayer externalMapLayer = new ExternalMapLayer( "ExternalMapLayer" + uniqueName );
             externalMapLayer.setMapService( MapService.WMS );
             externalMapLayer.setUrl( "testUrl" );
+            externalMapLayer.setImageFormat( ImageFormat.JPG );
+            externalMapLayer.setMapLayerPosition( MapLayerPosition.BASEMAP );
             return (T) externalMapLayer;
         }
         else if ( OptionGroup.class.isAssignableFrom( clazz ) )

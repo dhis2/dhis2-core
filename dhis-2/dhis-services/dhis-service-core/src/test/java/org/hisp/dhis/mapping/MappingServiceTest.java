@@ -123,9 +123,15 @@ public class MappingServiceTest
         externalMapLayerA = new ExternalMapLayer( "A" );
         externalMapLayerA.setMapService( MapService.TMS );
         externalMapLayerA.setUrl( "testurl" );
+        externalMapLayerA.setImageFormat( ImageFormat.JPG );
+        externalMapLayerA.setMapLayerPosition( MapLayerPosition.BASEMAP );
+
         externalMapLayerB = new ExternalMapLayer( "B" );
         externalMapLayerB.setMapService( MapService.WMS );
         externalMapLayerB.setUrl( "testurl" );
+        externalMapLayerB.setImageFormat( ImageFormat.JPG );
+        externalMapLayerB.setMapLayerPosition( MapLayerPosition.BASEMAP );
+
     }
 
     @Test
