@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import java.util.Date;
 import java.util.List;
@@ -178,10 +179,13 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         registrationService.saveCompleteDataSetRegistration( regD );
         
         CompleteDataSetRegistration retrievedRegA = batchHandler.findObject( regA );
+        CompleteDataSetRegistration retrievedRegB = batchHandler.findObject( regB );
         
         assertNotNull( retrievedRegA.getStoredBy() );
         
         assertEquals( retrievedRegA.getStoredBy(), regA.getStoredBy() );
+        
+        assertNull( retrievedRegB );
     }
     
     @Test

@@ -851,19 +851,44 @@ public class DataValueSetServiceTest
     }
 
     @Test
+    public void testImportDataValuesUpdatedAudit()
+        throws Exception
+    {
+        mockDataValueBatchHandler.withFindSelf( true );
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertNotNull( summary );
+        assertNotNull( summary.getImportCount() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+
+        Collection<DataValue> dataValues = mockDataValueBatchHandler.getUpdates();
+        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
+
+        assertNotNull( dataValues );
+        assertEquals( 3, dataValues.size() );
+        assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
+        assertTrue( dataValues.contains( new DataValue( deB, peA, ouA, ocDef, ocDef ) ) );
+        assertTrue( dataValues.contains( new DataValue( deC, peA, ouA, ocDef, ocDef ) ) );
+
+        assertEquals( 3, auditValues.size() );
+    }
+
+    @Test
     public void testImportDataValuesWithDatasetAllowsPeriods ( )
-    throws Exception
+        throws Exception
     {
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
 
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );
         dsA.setStartDate( getDate( 2000,01,01 ) );
-        dsA.setEndDate( DateUtils.addMonths( thisMonth, 5) );
-
+        dsA.setEndDate( DateUtils.addMonths( thisMonth, 5 ) );
 
         dataSetService.updateDataSet( dsA );
-
 
         Period tooEarly = createMonthlyPeriod( DateUtils.addMonths( thisMonth, 4 ) );
         Period okBefore = createMonthlyPeriod( DateUtils.addMonths( thisMonth, 1 ) );
@@ -903,7 +928,7 @@ public class DataValueSetServiceTest
         assertTrue( dataValues.contains( new DataValue( deB, okBefore, ouA, ocDef, ocDef ) ) );
         assertTrue( dataValues.contains( new DataValue( deC, okAfter, ouA, ocDef, ocDef ) ) );
     }
-
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
