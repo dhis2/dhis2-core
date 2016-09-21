@@ -31,21 +31,25 @@
 
                 #foreach( $dashboardItem in $pushAnalysis.getDashboard().getItems() )
 
-                    <div style="overflow-x:auto;margin-bottom:20px;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 15px;background: #fff;padding: 10px;">
-                        <table style="margin: auto">
-                            <tr>
-                                <td>
+                    #if($itemHtml.get( $dashboardItem.getUid ) != "")
 
-                                    #if( $dashboardItem.getType() == "REPORT_TABLE" )
-                                        $itemHtml.get( $dashboardItem.getUid() )
-                                    #else
-                                        #img( $itemHtml.get( $dashboardItem.getUid() ) )
-                                    #end
+                        <div style="overflow-x:auto;margin-bottom:20px;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 15px;background: #fff;padding: 10px;">
+                            <table style="margin: auto">
+                                <tr>
+                                    <td>
 
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+                                        #if( $dashboardItem.getType() == "REPORT_TABLE" )
+                                            $itemHtml.get( $dashboardItem.getUid() )
+                                        #else
+                                            #img( $itemHtml.get( $dashboardItem.getUid() ) )
+                                        #end
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    #end
 
                 #end
 
