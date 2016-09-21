@@ -74,6 +74,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -313,6 +315,9 @@ public class DefaultPushAnalysisService
         {
             itemHtml.put( item.getUid(), getItemHtml( item, user, taskId ) );
         }
+
+        DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
+        itemHtml.put( "date", dateFormat.format( Calendar.getInstance().getTime() ) );
 
         //----------------------------------------------------------------------
         // Set up template context, including pre-processed dashboard items

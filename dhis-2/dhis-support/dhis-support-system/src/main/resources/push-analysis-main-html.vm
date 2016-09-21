@@ -22,7 +22,10 @@
                     <table>
                         <tr>
                             <td>
-                                <h1> $!pushAnalysis.getTitle()</h1>
+                                <h1>
+                                    $!pushAnalysis.getTitle()
+                                </h1>
+                                <small>$itemHtml.get( "date" )</small>
                                 <p> $!pushAnalysis.getMessage()</p>
                             </td>
                         </tr>
@@ -31,7 +34,7 @@
 
                 #foreach( $dashboardItem in $pushAnalysis.getDashboard().getItems() )
 
-                    #if($itemHtml.get( $dashboardItem.getUid ) != "")
+                    #if($itemHtml.get( $dashboardItem.getUid() ) != "")
 
                         <div style="overflow-x:auto;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 25px;background: #fff;padding: 10px;">
                             <table style="margin: auto">
