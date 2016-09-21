@@ -265,7 +265,7 @@ public class DefaultPushAnalysisService
         {
             try
             {
-                String title = "Report: " + pushAnalysis.getName();
+                String title = pushAnalysis.getTitle();
                 String html = generateHtmlReport( pushAnalysis, user, taskId );
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
