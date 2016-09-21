@@ -2,11 +2,13 @@
 
 <h5>$encoder.htmlEncode( $program.displayName )</h5>
 
+<input type="hidden" id="programUid" value="$program.uid">
+<input type="hidden" id="programId" value="$program.id">
+
 <div id="contextMenu" class="contextMenu" style="width: 250px;">
     <ul id="contextMenuItems" class="contextMenuItems">
         <li><a data-target-fn="showUpdateProgramNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
         <li><a data-target-fn="removeProgramNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
-        <li><a data-target-fn="showProgramNotificationDetails"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "show_details" )</a></li>
     </ul>
 </div>
 
@@ -50,4 +52,20 @@
 
 <script type="text/javascript">
     // TODO Intialize i18n strings
+    function removeProgramNotification( template ) {
+
+        var programUid = document.querySelector( '#programUid' ).value;
+        var programId = document.querySelector( '#programId' ).value;
+
+        jQuery.ajax( {
+            url : '../api/programs/' + programUid + '/notificationTemplates/' + template.uid,
+            type : 'DELETE',
+            dataType : 'json'
+        } ).success( function ( result ) {
+            window.location.href = 'programNotification.action?id=' + programId;
+        } ).fail( function ( result ) {
+            showErrorMessage( "Error: " + result.response ); // TODO Actually show error message. :|
+            throw "Deletion failed";
+        } );
+    }
 </script>
