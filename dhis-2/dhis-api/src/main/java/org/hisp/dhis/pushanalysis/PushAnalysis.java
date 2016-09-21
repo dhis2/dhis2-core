@@ -57,6 +57,11 @@ public class PushAnalysis
     private Dashboard dashboard;
 
     /**
+     * Title of the report. Will be at the top of each report
+     */
+    private String title;
+
+    /**
      * The message will be written in the report. Used to explain or describe reports to users
      */
     private String message;
@@ -219,6 +224,7 @@ public class PushAnalysis
                 recipientUserGroups = pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName();
                 message = pushAnalysis.getMessage();
+                enabled = pushAnalysis.getEnabled();
                 schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency();
                 schedulingFrequency = pushAnalysis.getSchedulingFrequency();
             }
@@ -231,6 +237,7 @@ public class PushAnalysis
                     pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName() == null ? name : pushAnalysis.getName();
                 message = pushAnalysis.getMessage() == null ? message : pushAnalysis.getMessage();
+                enabled = pushAnalysis.getEnabled();
                 schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency() == null ?
                     schedulingDayOfFrequency :
                     pushAnalysis.getSchedulingDayOfFrequency();
@@ -241,4 +248,16 @@ public class PushAnalysis
         }
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+
+    public String getTitle()
+    {
+        return title;
+    }
+
+    public void setTitle( String title )
+    {
+        this.title = title;
+    }
 }
