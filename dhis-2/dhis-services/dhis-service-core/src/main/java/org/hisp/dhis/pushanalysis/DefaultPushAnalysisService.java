@@ -467,7 +467,7 @@ public class DefaultPushAnalysisService
             MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from PushAnalysis is PNG.
             bytes.length,
             ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
-            FileResourceDomain.EXTERNAL // All files generated with PushAnalysis should belong to the EXTERNAL domain
+            FileResourceDomain.PUSH_ANALYSIS // All files generated with PushAnalysis should belong to the EXTERNAL domain
         );
 
         fileResourceService.saveFileResource( fileResource, bytes );
@@ -475,7 +475,7 @@ public class DefaultPushAnalysisService
         ExternalFileResource externalFileResource = new ExternalFileResource();
 
         externalFileResource.setFileResource( fileResource );
-        externalFileResource.setExpires( null ); // TODO: Need system-setting or something for this
+        externalFileResource.setExpires( null );
 
         String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
 
