@@ -18,7 +18,7 @@
         <td></td>
         <td style="max-width:600px!important;display:block!important;margin:0 auto!important;clear:both!important">
             <div style="max-width:600px!important;padding:0!important;margin:0 auto">
-                <div style="overflow-x:scroll;width:300px;float:left;margin-bottom:20px;max-width:600px;min-width:300px;width:100%">
+                <div style="overflow-x:auto;margin-bottom:20px;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 15px;background: #fff;padding: 10px;float:left">
                     <table>
                         <tr>
                             <td>
