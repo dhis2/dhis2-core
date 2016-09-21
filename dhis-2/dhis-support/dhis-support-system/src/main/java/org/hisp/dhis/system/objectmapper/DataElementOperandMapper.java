@@ -33,7 +33,7 @@ import static org.hisp.dhis.dataelement.DataElementCategoryOptionCombo.DEFAULT_T
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.amplecode.quick.mapper.RowMapper;
+import org.hisp.quick.mapper.RowMapper;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
 /**

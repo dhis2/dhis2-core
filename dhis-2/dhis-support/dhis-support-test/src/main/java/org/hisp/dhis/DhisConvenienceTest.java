@@ -998,13 +998,17 @@ public abstract class DhisConvenienceTest
      * @param dataElement          The data element.
      * @param period               The period.
      * @param source               The source.
-     * @param value                The value.
-     * @param lastupdated          The date.value.
      * @param categoryOptionCombo  The category option combo.
      * @param attributeOptionCombo The attribute option combo.
+     * @param value                The value.
+     * @param comment              The comment.
+     * @param storedBy             The stored by.
+     * @param created              The created date.
+     * @param lastupdated          The last updated date.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        String value, Date lastupdated, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, 
+        String value, String comment, String storedBy, Date created, Date lastupdated )
     {
         DataValue dataValue = new DataValue();
 

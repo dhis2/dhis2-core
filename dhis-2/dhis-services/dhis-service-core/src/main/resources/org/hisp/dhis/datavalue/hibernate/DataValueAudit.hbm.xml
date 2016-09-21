@@ -23,7 +23,7 @@
       foreign-key="fk_datavalueaudit_categoryoptioncomboid" not-null="true" />
 
     <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="attributeoptioncomboid"
-      foreign-key="fk_datavalueaudit_attributeoptioncomboid" />
+      foreign-key="fk_datavalueaudit_attributeoptioncomboid" not-null="true" />
 
     <property name="value" length="50000" />
 

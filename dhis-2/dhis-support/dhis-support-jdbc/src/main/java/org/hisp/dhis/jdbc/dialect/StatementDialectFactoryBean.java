@@ -31,7 +31,7 @@ package org.hisp.dhis.jdbc.dialect;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.amplecode.quick.StatementDialect;
+import org.hisp.quick.StatementDialect;
 import org.hibernate.cfg.Configuration;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.FactoryBean;

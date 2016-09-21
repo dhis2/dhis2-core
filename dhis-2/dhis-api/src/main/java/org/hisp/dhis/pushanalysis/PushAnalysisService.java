@@ -74,12 +74,6 @@ public interface PushAnalysisService
     void runPushAnalysis( int id, TaskId taskId );
 
     /**
-     * Runs all PushAnalysis in the database. Skips disabled PushAnalysis.
-     * @param taskId to track process
-     */
-    void runAllPushAnalysis( TaskId taskId );
-
-    /**
      * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled
      * @param pushAnalysis
      */
