@@ -51,10 +51,12 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.mock.batchhandler.MockBatchHandler;
@@ -147,6 +149,7 @@ public class DataValueSetServiceTest
     private InputStream in;
 
     private MockBatchHandler<DataValue> mockDataValueBatchHandler = null;
+    private MockBatchHandler<DataValueAudit> mockDataValueAuditBatchHandler = null;
     private MockBatchHandlerFactory mockBatchHandlerFactory = null;
 
     private AttributeValue addAttributeValue( IdentifiableObject identifiableObject, Attribute attribute, String value )
@@ -161,8 +164,10 @@ public class DataValueSetServiceTest
     public void setUpTest()
     {
         mockDataValueBatchHandler = new MockBatchHandler<>();
+        mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
         mockBatchHandlerFactory.registerBatchHandler( DataValueBatchHandler.class, mockDataValueBatchHandler );
+        mockBatchHandlerFactory.registerBatchHandler( DataValueAuditBatchHandler.class, mockDataValueAuditBatchHandler );
         setDependency( dataValueSetService, "batchHandlerFactory", mockBatchHandlerFactory );
 
         attribute = new Attribute( "CUSTOM_ID", ValueType.TEXT );
@@ -285,6 +290,7 @@ public class DataValueSetServiceTest
         assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
 
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
@@ -299,6 +305,8 @@ public class DataValueSetServiceTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
+        
+        assertEquals( 0, auditValues.size() );
     }
 
     @Test
@@ -317,6 +325,7 @@ public class DataValueSetServiceTest
         assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
 
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
@@ -331,6 +340,8 @@ public class DataValueSetServiceTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
+        
+        assertEquals( 0, auditValues.size() );
     }
 
     @Test
@@ -347,6 +358,7 @@ public class DataValueSetServiceTest
         assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
 
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+        Collection<DataValueAudit> auditValues = mockDataValueAuditBatchHandler.getInserts();
 
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
@@ -361,6 +373,8 @@ public class DataValueSetServiceTest
         assertEquals( peA, registration.getPeriod() );
         assertEquals( ouA, registration.getSource() );
         assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
+        
+        assertEquals( 0, auditValues.size() );
     }
 
     @Test
