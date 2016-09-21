@@ -30,7 +30,7 @@
                     </tr>
                 </thead>
                 <tbody id="list">
-                    #foreach( $template in $templates )
+                    #foreach( $template in $program.notificationTemplates )
                     <tr id="tr${template.id}"
                         data-id="$!template.id"
                         data-uid="$!template.uid" data-type="ProgramNotificationTemplate"
