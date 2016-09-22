@@ -22,6 +22,8 @@
 
     <!-- TODO Should we allow null-templates? -->
 
+    <property name="subjectTemplate" column="subjecttemplate" not-null="false" />
+
     <property name="messageTemplate" column="messagetemplate" not-null="false" />
 
     <property name="notificationTrigger" column="notificationtrigger">

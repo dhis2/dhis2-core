@@ -563,6 +563,13 @@
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramNotificationAction"
+    scope="prototype">
+    <property name="manager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
   <!-- Program reminder -->
 
   <bean

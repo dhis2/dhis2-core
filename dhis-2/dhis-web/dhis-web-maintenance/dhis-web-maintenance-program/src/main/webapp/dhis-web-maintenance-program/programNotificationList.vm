@@ -67,5 +67,10 @@
             showErrorMessage( "Error: " + result.response ); // TODO Actually show error message. :|
             throw "Deletion failed";
         } );
-    }
+    };
+
+    function showUpdateProgramNotification( template ) {
+        var programUid = document.querySelector( '#programUid' ).value;
+        window.location.href = 'showUpdateProgramNotification.action?programUid=' + programUid + '&uid=' + template.uid;
+    };
 </script>

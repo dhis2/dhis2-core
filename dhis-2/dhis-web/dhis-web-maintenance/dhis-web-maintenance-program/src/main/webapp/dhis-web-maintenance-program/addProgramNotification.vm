@@ -105,7 +105,7 @@
                     <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>
                 </td>
                 <td>
-                    <textarea id="subjectTemplate" name="subjectTemplate" style="height:2em;"></textarea>
+                    <textarea id="subjectTemplate" style="height:2em;"></textarea>
                 </td>
             </tr>
             <tr>
@@ -113,7 +113,7 @@
                     <label for="messageTemplate">$i18n.getString( "message_template" )</label>
                 </td>
                 <td>
-                    <textarea id="messageTemplate" maxlength="" name="messageTemplate"></textarea>
+                    <textarea id="messageTemplate" maxlength=""></textarea>
                 </td>
             </tr>
         </tbody>
@@ -234,7 +234,7 @@
             var json = jQuery.parseJSON( jqXhr.responseText );
             var errorMessage = json.response.errorReports[0].message;
 
-            setHeaderDelayMessage( errorMessage || textStatus );
+            setHeaderDelayMessage( errorMessage || ( textStatus + ': ' + error ) );
         } );
     };
 
