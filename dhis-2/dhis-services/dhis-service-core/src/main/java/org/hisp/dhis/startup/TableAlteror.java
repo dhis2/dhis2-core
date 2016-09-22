@@ -29,8 +29,8 @@ package org.hisp.dhis.startup;
  */
 
 import com.google.common.collect.Lists;
-import org.amplecode.quick.StatementHolder;
-import org.amplecode.quick.StatementManager;
+import org.hisp.quick.StatementHolder;
+import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;

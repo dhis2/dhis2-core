@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -65,6 +66,8 @@ public class ObjectBundleParams
     private MergeMode mergeMode = MergeMode.REPLACE;
 
     private FlushMode flushMode = FlushMode.AUTO;
+
+    private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
     private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
 
@@ -159,6 +162,16 @@ public class ObjectBundleParams
     public void setFlushMode( FlushMode flushMode )
     {
         this.flushMode = flushMode;
+    }
+
+    public ImportReportMode getImportReportMode()
+    {
+        return importReportMode;
+    }
+
+    public void setImportReportMode( ImportReportMode importReportMode )
+    {
+        this.importReportMode = importReportMode;
     }
 
     public boolean isSkipSharing()

@@ -37,6 +37,7 @@ import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
@@ -73,6 +74,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -82,6 +85,8 @@ import java.util.*;
 public class DefaultPushAnalysisService
     implements PushAnalysisService
 {
+    private static final int HOUR_TO_RUN = 4; // should run at 04:00
+
     private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
 
     @Autowired
@@ -117,7 +122,7 @@ public class DefaultPushAnalysisService
     @Resource( name = "emailMessageSender" )
     private MessageSender messageSender;
 
-    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>(  );
+    private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>();
 
     private GenericIdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
@@ -129,6 +134,7 @@ public class DefaultPushAnalysisService
     //----------------------------------------------------------------------
     // Scheduling methods
     //----------------------------------------------------------------------
+
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent event )
     {
@@ -158,7 +164,7 @@ public class DefaultPushAnalysisService
                 ),
                 this
             ),
-            pushAnalysis.getCronExpression()
+            getPushAnalysisCronExpression( pushAnalysis )
         );
     }
 
@@ -189,9 +195,10 @@ public class DefaultPushAnalysisService
 
         log( taskId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
 
-        if( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
+        if ( !setPushAnalysisIsRunningFlag( pushAnalysis, true ) )
         {
-            log( taskId, NotificationLevel.ERROR, "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null);
+            log( taskId, NotificationLevel.ERROR,
+                "PushAnalysis with id '" + id + "' is already running. Terminating new PushAnalysis job.", true, null );
             return;
         }
 
@@ -260,7 +267,7 @@ public class DefaultPushAnalysisService
         {
             try
             {
-                String title = "Report: " + pushAnalysis.getName();
+                String title = pushAnalysis.getTitle();
                 String html = generateHtmlReport( pushAnalysis, user, taskId );
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
@@ -282,33 +289,6 @@ public class DefaultPushAnalysisService
         pushAnalysisStore.update( pushAnalysis );
 
         setPushAnalysisIsRunningFlag( pushAnalysis, false );
-    }
-
-    @Override
-    public void runAllPushAnalysis( TaskId taskId )
-    {
-        notifier.clear( taskId );
-
-        List<PushAnalysis> list = pushAnalysisStore.getAll();
-
-        log( taskId, NotificationLevel.INFO, "Found " + list.size() + " PushAnalysis", false, null );
-
-        list.forEach( pushAnalysis -> {
-            if ( pushAnalysis.getEnabled() )
-            {
-                log( taskId, NotificationLevel.INFO, "Starting PushAnalysis '" + pushAnalysis.getUid() + "'.", false,
-                    null );
-                runPushAnalysis( pushAnalysis.getId(), taskId );
-            }
-            else
-            {
-                log( taskId, NotificationLevel.INFO,
-                    "PushAnalysis '" + pushAnalysis.getUid() + "' is disabled. Skipping.", false, null );
-            }
-        } );
-
-        log( taskId, NotificationLevel.INFO, "Finished running all PushAnalysis.", true, null );
-
     }
 
     @Override
@@ -335,6 +315,9 @@ public class DefaultPushAnalysisService
         {
             itemHtml.put( item.getUid(), getItemHtml( item, user, taskId ) );
         }
+
+        DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
+        itemHtml.put( "date", dateFormat.format( Calendar.getInstance().getTime() ) );
 
         //----------------------------------------------------------------------
         // Set up template context, including pre-processed dashboard items
@@ -364,6 +347,15 @@ public class DefaultPushAnalysisService
     // Supportive methods
     //--------------------------------------------------------------------------
 
+    /**
+     * Finds the dashboardItem's type and calls the associated method for generating the resource (either URL og HTML)
+     *
+     * @param item   to generate resource
+     * @param user   to generate for
+     * @param taskId for logging
+     * @return
+     * @throws Exception
+     */
     private String getItemHtml( DashboardItem item, User user, TaskId taskId )
         throws Exception
     {
@@ -374,11 +366,11 @@ public class DefaultPushAnalysisService
             return generateMapHtml( item.getMap(), user );
         case CHART:
             return generateChartHtml( item.getChart(), user );
+        case REPORT_TABLE:
+            return generateReportTableHtml( item.getReportTable(), user );
         case EVENT_CHART:
             // TODO: Add support for EventCharts
             return "";
-        case REPORT_TABLE:
-            return generateReportTableHtml( item.getReportTable(), user );
         case EVENT_REPORT:
             // TODO: Add support for EventReports
             return "";
@@ -402,7 +394,7 @@ public class DefaultPushAnalysisService
     {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 600, 600, user );
+        BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 578, 440, user );
 
         ImageIO.write( image, "PNG", baos );
 
@@ -423,7 +415,7 @@ public class DefaultPushAnalysisService
         JFreeChart jFreechart = chartService
             .getJFreeChart( chart, new Date(), null, i18nManager.getI18nFormat(), user );
 
-        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 600, 600 ) );
+        return uploadImage( chart.getUid(), ChartUtils.getChartAsPngByteArray( jFreechart, 578, 440 ) );
     }
 
     /**
@@ -465,7 +457,7 @@ public class DefaultPushAnalysisService
             MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from PushAnalysis is PNG.
             bytes.length,
             ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
-            FileResourceDomain.EXTERNAL // All files generated with PushAnalysis should belong to the EXTERNAL domain
+            FileResourceDomain.PUSH_ANALYSIS
         );
 
         fileResourceService.saveFileResource( fileResource, bytes );
@@ -473,7 +465,7 @@ public class DefaultPushAnalysisService
         ExternalFileResource externalFileResource = new ExternalFileResource();
 
         externalFileResource.setFileResource( fileResource );
-        externalFileResource.setExpires( null ); // TODO: Need system-setting or something for this
+        externalFileResource.setExpires( null );
 
         String accessToken = externalFileResourceService.saveExternalFileResource( externalFileResource );
 
@@ -481,6 +473,15 @@ public class DefaultPushAnalysisService
 
     }
 
+    /**
+     * Helper method for logging both for custom logger and for notifier.
+     *
+     * @param taskId            associated with the task running (for notifier)
+     * @param notificationLevel The level this message should be logged
+     * @param message           message to be logged
+     * @param completed         a flag indicating the task is completed (notifier)
+     * @param exception         exception if one exists (logger)
+     */
     private void log( TaskId taskId, NotificationLevel notificationLevel, String message, boolean completed,
         Throwable exception )
     {
@@ -505,13 +506,14 @@ public class DefaultPushAnalysisService
      * push analysis is currently running. This is to avoid race conditions from multiple api requests.
      * when setting the flag to true (running), the method will return false if the flag is already set to true,
      * indicating the push analysis is already running.
+     *
      * @param pushAnalysis to run
-     * @param running indicates whether to claim (true) or release (false) flag.
+     * @param running      indicates whether to claim (true) or release (false) flag.
      * @return true if the flag was claimed or released, false if the flag was already claimed
      */
     private synchronized boolean setPushAnalysisIsRunningFlag( PushAnalysis pushAnalysis, boolean running )
     {
-        if( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
+        if ( pushAnalysisIsRunning.getOrDefault( pushAnalysis, false ) && running )
         {
             return false;
         }
@@ -519,6 +521,27 @@ public class DefaultPushAnalysisService
         pushAnalysisIsRunning.put( pushAnalysis, running );
 
         return true;
+    }
+
+    /**
+     * Returns the correct cronExpression for the pushAnalysis
+     *
+     * @param pushAnalysis
+     * @return
+     */
+    private String getPushAnalysisCronExpression( PushAnalysis pushAnalysis )
+    {
+        switch ( pushAnalysis.getSchedulingFrequency() )
+        {
+        case DAILY:
+            return CronUtils.getDailyCronExpression( 0, HOUR_TO_RUN );
+        case WEEKLY:
+            return CronUtils.getWeeklyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
+        case MONTHLY:
+            return CronUtils.getMonthlyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
+        default:
+            return null;
+        }
     }
 
 }

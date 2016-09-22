@@ -41,5 +41,4 @@ import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 public class ExternalMapLayerDocumentation
     extends AbstractWebApiTest<ExternalMapLayer>
 {
-
 }

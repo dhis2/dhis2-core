@@ -1,8 +1,8 @@
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.dxf2.metadata.feedback;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,17 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = OptionSetSchemaDescriptor.API_ENDPOINT )
-public class OptionSetController
-    extends AbstractCrudController<OptionSet>
+public enum ImportReportMode
 {
+    DEBUG,
+    FULL,
+    ERRORS
 }

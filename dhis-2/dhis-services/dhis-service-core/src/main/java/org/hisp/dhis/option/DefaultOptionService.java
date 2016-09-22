@@ -29,9 +29,11 @@ package org.hisp.dhis.option;
  */
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -59,6 +61,12 @@ public class DefaultOptionService
         this.optionStore = optionStore;
     }
 
+    @Autowired
+    private OptionGroupStore optionGroupStore;
+
+    @Autowired
+    private OptionGroupSetStore optionGroupSetStore;
+
     // -------------------------------------------------------------------------
     // OptionService implementation
     // -------------------------------------------------------------------------
@@ -80,16 +88,28 @@ public class DefaultOptionService
     }
 
     @Override
-    public OptionSet getOptionSet( int id ) { return optionSetStore.get( id ); }
+    public OptionSet getOptionSet( int id )
+    {
+        return optionSetStore.get( id );
+    }
 
     @Override
-    public OptionSet getOptionSet( String uid ) { return optionSetStore.getByUid( uid ); }
+    public OptionSet getOptionSet( String uid )
+    {
+        return optionSetStore.getByUid( uid );
+    }
 
     @Override
-    public OptionSet getOptionSetByName( String name ) { return optionSetStore.getByName( name ); }
+    public OptionSet getOptionSetByName( String name )
+    {
+        return optionSetStore.getByName( name );
+    }
 
     @Override
-    public OptionSet getOptionSetByCode( String code ) { return optionSetStore.getByCode( code ); }
+    public OptionSet getOptionSetByCode( String code )
+    {
+        return optionSetStore.getByCode( code );
+    }
 
     @Override
     public void deleteOptionSet( OptionSet optionSet )
@@ -98,7 +118,10 @@ public class DefaultOptionService
     }
 
     @Override
-    public List<OptionSet> getAllOptionSets() { return optionSetStore.getAll() ; }
+    public List<OptionSet> getAllOptionSets()
+    {
+        return optionSetStore.getAll();
+    }
 
     // -------------------------------------------------------------------------
     // Option
@@ -138,25 +161,185 @@ public class DefaultOptionService
     @Override
     public void updateOption( Option option )
     {
-        optionStore.update( option ); 
+        optionStore.update( option );
     }
-    
-    @Override
-    public Option getOption( int id ) { return optionStore.get( id ); }
 
     @Override
-    public Option getOptionByCode( String code ) { return  optionStore.getByCode( code ) ; }
-    
+    public Option getOption( int id )
+    {
+        return optionStore.get( id );
+    }
+
+    @Override
+    public Option getOptionByCode( String code )
+    {
+        return optionStore.getByCode( code );
+    }
+
     @Override
     public List<Option> getOptions( OptionSet optionSet, String option, Integer min, Integer max )
     {
-        return optionStore.getOptions( optionSet, option, min, max ) ;
+        return optionStore.getOptions( optionSet, option, min, max );
     }
-    
+
     @Override
-    public void deleteOption( Option option  )
+    public void deleteOption( Option option )
     {
         optionStore.delete( option );
     }
-    
+
+    // -------------------------------------------------------------------------
+    // OptionGroup
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int saveOptionGroup( OptionGroup group )
+    {
+        return optionGroupStore.save( group );
+    }
+
+    @Override
+    public void updateOptionGroup( OptionGroup group )
+    {
+        optionGroupStore.update( group );
+    }
+
+    @Override
+    public OptionGroup getOptionGroup( int id )
+    {
+        return optionGroupStore.get( id );
+    }
+
+    @Override
+    public OptionGroup getOptionGroup( String uid )
+    {
+        return optionGroupStore.getByUid( uid );
+    }
+
+    @Override
+    public List<OptionGroup> getOptionGroupsByUid( Collection<String> uids )
+    {
+        return optionGroupStore.getByUid( uids );
+    }
+
+    @Override
+    public void deleteOptionGroup( OptionGroup group )
+    {
+        optionGroupStore.delete( group );
+    }
+
+    @Override
+    public List<OptionGroup> getAllOptionGroups()
+    {
+        return optionGroupStore.getAll();
+    }
+
+    @Override
+    public List<OptionGroup> getOptionGroups( OptionGroupSet groupSet )
+    {
+        return optionGroupStore.getOptionGroups( groupSet );
+    }
+
+    @Override
+    public OptionGroup getOptionGroupByName( String name )
+    {
+        return optionGroupStore.getByName( name );
+    }
+
+    @Override
+    public OptionGroup getOptionGroupByCode( String code )
+    {
+        return optionGroupStore.getByCode( code );
+    }
+
+    @Override
+    public OptionGroup getOptionGroupByShortName( String shortName )
+    {
+        List<OptionGroup> OptionGroups = new ArrayList<>(
+            optionGroupStore.getAllEqShortName( shortName ) );
+
+        if ( OptionGroups.isEmpty() )
+        {
+            return null;
+        }
+
+        return OptionGroups.get( 0 );
+    }
+
+    @Override
+    public int getOptionGroupCount()
+    {
+        return optionGroupStore.getCount();
+    }
+
+    @Override
+    public int getOptionGroupCountByName( String name )
+    {
+        return optionGroupStore.getCountLikeName( name );
+    }
+
+    // -------------------------------------------------------------------------
+    // OptionGroupSet
+    // -------------------------------------------------------------------------
+
+    @Override
+    public int saveOptionGroupSet( OptionGroupSet group )
+    {
+        return optionGroupSetStore.save( group );
+    }
+
+    @Override
+    public void updateOptionGroupSet( OptionGroupSet group )
+    {
+        optionGroupSetStore.update( group );
+    }
+
+    @Override
+    public OptionGroupSet getOptionGroupSet( int id )
+    {
+        return optionGroupSetStore.get( id );
+    }
+
+    @Override
+    public OptionGroupSet getOptionGroupSet( String uid )
+    {
+        return optionGroupSetStore.getByUid( uid );
+    }
+
+    @Override
+    public List<OptionGroupSet> getOptionGroupSetsByUid( Collection<String> uids )
+    {
+        return optionGroupSetStore.getByUid( uids );
+    }
+
+    @Override
+    public void deleteOptionGroupSet( OptionGroupSet group )
+    {
+        optionGroupSetStore.delete( group );
+    }
+
+    @Override
+    public List<OptionGroupSet> getAllOptionGroupSets()
+    {
+        return optionGroupSetStore.getAll();
+    }
+
+    @Override
+    public OptionGroupSet getOptionGroupSetByName( String name )
+    {
+        return optionGroupSetStore.getByName( name );
+    }
+
+    @Override
+    public int getOptionGroupSetCount()
+    {
+        return optionGroupSetStore.getCount();
+    }
+
+    @Override
+    public int getOptionGroupSetCountByName( String name )
+    {
+        return optionGroupSetStore.getCountLikeName( name );
+    }
+
 }

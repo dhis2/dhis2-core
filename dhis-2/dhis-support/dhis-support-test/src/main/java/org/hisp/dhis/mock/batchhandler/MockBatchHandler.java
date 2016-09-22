@@ -31,8 +31,8 @@ package org.hisp.dhis.mock.batchhandler;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.JdbcConfiguration;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.JdbcConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -43,6 +43,18 @@ public class MockBatchHandler<T>
     private List<T> inserts = new ArrayList<>();
     private List<T> updates = new ArrayList<>();
     private List<T> deletes = new ArrayList<>();
+    
+    private boolean findSelf = false;
+    
+    public MockBatchHandler()
+    {
+    }
+    
+    public MockBatchHandler<T> withFindSelf( boolean findSelf )
+    {
+        this.findSelf = findSelf;
+        return this;
+    }
     
     @Override
     public BatchHandler<T> init()
@@ -57,17 +69,17 @@ public class MockBatchHandler<T>
     }
 
     @Override
-    public BatchHandler<T> setTableName( String name )
-    {
-        return this;
-    }
-
-    @Override
     public boolean addObject( T object )
     {
         return inserts.add( object );
     }
 
+    @Override
+    public T findObject( T arg )
+    {
+        return findSelf ? arg : null;
+    }
+    
     @Override
     public void updateObject( T object )
     {

@@ -42,6 +42,7 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.user.User;
@@ -128,15 +129,15 @@ public class MessageConversationController
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     protected List<org.hisp.dhis.message.MessageConversation> getEntityList( WebMetadata metadata, WebOptions options,
-        List<String> filters, List<Order> orders )
-        throws QueryParserException
+        List<String> filters, List<Order> orders ) throws QueryParserException
     {
-        List<org.hisp.dhis.message.MessageConversation> entityList;
+        List<org.hisp.dhis.message.MessageConversation> messageConversations;
 
         if ( options.getOptions().containsKey( "query" ) )
         {
-            entityList = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
+            messageConversations = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
         }
         else if ( options.hasPaging() )
         {
@@ -145,15 +146,18 @@ public class MessageConversationController
             Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
             metadata.setPager( pager );
 
-            entityList = new ArrayList<>(
-                messageService.getMessageConversations( pager.getOffset(), pager.getPageSize() ) );
+            messageConversations = new ArrayList<>( messageService.getMessageConversations( pager.getOffset(), pager.getPageSize() ) );
         }
         else
         {
-            entityList = new ArrayList<>( messageService.getMessageConversations() );
+            messageConversations = new ArrayList<>( messageService.getMessageConversations() );
         }
 
-        return entityList;
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        query.setDefaultOrder();
+        query.setObjects( messageConversations );
+
+        return (List<org.hisp.dhis.message.MessageConversation>) queryService.query( query );
     }
 
     //--------------------------------------------------------------------------
