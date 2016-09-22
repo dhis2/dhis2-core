@@ -36,10 +36,7 @@
     <script type="text/javascript">
       var dateFormat = 'yy-mm-dd';
     </script>
-
-    <script type="text/javascript" src="../dhis-web-commons/javascripts/es5-shim.min.js?_rev=$!{buildRevision}"></script>
-    <script type="text/javascript" src="../dhis-web-commons/javascripts/es5-sham.min.js?_rev=$!{buildRevision}"></script>
-
+    
     <script type="text/javascript" src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
 
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js?_rev=$!{buildRevision}"></script>
