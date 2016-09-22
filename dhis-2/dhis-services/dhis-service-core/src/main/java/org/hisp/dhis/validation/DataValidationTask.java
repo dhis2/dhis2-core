@@ -273,7 +273,7 @@ public class DataValidationTask
                 // because they could be aggregated from a lower level.
                 if ( rule.getOrganisationUnitLevel() == sourceX.getLevel() )
                 {
-                    periodTypeRules.add( rule );
+                    //periodTypeRules.add( rule );
                 }
             }
         }
