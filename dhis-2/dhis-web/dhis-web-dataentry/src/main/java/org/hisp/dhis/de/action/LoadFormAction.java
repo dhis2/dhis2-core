@@ -236,7 +236,7 @@ public class LoadFormAction
     public String execute()
         throws Exception
     {
-        dataSet = dataSetService.getDataSet( dataSetId, true, false, false, true );
+        dataSet = dataSetService.getDataSet( dataSetId );
 
         if ( dataSet == null )
         {

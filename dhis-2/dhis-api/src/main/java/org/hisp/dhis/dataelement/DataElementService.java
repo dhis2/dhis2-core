@@ -327,15 +327,6 @@ public interface DataElementService
     DataElementGroup getDataElementGroup( int id );
 
     /**
-     * Returns a DataElementGroup.
-     *
-     * @param id               the id of the DataElementGroup to return.
-     * @param i18nDataElements whether to i18n the data elements of this group.
-     * @return the DataElementGroup with the given id, or null if no match.
-     */
-    DataElementGroup getDataElementGroup( int id, boolean i18nDataElements );
-
-    /**
      * Returns the data element groups with the given uids.
      *
      * @param uids the uid collection.
@@ -438,8 +429,6 @@ public interface DataElementService
     void deleteDataElementGroupSet( DataElementGroupSet groupSet );
 
     DataElementGroupSet getDataElementGroupSet( int id );
-
-    DataElementGroupSet getDataElementGroupSet( int id, boolean i18nGroups );
 
     DataElementGroupSet getDataElementGroupSet( String uid );
 

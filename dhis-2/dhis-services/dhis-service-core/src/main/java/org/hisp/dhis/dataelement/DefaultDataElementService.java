@@ -386,19 +386,6 @@ public class DefaultDataElementService
     }
 
     @Override
-    public DataElementGroup getDataElementGroup( int id, boolean i18nDataElements )
-    {
-        DataElementGroup group = getDataElementGroup( id );
-
-        if ( i18nDataElements )
-        {
-            group.getMembers();
-        }
-
-        return group;
-    }
-
-    @Override
     public List<DataElementGroup> getDataElementGroupsByUid( Collection<String> uids )
     {
         return dataElementGroupStore.getByUid( uids );
@@ -499,19 +486,6 @@ public class DefaultDataElementService
     public DataElementGroupSet getDataElementGroupSet( int id )
     {
         return dataElementGroupSetStore.get( id );
-    }
-
-    @Override
-    public DataElementGroupSet getDataElementGroupSet( int id, boolean i18nGroups )
-    {
-        DataElementGroupSet groupSet = getDataElementGroupSet( id );
-
-        if ( i18nGroups )
-        {
-            groupSet.getDataElements();
-        }
-
-        return groupSet;
     }
 
     @Override
