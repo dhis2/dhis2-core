@@ -4,6 +4,9 @@
 
 <div class="inputForm">
     <input type="hidden" id="templateUid" value="$template.uid">
+    <input type="hidden" id="programId" value="$program.id">
+    <input type="hidden" id="programUid" value="$program.Uid">
+    <input type="hidden" id="isUpdate" value="true">
 
     <table>
         <thead>
@@ -135,7 +138,6 @@
 </div>
 
 <script>
-
     ( function ( $ ) {
         var params = $( '#params' );
         var focusedTextArea = $( '#subjectTemplate' );
@@ -146,8 +148,8 @@
         var messageTemplateTextArea = $( '#messageTemplate' );
         var saveButton = $( '#save' );
         var cancelButton = $( '#cancel' );
-//        var programId = $( '#programId' ).value;
-//        var programUid = $( '#programUid' ).value;
+        var programId = $( '#programId' ).value;
+        var templateUid = $( '#templateUid' ).value;
 
         // Event handlers
 
@@ -177,11 +179,11 @@
         };
 
         saveButton.onclick = function() {
-            save();
+            update();
         };
 
         cancelButton.onclick = function() {
-            window.location.href = 'programNotification.action?id=$program.id';
+            window.location.href = 'programNotification.action?id=' + programId;
         };
 
         // Internal
@@ -215,32 +217,23 @@
             };
         };
 
-        function save() {
+        function update() {
             var jsonData = formAsJson();
-            var program = { 'uid' : programUid };
 
             jQuery.ajax( {
-                url : '../api/programNotificationTemplates',
+                url : '../api/programNotificationTemplates/' + templateUid,
                 dataType : 'json',
                 data : JSON.stringify( jsonData ),
                 contentType : 'application/json',
-                type : 'POST'
-            } )
-                .then( function( result ) {
-                    return jQuery.ajax( {
-                        url : '../api/programs/' + programUid + '/notificationTemplates/' + result.response.uid,
-                        type : 'POST',
-                    } );
-                } )
-                .done( function( result ) {
+                type : 'PUT'
+            } ).done( function( result ) {
                     window.location.href = 'programNotification.action?id=' + programId;
-                } )
-                .fail( function( jqXhr, textStatus, error ) {
+            } ).fail( function( jqXhr, textStatus, error ) {
                     var json = jQuery.parseJSON( jqXhr.responseText );
                     var errorMessage = json.response.errorReports[0].message;
 
                     setHeaderDelayMessage( errorMessage || ( textStatus + ': ' + error ) );
-                } );
+            } );
         };
 
     } )( document.querySelector.bind( document ) );

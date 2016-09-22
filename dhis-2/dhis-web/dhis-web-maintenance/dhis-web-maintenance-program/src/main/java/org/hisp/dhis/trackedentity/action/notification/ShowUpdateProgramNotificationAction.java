@@ -84,6 +84,13 @@ public class ShowUpdateProgramNotificationAction
         return template;
     }
 
+    private Program program;
+
+    public Program getProgram()
+    {
+        return program;
+    }
+
     private List<UserGroup> userGroups;
 
     public List<UserGroup> getUserGroups()
@@ -108,7 +115,7 @@ public class ShowUpdateProgramNotificationAction
         template = manager.get( ProgramNotificationTemplate.class, templateUid );
         userGroups = userGroupService.getAllUserGroups();
 
-        Program program = manager.get( Program.class, programUid );
+        program = manager.get( Program.class, programUid );
 
         if ( program != null )
         {

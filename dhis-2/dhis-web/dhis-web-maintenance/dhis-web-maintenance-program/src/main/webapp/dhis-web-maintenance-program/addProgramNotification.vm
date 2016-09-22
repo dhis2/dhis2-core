@@ -5,6 +5,7 @@
 <div class="inputForm">
     <input type="hidden" id="programUid" value="$program.uid">
     <input type="hidden" id="programId" value="$program.id">
+    <input type="hidden" id="isUpdate" value="false">
 
     <table>
         <thead>
@@ -29,13 +30,13 @@
                 <td>
                     <select type="text" id="notificationTrigger" name="notificationTrigger">
                         <option value="ENROLLMENT">$i18n.getString( "program_enrollment" )</option>
+                        <option value="COMPLETION">$i18n.getString( "program_completion" )</option>
                         <option value="SCHEDULED_DAYS_INCIDENT_DATE">$i18n.getString( "days_scheduled_incident_date" )</option>
                         <option value="SCHEDULED_DAYS_ENROLLMENT_DATE">$i18n.getString( "days_scheduled_enrollment_date" )</option>
-                        <option value="COMPLETION">$i18n.getString( "program_completion" )</option>
                     </select>
                 </td>
             </tr>
-            <tr>
+            <tr id="daysContainer" style="display: none;">
                 <td>
                     <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>
                 </td>
@@ -137,6 +138,9 @@
     var recipientSelector = $( '#notificationRecipient' );
     var userGroup = $( '#userGroup' );
     var userGroupContainer = $( '#userGroupContainer' );
+    var notificationTrigger = $( '#notificationTrigger' );
+    var daysContainer = $( '#daysContainer' );
+    var days = $('#days' );
     var subjectTemplateTextArea = $( '#subjectTemplate' );
     var messageTemplateTextArea = $( '#messageTemplate' );
     var saveButton = $( '#save' );
@@ -164,6 +168,15 @@
             userGroupContainer.style.display = 'none';
             userGroup.value = "";
             userGroup.disabled = true;
+        }
+    };
+
+    notificationTrigger.onchange = function( e ) {
+        if ( notificationTrigger.value === 'ENROLLMENT' || notificationTrigger.value == 'COMPLETION' ) {
+            daysContainer.style.display = 'none';
+        } else {
+            daysContainer.style.display = 'table-row';
+            days.value = undefined;
         }
     };
 
@@ -212,7 +225,6 @@
 
     function save() {
         var jsonData = formAsJson();
-        var program = { 'uid' : programUid };
 
         jQuery.ajax( {
             url : '../api/programNotificationTemplates',
