@@ -43,11 +43,6 @@ public interface ScriptLibrary
     abstract public String[] retrieveDirectDependencies ( String scriptName );
     abstract public String[] retrieveDependencies ( String scriptName );
     abstract public Reader retrieveScript ( String name ) throws ScriptNotFoundException;
-    abstract public JsonValue  retrieveManifestInfo ( String[] path );
     abstract public String getName();
-    abstract public Resource findResource (  String resourceName )
-    throws IOException;
-    abstract public ScriptLibrary getScriptLibrary ( String key )
-    throws ScriptNotFoundException;
-    abstract public App getApp();
+
 }

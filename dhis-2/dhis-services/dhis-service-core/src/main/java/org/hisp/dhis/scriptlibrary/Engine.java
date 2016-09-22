@@ -29,52 +29,72 @@ package org.hisp.dhis.scriptlibrary;
  */
 
 import java.io.Reader;
-import org.apache.commons.io.input.ReaderInputStream;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.appmanager.App;
 
 
 
+abstract public class Engine implements EngineInterface {
 
-public class EngineXSLT extends Engine
-{
+    private static final Log log = LogFactory.getLog(Engine.class);
 
-    protected TransformerFactory factory = TransformerFactory.newInstance();
-    protected static final Log log = LogFactory.getLog ( EngineXSLT.class );
+    //@Autowired this is not a bean? so won't work/do anything?
+    //protected SessionFactory sessionFactory;
+
+
+    public ExecutionContextInterface execContext = null;
+
+    public ExecutionContextInterface getExecutionContext() {
+        return execContext;
+    }
 
     @Override
-    public Object evaluateScript ()
-    throws ScriptException
+    public void setExecutionContext(ExecutionContextInterface execContext) {
+        this.execContext = execContext;
+    }
+
+
+
+    protected Reader scriptReader;
+
+    public void setScriptReader(Reader r) {
+        scriptReader = r;
+    }
+    public Reader getScriptReader() {
+        return scriptReader;
+    }
+
+    @Override
+    public Object call()
+            throws ScriptException
     {
-        Reader scriptReader = getScriptReader();
-        Transformer transformer;
+        Object res =null;
+        log.info("Run Engine: beginning execution");
 
-        try
-        {
-            Source xslt = new StreamSource ( new ReaderInputStream ( scriptReader ) );
-            Source text = new StreamSource ( execContext.getIn() );
-            StreamResult trans_out = new StreamResult ( execContext.getOut() );
-            transformer = factory.newTransformer ( xslt );
-            transformer.setParameter ( "dhisScriptContext", execContext );
-            transformer.transform ( text, trans_out );
+        if (execContext.getUser() == null) {
+            //sanity check.
+            throw new ScriptAccessException("No script execution on null user allowed");
         }
 
-        catch ( Exception e )
-        {
-            log.info ("Error running script engine: "  + e.toString() + "\n" +
+        if (execContext.getScriptName() == null) {
+            //sanity check.
+            throw new ScriptNotFoundException("No script defined");
+        }
+        log.info("Run Engine: evaluating script " + execContext.getScriptName());
+        try {
+            res = evaluateScript();
+        } catch (ScriptException e) {
+            throw e; //don't do anything speciak
+        } catch (Exception e) {
+            //wrap it in a script execution exception
+            log.info("evaluation failed : " + e.toString() + "\n" +
                     ExceptionUtils.getStackTrace(e));
-            throw new ScriptExecutionException("Could not execute script:" + e.toString());
+            throw new ScriptExecutionException("evaluation failed : " + e.toString() );
         }
+        log.info("Run Engine: evaluation done");
+        return res;
 
-        return transformer.getOutputProperties();
     }
 
 

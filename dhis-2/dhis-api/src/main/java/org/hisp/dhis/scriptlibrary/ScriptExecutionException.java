@@ -28,20 +28,13 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.script.ScriptException;
-
 /**
  * @author Carl Leitner <litlfred@gmail.com>
  */
 public class  ScriptExecutionException extends ScriptException
 {
-    public ScriptExecutionException()
-    {
-        super ( "" );
+    public ScriptExecutionException(String s) {
+        super(s);
     }
 
-    public ScriptExecutionException ( String s )
-    {
-        super ( s );
-    }
 }

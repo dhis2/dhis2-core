@@ -28,30 +28,13 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Reader;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import org.hisp.dhis.user.User;
-import org.springframework.context.ApplicationContext;
-
-public interface IExecutionContext
+/**
+ * @author Carl Leitner <litlfred@gmail.com>
+ */
+public class  ScriptException extends Exception
 {
-
-    abstract String getAppName();
-    abstract String getScriptName();
-    abstract User getUser();
-    abstract Reader getIn();
-    abstract Writer getOut();
-    abstract Writer getError();
-    abstract ApplicationContext getApplicationContext();
-    abstract void setApplicationContext ( ApplicationContext applicationContext );
-    abstract void  setAppName ( String appName );
-    abstract void setScriptName ( String scriptName );
-    abstract void setUser ( User user );
-    abstract void setIn ( Reader in );
-    abstract void setOut ( Writer out );
-    abstract void setError ( Writer out );
+    public ScriptException(String s) {
+        super(s);
+    }
 
 }

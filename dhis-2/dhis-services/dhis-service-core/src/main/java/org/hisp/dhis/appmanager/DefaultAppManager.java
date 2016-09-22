@@ -28,10 +28,12 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import org.apache.ant.compress.taskdefs.Unzip;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,23 +44,25 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.scriptlibrary.AppScriptLibrary;
+import org.hisp.dhis.scriptlibrary.ScriptLibrary;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 import javax.annotation.PostConstruct;
+import javax.json.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.InputStreamReader;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -104,6 +108,7 @@ public class DefaultAppManager
     @Autowired
     private KeyJsonValueService keyJsonValueService;
 
+    private JsonFactory jsonFactory = new JsonFactory();
     // -------------------------------------------------------------------------
     // AppManagerService implementation
     // -------------------------------------------------------------------------
@@ -178,6 +183,98 @@ public class DefaultAppManager
 
         return null;
     }
+
+
+    protected Map<String, ScriptLibrary> scriptLibraries = new HashMap<String, ScriptLibrary>();
+
+    public ScriptLibrary getScriptLibrary ( App app )
+    {
+        String key = app.getKey();
+
+        if ( scriptLibraries.containsKey ( key ) )
+        {
+            return scriptLibraries.get ( key );
+        }
+
+        else
+        {
+            ScriptLibrary sl =  new AppScriptLibrary( app, this );
+            scriptLibraries.put ( key, sl );
+            return sl;
+        }
+    }
+
+
+    public TreeNode retrieveManifestInfo (String appName, String[] path )
+    {
+        try
+        {
+            //it is slow to hit this all the time, should it cache based on file mtime?
+            log.info ( "Looking for manifest" );
+            Resource manifest = findResource ( appName, "manifest.webapp" );
+            TreeNode node = jsonFactory.createParser( manifest.getInputStream()).readValueAsTree();
+
+            for ( int i = 0; i < path.length ; i++ ) //walk the binding path
+            {
+                if (node.isArray()) {
+                    int num = Integer.parseInt ( path[i] );
+                    node = node.get( num );
+                } else if (node.isObject()) {
+                    node = node.get(path[i]);
+                } else if (i != path.length - 1) {
+                    return null; //we are not in the correct path
+                }
+
+
+            }
+            return node;
+        }
+
+        catch ( Exception e )
+        {
+            log.info ( "Could not access manifest for " + appName + ":"  + e.toString() );
+            return null; //return empty object
+        }
+    }
+
+
+
+    public Resource findResource (  String appName, String resourceName )
+            throws IOException
+    {
+        ResourceLoader resourceLoader = new DefaultResourceLoader();
+        Iterable<Resource> locations = Lists.newArrayList();
+        try
+        {
+            locations = Lists.newArrayList (
+                    resourceLoader.getResource ( "file:" + getAppFolderPath() + "/" + appName   + "/" ),
+                    resourceLoader.getResource ( "classpath*:/apps/" + appName + "/" )
+            );
+
+        }
+        catch ( Exception e )
+        {
+            log.info ( "Could not init App resource locations" + e.toString() );
+
+        }
+
+        log.info ( "Looking for resource [" + resourceName + "] in " + appName );
+
+        for ( Resource location : locations )
+        {
+            Resource resource = location.createRelative ( resourceName );
+            log.info ( "Checking " + resource.toString() + " under " + location.toString() );
+
+            if ( resource.exists() && resource.isReadable() )
+            {
+                log.info ( "Found " + resource.toString() );
+                return resource;
+            }
+        }
+
+        return null;
+    }
+
 
     @Override
     public List<App> getAccessibleApps ( String contextPath )
@@ -330,6 +427,8 @@ public class DefaultAppManager
         return false;
     }
 
+
+
     @Override
     public String getAppFolderPath()
     {
@@ -473,4 +572,5 @@ public class DefaultAppManager
             }
         }
     }
+
 }

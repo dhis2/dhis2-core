@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.scriptlibrary;
+package org.hisp.dhis.scriptlibrary;
 /*
  * Copyright (c) 2016, IntraHealth International
  * All rights reserved.
@@ -28,16 +28,21 @@ package org.hisp.dhis.webapi.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.scriptlibrary.IExecutionContext;
 
-public interface IExecutionContextHttp  extends IExecutionContext
+import java.io.Reader;
+import java.util.concurrent.Callable;
+
+
+public interface  EngineInterface extends Callable
 {
-    abstract HttpServletResponse getHttpServletResponse();
-    abstract HttpServletRequest getHttpServletRequest();
-    abstract void setHttpServletResponse ( HttpServletResponse httpResponse );
-    abstract void setHttpServletRequest ( HttpServletRequest httpRequest );
 
+    abstract Object evaluateScript() throws ScriptException;
+
+
+    abstract void setExecutionContext ( ExecutionContextInterface execContext );
+    abstract ExecutionContextInterface getExecutionContext();
+    abstract void setScriptReader(Reader scriptReader);
+
+    abstract Reader getScriptReader();
 
 }

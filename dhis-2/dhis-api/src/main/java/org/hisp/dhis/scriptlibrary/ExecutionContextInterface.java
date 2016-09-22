@@ -28,11 +28,27 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.json.JsonValue;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import java.io.Reader;
+import java.io.Writer;
+import org.hisp.dhis.user.User;
+import org.springframework.context.ApplicationContext;
 
-public interface IExecutionContextSE extends IExecutionContext
+public interface ExecutionContextInterface
 {
-    abstract JsonValue createJson ( ScriptObjectMirror som );
+
+    abstract String getAppName();
+    abstract String getScriptName();
+    abstract User getUser();
+    abstract Reader getIn();
+    abstract Writer getOut();
+    abstract Writer getError();
+    abstract ApplicationContext getApplicationContext();
+    abstract void setApplicationContext ( ApplicationContext applicationContext );
+    abstract void setAppName ( String appName );
+    abstract void setScriptName ( String scriptName );
+    abstract void setUser ( User user );
+    abstract void setIn ( Reader in );
+    abstract void setOut ( Writer out );
+    abstract void setError ( Writer out );
 
 }

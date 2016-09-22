@@ -33,44 +33,27 @@ import ca.uhn.fhir.model.api.Bundle;
 import ca.uhn.fhir.model.api.IResource;
 import java.io.Reader;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.HashMap;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonString;
-import javax.json.JsonStructure;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
-import javax.script.ScriptException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.fasterxml.jackson.core.TreeNode;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
-import org.hisp.dhis.scriptlibrary.AppScriptLibrary;
-import org.hisp.dhis.scriptlibrary.ExecutionContext;
-import org.hisp.dhis.scriptlibrary.Engine;
-import org.hisp.dhis.scriptlibrary.EngineBuilder;
-import org.hisp.dhis.scriptlibrary.ScriptAccessException;
-import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
-import org.hisp.dhis.scriptlibrary.ScriptLibrary;
+import org.hisp.dhis.scriptlibrary.*;
 import org.hisp.dhis.webapi.controller.EngineController;
-import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpSE;
+import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttp;
 import org.hisp.dhis.webapi.scriptlibrary.HttpException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.json.simple.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.hisp.dhis.web.ohie.fhir.service.DSTU2Processor;
 
@@ -84,10 +67,14 @@ import org.hisp.dhis.web.ohie.fhir.service.DSTU2Processor;
 public class EngineControllerDSTU2 extends EngineController
 {
 
+    @Autowired
+    AppManager appManager;
+
     public static final String RESOURCE_PATH = "/fhir/dstu2";
+
     protected static final Log log = LogFactory.getLog ( DefaultDataValueService.class );
 
-    public class ExecutionContextFHIR extends ExecutionContextHttpSE
+    public class ExecutionContextFHIR extends ExecutionContextHttp
     {
         protected Object response = null;
         public Object getResponse()
@@ -260,20 +247,14 @@ public class EngineControllerDSTU2 extends EngineController
     {
         log.info ( "Attempting " + operation + " on " + resource + " in " + appName );
         String contextPath =  ContextUtils.getContextPath ( httpRequest );
-        App app = appManager.getApp ( appName, contextPath );
-        JsonArray info;
+        TreeNode info;
 
         try
         {
-            if ( app == null )
-            {
-                throw new NullPointerException ( "App " + appName + " not registered" );
-            }
 
-            ScriptLibrary sl = getScriptLibrary ( app );
-            info = ( JsonArray ) sl.retrieveManifestInfo ( ( "script-library/bindings" + RESOURCE_PATH ).split ( "/" ) );
+            info =  appManager.retrieveManifestInfo ( appName, ( "script-library/bindings" + RESOURCE_PATH ).split ( "/" ) );
 
-            if ( info == null )
+            if ( info == null || ! info.isArray())
             {
                 log.info ( "D" );
                 throw new NullPointerException ( "No binding info for " + appName );
@@ -288,16 +269,19 @@ public class EngineControllerDSTU2 extends EngineController
         }
 
 
-        for ( JsonValue value : info )
+        for ( int i=0; i < info.size(); i++ )
         {
+            if (! info.get(i).isObject()) {
+                continue;
+            }
+            TreeNode node = info.get(i);
             String script = null;
             String op = null;
-            log.info ( "Checking " + value.toString() );
 
             try
             {
-                op = ( ( JsonObject ) value ).getString ( "operation" );
-                script = ( ( JsonObject ) value ).getString ( "script" );
+                op = node.get ( "operation" ).toString();
+                script = node.get ( "script" ).toString();
 
                 if ( !op.equals ( operation )
                         ||  script == null
@@ -307,11 +291,11 @@ public class EngineControllerDSTU2 extends EngineController
                     continue;
                 }
 
-                JsonValue rsrc = ( ( JsonObject ) value ).get ( "resource" );
+                TreeNode rsrc = node.get ( "resource" );
 
-                if ( rsrc instanceof JsonString )
+                if ( rsrc.isValueNode() )
                 {
-                    String r = ( ( JsonString ) rsrc ).getString();
+                    String r =  rsrc.toString();
 
                     if (  ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
                     {
@@ -320,15 +304,15 @@ public class EngineControllerDSTU2 extends EngineController
                     }
                 }
 
-                else if ( rsrc instanceof JsonArray )
+                else if ( rsrc.isArray())
                 {
-                    for ( JsonValue rv : ( ( JsonArray ) rsrc ) )
+                    for ( int j=0; j < rsrc.size(); j++)
                     {
                         String r = null;
 
                         try
                         {
-                            r = ( ( JsonString ) rv ).getString();
+                            r = rsrc.get(i).toString();
 
                             if (   ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
                             {
@@ -356,22 +340,9 @@ public class EngineControllerDSTU2 extends EngineController
 
             try
             {
-                ExecutionContextFHIR execContext = getExecutionContext ( httpRequest, httpResponse, appName, resource, operation, id );
-                Engine engine = runEngine ( execContext, script );
-
-                if ( engine == null )
-                {
-                    log.info ( "No engine received for " + script );
-                    throw new ScriptAccessException ( "Could not run engine for " + script );
-                }
-
-                // else if ( engine.runException != null )
-                // {
-                //     log.error("Engine execution exception for " + script, engine.runException);
-                //     throw engine.runException;
-                // }
-
-                processOperationResult ( engine );
+                ExecutionContextFHIR execContext = getExecutionContext ( script, httpRequest, httpResponse, appName, resource, operation, id );
+                Object result =  engineService.eval(execContext);
+                processOperationResult ( result ,execContext);
             }
 
             catch ( HttpException he )
@@ -406,11 +377,10 @@ public class EngineControllerDSTU2 extends EngineController
         sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, "Operation " + operation + " not found on resource " + resource );
     }
 
-    protected void processOperationResult ( Engine engine )
+    protected void processOperationResult ( Object response, ExecutionContextFHIR execContext )
     throws HttpException
     {
         log.info ( "Processing result" );
-        ExecutionContextFHIR execContext = ( ExecutionContextFHIR ) engine.getScriptContext();
         log.info ( "retrieved script context" );
         HttpServletResponse httpResponse = execContext.getHttpServletResponse();
         log.info ( "retrieved script http response" );
@@ -421,7 +391,7 @@ public class EngineControllerDSTU2 extends EngineController
         }
 
         log.info ( "no error reported by script" );
-        Object response = execContext.getResponse();
+
 
         if ( response == null )
         {
@@ -441,20 +411,7 @@ public class EngineControllerDSTU2 extends EngineController
             log.info ( "response is ScriptObjectMirror" );
             ScriptObjectMirror responseSom  = ( ScriptObjectMirror ) response;
             log.info ( "creating JSON representation of response" );
-            JsonValue responseJson = execContext.createJson ( responseSom );
-            log.info ( "created JSON representation of response" );
-
-            if ( responseJson != null )
-            {
-                json = responseJson.toString();
-            }
-
-            else
-            {
-                json = "null";
-            }
-
-            log.info ( "created JSON representation of response:\n" + json );
+            json = response.toString();
 
         }
 
@@ -547,10 +504,11 @@ public class EngineControllerDSTU2 extends EngineController
 
 
 
-    protected ExecutionContextFHIR getExecutionContext ( HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+    protected ExecutionContextFHIR getExecutionContext ( String script, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
             String appName, String resource, String operation, String id )
     {
         ExecutionContextFHIR execContext = new ExecutionContextFHIR();
+        execContext.setScriptName(script);
         initExecutionContext ( execContext, appName,  httpRequest, httpResponse );
         String contentType = httpRequest.getContentType();
         String format = httpRequest.getParameter ( "_format" );

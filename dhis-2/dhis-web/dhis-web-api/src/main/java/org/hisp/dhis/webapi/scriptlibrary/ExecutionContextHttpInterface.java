@@ -1,4 +1,4 @@
-package org.hisp.dhis.scriptlibrary;
+package org.hisp.dhis.webapi.scriptlibrary;
 /*
  * Copyright (c) 2016, IntraHealth International
  * All rights reserved.
@@ -28,40 +28,16 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import javax.json.JsonValue;
-import javax.script.ScriptException;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.scriptlibrary.Engine;
-import org.hisp.dhis.scriptlibrary.IExecutionContext;
-import org.hisp.dhis.scriptlibrary.ScriptLibrary;
-import org.hisp.dhis.scriptlibrary.ScriptExecutionException;
-import org.hisp.dhis.scriptlibrary.ScriptAccessException;
-import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.hisp.dhis.scriptlibrary.ExecutionContextInterface;
 
-/**
- * @author Carl Leitner <litlfred@gmail.com>
- */
-public interface  EngineBuilderInterface
+public interface ExecutionContextHttpInterface extends ExecutionContextInterface
 {
-    abstract Engine getEngine ( App app, ScriptLibrary sl, String scriptName )
-    throws ScriptException, ScriptNotFoundException;
-
-    abstract Engine  eval ( App app, ScriptLibrary sl, IExecutionContext execContext )
-    throws ScriptException, ScriptNotFoundException, ScriptAccessException;
+    abstract HttpServletResponse getHttpServletResponse();
+    abstract HttpServletRequest getHttpServletRequest();
+    abstract void setHttpServletResponse ( HttpServletResponse httpResponse );
+    abstract void setHttpServletRequest ( HttpServletRequest httpRequest );
 
 
 }

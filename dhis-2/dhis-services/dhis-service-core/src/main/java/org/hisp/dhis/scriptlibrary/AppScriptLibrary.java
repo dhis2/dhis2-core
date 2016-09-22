@@ -28,6 +28,8 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import java.io.IOException;
@@ -75,12 +77,11 @@ import org.springframework.core.io.ResourceLoader;
 public class AppScriptLibrary implements ScriptLibrary
 {
 
-    protected static final Log log = LogFactory.getLog ( DefaultDataValueService.class );
+    protected static final Log log = LogFactory.getLog ( AppScriptLibrary.class );
 
-    private final ResourceLoader resourceLoader = new DefaultResourceLoader();
+
 
     protected  AppManager appManager;
-    protected Iterable<Resource> locations = Lists.newArrayList();
     protected App app;
     protected String[] resources;
     protected String[] operations;
@@ -99,35 +100,6 @@ public class AppScriptLibrary implements ScriptLibrary
         this.app = app;
         this.resources = resources;
         this.operations = operations;
-
-        try
-        {
-            locations = Lists.newArrayList (
-                            resourceLoader.getResource ( "file:" + appManager.getAppFolderPath() + "/" + appKey   + "/" ),
-                            resourceLoader.getResource ( "classpath*:/apps/" + appKey + "/" )
-//                            resourceLoader.getResource ( "/apps/" + appKey + "/"   )
-		);
-
-            for ( Resource location : locations )
-            {
-                log.info ( "Adding " + location.toString() );
-            }
-        }
-
-        catch ( Exception e )
-        {
-            try
-            {
-                log.info ( "Could not init AppScriptLibrary:" + e.toString() );
-
-                if ( appManager == null )
-                {
-                    log.info ( "appManager not initialized" );
-                }
-            }
-
-            catch ( Exception e2 ) {}
-        }
     }
 
 
@@ -135,8 +107,8 @@ public class AppScriptLibrary implements ScriptLibrary
 	return app;
     }
 
-    public App getApp(String appName) {
-	return  appManager.getApp(appName,this.app.getContextPath());	    
+    protected App getApp(String appName) {
+        return  appManager.getApp(appName,this.app.getContextPath());
     }
 
     protected Map<String, ScriptLibrary> scriptLibraries = new HashMap<String, ScriptLibrary>();
@@ -144,47 +116,15 @@ public class AppScriptLibrary implements ScriptLibrary
 
 
     public ScriptLibrary getScriptLibrary ( String key )
-	throws ScriptNotFoundException
     {
-
-        if ( scriptLibraries.containsKey ( key ) )
-        {
-            return scriptLibraries.get ( key );
-        }
-
-        else
-        {
-	    App app = getApp(key);
-	    if (app == null) {
-		throw new ScriptNotFoundException("Coult not get app [" + key + "]");
-	    }
-            ScriptLibrary sl =  new AppScriptLibrary ( getApp(key), appManager );
-            scriptLibraries.put ( key, sl );
-            return sl;
-        }
+        return appManager.getScriptLibrary(getApp(key));
     }
 
-    public boolean containsScript ( String name )
-    {
-        try
-        {
-	    if (  name.startsWith("/apps/" ))
-	    {
-		String depAppName = name.substring(6);
-		String depResource = depAppName.substring(depAppName.indexOf("/") + 1);
-		depAppName = depAppName.substring(0,depAppName.indexOf("/") );
-		ScriptLibrary depAppLib = getScriptLibrary(depAppName);
-		Resource r = depAppLib.findResource(depResource);
-		return ( r != null );
-	    } 
-	    else 
-	    {
-		Resource r = findResource (   name );
-		return ( r != null );
-	    }
+    public boolean containsScript ( String name ) {
+        try {
+            return appManager.findResource(app.getKey(), name) != null;
         }
-
-        catch ( Exception e )
+        catch(Exception e )
         {
             return false;
         }
@@ -193,28 +133,21 @@ public class AppScriptLibrary implements ScriptLibrary
     public  Reader retrieveScript ( String name )
     throws  ScriptNotFoundException
     {
-        try
-        {
-	    if (  name.startsWith("/apps/" ))
-	    {
-		String depAppName = name.substring(6);
-		String depResource = depAppName.substring(depAppName.indexOf("/") + 1);
-		depAppName = depAppName.substring(0,depAppName.indexOf("/") );
-		ScriptLibrary depAppLib = getScriptLibrary(depAppName);
-		Resource r = depAppLib.findResource(depResource);
-		return new InputStreamReader ( r.getInputStream() );
-		
-	    } 
-	    else 
-	    {
-		Resource r = findResource (  name );
-		return new InputStreamReader ( r.getInputStream() );
-	    }
-        }
+        try {
+            if (name.startsWith("/apps/")) {
+                String depAppName = name.substring(6);
+                String depResource = depAppName.substring(depAppName.indexOf("/") + 1);
+                depAppName = depAppName.substring(0, depAppName.indexOf("/"));
+                ScriptLibrary depAppLib = getScriptLibrary(depAppName);
+                Resource r = appManager.findResource( depAppName, depResource);
+                return new InputStreamReader(r.getInputStream());
 
-        catch ( Exception e )
-        {
-            throw new ScriptNotFoundException ( "Could not get " + name + " :\n" + e.toString() );
+            } else {
+                Resource r = appManager.findResource(app.getKey(), name);
+                return new InputStreamReader(r.getInputStream());
+            }
+        } catch (Exception e) {
+            throw new ScriptNotFoundException("Could not get " + name + " :\n" + e.toString());
         }
     }
 
@@ -223,26 +156,19 @@ public class AppScriptLibrary implements ScriptLibrary
     {
         try
         {
-            JsonObject deps = ( JsonObject )  retrieveManifestInfo (  "script-library/dependencies".split ( "/" ) );
-	    System.out.println("Script " + script + " has direct dependencies: " +deps);
-	    ArrayList<String> sdeps  = new ArrayList();
-	    for (Object o : deps.getJsonArray(script)) {
-		System.out.println("Checking dep: " + o);
-		String dep = null;
-		if (o instanceof JsonString) {
-		    dep = ((JsonString) o).getString();
-		    System.out.println("Adding JsonString dep: " + dep);
-		} else if (o instanceof String) {
-		    dep = (String) o;
-		    System.out.println("Adding String dep: " + dep);
-		} else {
-		    System.out.println("Skipping dep: " + dep);
-		    continue;
-		}
-		sdeps.add(dep);
-	    }
-	    System.out.println("Deps: " + String.join(" ",sdeps.toArray ( new String[sdeps.size()] )));
-	    return sdeps.toArray ( new String[sdeps.size()] );
+            ArrayList<String> sdeps  = new ArrayList();
+            String[] path = {"script-library" ,"dependencies" , script};
+            TreeNode deps = appManager.retrieveManifestInfo ( app.getName(), path);
+            if (!deps.isArray()) {
+                throw new Exception("Invalid dependencies for script " + script + " in app " + app.getName());
+            }
+            for (int i=0; i < deps.size(); i++) {
+                TreeNode dep = deps.get(i);
+                if (dep.isValueNode())
+                    sdeps.add(dep.toString());
+            }
+            log.info("Deps: " + String.join(" ",sdeps.toArray ( new String[sdeps.size()] )));
+            return sdeps.toArray ( new String[sdeps.size()] );
         }
 
         catch ( Exception e )
@@ -260,12 +186,12 @@ public class AppScriptLibrary implements ScriptLibrary
 	    deps.addAll ( Arrays.asList(retrieveDirectDependencies(name)));
 	    ArrayList<String> seen = new ArrayList();
 	    seen.add(name);
-	    System.out.println("Retreived direct depenencies in all dependences: " + deps);
+	    log.info("Retreived direct depenencies in all dependences: " + deps);
 	    while ( ! deps.isEmpty() )
 	    {
 		String script = deps.pop();
 		seen.add(script);
-		System.out.println ( "Attempting to resolve dependency: " + script );
+		log.info ( "Attempting to resolve dependency: " + script );
 		ScriptLibrary depAppLib;
 		String depAppName = null;
 		String depResource = null;
@@ -318,74 +244,6 @@ public class AppScriptLibrary implements ScriptLibrary
 
 
 
-    @Override
-    public JsonValue  retrieveManifestInfo ( String[] path )
-    {
-        try
-        {
-            //it is slow to hit this all the time, should it cache based on file mtime?
-            log.info ( "Looking for manifest" );
-            Resource manifest = findResource ( "manifest.webapp" );
-            JsonReader jsonReader = Json.createReader ( new InputStreamReader ( manifest.getInputStream() ) );
-            log.info ( "reading manifest" );
-            JsonValue info = jsonReader.readObject();
-            jsonReader.close();
-            log.info ( "Looking at manifest " + info.toString() );
-
-            for ( int i = 0; i < path.length ; i++ ) //walk the binding path
-            {
-                log.info ( "retrieving " + path[i] + " from " + info.toString() );
-
-                if ( info instanceof JsonArray )
-                {
-                    int num = Integer.parseInt ( path[i] );
-                    info = ( JsonValue ) ( ( JsonArray ) info ).get ( num );
-                }
-
-                else  if ( info instanceof JsonObject )
-                {
-                    info = ( JsonValue ) ( ( JsonObject ) info ).get ( path[i] );
-                }
-
-                else
-                {
-                    log.info ( "Could not access path at " + path[i] + " in manifest for " + app.getKey()
-                               + ": not an object/array (" + info.getValueType().toString() + ")" );
-                    return Json.createObjectBuilder().build(); //return empty object
-                }
-            }
-
-            return info;
-        }
-
-        catch ( Exception e )
-        {
-            log.info ( "Could not access manifest for " + app.getKey() + ":"  + e.toString() );
-            return Json.createObjectBuilder().build(); //return empty object
-        }
-    }
-
-
-    //partially stolen from dhis-web/dhis-web-api/src/main/java/org/hisp/dhis/webapi/controller/AppController.java
-    public Resource findResource (  String resourceName )
-    throws IOException
-    {
-        log.info ( "Looking for resource [" + resourceName + "] in " + app.getKey() );
-
-        for ( Resource location : locations )
-        {
-            Resource resource = location.createRelative ( resourceName );
-            log.info ( "Checking " + resource.toString() + " under " + location.toString() );
-
-            if ( resource.exists() && resource.isReadable() )
-            {
-                log.info ( "Found " + resource.toString() );
-                return resource;
-            }
-        }
-
-        return null;
-    }
 
 
 

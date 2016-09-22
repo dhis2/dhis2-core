@@ -29,68 +29,44 @@ package org.hisp.dhis.scriptlibrary;
  */
 
 
-import java.io.Reader;
-import java.util.Map;
-import java.lang.NullPointerException;
-import javax.script.Bindings;
-import javax.script.SimpleScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import javax.script.ScriptContext;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.transform.stream.StreamResult;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.basex.core.*;
 import org.basex.query.*;
 import org.basex.query.value.*;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.scriptlibrary.Engine;
-import org.hisp.dhis.scriptlibrary.IExecutionContext;
-import org.hisp.dhis.scriptlibrary.IExecutionContextSE;
-import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
-import org.hisp.dhis.scriptlibrary.ScriptAccessException;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.Reader;
 
 
-public class EngineXQuery extends Engine
-{
-    @Autowired
-    protected  AppManager appManager;
+public class EngineXQuery extends Engine {
 
-    public EngineXQuery ( App app, ScriptLibrary sl )
-    {
-        super ( app, sl );
-    }
-
+    protected static final Log log = LogFactory.getLog(EngineXQuery.class);
 
     @Override
-    protected Object eval ( IExecutionContext execContext )
-    throws ScriptException, ScriptNotFoundException, ScriptAccessException
-    {
-	try					
-	{
-	    Context context = new Context();
-            String query  = IOUtils.toString(sl.retrieveScript ( execContext.getScriptName() ));
-	    QueryProcessor qp = new QueryProcessor(query, context);
-	    qp.context(execContext);
+    public Object evaluateScript ()
+            throws ScriptException {
+        try {
+            Reader scriptReader = getScriptReader();
+            Context context = new Context();
+            String query = IOUtils.toString(scriptReader);
+            QueryProcessor qp = new QueryProcessor(query, context);
+            qp.context(execContext);
 
-            StreamSource text = new StreamSource ( execContext.getIn() );
-            StreamResult outXQ = new StreamResult ( execContext.getOut() );
-	    
-	    Value result = qp.value();
-	    return result;
-	    
-	}
-        catch ( ScriptNotFoundException ioe )
-        {
-            throw new ScriptException ( "Could not get source" + ioe.toString() );
-        }
+            StreamSource text = new StreamSource(execContext.getIn());
+            StreamResult outXQ = new StreamResult(execContext.getOut());
 
-        catch ( Exception e )
-        {
-            runException = e;
-            return null;
+            Value result = qp.value();
+            return result;
+
+        } catch (Exception e) {
+            log.info("Error running script engine: " + e.toString() + "\n" +
+                    ExceptionUtils.getStackTrace(e));
+            throw new ScriptExecutionException("Could not execute script:" + e.toString());
         }
 
     }

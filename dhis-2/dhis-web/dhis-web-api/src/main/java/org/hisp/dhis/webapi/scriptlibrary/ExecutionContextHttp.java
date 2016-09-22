@@ -30,14 +30,31 @@ package org.hisp.dhis.webapi.scriptlibrary;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.scriptlibrary.ExecutionContextSE;
+import org.hisp.dhis.scriptlibrary.ExecutionContext;
+import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpInterface;
 
-public class ExecutionContextHttpSE extends ExecutionContextSE implements IExecutionContextHttp
+public class ExecutionContextHttp extends ExecutionContext implements ExecutionContextHttpInterface
 {
+    /*
+     *
+     *    any library dependencies are loaded.  the context has the following public
+     *    variables set:
+     *      * httpRequest    - the HttpServletRequest
+     *      * httpRsponse   - the HttpServletResponse
+     *      * user            - DHIS2 User object
+     *      * (streams)       - IO Streams for script execution are in SteamReader in, StreamWriter error & out
+     */
 
-    protected HttpServletResponse httpResponse = null;
-    protected HttpServletRequest httpRequest = null;
 
+    /*
+     * Begin public class variables.  These are exposed to the script
+     */
+
+    public HttpServletResponse httpResponse = null;
+    public HttpServletRequest httpRequest = null;
+    /*
+     * end public class variables.  These are exposed to the script
+     */
     public HttpServletResponse getHttpServletResponse()
     {
         return  httpResponse ;
@@ -46,6 +63,7 @@ public class ExecutionContextHttpSE extends ExecutionContextSE implements IExecu
     {
         return httpRequest;
     }
+
     public void setHttpServletResponse ( HttpServletResponse httpResponse )
     {
         this.httpResponse = httpResponse;
@@ -55,10 +73,11 @@ public class ExecutionContextHttpSE extends ExecutionContextSE implements IExecu
         this.httpRequest = httpRequest;
     }
 
+
+
     public String toString()
     {
         return super.toString() +   "\n\thttpRequest=" + httpRequest.toString() +   "\n\thttpResponse=" + httpResponse.toString() + "\n";
     }
-
 
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.scriptlibrary;
+package org.hisp.dhis.scriptlibrary;
 /*
  * Copyright (c) 2016, IntraHealth International
  * All rights reserved.
@@ -28,49 +28,16 @@ package org.hisp.dhis.webapi.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.scriptlibrary.ExecutionContext;
-import org.hisp.dhis.webapi.scriptlibrary.IExecutionContextHttp;
 
-public class ExecutionContextHttp extends ExecutionContext implements IExecutionContextHttp
+
+/**
+ * @author Carl Leitner <litlfred@gmail.com>
+ */
+public interface  EngineServiceInterface
 {
-    /*
-     *
-     *    any library dependencies are loaded.  the context has the following public
-     *    variables set:
-     *      * httpRequest    - the HttpServletRequest
-     *      * httpRsponse   - the HttpServletResponse
-     *      * user            - DHIS2 User object
-     *      * (streams)       - IO Streams for script execution are in SteamReader in, StreamWriter error & out
-     */
 
 
-    /*
-     * Begin public class variables.  These are exposed to the script
-     */
+    Object eval(ExecutionContextInterface execContext) throws ScriptException;
 
-    public HttpServletResponse httpResponse = null;
-    public HttpServletRequest httpRequest = null;
-    /*
-     * end public class variables.  These are exposed to the script
-     */
-    public HttpServletResponse getHttpServletResponse()
-    {
-        return  httpResponse ;
-    }
-    public HttpServletRequest getHttpServletRequest()
-    {
-        return httpRequest;
-    }
-
-    public void setHttpServletResponse ( HttpServletResponse httpResponse )
-    {
-        this.httpResponse = httpResponse;
-    }
-    public void setHttpServletRequest ( HttpServletRequest httpRequest )
-    {
-        this.httpRequest = httpRequest;
-    }
 
 }

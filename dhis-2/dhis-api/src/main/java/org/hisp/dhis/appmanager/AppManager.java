@@ -28,12 +28,17 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.scriptlibrary.ScriptLibrary;
 import org.hisp.dhis.user.User;
+import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Saptarshi Purkayastha
@@ -85,6 +90,11 @@ public interface AppManager
      */
     App getApp ( String key, String contextPath );
 
+
+    public Resource findResource (String appName, String resourceName )
+            throws IOException;
+    ScriptLibrary getScriptLibrary (App app );
+    TreeNode retrieveManifestInfo (String appName, String[] path );
     /**
      * Returns apps which are accessible to the current user.
      *

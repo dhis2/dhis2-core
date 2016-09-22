@@ -30,99 +30,68 @@ package org.hisp.dhis.scriptlibrary;
 
 
 import java.io.Reader;
-import java.util.Map;
 import java.lang.NullPointerException;
-import javax.script.Bindings;
-import javax.script.SimpleScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 import javax.script.ScriptContext;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.scriptlibrary.Engine;
-import org.hisp.dhis.scriptlibrary.IExecutionContext;
-import org.hisp.dhis.scriptlibrary.IExecutionContextSE;
-import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
-import org.hisp.dhis.scriptlibrary.ScriptAccessException;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+
 
 public class EngineSE extends Engine
 {
-    @Autowired
-    protected  AppManager appManager;
+
+    protected static final Log log = LogFactory.getLog ( EngineSE.class );
+
 
     public ScriptEngine engine;
-    public ScriptContext context;
-    public EngineSE ( App app, ScriptLibrary sl, ScriptEngine engine )
-    {
-        super ( app, sl );
-        this.engine = engine;
+
+    public EngineSE(ScriptEngine engine){
+        this.engine=engine;
     }
 
-
     @Override
-    protected Object eval ( IExecutionContext execContext )
-    throws ScriptException, ScriptNotFoundException, ScriptAccessException
+    public Object evaluateScript ()
+    throws ScriptException
     {
-        if ( ! ( execContext instanceof IExecutionContextSE ) )
-        {
-            throw new ScriptException ( "Script execution context must implement IExecutionContextSE" );
-        }
-
-        System.out.println ( "EngineSE - eval start" );
-        Reader source;
+        Reader scriptReader = getScriptReader();
+        log.info ( "EngineSE - eval start" );
 
         if ( execContext == null )
         {
-            System.out.println ( "EngineSE - bad script context" );
-            throw new NullPointerException ( "Null script context" );
+            log.info ( "EngineSE - bad script context" );
+            throw new ScriptExecutionException ( "Null script context" );
         }
 
-        if ( sl == null )
-        {
-            System.out.println ( "EngineSE - bad lib" );
-            throw new NullPointerException ( "Bad script library" );
-        }
 
         if ( engine == null )
         {
-            System.out.println ( "EngineSE - bad SE" );
-            throw new NullPointerException ( "Bad ScriptEngine" );
-        }
-
-        try
-        {
-
-            System.out.println ( "EngineSE - trying retrieve" );
-            source = sl.retrieveScript ( execContext.getScriptName() );
-        }
-
-        catch ( Exception e )
-        {
-            System.out.println ( "EngineSE - bad retrieve" );
-            throw new ScriptNotFoundException ( "Could not retrieve script "  + execContext.getScriptName() + "\n" + e.toString() );
+            log.info ( "EngineSE - bad SE" );
+            throw new ScriptExecutionException ( "Bad ScriptEngine" );
         }
 
 
         try
         {
-            System.out.println ( "EngineSE - putting context" );
+            log.info ( "EngineSE - putting context" );
             ScriptContext ctx = engine.getContext();
             ctx.setWriter ( execContext.getOut() );
             ctx.setErrorWriter ( execContext.getError() );
             ctx.setReader ( execContext.getIn() );
-            System.out.println ( "EngineSE - setting execution context for "
+            log.info ( "EngineSE - setting execution context for "
                                  + execContext.getAppName() + ":" + execContext.getScriptName() + " to:\n"
                                  + execContext.toString() );
             engine.put ( "dhisScriptContext", execContext );
-            Object res  =  engine.eval ( source );
-            System.out.println ( "EngineSE - eval done" );
-            System.out.println ( "EngineSE - eval execution context=" + execContext.toString() );
+            Object res  =  engine.eval ( scriptReader );
+            log.info ( "EngineSE - eval done" );
+            log.info ( "EngineSE - eval execution context=" + execContext.toString() );
             Object o = ctx.getAttribute ( "dhisScriptContext" );
 
             if ( o != null )
             {
-                System.out.println ( "EngineSE - eval execution context=" + o.toString() );
+                log.info ( "EngineSE - eval execution context=" + o.toString() );
             }
 
             return res;
@@ -130,10 +99,9 @@ public class EngineSE extends Engine
 
         catch ( Exception e )
         {
-            System.out.println ( e );
-            e.printStackTrace ( System.out );
-            runException = e;
-            return null;
+            log.info ("Error running script engine: "  + e.toString() + "\n" +
+                        ExceptionUtils.getStackTrace(e));
+            throw new ScriptExecutionException("Could not execute script:" + e.toString());
         }
     }
 

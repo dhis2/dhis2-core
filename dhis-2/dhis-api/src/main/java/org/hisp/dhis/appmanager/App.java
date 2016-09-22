@@ -30,6 +30,10 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Lists;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
 import java.io.Serializable;
 
@@ -79,6 +83,7 @@ public class App
     private String baseUrl;
 
     private String contextPath;
+
 
     // -------------------------------------------------------------------------
     // Logic

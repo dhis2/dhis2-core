@@ -37,7 +37,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationContext;
 
 
-public class ExecutionContext implements IExecutionContext
+public class ExecutionContext implements ExecutionContextInterface
 {
 
     protected ApplicationContext applicationContext;
