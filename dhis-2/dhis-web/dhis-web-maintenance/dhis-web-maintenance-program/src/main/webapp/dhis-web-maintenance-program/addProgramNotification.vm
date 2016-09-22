@@ -214,34 +214,27 @@
         var jsonData = formAsJson();
         var program = { 'uid' : programUid };
 
-        saveProgramNotificationTemplate( jsonData )
-            .done( function ( result ) {
-                var uid = result.response.uid;
-                saveToProgram( uid );
-            } )
-            .fail( function() {
-                console.log( "failed" );
-            } );
-    };
-
-    function saveProgramNotificationTemplate( jsonData ) {
-        return jQuery.ajax( {
+        jQuery.ajax( {
             url : '../api/programNotificationTemplates',
             dataType : 'json',
             data : JSON.stringify( jsonData ),
             contentType : 'application/json',
             type : 'POST'
-        } );
-    };
-
-    function saveToProgram( uid ) {
-        jQuery.ajax( {
-            url : '../api/programs/' + programUid + '/notificationTemplates/' + uid,
-            type : 'POST',
-        } ).success( function( result ) {
+        } )
+        .then( function( result ) {
+            return jQuery.ajax( {
+                url : '../api/programs/' + programUid + '/notificationTemplates/' + result.response.uid,
+                type : 'POST',
+            } );
+        } )
+        .done( function( result ) {
             window.location.href = 'programNotification.action?id=' + programId;
-        } ).fail( function( boo ) {
-            console.log( "saving to program failed" );
+        } )
+        .fail( function( jqXhr, textStatus, error ) {
+            var json = jQuery.parseJSON( jqXhr.responseText );
+            var errorMessage = json.response.errorReports[0].message;
+
+            setHeaderDelayMessage( errorMessage || textStatus );
         } );
     };
 
