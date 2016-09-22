@@ -9,36 +9,19 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
   <bean id="statementManager" class="org.hisp.quick.statement.JdbcStatementManager">
     <property name="jdbcConfiguration" ref="jdbcConfiguration"/>
   </bean>
-  
-  <bean id="inMemoryStatementManager" class="org.hisp.quick.statement.JdbcStatementManager">
-    <property name="inMemory" value="true"/>
-  </bean>
-  
+    
   <!-- BatchHandlerFactory -->
     
   <bean id="batchHandlerFactory" class="org.hisp.quick.factory.DefaultBatchHandlerFactory">
     <property name="jdbcConfiguration" ref="jdbcConfiguration"/>
   </bean>
-  
-  <bean id="inMemoryBatchHandlerFactory" class="org.hisp.quick.factory.DefaultBatchHandlerFactory">
-    <property name="inMemory" value="true"/>
-  </bean>
-  
+    
   <!-- Interceptor -->
     
   <bean id="statementInterceptor" class="org.hisp.quick.StatementInterceptor">
     <property name="statementManagers">
       <list>
         <ref bean="statementManager"/>
-      </list>
-    </property>
-  </bean>
-
-  <bean id="inMemoryStatementInterceptor" class="org.hisp.quick.StatementInterceptor">
-    <property name="statementManagers">
-      <list>
-        <ref bean="statementManager"/>
-        <ref bean="inMemoryStatementManager"/>
       </list>
     </property>
   </bean>

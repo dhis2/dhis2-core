@@ -44,6 +44,18 @@ public class MockBatchHandler<T>
     private List<T> updates = new ArrayList<>();
     private List<T> deletes = new ArrayList<>();
     
+    private boolean findSelf = false;
+    
+    public MockBatchHandler()
+    {
+    }
+    
+    public MockBatchHandler<T> withFindSelf( boolean findSelf )
+    {
+        this.findSelf = findSelf;
+        return this;
+    }
+    
     @Override
     public BatchHandler<T> init()
     {
@@ -65,7 +77,7 @@ public class MockBatchHandler<T>
     @Override
     public T findObject( T arg )
     {
-        return null;
+        return findSelf ? arg : null;
     }
     
     @Override
