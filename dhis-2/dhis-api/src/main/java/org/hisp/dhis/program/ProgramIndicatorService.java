@@ -165,8 +165,6 @@ public interface ProgramIndicatorService
 
     ProgramIndicatorGroup getProgramIndicatorGroup( int id );
 
-    ProgramIndicatorGroup getProgramIndicatorGroup( int id, boolean i18nIndicators );
-
     ProgramIndicatorGroup getProgramIndicatorGroup( String uid );
 
     List<ProgramIndicatorGroup> getAllProgramIndicatorGroups();

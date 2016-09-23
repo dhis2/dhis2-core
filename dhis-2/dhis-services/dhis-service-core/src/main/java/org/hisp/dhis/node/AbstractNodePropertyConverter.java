@@ -41,21 +41,5 @@ public abstract class AbstractNodePropertyConverter implements NodePropertyConve
         return false;
     }
 
-    @Override
-    public boolean canConvertFrom( Property property, Node value )
-    {
-        return false;
-    }
-
-    @Override
-    public Node convertTo( Property property, Object value )
-    {
-        throw new IllegalAccessError( "Not implemented." );
-    }
-
-    @Override
-    public Object convertFrom( Property property, Node value )
-    {
-        throw new IllegalAccessError( "Not implemented." );
-    }
+    public abstract Node convertTo( Property property, Object value );
 }

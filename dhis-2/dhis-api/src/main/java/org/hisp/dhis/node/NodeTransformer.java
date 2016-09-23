@@ -28,9 +28,14 @@ package org.hisp.dhis.node;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface NodeTransformer extends Transformer<Node>
+public interface NodeTransformer
 {
+    String name();
+
+    Node transform( Node object, List<String> args );
 }

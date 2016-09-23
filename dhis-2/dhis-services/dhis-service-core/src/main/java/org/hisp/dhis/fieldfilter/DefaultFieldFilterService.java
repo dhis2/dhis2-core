@@ -38,7 +38,6 @@ import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.NodePropertyConverter;
 import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -55,6 +54,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +68,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 {
     private static final Log log = LogFactory.getLog( DefaultFieldFilterService.class );
 
-    private final Pattern MUTATOR_PATTERN = Pattern.compile( "(\\w+)(?:::(\\w+))?(?:\\|rename\\((\\w+)\\))?" );
+    private final Pattern MUTATOR_PATTERN = Pattern.compile( "^(?<field>\\w+)(?<type>\\||::)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
     @Autowired
     private FieldParser fieldParser;
@@ -77,14 +77,9 @@ public class DefaultFieldFilterService implements FieldFilterService
     private SchemaService schemaService;
 
     @Autowired( required = false )
-    private Set<NodePropertyConverter> nodePropertyConverters = Sets.newHashSet();
-
-    @Autowired( required = false )
     private Set<NodeTransformer> nodeTransformers = Sets.newHashSet();
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
-
-    private ImmutableMap<String, NodePropertyConverter> converters = ImmutableMap.of();
 
     private ImmutableMap<String, NodeTransformer> transformers = ImmutableMap.of();
 
@@ -99,15 +94,6 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         presets = presetBuilder.build();
-
-        ImmutableMap.Builder<String, NodePropertyConverter> converterBuilder = ImmutableMap.builder();
-
-        for ( NodePropertyConverter converter : nodePropertyConverters )
-        {
-            converterBuilder.put( converter.name(), converter );
-        }
-
-        converters = converterBuilder.build();
 
         ImmutableMap.Builder<String, NodeTransformer> transformerBuilder = ImmutableMap.builder();
 
@@ -166,7 +152,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
 
         final FieldMap finalFieldMap = fieldMap;
-        objects.stream().forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
+        objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
 
         return collectionNode;
     }
@@ -218,16 +204,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 updateFields( fieldValue, property.getKlass() );
             }
 
-            if ( fieldValue.haveNodePropertyConverter() )
-            {
-                NodePropertyConverter converter = fieldValue.getNodePropertyConverter();
-
-                if ( converter.canConvertTo( property, returnValue ) )
-                {
-                    child = (AbstractNode) converter.convertTo( property, returnValue );
-                }
-            }
-            else if ( fieldValue.isEmpty() )
+            if ( fieldValue.isEmpty() )
             {
                 List<String> fields = Preset.defaultAssociationPreset().getFields();
 
@@ -395,7 +372,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             {
                 cleanupFields.add( fieldKey );
             }
-            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|rename(" ) )
+            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|" ) )
             {
                 Matcher matcher = MUTATOR_PATTERN.matcher( fieldKey );
 
@@ -406,21 +383,17 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                 FieldMap value = new FieldMap();
 
-                if ( matcher.group( 2 ) != null )
+                String nameMatch = matcher.group( "name" );
+                String argsMatch = matcher.group( "args" );
+
+                if ( transformers.containsKey( nameMatch ) )
                 {
-                    if ( converters.containsKey( matcher.group( 2 ) ) )
-                    {
-                        value.setNodePropertyConverter( converters.get( matcher.group( 2 ) ) );
-                    }
+                    NodeTransformer transformer = transformers.get( nameMatch );
+                    List<String> args = argsMatch == null ? new ArrayList<>() : Lists.newArrayList( argsMatch.split( ";" ) );
+                    value.getPipeline().addTransformer( transformer, args );
                 }
 
-                if ( matcher.group( 3 ) != null )
-                {
-                    NodeTransformer transformer = transformers.get( "rename" );
-                    value.getPipeline().addTransformer( transformer, Lists.newArrayList( matcher.group( 3 ) ) );
-                }
-
-                fieldMap.put( matcher.group( 1 ), value );
+                fieldMap.put( matcher.group( "field" ), value );
 
                 cleanupFields.add( fieldKey );
             }
