@@ -115,5 +115,19 @@ public class HibernateDataStatisticsEventStore
             return favoriteStatistics;
         } );
     }
+    
+    public FavoriteStatistics getFavoriteStatistics( String uid )
+    {
+        String sql = "select count(dse.favoriteuid) " +
+            "from datastatisticsevent dse " +
+            "where dse.favoriteuid = '" + uid + "';";
+        
+        Integer views = jdbcTemplate.queryForObject( sql, Integer.class );
+        
+        FavoriteStatistics stats = new FavoriteStatistics();
+        stats.setViews( views );
+        
+        return stats;
+    }
 }
 
