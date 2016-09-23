@@ -257,8 +257,8 @@ public class DefaultDataSetReportService
             map.putValue( dataElement.getCategoryCombo(), dataElement );
         }
 
-        DataSet temp = new DataSet( dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType() );
-        temp.setDataElements( dataSet.getDataElements() );
+        DataSet tmpDataSet = new DataSet( dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType() );
+        tmpDataSet.setDataSetElements( dataSet.getDataSetElements() );
         
         for ( DataElementCategoryCombo categoryCombo : map.keySet() )
         {
@@ -268,10 +268,10 @@ public class DefaultDataSetReportService
             
             Section section = new Section( name, dataSet, dataElements, null );
             
-            temp.getSections().add( section );
+            tmpDataSet.getSections().add( section );
         }
         
-        return getSectionDataSetReport( temp, period, unit, dimensions, selectedUnitOnly, format, i18n );
+        return getSectionDataSetReport( tmpDataSet, period, unit, dimensions, selectedUnitOnly, format, i18n );
     }
     
     // -------------------------------------------------------------------------

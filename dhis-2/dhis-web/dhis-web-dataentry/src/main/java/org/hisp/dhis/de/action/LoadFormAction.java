@@ -236,7 +236,7 @@ public class LoadFormAction
     public String execute()
         throws Exception
     {
-        dataSet = dataSetService.getDataSet( dataSetId, true, false, false, true );
+        dataSet = dataSetService.getDataSet( dataSetId );
 
         if ( dataSet == null )
         {
@@ -260,7 +260,7 @@ public class LoadFormAction
         // Section / default form
         // ---------------------------------------------------------------------
 
-        List<DataElement> dataElements = new ArrayList<>( dataElementService.getDataElements( dataSet, null, null ) );
+        List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
 
         if ( dataElements.isEmpty() )
         {

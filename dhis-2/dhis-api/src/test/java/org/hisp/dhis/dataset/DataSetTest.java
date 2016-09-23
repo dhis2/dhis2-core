@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -70,35 +69,5 @@ public class DataSetTest
         assertTrue( ouB.getDataSets().contains( dsA ) );
         assertTrue( ouC.getDataSets().contains( dsA ) );
         assertTrue( ouD.getDataSets().isEmpty() );
-    }
-    
-    @Test
-    public void testUpdateDataElements()
-    {
-        DataSet dsA = new DataSet( "dsA" );
-        
-        DataElement deA = new DataElement( "deA" );
-        DataElement deB = new DataElement( "deB" );
-        DataElement deC = new DataElement( "deC" );
-        DataElement deD = new DataElement( "deD" );
-        
-        dsA.addDataElement( deA );
-        dsA.addDataElement( deB );
-        
-        assertEquals( 2, dsA.getDataElements().size() );
-        assertTrue( dsA.getDataElements().containsAll( Sets.newHashSet( deA, deB ) ) );
-        assertTrue( deA.getDataSets().contains( dsA ) );
-        assertTrue( deB.getDataSets().contains( dsA ) );
-        assertTrue( deC.getDataSets().isEmpty() );
-        assertTrue( deD.getDataSets().isEmpty() );
-        
-        dsA.updateDataElements( Sets.newHashSet( deB, deC ) );
-        
-        assertEquals( 2, dsA.getDataElements().size() );
-        assertTrue( dsA.getDataElements().containsAll( Sets.newHashSet( deB, deC ) ) );
-        assertTrue( deA.getDataSets().isEmpty() );
-        assertTrue( deB.getDataSets().contains( dsA ) );
-        assertTrue( deC.getDataSets().contains( dsA ) );
-        assertTrue( deD.getDataSets().isEmpty() );
     }
 }

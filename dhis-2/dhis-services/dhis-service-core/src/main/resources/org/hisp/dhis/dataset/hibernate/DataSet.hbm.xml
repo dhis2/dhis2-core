@@ -24,11 +24,9 @@
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
-    <set name="dataElements" table="datasetmembers">
-      <cache usage="read-write" />
-      <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" />
-      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-        foreign-key="fk_dataset_dataelementid" />
+    <set name="dataSetElements" table="datasetmembers" cascade="all-delete-orphan" inverse="true">
+      <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" not-null="true" />
+      <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
 
     <set name="indicators" table="datasetindicators">
