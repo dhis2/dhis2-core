@@ -1,8 +1,8 @@
-package org.hisp.dhis.node.converters;
+package org.hisp.dhis.node.transformers;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,44 +28,46 @@ package org.hisp.dhis.node.converters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.AbstractNodePropertyConverter;
 import org.hisp.dhis.node.Node;
+import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
-import java.util.Collection;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class SizeNodePropertyConverter extends AbstractNodePropertyConverter
+public class IsEmptyNodeTransformer implements NodeTransformer
 {
     @Override
     public String name()
     {
-        return "size";
+        return "isEmpty";
     }
 
     @Override
-    public boolean canConvertTo( Property property, Object value )
+    public Node transform( Node node, List<String> args )
     {
-        return property.isCollection() || String.class.isInstance( value );
-    }
+        checkNotNull( node );
+        checkNotNull( node.getProperty() );
 
-    @Override
-    public Node convertTo( Property property, Object value )
-    {
+        Property property = node.getProperty();
+
         if ( property.isCollection() )
         {
-            return new SimpleNode( property.getCollectionName(), ((Collection<?>) value).size(), property.isAttribute() );
+            return new SimpleNode( property.getCollectionName(), node.getChildren().isEmpty(), property.isAttribute() );
         }
-        else if ( String.class.isInstance( value ) )
+        else if ( property.isSimple() )
         {
-            return new SimpleNode( property.getName(), ((String) value).length(), property.isAttribute() );
+            return new SimpleNode( property.getName(), StringUtils.isEmpty( ((SimpleNode) node).getValue() ), property.isAttribute() );
         }
 
-        throw new IllegalStateException( "Should never get here, this property/value is not supported by this field converter." );
+        return node;
     }
 }

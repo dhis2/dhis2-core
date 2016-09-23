@@ -38,7 +38,6 @@ import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.NodePropertyConverter;
 import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -78,14 +77,9 @@ public class DefaultFieldFilterService implements FieldFilterService
     private SchemaService schemaService;
 
     @Autowired( required = false )
-    private Set<NodePropertyConverter> nodePropertyConverters = Sets.newHashSet();
-
-    @Autowired( required = false )
     private Set<NodeTransformer> nodeTransformers = Sets.newHashSet();
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
-
-    private ImmutableMap<String, NodePropertyConverter> converters = ImmutableMap.of();
 
     private ImmutableMap<String, NodeTransformer> transformers = ImmutableMap.of();
 
@@ -100,15 +94,6 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         presets = presetBuilder.build();
-
-        ImmutableMap.Builder<String, NodePropertyConverter> converterBuilder = ImmutableMap.builder();
-
-        for ( NodePropertyConverter converter : nodePropertyConverters )
-        {
-            converterBuilder.put( converter.name(), converter );
-        }
-
-        converters = converterBuilder.build();
 
         ImmutableMap.Builder<String, NodeTransformer> transformerBuilder = ImmutableMap.builder();
 
@@ -219,16 +204,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 updateFields( fieldValue, property.getKlass() );
             }
 
-            if ( fieldValue.haveNodePropertyConverter() )
-            {
-                NodePropertyConverter converter = fieldValue.getNodePropertyConverter();
-
-                if ( converter.canConvertTo( property, returnValue ) )
-                {
-                    child = (AbstractNode) converter.convertTo( property, returnValue );
-                }
-            }
-            else if ( fieldValue.isEmpty() )
+            if ( fieldValue.isEmpty() )
             {
                 List<String> fields = Preset.defaultAssociationPreset().getFields();
 
@@ -405,28 +381,16 @@ public class DefaultFieldFilterService implements FieldFilterService
                     continue;
                 }
 
-                boolean isConverter = "::".equals( matcher.group( "type" ) );
-
                 FieldMap value = new FieldMap();
 
                 String nameMatch = matcher.group( "name" );
                 String argsMatch = matcher.group( "args" );
 
-                if ( isConverter )
+                if ( transformers.containsKey( nameMatch ) )
                 {
-                    if ( converters.containsKey( nameMatch ) )
-                    {
-                        value.setNodePropertyConverter( converters.get( nameMatch ) );
-                    }
-                }
-                else
-                {
-                    if ( transformers.containsKey( nameMatch ) )
-                    {
-                        NodeTransformer transformer = transformers.get( nameMatch );
-                        List<String> args = argsMatch == null ? new ArrayList<>() : Lists.newArrayList( argsMatch.split( ";" ) );
-                        value.getPipeline().addTransformer( transformer, args );
-                    }
+                    NodeTransformer transformer = transformers.get( nameMatch );
+                    List<String> args = argsMatch == null ? new ArrayList<>() : Lists.newArrayList( argsMatch.split( ";" ) );
+                    value.getPipeline().addTransformer( transformer, args );
                 }
 
                 fieldMap.put( matcher.group( "field" ), value );
