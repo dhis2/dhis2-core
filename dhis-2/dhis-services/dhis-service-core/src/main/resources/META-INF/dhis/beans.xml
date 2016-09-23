@@ -400,13 +400,6 @@
     <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 
-  <bean id="org.hisp.dhis.translation.TranslationStore" class="org.hisp.dhis.translation.hibernate.HibernateTranslationStore">
-    <property name="clazz" value="org.hisp.dhis.translation.Translation" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.configuration.ConfigurationStore" class="org.hisp.dhis.hibernate.HibernateGenericStore">
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="clazz" value="org.hisp.dhis.configuration.Configuration" />
@@ -1000,10 +993,6 @@
 
   <bean id="org.hisp.dhis.validation.ValidationCriteriaService" class="org.hisp.dhis.validation.DefaultValidationCriteriaService">
     <property name="validationCriteriaStore" ref="org.hisp.dhis.validation.ValidationCriteriaStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.translation.TranslationService" class="org.hisp.dhis.translation.DefaultTranslationService">
-    <property name="translationStore" ref="org.hisp.dhis.translation.TranslationStore" />
   </bean>
 
   <bean id="org.hisp.dhis.message.MessageService" class="org.hisp.dhis.message.DefaultMessageService">
