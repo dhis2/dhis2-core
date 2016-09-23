@@ -193,7 +193,7 @@ public class SqlView
     
     public static String getProtectedTablesRegex()
     {
-        StringBuffer regex = new StringBuffer( "^.*?(\"|'|`|\\s|^)(" );
+        StringBuffer regex = new StringBuffer( "^(.*\\W)?(" );
 
         for ( String table : PROTECTED_TABLES )
         {
@@ -201,8 +201,8 @@ public class SqlView
         }
 
         regex.delete( regex.length() - 1, regex.length() );
-        
-        return regex.append( ")(\"|'|`|\\s|$).*$" ).toString();
+
+        return regex.append( ")(\\W.*)?$" ).toString();
     }
 
     public static String getIllegalKeywordsRegex()

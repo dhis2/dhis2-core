@@ -279,7 +279,15 @@ public class SqlViewServiceTest
     public void testValidateNotSelectQuery()
     {
         SqlView sqlView = new SqlView( "Name", "* from dataelement", SqlViewType.QUERY );
-        
+
+        sqlViewService.validateSqlView( sqlView, null, null );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void testValidateTableList()
+    {
+        SqlView sqlView = new SqlView( "Name", "select username,password from users,dataapprovallevel", SqlViewType.QUERY );
+
         sqlViewService.validateSqlView( sqlView, null, null );
     }
 
