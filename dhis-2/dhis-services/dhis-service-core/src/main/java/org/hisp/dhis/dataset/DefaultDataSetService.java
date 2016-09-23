@@ -141,56 +141,6 @@ public class DefaultDataSetService
     }
 
     @Override
-    public DataSet getDataSet( int id, boolean i18nDataElements, boolean i18nIndicators, boolean i18nOrgUnits )
-    {
-        return getDataSet( id, i18nDataElements, i18nIndicators, i18nOrgUnits, false );
-    }
-
-    @Override
-    public DataSet getDataSet( int id, boolean i18nDataElements, boolean i18nIndicators, boolean i18nOrgUnits, boolean i18nSections )
-    {
-        DataSet dataSet = getDataSet( id );
-
-        if ( dataSet != null )
-        {
-            if ( i18nDataElements )
-            {
-                dataSet.getDataElements();
-            }
-
-            if ( i18nIndicators )
-            {
-                dataSet.getIndicators();
-            }
-
-            if ( i18nOrgUnits )
-            {
-                dataSet.getSources();
-            }
-
-            if ( i18nSections && dataSet.hasSections() )
-            {
-                dataSet.getSections();
-
-                for ( Section section : dataSet.getSections() )
-                {
-                    section.getDataElements();
-                }
-            }
-        }
-
-        return dataSet;
-    }
-
-    @Override
-    public DataSet getDataSet( String id, boolean i18nDataElements, boolean i18nIndicators, boolean i18nOrgUnits, boolean i18nSections )
-    {
-        DataSet dataSet = getDataSet( id );
-
-        return dataSet != null ? getDataSet( dataSet.getId(), i18nDataElements, i18nIndicators, i18nOrgUnits, i18nSections ) : null;
-    }
-
-    @Override
     public List<DataSet> getDataSetByName( String name )
     {
         return new ArrayList<>( dataSetStore.getAllEqName( name ) );
@@ -243,13 +193,7 @@ public class DefaultDataSetService
     {
         return dataSetStore.getByUidNoAcl( uids );
     }
-
-    @Override
-    public Set<DataElement> getDataElements( DataSet dataSet )
-    {
-        return dataSet.getDataElements();
-    }
-
+    
     @Override
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
