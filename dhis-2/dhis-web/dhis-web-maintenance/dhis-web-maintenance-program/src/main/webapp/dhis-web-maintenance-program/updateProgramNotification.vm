@@ -44,6 +44,7 @@
             </td>
             <td>
                 #set( $days = $template.relativeScheduledDays )
+                #if ( !$days ) #set( $days = 0 ) #end
                 <input type="number" min="1" max="300" id="days" value="#absValue( $days )" style="width:60px;">
                 $i18n.getString( "days" )
                 <select id="daysModifier" name="daysModifier" style="width:100px;">
