@@ -86,6 +86,8 @@ public class ValidationRunContext
 
     private int countOfSourcesToValidate;
 
+    private boolean includeSurveillance;
+
     private Set<CategoryOptionGroup> cogDimensionConstraints;
 
     private Set<DataElementCategoryOption> coDimensionConstraints;
@@ -107,28 +109,27 @@ public class ValidationRunContext
             .append( "\n sourceXs", Arrays.toString( sourceXs.toArray() ) )
             .append( "\n validationResults", Arrays.toString( validationResults.toArray() ) ).toString();
     }
-    
+
     /**
      * Creates and fills a new context object for a validation run.
      *
      * @param sources                    organisation units for validation
      * @param periods                    periods for validation
-     * @param attributeCombo             the attribute combo to check (if restricted)
      * @param rules                      validation rules for validation
-     * @param constantMap                map of constants
-     * @param runType                    whether this is an INTERACTIVE or SCHEDULED run
+     * @param attributeCombo             the attribute combo to check (if restricted)
      * @param lastScheduledRun           (for SCHEDULED runs) date/time of previous run
-     * @param expressionService          expression service
-     * @param periodService              period service
-     * @param dataValueService           data value service
-     * @param dataElementCategoryService data element category service
-     * @param currentUserService         current user service
+     * @param runType                    whether this is an INTERACTIVE or SCHEDULED run
+     * @param constantMap                map of constants
+     * @param cogDimensionConstraints
+     * @param coDimensionConstraints
+
      * @return context object for this run
      */
     public static ValidationRunContext getNewContext( Collection<OrganisationUnit> sources,
         Collection<Period> periods, Collection<ValidationRule> rules, DataElementCategoryOptionCombo attributeCombo,
-        Date lastScheduledRun, ValidationRunType runType, Map<String, Double> constantMap, 
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
+        Date lastScheduledRun, ValidationRunType runType, Map<String, Double> constantMap,
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
+        boolean includeSurveillance)
     {
         ValidationRunContext context = new ValidationRunContext();
         context.validationResults = new ConcurrentLinkedQueue<>(); // thread-safe
@@ -141,9 +142,34 @@ public class ValidationRunContext
         context.constantMap = constantMap;
         context.cogDimensionConstraints = cogDimensionConstraints;
         context.coDimensionConstraints = coDimensionConstraints;
+        context.includeSurveillance = includeSurveillance;
         context.initialize( sources, periods, rules );
 
         return context;
+    }
+
+    /**
+     * Creates and fills a new context object for a validation run.
+     *
+     * @param sources                    organisation units for validation
+     * @param periods                    periods for validation
+     * @param rules                      validation rules for validation
+     * @param attributeCombo             the attribute combo to check (if restricted)
+     * @param lastScheduledRun           (for SCHEDULED runs) date/time of previous run
+     * @param runType                    whether this is an INTERACTIVE or SCHEDULED run
+     * @param constantMap                map of constants
+     * @param cogDimensionConstraints
+     * @param coDimensionConstraints
+
+     * @return context object for this run
+     */
+    public static ValidationRunContext getNewContext( Collection<OrganisationUnit> sources,
+        Collection<Period> periods, Collection<ValidationRule> rules, DataElementCategoryOptionCombo attributeCombo,
+        Date lastScheduledRun, ValidationRunType runType, Map<String, Double> constantMap,
+        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints)
+    {
+        return getNewContext( sources, periods, rules, attributeCombo, lastScheduledRun, runType,
+            constantMap, cogDimensionConstraints, coDimensionConstraints, true );
     }
 
     /**
@@ -199,18 +225,6 @@ public class ValidationRunContext
 
         for ( ValidationRule rule : rules )
         {
-            if ( rule.getRuleType() == RuleType.SURVEILLANCE )
-            {
-                if ( rule.getOrganisationUnitLevel() == null )
-                {
-                    log.error( "surveillance-type validationRule '" + (rule.getName() == null ? "" : rule.getName())
-                        + "' has no organisationUnitLevel." );
-                    continue; // Ignore rule, avoid null reference later.
-                }
-
-                surveillanceRulesPresent = true;
-            }
-
             // Find the period type extended for this rule
             PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( rule.getPeriodType() );
             periodTypeX.getRules().add( rule ); // Add to the period type ext.
@@ -437,6 +451,11 @@ public class ValidationRunContext
     public int getCountOfSourcesToValidate()
     {
         return countOfSourcesToValidate;
+    }
+
+    public boolean getIncludeSurveillance()
+    {
+        return includeSurveillance;
     }
 
     public Collection<ValidationResult> getValidationResults()

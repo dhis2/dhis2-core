@@ -74,11 +74,6 @@ public class ValidationRule
     private Importance importance = Importance.MEDIUM;
 
     /**
-     * Whether this is a VALIDATION or MONITORING type rule.
-     */
-    private RuleType ruleType = RuleType.VALIDATION;
-
-    /**
      * The comparison operator to compare left and right expressions in the
      * rule.
      */
@@ -370,18 +365,6 @@ public class ValidationRule
     public void setOrganisationUnitLevel( Integer organisationUnitLevel )
     {
         this.organisationUnitLevel = organisationUnitLevel;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RuleType getRuleType()
-    {
-        return ruleType;
-    }
-
-    public void setRuleType( RuleType ruleType )
-    {
-        this.ruleType = ruleType;
     }
 
     @JsonProperty

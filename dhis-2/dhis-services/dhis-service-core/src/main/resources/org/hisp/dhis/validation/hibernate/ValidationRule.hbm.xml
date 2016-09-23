@@ -29,14 +29,6 @@
       </type>
     </property>
 
-    <property name="ruleType" length="50">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.validation.RuleType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
     <property name="operator" column="operator" type="org.hisp.dhis.expression.OperatorUserType" not-null="true" />
 
     <many-to-one name="leftSide" column="leftexpressionid" class="org.hisp.dhis.expression.Expression"

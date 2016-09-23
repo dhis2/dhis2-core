@@ -28,24 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.expression.Operator.greater_than;
-import static org.hisp.dhis.expression.Operator.less_than;
-import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -71,6 +53,17 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.Operator.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -205,32 +198,6 @@ public class ValidationRuleServiceTest
     private ValidationRule validationRuleD;
 
     private ValidationRule validationRuleX;
-
-    private ValidationRule monitoringRuleE;
-
-    private ValidationRule monitoringRuleF;
-
-    private ValidationRule monitoringRuleG;
-
-    private ValidationRule monitoringRuleH;
-
-    private ValidationRule monitoringRuleI;
-
-    private ValidationRule monitoringRuleIx;
-
-    private ValidationRule monitoringRuleJ;
-
-    private ValidationRule monitoringRuleK;
-
-    private ValidationRule monitoringRuleKx;
-
-    private ValidationRule monitoringRuleL;
-
-    private ValidationRule monitoringRuleLx;
-
-    private ValidationRule monitoringRuleLxx;
-
-    private ValidationRule monitoringRuleM;
 
     private ValidationRuleGroup group;
 
@@ -422,42 +389,6 @@ public class ValidationRuleServiceTest
         validationRuleC = createValidationRule( "C", less_than_or_equal_to, expressionB, expressionA, periodTypeMonthly ); // deC - deD <= deA + deB
         validationRuleD = createValidationRule( "D", less_than, expressionA, expressionC, periodTypeMonthly ); // deA + deB < deB * 2
         validationRuleX = createValidationRule( "X", equal_to, expressionA, expressionC, periodTypeMonthly ); // deA + deB = deB * 2
-
-        // Compare dataElementB with 1.5 times its average for one sequential previous period.
-        monitoringRuleE = createMonitoringRule( "E", less_than_or_equal_to, expressionD, expressionE, periodTypeMonthly, 1, 1, 0 );
-
-        // Compare dataElementB with 1.5 times its average for one annual previous period.
-        monitoringRuleF = createMonitoringRule( "F", less_than_or_equal_to, expressionD, expressionE, periodTypeMonthly, 1, 0, 1 );
-
-        // Compare dataElementB with 1.5 times its average for one sequential and two annual previous periods.
-        monitoringRuleG = createMonitoringRule( "G", less_than_or_equal_to, expressionD, expressionE, periodTypeMonthly, 1, 1, 2 );
-
-        // Compare dataElementB with 1.5 times its average for two sequential and two annual previous periods.
-        monitoringRuleH = createMonitoringRule( "H", less_than_or_equal_to, expressionD, expressionE, periodTypeMonthly, 1, 2, 2 );
-
-        // Compare dataElementB with its average plus 1.5 standard deviations for two sequential previous period.
-        monitoringRuleI = createMonitoringRule( "I", less_than_or_equal_to, expressionD, expressionH, periodTypeMonthly, 1, 2, 0 );
-        // Compare dataElementB with its average plus 1.5 standard deviations for the two periods before the last (window=3,skip=1)
-        monitoringRuleIx = createMonitoringRule( "Ix", less_than_or_equal_to, expressionD, expressionH, null,
-            periodTypeMonthly, 1, 3, 0, 1 );
-
-        // Compare dataElementB with its average plus 1.5 standard deviations for one annual previous period.
-        monitoringRuleJ = createMonitoringRule( "J", less_than_or_equal_to, expressionD, expressionH, periodTypeMonthly, 1, 0, 1 );
-
-        // Compare dataElementB with its average plus 1.5 standard deviations for one sequential and two annual previous periods, skipping the most recent.
-        monitoringRuleK = createMonitoringRule( "K", less_than_or_equal_to, expressionD, expressionH, periodTypeMonthly, 1, 1, 2 );
-        monitoringRuleKx = createMonitoringRule( "Kx", less_than_or_equal_to, expressionD, expressionH, null, periodTypeMonthly, 1, 1, 2, 1 );
-
-        // Compare dataElementB with its average plus 1.5 standard deviations for two sequential and two annual previous periods.
-        monitoringRuleL = createMonitoringRule( "L", less_than_or_equal_to, expressionD, expressionH, periodTypeMonthly, 1, 2, 2 );
-        monitoringRuleLx = createMonitoringRule( "Lx", less_than_or_equal_to, expressionD, expressionH, null,
-            periodTypeMonthly, 1, 2, 2, 2 );
-        monitoringRuleLxx = createMonitoringRule( "Lxx", less_than_or_equal_to, expressionD, expressionH, expressionX,
-            periodTypeMonthly, 1, 2, 2, 0 );
-
-        monitoringRuleM = createMonitoringRule( "M", less_than_or_equal_to, expressionF, expressionG, periodTypeMonthly,
-            1, 0, 1 );
-
         group = createValidationRuleGroup( 'A' );
 
         defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
@@ -796,48 +727,6 @@ public class ValidationRuleServiceTest
         results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, optionCombo );
 
         assertEquals( 0, results.size() );
-    }
-
-    @Test
-    public void testValidateMonitoringSkipTest()
-    {
-        // Note: for some monitoring tests, we enter more data than needed, to
-        // be sure the extra data *isn't* used.
-
-        useDataValue( dataElementB, periodA, sourceA, "11" ); // Mar 2000
-        useDataValue( dataElementB, periodB, sourceA, "12" ); // Apr 2000
-        useDataValue( dataElementB, periodC, sourceA, "13" ); // May 2000
-        useDataValue( dataElementB, periodD, sourceA, "14" ); // Jun 2000
-        useDataValue( dataElementB, periodE, sourceA, "15" ); // Jul 2000
-
-        useDataValue( dataElementB, periodF, sourceA, "100" ); // Mar 2001
-        useDataValue( dataElementB, periodG, sourceA, "200" ); // Apr 2001
-        useDataValue( dataElementB, periodH, sourceA, "400" ); // May 2001
-        useDataValue( dataElementB, periodI, sourceA, "600" ); // Jun 2001
-        useDataValue( dataElementB, periodJ, sourceA, "800" ); // Jul 2001
-
-        useDataValue( dataElementB, periodK, sourceA, "30" ); // Mar 2002
-        useDataValue( dataElementB, periodL, sourceA, "35" ); // Apr 2002
-        useDataValue( dataElementB, periodM, sourceA, "40" ); // May 2002
-        useDataValue( dataElementB, periodN, sourceA, "45" ); // Jun 2002
-        useDataValue( dataElementB, periodO, sourceA, "50" ); // Jul 2002
-
-        validationRuleService.saveValidationRule( monitoringRuleLxx );
-
-        Collection<ValidationResult> results = validationRuleService.validate( getDate( 2002, 1, 15 ),
-            getDate( 2002, 9, 15 ), sourceA );
-
-        Collection<ValidationResult> reference = new HashSet<>();
-
-        reference.add( new ValidationResult( periodO, sourceA, optionCombo, monitoringRuleLxx, 50.0, 46.5 ) );
-
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( orderedList( reference ), orderedList( results ) );
     }
 
     // -------------------------------------------------------------------------

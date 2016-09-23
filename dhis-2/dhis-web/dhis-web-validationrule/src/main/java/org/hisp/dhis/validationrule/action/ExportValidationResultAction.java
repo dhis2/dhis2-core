@@ -160,7 +160,6 @@ public class ExportValidationResultAction
             grid.addValue( format.formatPeriod( period ) );
             grid.addValue( validationResult.getValidationRule().getName() );
             grid.addValue( i18n.getString( validationResult.getValidationRule().getImportance().toString().toLowerCase() ) );
-            grid.addValue( i18n.getString( validationResult.getValidationRule().getRuleType().toString().toLowerCase() ) );
             grid.addValue( validationResult.getValidationRule().getLeftSide().getDescription() ); //TODO lazy prone
             grid.addValue( String.valueOf( validationResult.getLeftsideValue() ) );
             grid.addValue( i18n.getString( validationResult.getValidationRule().getOperator().toString() ) );

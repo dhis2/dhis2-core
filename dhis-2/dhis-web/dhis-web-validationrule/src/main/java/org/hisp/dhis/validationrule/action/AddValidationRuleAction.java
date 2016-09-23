@@ -36,7 +36,6 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.Importance;
-import org.hisp.dhis.validation.RuleType;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 
@@ -256,7 +255,6 @@ public class AddValidationRuleAction
         validationRule.setDescription( StringUtils.trimToNull( description ) );
         validationRule.setInstruction( StringUtils.trimToNull( instruction ) );
         validationRule.setImportance( Importance.valueOf( StringUtils.trimToNull( importance ) ) );
-        validationRule.setRuleType( RuleType.valueOf( StringUtils.trimToNull( ruleType ) ) );
         validationRule.setOperator( Operator.valueOf( operator ) );
         validationRule.setLeftSide( leftSide );
         validationRule.setRightSide( rightSide );
