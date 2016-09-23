@@ -44,6 +44,7 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -94,6 +95,7 @@ public class DefaultProgramNotificationService
     // ProgramStageNotificationService implementation
     // -------------------------------------------------------------------------
 
+    @Transactional
     @Override
     public void sendScheduledNotificationsForDay( Date notificationDate )
     {
@@ -119,6 +121,7 @@ public class DefaultProgramNotificationService
         clock.logTime( String.format( "Processed and sent ProgramStageNotification messages in %s", clock.time() ) );
     }
 
+    @Transactional
     @Override
     public void sendImmediateNotifications( ProgramInstance programInstance )
     {
@@ -139,6 +142,7 @@ public class DefaultProgramNotificationService
         }
     }
 
+    @Transactional
     @Override
     public void sendImmediateNotifications( ProgramStageInstance programStageInstance )
     {
