@@ -288,6 +288,19 @@ public class DefaultIndicatorService
     }
 
     @Override
+    public IndicatorGroup getIndicatorGroup( int id, boolean i18nIndicators )
+    {
+        IndicatorGroup group = getIndicatorGroup( id );
+
+        if ( i18nIndicators )
+        {
+            group.getMembers();
+        }
+
+        return group;
+    }
+
+    @Override
     public IndicatorGroup getIndicatorGroup( String uid )
     {
         return indicatorGroupStore.getByUid( uid );
@@ -355,6 +368,19 @@ public class DefaultIndicatorService
     public IndicatorGroupSet getIndicatorGroupSet( int id )
     {
         return indicatorGroupSetStore.get( id );
+    }
+
+    @Override
+    public IndicatorGroupSet getIndicatorGroupSet( int id, boolean i18nGroups )
+    {
+        IndicatorGroupSet groupSet = getIndicatorGroupSet( id );
+
+        if ( i18nGroups )
+        {
+            groupSet.getMembers();
+        }
+
+        return groupSet;
     }
 
     @Override

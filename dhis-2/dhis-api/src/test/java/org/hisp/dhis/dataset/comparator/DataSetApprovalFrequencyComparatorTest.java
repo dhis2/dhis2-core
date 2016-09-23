@@ -102,10 +102,10 @@ public class DataSetApprovalFrequencyComparatorTest
         dsD.setWorkflow( workflow );
         
         DataElement deA = new DataElement();
-        deA.addDataSetElement( dsA );
-        deA.addDataSetElement( dsB );
-        deA.addDataSetElement( dsC );
-        deA.addDataSetElement( dsD );
+        deA.addDataSet( dsA );
+        deA.addDataSet( dsB );
+        deA.addDataSet( dsC );
+        deA.addDataSet( dsD );
         
         assertEquals( dsD, deA.getApprovalDataSet() );
     }
@@ -122,9 +122,9 @@ public class DataSetApprovalFrequencyComparatorTest
         dsB.setWorkflow( workflow );
 
         DataElement deA = new DataElement();
-        deA.addDataSetElement( dsA );
-        deA.addDataSetElement( dsB );
-        deA.addDataSetElement( dsC );
+        deA.addDataSet( dsA );
+        deA.addDataSet( dsB );
+        deA.addDataSet( dsC );
         
         assertEquals( dsB, deA.getApprovalDataSet() );        
     }

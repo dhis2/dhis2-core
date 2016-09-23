@@ -167,16 +167,16 @@ public class DataIntegrityServiceTest
         dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         dataSetB = createDataSet( 'B', new QuarterlyPeriodType() );
 
-        dataSetA.addDataSetElement( elementA );
-        dataSetA.addDataSetElement( elementB );
-        elementA.addDataSetElement( dataSetA );
-        elementB.addDataSetElement( dataSetA );
+        dataSetA.getDataElements().add( elementA );
+        dataSetA.getDataElements().add( elementB );
+        elementA.getDataSets().add( dataSetA );
+        elementB.getDataSets().add( dataSetA );
         
         dataSetA.getSources().add( unitA );
         unitA.getDataSets().add( dataSetA );
         
-        dataSetB.addDataSetElement( elementA );
-        elementA.addDataSetElement( dataSetB );        
+        dataSetB.getDataElements().add( elementA );
+        elementA.getDataSets().add( dataSetB );        
         
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );

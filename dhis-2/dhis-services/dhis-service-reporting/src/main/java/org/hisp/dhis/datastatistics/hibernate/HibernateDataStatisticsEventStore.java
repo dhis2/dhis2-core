@@ -115,7 +115,8 @@ public class HibernateDataStatisticsEventStore
             return favoriteStatistics;
         } );
     }
-    
+
+    @Override
     public FavoriteStatistics getFavoriteStatistics( String uid )
     {
         String sql = "select count(dse.favoriteuid) " +

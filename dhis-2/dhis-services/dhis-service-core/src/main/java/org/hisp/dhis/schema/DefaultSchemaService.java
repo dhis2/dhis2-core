@@ -84,7 +84,6 @@ public class DefaultSchemaService
         add( new DataElementSchemaDescriptor() ).
         add( new DataEntryFormSchemaDescriptor() ).
         add( new DataSetSchemaDescriptor() ).
-        add( new DataSetElementSchemaDescriptor() ).
         add( new DocumentSchemaDescriptor() ).
         add( new EventChartSchemaDescriptor() ).
         add( new EventReportSchemaDescriptor() ).

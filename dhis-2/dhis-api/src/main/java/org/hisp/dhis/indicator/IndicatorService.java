@@ -118,6 +118,8 @@ public interface IndicatorService
 
     IndicatorGroup getIndicatorGroup( int id );
 
+    IndicatorGroup getIndicatorGroup( int id, boolean i18nIndicators );
+
     IndicatorGroup getIndicatorGroup( String uid );
 
     List<IndicatorGroup> getAllIndicatorGroups();
@@ -143,6 +145,8 @@ public interface IndicatorService
     void deleteIndicatorGroupSet( IndicatorGroupSet groupSet );
 
     IndicatorGroupSet getIndicatorGroupSet( int id );
+
+    IndicatorGroupSet getIndicatorGroupSet( int id, boolean i18nGroups );
 
     IndicatorGroupSet getIndicatorGroupSet( String uid );
 

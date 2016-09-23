@@ -390,10 +390,10 @@ public class DataSetServiceTest
 
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
-        dataElementA.addDataSetElement( dataSetA );
-        dataElementA.addDataSetElement( dataSetB );
-        dataSetA.addDataSetElement( dataElementA );
-        dataSetB.addDataSetElement( dataElementA );
+        dataElementA.getDataSets().add( dataSetA );
+        dataElementA.getDataSets().add( dataSetB );
+        dataSetA.getDataElements().add( dataElementA );
+        dataSetB.getDataElements().add( dataElementA );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );

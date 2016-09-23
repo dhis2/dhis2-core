@@ -170,7 +170,7 @@ public class DefaultPdfDataEntryFormService
         }
 
         // Get I18n locale language translated version of DataSet
-        dataSet = dataSetService.getDataSet( dataSet.getId() );
+        dataSet = dataSetService.getDataSet( dataSet.getId(), true, true, false );
 
         setDataSet_DocumentTopSection( document, dataSet );
 
