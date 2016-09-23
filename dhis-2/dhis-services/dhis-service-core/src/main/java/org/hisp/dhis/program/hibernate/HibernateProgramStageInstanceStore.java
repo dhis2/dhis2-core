@@ -232,20 +232,32 @@ public class HibernateProgramStageInstanceStore
             return Lists.newArrayList();
         }
 
+//        Query query = getQuery(
+//            "select psi from ProgramStageInstance as psi " +
+//                "inner join psi.programStage as ps " +
+//                "inner join ps.notificationTemplates as nt " +
+//                "where :notificationTemplate in elements(nt) " +
+//                "and psi.dueDate is not null " +
+////                "and n.relativeScheduledDays is not null " +
+//                "and psi.executionDate is null " + // Event already happened?
+////                "and n.notificationTrigger = :notificationTrigger " +
+//                "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays"
+//        );
+
         Query query = getQuery(
             "select psi from ProgramStageInstance as psi " +
                 "inner join psi.programStage as ps " +
-                "where :notificationTemplate in elements(ps.notificationTemplates) " +
+                "inner join ps.notificationTemplates as templates " +
+                "where templates.notificationTrigger = :notificationTrigger " +
+                "and :notificationTemplate in elements(templates) " +
                 "and psi.dueDate is not null " +
-                "and n.relativeScheduledDays is not null " +
-                "and psi.executionDate is not null " + // Event already happened
-                "and n.notificationTrigger = :notificationTrigger " +
-                "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays"
+                "and psi.executionDate is null " +
+                "and (day(:notificationDate) - day(psi.dueDate)) = templates.relativeScheduledDays"
         );
 
+        query.setEntity( "notificationTemplate", notificationTemplate );
         query.setString( "notificationTrigger", NotificationTrigger.SCHEDULED_DAYS_DUE_DATE.name() );
         query.setDate( "notificationDate", notificationDate );
-        query.setEntity( "notificationTemplate", notificationTemplate );
 
         return query.list();
     }
