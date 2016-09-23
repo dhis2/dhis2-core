@@ -59,6 +59,13 @@
     <property name="useFirstStageDuringRegistration" />
     
     <property name="captureCoordinates" />
+    
+    <property name="expiryDays" />
+    
+    <property name="completeEventsExpiryDays" />
+      
+    <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
+      foreign-key="fk_program_expiryperiodtypeid" />
 
     <list name="programAttributes" cascade="all">
       <key column="programid" />
