@@ -213,12 +213,6 @@
     <property name="transientIdentifiableProperties" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.dataset.DataSetElementStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.dataset.DataSetElement" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="cacheable" value="true" />
-  </bean>
-
   <bean id="org.hisp.dhis.dataset.DataSetStore" class="org.hisp.dhis.dataset.hibernate.HibernateDataSetStore">
     <property name="clazz" value="org.hisp.dhis.dataset.DataSet" />
     <property name="sessionFactory" ref="sessionFactory" />

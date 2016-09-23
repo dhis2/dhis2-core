@@ -68,11 +68,14 @@ public class DataSetDeletionHandler
 
     @Override
     public void deleteDataElement( DataElement dataElement )
-    {        
-        for ( DataSetElement element : dataElement.getDataSetElements() )
+    {
+        Iterator<DataSet> iterator = dataElement.getDataSets().iterator();
+        
+        while ( iterator.hasNext() )
         {
-            dataElement.removeDataSetElement( element );
-            idObjectManager.updateNoAcl( element.getDataSet() );
+            DataSet dataSet = iterator.next();
+            dataSet.removeDataElement( dataElement );
+            idObjectManager.updateNoAcl( dataSet );
         }
         
         for ( DataSet dataSet : idObjectManager.getAllNoAcl( DataSet.class ) )

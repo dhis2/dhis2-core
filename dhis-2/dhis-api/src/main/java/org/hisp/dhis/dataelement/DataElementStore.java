@@ -32,6 +32,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataset.DataSet;
 
 import java.util.Collection;
 import java.util.List;
@@ -164,6 +165,14 @@ public interface DataElementStore
     List<DataElement> getDataElementsWithDataSets();
 
     /**
+     * Returns all DataElements which are assigned to any of the given DataSets.
+     *
+     * @param dataSets the collection of DataSets.
+     * @return all DataElements which are assigned to any of the given DataSets.
+     */
+    List<DataElement> getDataElementsByDataSets( Collection<DataSet> dataSets );
+
+    /**
      * Returns all DataElements which have the given aggregation level assigned.
      *
      * @param aggregationLevel the aggregation level.
@@ -179,6 +188,8 @@ public interface DataElementStore
      * @return a ListMap.
      */
     ListMap<String, String> getDataElementCategoryOptionComboMap( Set<String> dataElementUids );
+
+    List<DataElement> get( DataSet dataSet, String key, Integer max );
 
     int getCountByDomainType( DataElementDomain domainType );
 }

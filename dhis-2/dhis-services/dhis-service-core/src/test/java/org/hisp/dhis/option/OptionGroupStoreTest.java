@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Collection;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

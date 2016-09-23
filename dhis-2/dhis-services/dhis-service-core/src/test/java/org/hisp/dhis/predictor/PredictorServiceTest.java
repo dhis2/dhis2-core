@@ -134,10 +134,10 @@ public class PredictorServiceTest
         dataElementD = createDataElement( 'D' );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
 
-        dataElementA.addDataSetElement( dataSetMonthly );
-        dataElementB.addDataSetElement( dataSetMonthly );
-        dataElementC.addDataSetElement( dataSetMonthly );
-        dataElementD.addDataSetElement( dataSetMonthly );
+        dataElementA.getDataSets().add( dataSetMonthly );
+        dataElementB.getDataSets().add( dataSetMonthly );
+        dataElementC.getDataSets().add( dataSetMonthly );
+        dataElementD.getDataSets().add( dataSetMonthly );
 
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
@@ -196,15 +196,15 @@ public class PredictorServiceTest
         joinDataSetToSource( dataSetMonthly, sourceF );
         joinDataSetToSource( dataSetMonthly, sourceG );
 
-        dataSetMonthly.addDataSetElement( dataElementA );
-        dataSetMonthly.addDataSetElement( dataElementB );
-        dataSetMonthly.addDataSetElement( dataElementC );
-        dataSetMonthly.addDataSetElement( dataElementD );
+        dataSetMonthly.getDataElements().add( dataElementA );
+        dataSetMonthly.getDataElements().add( dataElementB );
+        dataSetMonthly.getDataElements().add( dataElementC );
+        dataSetMonthly.getDataElements().add( dataElementD );
 
-        dataElementA.addDataSetElement( dataSetMonthly );
-        dataElementB.addDataSetElement( dataSetMonthly );
-        dataElementC.addDataSetElement( dataSetMonthly );
-        dataElementD.addDataSetElement( dataSetMonthly );
+        dataElementA.getDataSets().add( dataSetMonthly );
+        dataElementB.getDataSets().add( dataSetMonthly );
+        dataElementC.getDataSets().add( dataSetMonthly );
+        dataElementD.getDataSets().add( dataSetMonthly );
 
         setupTestData();
     }

@@ -531,9 +531,9 @@ public class ObjectBundleServiceTest
         }
 
         assertFalse( dataSet.getSources().isEmpty() );
-        assertFalse( dataSet.getDataSetElements().isEmpty() );
+        assertFalse( dataSet.getDataElements().isEmpty() );
         assertEquals( 1, dataSet.getSources().size() );
-        assertEquals( 2, dataSet.getDataSetElements().size() );
+        assertEquals( 2, dataSet.getDataElements().size() );
         assertEquals( PeriodType.getPeriodTypeByName( "Monthly" ), dataSet.getPeriodType() );
 
         assertNotNull( user.getUserCredentials() );

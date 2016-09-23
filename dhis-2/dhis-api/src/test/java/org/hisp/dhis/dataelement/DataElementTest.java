@@ -55,9 +55,9 @@ public class DataElementTest
         DataSet dataSetB = new DataSet( "B", periodType );
         DataSet dataSetC = new DataSet( "C", periodType );
         
-        element.addDataSetElement( dataSetA );
-        element.addDataSetElement( dataSetB );
-        element.addDataSetElement( dataSetC );
+        element.getDataSets().add( dataSetA );
+        element.getDataSets().add( dataSetB );
+        element.getDataSets().add( dataSetC );
         
         assertEquals( periodType, element.getPeriodType() );
     }
@@ -71,12 +71,12 @@ public class DataElementTest
         DataSet dataSetB = new DataSet( "B", new MonthlyPeriodType() );
         DataSet dataSetC = new DataSet( "C", new QuarterlyPeriodType() );
         
-        element.addDataSetElement( dataSetA );
-        element.addDataSetElement( dataSetB );
+        element.getDataSets().add( dataSetA );
+        element.getDataSets().add( dataSetB );
         
         assertTrue( element.periodTypeIsValid() );
 
-        element.addDataSetElement( dataSetC );
+        element.getDataSets().add( dataSetC );
         
         assertFalse( element.periodTypeIsValid() );
     }
@@ -94,11 +94,11 @@ public class DataElementTest
         dsA.setOpenFuturePeriods( 0 );
         dsB.setOpenFuturePeriods( 3 );
         
-        dsA.addDataSetElement( deA );        
+        dsA.addDataElement( deA );        
         
         assertEquals( 0, deA.getOpenFuturePeriods() );
         
-        dsB.addDataSetElement( deA );
+        dsB.addDataElement( deA );
         
         assertEquals( 3, deA.getOpenFuturePeriods() );
     }
@@ -116,8 +116,8 @@ public class DataElementTest
         dsA.setOpenFuturePeriods( 3 );
         dsB.setOpenFuturePeriods( 3 );
         
-        dsA.addDataSetElement( deA );
-        dsB.addDataSetElement( deA );
+        dsA.addDataElement( deA );
+        dsB.addDataElement( deA );
         
         Period lastOpen = deA.getLatestOpenFuturePeriod();
         

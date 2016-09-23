@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
@@ -67,7 +66,6 @@ import org.hisp.dhis.user.UserGroup;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * This class is used for defining the standardized DataSets. A DataSet consists
@@ -90,7 +88,7 @@ public class DataSet
     /**
      * All DataElements associated with this DataSet.
      */
-    private Set<DataSetElement> dataSetElements = new HashSet<>();
+    private Set<DataElement> dataElements = new HashSet<>();
 
     /**
      * Indicators associated with this data set. Indicators are used for view
@@ -289,23 +287,28 @@ public class DataSet
         sources.addAll( updates );
     }
 
-    /**
-     * Adds a data set element using this data set, the given data element and
-     * no category combo.
-     * 
-     * @param dataElement the data element.
-     */
-    public boolean addDataSetElement( DataElement dataElement )
+    public void addDataElement( DataElement dataElement )
     {
-        DataSetElement element = new DataSetElement( this, dataElement, null );
-        dataElement.getDataSetElements().add( element );
-        return dataSetElements.add( element );
+        dataElements.add( dataElement );
+        dataElement.getDataSets().add( this );
     }
 
-    public boolean removeDataSetElement( DataSetElement element )
+    public boolean removeDataElement( DataElement dataElement )
     {
-        dataSetElements.remove( element );
-        return element.getDataElement().getDataSetElements().remove( element );
+        dataElements.remove( dataElement );
+        return dataElement.getDataSets().remove( dataElement );
+    }
+
+    public void updateDataElements( Set<DataElement> updates )
+    {
+        Set<DataElement> toRemove = Sets.difference( dataElements, updates );
+        Set<DataElement> toAdd = Sets.difference( updates, dataElements );
+
+        toRemove.stream().forEach( d -> d.getDataSets().remove( this ) );
+        toAdd.stream().forEach( d -> d.getDataSets().add( this ) );
+
+        dataElements.clear();
+        dataElements.addAll( updates );
     }
 
     public void addIndicator( Indicator indicator )
@@ -365,18 +368,7 @@ public class DataSet
 
         return FormType.DEFAULT;
     }
-    
 
-    /**
-     * Note that this method returns an immutable set and can not be used to
-     * modify the model. Returns an immutable set of data sets associated with 
-     * this data element.
-     */
-    public Set<DataElement> getDataElements()
-    {
-        return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
-    }
-    
     public Set<DataElement> getDataElementsInSections()
     {
         Set<DataElement> dataElements = new HashSet<>();
@@ -393,11 +385,11 @@ public class DataSet
     {
         Set<DataElementCategoryOptionCombo> optionCombos = new HashSet<>();
 
-        for ( DataSetElement element : dataSetElements )
+        for ( DataElement element : dataElements )
         {
-            if ( element.hasCategoryComboFallback() )
+            if ( element.hasCategoryCombo() )
             {
-                optionCombos.addAll( element.getCategoryComboFallback().getOptionCombos() );
+                optionCombos.addAll( element.getCategoryCombo().getOptionCombos() );
             }
         }
 
@@ -507,16 +499,16 @@ public class DataSet
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataSetElement> getDataSetElements()
+    @JacksonXmlElementWrapper( localName = "dataElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataElement> getDataElements()
     {
-        return dataSetElements;
+        return dataElements;
     }
 
-    public void setDataSetElements( Set<DataSetElement> dataSetElements )
+    public void setDataElements( Set<DataElement> dataElements )
     {
-        this.dataSetElements = dataSetElements;
+        this.dataElements = dataElements;
     }
 
     @JsonProperty
@@ -833,8 +825,8 @@ public class DataSet
                 endDate = dataSet.getEndDate() == null ? endDate : dataSet.getEndDate();
             }
 
-            dataSetElements.clear();            
-            dataSet.getDataSetElements().forEach( e -> dataSetElements.add( e ) );
+            dataElements.clear();
+            dataSet.getDataElements().forEach( this::addDataElement );
 
             indicators.clear();
             dataSet.getIndicators().forEach( this::addIndicator );

@@ -31,6 +31,7 @@ package org.hisp.dhis.dataelement;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
@@ -262,6 +263,14 @@ public interface DataElementService
     List<DataElement> getDataElementsWithDataSets();
 
     /**
+     * Returns all DataElements which are assigned to any of the given DataSets.
+     *
+     * @param dataSets the collection of DataSets.
+     * @return all DataElements which are assigned to any of the given DataSets.
+     */
+    List<DataElement> getDataElementsByDataSets( Collection<DataSet> dataSets );
+
+    /**
      * Returns all DataElements which have the given aggregation level assigned.
      *
      * @param aggregationLevel the aggregation level.
@@ -325,6 +334,15 @@ public interface DataElementService
      * @return the DataElementGroup with the given id, or null if no match.
      */
     DataElementGroup getDataElementGroup( int id );
+
+    /**
+     * Returns a DataElementGroup.
+     *
+     * @param id               the id of the DataElementGroup to return.
+     * @param i18nDataElements whether to i18n the data elements of this group.
+     * @return the DataElementGroup with the given id, or null if no match.
+     */
+    DataElementGroup getDataElementGroup( int id, boolean i18nDataElements );
 
     /**
      * Returns the data element groups with the given uids.
@@ -418,6 +436,8 @@ public interface DataElementService
 
     int getDataElementGroupCountByName( String name );
 
+    List<DataElement> getDataElements( DataSet dataSet, String key, Integer max );
+
     // -------------------------------------------------------------------------
     // DataElementGroupSet
     // -------------------------------------------------------------------------
@@ -429,6 +449,8 @@ public interface DataElementService
     void deleteDataElementGroupSet( DataElementGroupSet groupSet );
 
     DataElementGroupSet getDataElementGroupSet( int id );
+
+    DataElementGroupSet getDataElementGroupSet( int id, boolean i18nGroups );
 
     DataElementGroupSet getDataElementGroupSet( String uid );
 

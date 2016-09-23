@@ -45,8 +45,7 @@ import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Maps;
-
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -290,7 +289,7 @@ public class DefaultDataEntryFormService
         // Inline javascript/html to add to HTML before output
         // ---------------------------------------------------------------------
 
-        Map<String, DataElement> dataElementMap = Maps.uniqueIndex( dataSet.getDataElements(), de -> de.getUid() );
+        Map<String, DataElement> dataElementMap = getDataElementMap( dataSet );
 
         CachingMap<String, DataElementCategoryOptionCombo> optionComboMap = new CachingMap<>();
 
@@ -438,7 +437,7 @@ public class DefaultDataEntryFormService
             return null;
         }
 
-        Map<String, DataElement> dataElementMap = Maps.uniqueIndex( dataSet.getDataElements(), de -> de.getUid() );
+        Map<String, DataElement> dataElementMap = getDataElementMap( dataSet );
 
         Set<DataElement> dataElements = new HashSet<>();
 
@@ -525,5 +524,25 @@ public class DefaultDataEntryFormService
         }
 
         return dataEntryFormStore.listDistinctDataEntryFormByDataSetIds( dataSetIds );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a Map of all DataElements in the given DataSet where the key is
+     * the DataElement identifier and the value is the DataElement.
+     */
+    private Map<String, DataElement> getDataElementMap( DataSet dataSet )
+    {
+        Map<String, DataElement> map = new HashMap<>();
+
+        for ( DataElement element : dataSet.getDataElements() )
+        {
+            map.put( element.getUid(), element );
+        }
+
+        return map;
     }
 }

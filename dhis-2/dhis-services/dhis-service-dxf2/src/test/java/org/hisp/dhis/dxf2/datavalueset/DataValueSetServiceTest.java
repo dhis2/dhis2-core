@@ -246,10 +246,10 @@ public class DataValueSetServiceTest
 
         idObjectManager.save( osA );
 
-        dsA.addDataSetElement( deA );
-        dsA.addDataSetElement( deB );
-        dsA.addDataSetElement( deC );
-        dsA.addDataSetElement( deD );
+        dsA.addDataElement( deA );
+        dsA.addDataElement( deB );
+        dsA.addDataElement( deC );
+        dsA.addDataElement( deD );
 
         addAttributeValue( ouA, attribute, "OU1" );
         organisationUnitService.addOrganisationUnit( ouA );
