@@ -55,7 +55,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,10 +127,6 @@ public class DefaultCsvImportService
         else if ( OptionSet.class.equals( clazz ) )
         {
             setOptionSetsFromCsv( reader, metadata );
-        }
-        else if ( Translation.class.equals( clazz ) )
-        {
-            metadata.setTranslations( translationsFromCsv( reader ) );
         }
 
         return metadata;
@@ -444,31 +439,6 @@ public class DefaultCsvImportService
         }
     }
 
-    private List<Translation> translationsFromCsv( CsvReader reader )
-        throws IOException
-    {
-        List<Translation> list = new ArrayList<>();
-        
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-            
-            if ( values != null && values.length > 0 )
-            {
-                Translation translation = new Translation();
-                translation.setObjectUid( getSafe( values, 0, null, 11 ) );
-                translation.setClassName( getSafe( values, 1, null, 120 ) );
-                translation.setLocale( getSafe( values, 2, null, 15 ) );
-                translation.setProperty( getSafe( values, 3, null, 60 ) );
-                translation.setValue( getSafe( values, 4, null, null ) );
-                translation.setAutoFields();
-                list.add( translation );
-            }
-        }
-        
-        return list;
-    }
-    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

@@ -145,4 +145,10 @@ public class DefaultDataStatisticsService
     {
         return dataStatisticsEventStore.getFavoritesData( eventType, pageSize, sortOrder, username );
     }
+
+    @Override
+    public FavoriteStatistics getFavoriteStatistics( String uid )
+    {
+        return dataStatisticsEventStore.getFavoriteStatistics( uid );
+    }
 }

@@ -59,6 +59,13 @@
     <property name="useFirstStageDuringRegistration" />
     
     <property name="captureCoordinates" />
+    
+    <property name="expiryDays" />
+    
+    <property name="completeEventsExpiryDays" />
+      
+    <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
+      foreign-key="fk_program_expiryperiodtypeid" />
 
     <list name="programAttributes" cascade="all">
       <key column="programid" />
@@ -77,6 +84,16 @@
     <set name="programIndicators" inverse="true">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
+    </set>
+    
+    <set name="programRules" inverse="true">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
+    </set>
+    
+    <set name="programRuleVariables" inverse="true">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
     </set>
 
     <set name="instanceReminders" order-by="daysAllowedSendMessage" cascade="all">
