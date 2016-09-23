@@ -285,8 +285,8 @@ public class DefaultSqlViewService
         {
             violation = "SQL query contains references to protected tables";
         }
-        
-        if (  StringUtils.indexOfAny( sql.toLowerCase(), SqlView.getIllegalKeyWords() ) != -1 )
+
+        if ( sql.matches( SqlView.getIllegalKeywordsRegex() ) )
         {
             violation = "SQL query contains illegal keywords";
         }

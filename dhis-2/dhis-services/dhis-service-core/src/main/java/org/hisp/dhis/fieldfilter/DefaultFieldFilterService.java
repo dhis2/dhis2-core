@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +69,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 {
     private static final Log log = LogFactory.getLog( DefaultFieldFilterService.class );
 
-    private final Pattern MUTATOR_PATTERN = Pattern.compile( "(\\w+)(?:::(\\w+))?(?:\\|rename\\((\\w+)\\))?" );
+    private final Pattern MUTATOR_PATTERN = Pattern.compile( "^(?<field>\\w+)(?<type>\\||::)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
     @Autowired
     private FieldParser fieldParser;
@@ -166,7 +167,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
 
         final FieldMap finalFieldMap = fieldMap;
-        objects.stream().forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
+        objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
 
         return collectionNode;
     }
@@ -395,7 +396,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             {
                 cleanupFields.add( fieldKey );
             }
-            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|rename(" ) )
+            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|" ) )
             {
                 Matcher matcher = MUTATOR_PATTERN.matcher( fieldKey );
 
@@ -404,23 +405,31 @@ public class DefaultFieldFilterService implements FieldFilterService
                     continue;
                 }
 
+                boolean isConverter = "::".equals( matcher.group( "type" ) );
+
                 FieldMap value = new FieldMap();
 
-                if ( matcher.group( 2 ) != null )
+                String nameMatch = matcher.group( "name" );
+                String argsMatch = matcher.group( "args" );
+
+                if ( isConverter )
                 {
-                    if ( converters.containsKey( matcher.group( 2 ) ) )
+                    if ( converters.containsKey( nameMatch ) )
                     {
-                        value.setNodePropertyConverter( converters.get( matcher.group( 2 ) ) );
+                        value.setNodePropertyConverter( converters.get( nameMatch ) );
+                    }
+                }
+                else
+                {
+                    if ( transformers.containsKey( nameMatch ) )
+                    {
+                        NodeTransformer transformer = transformers.get( nameMatch );
+                        List<String> args = argsMatch == null ? new ArrayList<>() : Lists.newArrayList( argsMatch.split( ";" ) );
+                        value.getPipeline().addTransformer( transformer, args );
                     }
                 }
 
-                if ( matcher.group( 3 ) != null )
-                {
-                    NodeTransformer transformer = transformers.get( "rename" );
-                    value.getPipeline().addTransformer( transformer, Lists.newArrayList( matcher.group( 3 ) ) );
-                }
-
-                fieldMap.put( matcher.group( 1 ), value );
+                fieldMap.put( matcher.group( "field" ), value );
 
                 cleanupFields.add( fieldKey );
             }
