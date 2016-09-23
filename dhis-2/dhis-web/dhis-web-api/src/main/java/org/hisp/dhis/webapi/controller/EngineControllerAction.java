@@ -85,20 +85,20 @@ public class EngineControllerAction  extends EngineController
         value =   { "/{app}" + PATH + "/{script}", "/{app}" + PATH + "/{script}/*" , "/{app}" + PATH + "/{script}/**/*"}
     )
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                             @PathVariable ( "app" ) String appName, @PathVariable ( "script" ) String script )
+                             @PathVariable ( "app" ) String appKey, @PathVariable ( "script" ) String script )
     {
         try
         {
-            log.info ( "Received request to run  " + script + " in app " + appName );
+            log.info ( "Received request to run  " + script + " in app " + appKey );
             String contextPath =  ContextUtils.getContextPath ( httpRequest );
 
             script = PATH + "/" + script; //only do scripts under ssa directory.
 
             //create and initialize the http execution context to send to the script
-            ExecutionContextHttpInterface execContext = getExecutionContext ( httpRequest, httpResponse, appName, script );
+            ExecutionContextHttpInterface execContext = getExecutionContext ( httpRequest, httpResponse, appKey, script );
 
             //instantiate an Engine and run the script against the contexxt
-            log.info ( "Running " + script + " in app " + appName + " with context=" + execContext.toString() );
+            log.info ( "Running " + script + " in app " + appKey + " with context=" + execContext.toString() );
             Object result =  engineService.eval(execContext);  //we are not doing anything with the result
             execContext.getOut().flush();
             execContext.getOut().close();
@@ -122,7 +122,7 @@ public class EngineControllerAction  extends EngineController
 
         catch ( Exception e )
         {
-            log.error ( "Received request to run  " + script + " in app " + appName , e);
+            log.error ( "Received request to run  " + script + " in app " + appKey , e);
             sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "internal script processing error\n" + e.toString()  );
         }
 
@@ -130,14 +130,14 @@ public class EngineControllerAction  extends EngineController
     }
 
 
-    protected ExecutionContextHttpInterface getExecutionContext ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appName, String script )
+    protected ExecutionContextHttpInterface getExecutionContext ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey, String script )
     {
         String ext = FilenameUtils.getExtension ( script );
 
         ExecutionContextAction execContextAction = new ExecutionContextAction();
         execContextAction.setRequestRemainder(ContextUtils.getContextPath ( httpRequest ));
         execContextAction.setScriptName(script);
-        initExecutionContext ( execContextAction, appName,  httpRequest, httpResponse );
+        initExecutionContext ( execContextAction, appKey,  httpRequest, httpResponse );
         return execContextAction;
     }
 

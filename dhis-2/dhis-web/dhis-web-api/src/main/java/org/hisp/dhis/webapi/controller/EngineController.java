@@ -79,12 +79,12 @@ abstract public class  EngineController
     }
 
 
-    protected void initExecutionContext ( ExecutionContextHttpInterface execContext, String appName,  HttpServletRequest httpRequest, HttpServletResponse httpResponse )
+    protected void initExecutionContext ( ExecutionContextHttpInterface execContext, String appKey,  HttpServletRequest httpRequest, HttpServletResponse httpResponse )
     {
         try
         {
             log.info ( "Setting script context" );
-            execContext.setAppName ( appName );
+            execContext.setAppKey ( appKey );
             execContext.setUser ( currentUserService.getCurrentUser() );
 
             log.info ( "Setting application context" );

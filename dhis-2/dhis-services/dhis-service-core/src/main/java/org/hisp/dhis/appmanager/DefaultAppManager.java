@@ -88,6 +88,10 @@ public class DefaultAppManager
      */
     private HashMap<String, App> appNamespaces = new HashMap<>();
 
+    private HashMap<String,JsonNode> manifests = new HashMap<>();
+
+    private Map<String, ScriptLibrary> scriptLibraries = new HashMap<String, ScriptLibrary>();
+
     @PostConstruct
     private void init()
     {
@@ -185,12 +189,10 @@ public class DefaultAppManager
     }
 
 
-    protected Map<String, ScriptLibrary> scriptLibraries = new HashMap<String, ScriptLibrary>();
-
     public ScriptLibrary getScriptLibrary ( App app )
     {
         String key = app.getKey();
-
+        log.info("Retreiving script libary for " + app);
         if ( scriptLibraries.containsKey ( key ) )
         {
             return scriptLibraries.get ( key );
@@ -199,20 +201,28 @@ public class DefaultAppManager
         else
         {
             ScriptLibrary sl =  new AppScriptLibrary( app, this );
+            log.info("Creating script library for " + app.getKey());
             scriptLibraries.put ( key, sl );
             return sl;
         }
     }
 
 
-    public TreeNode retrieveManifestInfo (String appName, String[] path )
+    public JsonNode retrieveManifestInfo (String appKey, String[] path )
     {
         try
         {
-            //it is slow to hit this all the time, should it cache based on file mtime?
-            log.info ( "Looking for manifest" );
-            Resource manifest = findResource ( appName, "manifest.webapp" );
-            TreeNode node = jsonFactory.createParser( manifest.getInputStream()).readValueAsTree();
+            JsonNode node;
+            if (manifests.containsKey(appKey)) {
+                node = manifests.get(appKey);
+            } else {
+                log.info("Loading " + MANIFEST_FILENAME + " for " + appKey);
+                Resource manifest = findResource(appKey, MANIFEST_FILENAME);
+                JsonParser jParser = jsonFactory.createParser(manifest.getInputStream());
+                ObjectMapper mapper = new ObjectMapper();
+                node = mapper.readTree(jParser);
+                manifests.put(appKey,node);
+            }
 
             for ( int i = 0; i < path.length ; i++ ) //walk the binding path
             {
@@ -232,7 +242,7 @@ public class DefaultAppManager
 
         catch ( Exception e )
         {
-            log.info ( "Could not access manifest for " + appName + ":"  + e.toString() );
+            log.info ( "Could not access manifest for " + appKey + ":"  + e.toString() );
             return null; //return empty object
         }
     }
@@ -386,12 +396,20 @@ public class DefaultAppManager
     @Override
     public boolean deleteApp ( String name, boolean deleteAppData )
     {
+
         for ( App app : getApps ( null ) )
         {
             if ( app.getName().equals ( name ) || app.getFolderName().equals ( name ) )
             {
                 try
                 {
+                    String key = app.getKey();
+                    if (manifests.containsKey(key)) {
+                        manifests.remove(key);
+                    }
+                    if (scriptLibraries.containsKey(key)) {
+                        scriptLibraries.remove(key);
+                    }
                     String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
                     FileUtils.forceDelete ( new File ( folderPath ) );
 
@@ -512,7 +530,8 @@ public class DefaultAppManager
 
         this.apps = appList;
         this.appNamespaces = appNamespaces;
-
+        manifests = new HashMap<String,JsonNode>(); //clear out any manifests that were already parsed
+        scriptLibraries = new HashMap<String,ScriptLibrary>();
         log.info ( "Detected apps: " + apps );
     }
 

@@ -81,7 +81,7 @@ public class EngineSE extends Engine
             ctx.setErrorWriter ( execContext.getError() );
             ctx.setReader ( execContext.getIn() );
             log.info ( "EngineSE - setting execution context for "
-                                 + execContext.getAppName() + ":" + execContext.getScriptName() + " to:\n"
+                                 + execContext.getAppKey() + ":" + execContext.getScriptName() + " to:\n"
                                  + execContext.toString() );
             engine.put ( "dhisScriptContext", execContext );
             Object res  =  engine.eval ( scriptReader );

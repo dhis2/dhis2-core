@@ -46,7 +46,7 @@ public class ExecutionContext implements ExecutionContextInterface
     protected Writer error;
     protected User user;
     protected String scriptName;
-    protected String appName;
+    protected String appKey;
 
     public ExecutionContext()
     {
@@ -62,11 +62,11 @@ public class ExecutionContext implements ExecutionContextInterface
 
     public String toString()
     {
-        return "ExecutionContext for "  + getAppName() + ":" + getScriptName() + " for user " + user.toString();
+        return "ExecutionContext for "  + getAppKey() + ":" + getScriptName() + " for user " + user.toString();
     }
-    public String getAppName()
+    public String getAppKey()
     {
-        return appName;
+        return appKey;
     }
     public String getScriptName()
     {
@@ -98,9 +98,9 @@ public class ExecutionContext implements ExecutionContextInterface
     {
         this.applicationContext = applicationContext;
     }
-    public void setAppName ( String appName )
+    public void setAppKey ( String appKey )
     {
-        this.appName = appName;
+        this.appKey = appKey;
     }
     public void setScriptName ( String scriptName )
     {

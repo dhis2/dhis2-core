@@ -38,11 +38,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
+import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.scriptlibrary.*;
 import org.hisp.dhis.webapi.controller.EngineController;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttp;
@@ -83,7 +85,9 @@ public class EngineControllerDSTU2 extends EngineController
         }
         public void setResponse ( Object response )
         {
-            this.response = response;
+
+                log.info("setting response");
+                this.response = response;
         }
         protected String outputType = null;
         public String getOutputType()
@@ -177,7 +181,6 @@ public class EngineControllerDSTU2 extends EngineController
                    + "\tresponse=" + response + "\n"
                    ;
         }
-
     }
 
 
@@ -243,27 +246,26 @@ public class EngineControllerDSTU2 extends EngineController
 
 
 
-    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appName, String resource, String operation, String id )
+    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey, String resource, String operation, String id )
     {
-        log.info ( "Attempting " + operation + " on " + resource + " in " + appName );
+        log.info ( "Attempting " + operation + " on " + resource + " in " + appKey );
         String contextPath =  ContextUtils.getContextPath ( httpRequest );
-        TreeNode info;
+        JsonNode info;
 
         try
         {
 
-            info =  appManager.retrieveManifestInfo ( appName, ( "script-library/bindings" + RESOURCE_PATH ).split ( "/" ) );
+            info =  appManager.retrieveManifestInfo ( appKey, ( "script-library/bindings" + RESOURCE_PATH ).split ( "/" ) );
 
             if ( info == null || ! info.isArray())
             {
-                log.info ( "D" );
-                throw new NullPointerException ( "No binding info for " + appName );
+                throw new NullPointerException ( "No binding info for " + appKey );
             }
         }
 
         catch ( Exception e )
         {
-            log.info ( "Could not retrieve binding info for " + appName + ":"  + e.toString() );
+            log.info ( "Could not retrieve binding info for " + appKey + ":"  + e.toString() );
             e.printStackTrace ( System.out );
             return;
         }
@@ -274,14 +276,19 @@ public class EngineControllerDSTU2 extends EngineController
             if (! info.get(i).isObject()) {
                 continue;
             }
-            TreeNode node = info.get(i);
+            JsonNode node = info.get(i);
             String script = null;
             String op = null;
 
             try
             {
-                op = node.get ( "operation" ).toString();
-                script = node.get ( "script" ).toString();
+                JsonNode opNode = node.get ( "operation" );
+                JsonNode scriptNode = node.get( "script");
+                if (!opNode.isValueNode() || !scriptNode.isValueNode()) {
+                    continue;
+                }
+                op = opNode.asText();
+                script = scriptNode.asText();
 
                 if ( !op.equals ( operation )
                         ||  script == null
@@ -291,11 +298,11 @@ public class EngineControllerDSTU2 extends EngineController
                     continue;
                 }
 
-                TreeNode rsrc = node.get ( "resource" );
+                JsonNode rsrc = node.get ( "resource" );
 
                 if ( rsrc.isValueNode() )
                 {
-                    String r =  rsrc.toString();
+                    String r =  rsrc.asText();
 
                     if (  ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
                     {
@@ -312,7 +319,11 @@ public class EngineControllerDSTU2 extends EngineController
 
                         try
                         {
-                            r = rsrc.get(i).toString();
+                            JsonNode rNode = rsrc.get(i);
+                            if (!rNode.isValueNode()) {
+                                continue;
+                            }
+                            r = rNode.asText();
 
                             if (   ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
                             {
@@ -340,9 +351,9 @@ public class EngineControllerDSTU2 extends EngineController
 
             try
             {
-                ExecutionContextFHIR execContext = getExecutionContext ( script, httpRequest, httpResponse, appName, resource, operation, id );
+                ExecutionContextFHIR execContext = getExecutionContext ( script, httpRequest, httpResponse, appKey, resource, operation, id );
                 Object result =  engineService.eval(execContext);
-                processOperationResult ( result ,execContext);
+                processOperationResult ( execContext);
             }
 
             catch ( HttpException he )
@@ -373,13 +384,14 @@ public class EngineControllerDSTU2 extends EngineController
             return; //we break out of the loop
         }
 
-        log.info ( "No binding information for " + operation + " on " + resource + " in " + appName );
+        log.info ( "No binding information for " + operation + " on " + resource + " in " + appKey );
         sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, "Operation " + operation + " not found on resource " + resource );
     }
 
-    protected void processOperationResult ( Object response, ExecutionContextFHIR execContext )
+    protected void processOperationResult ( ExecutionContextFHIR execContext )
     throws HttpException
     {
+        Object response = execContext.getResponse();
         log.info ( "Processing result" );
         log.info ( "retrieved script context" );
         HttpServletResponse httpResponse = execContext.getHttpServletResponse();
@@ -505,11 +517,12 @@ public class EngineControllerDSTU2 extends EngineController
 
 
     protected ExecutionContextFHIR getExecutionContext ( String script, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-            String appName, String resource, String operation, String id )
+            String appKey, String resource, String operation, String id )
     {
         ExecutionContextFHIR execContext = new ExecutionContextFHIR();
         execContext.setScriptName(script);
-        initExecutionContext ( execContext, appName,  httpRequest, httpResponse );
+        log.info("Setting execution context to script " + script + " for app " + appKey);
+        initExecutionContext ( execContext, appKey,  httpRequest, httpResponse );
         String contentType = httpRequest.getContentType();
         String format = httpRequest.getParameter ( "_format" );
         execContext.setIsXml (  ( contentType == "application/xml" )

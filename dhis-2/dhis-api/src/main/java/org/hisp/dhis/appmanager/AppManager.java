@@ -94,7 +94,7 @@ public interface AppManager
     public Resource findResource (String appName, String resourceName )
             throws IOException;
     ScriptLibrary getScriptLibrary (App app );
-    TreeNode retrieveManifestInfo (String appName, String[] path );
+    JsonNode retrieveManifestInfo (String appName, String[] path );
     /**
      * Returns apps which are accessible to the current user.
      *

@@ -36,7 +36,7 @@ import org.springframework.context.ApplicationContext;
 public interface ExecutionContextInterface
 {
 
-    abstract String getAppName();
+    abstract String getAppKey();
     abstract String getScriptName();
     abstract User getUser();
     abstract Reader getIn();
@@ -44,7 +44,7 @@ public interface ExecutionContextInterface
     abstract Writer getError();
     abstract ApplicationContext getApplicationContext();
     abstract void setApplicationContext ( ApplicationContext applicationContext );
-    abstract void setAppName ( String appName );
+    abstract void setAppKey ( String appKey);
     abstract void setScriptName ( String scriptName );
     abstract void setUser ( User user );
     abstract void setIn ( Reader in );

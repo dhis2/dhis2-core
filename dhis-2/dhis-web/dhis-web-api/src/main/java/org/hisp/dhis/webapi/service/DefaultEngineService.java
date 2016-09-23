@@ -42,6 +42,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
@@ -75,6 +78,8 @@ public class DefaultEngineService implements EngineServiceInterface {
     protected CurrentUserService currentUserService;
     @Autowired
     protected JSClassFilter classFilter;
+	@Autowired
+	protected SessionFactory sessionFactory;
 
     protected Map<String,EngineInterface> scriptEngines = new HashMap<String,EngineInterface>();
 
@@ -127,7 +132,7 @@ public class DefaultEngineService implements EngineServiceInterface {
 		ExecutionContext depContext = new ExecutionContext();
 		depContext.setApplicationContext(applicationContext);
 		depContext.setUser(currentUserService.getCurrentUser());
-		depContext.setAppName(app.getKey());
+		depContext.setAppKey(app.getKey());
 		depContext.setScriptName(scriptName);
 		loadDependencies(xsltEngine, depContext);
 		return xsltEngine;
@@ -142,7 +147,7 @@ public class DefaultEngineService implements EngineServiceInterface {
 		ExecutionContext depContext = new ExecutionContext();
 		depContext.setApplicationContext(applicationContext);
 		depContext.setUser(currentUserService.getCurrentUser());
-		depContext.setAppName(app.getKey());
+		depContext.setAppKey(app.getKey());
 		depContext.setScriptName(scriptName);
 		loadDependencies(xqueryEngine, depContext);
 		return xqueryEngine;
@@ -178,7 +183,7 @@ public class DefaultEngineService implements EngineServiceInterface {
 		log.info("Retrieving dependencies for " + scriptName);
 		ExecutionContext depContext = new ExecutionContext();
 		depContext.setApplicationContext(applicationContext);
-		depContext.setAppName(app.getKey());
+		depContext.setAppKey(app.getKey());
 		depContext.setScriptName(scriptName);
 		depContext.setUser(currentUserService.getCurrentUser());
 		SimpleScriptContext ctx = new SimpleScriptContext();
@@ -195,7 +200,7 @@ public class DefaultEngineService implements EngineServiceInterface {
 		String[] libs;
 		try {
 			scriptName = depContext.getScriptName();
-			App app = appManager.getApp(depContext.getAppName(), contextPath);
+			App app = appManager.getApp(depContext.getAppKey(), contextPath);
 			ScriptLibrary sl = appManager.getScriptLibrary(app);
 			log.info("Running engine for dependency: " + scriptName);
 			libs = sl.retrieveDependencies(scriptName);
@@ -207,24 +212,29 @@ public class DefaultEngineService implements EngineServiceInterface {
 		User user = depContext.getUser();
 		for (String script : libs) {
 			try {
-				String appName;
+				String depAppKey = null;
+				String depScriptName = null;
 				if (script.startsWith("/apps/")) {
-					appName = script.substring(6);
-					appName = appName.substring(0, appName.indexOf("/"));
+					depAppKey = script.substring(6);
+					depScriptName = depAppKey.substring(depAppKey.indexOf("/") + 1);
+					depAppKey = depAppKey.substring(0, depAppKey.indexOf("/"));
 				} else {
-					appName = depContext.getAppName();
+					depAppKey= depContext.getAppKey();
+					depScriptName = script;
 				}
-				App depApp = appManager.getApp(appName, contextPath);
+				App depApp = appManager.getApp(depAppKey, contextPath);
 
 				if (!appManager.isAccessible(depApp, user)) {
 					//HELP:  This should not be commented out.  Not sure why  the above expression evaluates  to false
 					//throw new ScriptAccessException ( "Script execution - permission denied on user" );
 				}
+				log.info("Processing dependency " + depScriptName + " in " + depAppKey + "(" + script + ")");
 				ScriptLibrary depSl = appManager.getScriptLibrary(depApp);
-				depContext.setScriptName(script);
+				depContext.setScriptName(depScriptName);
+				depContext.setAppKey(depAppKey);
 				scriptEngine.setExecutionContext(depContext);
-				Reader scriptReader = depSl.retrieveScript(scriptName);
-				scriptEngine.setScriptReader(scriptReader);
+				Reader depScriptReader = depSl.retrieveScript(depScriptName);
+				scriptEngine.setScriptReader(depScriptReader);
 				scriptEngine.call();
 			} catch (ScriptException e) {
 				throw e;
@@ -249,17 +259,18 @@ public class DefaultEngineService implements EngineServiceInterface {
 		{
 			throw new ScriptAccessException ( "Script execution - No script name specified" );
 		}
-		String appName = execContext.getAppName();
+		String appKey = execContext.getAppKey();
 		App app = null;
 		if (execContext instanceof ExecutionContextHttpInterface) {
 			HttpServletRequest hsr = ( (ExecutionContextHttpInterface) execContext).getHttpServletRequest();
 			contextPath = ContextUtils.getContextPath(hsr);
-			app = appManager.getApp(appName, contextPath);
+			app = appManager.getApp(appKey, contextPath);
 		}
-		if ( appName == null || app == null )
+		if ( appKey == null || app == null )
 		{
 			throw new ScriptNotFoundException ( "Script execution - No app associated to script" );
 		}
+		log.info("Attempting to retrieve " + execContext.getScriptName() + " for app " + execContext.getAppKey());
 		ScriptLibrary sl = appManager.getScriptLibrary(app);
 		Reader scriptReader = sl.retrieveScript(scriptName);
 		User user  = execContext.getUser();
@@ -282,14 +293,39 @@ public class DefaultEngineService implements EngineServiceInterface {
 	}
 
 
-	@Transactional
 	protected Object execute (  EngineInterface engine, ExecutionContextInterface execContext )
+			throws ScriptException
+	{
+		log.info ( "Execute start" );
+		engine.setExecutionContext ( execContext );
+		Object result = null;
+		try {
+			result = engine.call();
+		} catch (ScriptException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new ScriptException("Could not execute: " + e.toString() + "\n" + ExceptionUtils.getStackTrace(e));
+		}
+		log.info ( "Execute done" );
+		return result;
+	}
+
+
+	@Transactional
+	protected Object executeThreaded (  EngineInterface engine, ExecutionContextInterface execContext )
 			throws ScriptException
 	{
 		log.info ( "Execute start" );
 		engine.setExecutionContext ( execContext );
 		ExecutorService executor = Executors.newCachedThreadPool();
 		Callable<Object> task = engine;
+
+		Session session;
+		try {
+			session = sessionFactory.getCurrentSession();
+		} catch (HibernateException e) {
+			session = sessionFactory.openSession();
+		}
 
 		log.info ( "Execute adding task to the future." );
 		Future<Object> future = executor.submit ( task );
@@ -312,6 +348,9 @@ public class DefaultEngineService implements EngineServiceInterface {
 			future.cancel ( true ); // may or may not desire this
 			log.info ( "Execute   future is canceled." );
 			executor.shutdown();
+			session.flush();
+			session.clear();
+			session.close();
 		}
 
 		log.info ( "Execute shutdown" );
