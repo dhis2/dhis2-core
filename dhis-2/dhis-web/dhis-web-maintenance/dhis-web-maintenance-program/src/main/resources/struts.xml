@@ -656,7 +656,6 @@
       class="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramNotificationAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-program/addProgramNotification.vm</param>
-      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
       <param name="javascripts">javascript/programNotification.js</param>
       <param name="requiredAuthorities">F_PROGRAM_ADD,F_PROGRAM_DELETE</param>
     </action>
@@ -665,7 +664,6 @@
       class="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramNotificationAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-program/updateProgramNotification.vm</param>
-      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
       <param name="javascripts">javascript/programNotification.js</param>
       <param name="requiredAuthorities">F_PROGRAM_ADD,F_PROGRAM_DELETE</param>
     </action>
