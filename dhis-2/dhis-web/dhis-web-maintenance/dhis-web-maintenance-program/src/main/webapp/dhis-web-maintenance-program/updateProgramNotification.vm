@@ -32,19 +32,18 @@
                 #set( $trigger = $template.notificationTrigger.name() )
                 <select type="text" id="notificationTrigger" name="notificationTrigger">
                     <option value="ENROLLMENT" #if ( $trigger == "ENROLLMENT" ) selected #end>$i18n.getString( "program_enrollment" )</option>
+                    <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "program_completion" )</option>
                     <option value="SCHEDULED_DAYS_INCIDENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_INCIDENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_incident_date" )</option>
                     <option value="SCHEDULED_DAYS_ENROLLMENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_ENROLLMENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_enrollment_date" )</option>
-                    <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "program_completion" )</option>
                 </select>
             </td>
         </tr>
-        <tr>
+        <tr id="daysContainer" #if ( $template.notificationTrigger.isImmediate() ) style="display: none;" #end>
             <td>
                 <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>
             </td>
             <td>
-                #set( $days = $template.relativeScheduledDays )
-                <input type="number" min="0" max="300" id="days" value="#absValue( $days )" style="width:60px;">
+                <input type="number" min="1" max="300" id="days" value="#absValue( $days )" style="width:60px;">
                 $i18n.getString( "days" )
                 <select id="daysModifier" name="daysModifier" style="width:100px;">
                     <option value="-1" #if ( $days <= 0 ) selected #end>$i18n.getString( "before") </option>
@@ -129,7 +128,7 @@
         <tr>
             <td></td>
             <td>
-                <button type="button" id="save" style="width: 10em;">$i18n.getString( 'add' )</button>
+                <button type="button" id="save" style="width: 10em;">$i18n.getString( 'save' )</button>
                 <button type="button" id="cancel" style="width: 10em;">$i18n.getString( 'cancel' )</button>
             </td>
         </tr>
@@ -138,103 +137,103 @@
 </div>
 
 <script>
-    ( function ( $ ) {
-        var params = $( '#params' );
-        var focusedTextArea = $( '#subjectTemplate' );
-        var recipientSelector = $( '#notificationRecipient' );
-        var userGroup = $( '#userGroup' );
-        var userGroupContainer = $( '#userGroupContainer' );
-        var subjectTemplateTextArea = $( '#subjectTemplate' );
-        var messageTemplateTextArea = $( '#messageTemplate' );
-        var saveButton = $( '#save' );
-        var cancelButton = $( '#cancel' );
-        var programId = $( '#programId' ).value;
-        var templateUid = $( '#templateUid' ).value;
-
-        // Event handlers
-
-        subjectTemplateTextArea.onfocus = function() {
-            focusedTextArea = subjectTemplateTextArea;
-        };
-
-        messageTemplateTextArea.onfocus = function() {
-            focusedTextArea = messageTemplateTextArea;
-        };
-
-        // Click handlers
-
-        recipientSelector.onchange = function( e ) {
-            if ( recipientSelector.value === 'USER_GROUP' ) {
-                userGroupContainer.style.display = 'table-row';
-                userGroup.disabled = false;
-            } else {
-                userGroupContainer.style.display = 'none';
-                userGroup.value = "";
-                userGroup.disabled = true;
-            }
-        };
-
-        params.ondblclick = function() {
-            insertTextCommon( focusedTextArea.id, params.value );
-        };
-
-        saveButton.onclick = function() {
-            update();
-        };
-
-        cancelButton.onclick = function() {
-            window.location.href = 'programNotification.action?id=' + programId;
-        };
-
-        // Internal
-
-        function getSelectedDeliveryChannels() {
-            return Array.prototype.slice.call(
-                document.forms[ 'deliveryChannelsForm' ].elements[ 'deliveryChannels[]' ] )
-                .filter( function( cb ) { return cb.checked; } )
-                .map( function( cb ) { return cb.value; } );
-        };
-
-        function getUserGroup() {
-            var uid = $( '#userGroup' ).value || undefined;
-            return ( uid === undefined ) ? undefined : { 'id' : uid };
-        };
-
-        function getScheduledDays() {
-            return ( $( '#days' ).value || 0 ) * ( $( '#daysModifier' ).value );
-        };
-
-        function formAsJson() {
-            return {
-                name : $( '#name' ).value || '',
-                notificationTrigger : $( '#notificationTrigger' ).value,
-                relativeScheduledDays : getScheduledDays(),
-                notificationRecipient : $( '#notificationRecipient' ).value,
-                recipientUserGroup : getUserGroup(),
-                deliveryChannels : getSelectedDeliveryChannels(),
-                subjectTemplate : $( '#subjectTemplate' ).value,
-                messageTemplate : $( '#messageTemplate' ).value
-            };
-        };
-
-        function update() {
-            var jsonData = formAsJson();
-
-            jQuery.ajax( {
-                url : '../api/programNotificationTemplates/' + templateUid,
-                dataType : 'json',
-                data : JSON.stringify( jsonData ),
-                contentType : 'application/json',
-                type : 'PUT'
-            } ).done( function( result ) {
-                    window.location.href = 'programNotification.action?id=' + programId;
-            } ).fail( function( jqXhr, textStatus, error ) {
-                    var json = jQuery.parseJSON( jqXhr.responseText );
-                    var errorMessage = json.response.errorReports[0].message;
-
-                    setHeaderDelayMessage( errorMessage || ( textStatus + ': ' + error ) );
-            } );
-        };
-
-    } )( document.querySelector.bind( document ) );
+//    ( function ( $ ) {
+//        var params = $( '#params' );
+//        var focusedTextArea = $( '#subjectTemplate' );
+//        var recipientSelector = $( '#notificationRecipient' );
+//        var userGroup = $( '#userGroup' );
+//        var userGroupContainer = $( '#userGroupContainer' );
+//        var subjectTemplateTextArea = $( '#subjectTemplate' );
+//        var messageTemplateTextArea = $( '#messageTemplate' );
+//        var saveButton = $( '#save' );
+//        var cancelButton = $( '#cancel' );
+//        var programId = $( '#programId' ).value;
+//        var templateUid = $( '#templateUid' ).value;
+//
+//        // Event handlers
+//
+//        subjectTemplateTextArea.onfocus = function() {
+//            focusedTextArea = subjectTemplateTextArea;
+//        };
+//
+//        messageTemplateTextArea.onfocus = function() {
+//            focusedTextArea = messageTemplateTextArea;
+//        };
+//
+//        // Click handlers
+//
+//        recipientSelector.onchange = function( e ) {
+//            if ( recipientSelector.value === 'USER_GROUP' ) {
+//                userGroupContainer.style.display = 'table-row';
+//                userGroup.disabled = false;
+//            } else {
+//                userGroupContainer.style.display = 'none';
+//                userGroup.value = "";
+//                userGroup.disabled = true;
+//            }
+//        };
+//
+//        params.ondblclick = function() {
+//            insertTextCommon( focusedTextArea.id, params.value );
+//        };
+//
+//        saveButton.onclick = function() {
+//            update();
+//        };
+//
+//        cancelButton.onclick = function() {
+//            window.location.href = 'programNotification.action?id=' + programId;
+//        };
+//
+//        // Internal
+//
+//        function getSelectedDeliveryChannels() {
+//            return Array.prototype.slice.call(
+//                document.forms[ 'deliveryChannelsForm' ].elements[ 'deliveryChannels[]' ] )
+//                .filter( function( cb ) { return cb.checked; } )
+//                .map( function( cb ) { return cb.value; } );
+//        };
+//
+//        function getUserGroup() {
+//            var uid = $( '#userGroup' ).value || undefined;
+//            return ( uid === undefined ) ? undefined : { 'id' : uid };
+//        };
+//
+//        function getScheduledDays() {
+//            return ( $( '#days' ).value || 0 ) * ( $( '#daysModifier' ).value );
+//        };
+//
+//        function formAsJson() {
+//            return {
+//                name : $( '#name' ).value || '',
+//                notificationTrigger : $( '#notificationTrigger' ).value,
+//                relativeScheduledDays : getScheduledDays(),
+//                notificationRecipient : $( '#notificationRecipient' ).value,
+//                recipientUserGroup : getUserGroup(),
+//                deliveryChannels : getSelectedDeliveryChannels(),
+//                subjectTemplate : $( '#subjectTemplate' ).value,
+//                messageTemplate : $( '#messageTemplate' ).value
+//            };
+//        };
+//
+//        function update() {
+//            var jsonData = formAsJson();
+//
+//            jQuery.ajax( {
+//                url : '../api/programNotificationTemplates/' + templateUid,
+//                dataType : 'json',
+//                data : JSON.stringify( jsonData ),
+//                contentType : 'application/json',
+//                type : 'PUT'
+//            } ).done( function( result ) {
+//                    window.location.href = 'programNotification.action?id=' + programId;
+//            } ).fail( function( jqXhr, textStatus, error ) {
+//                    var json = jQuery.parseJSON( jqXhr.responseText );
+//                    var errorMessage = json.response.errorReports[0].message;
+//
+//                    setHeaderDelayMessage( errorMessage || ( textStatus + ': ' + error ) );
+//            } );
+//        };
+//
+//    } )( document.querySelector.bind( document ) );
 </script>

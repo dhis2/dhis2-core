@@ -649,7 +649,7 @@
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-program/programNotificationList.vm</param>
       <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
-      <param name="javascripts">javascript/programReminder.js</param>
+      <!--<param name="javascripts">javascript/programNotification.js</param>-->
       <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param> <!-- TODO -->
     </action>
 
@@ -658,7 +658,7 @@
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-program/addProgramNotification.vm</param>
       <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
-      <param name="javascripts">javascript/programReminder.js</param>
+      <param name="javascripts">javascript/programNotification.js</param>
       <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param> <!-- TODO -->
     </action>
 
@@ -667,7 +667,7 @@
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-program/updateProgramNotification.vm</param>
       <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
-      <param name="javascripts">javascript/programReminder.js</param>
+      <param name="javascripts">javascript/programNotification.js</param>
       <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT</param> <!-- TODO -->
     </action>
 

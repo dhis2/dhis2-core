@@ -52,6 +52,13 @@
 
 <script type="text/javascript">
     // TODO Intialize i18n strings
+    $( function() {
+        dhis2.contextmenu.makeContextMenu( {
+            menuId: 'contextMenu',
+            menuItemActiveClass: 'contextMenuItemActive'
+        } );
+    } );
+
     function removeProgramNotification( template ) {
 
         var programUid = document.querySelector( '#programUid' ).value;
