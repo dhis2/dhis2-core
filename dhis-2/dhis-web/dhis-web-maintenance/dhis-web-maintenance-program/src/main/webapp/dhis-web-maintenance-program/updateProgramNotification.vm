@@ -11,7 +11,7 @@
     <table>
         <thead>
         <tr>
-            <th colspan="2" style="width: 590px;">$i18n.getString( "configure_program_notification" )</th><!-- TODO What to name this? -->
+            <th colspan="2" style="width: 590px;">$i18n.getString( "program_notification_details" )</th><!-- TODO What to name this? -->
         </tr>
         </thead>
         <tbody>
