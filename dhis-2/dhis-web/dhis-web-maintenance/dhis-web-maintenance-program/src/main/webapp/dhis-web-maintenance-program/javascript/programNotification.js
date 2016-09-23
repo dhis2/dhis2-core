@@ -18,7 +18,7 @@
         var programId = qs( '#programId' ).value;
         var programUid = qs( '#programUid' ).value;
 
-        var isUpdate = Boolean( qs( '#isUpdate' ).value );
+        var isUpdate = JSON.parse( qs( '#isUpdate' ).value );
 
         var templateUid = isUpdate ? qs( '#templateUid' ).value : undefined;
 
