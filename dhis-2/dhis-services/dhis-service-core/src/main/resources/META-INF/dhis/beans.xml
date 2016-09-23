@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+  xmlns:aop="http://www.springframework.org/schema/aop"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
-    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+
     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd">
 
   <bean id="org.hisp.dhis.preheat.PreheatService" class="org.hisp.dhis.preheat.DefaultPreheatService" scope="prototype">
@@ -43,11 +43,11 @@
 
   <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
 
-  <bean class="org.hisp.dhis.node.converters.IsEmptyNodePropertyConverter" />
+  <bean class="org.hisp.dhis.node.transformers.IsEmptyNodeTransformer" />
 
-  <bean class="org.hisp.dhis.node.converters.IsNotEmptyNodePropertyConverter" />
+  <bean class="org.hisp.dhis.node.transformers.IsNotEmptyNodeTransformer" />
 
-  <bean class="org.hisp.dhis.node.converters.SizeNodePropertyConverter" />
+  <bean class="org.hisp.dhis.node.transformers.SizeNodeTransformer" />
 
   <bean class="org.hisp.dhis.node.serializers.CsvNodeSerializer" scope="prototype">
     <aop:scoped-proxy proxy-target-class="false" />
@@ -597,7 +597,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.program.ProgramMessageStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramMessageStore">
     <property name="clazz" value="org.hisp.dhis.program.message.ProgramMessage" />
@@ -660,7 +660,7 @@
     class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeReservedValueStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeReservedValueService"
     class="org.hisp.dhis.trackedentityattributevalue.DefaultTrackedEntityAttributeReservedValueService" />
 
@@ -901,7 +901,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
   </bean>
-  
+
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
 
   <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
@@ -1236,10 +1236,10 @@
   <bean id="org.hisp.dhis.sms.config.SmsConfigurationManager" class="org.hisp.dhis.sms.config.DefaultSmsConfigurationManager" />
 
   <bean id="org.hisp.dhis.sms.incoming.SmsConsumerService" class="org.hisp.dhis.sms.incoming.DefaultSmsConsumerService" />
-  
+
   <bean id="org.hisp.dhis.sms.SmsPublisher" class="org.hisp.dhis.sms.SmsPublisher" />
-  
-    <bean id="org.hisp.dhis.sms.SmsConsumerThread" class="org.hisp.dhis.sms.SmsConsumerThread" />
+
+  <bean id="org.hisp.dhis.sms.SmsConsumerThread" class="org.hisp.dhis.sms.SmsConsumerThread" />
 
   <bean id="org.hisp.dhis.sms.incoming.IncomingSmsService" class="org.hisp.dhis.sms.incoming.DefaultIncomingSmsService">
     <property name="incomingSmsStore" ref="org.hisp.dhis.sms.hibernate.IncomingSmsStore" />
@@ -1249,24 +1249,23 @@
   <bean id="org.hisp.dhis.sms.outbound.OutboundSmsService" class="org.hisp.dhis.sms.outbound.DefaultOutboundSmsService">
     <property name="outboundSmsStore" ref="org.hisp.dhis.sms.hibernate.OutboundSmsStore" />
   </bean>
-  
-   <bean id="org.hisp.dhis.sms.config.GatewayAdministrationService"
+
+  <bean id="org.hisp.dhis.sms.config.GatewayAdministrationService"
     class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
-        
-    <bean id="org.hisp.dhis.sms.config.BulkSmsGateway" class="org.hisp.dhis.sms.config.BulkSmsGateway" />
+
+  <bean id="org.hisp.dhis.sms.config.BulkSmsGateway" class="org.hisp.dhis.sms.config.BulkSmsGateway" />
 
   <bean id="org.hisp.dhis.sms.config.ClickatellGateway" class="org.hisp.dhis.sms.config.ClickatellGateway" />
-  
+
   <bean id="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" class="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" />
 
   <bean id="smsMessageSender" class="org.hisp.dhis.sms.config.SmsMessageSender" />
 
   <bean id="org.hisp.dhis.sms.task.SendSmsTask" class="org.hisp.dhis.sms.task.SendSmsTask" scope="prototype" />
-    
+
   <bean id="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" class="org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" />
-  
-    <bean id="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" class="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" />  
-  
+
+  <bean id="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" class="org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" />
 
 
   <bean id="org.hisp.dhis.i18n.118nLocaleService" class="org.hisp.dhis.i18n.DefaultI18nLocaleService">
@@ -1346,19 +1345,19 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="programDataElementStore" ref="org.hisp.dhis.program.ProgramDataElementStore" />
-  </bean>  
-  
+  </bean>
+
   <!-- ProgramMessage services -->
-  
+
   <bean id="org.hisp.dhis.program.message.ProgramMessageService" class="org.hisp.dhis.program.message.DefaultProgramMessageService">
   </bean>
-  
-   <bean id="org.hisp.dhis.sms.SmsMessageBatchCreatorService" class="org.hisp.dhis.sms.SmsMessageBatchCreatorService">
+
+  <bean id="org.hisp.dhis.sms.SmsMessageBatchCreatorService" class="org.hisp.dhis.sms.SmsMessageBatchCreatorService">
   </bean>
-  
-   <bean id="org.hisp.dhis.email.EmailMessageBatchCreator" class="org.hisp.dhis.email.EmailMessageBatchCreator">
+
+  <bean id="org.hisp.dhis.email.EmailMessageBatchCreator" class="org.hisp.dhis.email.EmailMessageBatchCreator">
   </bean>
-  
+
   <bean id="org.hisp.dhis.program.ProgramValidationService" class="org.hisp.dhis.program.DefaultProgramValidationService">
     <property name="validationStore" ref="org.hisp.dhis.program.ProgramValidationStore" />
     <property name="expressionService" ref="org.hisp.dhis.program.ProgramExpressionService" />
@@ -1458,9 +1457,9 @@
 
   <bean id="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener"
     class="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" />
-    
+
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
-    
+
 
   <!-- I18n UI -->
 
@@ -1589,7 +1588,7 @@
     <property name="skipInTests" value="true" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
-  
+
   <bean id="org.hisp.dhis.startup.ModelUpgrader" class="org.hisp.dhis.startup.ModelUpgrader">
     <property name="name" value="ModelUpgrader" />
     <property name="runlevel" value="7" />
@@ -1848,7 +1847,7 @@
   <bean id="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler"
     class="org.hisp.dhis.sms.command.code.SMSCodesDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>    
+  </bean>
 
   <!-- AOP definitions -->
 
