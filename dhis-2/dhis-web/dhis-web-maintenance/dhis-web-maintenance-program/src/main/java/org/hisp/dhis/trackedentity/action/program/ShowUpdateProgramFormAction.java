@@ -36,6 +36,8 @@ import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -107,6 +109,9 @@ public class ShowUpdateProgramFormAction
 
     @Autowired
     private DataApprovalService dataApprovalService;
+    
+    @Autowired
+    private PeriodService periodService;
 
     // -------------------------------------------------------------------------
     // Input/Output
@@ -217,6 +222,13 @@ public class ShowUpdateProgramFormAction
     {
         return workflows;
     }
+    
+    private List<PeriodType> periodTypes = new ArrayList<>();
+
+    public List<PeriodType> getPeriodTypes()
+    {
+        return periodTypes;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -258,6 +270,8 @@ public class ShowUpdateProgramFormAction
 
         workflows = new ArrayList<>( dataApprovalService.getAllWorkflows() );
         Collections.sort( workflows, IdentifiableObjectNameComparator.INSTANCE );
+        
+        periodTypes = periodService.getAllPeriodTypes();
 
         return SUCCESS;
     }
