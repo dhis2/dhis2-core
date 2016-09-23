@@ -264,24 +264,25 @@ public class JdbcEventAnalyticsTableManager
             String dataType = getColumnType( valueType );
             String dataClause = dataElement.isNumericType() ? numericClause : dataElement.getValueType().isDate() ? dateClause : "";
             String select = getSelectClause( valueType );
+            Boolean skipIndex = ValueType.LONG_TEXT == dataElement.getValueType() && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " + 
                 "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
 
-            String[] col = { quote( dataElement.getUid() ), dataType, sql };
+            String[] col = { quote( dataElement.getUid() ), dataType, sql, skipIndex.toString() };
             columns.add( col );
         }
 
         for ( DataElement dataElement : table.getProgram().getDataElementsWithLegendSet() )
         {
             String column = quote( dataElement.getUid() + PartitionUtils.SEP + dataElement.getLegendSet().getUid() );
-            String select = getSelectClause( dataElement.getValueType() );
+            String select = getSelectClause( dataElement.getValueType() );            
             
             String sql = "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
                 "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " and l.endvalue > " + select + " " +
                 "and lsl.legendsetid=" + dataElement.getLegendSet().getId() + " and dv.programstageinstanceid=psi.programstageinstanceid " + 
                 "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
-                
+            
             String[] col = { column, "character(11)", sql };
             columns.add( col );
         }
@@ -291,11 +292,12 @@ public class JdbcEventAnalyticsTableManager
             String dataType = getColumnType( attribute.getValueType() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
             String select = getSelectClause( attribute.getValueType() );
+            Boolean skipIndex = ValueType.LONG_TEXT == attribute.getValueType() && !attribute.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " + 
                 "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
 
-            String[] col = { quote( attribute.getUid() ), dataType, sql };
+            String[] col = { quote( attribute.getUid() ), dataType, sql, skipIndex.toString() };
             columns.add( col );
         }
         

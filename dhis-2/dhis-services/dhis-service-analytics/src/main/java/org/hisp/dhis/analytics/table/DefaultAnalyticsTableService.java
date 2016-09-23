@@ -276,7 +276,12 @@ public class DefaultAnalyticsTableService
             
             for ( String[] column : columns )
             {
-                indexes.add( new AnalyticsIndex( table.getTempTableName(), column[0] ) );
+                boolean skipIndex = column.length >= 4 && Boolean.TRUE.toString().equals( column[3] );
+                
+                if ( !skipIndex )
+                {
+                    indexes.add( new AnalyticsIndex( table.getTempTableName(), column[0] ) );
+                }
             }
         }
         

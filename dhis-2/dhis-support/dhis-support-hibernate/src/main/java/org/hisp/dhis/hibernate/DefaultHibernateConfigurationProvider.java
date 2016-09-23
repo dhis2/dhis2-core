@@ -168,7 +168,7 @@ public class DefaultHibernateConfigurationProvider
 
         // ---------------------------------------------------------------------
         // Disable second-level cache during testing
-        // ---------------------------------------------------------------------
+        // ---------------- -----------------------------------------------------
 
         if ( testing )
         {
@@ -176,7 +176,9 @@ public class DefaultHibernateConfigurationProvider
             configuration.setProperty( "hibernate.cache.use_query_cache", "false" );
         }
 
-        log.info( "Hibernate configuration loaded, using dialect: " + configuration.getProperty( "hibernate.dialect" ) );
+        log.info( "Hibernate configuration loaded, using dialect: " + 
+            configuration.getProperty( "hibernate.dialect" ) + ", connection URL: " + 
+            configuration.getProperty( "hibernate.connection.url" ) );
         
         this.configuration = configuration;
     }

@@ -114,6 +114,7 @@ public abstract class AbstractJdbcTableManager
      * <li>0 = database column name (quoted)</li>
      * <li>1 = database column data type</li>
      * <li>2 = column alias and name</li>
+     * <li>3 = skip indexes as true or false, can be omitted</li>
      * </ul>
      */
     protected abstract List<String[]> getDimensionColumns( AnalyticsTable table );

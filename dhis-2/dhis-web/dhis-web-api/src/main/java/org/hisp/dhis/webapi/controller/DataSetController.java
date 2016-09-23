@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DisplayDensity;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.view.ExportView;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
