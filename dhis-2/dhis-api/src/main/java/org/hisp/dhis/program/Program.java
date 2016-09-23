@@ -45,6 +45,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -91,6 +93,10 @@ public class Program
     private Set<UserAuthorityGroup> userRoles = new HashSet<>();
 
     private Set<ProgramIndicator> programIndicators = new HashSet<>();
+    
+    private Set<ProgramRule> programRules = new HashSet<>();
+    
+    private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
     private Boolean onlyEnrollOnce = false;
 
@@ -470,6 +476,34 @@ public class Program
     public void setProgramIndicators( Set<ProgramIndicator> programIndicators )
     {
         this.programIndicators = programIndicators;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramRule> getProgramRules()
+    {
+        return programRules;
+    }
+
+    public void setProgramRules( Set<ProgramRule> programRules )
+    {
+        this.programRules = programRules;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramRuleVariable> getProgramRuleVariables()
+    {
+        return programRuleVariables;
+    }
+
+    public void setProgramRuleVariables( Set<ProgramRuleVariable> programRuleVariables )
+    {
+        this.programRuleVariables = programRuleVariables;
     }
 
     @JsonProperty
