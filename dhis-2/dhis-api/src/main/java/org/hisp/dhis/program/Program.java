@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -145,6 +146,21 @@ public class Program
      * Property indicating whether program allows for capturing of coordinates
      */
     private Boolean captureCoordinates = false;
+    
+    /**
+     * How many days after period is over will this program block creation and modification of events
+     */
+    private int expiryDays;
+    
+    /**
+     * The PeriodType indicating the frequency that this program will use to decide on expiry
+     */
+    private PeriodType expiryPeriodType;
+    
+    /**
+     * How many days after an event is completed will this program block modification of the event
+     */
+    private int completeEventsExpiryDays;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -706,8 +722,38 @@ public class Program
     {
         this.captureCoordinates = captureCoordinates;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getExpiryDays() {
+		return expiryDays;
+	}
 
-    @Override
+	public void setExpiryDays(int expiryDays) {
+		this.expiryDays = expiryDays;
+	}
+	
+	@JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+	public PeriodType getExpiryPeriodType() {
+		return expiryPeriodType;
+	}
+
+	public void setExpiryPeriodType(PeriodType expiryPeriodType) {
+		this.expiryPeriodType = expiryPeriodType;
+	}
+
+	@JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+	public int getCompleteEventsExpiryDays() {
+		return completeEventsExpiryDays;
+	}
+
+	public void setCompleteEventsExpiryDays(int completeEventsExpiryDays) {
+		this.completeEventsExpiryDays = completeEventsExpiryDays;
+	}
+
+	@Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
         super.mergeWith( other, mergeMode );
@@ -717,6 +763,8 @@ public class Program
             Program program = (Program) other;
 
             version = program.getVersion();
+            expiryDays = program.getExpiryDays();            
+            completeEventsExpiryDays = program.getCompleteEventsExpiryDays();
 
             if ( mergeMode.isReplace() )
             {
@@ -737,6 +785,7 @@ public class Program
                 useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration();
                 categoryCombo = program.getCategoryCombo();
                 captureCoordinates = program.getCaptureCoordinates();
+                expiryPeriodType = program.getExpiryPeriodType();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -757,6 +806,7 @@ public class Program
                 useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration() == null ? useFirstStageDuringRegistration : program.getUseFirstStageDuringRegistration();
                 categoryCombo = program.getCategoryCombo() == null ? categoryCombo : program.getCategoryCombo();
                 captureCoordinates = program.getCaptureCoordinates() == null ? captureCoordinates : program.getCaptureCoordinates();
+                expiryPeriodType = program.getExpiryPeriodType() == null ? expiryPeriodType : program.getExpiryPeriodType();
             }
 
             organisationUnits.clear();

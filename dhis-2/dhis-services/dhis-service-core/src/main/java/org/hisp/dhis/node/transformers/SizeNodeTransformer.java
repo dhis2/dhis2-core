@@ -1,8 +1,8 @@
-package org.hisp.dhis.translation.comparator;
+package org.hisp.dhis.node.transformers;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,27 +28,50 @@ package org.hisp.dhis.translation.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Comparator;
+import org.hisp.dhis.node.Node;
+import org.hisp.dhis.node.NodeTransformer;
+import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
+import org.springframework.stereotype.Component;
 
-import org.hisp.dhis.translation.Translation;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Compares two Translation objects based on how specific the Locales are. The
- * Translation with least specific Locale appears first.
- * 
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TranslationLocaleSpecificityComparator
-    implements Comparator<Translation>
+@Component
+public class SizeNodeTransformer implements NodeTransformer
 {
-    public static final TranslationLocaleSpecificityComparator INSTANCE = new TranslationLocaleSpecificityComparator();
-    
     @Override
-    public int compare( Translation t1, Translation t2 )
+    public String name()
     {
-        Integer l1 = Integer.valueOf( t1.getLocale().length() );
-        Integer l2 = Integer.valueOf( t2.getLocale().length() );
-        
-        return l1.compareTo( l2 );
+        return "size";
+    }
+
+    @Override
+    public Node transform( Node node, List<String> args )
+    {
+        checkNotNull( node );
+        checkNotNull( node.getProperty() );
+
+        Property property = node.getProperty();
+
+        if ( property.isCollection() )
+        {
+            return new SimpleNode( property.getCollectionName(), node.getChildren().size(), property.isAttribute() );
+        }
+        else if ( property.is( PropertyType.TEXT ) || property.is( PropertyType.TEXT ) )
+        {
+            return new SimpleNode( property.getName(), ((String) ((SimpleNode) node).getValue()).length(), property.isAttribute() );
+        }
+        else if ( property.is( PropertyType.INTEGER ) || property.is( PropertyType.NUMBER ) )
+        {
+            return new SimpleNode( property.getName(), ((SimpleNode) node).getValue(), property.isAttribute() );
+        }
+
+        return node;
     }
 }
