@@ -90,13 +90,14 @@ public interface DataStatisticsService
      * @param username name of user, makes the query specified to this user
      * @return list of FavoriteStatistics
      */
-    List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username );    
 
+    List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username );
+    
     /**
-     * Returns statistics for the favorite with the given identifier.
+     * Returns data statistics for the favorite with the given identifier.
      * 
      * @param uid the favorite identifier.
-     * @return statistics for the favorite with the given identifier.
+     * @return data statistics for the favorite with the given identifier.
      */
     FavoriteStatistics getFavoriteStatistics( String uid );
 }

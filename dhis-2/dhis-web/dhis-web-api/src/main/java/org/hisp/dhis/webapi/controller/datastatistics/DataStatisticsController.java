@@ -106,7 +106,7 @@ public class DataStatisticsController
         return dataStatisticsService.getTopFavorites( eventType, pageSize, sortOrder, username );
     }
     
-    @RequestMapping( value = RESOURCE_PATH + "/favorites/{uid}", method = RequestMethod.GET )
+    @RequestMapping( value = "/dataStatistics/favorites/{uid}", method = RequestMethod.GET )
     public @ResponseBody FavoriteStatistics getFavoriteStatistics( @PathVariable( "uid" ) String uid )
     {
         return dataStatisticsService.getFavoriteStatistics( uid );
