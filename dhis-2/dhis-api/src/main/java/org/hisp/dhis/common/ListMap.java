@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author Lars Helge Overland
@@ -70,7 +71,7 @@ public class ListMap<T, V>
 
     public Collection<V> allValues()
     {
-        Collection<V> results=new ArrayList<>();
+        Collection<V> results = new ArrayList<>();
         
         for ( Map.Entry<T, List<V>> entry: entrySet() )
         {
@@ -82,32 +83,52 @@ public class ListMap<T, V>
 
     public Set<V> uniqueValues( )
     {
-        Set<V> results=new HashSet<>();
+        Set<V> results = new HashSet<>();
         
         for ( Map.Entry<T, List<V>> entry: entrySet() )
         {
-            results.addAll(entry.getValue());
+            results.addAll( entry.getValue() );
         }
         
         return results;
     }
 
-    public boolean hasValue( T key, V value )
+    public boolean containsValue( T key, V value )
     {
         List<V> list = this.get( key );
+        
         if ( list == null )
         {
             return false;
         }
-        else if ( list.contains( value ) )
+        
+        if ( list.contains( value ) )
         {
             return true;
         }
-        else
-        {
-            return false;
-        }
+        
+        return false;
     }
 
-
+    /**
+     * Produces a ListMap based on the given list of values. The key for
+     * each value is produced by applying the given keyMapper function.
+     * 
+     * @param values the values of the map.
+     * @param keyMapper the function producing the map key for each value.
+     * @return a ListMap.
+     */
+    public static <T, V> ListMap<T, V> getListMap( List<V> values, Function<V, T> keyMapper )
+    {
+        ListMap<T, V> map = new ListMap<>();
+        
+        for ( V value : values )
+        {
+            T key = keyMapper.apply( value );
+            
+            map.putValue( key, value );
+        }
+        
+        return map;
+    }
 }
