@@ -59,7 +59,6 @@ public class TableAlteror
 
     @Autowired
     private StatementManager statementManager;
-
     @Autowired
     private StatementBuilder statementBuilder;
 
@@ -1064,7 +1063,6 @@ public class TableAlteror
             "from datasetmembers dsm; " +
             "drop table datasetmembers; ";        
         
-        System.out.println( "INSERT: " + insertSql );
         executeSql( insertSql );
         
         executeSql( "alter table datasetelement alter column uid set not null" );
