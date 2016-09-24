@@ -381,7 +381,7 @@ public class DefaultDataValueService
                 Integer periodId = ddv.getPeriodId();
                 Integer aoc = ddv.getAttributeOptionComboId();
                 
-                if ( !( period2aoc.hasValue( periodId, aoc ) ) )
+                if ( !( period2aoc.containsValue( periodId, aoc ) ) )
                 {
                     DataValue dv = accumulatedValues.getValue( periodId, aoc );
                     

@@ -34,6 +34,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -110,9 +112,11 @@ public class DataElement
     private DataElementDomain domainType;
 
     /**
-     * A combination of categories to capture data.
+     * A combination of categories to capture data for this data element. Note
+     * that this category combination could be overridden by data set elements
+     * which this data element is part of, see {@link DataSetElement}.
      */
-    private DataElementCategoryCombo categoryCombo;
+    private DataElementCategoryCombo dataElementCategoryCombo;
 
     /**
      * URL for lookup of additional information on the web.
@@ -211,6 +215,44 @@ public class DataElement
         return element.getDataSet().getDataSetElements().remove( element );
     }
 
+    /**
+     * Returns the resolved category combinations by joining the category 
+     * combinations of the data set elements of which this data element is part
+     * of and the category combination linked directly with this data element.
+     * The returned set is immutable, will never be null and will contain at
+     * least one item.
+     */
+    public Set<DataElementCategoryCombo> getCategoryCombos()
+    {
+        return ImmutableSet.<DataElementCategoryCombo>builder()
+            .addAll( dataSetElements.stream().map( dse -> dse.getCategoryCombo() ).collect( Collectors.toSet() ) )
+            .add( dataElementCategoryCombo ).build();
+    }
+    
+    /**
+     * Returns the category option combinations of the resolved category
+     * combinations of this data element. The returned set is immutable, will 
+     * never be null and will contain at least one item.
+     */
+    public Set<DataElementCategoryOptionCombo> getCategoryOptionCombos()
+    {
+        Set<DataElementCategoryOptionCombo> optionCombos = Sets.newHashSet();        
+        getCategoryCombos().stream().forEach( cc -> optionCombos.addAll( cc.getOptionCombos() ) );
+        return optionCombos;        
+    }
+
+    /**
+     * Returns the sorted category option combinations of the resolved category
+     * combinations of this data element. The returned list is immutable, will 
+     * never be null and will contain at least one item.
+     */
+    public List<DataElementCategoryOptionCombo> getSortedCategoryOptionCombos()
+    {
+        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList();
+        getCategoryCombos().stream().forEach( cc -> optionCombos.addAll( cc.getSortedOptionCombos() ) );
+        return optionCombos;
+    }
+    
     /**
      * Indicates whether the value type of this data element is numeric.
      */
@@ -503,7 +545,7 @@ public class DataElement
     // -------------------------------------------------------------------------
     // Helper getters
     // -------------------------------------------------------------------------
-
+        
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOptionSetValue()
@@ -554,17 +596,17 @@ public class DataElement
         this.domainType = domainType;
     }
 
-    @JsonProperty
+    @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    public DataElementCategoryCombo getDataElementCategoryCombo()
     {
-        return categoryCombo;
+        return dataElementCategoryCombo;
     }
 
-    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void setDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
     {
-        this.categoryCombo = categoryCombo;
+        this.dataElementCategoryCombo = dataElementCategoryCombo;
     }
 
     @JsonProperty
@@ -673,7 +715,7 @@ public class DataElement
                 domainType = dataElement.getDomainType();
                 aggregationType = dataElement.getAggregationType();
                 valueType = dataElement.getValueType();
-                categoryCombo = dataElement.getCategoryCombo();
+                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo();
                 url = dataElement.getUrl();
                 optionSet = dataElement.getOptionSet();
                 commentOptionSet = dataElement.getCommentOptionSet();
@@ -684,7 +726,7 @@ public class DataElement
                 domainType = dataElement.getDomainType() == null ? domainType : dataElement.getDomainType();
                 aggregationType = dataElement.getAggregationType() == null ? aggregationType : dataElement.getAggregationType();
                 valueType = dataElement.getValueType() == null ? valueType : dataElement.getValueType();
-                categoryCombo = dataElement.getCategoryCombo() == null ? categoryCombo : dataElement.getCategoryCombo();
+                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo() == null ? dataElementCategoryCombo : dataElement.getDataElementCategoryCombo();
                 url = dataElement.getUrl() == null ? url : dataElement.getUrl();
                 optionSet = dataElement.getOptionSet() == null ? optionSet : dataElement.getOptionSet();
                 commentOptionSet = dataElement.getCommentOptionSet() == null ? commentOptionSet : dataElement.getCommentOptionSet();

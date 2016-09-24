@@ -43,10 +43,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 public class DataSetElement
     extends BaseIdentifiableObject
 {
+    /**
+     * Data set, never null.
+     */
     private DataSet dataSet;
     
+    /**
+     * Data element, never null.
+     */
     private DataElement dataElement;
 
+    /**
+     * Category combination, potentially null.
+     */
     private DataElementCategoryCombo categoryCombo;
 
     // -------------------------------------------------------------------------
@@ -70,9 +79,14 @@ public class DataSetElement
     // Logic
     // -------------------------------------------------------------------------
 
-    public DataElementCategoryCombo getCategoryComboFallback()
+    /**
+     * Returns the category combination of this data set element, if null,
+     * then returns the category combination of the data element of this data
+     * set element.
+     */
+    public DataElementCategoryCombo getResolvedCategoryCombo()
     {
-        return hasCategoryCombo() ? getCategoryCombo() : dataElement.getCategoryCombo();
+        return hasCategoryCombo() ? getCategoryCombo() : dataElement.getDataElementCategoryCombo();
     }
     
     public boolean hasCategoryCombo()
@@ -80,11 +94,6 @@ public class DataSetElement
         return categoryCombo != null;
     }
 
-    public boolean hasCategoryComboFallback()
-    {
-        return hasCategoryCombo() || dataElement.getCategoryCombo() != null;
-    }
-    
     // -------------------------------------------------------------------------
     // Hash code and equals
     // -------------------------------------------------------------------------

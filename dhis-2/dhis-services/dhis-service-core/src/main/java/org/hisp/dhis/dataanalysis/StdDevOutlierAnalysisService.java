@@ -82,7 +82,7 @@ public class StdDevOutlierAnalysisService
 
             if ( dataElement.getValueType().isNumeric() )
             {
-                Set<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryCombo().getOptionCombos();
+                Set<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
 
                 for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryOptionCombos )
                 {

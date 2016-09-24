@@ -76,9 +76,9 @@ public class DataElementDeletionHandler
 
         for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
-            if ( dataElement != null && dataElement.getCategoryCombo().equals( categoryCombo ) )
+            if ( dataElement != null && dataElement.getDataElementCategoryCombo().equals( categoryCombo ) )
             {
-                dataElement.setCategoryCombo( defaultCategoryCombo );
+                dataElement.setDataElementCategoryCombo( defaultCategoryCombo );
 
                 idObjectManager.updateNoAcl( dataElement );
             }

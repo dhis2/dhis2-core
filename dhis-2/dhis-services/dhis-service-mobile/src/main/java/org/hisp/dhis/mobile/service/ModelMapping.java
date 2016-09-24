@@ -33,7 +33,6 @@ import org.hisp.dhis.api.mobile.model.LWUITmodel.ProgramStageDataElement;
 import org.hisp.dhis.api.mobile.model.Model;
 import org.hisp.dhis.api.mobile.model.ModelList;
 import org.hisp.dhis.api.mobile.model.OptionSet;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 
 import java.util.ArrayList;
@@ -96,14 +95,11 @@ public class ModelMapping
 
     public static ModelList getCategoryOptionCombos( org.hisp.dhis.dataelement.DataElement dataElement )
     {
-        DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo();
-
-        // Client DataElement
         ModelList deCateOptCombo = new ModelList();
         List<Model> listCateOptCombo = new ArrayList<>();
         deCateOptCombo.setModels( listCateOptCombo );
 
-        for ( DataElementCategoryOptionCombo oneCatOptCombo : categoryCombo.getSortedOptionCombos() )
+        for ( DataElementCategoryOptionCombo oneCatOptCombo : dataElement.getSortedCategoryOptionCombos() )
         {
             Model oneCateOptCombo = new Model();
             oneCateOptCombo.setId( oneCatOptCombo.getId() );

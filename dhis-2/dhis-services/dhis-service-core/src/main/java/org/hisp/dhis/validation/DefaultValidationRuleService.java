@@ -289,7 +289,7 @@ public class DefaultValidationRuleService
         {
             for ( DataElement de : dataSet.getDataElements() )
             {
-                for ( DataElementCategoryOptionCombo co : de.getCategoryCombo().getOptionCombos() )
+                for ( DataElementCategoryOptionCombo co : de.getCategoryOptionCombos() )
                 {
                     DataValue dv = dataValueService.getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
 
