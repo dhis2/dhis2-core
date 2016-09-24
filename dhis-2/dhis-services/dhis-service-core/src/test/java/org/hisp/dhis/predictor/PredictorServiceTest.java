@@ -557,6 +557,7 @@ public class PredictorServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetPredictionsSequential()
     {
         setupTestData();
@@ -579,6 +580,7 @@ public class PredictorServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetPredictionsSeasonal()
     {
         setupTestData();
@@ -604,6 +606,7 @@ public class PredictorServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetPredictionsSeasonalWithOutbreak()
     {
         setupTestData();
@@ -627,6 +630,7 @@ public class PredictorServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testPredictSequential()
     {
         setupTestData();

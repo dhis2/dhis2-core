@@ -284,7 +284,8 @@ public class DataApprovalServiceCategoryOptionGroupTest
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest() throws Exception
+    public void setUpTest() 
+        throws Exception
     {
         userService = _userService;
 
@@ -689,6 +690,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     // -------------------------------------------------------------------------
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetUserDataApprovalLevels()
     {
         assertEquals( "GlobalLevel1, CountryLevel2, AgencyLevel3, PartnerLevel4", getUserLevels( superUser ) );
@@ -715,6 +717,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testApprovals()
     {
         // ---------------------------------------------------------------------
@@ -2258,26 +2261,5 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         assertTrue( unaccept( globalConsultant, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
         assertTrue( accept( globalConsultant, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-
-        //TODO: Fix and test:
-//        assertFalse( accept( globalReadEverything, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//
-//        assertFalse( unaccept( brazilInteragencyUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( chinaInteragencyUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( indiaInteragencyUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//
-//        assertFalse( unaccept( brazilAgencyAUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( chinaAgencyAUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( chinaAgencyBUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( indiaAgencyAUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//
-//        assertFalse( unaccept( brazilPartner1User, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( chinaPartner1User, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( chinaPartner2User, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//        assertFalse( unaccept( indiaPartner1User, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//
-//        assertTrue( unaccept( globalUser, countryLevel2, workflowAll, periodA, china, chinaA1_1Combo ) );
-//
-//        generateAllApprovalsAndPermissions();
     }
 }
