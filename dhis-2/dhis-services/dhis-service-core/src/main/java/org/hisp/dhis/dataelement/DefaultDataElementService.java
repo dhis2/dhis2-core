@@ -162,19 +162,6 @@ public class DefaultDataElementService
     }
 
     @Override
-    public DataElement getDataElementByName( String name )
-    {
-        List<DataElement> dataElements = dataElementStore.getAllEqName( name );
-
-        if ( dataElements.isEmpty() )
-        {
-            return null;
-        }
-
-        return dataElements.get( 0 );
-    }
-
-    @Override
     public List<DataElement> searchDataElementsByName( String key )
     {
         return dataElementStore.searchDataElementsByName( key );

@@ -104,14 +104,6 @@ public interface DataElementService
     DataElement getDataElementByCode( String code );
 
     /**
-     * Returns a DataElement with a given name.
-     *
-     * @param name the name of the DataElement to return.
-     * @return the DataElement with the given name, or null if no match.
-     */
-    DataElement getDataElementByName( String name );
-
-    /**
      * Returns List of DataElements with a given key.
      *
      * @param key the name of the DataElement to return.
