@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -68,13 +67,7 @@ public class FlattenedDataIntegrityReport
     private List<String> invalidCategoryCombos;
 
     @JsonProperty
-    private Map<String, Set<String>> categoryOptionCombosNotInDataElementCategoryCombo;
-
-    @JsonProperty
     private List<String> dataSetsNotAssignedToOrganisationUnits;
-
-    @JsonProperty
-    private List<String> sectionsWithInvalidCategoryCombinations;
 
     @JsonProperty
     private Collection<Collection<String>> indicatorsWithIdenticalFormulas;
@@ -132,11 +125,7 @@ public class FlattenedDataIntegrityReport
         
         invalidCategoryCombos = transformCollection( report.getInvalidCategoryCombos() );
 
-        categoryOptionCombosNotInDataElementCategoryCombo = transformMapOfSets( report.getCategoryOptionCombosNotInDataElementCategoryCombo() );
-
         dataSetsNotAssignedToOrganisationUnits = transformCollection( report.getDataSetsNotAssignedToOrganisationUnits() );
-
-        sectionsWithInvalidCategoryCombinations = transformCollection( report.getSectionsWithInvalidCategoryCombinations() );
 
         indicatorsWithIdenticalFormulas = transformCollectionOfCollections( report.getIndicatorsWithIdenticalFormulas() );
 
@@ -181,21 +170,6 @@ public class FlattenedDataIntegrityReport
         }
 
         return newCollection;
-    }
-
-    private Map<String, Set<String>> transformMapOfSets( Map<? extends IdentifiableObject, ? extends Set<? extends IdentifiableObject>> map )
-    {
-        HashMap<String, Set<String>> newMap = new HashMap<>();
-
-        for ( Map.Entry<? extends IdentifiableObject, ? extends Set<? extends IdentifiableObject>> entry : map.entrySet() )
-        {
-            Set<String> value = new HashSet<>();
-            value.addAll( transformCollection( entry.getValue() ));
-
-            newMap.put( entry.getKey().getDisplayName(), value );
-        }
-
-        return newMap;
     }
 
     private Map<String, String> transformMapOfStrings( Map<? extends IdentifiableObject, String> map )

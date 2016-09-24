@@ -395,10 +395,7 @@ public class DataSet
 
         for ( DataSetElement element : dataSetElements )
         {
-            if ( element.hasCategoryComboFallback() )
-            {
-                optionCombos.addAll( element.getCategoryComboFallback().getOptionCombos() );
-            }
+            optionCombos.addAll( element.getCategoryCombo().getOptionCombos() );
         }
 
         return optionCombos;
