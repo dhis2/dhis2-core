@@ -31,20 +31,15 @@ package org.hisp.dhis.dataintegrity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.dataset.SectionService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.indicator.Indicator;
@@ -113,13 +108,6 @@ public class DefaultDataIntegrityService
     public void setDataSetService( DataSetService dataSetService )
     {
         this.dataSetService = dataSetService;
-    }
-
-    private SectionService sectionService;
-
-    public void setSectionService( SectionService sectionService )
-    {
-        this.sectionService = sectionService;
     }
 
     private OrganisationUnitService organisationUnitService;
@@ -293,75 +281,11 @@ public class DefaultDataIntegrityService
     // -------------------------------------------------------------------------
 
     @Override
-    public SetMap<DataSet, DataElementOperand> getCategoryOptionCombosNotInDataElementCategoryCombo()
-    {
-        SetMap<DataSet, DataElementOperand> map = new SetMap<>();
-
-        Collection<DataSet> dataSets = dataSetService.getAllDataSets();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            if ( dataSet.hasDataEntryForm() )
-            {
-                Set<DataElementOperand> operands = dataEntryFormService.getOperandsInDataEntryForm( dataSet );
-
-                if ( operands != null )
-                {
-                    if ( operands.size() > 1000 )
-                    {
-                        log.warn( "Skipped integrity check for data set: " + dataSet.getName() + ", too many operands: " + operands.size() );
-                        continue;
-                    }
-
-                    for ( DataElementOperand operand : operands )
-                    {
-                        DataElement dataElement = dataElementService.getDataElement( operand.getDataElementId() );
-                        DataElementCategoryOptionCombo optionCombo = categoryService.getDataElementCategoryOptionCombo( operand.getOptionComboId() );
-                        
-                        if ( dataElement != null && optionCombo != null )
-                        {
-                            Set<DataElementCategoryOptionCombo> optionCombos = dataElement.getCategoryCombo() != null ? dataElement.getCategoryCombo().getOptionCombos() : null;
-    
-                            if ( optionCombos == null || !optionCombos.contains( optionCombo ) )
-                            {
-                                DataElementOperand persistedOperand = new DataElementOperand( dataElement, optionCombo );
-                                map.putValue( dataSet, persistedOperand );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return map;
-    }
-
-    @Override
     public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
     {
         Collection<DataSet> dataSets = dataSetService.getAllDataSets();
 
         return dataSets.stream().filter( ds -> ds.getSources() == null || ds.getSources().isEmpty() ).collect( Collectors.toList() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Section
-    // -------------------------------------------------------------------------
-
-    @Override
-    public List<Section> getSectionsWithInvalidCategoryCombinations()
-    {
-        List<Section> sections = new ArrayList<>();
-
-        for ( Section section : sectionService.getAllSections() )
-        {
-            if ( section != null && section.categorComboIsInvalid() )
-            {
-                sections.add( section );
-            }
-        }
-
-        return sections;
     }
 
     // -------------------------------------------------------------------------
@@ -654,9 +578,7 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked data elements" );
 
-        report.setCategoryOptionCombosNotInDataElementCategoryCombo( getCategoryOptionCombosNotInDataElementCategoryCombo() );
         report.setDataSetsNotAssignedToOrganisationUnits( new ArrayList<>( getDataSetsNotAssignedToOrganisationUnits() ) );
-        report.setSectionsWithInvalidCategoryCombinations( new ArrayList<>( getSectionsWithInvalidCategoryCombinations() ) );
 
         log.info( "Checked data sets" );
 
@@ -689,7 +611,6 @@ public class DefaultDataIntegrityService
         Collections.sort( report.getDataElementsWithoutDataSet() );
         Collections.sort( report.getDataElementsWithoutGroups() );
         Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
-        Collections.sort( report.getSectionsWithInvalidCategoryCombinations() );
         Collections.sort( report.getIndicatorsWithoutGroups() );
         Collections.sort( report.getOrganisationUnitsWithCyclicReferences() );
         Collections.sort( report.getOrphanedOrganisationUnits() );
