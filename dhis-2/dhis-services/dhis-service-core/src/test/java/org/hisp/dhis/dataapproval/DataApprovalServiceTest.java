@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
@@ -61,11 +62,13 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
+@Category( IntegrationTest.class )
 public class DataApprovalServiceTest
     extends DhisTest
 {

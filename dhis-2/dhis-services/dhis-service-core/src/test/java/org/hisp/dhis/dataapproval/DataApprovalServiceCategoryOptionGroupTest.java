@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -73,6 +74,7 @@ import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -80,6 +82,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
+@Category( IntegrationTest.class )
 public class DataApprovalServiceCategoryOptionGroupTest
     extends DhisTest
 {
