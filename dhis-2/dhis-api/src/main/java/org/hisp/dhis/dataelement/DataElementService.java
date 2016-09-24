@@ -269,16 +269,6 @@ public interface DataElementService
 
     List<DataElement> getDataElementsLikeName( String name );
 
-    List<DataElement> getDataElementsBetween( int first, int max );
-
-    List<DataElement> getDataElementsBetweenByName( String name, int first, int max );
-
-    int getDataElementCount();
-
-    int getDataElementCountByName( String name );
-
-    int getDataElementCountByDomainType( DataElementDomain domainType );
-
     /**
      * Returns a mapping of data element uid and associated category option combo
      * uids.
@@ -323,15 +313,6 @@ public interface DataElementService
      * @return the DataElementGroup with the given id, or null if no match.
      */
     DataElementGroup getDataElementGroup( int id );
-
-    /**
-     * Returns a DataElementGroup.
-     *
-     * @param id               the id of the DataElementGroup to return.
-     * @param i18nDataElements whether to i18n the data elements of this group.
-     * @return the DataElementGroup with the given id, or null if no match.
-     */
-    DataElementGroup getDataElementGroup( int id, boolean i18nDataElements );
 
     /**
      * Returns the data element groups with the given uids.
@@ -417,14 +398,6 @@ public interface DataElementService
     Set<DataElement> getDataElementsByZeroIsSignificantAndGroup( boolean zeroIsSignificant,
         DataElementGroup dataElementGroup );
 
-    List<DataElementGroup> getDataElementGroupsBetween( int first, int max );
-
-    List<DataElementGroup> getDataElementGroupsBetweenByName( String name, int first, int max );
-
-    int getDataElementGroupCount();
-
-    int getDataElementGroupCountByName( String name );
-
     List<DataElement> getDataElements( DataSet dataSet, String key, Integer max );
 
     // -------------------------------------------------------------------------
@@ -439,8 +412,6 @@ public interface DataElementService
 
     DataElementGroupSet getDataElementGroupSet( int id );
 
-    DataElementGroupSet getDataElementGroupSet( int id, boolean i18nGroups );
-
     DataElementGroupSet getDataElementGroupSet( String uid );
 
     DataElementGroupSet getDataElementGroupSetByName( String name );
@@ -450,12 +421,4 @@ public interface DataElementService
     List<DataElementGroupSet> getAllDataElementGroupSets();
 
     List<DataElementGroupSet> getDataElementGroupSetsByUid( Collection<String> uids );
-
-    List<DataElementGroupSet> getDataElementGroupSetsBetween( int first, int max );
-
-    List<DataElementGroupSet> getDataElementGroupSetsBetweenByName( String name, int first, int max );
-
-    int getDataElementGroupSetCount();
-
-    int getDataElementGroupSetCountByName( String name );
 }
