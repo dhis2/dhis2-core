@@ -231,30 +231,6 @@ public class DefaultDataElementService
     }
 
     @Override
-    public Map<DataElementCategoryCombo, List<DataElement>> getGroupedDataElementsByCategoryCombo(
-        List<DataElement> dataElements )
-    {
-        Map<DataElementCategoryCombo, List<DataElement>> mappedDataElements = new HashMap<>();
-
-        for ( DataElement dataElement : dataElements )
-        {
-            if ( mappedDataElements.containsKey( dataElement.getCategoryCombo() ) )
-            {
-                mappedDataElements.get( dataElement.getCategoryCombo() ).add( dataElement );
-            }
-            else
-            {
-                List<DataElement> des = new ArrayList<>();
-                des.add( dataElement );
-
-                mappedDataElements.put( dataElement.getCategoryCombo(), des );
-            }
-        }
-
-        return mappedDataElements;
-    }
-
-    @Override
     public List<DataElementCategoryCombo> getDataElementCategoryCombos( List<DataElement> dataElements )
     {
         Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();

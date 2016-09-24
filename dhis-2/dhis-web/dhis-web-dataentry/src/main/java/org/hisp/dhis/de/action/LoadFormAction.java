@@ -30,6 +30,7 @@ package org.hisp.dhis.de.action;
 
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -269,7 +270,7 @@ public class LoadFormAction
 
         Collections.sort( dataElements );
 
-        orderedDataElements = dataElementService.getGroupedDataElementsByCategoryCombo( dataElements );
+        orderedDataElements = ListMap.getListMap( dataElements, de -> de.getCategoryCombo() );
 
         orderedCategoryCombos = dataElementService.getDataElementCategoryCombos( dataElements );
 

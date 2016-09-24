@@ -213,17 +213,6 @@ public interface DataElementService
     List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
 
     /**
-     * Returns a Map with DataElementCategoryCombo as key and a Collection of
-     * the DataElements belonging to the DataElementCategoryCombo from the given
-     * argument List of DataElements as value.
-     *
-     * @param dataElements the DataElements to include.
-     * @return grouped DataElements based on their DataElementCategoryCombo.
-     */
-    Map<DataElementCategoryCombo, List<DataElement>> getGroupedDataElementsByCategoryCombo(
-        List<DataElement> dataElements );
-
-    /**
      * Returns the DataElementCategoryCombos associated with the given argument
      * list of DataElements.
      *
