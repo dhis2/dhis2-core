@@ -346,7 +346,7 @@ public class DefaultAdxDataService
 
             groupAttributes.put( AdxDataService.DATASET, dataSet.getUid() );
             DataElementCategoryCombo attributeCombo = dataSet.getCategoryCombo();
-            attributesToDxf( AdxDataService.ATTOPTCOMBO, attributeCombo, groupAttributes, dataElementIdScheme );
+            convertAttributesToDxf( groupAttributes, AdxDataService.ATTOPTCOMBO, attributeCombo, dataElementIdScheme );
         }
 
         // write the remaining attributes through to DXF stream
@@ -411,7 +411,7 @@ public class DefaultAdxDataService
 
             DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo();
 
-            attributesToDxf( AdxDataService.CATOPTCOMBO, categoryCombo, dvAttributes, dataElementIdScheme );
+            convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, dataElementIdScheme );
         }
 
         // if data element type is not numeric we need to pick out the
@@ -445,7 +445,7 @@ public class DefaultAdxDataService
         dxfWriter.writeEndElement();
     }
 
-    private Map<String, DataElementCategory> createCategoryMap( DataElementCategoryCombo categoryCombo )
+    private Map<String, DataElementCategory> getCodeCategoryMap( DataElementCategoryCombo categoryCombo )
         throws AdxException
     {
         Map<String, DataElementCategory> categoryMap = new HashMap<>();
@@ -517,8 +517,8 @@ public class DefaultAdxDataService
         return catOptionCombo;
     }
 
-    private void attributesToDxf( String optionComboName, DataElementCategoryCombo catCombo,
-        Map<String, String> attributes, IdentifiableProperty scheme )
+    private void convertAttributesToDxf( Map<String, String> attributes, String optionComboName, DataElementCategoryCombo catCombo,
+        IdentifiableProperty scheme )
             throws AdxException
     {
         log.debug( "ADX attributes: " + attributes );
@@ -528,7 +528,7 @@ public class DefaultAdxDataService
             return;
         }
 
-        Map<String, DataElementCategory> categoryMap = createCategoryMap( catCombo );
+        Map<String, DataElementCategory> categoryMap = getCodeCategoryMap( catCombo );
 
         Map<String, String> attributeOptions = new HashMap<>();
 
