@@ -82,7 +82,7 @@ public class DataSetElement
 
     public boolean hasCategoryComboFallback()
     {
-        return hasCategoryCombo() || dataElement.hasCategoryCombo();
+        return hasCategoryCombo() || dataElement.getCategoryCombo() != null;
     }
     
     // -------------------------------------------------------------------------
