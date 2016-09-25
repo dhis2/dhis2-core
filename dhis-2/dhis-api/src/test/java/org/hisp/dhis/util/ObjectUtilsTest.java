@@ -31,8 +31,12 @@ package org.hisp.dhis.util;
 import static org.junit.Assert.*;
 
 import java.util.List;
+import java.util.Set;
 
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -40,7 +44,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class ObjectUtilTest
+public class ObjectUtilsTest
 {
     @Test
     public void testJoin()
@@ -55,5 +59,32 @@ public class ObjectUtilTest
                 
         assertEquals( "DataElementA, DataElementB, DataElementC", actual );
         assertEquals( null, ObjectUtils.join( null, ", ", null ) );
+    }
+    
+    @Test
+    public void testAddAll()
+    {
+        DataElementCategory ctA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
+        DataElementCategory ctB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
+        DataElementCategory ctC = new DataElementCategory( "CategoryC", DataDimensionType.DISAGGREGATION );
+        DataElementCategory ctD = new DataElementCategory( "CategoryD", DataDimensionType.DISAGGREGATION );
+
+        DataElementCategoryCombo ccA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        DataElementCategoryCombo ccB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
+        
+        ccA.addDataElementCategory( ctA );
+        ccA.addDataElementCategory( ctB );
+        ccB.addDataElementCategory( ctC );
+        ccB.addDataElementCategory( ctD );
+        
+        List<DataElementCategoryCombo> ccs = Lists.newArrayList( ccA, ccB );
+        
+        Set<DataElementCategory> cts = ObjectUtils.addAll( ccs, cc -> cc.getCategories() );
+        
+        assertEquals( 4, cts.size() );
+        assertTrue( cts.contains( ctA ) );
+        assertTrue( cts.contains( ctB ) );
+        assertTrue( cts.contains( ctC ) );
+        assertTrue( cts.contains( ctD ) );        
     }
 }
