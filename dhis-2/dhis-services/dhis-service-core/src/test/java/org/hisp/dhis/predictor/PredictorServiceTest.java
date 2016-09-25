@@ -204,11 +204,6 @@ public class PredictorServiceTest
         dataSetMonthly.addDataSetElement( dataElementB );
         dataSetMonthly.addDataSetElement( dataElementC );
         dataSetMonthly.addDataSetElement( dataElementD );
-
-        dataElementA.getDataSets().add( dataSetMonthly );
-        dataElementB.getDataSets().add( dataSetMonthly );
-        dataElementC.getDataSets().add( dataSetMonthly );
-        dataElementD.getDataSets().add( dataSetMonthly );
     }
 
     // -------------------------------------------------------------------------
