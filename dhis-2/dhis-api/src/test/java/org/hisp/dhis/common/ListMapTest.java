@@ -63,7 +63,7 @@ public class ListMapTest
     }
     
     @Test
-    public void testGetListMap()
+    public void testGetListMapValueMapper()
     {
         DataElementGroupSet groupSetA = new DataElementGroupSet( "GroupSetA" );
         DataElementGroupSet groupSetB = new DataElementGroupSet( "GroupSetB" );
@@ -91,6 +91,38 @@ public class ListMapTest
         assertEquals( Lists.newArrayList( groupA, groupD, groupF ), map.get( groupSetA ) );
         assertEquals( Lists.newArrayList( groupB, groupE ), map.get( groupSetB ) );
         assertEquals( Lists.newArrayList( groupC ), map.get( groupSetC ) );
+        assertNull( map.get( groupSetZ ) );
+    }
+
+    @Test
+    public void testGetListMapKeyValueMapper()
+    {
+        DataElementGroupSet groupSetA = new DataElementGroupSet( "GroupSetA" );
+        DataElementGroupSet groupSetB = new DataElementGroupSet( "GroupSetB" );
+        DataElementGroupSet groupSetC = new DataElementGroupSet( "GroupSetC" );
+        DataElementGroupSet groupSetZ = new DataElementGroupSet( "GroupSetZ" );
+        
+        DataElementGroup groupA = new DataElementGroup( "GroupA" );
+        DataElementGroup groupB = new DataElementGroup( "GroupB" );
+        DataElementGroup groupC = new DataElementGroup( "GroupC" );
+        DataElementGroup groupD = new DataElementGroup( "GroupD" );
+        DataElementGroup groupE = new DataElementGroup( "GroupE" );
+        DataElementGroup groupF = new DataElementGroup( "GroupF" );
+        
+        groupA.setGroupSet( groupSetA );
+        groupB.setGroupSet( groupSetB );
+        groupC.setGroupSet( groupSetC );
+        groupD.setGroupSet( groupSetA );
+        groupE.setGroupSet( groupSetB );
+        groupF.setGroupSet( groupSetA );
+        
+        List<DataElementGroup> groups = Lists.newArrayList( groupA, groupB, groupC, groupD, groupE, groupF );
+                        
+        ListMap<DataElementGroupSet, Integer> map = ListMap.getListMap( groups, group -> group.getGroupSet(), group -> group.getId() );
+        
+        assertEquals( Lists.newArrayList( groupA.getId(), groupD.getId(), groupF.getId() ), map.get( groupSetA ) );
+        assertEquals( Lists.newArrayList( groupB.getId(), groupE.getId() ), map.get( groupSetB ) );
+        assertEquals( Lists.newArrayList( groupC.getId() ), map.get( groupSetC ) );
         assertNull( map.get( groupSetZ ) );
     }
 }

@@ -112,10 +112,10 @@ public class ListMap<T, V>
 
     /**
      * Produces a ListMap based on the given list of values. The key for
-     * each value is produced by applying the given keyMapper function.
+     * each entry is produced by applying the given keyMapper function.
      * 
      * @param values the values of the map.
-     * @param keyMapper the function producing the map key for each value.
+     * @param keyMapper the function producing the key for each entry.
      * @return a ListMap.
      */
     public static <T, V> ListMap<T, V> getListMap( List<V> values, Function<V, T> keyMapper )
@@ -127,6 +127,31 @@ public class ListMap<T, V>
             T key = keyMapper.apply( value );
             
             map.putValue( key, value );
+        }
+        
+        return map;
+    }
+
+    /**
+     * Produces a ListMap based on the given list of values. The key for
+     * each entry is produced by applying the given keyMapper function. The value
+     * for each entry is produced by applying the given valueMapper function. 
+     * 
+     * @param values the values of the map.
+     * @param keyMapper the function producing the key for each entry.
+     * @param valueMapper the function producing the value for each entry.
+     * @return a ListMap.
+     */
+    public static <T, U, V> ListMap<T, U> getListMap( List<V> values, Function<V, T> keyMapper, Function<V, U> valueMapper )
+    {
+        ListMap<T, U> map = new ListMap<>();
+        
+        for ( V value : values )
+        {
+            T key = keyMapper.apply( value );
+            U val = valueMapper.apply( value );
+            
+            map.putValue( key, val );
         }
         
         return map;
