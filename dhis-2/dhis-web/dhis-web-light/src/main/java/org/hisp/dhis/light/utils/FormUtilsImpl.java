@@ -203,8 +203,8 @@ public class FormUtilsImpl
     public Map<String, String> getDataValueMap( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
         Map<String, String> dataValueMap = new HashMap<>();
-        List<DataValue> values = new ArrayList<>( dataValueService.getDataValues( organisationUnit, period,
-            dataSet.getDataElements() ) );
+        List<DataValue> values = new ArrayList<>( dataValueService.getDataValues( dataSet.getDataElements(), 
+            Sets.newHashSet( period ), Sets.newHashSet( organisationUnit ) ) );
 
         for ( DataValue dataValue : values )
         {

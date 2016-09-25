@@ -269,7 +269,7 @@ public class PredictorServiceTest
 
     private Double getDataValue( DataElement dataElement, OrganisationUnit source, Period period )
     {
-        Collection<DataValue> results = dataValueService.getDataValues( dataElement, period, Sets.newHashSet( source ) );
+        Collection<DataValue> results = dataValueService.getDataValues( Sets.newHashSet( dataElement ), Sets.newHashSet( period ), Sets.newHashSet( source ) );
         
         for ( DataValue v : results )
         {
