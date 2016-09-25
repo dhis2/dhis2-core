@@ -31,6 +31,7 @@ package org.hisp.dhis.dataset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 
@@ -41,6 +42,25 @@ import com.google.common.collect.Sets;
  */
 public class DataSetTest
 {
+    @Test
+    public void testAddDataSetElement()
+    {
+        DataSet dsA = new DataSet( "DataSetA" );
+        DataSet dsB = new DataSet( "DataSetB" );
+        
+        DataElement deA = new DataElement( "DataElementA" );
+        DataElement deB = new DataElement( "DataElementB" );
+        
+        dsA.addDataSetElement( deA );
+        dsA.addDataSetElement( deB );
+        dsB.addDataSetElement( deA );
+        
+        assertEquals( 2, dsA.getDataSetElements().size() );
+        assertEquals( 1, dsB.getDataSetElements().size() );
+        assertEquals( 2, deA.getDataSetElements().size() );
+        assertEquals( 1, deB.getDataSetElements().size() );
+    }
+
     @Test
     public void testUpdateOrganisationUnits()
     {

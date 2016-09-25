@@ -263,7 +263,7 @@ public class DataElement
         
         return dataElementCategoryCombo;
     }
-        
+    
     /**
      * Returns the category option combinations of the resolved category
      * combinations of this data element. The returned set is immutable, will 
