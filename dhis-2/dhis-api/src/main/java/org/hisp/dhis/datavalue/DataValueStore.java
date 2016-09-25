@@ -110,16 +110,11 @@ public interface DataValueStore
     /**
      * Returns a soft deleted DataValue.
      * 
-     * @param dataElement the DataElement of the DataValue.
-     * @param period the Period of the DataValue.
-     * @param source the Source of the DataValue.
-     * @param categoryOptionCombo the category option combo.
-     * @param attributeOptionCombo the attribute option combo.
+     * @param dataValue the DataValue to use as parameters.
      * @return the DataValue which corresponds to the given parameters, or null
      *         if no match.
      */
-    DataValue getSoftDeletedDataValue( DataElement dataElement, Period period, OrganisationUnit source, 
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo );
+    DataValue getSoftDeletedDataValue( DataValue dataValue );
     
     // -------------------------------------------------------------------------
     // Collections of DataValues

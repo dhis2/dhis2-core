@@ -173,12 +173,11 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public DataValue getSoftDeletedDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+    public DataValue getSoftDeletedDataValue( DataValue dataValue )
     {
         Session session = sessionFactory.getCurrentSession();
 
-        Period storedPeriod = periodStore.reloadPeriod( period );
+        Period storedPeriod = periodStore.reloadPeriod( dataValue.getPeriod() );
 
         if ( storedPeriod == null )
         {
@@ -186,11 +185,11 @@ public class HibernateDataValueStore
         }
 
         return (DataValue) session.createCriteria( DataValue.class )
-            .add( Restrictions.eq( "dataElement", dataElement ) )
+            .add( Restrictions.eq( "dataElement", dataValue.getDataElement() ) )
             .add( Restrictions.eq( "period", storedPeriod ) )
-            .add( Restrictions.eq( "source", source ) )
-            .add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) )
-            .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
+            .add( Restrictions.eq( "source", dataValue.getSource() ) )
+            .add( Restrictions.eq( "categoryOptionCombo", dataValue.getCategoryOptionCombo() ) )
+            .add( Restrictions.eq( "attributeOptionCombo", dataValue.getAttributeOptionCombo() ) )
             .add( Restrictions.eq( "deleted", true ) )
             .uniqueResult();
     }
