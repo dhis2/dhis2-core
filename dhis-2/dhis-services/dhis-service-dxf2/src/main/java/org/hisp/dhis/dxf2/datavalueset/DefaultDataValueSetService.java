@@ -1020,6 +1020,7 @@ public class DefaultDataValueSetService
             internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
+            internalValue.setDeleted( null );
 
             // -----------------------------------------------------------------
             // Save, update or delete data value
@@ -1035,16 +1036,14 @@ public class DefaultDataValueSetService
                     {
                         DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
                         
-                        if ( !internalValue.isNullValue() )
+                        if ( internalValue.isNullValue() ) // Delete null value
                         {
-                            dataValueBatchHandler.updateObject( internalValue );
-                        }
-                        else
-                        {
-                            dataValueBatchHandler.deleteObject( internalValue );
+                            internalValue.setDeleted( true );
                             
                             auditValue.setAuditType( AuditType.DELETE );
                         }
+                        
+                        dataValueBatchHandler.updateObject( internalValue );
                         
                         auditBatchHandler.addObject( auditValue );
                     }
@@ -1055,9 +1054,11 @@ public class DefaultDataValueSetService
                 {
                     if ( !dryRun )
                     {
-                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+                        internalValue.setDeleted( true );
                         
-                        dataValueBatchHandler.deleteObject( internalValue );
+                        dataValueBatchHandler.updateObject( internalValue );
+                        
+                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
                         
                         auditBatchHandler.addObject( auditValue );
                     }
