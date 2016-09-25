@@ -182,11 +182,6 @@ public class HibernateDataValueStore
     public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
         Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
     {        
-        if ( dataElements.isEmpty() && periods.isEmpty() && organisationUnits.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-        
         Set<Period> storedPeriods = Sets.newHashSet();
         
         for ( Period period : periods )
@@ -194,6 +189,11 @@ public class HibernateDataValueStore
             storedPeriods.add( periodStore.reloadPeriod( period ) );
         }
 
+        if ( dataElements.isEmpty() && storedPeriods.isEmpty() && organisationUnits.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+        
         Criteria criteria = sessionFactory.getCurrentSession().createCriteria( DataValue.class );
         
         if ( !dataElements.isEmpty() )
@@ -201,9 +201,9 @@ public class HibernateDataValueStore
             criteria.add( Restrictions.in( "dataElement", dataElements ) );
         }
         
-        if ( !periods.isEmpty() )
+        if ( !storedPeriods.isEmpty() )
         {
-            criteria.add( Restrictions.in( "period", periods ) );
+            criteria.add( Restrictions.in( "period", storedPeriods ) );
         }
         
         if ( !organisationUnits.isEmpty() )
