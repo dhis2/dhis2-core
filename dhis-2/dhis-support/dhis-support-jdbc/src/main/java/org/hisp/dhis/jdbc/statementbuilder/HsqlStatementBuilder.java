@@ -91,18 +91,6 @@ public class HsqlStatementBuilder
     }
 
     @Override
-    public String getDeleteZeroDataValues()
-    {
-        return
-            "DELETE FROM datavalue " +
-            "WHERE datavalue.dataelementid IN (" +
-                "SELECT dataelementid from dataelement " +
-                "WHERE dataelement.aggregationtype = 'sum' " +
-                "AND dataelement.zeroissignificant = false) " +
-            "AND datavalue.value = '0'";
-    }
-
-    @Override
     public String getAddDate( String dateField, int days )
     {
         return "DATEADD('DAY'," + days + "," + dateField + ")";

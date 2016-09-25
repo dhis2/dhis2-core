@@ -42,10 +42,7 @@
   
   <!-- Maintenance -->
 
-  <bean id="org.hisp.dhis.maintenance.MaintenanceStore" class="org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-    <property name="statementBuilder" ref="statementBuilder" />
-  </bean>
+  <bean id="org.hisp.dhis.maintenance.MaintenanceStore" class="org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore" />
 
   <bean id="org.hisp.dhis.maintenance.MaintenanceService" class="org.hisp.dhis.maintenance.DefaultMaintenanceService">
     <property name="maintenanceStore" ref="org.hisp.dhis.maintenance.MaintenanceStore" />
