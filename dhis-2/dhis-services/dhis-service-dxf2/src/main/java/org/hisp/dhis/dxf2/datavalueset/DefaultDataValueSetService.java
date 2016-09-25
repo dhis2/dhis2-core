@@ -1026,9 +1026,13 @@ public class DefaultDataValueSetService
             // Save, update or delete data value
             // -----------------------------------------------------------------
 
-            DataValue existingValue = null;
-            
-            if ( !skipExistingCheck && ( existingValue = dataValueBatchHandler.findObject( internalValue ) ) != null )
+            DataValue existingValue = !skipExistingCheck ? dataValueBatchHandler.findObject( internalValue ) : null;
+
+            // -----------------------------------------------------------------
+            // Check soft deleted data values on update and add new
+            // -----------------------------------------------------------------
+
+            if ( !skipExistingCheck && existingValue != null && !existingValue.isDeleted() )
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
@@ -1036,7 +1040,7 @@ public class DefaultDataValueSetService
                     {
                         DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
                         
-                        if ( internalValue.isNullValue() ) // Delete null value
+                        if ( internalValue.isNullValue() )
                         {
                             internalValue.setDeleted( true );
                             
@@ -1072,7 +1076,11 @@ public class DefaultDataValueSetService
                 {
                     if ( !dryRun && !internalValue.isNullValue() )
                     {
-                        if ( dataValueBatchHandler.addObject( internalValue ) )
+                        if ( existingValue != null && existingValue.isDeleted() )
+                        {
+                            dataValueBatchHandler.updateObject( internalValue );
+                        }
+                        else if ( dataValueBatchHandler.addObject( internalValue ) )
                         {
                             importCount++;
                         }
