@@ -245,24 +245,7 @@ public class DataElement
         
         return null;
     }
-    
-    /**
-     * Indicates whether all category combinations associated with this data
-     * element is the default category combo.
-     */
-    public boolean isDefaultCategoryCombo()
-    {
-        for ( DataElementCategoryCombo categoryCombo : getCategoryCombos() )
-        {
-            if ( !categoryCombo.isDefault() )
-            {
-                return false;
-            }
-        }
         
-        return true;
-    }
-    
     /**
      * Returns the category option combinations of the resolved category
      * combinations of this data element. The returned set is immutable, will 

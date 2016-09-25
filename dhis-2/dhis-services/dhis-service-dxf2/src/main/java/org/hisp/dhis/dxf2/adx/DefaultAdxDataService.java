@@ -409,7 +409,9 @@ public class DefaultAdxDataService
         {
             log.debug( "No category option combo present" );
 
-            DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo();
+            //TODO expand to allow for category combos part of DataSetElements.
+            
+            DataElementCategoryCombo categoryCombo = dataElement.getDataElementCategoryCombo();
 
             convertAttributesToDxf( dvAttributes, AdxDataService.CATOPTCOMBO, categoryCombo, dataElementIdScheme );
         }
