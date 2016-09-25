@@ -86,7 +86,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public String validState()
     {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from datavalue limit 1" ).next();
+        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from datavalue dv where dv.deleted is not true limit 1" ).next();
 
         if ( !hasData )
         {
@@ -246,7 +246,8 @@ public class JdbcAnalyticsTableManager
                 "and de.domaintype = 'AGGREGATE' " +
                 "and pe.startdate >= '" + start + "' " +
                 "and pe.startdate <= '" + end + "' " +
-                "and dv.value is not null ";
+                "and dv.value is not null " +
+                "and dv.deleted is not true";
 
         if ( whereClause != null )
         {
