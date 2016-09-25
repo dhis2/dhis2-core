@@ -45,7 +45,8 @@ import org.junit.Test;
 public class DataElementTest
 {
     private PeriodType periodType = new MonthlyPeriodType();
-    
+
+    @Test
     public void testAddDataSetElement()
     {
         DataSet dsA = new DataSet();
