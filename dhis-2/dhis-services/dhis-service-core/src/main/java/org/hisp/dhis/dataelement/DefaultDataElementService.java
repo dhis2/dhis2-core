@@ -162,19 +162,6 @@ public class DefaultDataElementService
     }
 
     @Override
-    public DataElement getDataElementByName( String name )
-    {
-        List<DataElement> dataElements = dataElementStore.getAllEqName( name );
-
-        if ( dataElements.isEmpty() )
-        {
-            return null;
-        }
-
-        return dataElements.get( 0 );
-    }
-
-    @Override
     public List<DataElement> searchDataElementsByName( String key )
     {
         return dataElementStore.searchDataElementsByName( key );
@@ -231,30 +218,6 @@ public class DefaultDataElementService
     }
 
     @Override
-    public Map<DataElementCategoryCombo, List<DataElement>> getGroupedDataElementsByCategoryCombo(
-        List<DataElement> dataElements )
-    {
-        Map<DataElementCategoryCombo, List<DataElement>> mappedDataElements = new HashMap<>();
-
-        for ( DataElement dataElement : dataElements )
-        {
-            if ( mappedDataElements.containsKey( dataElement.getCategoryCombo() ) )
-            {
-                mappedDataElements.get( dataElement.getCategoryCombo() ).add( dataElement );
-            }
-            else
-            {
-                List<DataElement> des = new ArrayList<>();
-                des.add( dataElement );
-
-                mappedDataElements.put( dataElement.getCategoryCombo(), des );
-            }
-        }
-
-        return mappedDataElements;
-    }
-
-    @Override
     public List<DataElementCategoryCombo> getDataElementCategoryCombos( List<DataElement> dataElements )
     {
         Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
@@ -299,36 +262,6 @@ public class DefaultDataElementService
     public List<DataElement> getDataElementsLikeName( String name )
     {
         return dataElementStore.getAllLikeName( name );
-    }
-
-    @Override
-    public int getDataElementCount()
-    {
-        return dataElementStore.getCount();
-    }
-
-    @Override
-    public int getDataElementCountByName( String name )
-    {
-        return dataElementStore.getCountLikeName( name );
-    }
-
-    @Override
-    public int getDataElementCountByDomainType( DataElementDomain domainType )
-    {
-        return dataElementStore.getCountByDomainType( domainType );
-    }
-
-    @Override
-    public List<DataElement> getDataElementsBetween( int first, int max )
-    {
-        return dataElementStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<DataElement> getDataElementsBetweenByName( String name, int first, int max )
-    {
-        return dataElementStore.getAllLikeName( name, first, max );
     }
 
     @Override
@@ -399,19 +332,6 @@ public class DefaultDataElementService
     }
 
     @Override
-    public DataElementGroup getDataElementGroup( int id, boolean i18nDataElements )
-    {
-        DataElementGroup group = getDataElementGroup( id );
-
-        if ( i18nDataElements )
-        {
-            group.getMembers();
-        }
-
-        return group;
-    }
-
-    @Override
     public List<DataElementGroup> getDataElementGroupsByUid( Collection<String> uids )
     {
         return dataElementGroupStore.getByUid( uids );
@@ -462,30 +382,6 @@ public class DefaultDataElementService
         return dataElementGroupStore.get( groupId ).getMembers();
     }
 
-    @Override
-    public int getDataElementGroupCount()
-    {
-        return dataElementGroupStore.getCount();
-    }
-
-    @Override
-    public int getDataElementGroupCountByName( String name )
-    {
-        return dataElementGroupStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<DataElementGroup> getDataElementGroupsBetween( int first, int max )
-    {
-        return dataElementGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<DataElementGroup> getDataElementGroupsBetweenByName( String name, int first, int max )
-    {
-        return dataElementGroupStore.getAllLikeName( name, first, max );
-    }
-
     // -------------------------------------------------------------------------
     // DataElementGroupSet
     // -------------------------------------------------------------------------
@@ -512,19 +408,6 @@ public class DefaultDataElementService
     public DataElementGroupSet getDataElementGroupSet( int id )
     {
         return dataElementGroupSetStore.get( id );
-    }
-
-    @Override
-    public DataElementGroupSet getDataElementGroupSet( int id, boolean i18nGroups )
-    {
-        DataElementGroupSet groupSet = getDataElementGroupSet( id );
-
-        if ( i18nGroups )
-        {
-            groupSet.getDataElements();
-        }
-
-        return groupSet;
     }
 
     @Override
@@ -557,29 +440,5 @@ public class DefaultDataElementService
     public List<DataElementGroupSet> getDataElementGroupSetsByUid( Collection<String> uids )
     {
         return dataElementGroupSetStore.getByUid( uids );
-    }
-
-    @Override
-    public int getDataElementGroupSetCount()
-    {
-        return dataElementGroupSetStore.getCount();
-    }
-
-    @Override
-    public int getDataElementGroupSetCountByName( String name )
-    {
-        return dataElementGroupSetStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<DataElementGroupSet> getDataElementGroupSetsBetween( int first, int max )
-    {
-        return dataElementGroupSetStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<DataElementGroupSet> getDataElementGroupSetsBetweenByName( String name, int first, int max )
-    {
-        return dataElementGroupSetStore.getAllLikeName( name, first, max );
     }
 }

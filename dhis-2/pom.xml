@@ -126,7 +126,7 @@
                   <value>true</value>
                 </property>
               </systemProperties>
-              <argLine>-Xmx256m</argLine>
+              <argLine>-Xmx1024m</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
           </plugin>
@@ -148,7 +148,7 @@
                   <value>true</value>
                 </property>
               </systemProperties>
-              <argLine>-Xmx256m</argLine>
+              <argLine>-Xmx1024m</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
             </configuration>
           </plugin>

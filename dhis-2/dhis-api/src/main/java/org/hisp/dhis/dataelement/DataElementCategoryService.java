@@ -433,20 +433,6 @@ public interface DataElementCategoryService
     List<DataElementCategoryOptionCombo> getAllDataElementCategoryOptionCombos();
 
     /**
-     * Returns {@link DataElementCategoryOptionCombo} list with paging
-     *
-     * @param min First result
-     * @param max Maximum results
-     * @return a list of all category-option-combo
-     */
-    List<DataElementCategoryOptionCombo> getOptionCombosBetween( int min, int max );
-
-    /**
-     * Returns The number of all DataElementCategoryOptionCombo available
-     */
-    Integer getOptionComboCount();
-
-    /**
      * Generates and persists a default DataElementCategory,
      * DataElementCategoryOption, DataElementCategoryCombo and
      * DataElementCategoryOptionCombo.
@@ -503,39 +489,7 @@ public interface DataElementCategoryService
      */
     DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id );
 
-    List<DataElementCategory> getDataElementCategoriesBetween( int first, int max );
-
-    List<DataElementCategory> getDataElementCategoriesBetweenByName( String name, int first, int max );
-
     Map<String, Integer> getDataElementCategoryOptionComboUidIdMap();
-
-    int getDataElementCategoryCount();
-
-    int getDataElementCategoryCountByName( String name );
-
-    List<DataElementCategory> getDataElementCategoryBetween( int first, int max );
-
-    List<DataElementCategory> getDataElementCategoryBetweenByName( String name, int first, int max );
-
-    int getDataElementCategoryOptionCount();
-
-    int getDataElementCategoryOptionCountByName( String name );
-
-    List<DataElementCategoryOption> getDataElementCategoryOptionsBetween( int first, int max );
-
-    List<DataElementCategoryOption> getDataElementCategoryOptionsBetweenByName( String name, int first, int max );
-
-    int getDataElementCategoryOptionComboCount();
-
-    int getDataElementCategoryOptionComboCountByName( String name );
-
-    int getDataElementCategoryComboCount();
-
-    int getDataElementCategoryComboCountByName( String name );
-
-    List<DataElementCategoryCombo> getDataElementCategoryCombosBetween( int first, int max );
-
-    List<DataElementCategoryCombo> getDataElementCategoryCombosBetweenByName( String name, int first, int max );
 
     void updateCategoryOptionComboNames();
 
@@ -577,23 +531,9 @@ public interface DataElementCategoryService
 
     void deleteCategoryOptionGroup( CategoryOptionGroup group );
 
-    List<CategoryOptionGroup> getCategoryOptionGroupsBetween( int first, int max );
-
-    List<CategoryOptionGroup> getCategoryOptionGroupsBetweenByName( int first, int max, String name );
-
     List<CategoryOptionGroup> getAllCategoryOptionGroups();
 
     List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet );
-
-    CategoryOptionGroup getCategoryOptionGroupByName( String name );
-
-    CategoryOptionGroup getCategoryOptionGroupByCode( String code );
-
-    CategoryOptionGroup getCategoryOptionGroupByShortName( String shortName );
-
-    int getCategoryOptionGroupCount();
-
-    int getCategoryOptionGroupCountByName( String name );
 
     /**
      * Returns a set of CategoryOptionGroups that may be seen by the current
@@ -620,21 +560,11 @@ public interface DataElementCategoryService
 
     void deleteCategoryOptionGroupSet( CategoryOptionGroupSet group );
 
-    List<CategoryOptionGroupSet> getCategoryOptionGroupSetsBetween( int first, int max );
-
-    List<CategoryOptionGroupSet> getCategoryOptionGroupSetsBetweenByName( int first, int max, String name );
-
     List<CategoryOptionGroupSet> getAllCategoryOptionGroupSets();
 
     List<CategoryOptionGroupSet> getDisaggregationCategoryOptionGroupSetsNoAcl();
 
     List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsNoAcl();
-
-    CategoryOptionGroupSet getCategoryOptionGroupSetByName( String name );
-
-    int getCategoryOptionGroupSetCount();
-
-    int getCategoryOptionGroupSetCountByName( String name );
 
     DataElementCategoryOption getDefaultDataElementCategoryOption();
 

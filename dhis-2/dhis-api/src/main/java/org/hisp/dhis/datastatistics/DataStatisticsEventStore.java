@@ -62,4 +62,12 @@ public interface DataStatisticsEventStore
      * @return list of FavoriteStatistics
      */
     List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username );
+
+    /**
+     * Returns data statistics for the favorite with the given identifier.
+     * 
+     * @param uid the favorite identifier.
+     * @return data statistics for the favorite with the given identifier.
+     */
+    FavoriteStatistics getFavoriteStatistics( String uid );
 }

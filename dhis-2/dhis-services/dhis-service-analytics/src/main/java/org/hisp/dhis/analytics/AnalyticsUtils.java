@@ -431,10 +431,7 @@ public class AnalyticsUtils
             {
                 DataElement dataElement = (DataElement) de;
 
-                if ( dataElement.hasCategoryCombo() )
-                {
-                    categoryCombos.add( dataElement.getCategoryCombo() );
-                }
+                categoryCombos.add( dataElement.getCategoryCombo() );
             }
 
             for ( DataElementCategoryCombo cc : categoryCombos )
