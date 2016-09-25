@@ -34,7 +34,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class JdbcMaintenanceStore
     implements MaintenanceStore
