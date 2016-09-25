@@ -140,38 +140,6 @@ public interface DataValueService
     List<DataValue> getAllDataValues();
     
     /**
-     * Returns all DataValues for a given Source and Period.
-     * 
-     * @param source the Source of the DataValues.
-     * @param period the Period of the DataValues.
-     * @return a collection of all DataValues which match the given Source and
-     *         Period, or an empty collection if no values match.
-     */
-    List<DataValue> getDataValues( OrganisationUnit source, Period period );
-
-    /**
-     * Returns all DataValues for a given Source and DataElement.
-     * 
-     * @param source the Source of the DataValues.
-     * @param dataElement the DataElement of the DataValues.
-     * @return a collection of all DataValues which match the given Source and
-     *         DataElement, or an empty collection if no values match.
-     */
-    List<DataValue> getDataValues( OrganisationUnit source, DataElement dataElement );
-
-    /**
-     * Returns all DataValues for a given collection of Sources and a
-     * DataElement.
-     * 
-     * @param sources the Sources of the DataValues.
-     * @param dataElement the DataElement of the DataValues.
-     * @return a collection of all DataValues which match any of the given
-     *         Sources and the DataElement, or an empty collection if no values
-     *         match.
-     */
-    List<DataValue> getDataValues( Collection<OrganisationUnit> sources, DataElement dataElement );
-    
-    /**
      * Returns all DataValues for a given Source, Period, collection of
      * DataElements and collection of optioncombos.
      * 

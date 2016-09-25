@@ -233,25 +233,7 @@ public class DefaultDataValueService
     {
         return dataValueStore.getAllDataValues();
     }
-
-    @Override
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period )
-    {
-        return dataValueStore.getDataValues( source, period );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( OrganisationUnit source, DataElement dataElement )
-    {
-        return dataValueStore.getDataValues( source, dataElement );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( Collection<OrganisationUnit> sources, DataElement dataElement )
-    {
-        return dataValueStore.getDataValues( sources, dataElement );
-    }
-
+    
     @Override
     public List<DataValue> getDataValues( OrganisationUnit source, Period period, Collection<DataElement> dataElements )
     {
