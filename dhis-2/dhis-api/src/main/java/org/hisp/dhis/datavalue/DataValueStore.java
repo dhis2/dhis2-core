@@ -99,17 +99,6 @@ public interface DataValueStore
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, 
         DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo );
 
-    /**
-     * Returns a non-persisted DataValue.
-     * 
-     * @param dataElementId data element id
-     * @param periodId period id
-     * @param sourceId source id
-     * @param categoryOptionComboId category option combo id
-     * @param attributeOptionComboId attribute option combo id
-     */
-    DataValue getDataValue( int dataElementId, int periodId, int sourceId, int categoryOptionComboId, int attributeOptionComboId );
-    
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------

@@ -153,13 +153,6 @@ public class MetaDataImportAction
         this.classKey = classKey;
     }
 
-    private boolean preheatCache = true;
-
-    public void setPreheatCache( boolean preheatCache )
-    {
-        this.preheatCache = preheatCache;
-    }
-
     // -------------------------------------------------------------------------
     // Action Implementation
     // -------------------------------------------------------------------------

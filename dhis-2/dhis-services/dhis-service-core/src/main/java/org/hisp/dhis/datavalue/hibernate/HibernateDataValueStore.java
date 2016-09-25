@@ -50,7 +50,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.objectmapper.DataValueRowMapper;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -161,20 +160,6 @@ public class HibernateDataValueStore
         criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
 
         return (DataValue) criteria.uniqueResult();
-    }
-
-    @Override
-    public DataValue getDataValue( int dataElementId, int periodId, int sourceId, int categoryOptionComboId, int attributeOptionComboId )
-    {
-        final String sql =
-            "select * from datavalue " +
-            "where dataelementid = " + dataElementId + " " +
-            "and periodid = " + periodId + " " +
-            "and sourceid = " + sourceId + " " +
-            "and categoryoptioncomboid = " + categoryOptionComboId + " " +
-            "and attributeoptioncomboid = " + attributeOptionComboId;
-
-        return jdbcTemplate.queryForObject( sql, new DataValueRowMapper() );
     }
 
     // -------------------------------------------------------------------------

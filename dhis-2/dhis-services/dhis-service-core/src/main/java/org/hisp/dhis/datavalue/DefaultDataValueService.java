@@ -216,14 +216,6 @@ public class DefaultDataValueService
         return dataValueStore.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
     }
 
-    @Override
-    public DataValue getDataValue( int dataElementId, int periodId, int sourceId, int categoryOptionComboId )
-    {
-        DataElementCategoryOptionCombo defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
-
-        return dataValueStore.getDataValue( dataElementId, periodId, sourceId, categoryOptionComboId, defaultOptionCombo.getId() );
-    }
-
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
