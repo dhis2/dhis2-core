@@ -35,7 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -57,6 +56,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -209,6 +209,20 @@ public class DataElement
         return dataSetElements.add( element );
     }
 
+    /**
+     * Adds a data set element using the given data set, this data element and
+     * the given category combo.
+     * 
+     * @param dataSet the data set.
+     * @param categoryCombo the category combination.
+     */
+    public boolean addDataSetElement( DataSet dataSet, DataElementCategoryCombo categoryCombo )
+    {
+        DataSetElement element = new DataSetElement( dataSet, this, categoryCombo );
+        dataSet.getDataSetElements().add( element );
+        return dataSetElements.add( element );
+    }
+    
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
@@ -257,9 +271,7 @@ public class DataElement
      */
     public Set<DataElementCategoryOptionCombo> getCategoryOptionCombos()
     {
-        Set<DataElementCategoryOptionCombo> optionCombos = Sets.newHashSet();        
-        getCategoryCombos().stream().forEach( cc -> optionCombos.addAll( cc.getOptionCombos() ) );
-        return optionCombos;        
+        return ObjectUtils.getAll( getCategoryCombos(), DataElementCategoryCombo::getOptionCombos );
     }
 
     /**

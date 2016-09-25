@@ -302,6 +302,20 @@ public class DataSet
         return dataSetElements.add( element );
     }
 
+    /**
+     * Adds a data set element using this data set, the given data element and
+     * the given category combo.
+     * 
+     * @param dataElement the data element.
+     * @param categoryCombo the category combination.
+     */
+    public boolean addDataSetElement( DataElement dataElement, DataElementCategoryCombo categoryCombo )
+    {
+        DataSetElement element = new DataSetElement( this, dataElement, categoryCombo );
+        dataElement.getDataSetElements().add( element );
+        return dataSetElements.add( element );
+    }
+
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );

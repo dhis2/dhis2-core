@@ -32,12 +32,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -55,7 +58,7 @@ public class DataElementTest
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
         
-        deA.addDataSetElement( dsA );        
+        deA.addDataSetElement( dsA );
         deA.addDataSetElement( dsB );
         deB.addDataSetElement( dsA );
         
@@ -63,6 +66,58 @@ public class DataElementTest
         assertEquals( 1, dsB.getDataSetElements().size() );
         assertEquals( 2, deA.getDataSetElements().size() );
         assertEquals( 1, deB.getDataSetElements().size() );
+    }
+
+    @Test
+    public void testGetCategoryCombos()
+    {
+        DataElementCategoryCombo ccA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        DataElementCategoryCombo ccB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
+                
+        DataSet dsA = new DataSet( "DataSetA" );
+        DataSet dsB = new DataSet( "DataSetB" );
+        
+        DataElement deA = new DataElement( "DataElementA" );
+        DataElement deB = new DataElement( "DataElementB" );
+        
+        deA.setDataElementCategoryCombo( ccA );        
+        deA.addDataSetElement( dsA );
+        deA.addDataSetElement( dsB, ccB );
+        
+        assertEquals( 2, deA.getCategoryCombos().size() );
+        assertEquals( Sets.newHashSet( ccA, ccB ), deA.getCategoryCombos() );
+        
+        deB.setDataElementCategoryCombo( ccA );
+        deB.addDataSetElement( dsA );
+
+        assertEquals( 1, deB.getCategoryCombos().size() );
+        assertEquals( Sets.newHashSet( ccA ), deB.getCategoryCombos() );        
+    }
+    
+    @Test
+    public void testGetCategoryComboDataSet()
+    {
+        DataElementCategoryCombo ccA = new DataElementCategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
+        DataElementCategoryCombo ccB = new DataElementCategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
+                
+        DataSet dsA = new DataSet( "DataSetA" );
+        DataSet dsB = new DataSet( "DataSetB" );
+        
+        DataElement deA = new DataElement( "DataElementA" );
+        DataElement deB = new DataElement( "DataElementB" );
+        
+        deA.setDataElementCategoryCombo( ccA );        
+        deA.addDataSetElement( dsA );
+        deA.addDataSetElement( dsB, ccB );
+        
+        assertEquals( ccA, deA.getCategoryCombo( dsA ) );
+        assertEquals( ccB, deA.getCategoryCombo( dsB ) );
+        
+        deB.setDataElementCategoryCombo( ccA );
+        deB.addDataSetElement( dsA );
+
+        assertEquals( ccA, deB.getCategoryCombo( dsA ) );
+        assertEquals( ccA, deB.getCategoryCombo( dsB ) );
     }
     
     @Test
