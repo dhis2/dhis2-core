@@ -36,7 +36,6 @@ import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -93,13 +92,6 @@ public class LoadFormAction
     public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
     {
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private DataElementCategoryService categoryService;
-
-    public void setCategoryService( DataElementCategoryService categoryService )
-    {
-        this.categoryService = categoryService;
     }
 
     private I18n i18n;
@@ -166,9 +158,9 @@ public class LoadFormAction
         return sections;
     }
 
-    private Map<Integer, Map<Integer, Collection<DataElementCategoryOption>>> orderedOptionsMap = new HashMap<>();
+    private Map<Integer, Map<Integer, List<DataElementCategoryOption>>> orderedOptionsMap = new HashMap<>();
 
-    public Map<Integer, Map<Integer, Collection<DataElementCategoryOption>>> getOrderedOptionsMap()
+    public Map<Integer, Map<Integer, List<DataElementCategoryOption>>> getOrderedOptionsMap()
     {
         return orderedOptionsMap;
     }
@@ -290,13 +282,11 @@ public class LoadFormAction
             numberOfTotalColumns.put( categoryCombo.getId(), optionCombos.size() );
 
             orderedCategories.put( categoryCombo.getId(), categoryCombo.getCategories() );
+  
+            Map<Integer, List<DataElementCategoryOption>> optionsMap = new HashMap<>();
 
-            Map<Integer, Collection<DataElementCategoryOption>> optionsMap = new HashMap<>();
-
-            for ( DataElementCategory dec : categoryCombo.getCategories() )
+            for ( DataElementCategory category : categoryCombo.getCategories() )
             {
-                DataElementCategory category = categoryService.getDataElementCategory( dec.getId() );
-
                 optionsMap.put( category.getId(), category.getCategoryOptions() );
             }
 
