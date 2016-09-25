@@ -328,11 +328,7 @@ public interface OrganisationUnitService
 
     OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxlevels );
 
-    List<OrganisationUnit> getOrganisationUnitsBetween( int first, int max );
-
     List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max );
-
-    List<OrganisationUnit> getOrganisationUnitsBetweenByLastUpdated( Date lastUpdated, int first, int max );
 
     /**
      * Retrieves all the org units within the distance from center location.
