@@ -205,6 +205,7 @@ public class DataElement
     public boolean addDataSetElement( DataSet dataSet )
     {
         DataSetElement element = new DataSetElement( dataSet, this, null );
+        dataSet.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
 
