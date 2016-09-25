@@ -72,19 +72,12 @@ public interface DataValueStore
     void updateDataValue( DataValue dataValue );
 
     /**
-     * Soft deletes a DataValue. This implies setting the deleted property of
-     * the given DataValue to true.
-     * 
-     * @param dataValue the DataValue to soft delete.
-     */
-    void softDeleteDataValue( DataValue dataValue );
-    
-    /**
-     * Deletes a DataValue from the data store.
+     * Deletes a DataValue from the data store. Note that this does not take
+     * soft delete into account.
      * 
      * @param dataValue the DataValue to delete.
      */
-    void hardDeleteDataValue( DataValue dataValue );
+    void deleteDataValue( DataValue dataValue );
     
     /**
      * Deletes all data values for the given organisation unit.

@@ -200,6 +200,17 @@ public class DataValue
         }
     }
 
+    public void mergeWith( DataValue other )
+    {
+        this.value = other.getValue();
+        this.storedBy = other.getStoredBy();
+        this.created = other.getCreated();
+        this.lastUpdated = other.getLastUpdated();
+        this.comment = other.getComment();
+        this.followup = other.isFollowup();
+        this.deleted = other.isDeleted();
+    }
+    
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------

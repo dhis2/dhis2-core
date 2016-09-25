@@ -156,7 +156,19 @@ public class DefaultDataValueService
 
         dataValue.setCreated( new Date() );
 
-        dataValueStore.addDataValue( dataValue );
+        DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
+        
+        if ( softDelete != null )
+        {
+            softDelete.mergeWith( dataValue );
+            softDelete.setDeleted( null );
+            
+            dataValueStore.updateDataValue( softDelete );
+        }
+        else
+        {
+            dataValueStore.addDataValue( dataValue );
+        }
 
         return true;
     }
@@ -191,7 +203,9 @@ public class DefaultDataValueService
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
 
-        dataValueStore.softDeleteDataValue( dataValue );
+        dataValue.setDeleted( true );
+        
+        dataValueStore.updateDataValue( dataValue );
     }
     
     @Override

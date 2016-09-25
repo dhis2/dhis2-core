@@ -127,15 +127,7 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public void softDeleteDataValue( DataValue dataValue )
-    {
-        dataValue.setDeleted( true );
-        
-        updateDataValue( dataValue );
-    }
-
-    @Override
-    public void hardDeleteDataValue( DataValue dataValue )
+    public void deleteDataValue( DataValue dataValue )
     {
         sessionFactory.getCurrentSession().delete( dataValue );
     }
