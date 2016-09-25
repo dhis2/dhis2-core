@@ -297,9 +297,7 @@ public class DataSet
      */
     public boolean addDataSetElement( DataElement dataElement )
     {
-        DataSetElement element = new DataSetElement( this, dataElement, null );
-        element.setAutoFields();
-        
+        DataSetElement element = new DataSetElement( this, dataElement, null );      
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }

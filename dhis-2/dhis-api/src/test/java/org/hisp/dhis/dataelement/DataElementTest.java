@@ -49,13 +49,13 @@ public class DataElementTest
     @Test
     public void testAddDataSetElement()
     {
-        DataSet dsA = new DataSet();
-        DataSet dsB = new DataSet();
+        DataSet dsA = new DataSet( "DataSetA" );
+        DataSet dsB = new DataSet( "DataSetB" );
         
-        DataElement deA = new DataElement();
-        DataElement deB = new DataElement();
+        DataElement deA = new DataElement( "DataElementA" );
+        DataElement deB = new DataElement( "DataElementB" );
         
-        deA.addDataSetElement( dsA );
+        deA.addDataSetElement( dsA );        
         deA.addDataSetElement( dsB );
         deB.addDataSetElement( dsA );
         

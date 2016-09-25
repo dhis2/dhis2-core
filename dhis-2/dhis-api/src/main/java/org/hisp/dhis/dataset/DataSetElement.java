@@ -100,7 +100,7 @@ public class DataSetElement
 
     public int hashCode()
     {        
-        return dataElement.hashCode() * 31 * dataSet.hashCode();
+        return dataSet.hashCode() * 31 * dataElement.hashCode();
     }
     
     public boolean equals( Object other )
@@ -122,7 +122,23 @@ public class DataSetElement
         
         DataSetElement element = (DataSetElement) other;
         
-        return getDataSet().equals( element.getDataSet() ) && getDataElement().equals( element.getDataElement() );
+        return dataSet.equals( element.getDataSet() ) && dataElement.equals( element.getDataElement() );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"id\":\"" + getId() + "\", " +
+            "\"uid\":\"" + getUid() + "\", " +
+            "\"code\":\"" + getCode() + "\", " +
+            "\"name\":\"" + getName() + "\", " +
+            "\"created\":\"" + getCreated() + "\", " +
+            "\"lastUpdated\":\"" + getLastUpdated() + "\", " +
+            "\"dataSet\":\"" + dataSet + "\", " +
+            "\"dataElement\":\"" + dataElement + "\" " +
+            "}";
     }
 
     // -------------------------------------------------------------------------
