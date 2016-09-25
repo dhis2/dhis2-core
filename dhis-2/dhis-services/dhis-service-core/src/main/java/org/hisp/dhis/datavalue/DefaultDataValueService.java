@@ -141,7 +141,7 @@ public class DefaultDataValueService
         }
 
         // ---------------------------------------------------------------------
-        // Save
+        // Set default category option combo if null
         // ---------------------------------------------------------------------
 
         if ( dataValue.getCategoryOptionCombo() == null )
@@ -155,6 +155,10 @@ public class DefaultDataValueService
         }
 
         dataValue.setCreated( new Date() );
+
+        // ---------------------------------------------------------------------
+        // Check and restore soft deleted value
+        // ---------------------------------------------------------------------
 
         DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
         
