@@ -113,18 +113,6 @@ public class PostgreSQLStatementBuilder
     }
 
     @Override
-    public String getDeleteZeroDataValues()
-    {
-        return
-            "DELETE FROM datavalue " +
-            "USING dataelement " +
-            "WHERE datavalue.dataelementid = dataelement.dataelementid " +
-            "AND dataelement.aggregationtype = 'sum' " +
-            "AND dataelement.zeroissignificant = false " +
-            "AND datavalue.value = '0'";
-    }
-
-    @Override
     public String getAddDate( String dateField, int days )
     {
         return "(" + dateField + "+" + days + ")";
