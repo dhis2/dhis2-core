@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -97,6 +98,13 @@ public class HibernateDataValueStore
     {
         this.jdbcTemplate = jdbcTemplate;
     }
+    
+    private StatementBuilder statementBuilder;
+
+    public void setStatementBuilder( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
+    }
 
     // -------------------------------------------------------------------------
     // Basic DataValue
@@ -107,9 +115,7 @@ public class HibernateDataValueStore
     {
         dataValue.setPeriod( periodStore.reloadForceAddPeriod( dataValue.getPeriod() ) );
 
-        Session session = sessionFactory.getCurrentSession();
-
-        session.save( dataValue );
+        sessionFactory.getCurrentSession().save( dataValue );
     }
 
     @Override
@@ -117,17 +123,13 @@ public class HibernateDataValueStore
     {
         dataValue.setPeriod( periodStore.reloadForceAddPeriod( dataValue.getPeriod() ) );
 
-        Session session = sessionFactory.getCurrentSession();
-
-        session.update( dataValue );
+        sessionFactory.getCurrentSession().update( dataValue );
     }
 
     @Override
     public void deleteDataValue( DataValue dataValue )
     {
-        Session session = sessionFactory.getCurrentSession();
-
-        session.delete( dataValue );
+        sessionFactory.getCurrentSession().delete( dataValue );
     }
 
     @Override
@@ -152,14 +154,13 @@ public class HibernateDataValueStore
             return null;
         }
 
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) );
-        criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
-
-        return (DataValue) criteria.uniqueResult();
+        return (DataValue) session.createCriteria( DataValue.class )
+            .add( Restrictions.eq( "dataElement", dataElement ) )
+            .add( Restrictions.eq( "period", storedPeriod ) )
+            .add( Restrictions.eq( "source", source ) )
+            .add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) )
+            .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
+            .uniqueResult();
     }
 
     // -------------------------------------------------------------------------
@@ -170,11 +171,7 @@ public class HibernateDataValueStore
     @SuppressWarnings( "unchecked" )
     public List<DataValue> getAllDataValues()
     {
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-
-        return criteria.list();
+        return sessionFactory.getCurrentSession().createCriteria( DataValue.class ).list();
     }
 
     @Override
@@ -228,13 +225,11 @@ public class HibernateDataValueStore
 
         Session session = sessionFactory.getCurrentSession();
 
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.in( "dataElement", dataElements ) );
-        criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
-
-        return criteria.list();
+        return session.createCriteria( DataValue.class )
+            .add( Restrictions.in( "dataElement", dataElements ) )
+            .add( Restrictions.eq( "period", storedPeriod ) )
+            .add( Restrictions.eq( "source", source ) )
+            .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) ).list();
     }
 
     @Override
@@ -292,7 +287,7 @@ public class HibernateDataValueStore
         String sourcePrefix = source.getPath();
         Integer sourceId = source.getId();
 
-        String castType = "double precision"; //TODO use statement builder
+        String castType = statementBuilder.getDoubleColumnType();
 
         String sql = "SELECT dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid, " +
             "SUM(CAST(value AS "+castType+")) AS value " +
@@ -329,10 +324,10 @@ public class HibernateDataValueStore
     @Override
     public int getDataValueCountLastUpdatedAfter( Date date )
     {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( DataValue.class );
-        
-        criteria.add( Restrictions.ge( "lastUpdated", date ) );
-        criteria.setProjection( Projections.rowCount() );
+        Criteria criteria = sessionFactory.getCurrentSession()
+            .createCriteria( DataValue.class )
+            .add( Restrictions.ge( "lastUpdated", date ) )
+            .setProjection( Projections.rowCount() );
 
         Number rs = (Number) criteria.uniqueResult();
 

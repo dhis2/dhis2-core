@@ -157,6 +157,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore">
