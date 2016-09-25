@@ -72,11 +72,19 @@ public interface DataValueStore
     void updateDataValue( DataValue dataValue );
 
     /**
-     * Deletes a DataValue.
+     * Soft deletes a DataValue. This implies setting the deleted property of
+     * the given DataValue to true.
+     * 
+     * @param dataValue the DataValue to soft delete.
+     */
+    void softDeleteDataValue( DataValue dataValue );
+    
+    /**
+     * Deletes a DataValue from the data store.
      * 
      * @param dataValue the DataValue to delete.
      */
-    void deleteDataValue( DataValue dataValue );
+    void hardDeleteDataValue( DataValue dataValue );
     
     /**
      * Deletes all data values for the given organisation unit.
@@ -98,7 +106,21 @@ public interface DataValueStore
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, 
         DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo );
-
+    
+    /**
+     * Returns a soft deleted DataValue.
+     * 
+     * @param dataElement the DataElement of the DataValue.
+     * @param period the Period of the DataValue.
+     * @param source the Source of the DataValue.
+     * @param categoryOptionCombo the category option combo.
+     * @param attributeOptionCombo the attribute option combo.
+     * @return the DataValue which corresponds to the given parameters, or null
+     *         if no match.
+     */
+    DataValue getSoftDeletedDataValue( DataElement dataElement, Period period, OrganisationUnit source, 
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo );
+    
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------

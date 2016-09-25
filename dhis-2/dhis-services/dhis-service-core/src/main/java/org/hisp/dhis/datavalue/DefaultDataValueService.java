@@ -191,7 +191,7 @@ public class DefaultDataValueService
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
 
-        dataValueStore.deleteDataValue( dataValue );
+        dataValueStore.softDeleteDataValue( dataValue );
     }
     
     @Override

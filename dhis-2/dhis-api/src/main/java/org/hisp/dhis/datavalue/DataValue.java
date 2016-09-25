@@ -80,6 +80,8 @@ public class DataValue
     private String comment;
 
     private Boolean followup;
+    
+    private Boolean deleted;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -176,6 +178,11 @@ public class DataValue
         return followup != null && followup;
     }
 
+    public boolean isDeleted()
+    {
+        return deleted != null && deleted;
+    }
+    
     public boolean hasComment()
     {
         return comment != null && !comment.isEmpty();
@@ -365,6 +372,11 @@ public class DataValue
     public void setFollowup( Boolean followup )
     {
         this.followup = followup;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     public String getAuditValue()
