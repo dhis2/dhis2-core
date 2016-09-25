@@ -46,6 +46,24 @@ public class DataElementTest
 {
     private PeriodType periodType = new MonthlyPeriodType();
     
+    public void testAddDataSetElement()
+    {
+        DataSet dsA = new DataSet();
+        DataSet dsB = new DataSet();
+        
+        DataElement deA = new DataElement();
+        DataElement deB = new DataElement();
+        
+        deA.addDataSetElement( dsA );
+        deA.addDataSetElement( dsB );
+        deB.addDataSetElement( dsA );
+        
+        assertEquals( 2, dsA.getDataSetElements().size() );
+        assertEquals( 1, dsB.getDataSetElements().size() );
+        assertEquals( 2, deA.getDataSetElements().size() );
+        assertEquals( 1, deB.getDataSetElements().size() );
+    }
+    
     @Test
     public void testGetPeriodType()
     {        

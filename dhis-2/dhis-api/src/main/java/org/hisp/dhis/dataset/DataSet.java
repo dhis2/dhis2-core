@@ -366,7 +366,6 @@ public class DataSet
         return FormType.DEFAULT;
     }
     
-
     /**
      * Note that this method returns an immutable set and can not be used to
      * modify the model. Returns an immutable set of data sets associated with 
@@ -395,7 +394,7 @@ public class DataSet
 
         for ( DataSetElement element : dataSetElements )
         {
-            optionCombos.addAll( element.getCategoryCombo().getOptionCombos() );
+            optionCombos.addAll( element.getResolvedCategoryCombo().getOptionCombos() );
         }
 
         return optionCombos;

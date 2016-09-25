@@ -155,6 +155,11 @@ public class DataSetElement
         this.dataElement = dataElement;
     }
 
+    /**
+     * Category combination of this data set element. Can be null, use
+     * {@link #getResolvedCategoryCombo} to get fall back to category 
+     * combination of data element.
+     */
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

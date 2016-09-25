@@ -225,25 +225,29 @@ public class DataElement
     public Set<DataElementCategoryCombo> getCategoryCombos()
     {
         return ImmutableSet.<DataElementCategoryCombo>builder()
-            .addAll( dataSetElements.stream().map( dse -> dse.getCategoryCombo() ).collect( Collectors.toSet() ) )
+            .addAll( dataSetElements.stream()
+                .filter( DataSetElement::hasCategoryCombo )
+                .map( dse -> dse.getCategoryCombo() )
+                .collect( Collectors.toSet() ) )
             .add( dataElementCategoryCombo ).build();
     }
     
     /**
-     * Returns the category combination of the data set element linked to the
-     * given data set for this data element, or null of not present.
+     * Returns the category combination of the data set element matching the 
+     * given data set for this data element. If not present, returns the
+     * category combination for this data element.
      */
     public DataElementCategoryCombo getCategoryCombo( DataSet dataSet )
     {
         for ( DataSetElement element : dataSetElements )
         {
-            if ( dataSet.equals( element.getDataSet() ) )
+            if ( dataSet.equals( element.getDataSet() ) && element.hasCategoryCombo() )
             {
                 return element.getCategoryCombo();
             }
         }
         
-        return null;
+        return dataElementCategoryCombo;
     }
         
     /**
