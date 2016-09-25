@@ -927,7 +927,7 @@ public class TableAlteror
         
         updateEnums();
 
-        oauth2();
+        initOauth2();
 
         upgradeDataValuesWithAttributeOptionCombo();
         upgradeCompleteDataSetRegistrationsWithAttributeOptionCombo();
@@ -956,7 +956,7 @@ public class TableAlteror
         log.info( "Tables updated" );
     }
 
-    public void oauth2()
+    private void initOauth2()
     {
         // OAuth2
         executeSql( "CREATE TABLE oauth_code (" +

@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
@@ -329,7 +331,7 @@ public class DataSetController
             }
             else
             {
-                dataValues = dataValueService.getDataValues( ou, pe, dataSets.get( 0 ).getDataElements() );
+                dataValues = dataValueService.getDataValues( dataSets.get( 0 ).getDataElements(), Sets.newHashSet( pe ), Sets.newHashSet( ou ) );
             }
 
             FormUtils.fillWithDataValues( form, dataValues );
