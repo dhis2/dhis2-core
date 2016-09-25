@@ -33,13 +33,10 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.comparator.DataElementCategoryComboSizeComparator;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -214,23 +211,6 @@ public class DefaultDataElementService
     public List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
         return dataElementStore.getDataElementByCategoryCombo( categoryCombo );
-    }
-
-    @Override
-    public List<DataElementCategoryCombo> getDataElementCategoryCombos( List<DataElement> dataElements )
-    {
-        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
-
-        for ( DataElement dataElement : dataElements )
-        {
-            categoryCombos.addAll( dataElement.getCategoryCombos() );
-        }
-
-        List<DataElementCategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
-
-        Collections.sort( listCategoryCombos, new DataElementCategoryComboSizeComparator() );
-
-        return listCategoryCombos;
     }
 
     @Override

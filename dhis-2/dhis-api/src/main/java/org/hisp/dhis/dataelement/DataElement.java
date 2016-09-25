@@ -230,6 +230,23 @@ public class DataElement
     }
     
     /**
+     * Returns the category combination of the data set element linked to the
+     * given data set for this data element, or null of not present.
+     */
+    public DataElementCategoryCombo getCategoryCombo( DataSet dataSet )
+    {
+        for ( DataSetElement element : dataSetElements )
+        {
+            if ( dataSet.equals( element.getDataSet() ) )
+            {
+                return element.getCategoryCombo();
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
      * Returns the category option combinations of the resolved category
      * combinations of this data element. The returned set is immutable, will 
      * never be null and will contain at least one item.

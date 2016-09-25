@@ -131,7 +131,17 @@ public class Section
 
     public DataElementCategoryCombo getCategoryCombo()
     {
-        return dataElements != null && !dataElements.isEmpty() ? dataElements.get( 0 ).getCategoryCombos().iterator().next() : null;
+        for ( DataElement dataElement : dataElements )
+        {
+            DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo( dataSet );
+            
+            if ( categoryCombo != null )
+            {
+                return categoryCombo;
+            }
+        }
+        
+        return null;
     }
 
     public boolean hasDataElements()

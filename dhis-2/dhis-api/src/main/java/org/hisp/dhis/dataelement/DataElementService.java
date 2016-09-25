@@ -204,15 +204,6 @@ public interface DataElementService
     List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
 
     /**
-     * Returns the DataElementCategoryCombos associated with the given argument
-     * list of DataElements.
-     *
-     * @param dataElements the DataElements.
-     * @return a list of DataElements.
-     */
-    List<DataElementCategoryCombo> getDataElementCategoryCombos( List<DataElement> dataElements );
-
-    /**
      * Returns all DataElements which are associated with one or more
      * DataElementGroupSets.
      *

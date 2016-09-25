@@ -37,7 +37,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.comparator.DataElementCategoryComboSizeComparator;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -53,8 +53,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -71,13 +73,6 @@ public class LoadFormAction
     public void setDataEntryFormService( DataEntryFormService dataEntryFormService )
     {
         this.dataEntryFormService = dataEntryFormService;
-    }
-
-    private DataElementService dataElementService;
-
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
     }
 
     private DataSetService dataSetService;
@@ -262,9 +257,9 @@ public class LoadFormAction
 
         Collections.sort( dataElements );
 
-        orderedDataElements = ListMap.getListMap( dataElements, de -> de.getCategoryCombo() );
+        orderedDataElements = ListMap.getListMap( dataElements, de -> de.getCategoryCombo( dataSet ) );
 
-        orderedCategoryCombos = dataElementService.getDataElementCategoryCombos( dataElements );
+        orderedCategoryCombos = getDataElementCategoryCombos( dataElements, dataSet );
 
         for ( DataElementCategoryCombo categoryCombo : orderedCategoryCombos )
         {
@@ -427,5 +422,21 @@ public class LoadFormAction
                 }
             }
         }
+    }
+    
+    private List<DataElementCategoryCombo> getDataElementCategoryCombos( List<DataElement> dataElements, DataSet dataSet )
+    {
+        Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
+
+        for ( DataElement dataElement : dataElements )
+        {
+            categoryCombos.add( dataElement.getCategoryCombo( dataSet ) );
+        }
+
+        List<DataElementCategoryCombo> listCategoryCombos = new ArrayList<>( categoryCombos );
+
+        Collections.sort( listCategoryCombos, new DataElementCategoryComboSizeComparator() );
+
+        return listCategoryCombos;
     }
 }
