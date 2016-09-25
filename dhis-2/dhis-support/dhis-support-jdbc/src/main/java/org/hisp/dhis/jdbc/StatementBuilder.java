@@ -28,8 +28,6 @@ package org.hisp.dhis.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 /**
  * @author Lars Helge Overland
  * @version $Id: StatementBuilder.java 5715 2008-09-17 14:05:28Z larshelg $
@@ -207,10 +205,6 @@ public interface StatementBuilder
     String getDeleteZeroDataValues();
 
     String getAddDate( String dateField, int days );
-    
-    String queryDataElementStructureForOrgUnit();
-
-    String queryRawDataElementsForOrgUnitBetweenPeriods( Integer orgUnitId, List<Integer> betweenPeriodIds );
     
     String getDropPrimaryKey( String table );
     
