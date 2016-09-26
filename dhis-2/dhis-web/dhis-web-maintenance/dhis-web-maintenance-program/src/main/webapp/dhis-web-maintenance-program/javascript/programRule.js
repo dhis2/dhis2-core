@@ -387,12 +387,14 @@ function saveAction( programRuleId )
 
         var key = row.find(".actionDEs").val();
 
-        if(attributeList[key]){
-            json_Data.trackedEntityAttribute = {id: key};
-        }
-        else{
-            json_Data.dataElement = {id: key};
-            json_Data.programStageSection = {id: row.find(".actionSections").val() };
+        if(key) {
+            if(attributeList[key]){
+                json_Data.trackedEntityAttribute = {id: key};
+            }
+            else{
+                json_Data.dataElement = {id: key};
+                json_Data.programStageSection = {id: row.find(".actionSections").val() };
+            }
         }
 
         var actionId = $(this).attr('id');		
