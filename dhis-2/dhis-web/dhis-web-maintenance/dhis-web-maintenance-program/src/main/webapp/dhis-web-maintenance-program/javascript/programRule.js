@@ -1,9 +1,9 @@
 
 $(function() {
-  dhis2.contextmenu.makeContextMenu({
-    menuId: 'contextMenu',
-    menuItemActiveClass: 'contextMenuItemActive'
-  });
+    dhis2.contextmenu.makeContextMenu({
+        menuId: 'contextMenu',
+        menuItemActiveClass: 'contextMenuItemActive'
+    });
 });
 
 // -----------------------------------------------------------------------------
@@ -15,12 +15,12 @@ function showUpdateProgramRuleForm( context ) {
 }
 
 function showProgramRuleDetails( context ) {
-	jQuery.getJSON( 'getProgramRule.action', { id: context.id },
-		function ( json ) {
-			setInnerHTML( 'nameField', json.programRule.name );	
-			setInnerHTML( 'descriptionField', json.programRule.description );
-			showDetails();
-	});
+    jQuery.getJSON( 'getProgramRule.action', { id: context.id },
+        function ( json ) {
+            setInnerHTML( 'nameField', json.programRule.name );	
+            setInnerHTML( 'descriptionField', json.programRule.description );
+            showDetails();
+    });
 }
 
 
@@ -30,28 +30,27 @@ function showProgramRuleDetails( context ) {
 
 function removeProgramRule(context)
 {
-	var result = window.confirm( i18n_confirm_delete + "\n\n" + context.name );
-	if ( result )
+    var result = window.confirm( i18n_confirm_delete + "\n\n" + context.name );
+    if ( result )
     {
-		$.ajax({
-			type: "DELETE"
-			,url:  "../api/programRules/" + context.uid
-			,success: function(){
-				
-				jQuery( "tr#tr" + context.id ).remove();
-				
-				jQuery( "table.listTable tbody tr" ).removeClass( "listRow listAlternateRow" );
-				jQuery( "table.listTable tbody tr:odd" ).addClass( "listAlternateRow" );
-				jQuery( "table.listTable tbody tr:even" ).addClass( "listRow" );
-				jQuery( "table.listTable tbody" ).trigger("update");
+        $.ajax({
+            type: "DELETE"
+            ,url:  "../api/programRules/" + context.uid
+            ,success: function(){
 
-				setHeaderDelayMessage( i18n_delete_success );
-    	    	
-			}
-			,error:  function(){}
-		});
-	
-	}
+                jQuery( "tr#tr" + context.id ).remove();
+
+                jQuery( "table.listTable tbody tr" ).removeClass( "listRow listAlternateRow" );
+                jQuery( "table.listTable tbody tr:odd" ).addClass( "listAlternateRow" );
+                jQuery( "table.listTable tbody tr:even" ).addClass( "listRow" );
+                jQuery( "table.listTable tbody" ).trigger("update");
+
+                setHeaderDelayMessage( i18n_delete_success );
+
+            }
+            ,error:  function(){}
+        });
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -62,227 +61,224 @@ var program_DataElements = new Array();
 
 function removeDuplicateOptions()
 {
-	$("#sourceFieldList tr").each(function(){
-		var deName = $(this).find('td:first').html();
-		var deId = $(this).find('input').attr("deId");
-                if(deId){
-                    program_DataElements[deId] = deName;
-                }
-		
-	});
-	
-	$("#programRuleVariableDiv #dataElementId option").each(function () {
-		if(program_DataElements[this.value]) {
-			$(this).remove();
-		} else {
-			program_DataElements[this.value] = this.text;
-		}
-	});
+    $("#sourceFieldList tr").each(function(){
+        var deName = $(this).find('td:first').html();
+        var deId = $(this).find('input').attr("deId");
+        if(deId){
+            program_DataElements[deId] = deName;
+        }
+    });
+
+    $("#programRuleVariableDiv #dataElementId option").each(function () {
+        if(program_DataElements[this.value]) {
+            $(this).remove();
+        } else {
+            program_DataElements[this.value] = this.text;
+        }
+    });
 }
 
 function getDataElementsByStage()
 {
-	var programStageField = $("#programRuleVariableDiv #programStageId");
-	var programStageId = programStageField.val();
-	var dataElementField = $("#programRuleVariableDiv #dataElementId");
-	clearListById('programRuleVariableDiv #dataElementId');
-				
-	if( programStageId != "" )
-	{
-		$.ajax({
-			type: 'GET'
-			,url: "../api/programStages/" + programStageId + ".json?fields=programStageDataElements[dataElement[id,name]]"
-			,dataType: "json"
-			,success: function(json){
-				for( var i in json.programStageDataElements )
-				{
-					var dataElement = json.programStageDataElements[i].dataElement;
-					dataElementField.append("<option value='" + dataElement.id + "'>" + dataElement.name + "</option>");
-				}
-				removeAvailableVariables();
-			}
-		});
-	}
-	else
-	{
-		for( var i in program_DataElements )
-		{
-			dataElementField.append("<option value='" + i + "'>" + program_DataElements[i] + "</option>");
-		}
-		removeAvailableVariables();
-	}
-	
-	
+    var programStageField = $("#programRuleVariableDiv #programStageId");
+    var programStageId = programStageField.val();
+    var dataElementField = $("#programRuleVariableDiv #dataElementId");
+    clearListById('programRuleVariableDiv #dataElementId');
+
+    if( programStageId != "" )
+    {
+        $.ajax({
+            type: 'GET'
+            ,url: "../api/programStages/" + programStageId + ".json?fields=programStageDataElements[dataElement[id,name]]"
+            ,dataType: "json"
+            ,success: function(json){
+                for( var i in json.programStageDataElements )
+                {
+                    var dataElement = json.programStageDataElements[i].dataElement;
+                    dataElementField.append("<option value='" + dataElement.id + "'>" + dataElement.name + "</option>");
+                }
+                removeAvailableVariables();
+            }
+        });
+    }
+    else
+    {
+        for( var i in program_DataElements )
+        {
+            dataElementField.append("<option value='" + i + "'>" + program_DataElements[i] + "</option>");
+        }
+        removeAvailableVariables();
+    }
 }
 
 function removeAvailableVariables()
 {
-	$("#sourceFieldList tr").find("input").each(function(){
-		var deId = $(this).attr('deId');
-		$("#programRuleVariableDiv #dataElementId option").each(function(){
-			if( deId == $(this).attr('value') )
-			{
-				$(this).remove();
-			}
-		});
-	});
+    $("#sourceFieldList tr").find("input").each(function(){
+        var deId = $(this).attr('deId');
+        $("#programRuleVariableDiv #dataElementId option").each(function(){
+            if( deId == $(this).attr('value') )
+            {
+                $(this).remove();
+            }
+        });
+    });
 }
 
 function validateVariable( dataElementId, variableName )
 {
-	var valid = true;
-	hideById('variableNameError');
-	hideById('dataElementIdError');
-	
-	if( dataElementId == null || dataElementId == "" )
-	{
-		setInnerHTML('dataElementIdError', i18n_this_field_is_required);
-		showById('dataElementIdError');
-		return false;
-	} 
-	else if( variableName == "" )
-	{
-		setInnerHTML('variableNameError', i18n_this_field_is_required);
-		showById('variableNameError');
-		return false;
-	} 
-	
-	$("#sourceFieldList tr").find("td:last").each(function(){
-		if( variableName == $(this).find('input').attr('realValue') )
-		{
-			setInnerHTML('variableNameError', i18n_name_in_use);
-			showById('variableNameError');
-			valid = false;
-			return;
-		}
-	});
-	return valid;
+    var valid = true;
+    hideById('variableNameError');
+    hideById('dataElementIdError');
+
+    if( dataElementId == null || dataElementId == "" )
+    {
+        setInnerHTML('dataElementIdError', i18n_this_field_is_required);
+        showById('dataElementIdError');
+        return false;
+    } 
+    else if( variableName == "" )
+    {
+        setInnerHTML('variableNameError', i18n_this_field_is_required);
+        showById('variableNameError');
+        return false;
+    } 
+
+    $("#sourceFieldList tr").find("td:last").each(function(){
+        if( variableName == $(this).find('input').attr('realValue') )
+        {
+            setInnerHTML('variableNameError', i18n_name_in_use);
+            showById('variableNameError');
+            valid = false;
+            return;
+        }
+    });
+    return valid;
 }
 
 function addProgramRuleVariable()
 {
-	var sourceType = getFieldValue('sourceType');
-	
-	if( sourceType == 'TEI_ATTRIBUTE' ){
-		addProgramRuleAttrVariable();
-	}
-	else{
-		addProgramRuleDEVariable();
-	}
+    var sourceType = getFieldValue('sourceType');
+
+    if( sourceType == 'TEI_ATTRIBUTE' ){
+        addProgramRuleAttrVariable();
+    }
+    else{
+        addProgramRuleDEVariable();
+    }
 }
 
 function addProgramRuleAttrVariable()
 {
-	var attributeId = getFieldValue('programRuleVariableDiv #attributeId');
-	var variableName = getFieldValue('variableName');
-	if( validateVariable( attributeId, variableName ) )
-	{	
-		hideById('variableNameError');
-		
-		var sourceType = getFieldValue('sourceType');
-		var programStageId = getFieldValue('programStageId');
-		var attributeName = $('#attributeId option:selected').text();
-		var useOptionSetCode = $('#useOptionSetCode').is(":checked") === true;
-                
-		var json_Data = getAttrVariableJson( variableName, sourceType, attributeId, useOptionSetCode );
-		
-		var clazz = "listAlternateRow";
-		if( $("#sourceFieldList tr").length % 2 == 0 )
-		{
-			clazz = "listRow";
-		}
-			
-		var row = "<tr class='" + clazz + " newVariable' jsonData='" + json_Data + "'><td>" + attributeName + "</td><td>" + addAttrVariableButton( variableName, attributeId ) +"</td></tr>";
-		$("#sourceFieldList").append(row);
-		
-		// Remove the data element from Add the Source field form. This data was used, so cannot be used for any variables.
-		
-		$('#programRuleVariableDiv #attributeId option[value="' + attributeId + '"]').remove();		
-		$("#programRuleVariableDiv").dialog("close");
-	}
+    var attributeId = getFieldValue('programRuleVariableDiv #attributeId');
+    var variableName = getFieldValue('variableName');
+    if( validateVariable( attributeId, variableName ) )
+    {	
+        hideById('variableNameError');
+
+        var sourceType = getFieldValue('sourceType');
+        var programStageId = getFieldValue('programStageId');
+        var attributeName = $('#attributeId option:selected').text();
+        var useOptionSetCode = $('#useOptionSetCode').is(":checked") === true;
+
+        var json_Data = getAttrVariableJson( variableName, sourceType, attributeId, useOptionSetCode );
+
+        var clazz = "listAlternateRow";
+        if( $("#sourceFieldList tr").length % 2 == 0 )
+        {
+                clazz = "listRow";
+        }
+
+        var row = "<tr class='" + clazz + " newVariable' jsonData='" + json_Data + "'><td>" + attributeName + "</td><td>" + addAttrVariableButton( variableName, attributeId ) +"</td></tr>";
+        $("#sourceFieldList").append(row);
+
+        // Remove the data element from Add the Source field form. This data was used, so cannot be used for any variables.
+
+        $('#programRuleVariableDiv #attributeId option[value="' + attributeId + '"]').remove();		
+        $("#programRuleVariableDiv").dialog("close");
+    }
 	
 }
 
 
 function addProgramRuleDEVariable()
 {
-	var dataElementId = getFieldValue('programRuleVariableDiv #dataElementId');
-	var variableName = getFieldValue('variableName');
-	if( validateVariable( dataElementId, variableName ) )
-	{	
-		hideById('variableNameError');
-		
-		var sourceType = getFieldValue('sourceType');
-		var programStageId = getFieldValue('programStageId');
-		var dataElementName = $('#dataElementId option:selected').text();
-		var useOptionSetCode = $('#useOptionSetCode').is(":checked") === true;
-                
-		var json_Data = getDEVariableJson( variableName, sourceType, dataElementId, programStageId, useOptionSetCode );
-		
-		var clazz = "listAlternateRow";
-		if( $("#sourceFieldList tr").length % 2 == 0 )
-		{
-			clazz = "listRow";
-		}
-			
-		var row = "<tr class='" + clazz + " newVariable' jsonData='" + json_Data + "'><td>" + dataElementName + "</td><td>" + addDEVariableButton( variableName, dataElementId ) +"</td></tr>";
-		$("#sourceFieldList").append(row);
-		
-		// Remove the data element from Add the Source field form. This data was used, so cannot be used for any variables.
-		
-		$('#programRuleVariableDiv #dataElementId option[value="' + dataElementId + '"]').remove();		
-		$("#programRuleVariableDiv").dialog("close");
-	}
+    var dataElementId = getFieldValue('programRuleVariableDiv #dataElementId');
+    var variableName = getFieldValue('variableName');
+    if( validateVariable( dataElementId, variableName ) )
+    {	
+        hideById('variableNameError');
+
+        var sourceType = getFieldValue('sourceType');
+        var programStageId = getFieldValue('programStageId');
+        var dataElementName = $('#dataElementId option:selected').text();
+        var useOptionSetCode = $('#useOptionSetCode').is(":checked") === true;
+
+        var json_Data = getDEVariableJson( variableName, sourceType, dataElementId, programStageId, useOptionSetCode );
+
+        var clazz = "listAlternateRow";
+        if( $("#sourceFieldList tr").length % 2 == 0 )
+        {
+            clazz = "listRow";
+        }
+
+        var row = "<tr class='" + clazz + " newVariable' jsonData='" + json_Data + "'><td>" + dataElementName + "</td><td>" + addDEVariableButton( variableName, dataElementId ) +"</td></tr>";
+        $("#sourceFieldList").append(row);
+
+        // Remove the data element from Add the Source field form. This data was used, so cannot be used for any variables.
+
+        $('#programRuleVariableDiv #dataElementId option[value="' + dataElementId + '"]').remove();		
+        $("#programRuleVariableDiv").dialog("close");
+    }
 	
 }
 
 function addDEVariableButton( name, deId )
 {
-	return "<input type='button' deId='" + deId + "' realValue='" + name + "' value='#{" + name + "}' style='width:100%;' onclick='insertVariable(this)'/>";
+    return "<input type='button' deId='" + deId + "' realValue='" + name + "' value='#{" + name + "}' style='width:100%;' onclick='insertVariable(this)'/>";
 }
 
 function addAttrVariableButton( name, attributeId )
 {
-	return "<input type='button' attributeId='" + attributeId + "' realValue='" + name + "' value='A{" + name + "}' style='width:100%;' onclick='insertVariable(this)'/>";
+    return "<input type='button' attributeId='" + attributeId + "' realValue='" + name + "' value='A{" + name + "}' style='width:100%;' onclick='insertVariable(this)'/>";
 }
 
 
 function insertVariable(_this)
 {
-	insertTextCommon('condition', _this.value + " "); 
+    insertTextCommon('condition', _this.value + " "); 
 }
 
 function getDEVariableJson( variableName, sourceType, dataElementId, programStageId, useOptionSetCode )
 {
-	var json_Data = '{ '
-		+ '"name": "' + variableName + '",'
-		+ '"programRuleVariableSourceType": "' +  sourceType + '",'
-		+ '"dataElement": { "id" : "' + dataElementId + '"},'
-		+ '"program": { "id" :"' + getFieldValue("programId") + '"},'
-                + '"useCodeForOptionSet": "' + useOptionSetCode + '",'
-		+ '"programStage": { "id" :  "' + programStageId + '"}'
-	+ '}';
-	
-	return json_Data;
+    var json_Data = '{ '
+        + '"name": "' + variableName + '",'
+        + '"programRuleVariableSourceType": "' +  sourceType + '",'
+        + '"dataElement": { "id" : "' + dataElementId + '"},'
+        + '"program": { "id" :"' + getFieldValue("programId") + '"},'
+        + '"useCodeForOptionSet": "' + useOptionSetCode + '",'
+        + '"programStage": { "id" :  "' + programStageId + '"}'
+        + '}';
+
+    return json_Data;
 }
 
 
 function getAttrVariableJson( variableName, sourceType, attributeId, useOptionSetCode )
 {
-	var json_Data = '{ '
-		+ '"name": "' + variableName + '",'
-		+ '"programRuleVariableSourceType": "' +  sourceType + '",'
-		+ '"trackedEntityAttribute": { "id" : "' + attributeId + '"},'
-                + '"useCodeForOptionSet": "' + useOptionSetCode + '",'
-		+ '"program": { "id" :"' + getFieldValue("programId") + '"}'
-	+ '}';
-	
-	return json_Data;
+    var json_Data = '{ '
+        + '"name": "' + variableName + '",'
+        + '"programRuleVariableSourceType": "' +  sourceType + '",'
+        + '"trackedEntityAttribute": { "id" : "' + attributeId + '"},'
+        + '"useCodeForOptionSet": "' + useOptionSetCode + '",'
+        + '"program": { "id" :"' + getFieldValue("programId") + '"}'
+        + '}';
+
+    return json_Data;
 }
 
 function closeVariableForm()
 {
-	$("#programRuleVariableDiv").dialog("close");
+    $("#programRuleVariableDiv").dialog("close");
 }
 
 // --
@@ -301,81 +297,81 @@ function closeVariableForm()
 var status = 0; 
 function validateProgramRule()
 {
-	status = 0; 
-	var valid = true;
-	$("#actionTB tr").find(".actionList").each(function(){
-		var sourceType = $(this).val();
-		var contentCell = $(this).closest("tr").find(".content");
-		if( contentCell.val() == "" && sourceType.indexOf("HIDE") < 0 )
-		{
-			var message = $(this).find('option:selected').attr("errorMessage");
-			contentCell.css('background-color', 'pink');
-			contentCell.attr('placeholder', message);
-			unLockScreen();
-			valid = false;
-			return;
-		}
-	});
-	
-	if( valid ) {
-		status = 1;
-		addProgramRule();
-	}
-	return valid;
+    status = 0; 
+    var valid = true;
+    $("#actionTB tr").find(".actionList").each(function(){
+        var sourceType = $(this).val();
+        var contentCell = $(this).closest("tr").find(".content");
+        if( contentCell.val() == "" && sourceType.indexOf("HIDE") < 0 )
+        {
+            var message = $(this).find('option:selected').attr("errorMessage");
+            contentCell.css('background-color', 'pink');
+            contentCell.attr('placeholder', message);
+            unLockScreen();
+            valid = false;
+            return;
+        }
+    });
+
+    if( valid ) {
+        status = 1;
+        addProgramRule();
+    }
+    return valid;
 }
 
 function addProgramRule()
 {
-        console.log('trying to save program rule');
-	lockScreen();
-	var json_Data = { 
-		"name": getFieldValue('name'),
-		"condition": getFieldValue('condition'),
-		"description": getFieldValue('description'),
-		"program":{ "id": getFieldValue('programId')}
-	};
-	
-	var programRuleId = getFieldValue('programRuleId')
-	var actionMethod = ( programRuleId === undefined ) ? "POST" : "PUT";
-	var url = ( programRuleId === undefined ) ? "../api/programRules/" : "../api/programRules/" + programRuleId;
-	
-	$.ajax({
-			type: actionMethod
-			,url: url
-			,dataType: "json"
-			,async: false
-			,contentType: "application/json"
-			,data: JSON.stringify(json_Data)
-			,success: function(data){
-                                console.log('data:  ', data);
-				if( data.response && data.response.uid ){
-					saveProgramRuleVariable();
-					saveAction( data.response.uid );	
-				}				
-			}
-			,error:  function(){}
-		});
+    console.log('trying to save program rule');
+    lockScreen();
+    var json_Data = { 
+        "name": getFieldValue('name'),
+        "condition": getFieldValue('condition'),
+        "description": getFieldValue('description'),
+        "program":{ "id": getFieldValue('programId')}
+    };
 
-	return false;
+    var programRuleId = getFieldValue('programRuleId')
+    var actionMethod = ( programRuleId === undefined ) ? "POST" : "PUT";
+    var url = ( programRuleId === undefined ) ? "../api/programRules/" : "../api/programRules/" + programRuleId;
+
+    $.ajax({
+        type: actionMethod
+        ,url: url
+        ,dataType: "json"
+        ,async: false
+        ,contentType: "application/json"
+        ,data: JSON.stringify(json_Data)
+        ,success: function(data){
+            console.log('data:  ', data);
+            if( data.response && data.response.uid ){
+                    saveProgramRuleVariable();
+                    saveAction( data.response.uid );	
+            }				
+        }
+        ,error:  function(){}
+    });
+
+    return false;
 }
 
 
 function saveProgramRuleVariable()
 {
-	$("#sourceFieldList tr.newVariable").each(function(){
-		var json_Data = $(this).attr("jsonData");
-		
-		$.ajax({
-			type: "POST"
-			,url: "../api/programRuleVariables/"
-			,dataType: "json"
-			,async: false
-			,contentType: "application/json"
-			,data: json_Data
-			,success: function(){}
-			,error:  function(){}
-		});
-	});
+    $("#sourceFieldList tr.newVariable").each(function(){
+        var json_Data = $(this).attr("jsonData");
+
+        $.ajax({
+            type: "POST"
+            ,url: "../api/programRuleVariables/"
+            ,dataType: "json"
+            ,async: false
+            ,contentType: "application/json"
+            ,data: json_Data
+            ,success: function(){}
+            ,error:  function(){}
+        });
+    });
 }
 
 function saveAction( programRuleId )
@@ -384,9 +380,9 @@ function saveAction( programRuleId )
 	$("#actionTB tr").each(function(){
 		var row = $(this);
 		var json_Data = { 
-			"programRuleActionType": row.find(".actionList").val(),
-			"programRule":{ "id":programRuleId },			
-			"content": row.find(".content").val()
+                    "programRuleActionType": row.find(".actionList").val(),
+                    "programRule":{ "id":programRuleId },			
+                    "content": row.find(".content").val()
 		};		
                 
                 var key = row.find(".actionDEs").val();
@@ -401,17 +397,18 @@ function saveAction( programRuleId )
 
                 var actionId = $(this).attr('id');		
 		var actionMethod = ( actionId === undefined ) ? "POST" : "PUT";
-		var url = ( actionId === undefined ) ? "../api/programRuleActions/" : "../api/programRuleActions/" + actionId;
+		var url = ( actionId === undefined ) ? "../api/programRuleActions/" 
+                    : "../api/programRuleActions/" + actionId;
 	
 		$.ajax({
-			type: actionMethod
-			,url: url
-			,dataType: "json"
-			,async: false
-			,contentType: "application/json"
-			,data: JSON.stringify(json_Data)
-			,success: function(){}
-			,error:  function(){}
+                    type: actionMethod
+                    ,url: url
+                    ,dataType: "json"
+                    ,async: false
+                    ,contentType: "application/json"
+                    ,data: JSON.stringify(json_Data)
+                    ,success: function(){}
+                    ,error:  function(){}
 		});
 	});
 	
