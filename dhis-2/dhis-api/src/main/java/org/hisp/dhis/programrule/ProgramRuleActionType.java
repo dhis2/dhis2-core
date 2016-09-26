@@ -42,7 +42,8 @@ public enum ProgramRuleActionType
     WARNINGONCOMPLETE( "warningoncomplete" ),
     SHOWERROR( "showerror" ),
     ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT("createevent");
+    CREATEEVENT("createevent"),
+    SETMANDATORYFIELD("setmandatoryfield");
 
     final String value;
 
