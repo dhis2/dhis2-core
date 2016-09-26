@@ -265,7 +265,9 @@ public class DataValue
             ", period: " + period.getUid() +
             ", source: " + source.getUid() +
             ", category option combo: " + categoryOptionCombo.getUid() +
-            ", attribute option combo: " + attributeOptionCombo.getUid() + "]";
+            ", attribute option combo: " + attributeOptionCombo.getUid() + 
+            ", value: " + value +
+            ", deleted: " + deleted + "]";
     }
 
     // -------------------------------------------------------------------------

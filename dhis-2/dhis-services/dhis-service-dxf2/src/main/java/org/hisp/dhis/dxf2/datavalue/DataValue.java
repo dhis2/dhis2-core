@@ -67,6 +67,8 @@ public class DataValue
     protected String comment;
 
     protected Boolean followup;
+    
+    protected Boolean deleted;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -240,6 +242,18 @@ public class DataValue
     public void setFollowup( Boolean followup )
     {
         this.followup = followup;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Boolean getDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     public void close()

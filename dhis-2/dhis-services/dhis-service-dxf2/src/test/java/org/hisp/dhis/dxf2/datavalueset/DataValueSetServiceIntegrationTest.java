@@ -136,6 +136,9 @@ public class DataValueSetServiceIntegrationTest
     // Tests
     // -------------------------------------------------------------------------
 
+    /**
+     * Import 12 data values.
+     */
     @Test
     public void testImportDataValueSetXml()
         throws Exception
@@ -151,6 +154,9 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 12, dataValueService.getAllDataValues().size() );
     }
 
+    /**
+     * Import 12 data values. Then import 6 data values, where 4 are updates.
+     */
     @Test
     public void testImportUpdateDataValueSetXml()
         throws Exception
@@ -176,11 +182,25 @@ public class DataValueSetServiceIntegrationTest
         
         assertEquals( 14, dataValueService.getAllDataValues().size() );
     }
-    
+
+    /**
+     * Import 12 data values where 4 are marked as deleted.
+     */
     @Test
-    public void testImportDeletedDataValuesXml()
+    public void testImportDeletedDataValueSetXml()
+        throws Exception
     {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
         
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 12, summary.getImportCount().getImported() );
+        
+        System.out.println( dataValueService.getAllDataValues() );
+        
+        assertEquals( 8, dataValueService.getAllDataValues().size() );
     }
     
 }
