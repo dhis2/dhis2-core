@@ -136,6 +136,14 @@ public class MaintenanceController
         maintenanceService.deleteZeroDataValues();
     }
 
+    @RequestMapping( value = "/softDeletedDataValueRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedDataValues()
+    {
+        maintenanceService.deleteSoftDeletedDataValues();
+    }
+    
     @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -211,6 +219,7 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean ouPathsUpdate,
         @RequestParam( required = false ) boolean periodPruning,
         @RequestParam( required = false ) boolean zeroDataValueRemoval,
+        @RequestParam( required = false ) boolean softDeletedDataValueRemoval,
         @RequestParam( required = false ) boolean sqlViewsDrop,
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
@@ -240,6 +249,11 @@ public class MaintenanceController
         if ( zeroDataValueRemoval )
         {
             deleteZeroDataValues();
+        }
+        
+        if ( softDeletedDataValueRemoval )
+        {
+            deleteSoftDeletedDataValues();
         }
 
         if ( sqlViewsDrop )
