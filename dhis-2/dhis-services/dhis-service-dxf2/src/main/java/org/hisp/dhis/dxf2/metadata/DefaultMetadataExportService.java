@@ -51,6 +51,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.option.Option;
@@ -70,6 +71,8 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
@@ -109,6 +112,9 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
+
+    @Autowired
+    private SystemService systemService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -168,7 +174,13 @@ public class DefaultMetadataExportService implements MetadataExportService
     public RootNode getMetadataAsNode( MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
+
+        SystemInfo systemInfo = systemService.getSystemInfo();
+
+        ComplexNode system = rootNode.addChild( new ComplexNode( "system" ) );
+        system.addChild( new SimpleNode( "rev", systemInfo.getRevision() ) );
+        system.addChild( new SimpleNode( "version", systemInfo.getVersion() ) );
+        system.addChild( new SimpleNode( "date", systemInfo.getServerDate() ) );
 
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
 
