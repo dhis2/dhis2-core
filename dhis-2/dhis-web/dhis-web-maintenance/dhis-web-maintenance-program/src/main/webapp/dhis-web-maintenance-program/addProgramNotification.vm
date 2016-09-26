@@ -3,8 +3,9 @@
 <h5>$encoder.htmlEncode( $program.displayName )</h5>
 
 <div class="inputForm">
-    <input type="hidden" id="programUid" value="$program.uid">
-    <input type="hidden" id="programId" value="$program.id">
+    <input type="hidden" id="ownerId" value="$program.id">
+    <input type="hidden" id="ownerUid" value="$program.uid">
+    <input type="hidden" id="ownerType" value="program">
     <input type="hidden" id="isUpdate" value="false">
 
     <table>

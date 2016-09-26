@@ -570,6 +570,20 @@
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramStageNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramStageNotificationAction"
+    scope="prototype">
+    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramStageNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramStageNotificationAction"
+    scope="prototype">
+    <property name="manager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
+  </bean>
+
   <!-- Program reminder -->
 
   <bean

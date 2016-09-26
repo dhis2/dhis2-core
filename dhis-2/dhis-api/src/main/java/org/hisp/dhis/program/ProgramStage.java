@@ -214,10 +214,10 @@ public class ProgramStage
         this.reminders = reminders;
     }
 
-    @JsonProperty( "programNotificationTemplates" )
+    @JsonProperty( "notificationTemplates" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programNotificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programNotificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "notificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramNotificationTemplate> getNotificationTemplates()
     {
         return notificationTemplates;

@@ -1,9 +1,9 @@
-<h3>$i18n.getString( "program_notifications" )</h3>
+<h3>$i18n.getString( "program_stage_notifications" )</h3>
 
-<h5>$encoder.htmlEncode( $program.displayName )</h5>
+<h5>$encoder.htmlEncode( $programStage.displayName )</h5>
 
-<input type="hidden" id="programUid" value="$program.uid">
-<input type="hidden" id="programId" value="$program.id">
+<input type="hidden" id="programStageUid" value="$programStage.uid">
+<input type="hidden" id="programStageId" value="$programStage.id">
 
 <div id="contextMenu" class="contextMenu" style="width: 250px;">
     <ul id="contextMenuItems" class="contextMenuItems">
@@ -19,7 +19,7 @@
                 <tr valign="bottom">
                     <td align="right">
                         <input type="button" value="$i18n.getString( "add_new" )"
-                               onclick="window.location.href='showAddProgramNotification.action?id=$program.id'" style="width: 70px;">
+                               onclick="window.location.href='showAddProgramStageNotification.action?id=$programStage.id'" style="width: 70px;">
                     </td>
                 </tr>
             </table>
@@ -27,12 +27,12 @@
             <table class="listTable" id="listTable">
                 <col>
                 <thead>
-                    <tr>
-                        <th>$i18n.getString( "name" )</th>
-                    </tr>
+                <tr>
+                    <th>$i18n.getString( "name" )</th>
+                </tr>
                 </thead>
                 <tbody id="list">
-                    #foreach( $template in $program.notificationTemplates )
+                    #foreach( $template in $programStage.notificationTemplates )
                     <tr id="tr${template.id}"
                         data-id="$!template.id"
                         data-uid="$!template.uid" data-type="ProgramNotificationTemplate"
@@ -44,8 +44,8 @@
                     #end
                 </tbody>
             </table>
-                <p></p>
-                #parse( "/dhis-web-commons/paging/paging.vm" )
+            <p></p>
+            #parse( "/dhis-web-commons/paging/paging.vm" )
         </td>
     </tr>
 </table>
@@ -61,15 +61,15 @@
 
     function removeProgramNotification( template ) {
 
-        var programUid = document.querySelector( '#programUid' ).value;
-        var programId = document.querySelector( '#programId' ).value;
+        var programStageUid = document.querySelector( '#programStageUid' ).value;
+        var programStageId = document.querySelector( '#programStageId' ).value;
 
         jQuery.ajax( {
-            url : '../api/programs/' + programUid + '/notificationTemplates/' + template.uid,
+            url : '../api/programStages/' + programStageUid + '/notificationTemplates/' + template.uid,
             type : 'DELETE',
             dataType : 'json'
         } ).success( function ( result ) {
-            window.location.href = 'programNotification.action?id=' + programId;
+            window.location.href = 'programStageNotification.action?id=' + programStageId;
         } ).fail( function ( result ) {
             setHeaderDelayMessage( "Error: " + result.response );
             throw "Deletion failed";
@@ -77,7 +77,7 @@
     };
 
     function showUpdateProgramNotification( template ) {
-        var programUid = document.querySelector( '#programUid' ).value;
-        window.location.href = 'showUpdateProgramNotification.action?programUid=' + programUid + '&uid=' + template.uid;
+        var programStageUid = document.querySelector( '#programStageUid' ).value;
+        window.location.href = 'showUpdateProgramStageNotification.action?programStageUid=' + programStageUid + '&uid=' + template.uid;
     };
 </script>

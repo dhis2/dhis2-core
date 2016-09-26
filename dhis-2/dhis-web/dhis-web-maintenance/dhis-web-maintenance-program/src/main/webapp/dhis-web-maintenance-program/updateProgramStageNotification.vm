@@ -1,18 +1,18 @@
 
-<h3>$i18n.getString( "update_program_notification" )</h3>
+<h3>$i18n.getString( "update_program_stage_notification" )</h3>
 <h5>$encoder.htmlEncode( $template.displayName )</h5>
 
 <div class="inputForm">
     <input type="hidden" id="templateUid" value="$template.uid">
-    <input type="hidden" id="ownerId" value="$program.id">
-    <input type="hidden" id="ownerUid" value="$program.uid">
-    <input type="hidden" id="ownerType" value="program">
+    <input type="hidden" id="ownerId" value="$programStage.id">
+    <input type="hidden" id="ownerUid" value="$programStage.uid">
+    <input type="hidden" id="ownerType" value="programStage">
     <input type="hidden" id="isUpdate" value="true">
 
     <table>
         <thead>
         <tr>
-            <th colspan="2" style="width: 590px;">$i18n.getString( "program_notification_details" )</th><!-- TODO What to name this? -->
+            <th colspan="2" style="width: 590px;">$i18n.getString( "program_stage_notification_details" )</th>
         </tr>
         </thead>
         <tbody>
@@ -32,10 +32,8 @@
             <td>
                 #set( $trigger = $template.notificationTrigger.name() )
                 <select type="text" id="notificationTrigger" name="notificationTrigger">
-                    <option value="ENROLLMENT" #if ( $trigger == "ENROLLMENT" ) selected #end>$i18n.getString( "program_enrollment" )</option>
-                    <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "program_completion" )</option>
-                    <option value="SCHEDULED_DAYS_INCIDENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_INCIDENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_incident_date" )</option>
-                    <option value="SCHEDULED_DAYS_ENROLLMENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_ENROLLMENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_enrollment_date" )</option>
+                    <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "program_stage_completion" )</option>
+                    <option value="SCHEDULED_DAYS_DUE_DATE" #if ( $trigger == "SCHEDULED_DAYS_DUE_DATE" ) selected #end>$i18n.getString( "days_scheduled_due_date" )</option>
                 </select>
             </td>
         </tr>
@@ -102,7 +100,11 @@
             <td>
                 <select multiple size="4" id="params">
                     <option value="V{program_name}">$i18n.getString( "program_name" )</option>
+                    <option value="V{program_stage_name}">$i18n.getString( "program_stage_name" )</option>
                     <option value="V{org_unit_name}">$i18n.getString( "org_unit_name" )</option>
+                    <option value="V{due_date}">$i18n.getString( "due_date" )</option>
+                    <option value="V{days_since_due_date}">$i18n.getString( "days_since_due_date" )</option>
+                    <option value="V{days_until_due_date}">$i18n.getString( "days_until_due_date" )</option>
                     <option value="V{current_date}">$i18n.getString( "current_date" )</option>
                     #foreach( $attr in $attributes )
                         <option value="A{$attr.uid}">$attr.displayName</option>

@@ -15,8 +15,10 @@
         var messageTemplateTextArea = qs( '#messageTemplate' );
         var saveButton = qs( '#save' );
         var cancelButton = qs( '#cancel' );
-        var programId = qs( '#programId' ).value;
-        var programUid = qs( '#programUid' ).value;
+
+        var ownerId = qs( '#ownerId' ).value;
+        var ownerUid = qs( '#ownerUid' ).value;
+        var ownerType = qs( '#ownerType' ).value;
 
         var isUpdate = JSON.parse( qs( '#isUpdate' ).value );
 
@@ -58,9 +60,7 @@
             insertTextCommon( focusedTextArea.id, params.value );
         } );
 
-        cancelButton.addEventListener( "click", function() {
-            window.location.href = 'programNotification.action?id=' + programId;
-        } );
+        cancelButton.addEventListener( "click", returnToListing );
 
         saveButton.addEventListener( "click", function() {
             var json = formAsJson();
@@ -69,21 +69,29 @@
 
         // Internal
 
+        function returnToListing() {
+            if ( ownerType === 'program' ) {
+                window.location.href = 'programNotification.action?id=' + ownerId;
+            } else if ( ownerType === 'programStage' ) {
+                window.location.href = 'programStageNotification.action?id=' + ownerId;
+            }
+        }
+
         function getSelectedDeliveryChannels() {
             return Array.prototype.slice.call(
                 document.forms[ 'deliveryChannelsForm' ].elements[ 'deliveryChannels[]' ] )
                 .filter( function( cb ) { return cb.checked; } )
                 .map( function( cb ) { return cb.value; } );
-        };
+        }
 
         function getUserGroup() {
             var uid = qs( '#userGroup' ).value || undefined;
             return ( uid === undefined ) ? undefined : { 'id' : uid };
-        };
+        }
 
         function getScheduledDays() {
             return ( days.value || 0 ) * ( qs( '#daysModifier' ).value );
-        };
+        }
 
         function formAsJson() {
             return {
@@ -96,7 +104,7 @@
                 subjectTemplate : qs( '#subjectTemplate' ).value,
                 messageTemplate : qs( '#messageTemplate' ).value
             };
-        };
+        }
 
         function update( json ) {
             jQuery.ajax( {
@@ -105,8 +113,8 @@
                 data : JSON.stringify( json ),
                 contentType : ' application/json',
                 type : 'PUT'
-            } ).done( onSaveDone ).fail( onSaveFail );
-        };
+            } ).done( returnToListing ).fail( onSaveFail );
+        }
 
         function save( json ) {
             jQuery.ajax( {
@@ -116,31 +124,38 @@
                 contentType : 'application/json',
                 type : 'POSt'
             } ).then( function( result ) {
-                return saveToProgram( programUid, result.response.uid );
+                if ( ownerType === 'program') {
+                    return saveToProgram( ownerUid, result.response.uid );
+                } else if ( ownerType === 'programStage' ) {
+                    return saveToProgramStage( ownerUid, result.response.uid )
+                }
             } ).done( function( result ) {
-                onSaveDone()
+                returnToListing();
             } )
             .fail( function( jqXhr, textStatus, error ) {
                 onSaveFail( jqXhr, textStatus, error );
             } );
         };
 
-        function saveToProgram( programUid, uidOfTemplate ) {
+        function saveToProgram( programUid, templateUid ) {
             return jQuery.ajax( {
-                type: 'POST',
-                url: '../api/programs/' + programUid + '/notificationTemplates/' + uidOfTemplate
+                type : 'POST',
+                url : '../api/programs/' + programUid + '/notificationTemplates/' + templateUid
             } );
-        };
+        }
+
+        function saveToProgramStage( programStageUid, templateUid ) {
+            return jQuery.ajax( {
+                type : 'POST',
+                url : '../api/programStages/' + programStageUid + '/notificationTemplates/' + templateUid
+            } );
+        }
 
         function onSaveFail( jqXhr, textStatus, error ) {
             var json = jQuery.parseJSON( jqXhr.responseText );
             var errorMessage = json.response.errorReports[0].message;
 
             setHeaderDelayMessage( errorMessage || ( textStatus + ': ' + error ) );
-        };
-
-        function onSaveDone() {
-            window.location.href = 'programNotification.action?id=' + programId;
-        };
+        }
     } );
 } )( document.querySelector.bind( document ) );

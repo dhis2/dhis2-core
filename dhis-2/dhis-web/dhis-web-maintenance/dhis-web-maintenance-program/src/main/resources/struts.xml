@@ -642,7 +642,7 @@
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
-    <!-- Program notification -->
+    <!-- Program notification for Program -->
 
     <action name="programNotification"
       class="org.hisp.dhis.trackedentity.action.program.GetProgramAction">
@@ -664,6 +664,32 @@
       class="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramNotificationAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-program/updateProgramNotification.vm</param>
+      <param name="javascripts">javascript/programNotification.js</param>
+      <param name="requiredAuthorities">F_PROGRAM_ADD,F_PROGRAM_DELETE</param>
+    </action>
+
+    <!-- Program notification for ProgramStage -->
+
+    <action name="programStageNotification"
+      class="org.hisp.dhis.trackedentity.action.programstage.GetProgramStageAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param  name="page">/dhis-web-maintenance-program/programStageNotificationList.vm</param>
+      <param name="menu">/dhis-web-maintenance-program/menu.vm</param>
+      <param name="requiredAuthorities">F_PROGRAM_ADD,F_PROGRAM_DELETE</param>
+    </action>
+
+    <action name="showAddProgramStageNotification"
+      class="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramStageNotificationAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/addProgramStageNotification.vm</param>
+      <param name="javascripts">javascript/programNotification.js</param>
+      <param name="requiredAuthorities">F_PROGRAM_ADD,F_PROGRAM_DELETE</param>
+    </action>
+
+    <action name="showUpdateProgramStageNotification"
+      class="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramStageNotificationAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-program/updateProgramStageNotification.vm</param>
       <param name="javascripts">javascript/programNotification.js</param>
       <param name="requiredAuthorities">F_PROGRAM_ADD,F_PROGRAM_DELETE</param>
     </action>
