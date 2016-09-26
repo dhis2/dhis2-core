@@ -220,6 +220,8 @@ public class DataValueSetServiceIntegrationTest
         
         assertEquals( 8, dataValueService.getAllDataValues().size() );
         
+        // Reverse deletion and update
+        
         in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
         
         summary = dataValueSetService.saveDataValueSet( in );
