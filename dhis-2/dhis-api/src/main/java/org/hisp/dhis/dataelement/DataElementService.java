@@ -31,7 +31,6 @@ package org.hisp.dhis.dataelement;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
@@ -205,15 +204,6 @@ public interface DataElementService
     List<DataElement> getDataElementByCategoryCombo( DataElementCategoryCombo categoryCombo );
 
     /**
-     * Returns the DataElementCategoryCombos associated with the given argument
-     * list of DataElements.
-     *
-     * @param dataElements the DataElements.
-     * @return a list of DataElements.
-     */
-    List<DataElementCategoryCombo> getDataElementCategoryCombos( List<DataElement> dataElements );
-
-    /**
      * Returns all DataElements which are associated with one or more
      * DataElementGroupSets.
      *
@@ -242,14 +232,6 @@ public interface DataElementService
      * @return all DataElements which are assigned to at least one DataSet.
      */
     List<DataElement> getDataElementsWithDataSets();
-
-    /**
-     * Returns all DataElements which are assigned to any of the given DataSets.
-     *
-     * @param dataSets the collection of DataSets.
-     * @return all DataElements which are assigned to any of the given DataSets.
-     */
-    List<DataElement> getDataElementsByDataSets( Collection<DataSet> dataSets );
 
     /**
      * Returns all DataElements which have the given aggregation level assigned.
@@ -389,8 +371,6 @@ public interface DataElementService
      */
     Set<DataElement> getDataElementsByZeroIsSignificantAndGroup( boolean zeroIsSignificant,
         DataElementGroup dataElementGroup );
-
-    List<DataElement> getDataElements( DataSet dataSet, String key, Integer max );
 
     // -------------------------------------------------------------------------
     // DataElementGroupSet
