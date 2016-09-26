@@ -249,10 +249,11 @@ public class HibernateProgramStageInstanceStore
                 "inner join psi.programStage as ps " +
                 "inner join ps.notificationTemplates as templates " +
                 "where templates.notificationTrigger = :notificationTrigger " +
+                "and templates.relativeScheduledDays is not null " + // ?
                 "and :notificationTemplate in elements(templates) " +
                 "and psi.dueDate is not null " +
                 "and psi.executionDate is null " +
-                "and (day(:notificationDate) - day(psi.dueDate)) = templates.relativeScheduledDays"
+                "and ( day(cast(:notificationDate as date)) - day(cast(psi.dueDate as date)) ) = templates.relativeScheduledDays"
         );
 
         query.setEntity( "notificationTemplate", notificationTemplate );
