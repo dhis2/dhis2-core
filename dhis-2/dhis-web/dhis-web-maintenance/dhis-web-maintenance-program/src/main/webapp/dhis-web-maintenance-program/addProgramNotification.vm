@@ -70,7 +70,7 @@
                     <label for="userGroup">$i18n.getString( "user_group" )</label>
                 </td>
                 <td>
-                    <select type="text" id="userGroup" name="userGroup" class="userGroup" disabled>
+                    <select type="text" id="userGroup" name="userGroup" class="userGroup">
                         <option value="">[$i18n.getString("please_select")]</option>
                         #foreach( $group in $!userGroups )
                             <option value="$group.uid">$i18n.getString( $group.displayName )</option>
