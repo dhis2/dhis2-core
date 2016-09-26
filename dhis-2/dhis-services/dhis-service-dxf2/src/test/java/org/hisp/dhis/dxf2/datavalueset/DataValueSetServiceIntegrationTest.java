@@ -177,4 +177,10 @@ public class DataValueSetServiceIntegrationTest
         assertEquals( 14, dataValueService.getAllDataValues().size() );
     }
     
+    @Test
+    public void testImportDeletedDataValuesXml()
+    {
+        
+    }
+    
 }
