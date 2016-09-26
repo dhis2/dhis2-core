@@ -43,8 +43,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 
 /**
  * Controller for the automated sync of the metadata
@@ -54,7 +52,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 
 @Controller
 @RequestMapping( "/metadata/sync" )
-@ApiVersion( { Version.DEFAULT, Version.ALL } )
 public class MetadataSyncController
     extends CrudControllerAdvice
 {

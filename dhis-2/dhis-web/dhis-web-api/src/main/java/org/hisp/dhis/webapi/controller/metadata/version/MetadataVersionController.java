@@ -50,8 +50,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -67,7 +65,6 @@ import java.util.zip.GZIPOutputStream;
  * @author aamerm
  */
 @Controller
-@ApiVersion( { Version.DEFAULT, Version.ALL } )
 public class MetadataVersionController
     extends CrudControllerAdvice
 {
