@@ -28,9 +28,11 @@ package org.hisp.dhis.trackedentity.action.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
 import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -40,14 +42,14 @@ import java.util.List;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class ShowAddProgramNotificationAction
+public class ShowUpdateProgramStageNotification
     implements Action
 {
-    private ProgramService programService;
+    private IdentifiableObjectManager manager;
 
-    public void setProgramService( ProgramService programService )
+    public void setManager( IdentifiableObjectManager manager )
     {
-        this.programService = programService;
+        this.manager = manager;
     }
 
     private UserGroupService userGroupService;
@@ -61,18 +63,32 @@ public class ShowAddProgramNotificationAction
     // Input/Output
     // -------------------------------------------------------------------------
 
-    private int id; // ID of Program
+    private String templateUid;
 
-    public void setId( int id )
+    public void setUid( String templateUid )
     {
-        this.id = id;
+        this.templateUid = templateUid;
     }
 
-    private Program program;
+    private String programStageUid;
 
-    public Program getProgram()
+    public void setProgramStageUid( String programStageUid )
     {
-        return program;
+        this.programStageUid = programStageUid;
+    }
+
+    private ProgramNotificationTemplate template;
+
+    public ProgramNotificationTemplate getTemplate()
+    {
+        return template;
+    }
+
+    private ProgramStage programStage;
+
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
     }
 
     private List<UserGroup> userGroups;
@@ -96,9 +112,19 @@ public class ShowAddProgramNotificationAction
     @Override
     public String execute() throws Exception
     {
-        program = programService.getProgram( id );
+        template = manager.get( ProgramNotificationTemplate.class, templateUid );
         userGroups = userGroupService.getAllUserGroups();
-        attributes = program.getTrackedEntityAttributes();
+
+        programStage = manager.get( ProgramStage.class, programStageUid );
+
+        if ( programStage != null )
+        {
+            attributes = programStage.getProgram().getTrackedEntityAttributes();
+        }
+        else
+        {
+            attributes = Lists.newArrayList();
+        }
 
         return SUCCESS;
     }

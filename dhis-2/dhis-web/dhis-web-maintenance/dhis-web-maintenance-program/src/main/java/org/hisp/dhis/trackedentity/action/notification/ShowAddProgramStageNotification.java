@@ -29,8 +29,8 @@ package org.hisp.dhis.trackedentity.action.notification;
  */
 
 import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -40,14 +40,14 @@ import java.util.List;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class ShowAddProgramNotificationAction
+public class ShowAddProgramStageNotification
     implements Action
 {
-    private ProgramService programService;
+    private ProgramStageService programStageService;
 
-    public void setProgramService( ProgramService programService )
+    public void setProgramStageService( ProgramStageService programStageService )
     {
-        this.programService = programService;
+        this.programStageService = programStageService;
     }
 
     private UserGroupService userGroupService;
@@ -61,18 +61,18 @@ public class ShowAddProgramNotificationAction
     // Input/Output
     // -------------------------------------------------------------------------
 
-    private int id; // ID of Program
+    private int id; // ID of ProgramStage
 
     public void setId( int id )
     {
         this.id = id;
     }
 
-    private Program program;
+    private ProgramStage programStage;
 
-    public Program getProgram()
+    public ProgramStage getProgramStage()
     {
-        return program;
+        return programStage;
     }
 
     private List<UserGroup> userGroups;
@@ -96,9 +96,9 @@ public class ShowAddProgramNotificationAction
     @Override
     public String execute() throws Exception
     {
-        program = programService.getProgram( id );
+        programStage = programStageService.getProgramStage( id );
         userGroups = userGroupService.getAllUserGroups();
-        attributes = program.getTrackedEntityAttributes();
+        attributes = programStage.getProgram().getTrackedEntityAttributes();
 
         return SUCCESS;
     }
