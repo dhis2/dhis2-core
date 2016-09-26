@@ -183,7 +183,7 @@ public class DefaultDataValueSetService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
+        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
     {
         DataExportParams params = new DataExportParams();
 
@@ -216,6 +216,7 @@ public class DefaultDataValueSetService
         }
 
         params.setIncludeChildren( includeChildren );
+        params.setIncludeDeleted( includeDeleted );
         params.setLastUpdated( lastUpdated );
         params.setLastUpdatedDuration( lastUpdatedDuration );
         params.setLimit( limit );
