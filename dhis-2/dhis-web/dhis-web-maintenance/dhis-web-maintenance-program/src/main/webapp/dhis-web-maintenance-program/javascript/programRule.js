@@ -391,10 +391,13 @@ function saveAction( programRuleId )
             if(attributeList[key]){
                 json_Data.trackedEntityAttribute = {id: key};
             }
-            else{
+            else {
                 json_Data.dataElement = {id: key};
-                json_Data.programStageSection = {id: row.find(".actionSections").val() };
             }
+        }
+        
+        if (row.find(".actionSections").val()) {
+            json_Data.programStageSection = {id: row.find(".actionSections").val() };
         }
 
         var actionId = $(this).attr('id');		
