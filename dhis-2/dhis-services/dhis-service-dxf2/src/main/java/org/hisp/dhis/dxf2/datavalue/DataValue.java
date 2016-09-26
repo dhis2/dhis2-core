@@ -105,6 +105,7 @@ public class DataValue
             .add( "attributeOptionCombo", attributeOptionCombo )
             .add( "value", value )
             .add( "comment", comment )
+            .add( "deleted", deleted )
             .toString();
     }
 

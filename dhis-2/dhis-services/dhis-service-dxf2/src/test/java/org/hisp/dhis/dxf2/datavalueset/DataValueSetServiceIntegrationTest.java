@@ -197,9 +197,7 @@ public class DataValueSetServiceIntegrationTest
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
         
         assertEquals( 12, summary.getImportCount().getImported() );
-        
-        System.out.println( dataValueService.getAllDataValues() );
-        
+                
         assertEquals( 8, dataValueService.getAllDataValues().size() );
     }
     
