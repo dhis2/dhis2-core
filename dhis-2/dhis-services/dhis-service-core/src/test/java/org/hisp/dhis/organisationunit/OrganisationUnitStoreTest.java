@@ -69,6 +69,8 @@ public class OrganisationUnitStoreTest
     private OrganisationUnit ouF;
     private OrganisationUnit ouG;
     
+    private OrganisationUnitGroup ougA;
+    
     private DataElementCategoryOption coA;
     private DataElementCategoryOption coB;
     
@@ -86,12 +88,35 @@ public class OrganisationUnitStoreTest
         ouE = createOrganisationUnit( 'E', ouB ); // 3
         ouF = createOrganisationUnit( 'F', ouC ); // 3
         ouG = createOrganisationUnit( 'G', ouC ); // 3
+
+        ougA = createOrganisationUnitGroup( 'A' );
         
         coA = createCategoryOption( 'A' );
         coB = createCategoryOption( 'B' );
         
         idObjectManager.save( coA );
         idObjectManager.save( coB );
+    }
+    
+    public void testGetOrganisationUnitsWithoutGroups()
+    {
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+        orgUnitStore.save( ouC );
+        orgUnitStore.save( ouD );
+        orgUnitStore.save( ouE );
+        
+        ougA.addOrganisationUnit( ouA );
+        ougA.addOrganisationUnit( ouB );
+        
+        idObjectManager.save( ougA );
+        
+        List<OrganisationUnit> orgUnits = orgUnitStore.getOrganisationUnitsWithoutGroups();
+        
+        assertEquals( 3, orgUnits.size() );
+        assertTrue( orgUnits.contains( ouC ) );
+        assertTrue( orgUnits.contains( ouD ) );
+        assertTrue( orgUnits.contains( ouE ) );        
     }
     
     @Test
