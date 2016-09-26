@@ -91,6 +91,26 @@ public enum NotificationTrigger
         return SCHEDULED_TRIGGERS.contains( this );
     }
 
+    public static Set<NotificationTrigger> getAllScheduledTriggers()
+    {
+        return SCHEDULED_TRIGGERS;
+    }
+
+    public static Set<NotificationTrigger> getAllImmediateTriggers()
+    {
+        return IMMEDIATE_TRIGGERS;
+    }
+
+    public static Set<NotificationTrigger> getAllApplicableToProgramInstance()
+    {
+        return APPLICABLE_TO_PROGRAM_INSTANCE;
+    }
+
+    public static Set<NotificationTrigger> gettApplicableToProgramStageInstance()
+    {
+        return APPLICABLE_TO_PROGRAM_STAGE_INSTANCE;
+    }
+
     public boolean isApplicableToProgramStageInstance()
     {
         return APPLICABLE_TO_PROGRAM_STAGE_INSTANCE.contains( this );

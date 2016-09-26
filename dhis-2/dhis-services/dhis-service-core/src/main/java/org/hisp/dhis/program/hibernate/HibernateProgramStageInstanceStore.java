@@ -34,6 +34,7 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.type.StringType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
@@ -57,6 +58,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -248,7 +251,7 @@ public class HibernateProgramStageInstanceStore
             "select psi from ProgramStageInstance as psi " +
                 "inner join psi.programStage as ps " +
                 "inner join ps.notificationTemplates as templates " +
-                "where templates.notificationTrigger = :notificationTrigger " +
+                "where templates.notificationTrigger in (:triggers) " +
                 "and templates.relativeScheduledDays is not null " + // ?
                 "and :notificationTemplate in elements(templates) " +
                 "and psi.dueDate is not null " +
@@ -256,8 +259,13 @@ public class HibernateProgramStageInstanceStore
                 "and ( day(cast(:notificationDate as date)) - day(cast(psi.dueDate as date)) ) = templates.relativeScheduledDays"
         );
 
+        Set<NotificationTrigger> applicableTriggers = NotificationTrigger.getAllScheduledTriggers();
+        applicableTriggers.retainAll( NotificationTrigger.gettApplicableToProgramStageInstance() );
+
+        Set<String> triggerNames = applicableTriggers.stream().map( Enum::name ).collect( Collectors.toSet() );
+
         query.setEntity( "notificationTemplate", notificationTemplate );
-        query.setString( "notificationTrigger", NotificationTrigger.SCHEDULED_DAYS_DUE_DATE.name() );
+        query.setParameterList( "triggers", triggerNames, StringType.INSTANCE );
         query.setDate( "notificationDate", notificationDate );
 
         return query.list();

@@ -33,6 +33,7 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.type.StringType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -45,6 +46,8 @@ import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.SchedulingProgramObject;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
@@ -56,6 +59,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -394,6 +399,45 @@ public class HibernateProgramInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @Override public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
+    {
+        String hql = "select pi from ProgramInstance as pi " +
+            "inner join pi.notificationTemplates as templates " +
+            "where templates.notificationTrigger in (:triggers) " +
+            "and templates.relativeScheduledDays is not null " +
+            "and :notificationTemplate in elements(templates) ";
+
+        String dateProperty = null;
+
+        if ( template.getNotificationTrigger() == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )
+        {
+            dateProperty = "enrollmentDate";
+        }
+        else if ( template.getNotificationTrigger() == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE )
+        {
+            dateProperty = "incidentDate";
+        }
+
+        if ( dateProperty != null )
+        {
+            hql += "and pi." + dateProperty + " is not null ";
+            hql += "and ( day(cast(:notificationDate as date)) - day(cast(pi." + dateProperty + " as date)) ) = templates.relativeScheduledDays";
+        }
+
+        Query query = getQuery( hql );
+
+        Set<NotificationTrigger> applicableTriggers = NotificationTrigger.getAllScheduledTriggers();
+        applicableTriggers.retainAll( NotificationTrigger.getAllApplicableToProgramInstance() );
+
+        Set<String> triggerNames = applicableTriggers.stream().map( Enum::name ).collect( Collectors.toSet() );
+
+        query.setEntity( "notificationTemplate", template );
+        query.setParameterList( "triggers", triggerNames, StringType.INSTANCE );
+        query.setDate( "notificationDate", notificationDate );
+
+        return null;
     }
 
     //TODO from here this class must be rewritten
