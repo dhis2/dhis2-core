@@ -128,7 +128,7 @@
         function saveToProgram( programUid, uidOfTemplate ) {
             return jQuery.ajax( {
                 type: 'POST',
-                url: '../api/programs/' + programUid + '/notificationTemplates/' + uidOfTemplate,
+                url: '../api/programs/' + programUid + '/notificationTemplates/' + uidOfTemplate
             } );
         };
 
