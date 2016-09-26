@@ -24,17 +24,17 @@
 
         // Event handlers
 
-        subjectTemplateTextArea.onfocus = function() {
+        subjectTemplateTextArea.addEventListener( "focus", function( e ) {
             focusedTextArea = subjectTemplateTextArea;
-        };
+        } );
 
-        messageTemplateTextArea.onfocus = function() {
+        messageTemplateTextArea.addEventListener( "focus", function ( e ) {
             focusedTextArea = messageTemplateTextArea;
-        };
+        } );
 
         // Click handlers
 
-        recipientSelector.onchange = function( e ) {
+        recipientSelector.addEventListener( "change", function( e ) {
             if ( recipientSelector.value === 'USER_GROUP' ) {
                 userGroupContainer.style.display = 'table-row';
                 userGroup.disabled = false;
@@ -43,29 +43,29 @@
                 userGroup.value = "";
                 userGroup.disabled = true;
             }
-        };
+        });
 
-        notificationTrigger.onchange = function( e ) {
+        notificationTrigger.addEventListener( "change", function( e ) {
             if ( notificationTrigger.value === 'ENROLLMENT' || notificationTrigger.value == 'COMPLETION' ) {
                 daysContainer.style.display = 'none';
             } else {
                 daysContainer.style.display = 'table-row';
                 days.value = undefined;
             }
-        };
+        } );
 
-        params.ondblclick = function() {
+        params.addEventListener( "dblclick", function() {
             insertTextCommon( focusedTextArea.id, params.value );
-        };
+        } );
 
-        cancelButton.onclick = function() {
+        cancelButton.addEventListener( "click", function() {
             window.location.href = 'programNotification.action?id=' + programId;
-        };
+        } );
 
-        saveButton.onclick = function() {
+        saveButton.addEventListener( "click", function() {
             var json = formAsJson();
             isUpdate ? update( json ) : save( json );
-        };
+        } );
 
         // Internal
 
@@ -125,7 +125,7 @@
             } );
         };
 
-        function saveToProgram( uidOfProgram, uidOfTemplate ) {
+        function saveToProgram( programUid, uidOfTemplate ) {
             return jQuery.ajax( {
                 type: 'POST',
                 url: '../api/programs/' + programUid + '/notificationTemplates/' + uidOfTemplate,
