@@ -247,7 +247,7 @@ public class JdbcAnalyticsTableManager
                 "and pe.startdate >= '" + start + "' " +
                 "and pe.startdate <= '" + end + "' " +
                 "and dv.value is not null " +
-                "and dv.deleted is false";
+                "and dv.deleted is false ";
 
         if ( whereClause != null )
         {
