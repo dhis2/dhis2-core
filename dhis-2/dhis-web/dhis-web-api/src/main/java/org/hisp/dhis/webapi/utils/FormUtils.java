@@ -40,6 +40,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -59,6 +60,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,7 +79,7 @@ public class FormUtils
 
     private static final String SEP = "-";
 
-    public static Form fromDataSet( DataSet dataSet, boolean metaData )
+    public static Form fromDataSet( DataSet dataSet, boolean metaData, Set<OrganisationUnit> userOrganisationUnits )
     {
         Form form = new Form();
         form.setLabel( dataSet.getDisplayName() );
@@ -86,7 +88,7 @@ public class FormUtils
         form.getOptions().put( KEY_PERIOD_TYPE, dataSet.getPeriodType().getName() );
         form.getOptions().put( KEY_OPEN_FUTURE_PERIODS, dataSet.getOpenFuturePeriods() );
         form.getOptions().put( KEY_EXPIRY_DAYS, dataSet.getExpiryDays() );
-        form.setCategoryCombo( getCategoryCombo( dataSet ) );
+        form.setCategoryCombo( getCategoryCombo( dataSet, userOrganisationUnits ) );
 
         if ( dataSet.hasSections() )
         {
@@ -137,7 +139,7 @@ public class FormUtils
         return form;
     }
 
-    private static CategoryCombo getCategoryCombo( DataSet dataset )
+    private static CategoryCombo getCategoryCombo( DataSet dataset, Set<OrganisationUnit> userOrganisationUnits )
     {
         if ( dataset.hasCategoryCombo() )
         {
@@ -146,6 +148,7 @@ public class FormUtils
             catCombo.setId( categoryCombo.getUid() );
 
             List<DataElementCategory> cats = categoryCombo.getCategories();
+
             if ( cats != null && cats.size() > 0 )
             {
                 for ( DataElementCategory cat : cats )
@@ -155,14 +158,22 @@ public class FormUtils
                     c.setLabel( cat.getName() );
 
                     List<DataElementCategoryOption> options = cat.getCategoryOptions();
+
+
                     if ( options != null && options.size() > 0 )
                     {
                         for ( DataElementCategoryOption option : options )
                         {
-                            Option o = new Option();
-                            o.setId( option.getUid() );
-                            o.setLabel( option.getName() );
-                            c.getOptions().add( o );
+                            if ( userOrganisationUnits != null && !Collections.disjoint( userOrganisationUnits, option.getOrganisationUnits() ) )
+                            {
+                                Option o = new Option();
+                                o.setId( option.getUid() );
+                                o.setLabel( option.getName() );
+                                o.setStartDate( option.getStartDate() );
+                                o.setEndDate( option.getEndDate() );
+                                c.getOptions().add( o );
+
+                            }
                         }
                     }
                     catCombo.getCategories().add( c );

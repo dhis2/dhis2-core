@@ -28,14 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.view.ExportView;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -268,7 +266,7 @@ public class DataSetController
         i18nService.internationalise( dataSet.getDataElements() );
         i18nService.internationalise( dataSet.getSections() );
 
-        Form form = FormUtils.fromDataSet( dataSets.get( 0 ), metaData );
+        Form form = FormUtils.fromDataSet( dataSets.get( 0 ), metaData, null );
 
 
         Set<String> options = null;
