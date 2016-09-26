@@ -178,6 +178,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         SystemInfo systemInfo = systemService.getSystemInfo();
 
         ComplexNode system = rootNode.addChild( new ComplexNode( "system" ) );
+        system.addChild( new SimpleNode( "id", systemInfo.getSystemId() ) );
         system.addChild( new SimpleNode( "rev", systemInfo.getRevision() ) );
         system.addChild( new SimpleNode( "version", systemInfo.getVersion() ) );
         system.addChild( new SimpleNode( "date", systemInfo.getServerDate() ) );
