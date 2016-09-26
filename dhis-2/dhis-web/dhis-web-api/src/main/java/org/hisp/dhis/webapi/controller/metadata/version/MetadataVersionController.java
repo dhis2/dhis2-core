@@ -93,18 +93,27 @@ public class MetadataVersionController
             {
                 throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
             }
+
             if ( StringUtils.isNotEmpty( versionName ) )
             {
                 versionToReturn = versionService.getVersionByName( versionName );
+
+                if ( versionToReturn == null )
+                {
+                    throw new MetadataVersionException( "No metadata version with name " + versionName + " exists. Please check again later." );
+                }
+
             }
+
             else
             {
                 versionToReturn = versionService.getCurrentVersion();
-            }
+                
+                if ( versionToReturn == null )
+                {
+                    throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
+                }
 
-            if ( versionToReturn == null )
-            {
-                throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
             }
 
             return versionToReturn;
@@ -200,12 +209,6 @@ public class MetadataVersionController
             }
 
             List<MetadataVersion> allVersions = versionService.getAllVersions();
-
-            if ( allVersions.isEmpty() )
-            {
-                throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
-            }
-
             return versionService.getMetadataVersionsAsNode( allVersions );
 
         }
