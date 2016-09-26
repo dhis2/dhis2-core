@@ -127,12 +127,6 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public void deleteDataValue( DataValue dataValue )
-    {
-        sessionFactory.getCurrentSession().delete( dataValue );
-    }
-
-    @Override
     public void deleteDataValues( OrganisationUnit organisationUnit )
     {
         String hql = "delete from DataValue d where d.source = :source";

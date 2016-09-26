@@ -72,14 +72,6 @@ public interface DataValueStore
     void updateDataValue( DataValue dataValue );
 
     /**
-     * Deletes a DataValue from the data store. Note that this does not take
-     * soft delete into account.
-     * 
-     * @param dataValue the DataValue to delete.
-     */
-    void deleteDataValue( DataValue dataValue );
-    
-    /**
      * Deletes all data values for the given organisation unit.
      * 
      * @param organisationUnit the organisation unit.
