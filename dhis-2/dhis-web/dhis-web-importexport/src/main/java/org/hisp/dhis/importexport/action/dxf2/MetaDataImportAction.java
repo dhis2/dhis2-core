@@ -53,7 +53,6 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.scheduling.Scheduler;
-import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationRule;
@@ -81,7 +80,6 @@ public class MetaDataImportAction
         put( "organisationunitgroup", OrganisationUnitGroup.class );
         put( "validationrule", ValidationRule.class );
         put( "optionset", OptionSet.class );
-        put( "translation", Translation.class );
     }};
 
     // -------------------------------------------------------------------------
@@ -153,13 +151,6 @@ public class MetaDataImportAction
     public void setClassKey( String classKey )
     {
         this.classKey = classKey;
-    }
-
-    private boolean preheatCache = true;
-
-    public void setPreheatCache( boolean preheatCache )
-    {
-        this.preheatCache = preheatCache;
     }
 
     // -------------------------------------------------------------------------

@@ -126,7 +126,7 @@
                   <value>true</value>
                 </property>
               </systemProperties>
-              <argLine>-Xmx256m</argLine>
+              <argLine>-Xmx1024m</argLine>
               <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
             </configuration>
           </plugin>
@@ -148,7 +148,7 @@
                   <value>true</value>
                 </property>
               </systemProperties>
-              <argLine>-Xmx256m</argLine>
+              <argLine>-Xmx1024m</argLine>
               <groups>org.hisp.dhis.IntegrationTest</groups>
             </configuration>
           </plugin>
@@ -595,9 +595,9 @@
         <version>3.10.1</version>
       </dependency>
       <dependency>
-        <groupId>org.amplecode</groupId>
+        <groupId>org.hisp</groupId>
         <artifactId>quick</artifactId>
-        <version>1.12</version>
+        <version>1.3.1</version>
       </dependency>
       <dependency>
         <groupId>org.amplecode</groupId>

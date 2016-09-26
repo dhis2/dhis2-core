@@ -399,37 +399,6 @@ public class DataElement
         return aggregationLevels != null && aggregationLevels.size() > 0;
     }
 
-    public boolean hasCategoryCombo()
-    {
-        return categoryCombo != null;
-    }
-
-    /**
-     * Tests whether the DataElement is associated with a
-     * DataElementCategoryCombo with more than one DataElementCategory, or any
-     * DataElementCategory with more than one DataElementCategoryOption.
-     */
-    public boolean isMultiDimensional()
-    {
-        if ( categoryCombo != null )
-        {
-            if ( categoryCombo.getCategories().size() > 1 )
-            {
-                return true;
-            }
-
-            for ( DataElementCategory category : categoryCombo.getCategories() )
-            {
-                if ( category.getCategoryOptions().size() > 1 )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
     /**
      * Returns the form name, or the name if it does not exist.
      */

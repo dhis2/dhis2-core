@@ -53,11 +53,7 @@
     <set name="translations" table="categoryoptiontranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="categoryoptionid" foreign-key="fk_objecttranslation_categoryoptionid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Dynamic attribute values -->
@@ -80,9 +76,5 @@
     </set>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

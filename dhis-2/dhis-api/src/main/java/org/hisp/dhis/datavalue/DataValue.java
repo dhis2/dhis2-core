@@ -80,6 +80,8 @@ public class DataValue
     private String comment;
 
     private Boolean followup;
+    
+    private boolean deleted;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -175,7 +177,7 @@ public class DataValue
     {
         return followup != null && followup;
     }
-
+    
     public boolean hasComment()
     {
         return comment != null && !comment.isEmpty();
@@ -193,6 +195,17 @@ public class DataValue
         }
     }
 
+    public void mergeWith( DataValue other )
+    {
+        this.value = other.getValue();
+        this.storedBy = other.getStoredBy();
+        this.created = other.getCreated();
+        this.lastUpdated = other.getLastUpdated();
+        this.comment = other.getComment();
+        this.followup = other.isFollowup();
+        this.deleted = other.isDeleted();
+    }
+    
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -247,7 +260,9 @@ public class DataValue
             ", period: " + period.getUid() +
             ", source: " + source.getUid() +
             ", category option combo: " + categoryOptionCombo.getUid() +
-            ", attribute option combo: " + attributeOptionCombo.getUid() + "]";
+            ", attribute option combo: " + attributeOptionCombo.getUid() + 
+            ", value: " + value +
+            ", deleted: " + deleted + "]";
     }
 
     // -------------------------------------------------------------------------
@@ -365,6 +380,16 @@ public class DataValue
     public void setFollowup( Boolean followup )
     {
         this.followup = followup;
+    }
+
+    public boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     public String getAuditValue()

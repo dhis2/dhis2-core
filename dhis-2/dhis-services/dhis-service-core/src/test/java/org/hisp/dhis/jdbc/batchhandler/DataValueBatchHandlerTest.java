@@ -32,11 +32,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
+import java.util.Date;
 import java.util.List;
 
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.BatchHandlerFactory;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -98,6 +100,8 @@ public class DataValueBatchHandlerTest
     private DataValue dataValueE;
     private DataValue dataValueF;
     
+    private Date date = new Date();
+    
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -125,14 +129,14 @@ public class DataValueBatchHandlerTest
         unitB = createOrganisationUnit( 'B' );
         
         organisationUnitService.addOrganisationUnit( unitA );
-        organisationUnitService.addOrganisationUnit( unitB );        
+        organisationUnitService.addOrganisationUnit( unitB );
         
-        dataValueA = createDataValue( dataElementA, periodA, unitA, "10", categoryOptionComboA, categoryOptionComboA );
-        dataValueB = createDataValue( dataElementA, periodA, unitB, "10", categoryOptionComboA, categoryOptionComboA );
-        dataValueC = createDataValue( dataElementA, periodB, unitA, "10", categoryOptionComboA, categoryOptionComboA );
-        dataValueD = createDataValue( dataElementA, periodB, unitB, "10", categoryOptionComboA, categoryOptionComboA );
-        dataValueE = createDataValue( dataElementA, periodA, unitB, "10", categoryOptionComboA, categoryOptionComboA ); // Duplicate with 2nd
-        dataValueF = createDataValue( dataElementA, periodB, unitB, "10", categoryOptionComboA, categoryOptionComboA ); // Duplicate with 4th
+        dataValueA = createDataValue( dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA, "10", "Comment10", "johndoe", date, date );
+        dataValueB = createDataValue( dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "11", "Comment11", "johndoe", date, date );
+        dataValueC = createDataValue( dataElementA, periodB, unitA, categoryOptionComboA, categoryOptionComboA, "12", "Comment12", "johndoe", date, date );
+        dataValueD = createDataValue( dataElementA, periodB, unitB, categoryOptionComboA, categoryOptionComboA, "13", "Comment13", "johndoe", date, date );
+        dataValueE = createDataValue( dataElementA, periodA, unitB, categoryOptionComboA, categoryOptionComboA, "14", "Comment14", "johndoe", date, date ); // Duplicate with 2nd
+        dataValueF = createDataValue( dataElementA, periodB, unitB, categoryOptionComboA, categoryOptionComboA, "15", "Comment15", "johndoe", date, date ); // Duplicate with 4th
         
         batchHandler.init();
     }
@@ -198,6 +202,27 @@ public class DataValueBatchHandlerTest
     }
 
     @Test
+    public void testFindObject()
+    {
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueC );
+        
+        DataValue retrievedDataValueA = batchHandler.findObject( dataValueA );
+        DataValue retrievedDataValueB = batchHandler.findObject( dataValueB );
+        
+        assertNotNull( dataValueA.getValue() );
+        assertNotNull( dataValueA.getComment() );
+        assertNotNull( dataValueA.getStoredBy() );
+        
+        assertEquals( dataValueA.getValue(), retrievedDataValueA.getValue() );
+        assertEquals( dataValueA.getComment(), retrievedDataValueA.getComment() );
+        assertEquals( dataValueA.getStoredBy(), retrievedDataValueA.getStoredBy() );
+        assertEquals( dataValueA.isFollowup(), retrievedDataValueA.isFollowup() );
+        
+        assertNull( retrievedDataValueB );
+    }
+
+    @Test
     public void testObjectExists()
     {
         dataValueService.addDataValue( dataValueA );
@@ -209,4 +234,31 @@ public class DataValueBatchHandlerTest
         assertFalse( batchHandler.objectExists( dataValueB ) );
         assertFalse( batchHandler.objectExists( dataValueD ) );
     }
+    
+    @Test
+    public void testUpdateObject()
+    {
+        dataValueService.addDataValue( dataValueA );
+        
+        dataValueA.setValue( "20" );
+        
+        batchHandler.updateObject( dataValueA );
+
+        assertEquals( "20", dataValueService.getDataValue( dataElementA, periodA, unitA, categoryOptionComboA, categoryOptionComboA ).getValue() );
+    }
+    
+    @Test
+    public void testDeleteObject()
+    {
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueC );
+        
+        assertTrue( batchHandler.objectExists( dataValueA ) );
+        assertTrue( batchHandler.objectExists( dataValueC ) );
+        
+        batchHandler.deleteObject( dataValueA );
+
+        assertFalse( batchHandler.objectExists( dataValueA ) );
+        assertTrue( batchHandler.objectExists( dataValueC ) );
+    }    
 }

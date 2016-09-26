@@ -132,8 +132,8 @@ public class HibernateDataValueAuditStore
             .setProjection( Projections.countDistinct( "id" ) ).uniqueResult()).intValue();
     }
 
-    private Criteria getDataValueAuditCriteria( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType
-        auditType )
+    private Criteria getDataValueAuditCriteria( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits, 
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         Session session = sessionFactory.getCurrentSession();
         List<Period> storedPeriods = new ArrayList<>();

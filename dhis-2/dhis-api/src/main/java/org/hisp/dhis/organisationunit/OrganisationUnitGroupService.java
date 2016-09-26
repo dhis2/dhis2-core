@@ -172,16 +172,6 @@ public interface OrganisationUnitGroupService
     /**
      * Returns an OrganisationUnitGroupSet.
      * 
-     * @param id the id of the OrganisationUnitGroupSet to return.
-     * @param i18nGroups whether to i18n the groups in this group set.
-     * @return the OrganisationUnitGroupSet with the given id, or null if no
-     *         match.
-     */
-    OrganisationUnitGroupSet getOrganisationUnitGroupSet( int id, boolean i18nGroups );
-
-    /**
-     * Returns an OrganisationUnitGroupSet.
-     * 
      * @param uid the id of the OrganisationUnitGroupSet to return.
      * @return the OrganisationUnitGroupSet with the given uid, or null if no
      *         match.

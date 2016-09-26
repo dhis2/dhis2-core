@@ -43,6 +43,7 @@ import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -101,5 +102,12 @@ public class DataStatisticsController
         sortOrder = ObjectUtils.firstNonNull( sortOrder, SortOrder.DESC );
 
         return dataStatisticsService.getTopFavorites( eventType, pageSize, sortOrder, username );
+    }
+
+    
+    @RequestMapping( value = "/dataStatistics/favorites/{uid}", method = RequestMethod.GET )
+    public @ResponseBody FavoriteStatistics getFavoriteStatistics( @PathVariable( "uid" ) String uid )
+    {
+        return dataStatisticsService.getFavoriteStatistics( uid );
     }
 }

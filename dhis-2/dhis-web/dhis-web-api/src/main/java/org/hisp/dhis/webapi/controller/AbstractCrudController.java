@@ -49,6 +49,7 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -528,6 +529,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         preCreateEntity( parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setUser( user );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.addObject( parsed );
@@ -565,6 +567,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         preCreateEntity( parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setUser( user );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.addObject( parsed );
@@ -624,11 +627,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T parsed = deserializeJsonEntity( request, response );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
-        ((BaseIdentifiableObject) parsed).setTranslations( objects.get( 0 ).getTranslations() );
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setUser( user );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.addObject( parsed );
@@ -663,11 +666,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T parsed = deserializeXmlEntity( request, response );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
-        ((BaseIdentifiableObject) parsed).setTranslations( objects.get( 0 ).getTranslations() );
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setImportReportMode( ImportReportMode.FULL );
         params.setUser( user );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.addObject( parsed );
@@ -688,7 +691,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     // DELETE
     //--------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE )
+    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
     public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
@@ -708,12 +711,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preDeleteEntity( objects.get( 0 ) );
 
-        MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setUser( user );
-        importParams.setImportStrategy( ImportStrategy.DELETE );
-        importParams.addObject( objects.get( 0 ) );
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportReportMode( ImportReportMode.FULL );
+        params.setUser( user );
+        params.setImportStrategy( ImportStrategy.DELETE );
+        params.addObject( objects.get( 0 ) );
 
-        ImportReport importReport = importService.importMetadata( importParams );
+        ImportReport importReport = importService.importMetadata( params );
 
         postDeleteEntity();
 
