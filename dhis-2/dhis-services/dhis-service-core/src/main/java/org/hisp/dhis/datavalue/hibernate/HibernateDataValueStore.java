@@ -160,7 +160,7 @@ public class HibernateDataValueStore
             .add( Restrictions.eq( "source", source ) )
             .add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) )
             .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
-            .add( Restrictions.ne( "deleted", true ) )
+            .add( Restrictions.eq( "deleted", false ) )
             .uniqueResult();
     }
 
@@ -196,7 +196,7 @@ public class HibernateDataValueStore
     {
         return sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
-            .add( Restrictions.ne( "deleted", true ) )
+            .add( Restrictions.eq( "deleted", false ) )
             .list();
     }
 
@@ -219,7 +219,7 @@ public class HibernateDataValueStore
         
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
-            .add( Restrictions.ne( "deleted", true ) );
+            .add( Restrictions.eq( "deleted", false ) );
         
         if ( !dataElements.isEmpty() )
         {
@@ -258,7 +258,7 @@ public class HibernateDataValueStore
             .add( Restrictions.eq( "period", storedPeriod ) )
             .add( Restrictions.eq( "source", source ) )
             .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
-            .add( Restrictions.ne( "deleted", true ) )
+            .add( Restrictions.eq( "deleted", false ) )
             .list();
     }
 
@@ -278,7 +278,7 @@ public class HibernateDataValueStore
             ( ( categoryOptionCombo == null ) ? "" : ( "and categoryoptioncomboid=" + categoryOptionCombo.getId() + " " ) ) +
             "and sourceid in (" + TextUtils.getCommaDelimitedString( sourceIdList ) + ") " +
             "and periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
-            "and deleted is not true";
+            "and deleted is false";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -331,7 +331,7 @@ public class HibernateDataValueStore
                 ("and categoryoptioncomboid=" + categoryOptionCombo.getId() + " ")) +
             "and path like '" + sourcePrefix + "%' " +
             "and periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
-            "and deleted is not true " +
+            "and deleted is false " +
             "group by dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -361,7 +361,7 @@ public class HibernateDataValueStore
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
             .add( Restrictions.ge( "lastUpdated", date ) )
-            .add( Restrictions.ne( "deleted", true ) )
+            .add( Restrictions.eq( "deleted", false ) )
             .setProjection( Projections.rowCount() );
 
         Number rs = (Number) criteria.uniqueResult();
@@ -409,7 +409,7 @@ public class HibernateDataValueStore
             "and p.startdate <= '" + DateUtils.getMediumDateString( date ) + "' " +
             "and p.enddate >= '" + DateUtils.getMediumDateString( date ) + "' " +
             "and p.periodtypeid in (" + TextUtils.getCommaDelimitedString( getIds( periodTypes ) ) + ") " +
-            "and dv.deleted is not true " +
+            "and dv.deleted is false " +
             whereCo + whereCog + whereCombo;
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );

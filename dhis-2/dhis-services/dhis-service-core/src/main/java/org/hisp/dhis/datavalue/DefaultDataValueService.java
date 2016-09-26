@@ -165,7 +165,7 @@ public class DefaultDataValueService
         if ( softDelete != null )
         {
             softDelete.mergeWith( dataValue );
-            softDelete.setDeleted( null );
+            softDelete.setDeleted( false );
             
             dataValueStore.updateDataValue( softDelete );
         }

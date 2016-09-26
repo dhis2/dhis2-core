@@ -129,7 +129,7 @@ public class SpringDataValueSetStore
             "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
             "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
             "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' " +
-            "and dv.deleted is not true";
+            "and dv.deleted is false";
 
         writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
     }
@@ -196,7 +196,7 @@ public class SpringDataValueSetStore
             "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
             "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
             "where de.dataelementid in (" + getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) ) + ") " +
-            "and dv.deleted is not true ";
+            "and dv.deleted is false ";
 
         if ( params.isIncludeChildren() )
         {

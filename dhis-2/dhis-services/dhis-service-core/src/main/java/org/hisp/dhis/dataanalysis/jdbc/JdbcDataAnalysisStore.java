@@ -110,7 +110,7 @@ public class JdbcDataAnalysisStore
                 "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
                 "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
                 "and dv.sourceid = ou.organisationunitid " +
-                "and dv.deleted is not true) as deviation " +
+                "and dv.deleted is false) as deviation " +
             "from organisationunit ou where (";
         
         for ( OrganisationUnit parent : parents )
@@ -155,7 +155,7 @@ public class JdbcDataAnalysisStore
                 "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
                 "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
                 "and dv.sourceid = ou.organisationunitid " +
-                "and dv.deleted is not true) as average " +
+                "and dv.deleted is false) as average " +
             "from organisationunit ou where (";
         
         for ( OrganisationUnit parent : parents )
@@ -218,7 +218,7 @@ public class JdbcDataAnalysisStore
         }
         
         sql = TextUtils.removeLastOr( sql ) + ") ";
-        sql += "and dv.deleted is not true";
+        sql += "and dv.deleted is false";
         
         sql += statementBuilder.limitRecord( 0, limit );
         
@@ -276,7 +276,7 @@ public class JdbcDataAnalysisStore
         }
         
         sql = TextUtils.removeLastOr( sql ) + " ) ";
-        sql += "and dv.deleted is not true";
+        sql += "and dv.deleted is false";
         
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper( lowerBoundMap, upperBoundMap ) );
     }
@@ -297,7 +297,7 @@ public class JdbcDataAnalysisStore
             "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " +
             "where ou.path like '%" + organisationUnit.getUid() + "%' " +
             "and dv.followup = true " +
-            "and dv.deleted is not true " +
+            "and dv.deleted is false " +
             statementBuilder.limitRecord( 0, limit );
         
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper() );

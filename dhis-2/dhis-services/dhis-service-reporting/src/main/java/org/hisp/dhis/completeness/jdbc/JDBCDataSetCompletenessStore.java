@@ -138,7 +138,7 @@ public class JDBCDataSetCompletenessStore
                 "WHERE dv.periodid IN ( " + getCommaDelimitedString( periods ) + " ) " + deadlineCriteria +
                 "AND sourceid IN ( " + getCommaDelimitedString( children ) + " ) " +
                 "AND datasetid = " + dataSet.getId() + " " +
-                "AND dv.deleted is not true " +
+                "AND dv.deleted is false " +
                 "GROUP BY sourceid) AS completed " +
             "WHERE completed.sources = " + compulsoryElements;
         

@@ -81,7 +81,7 @@ public class DataValue
 
     private Boolean followup;
     
-    private Boolean deleted;
+    private boolean deleted;
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -176,11 +176,6 @@ public class DataValue
     public boolean isFollowup()
     {
         return followup != null && followup;
-    }
-
-    public boolean isDeleted()
-    {
-        return deleted != null && deleted;
     }
     
     public boolean hasComment()
@@ -387,7 +382,12 @@ public class DataValue
         this.followup = followup;
     }
 
-    public void setDeleted( Boolean deleted )
+    public boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
     {
         this.deleted = deleted;
     }

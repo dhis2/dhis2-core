@@ -1020,7 +1020,7 @@ public class DefaultDataValueSetService
             internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
-            internalValue.setDeleted( dataValue.getDeleted() );
+            internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
             
             // -----------------------------------------------------------------
             // Save, update or delete data value
