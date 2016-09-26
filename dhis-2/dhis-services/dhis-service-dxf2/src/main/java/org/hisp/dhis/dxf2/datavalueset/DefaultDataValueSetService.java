@@ -1029,7 +1029,7 @@ public class DefaultDataValueSetService
             DataValue existingValue = !skipExistingCheck ? dataValueBatchHandler.findObject( internalValue ) : null;
 
             // -----------------------------------------------------------------
-            // Check soft deleted data values on update and add new
+            // Check soft deleted data values on update and import
             // -----------------------------------------------------------------
 
             if ( !skipExistingCheck && existingValue != null && !existingValue.isDeleted() )
