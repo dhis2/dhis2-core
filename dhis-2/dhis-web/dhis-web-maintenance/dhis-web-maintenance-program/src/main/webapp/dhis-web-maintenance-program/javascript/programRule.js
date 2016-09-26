@@ -376,184 +376,181 @@ function saveProgramRuleVariable()
 
 function saveAction( programRuleId )
 {
-        console.log('trying to save action..');
-	$("#actionTB tr").each(function(){
-		var row = $(this);
-		var json_Data = { 
-                    "programRuleActionType": row.find(".actionList").val(),
-                    "programRule":{ "id":programRuleId },			
-                    "content": row.find(".content").val()
-		};		
-                
-                var key = row.find(".actionDEs").val();
-                
-                if(attributeList[key]){
-                    json_Data.trackedEntityAttribute = {id: key};
-                }
-                else{
-                    json_Data.dataElement = {id: key};
-                    json_Data.programStageSection = {id: row.find(".actionSections").val() };
-                }
+    console.log('trying to save action..');
+    $("#actionTB tr").each(function(){
+        var row = $(this);
+        var json_Data = { 
+            "programRuleActionType": row.find(".actionList").val(),
+            "programRule":{ "id":programRuleId },			
+            "content": row.find(".content").val()
+        };		
 
-                var actionId = $(this).attr('id');		
-		var actionMethod = ( actionId === undefined ) ? "POST" : "PUT";
-		var url = ( actionId === undefined ) ? "../api/programRuleActions/" 
-                    : "../api/programRuleActions/" + actionId;
-	
-		$.ajax({
-                    type: actionMethod
-                    ,url: url
-                    ,dataType: "json"
-                    ,async: false
-                    ,contentType: "application/json"
-                    ,data: JSON.stringify(json_Data)
-                    ,success: function(){}
-                    ,error:  function(){}
-		});
-	});
-	
+        var key = row.find(".actionDEs").val();
+
+        if(attributeList[key]){
+            json_Data.trackedEntityAttribute = {id: key};
+        }
+        else{
+            json_Data.dataElement = {id: key};
+            json_Data.programStageSection = {id: row.find(".actionSections").val() };
+        }
+
+        var actionId = $(this).attr('id');		
+        var actionMethod = ( actionId === undefined ) ? "POST" : "PUT";
+        var url = ( actionId === undefined ) ? "../api/programRuleActions/" 
+            : "../api/programRuleActions/" + actionId;
+
+        $.ajax({
+            type: actionMethod
+            ,url: url
+            ,dataType: "json"
+            ,async: false
+            ,contentType: "application/json"
+            ,data: JSON.stringify(json_Data)
+            ,success: function(){}
+            ,error:  function(){}
+        });
+    });
 }
 
 
 $( document ).ajaxStop(function() {
-	if( status == 1 )
-	{
-		status = 0;
-		window.location.href='programRule.action?id=' + getFieldValue('programLocalId');
-	}
+    if( status == 1 )
+    {
+        status = 0;
+        window.location.href='programRule.action?id=' + getFieldValue('programLocalId');
+    }
 }); 
 
 
 // --
 // Add new - Program Rule
 // -----------------------------------------------------------------------------
-
-
 function sourceTypeOnChange()
 {
-	var sourceType = getFieldValue("sourceType");
-	if( sourceType === "DATAELEMENT_NEWEST_EVENT_PROGRAM" ){
-		setFieldValue( "programStageId", "" );
-		disable("programStageId");
-		$("[name='deSourceType']").show();
-		$("[name='teiAttrSourceType']").hide();		
-	}
-	else if( sourceType === "DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE" ){
-		enable("programStageId");
-		$("[name='deSourceType']").show();
-		$("[name='teiAttrSourceType']").hide();	
-	}
-        else if( sourceType === "DATAELEMENT_CURRENT_EVENT" ){
-		setFieldValue( "programStageId", "" );
-		disable("programStageId");
-		$("[name='deSourceType']").show();
-		$("[name='teiAttrSourceType']").hide();		
-	}
-        else if( sourceType === "DATAELEMENT_PREVIOUS_EVENT" ){
-		setFieldValue( "programStageId", "" );
-		disable("programStageId");
-		$("[name='deSourceType']").show();
-		$("[name='teiAttrSourceType']").hide();		
-	}
-	else if( sourceType === "TEI_ATTRIBUTE" ){
-		setFieldValue( "programStageId", "" );
-		disable("programStageId");
-		$("[name='deSourceType']").hide();
-		$("[name='teiAttrSourceType']").show();	
-	}
+    var sourceType = getFieldValue("sourceType");
+    if( sourceType === "DATAELEMENT_NEWEST_EVENT_PROGRAM" ){
+        setFieldValue( "programStageId", "" );
+        disable("programStageId");
+        $("[name='deSourceType']").show();
+        $("[name='teiAttrSourceType']").hide();		
+    }
+    else if( sourceType === "DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE" ){
+        enable("programStageId");
+        $("[name='deSourceType']").show();
+        $("[name='teiAttrSourceType']").hide();	
+    }
+    else if( sourceType === "DATAELEMENT_CURRENT_EVENT" ){
+        setFieldValue( "programStageId", "" );
+        disable("programStageId");
+        $("[name='deSourceType']").show();
+        $("[name='teiAttrSourceType']").hide();		
+    }
+    else if( sourceType === "DATAELEMENT_PREVIOUS_EVENT" ){
+        setFieldValue( "programStageId", "" );
+        disable("programStageId");
+        $("[name='deSourceType']").show();
+        $("[name='teiAttrSourceType']").hide();		
+    }
+    else if( sourceType === "TEI_ATTRIBUTE" ){
+        setFieldValue( "programStageId", "" );
+        disable("programStageId");
+        $("[name='deSourceType']").hide();
+        $("[name='teiAttrSourceType']").show();	
+    }
 }
 
 function addSourceFieldForm()
 {
-	hideById('variableNameError');
-	$("#programRuleVariableDiv").dialog({
-		title: i18n_add_source_field,
-		height: 230,
-		width:450,
-		modal: true,
-		zIndex:99999
-	});	
+    hideById('variableNameError');
+    $("#programRuleVariableDiv").dialog({
+        title: i18n_add_source_field,
+        height: 230,
+        width:450,
+        modal: true,
+        zIndex:99999
+    });	
 }
 
 function addMoreAction()
 {        
-	var table = $("#actionTB");
-	var dataElementSelector = "<select class='actionDEs' style='width:100%;' >";
-        dataElementSelector += "<option value=''>" + i18n_none + "</option>";
-        dataElementSelector += "<optgroup label='" + i18n_data_element_label + "'>";
-	for( var i in program_DataElements )
-	{
-		dataElementSelector += "<option value='" + i + "'>" + program_DataElements[i] + "</option>";
-	}
-        dataElementSelector += "</optgroup>";
-        dataElementSelector += "<optgroup label='" + i18n_program_attribute_label + "'>";
-	for( var key in attributeList)
-	{
-		dataElementSelector += "<option value='" + key + "'>" + attributeList[key] + "</option>";
-	}
-        dataElementSelector += "</optgroup>";
-	dataElementSelector += "</select>";
-	
-	var clazz = "class='listAlternateRow'";
-	if( $("#actionTB tr").length % 2 == 0 )
-	{
-		clazz = "class='listRow'";
-	}
-	var row = "<tr " + clazz + ">"
-			+ "<td><select class='actionList' style='width:100%' onchange='actionListToggle(this)'>"
-			+ "	<option value='HIDEFIELD' errorMessage='" + i18n_please_enter_alert_message_when_hiding_a_field + "' >" + i18n_hide_field + "</option>"
-			+ "	<option value='SHOWWARNING' errorMessage='" + i18n_please_enter_warning_message + "' >" + i18n_show_warning + "</option>"
-			+ "	<option value='SHOWERROR' errorMessage='" + i18n_please_enter_error_message + "' >" + i18n_show_error + "</option>"
-                        + "     <option value='WARNINGONCOMPLETE' errorMessage='" + i18n_please_enter_warning_message + "' > " + i18n_show_warning_on_complete + "</option>"
-                        + "     <option value='ERRORONCOMPLETE' errorMessage='" + i18n_please_enter_error_message + "' >" + i18n_show_error_on_complete + "</option>"
-			+ "	<option value='HIDESECTION' errorMessage='" + i18n_please_enter_alert_message_when_hiding_a_section + "' >" + i18n_hide_section + "</option>"
-			+ "</select>"
-			+ "</td>"
-			+ "<td><input type='text' class='content' style='width:97%;'/></td>"
-			+ "<td><span class='deCell'>" + dataElementSelector + "</span><span class='sectionCell' style='display:none;'>" + sectionSelector + "</td>"
-			+ "<td><input class='small-button' type='button' value='-' onclick='javascript:removeActionRow(this)';></td>"
-			+ "</tr>";
-	table.append(row);
+    var table = $("#actionTB");
+    var dataElementSelector = "<select class='actionDEs' style='width:100%;' >";
+    dataElementSelector += "<option value=''>" + i18n_none + "</option>";
+    dataElementSelector += "<optgroup label='" + i18n_data_element_label + "'>";
+    for( var i in program_DataElements )
+    {
+        dataElementSelector += "<option value='" + i + "'>" + program_DataElements[i] + "</option>";
+    }
+    dataElementSelector += "</optgroup>";
+    dataElementSelector += "<optgroup label='" + i18n_program_attribute_label + "'>";
+    for( var key in attributeList)
+    {
+        dataElementSelector += "<option value='" + key + "'>" + attributeList[key] + "</option>";
+    }
+    dataElementSelector += "</optgroup>";
+    dataElementSelector += "</select>";
+
+    var clazz = "class='listAlternateRow'";
+    if( $("#actionTB tr").length % 2 == 0 )
+    {
+        clazz = "class='listRow'";
+    }
+    var row = "<tr " + clazz + ">"
+        + "<td><select class='actionList' style='width:100%' onchange='actionListToggle(this)'>"
+        + "	<option value='HIDEFIELD' errorMessage='" + i18n_please_enter_alert_message_when_hiding_a_field + "' >" + i18n_hide_field + "</option>"
+        + "	<option value='SHOWWARNING' errorMessage='" + i18n_please_enter_warning_message + "' >" + i18n_show_warning + "</option>"
+        + "	<option value='SHOWERROR' errorMessage='" + i18n_please_enter_error_message + "' >" + i18n_show_error + "</option>"
+        + "     <option value='WARNINGONCOMPLETE' errorMessage='" + i18n_please_enter_warning_message + "' > " + i18n_show_warning_on_complete + "</option>"
+        + "     <option value='ERRORONCOMPLETE' errorMessage='" + i18n_please_enter_error_message + "' >" + i18n_show_error_on_complete + "</option>"
+        + "	<option value='HIDESECTION' errorMessage='" + i18n_please_enter_alert_message_when_hiding_a_section + "' >" + i18n_hide_section + "</option>"
+        + "</select>"
+        + "</td>"
+        + "<td><input type='text' class='content' style='width:97%;'/></td>"
+        + "<td><span class='deCell'>" + dataElementSelector + "</span><span class='sectionCell' style='display:none;'>" + sectionSelector + "</td>"
+        + "<td><input class='small-button' type='button' value='-' onclick='javascript:removeActionRow(this)';></td>"
+        + "</tr>";
+    table.append(row);
 }
 
 function actionListToggle(_this)
 {
-	var selected = _this.value;
-	var row = $(_this).closest('tr');
-	if( selected == 'HIDESECTION' ){
-		row.find('.deCell').hide();
-		row.find('.sectionCell').show();
-	}
-	else{
-		row.find('.sectionCell').hide();
-		row.find('.deCell').show();
-	}
+    var selected = _this.value;
+    var row = $(_this).closest('tr');
+    if( selected == 'HIDESECTION' ){
+        row.find('.deCell').hide();
+        row.find('.sectionCell').show();
+    }
+    else{
+        row.find('.sectionCell').hide();
+        row.find('.deCell').show();
+    }
 }
 
 function removeActionRow(_this)
 {
-	$(_this).closest('tr').remove();
+    $(_this).closest('tr').remove();
 }
 
 function variableNameKeyPress(event)
 {
-	var key = event.keyCode || event.charCode || event.which;
-	
-	// Allow Numbers || A-Z || a-z
-	if( ( key>=48 && key<=57 ) ||  ( key>=65 && key<=90 ) ||  ( key>=97 && key<=122 ) )
-	{
-		return true;
-	}
-	return false;
+    var key = event.keyCode || event.charCode || event.which;
+
+    // Allow Numbers || A-Z || a-z
+    if( ( key>=48 && key<=57 ) ||  ( key>=65 && key<=90 ) ||  ( key>=97 && key<=122 ) )
+    {
+        return true;
+    }
+    return false;
 }
 
 function showUpdateAttributeForm(context)
 {
-	window.location.href='showUpdateProgramRuleForm.action?id=' + context.id
+    window.location.href='showUpdateProgramRuleForm.action?id=' + context.id
 }
 
 function clearRuleFilter( programId ) {
-	setFieldValue('key','');
+    setFieldValue('key','');
     jQuery.cookie( "currentPage", null );
     jQuery.cookie( "currentKey", null );
     window.location.href = 'programRule.action?id=' + programId;
