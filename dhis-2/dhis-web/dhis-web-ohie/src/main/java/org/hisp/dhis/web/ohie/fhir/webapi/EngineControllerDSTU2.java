@@ -421,9 +421,9 @@ public class EngineControllerDSTU2 extends EngineController
         if ( response instanceof ScriptObjectMirror && response != null )
         {
             log.info ( "response is ScriptObjectMirror" );
-            ScriptObjectMirror responseSom  = ( ScriptObjectMirror ) response;
             log.info ( "creating JSON representation of response" );
-            json = response.toString();
+            json = EngineSE.toJsonString( (ScriptObjectMirror) response);
+            log.info("SOM string representation: " + json);
 
         }
 
@@ -432,10 +432,12 @@ public class EngineControllerDSTU2 extends EngineController
             log.info ( "response is Map" );
             json =  JSONObject.toJSONString ( ( Map ) response );
         }
-
+        else  if ((response instanceof String)) {
+            json = (String) response; //hope for the best here.
+        }
         else
         {
-            log.info ( "response is null" );
+            log.info ( "unknown response type" );
         }
 
         //make sure we can validate as  valid
