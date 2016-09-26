@@ -76,18 +76,6 @@ public class PushAnalysisController
     @Autowired
     private Scheduler scheduler;
 
-
-    // Temp!
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @RequestMapping( value = "/runAll", method = RequestMethod.GET )
-    public void runAllPushAnalysis()
-    {
-        scheduler.executeTask( new PushAnalysisTask(
-            -1,
-            new TaskId( TaskCategory.PUSH_ANALYSIS, currentUserService.getCurrentUser() ),
-            pushAnalysisService ) );
-    }
-
     /**
      * Endpoint that renders the same content as a Push Analysis email would contain, for the logged in user.
      * Used for users to preview the content of Push Analysis
@@ -101,7 +89,7 @@ public class PushAnalysisController
         @PathVariable() String uid,
         HttpServletResponse response
     )
-        throws Exception
+        throws WebMessageException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
         if ( pushAnalysis == null )
@@ -115,21 +103,32 @@ public class PushAnalysisController
 
         logger.info(
             "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
-        pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
+
+        try
+        {
+            String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
+            response.getWriter().write( result );
+            response.getWriter().close();
+
+        }
+        catch ( Exception e )
+        {
+            logger.error( "Failed to render push analysis" );
+            e.printStackTrace();
+        }
+
     }
 
     /**
      * This endpoint let's the user manually trigger a PushAnalysis run.
      *
      * @param uid      of the PushAnalysis to run
-     * @param response
      * @throws Exception
      */
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{uid}/run", method = RequestMethod.GET )
     public void sendPushAnalysis(
-        @PathVariable() String uid,
-        HttpServletResponse response
+        @PathVariable() String uid
     )
         throws Exception
     {
@@ -147,4 +146,27 @@ public class PushAnalysisController
             pushAnalysisService ) );
     }
 
+    @Override
+    protected void preDeleteEntity( PushAnalysis pushAnalysis )
+    {
+        scheduler.stopTask( pushAnalysis.getSchedulingKey() );
+    }
+
+    @Override
+    protected void postUpdateEntity( PushAnalysis pushAnalysis )
+    {
+        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
+    }
+
+    @Override
+    protected void postCreateEntity( PushAnalysis pushAnalysis )
+    {
+        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
+    }
+
+    @Override
+    protected void postPatchEntity( PushAnalysis pushAnalysis )
+    {
+        pushAnalysisService.refreshPushAnalysisScheduling( pushAnalysis );
+    }
 }

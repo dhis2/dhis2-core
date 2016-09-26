@@ -3,18 +3,6 @@
 
 var d2Services = angular.module('d2Services', ['ngResource'])
 
-.constant("URLS",function(){
-    var dhis2Url = "../api/25/";
-    var userDataStoreUrl = dhis2Url+"userDataStore/";
-    var gridColumnsUrl = userDataStoreUrl+"gridColumns/";
-
-    return {
-        DHIS2URL: dhis2Url,
-        USERDATASTORE_URL: userDataStoreUrl,
-        GRIDCOLUMNS_URL: gridColumnsUrl
-    }
-}())
-
 /* Factory for loading translation strings */
 .factory('i18nLoader', function ($q, $http, SessionStorageService) {
 
@@ -363,7 +351,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for dealing with custom form */
-.service('CustomFormService', function ($translate, DialogService) {
+.service('CustomFormService', function ($translate, NotificationService) {
 
     return {
         getForProgramStage: function (programStage, programStageDataElements) {
@@ -519,20 +507,16 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     </span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "COORDINATE") {
-                                            newInputField = '<span class="input-group hideInPrint"> ' +
-                                                            ' <input type="text" ' +
-                                                            ' d2-custom-coordinate-validator ' +
-                                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
-                                                            ' placeholder="{{\'latitude_longitude_format\' | translate}}" ' +
-                                                            commonInputFieldProperty + '>' +
-                                                            '<span class="input-group-btn input-group-btn-no-width"> ' +
-                                                                '<button class="btn btn-grp default-btn-height" type="button" title="{{\'get_from_map\' | translate}}" ' +
-                                                                    ' ng-class="{true: \'disable-clicks\'} [isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed]" ' +
-                                                                    'ng-click="showDataElementMap(currentEvent,\'' + fieldId + '\', outerForm.' + fieldId + ')"> ' +
-                                                                    '<i class="fa fa-map-marker"></i> ' +
-                                                                '</button> ' + 
-                                                            '</span>' +
-                                                            '</span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
+                                    	newInputField = '<d2-map ' + 
+                                    							' id=" ' + fieldId + '" ' +
+						                                        ' d2-object="currentEvent" ' + 
+						                                        ' d2-coordinate-format="\'TEXT\'" ' + 
+						                                        ' d2-disabled="isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
+					                                            ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
+						                                        ' d2-function="saveDatavalue(arg1)" ' +						                                        
+						                                        ' d2-function-param-text="prStDes.' + fieldId + '" ' +
+						                                        ' d2-function-param-coordinate="\'LATLNG\'" > ' +
+						                                '</d2-map>';
                                     }
                                     else if (prStDe.dataElement.valueType === "ORGANISATION_UNIT") {
                                     	newInputField = '<d2-org-unit-tree ' +
@@ -554,11 +538,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 }
                             }
                             else{
-                                var dialogOptions = {
-                                    headerText: 'error',
-                                    bodyText: 'custom_form_has_invalid_dataelement'
-                                };
-                                DialogService.showDialog({}, dialogOptions);
+                                NotificationService.showNotifcationDialog($translate.instant("error"),
+                                    $translate.instant("custom_form_has_invalid_dataelement"));
+
                                 return;
                             }
                             
@@ -702,19 +684,25 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     '</span>';
                                 }
                                 else if (att.valueType === "COORDINATE") {
-                                    newInputField = '<span class="input-group"> ' +
-                                                        ' <input type="text" ' +
-                                                        ' placeholder="{{\'latitude_longitude_format\' | translate}}" ' +
-                                                        ' d2-custom-coordinate-validator ' +
-                                                        ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
-                                                        commonInputFieldProperty + '>' +
-                                                        '<span class="input-group-btn input-group-btn-no-width"> ' +
-                                                            '<button class="btn btn-grp default-btn-height" type="button" title="{{\'get_from_map\' | translate}}" ' +
-                                                                ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
-                                                                'ng-click="showAttributeMap(selectedTei,\'' + attId + '\')"> ' +
-                                                                '<i class="fa fa-map-marker"></i> ' +
-                                                            '</button> ' + 
-                                                        '</span></span>';
+                                	newInputField = '<d2-map ' + 
+                            								' id=" ' + attId + '" ' +
+						                                    ' d2-object="selectedTei" ' +  
+						                                    ' d2-value="selectedTei.' + attId + '" ' +
+						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
+					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+						                                    ' d2-coordinate-format="\'TEXT\'" > ' +
+						                            '</d2-map>';
+                                }
+                                else if (att.valueType === "ORGANISATION_UNIT") {
+                                	newInputField = '<d2-org-unit-tree ' +
+				                                            ' selected-org-unit="selectedOrgUnit" ' +
+				                                            ' id=" ' + attId + '" ' +
+				                                            ' d2-object="selectedTei" ' +  
+						                                    ' d2-value="selectedTei.' + attId + '" ' +
+						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
+					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+					                                        ' d2-function="teiValueUpdated()" >' +
+				                                    ' </d2-org-unit-tree>';
                                 }
                                 else if (att.valueType === "LONG_TEXT") {
                                     newInputField = '<span><textarea row ="3" ' +
@@ -729,11 +717,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             }
                         }
                         else{
-                            var dialogOptions = {
-                                headerText: 'error',
-                                bodyText: 'custom_form_has_invalid_attribute'
-                            };
-                            DialogService.showDialog({}, dialogOptions);
+                            NotificationService.showNotifcationDialog($translate.instant("error"),
+                                $translate.instant("custom_form_has_invalid_attribute"));
                             return;
                         }
                     }
@@ -972,7 +957,20 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
 
 }])
+.service('NotificationService', function (DialogService) {
+    this.showNotifcationDialog = function(errorMsgheader, errorMsgBody){
+        var dialogOptions = {
+            headerText: errorMsgheader,
+            bodyText: errorMsgBody
+        };
+        DialogService.showDialog({}, dialogOptions);
+    };
 
+    this.showNotifcationWithOptions = function(dialogDefaults, dialogOptions){
+        DialogService.showDialog(dialogDefaults, dialogOptions);
+    };
+
+})
 .service('Paginator', function () {
     this.page = 1;
     this.pageSize = 50;
@@ -1041,7 +1039,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
 })
 
-.service('GridColumnService', function ($http, URLS, SessionStorageService) {
+.service('GridColumnService', function ($http, DHIS2URL, $translate, SessionStorageService, NotificationService) {
+    var GRIDCOLUMNS_URL = DHIS2URL+'/userDataStore/gridColumns/';
     return {
         columnExists: function (cols, id) {
             var colExists = false;
@@ -1060,7 +1059,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             var method = created ? "put":"post";
             var promise = $http({
                 method: method,
-                url: URLS.GRIDCOLUMNS_URL+name,
+                url: GRIDCOLUMNS_URL+name,
                 data: {"gridColumns": gridColumns},
                 headers: {'Content-Type': 'application/json;charset=UTF-8'}
             }).then(function (response) {
@@ -1074,11 +1073,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return promise;
         },
         get: function (name) {
-            var promise = $http.get(URLS.GRIDCOLUMNS_URL+name).then(function (response) {
+            var promise = $http.get(GRIDCOLUMNS_URL+name).then(function (response) {
                 if (response && response.data && response.data.gridColumns) {
                     SessionStorageService.set("gridColumns", {id:name, columns:response.data.gridColumns});
                     return response.data.gridColumns;
                 } else {
+                    NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_invalid"));
                     return null;
                 }
             }, function (error) {
@@ -1086,7 +1086,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 if (gridColumnsFromSessionStore && gridColumnsFromSessionStore.columns) {
                     return gridColumnsFromSessionStore.columns;
                 }
-                return {status:"ERROR", data:error.data};
+                return null;
             });
             return promise;
         }
@@ -1328,7 +1328,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         return processedValue;
     };
 
-    var pushVariable = function(variables, variablename, varValue, allValues, varType, variablefound, variablePrefix, variableEventDate) {
+    var pushVariable = function(variables, variablename, varValue, allValues, varType, variablefound, variablePrefix, variableEventDate, useCodeForOptionSet) {
 
         var processedValues = [];
 
@@ -1338,6 +1338,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
         variables[variablename] = {
             variableValue:processSingleValue(varValue, varType),
+            useCodeForOptionSet:useCodeForOptionSet,
             variableType:varType,
             hasValue:variablefound,
             variableEventDate:variableEventDate,
@@ -1347,8 +1348,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         return variables;
     };
     
-    var getDataElementValueOrCode = function(programVariable, event, dataElementId, allDes, optionSets) {
-        return programVariable.useCodeForOptionSet && allDes[dataElementId].dataElement.optionSet ? 
+    var getDataElementValueOrCode = function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
+        return useCodeForOptionSet && allDes && allDes[dataElementId].dataElement.optionSet ? 
                                             OptionSetService.getCode(optionSets[allDes[dataElementId].dataElement.optionSet.id].options, event[dataElementId])
                                             : event[dataElementId];
     };
@@ -1356,6 +1357,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     return {
         processValue: function(value, type) {
             return processSingleValue(value,type);
+        },
+        getDataElementValueOrCode: function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
+            return getDataElementValueOrCode(useCodeForOptionSet, event, dataElementId, allDes, optionSets);
         },
         getVariables: function(allProgramRules, executingEvent, evs, allDes, selectedEntity, selectedEnrollment, optionSets) {
 
@@ -1390,11 +1394,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(event[dataElementId] !== null) {
                                 if(angular.isDefined(event[dataElementId])
                                         && event[dataElementId] !== ""){
-                                    var value = getDataElementValueOrCode(programVariable, event, dataElementId, allDes, optionSets);
+                                    var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
                                             
                                     allValues.push(value);
                                     valueFound = true;
-                                    variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate);
+                                    variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate, programVariable.useCodeForOptionSet);
                                 }
                             }
                         });
@@ -1410,11 +1414,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         if(angular.isDefined(event[dataElementId])
                             && event[dataElementId] !== null 
                             && event[dataElementId] !== ""){
-                            var value = getDataElementValueOrCode(programVariable, event, dataElementId, allDes, optionSets);
+                            var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
                                     
                             allValues.push(value);
                             valueFound = true;
-                            variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate);
+                            variables = pushVariable(variables, programVariable.displayName, value, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', event.eventDate, programVariable.useCodeForOptionSet);
                         }
                     });
                 }
@@ -1422,10 +1426,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     if(angular.isDefined(executingEvent[dataElementId])
                         && executingEvent[dataElementId] !== null 
                         && executingEvent[dataElementId] !== ""){
-                        var value = getDataElementValueOrCode(programVariable, executingEvent, dataElementId, allDes, optionSets);
+                        var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, executingEvent, dataElementId, allDes, optionSets);
                             
                         valueFound = true;
-                        variables = pushVariable(variables, programVariable.displayName, value, null, allDes[dataElementId].dataElement.valueType, valueFound, '#', executingEvent.eventDate );
+                        variables = pushVariable(variables, programVariable.displayName, value, null, allDes[dataElementId].dataElement.valueType, valueFound, '#', executingEvent.eventDate, programVariable.useCodeForOptionSet );
                     }
                 }
                 else if(programVariable.programRuleVariableSourceType === "DATAELEMENT_PREVIOUS_EVENT" && evs){
@@ -1441,7 +1445,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(!currentEventPassed && evs.all[i] !== executingEvent &&
                                 angular.isDefined(evs.all[i][dataElementId])
                                 && evs.all[i][dataElementId] !== "") {
-                                previousvalue = getDataElementValueOrCode(programVariable, evs.all[i], dataElementId, allDes, optionSets);
+                                previousvalue = getDataElementValueOrCode(programVariable.useCodeForOptionSet, evs.all[i], dataElementId, allDes, optionSets);
                                 previousEventDate = evs.all[i].eventDate;
                                 allValues.push(value);
                                 valueFound = true;
@@ -1449,7 +1453,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             else if(evs.all[i] === executingEvent) {
                                 //We have iterated to the newest event - store the last collected variable value - if any is found:
                                 if(valueFound) {
-                                    variables = pushVariable(variables, programVariable.displayName, previousvalue, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', previousEventDate);
+                                    variables = pushVariable(variables, programVariable.displayName, previousvalue, allValues, allDes[dataElementId].dataElement.valueType, valueFound, '#', previousEventDate, programVariable.useCodeForOptionSet);
                                 }
                                 //Set currentEventPassed, ending the iteration:
                                 currentEventPassed = true;
@@ -1473,7 +1477,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     null, 
                                     attribute.type ? attribute.type : attribute.valueType, valueFound, 
                                     'A', 
-                                    '' );
+                                    '',
+                                    programVariable.useCodeForOptionSet);
                             }
                         }
                     });
@@ -1496,43 +1501,43 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     if(dataElementId && allDes) {
                         var dataElement = allDes[dataElementId];
                         if( dataElement ) {
-                            variables = pushVariable(variables, programVariable.displayName, "", null, dataElement.dataElement.valueType, false, '#', '' );
+                            variables = pushVariable(variables, programVariable.displayName, "", null, dataElement.dataElement.valueType, false, '#', '', programVariable.useCodeForOptionSet );
                         }
                         else {
                             $log.warn("Variable #{" + programVariable.displayName + "} is linked to a dataelement that is not part of the program");
-                            variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '' );
+                            variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '', programVariable.useCodeForOptionSet );
                         }
                     }
                     else if (programVariable.trackedEntityAttribute) {
                         //The variable is an attribute, set correct prefix and a blank value
-                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, 'A', '' );
+                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, 'A', '', programVariable.useCodeForOptionSet );
                     }
                     else {
                         //Fallback for calculated(assigned) values:
-                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '' );
+                        variables = pushVariable(variables, programVariable.displayName, "", null, "TEXT",false, '#', '', programVariable.useCodeForOptionSet );
                     }
                 }
             });
 
             //add context variables:
             //last parameter "valuefound" is always true for event date
-            variables = pushVariable(variables, 'current_date', DateUtils.getToday(), null, 'DATE', true, 'V', '' );
+            variables = pushVariable(variables, 'current_date', DateUtils.getToday(), null, 'DATE', true, 'V', '', false );
 
-            variables = pushVariable(variables, 'event_date', executingEvent.eventDate, null, 'DATE', true, 'V', '' );
+            variables = pushVariable(variables, 'event_date', executingEvent.eventDate, null, 'DATE', true, 'V', '', false );
             variables = pushVariable(variables, 'due_date', executingEvent.dueDate, null, 'DATE', true, 'V', '' );
-            variables = pushVariable(variables, 'event_count', evs ? evs.all.length : 0, null, 'INTEGER', true, 'V', '' );
+            variables = pushVariable(variables, 'event_count', evs ? evs.all.length : 0, null, 'INTEGER', true, 'V', '', false );
 
-            variables = pushVariable(variables, 'enrollment_date', selectedEnrollment ? selectedEnrollment.enrollmentDate : '', null, 'DATE', selectedEnrollment ? true : false, 'V', '' );
-            variables = pushVariable(variables, 'enrollment_id', selectedEnrollment ? selectedEnrollment.enrollment : '', null, 'TEXT',  selectedEnrollment ? true : false, 'V', '');
-            variables = pushVariable(variables, 'event_id', executingEvent ? executingEvent.event : '', null, 'TEXT',  executingEvent ? true : false, 'V', executingEvent ? executingEvent.eventDate : false);
+            variables = pushVariable(variables, 'enrollment_date', selectedEnrollment ? selectedEnrollment.enrollmentDate : '', null, 'DATE', selectedEnrollment ? true : false, 'V', '', false );
+            variables = pushVariable(variables, 'enrollment_id', selectedEnrollment ? selectedEnrollment.enrollment : '', null, 'TEXT',  selectedEnrollment ? true : false, 'V', '', false );
+            variables = pushVariable(variables, 'event_id', executingEvent ? executingEvent.event : '', null, 'TEXT',  executingEvent ? true : false, 'V', executingEvent ? executingEvent.eventDate : false, false);
 
-            variables = pushVariable(variables, 'incident_date', selectedEnrollment ? selectedEnrollment.incidentDate : '', null, 'DATE',  selectedEnrollment ? true : false, 'V', '');
-            variables = pushVariable(variables, 'enrollment_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '');
-            variables = pushVariable(variables, 'tei_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '');
+            variables = pushVariable(variables, 'incident_date', selectedEnrollment ? selectedEnrollment.incidentDate : '', null, 'DATE',  selectedEnrollment ? true : false, 'V', '', false);
+            variables = pushVariable(variables, 'enrollment_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '', false);
+            variables = pushVariable(variables, 'tei_count', selectedEnrollment ? 1 : 0, null, 'INTEGER', true, 'V', '', false);
 
             //Push all constant values:
             angular.forEach(allProgramRules.constants, function(constant){
-                variables = pushVariable(variables, constant.id, constant.value, null, 'INTEGER', true, 'C', '');
+                variables = pushVariable(variables, constant.id, constant.value, null, 'INTEGER', true, 'C', '', false);
             });
 
             return variables;
@@ -1541,7 +1546,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for executing tracker rules and broadcasting results */
-.service('TrackerRulesExecutionService', function(VariableService, DateUtils, DialogService, DHIS2EventFactory, RulesFactory, CalendarService, OptionSetService, $rootScope, $q, $log, $filter, orderByFilter){
+.service('TrackerRulesExecutionService', function($translate, VariableService, DateUtils, NotificationService, DHIS2EventFactory, RulesFactory, CalendarService, OptionSetService, $rootScope, $q, $log, $filter, orderByFilter){
     var NUMBER_OF_EVENTS_IN_SCOPE = 10;
 
     //Variables for storing scope and rules in memory from rules execution to rules execution:
@@ -2376,34 +2381,37 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         //In case the rule is of type "assign variable" and the rule is effective,
                         //the variable data result needs to be applied to the correct variable:
                         else if($rootScope.ruleeffects[ruleEffectKey][action.id].action === "ASSIGN" && $rootScope.ruleeffects[ruleEffectKey][action.id].ineffect){
-                            //from earlier evaluation, the data portion of the ruleeffect now contains the value of the variable to be assign.
-                            //the content portion of the ruleeffect defines the name for the variable, when dollar is removed:
+                            //from earlier evaluation, the data portion of the ruleeffect now contains the value of the variable to be assigned.
+                            //the content portion of the ruleeffect defines the name for the variable, when the qualidisers are removed:
                             var variabletoassign = $rootScope.ruleeffects[ruleEffectKey][action.id].content ?
                                 $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("}","") : null;
 
-                            if((!variabletoassign || !angular.isDefined(variablesHash[variabletoassign])) && !$rootScope.ruleeffects[ruleEffectKey][action.id].dataElement){
+                            if(variabletoassign || !angular.isDefined(variablesHash[variabletoassign])){
+                                //If a variable is mentioned in the content of the rule, but does not exist in the variables hash, show a warning:
                                 $log.warn("Variable " + variabletoassign + " was not defined.");
                             }
 
-                            var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
-
-                            //Even if the variable is not defined: we assign it:
                             if(variablesHash[variabletoassign] &&
                                 variablesHash[variabletoassign].variableValue !== updatedValue){
                                 //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
                                 updatedEffectsExits = true;
-                                //Then we assign the new value:
+                                
+                                var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
+                                
                                 var valueType = determineValueType(updatedValue);
-
-                                var processedValue = VariableService.processValue(updatedValue, valueType);
+                                
+                                if($rootScope.ruleeffects[ruleEffectKey][action.id].dataElement) {
+                                    updatedValue = VariableService.getDataElementValueOrCode(variablesHash[variabletoassign].useCodeForOptionSet, executingEvent, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
+                                }
+                                updatedValue = VariableService.processValue(updatedValue, valueType);
 
                                 variablesHash[variabletoassign] = {
-                                    variableValue:processedValue,
+                                    variableValue:updatedValue,
                                     variableType:valueType,
                                     hasValue:true,
                                     variableEventDate:'',
                                     variablePrefix:'#',
-                                    allValues:[processedValue]
+                                    allValues:[updatedValue]
                                 };
                             }
                         }
@@ -2558,11 +2566,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     } else if (effect.action === "SHOWERROR") {
                         if (effect.trackedEntityAttribute) {                        
                             if(effect.ineffect) {
-                                var dialogOptions = {
-                                    headerText: 'validation_error',
-                                    bodyText: effect.content + (effect.data ? effect.data : "")
-                                };
-                                DialogService.showDialog({}, dialogOptions);
+                                var headerText =  $translate.instant('validation_error');
+                                var bodyText = effect.content + (effect.data ? effect.data : "");
+
+                                NotificationService.showNotifcationDialog(headerText, bodyText);
                                 selectedTei[effect.trackedEntityAttribute.id] = tei[effect.trackedEntityAttribute.id];
                             }
                         }
@@ -2613,11 +2620,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         }
                     }
                     else if(effect.action === "SHOWERROR" && effect.dataElement.id){
-                        var dialogOptions = {
-                            headerText: 'validation_error',
-                            bodyText: effect.content + (effect.data ? effect.data : "")
-                        };
-                        DialogService.showDialog({}, dialogOptions);
+                        var headerTxt =  $translate.instant('validation_error');
+                        var bodyTxt = effect.content + (effect.data ? effect.data : "");
+                        NotificationService.showNotifcationDialog(headerTxt, bodyTxt);
 
                         currentEvent[effect.dataElement.id] = currentEventOriginialValue[effect.dataElement.id];
                     }
@@ -2814,7 +2819,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     }
 })
 
-.service('AuditHistoryDataService', function( $http, $translate, DialogService) {
+.service('AuditHistoryDataService', function( $http, $translate, NotificationService) {
     this.getAuditHistoryData = function(dataId, dataType ) {
         var url="";
         if (dataType === "attribute") {
@@ -2828,11 +2833,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return response.data;
         }, function( response ) {
             if( response && response.data && response.data.status === 'ERROR' ) {
-                var dialogOptions = {
-                    headerText: response.data.status,
-                    bodyText: response.data.message ? response.data.message : $translate.instant('unable_to_fetch_data_from_server')
-                };
-                DialogService.showDialog({}, dialogOptions);
+                var headerText = response.data.status;
+                var bodyText = response.data.message ? response.data.message : $translate.instant('unable_to_fetch_data_from_server');
+                NotificationService.showNotifcationDialog(headerText, bodyText);
             }
         });
         return promise;

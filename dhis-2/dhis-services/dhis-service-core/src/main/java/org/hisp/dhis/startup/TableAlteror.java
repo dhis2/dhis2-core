@@ -29,8 +29,8 @@ package org.hisp.dhis.startup;
  */
 
 import com.google.common.collect.Lists;
-import org.amplecode.quick.StatementHolder;
-import org.amplecode.quick.StatementManager;
+import org.hisp.quick.StatementHolder;
+import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -928,7 +928,9 @@ public class TableAlteror
         
         updateEnums();
 
-        oauth2();
+        upgradeDataValueSoftDelete();
+        
+        initOauth2();
 
         upgradeDataValuesWithAttributeOptionCombo();
         upgradeCompleteDataSetRegistrationsWithAttributeOptionCombo();
@@ -955,8 +957,15 @@ public class TableAlteror
 
         log.info( "Tables updated" );
     }
+    
+    private void upgradeDataValueSoftDelete()
+    {
+        executeSql( "update datavalue set deleted = false where deleted is null" );
+        executeSql( "alter table datavalue alter column deleted set not null" );
+        executeSql( "create index in_datavalue_deleted on datavalue(deleted)" );
+    }
 
-    public void oauth2()
+    private void initOauth2()
     {
         // OAuth2
         executeSql( "CREATE TABLE oauth_code (" +

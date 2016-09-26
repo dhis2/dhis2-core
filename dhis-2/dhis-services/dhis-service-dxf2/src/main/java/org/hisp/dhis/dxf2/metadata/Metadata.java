@@ -68,8 +68,8 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.mapping.MapLayer;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -97,7 +97,6 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
-import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
@@ -209,7 +208,7 @@ public class Metadata
 
     private List<LegendSet> legendSets = new ArrayList<>();
 
-    private List<MapLayer> mapLayers = new ArrayList<>();
+    private List<ExternalMapLayer> externalMapLayers = new ArrayList<>();
 
     private List<DataEntryForm> dataEntryForms = new ArrayList<>();
 
@@ -252,8 +251,6 @@ public class Metadata
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
     private List<TrackedEntityAttributeGroup> trackedEntityAttributeGroups = new ArrayList<>();
-
-    private List<Translation> translations = new ArrayList<>();
 
     private List<Color> colors = new ArrayList<>();
 
@@ -900,16 +897,16 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "mapLayers", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "mapLayer", namespace = DxfNamespaces.DXF_2_0 )
-    public List<MapLayer> getMapLayers()
+    @JacksonXmlElementWrapper( localName = "externalMapLayers", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "externalMapLayer", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ExternalMapLayer> getExternalMapLayers()
     {
-        return mapLayers;
+        return externalMapLayers;
     }
 
-    public void setMapLayers( List<MapLayer> mapLayers )
+    public void setExternalMapLayers( List<ExternalMapLayer> externalMapLayers )
     {
-        this.mapLayers = mapLayers;
+        this.externalMapLayers = externalMapLayers;
     }
 
     @JsonProperty
@@ -1147,19 +1144,6 @@ public class Metadata
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "translation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Translation> getTranslations()
-    {
-        return translations;
-    }
-
-    public void setTranslations( List<Translation> translations )
-    {
-        this.translations = translations;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "dimensions", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dimension", namespace = DxfNamespaces.DXF_2_0 )
     public List<DimensionalObject> getDimensions()
@@ -1244,7 +1228,7 @@ public class Metadata
             ", mapViews=" + mapViews +
             ", legends=" + legends +
             ", legendSets=" + legendSets +
-            ", mapLayers=" + mapLayers +
+            ", externalMapLayers=" + externalMapLayers +
             ", sections=" + sections +
             ", dataSets=" + dataSets +
             ", programs=" + programs +

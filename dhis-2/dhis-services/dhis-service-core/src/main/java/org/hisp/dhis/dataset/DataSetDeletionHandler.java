@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
@@ -43,6 +44,8 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
@@ -55,7 +58,10 @@ public class DataSetDeletionHandler
 
     @Autowired
     private DataSetService dataSetService;
-    
+
+    @Autowired
+    private DataElementCategoryService categoryService;
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
@@ -145,13 +151,16 @@ public class DataSetDeletionHandler
     @Override
     public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
+        DataElementCategoryCombo defaultCategoryCombo = categoryService
+            .getDataElementCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+
         Collection<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
 
         for ( DataSet dataSet : dataSets )
         {            
             if ( dataSet != null && categoryCombo.equals( dataSet.getCategoryCombo() ) )
             {
-                dataSet.setCategoryCombo( null );
+                dataSet.setCategoryCombo( defaultCategoryCombo );
                 idObjectManager.updateNoAcl( dataSet );
             }
         }        

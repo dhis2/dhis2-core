@@ -469,21 +469,9 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitsBetween( int first, int max )
-    {
-        return organisationUnitStore.getAllOrderedName( first, max );
-    }
-
-    @Override
     public List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max )
     {
         return organisationUnitStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public List<OrganisationUnit> getOrganisationUnitsBetweenByLastUpdated( Date lastUpdated, int first, int max )
-    {
-        return organisationUnitStore.getBetweenByLastUpdated( lastUpdated, first, max );
     }
 
     @Override

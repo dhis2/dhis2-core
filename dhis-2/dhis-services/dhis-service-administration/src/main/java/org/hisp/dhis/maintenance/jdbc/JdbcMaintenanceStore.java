@@ -28,13 +28,12 @@ package org.hisp.dhis.maintenance.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.maintenance.MaintenanceStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class JdbcMaintenanceStore
     implements MaintenanceStore
@@ -43,19 +42,8 @@ public class JdbcMaintenanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
-    private StatementBuilder statementBuilder;
-
-    public void setStatementBuilder( StatementBuilder statementBuilder )
-    {
-        this.statementBuilder = statementBuilder;
-    }
 
     // -------------------------------------------------------------------------
     // MaintenanceStore implementation
@@ -64,6 +52,25 @@ public class JdbcMaintenanceStore
     @Override
     public int deleteZeroDataValues()
     {
-        return jdbcTemplate.update( statementBuilder.getDeleteZeroDataValues() );
+        String sql =
+            "delete from datavalue dv " +
+            "where dv.dataelementid in ( " +
+              "select de.dataelementid " +
+              "from dataelement de " +
+              "where de.aggregationtype = 'SUM' " +
+              "and de.zeroissignificant is false ) " +
+            "and dv.value = '0';";
+        
+        return jdbcTemplate.update( sql );
+    }
+
+    @Override
+    public int deleteSoftDeletedDataValues()
+    {
+        String sql =
+            "delete from datavalue dv " +
+            "where dv.deleted is true;";
+        
+        return jdbcTemplate.update( sql );
     }
 }

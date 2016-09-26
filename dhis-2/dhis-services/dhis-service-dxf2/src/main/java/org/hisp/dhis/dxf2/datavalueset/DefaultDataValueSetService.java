@@ -29,12 +29,13 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.BatchHandlerFactory;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -57,6 +58,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -67,6 +69,7 @@ import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
@@ -108,6 +111,8 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
+ * Note that a mock BatchHandler factory is being injected.
+ * 
  * @author Lars Helge Overland
  */
 public class DefaultDataValueSetService
@@ -178,7 +183,7 @@ public class DefaultDataValueSetService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
+        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
     {
         DataExportParams params = new DataExportParams();
 
@@ -211,6 +216,7 @@ public class DefaultDataValueSetService
         }
 
         params.setIncludeChildren( includeChildren );
+        params.setIncludeDeleted( includeDeleted );
         params.setLastUpdated( lastUpdated );
         params.setLastUpdatedDuration( lastUpdatedDuration );
         params.setLimit( limit );
@@ -720,7 +726,8 @@ public class DefaultDataValueSetService
         final String currentUser = currentUserService.getCurrentUsername();
         final Set<OrganisationUnit> currentOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
 
-        BatchHandler<DataValue> batchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
+        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
+        BatchHandler<DataValueAudit> auditBatchHandler = batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
 
         int importCount = 0;
         int updateCount = 0;
@@ -1014,25 +1021,36 @@ public class DefaultDataValueSetService
             internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
-
+            internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
+            
             // -----------------------------------------------------------------
             // Save, update or delete data value
             // -----------------------------------------------------------------
 
-            if ( !skipExistingCheck && batchHandler.objectExists( internalValue ) )
+            DataValue existingValue = !skipExistingCheck ? dataValueBatchHandler.findObject( internalValue ) : null;
+
+            // -----------------------------------------------------------------
+            // Check soft deleted data values on update and import
+            // -----------------------------------------------------------------
+
+            if ( !skipExistingCheck && existingValue != null && !existingValue.isDeleted() )
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
                     if ( !dryRun )
                     {
-                        if ( !internalValue.isNullValue() )
+                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
+                        
+                        if ( internalValue.isNullValue() )
                         {
-                            batchHandler.updateObject( internalValue );
+                            internalValue.setDeleted( true );
+                            
+                            auditValue.setAuditType( AuditType.DELETE );
                         }
-                        else
-                        {
-                            batchHandler.deleteObject( internalValue );
-                        }
+                        
+                        dataValueBatchHandler.updateObject( internalValue );
+                        
+                        auditBatchHandler.addObject( auditValue );
                     }
 
                     updateCount++;
@@ -1041,7 +1059,13 @@ public class DefaultDataValueSetService
                 {
                     if ( !dryRun )
                     {
-                        batchHandler.deleteObject( internalValue );
+                        internalValue.setDeleted( true );
+                        
+                        dataValueBatchHandler.updateObject( internalValue );
+                        
+                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+                        
+                        auditBatchHandler.addObject( auditValue );
                     }
 
                     deleteCount++;
@@ -1053,7 +1077,13 @@ public class DefaultDataValueSetService
                 {
                     if ( !dryRun && !internalValue.isNullValue() )
                     {
-                        if ( batchHandler.addObject( internalValue ) )
+                        if ( existingValue != null && existingValue.isDeleted() )
+                        {
+                            dataValueBatchHandler.updateObject( internalValue );
+                            
+                            importCount++;
+                        }
+                        else if ( dataValueBatchHandler.addObject( internalValue ) )
                         {
                             importCount++;
                         }
@@ -1062,7 +1092,8 @@ public class DefaultDataValueSetService
             }
         }
 
-        batchHandler.flush();
+        dataValueBatchHandler.flush();
+        auditBatchHandler.flush();
 
         int ignores = totalCount - importCount - updateCount - deleteCount;
 

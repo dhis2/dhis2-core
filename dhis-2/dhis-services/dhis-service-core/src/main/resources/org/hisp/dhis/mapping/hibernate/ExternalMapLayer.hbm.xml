@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+>
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.mapping.ExternalMapLayer" table="externalmaplayer">
+
+    <id name="id" column="externalmaplayerid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="true" length="230" />
+
+    <property name="attribution" column="attribution" type="text" />
+
+    <property name="url" column="url" type="text" not-null="true" />
+
+    <property name="legendSetUrl" column="legendseturl" type="text" />
+
+    <property name="mapLayerPosition" column="maplayerposition" type="org.hisp.dhis.mapping.MapLayerPosition" not-null="true" />
+
+    <property name="layers" column="layers" type="text" />
+
+    <property name="imageFormat" column="imageformat" type="org.hisp.dhis.mapping.ImageFormat"  not-null="true"/>
+
+    <property name="mapService" column="mapservice"  type="org.hisp.dhis.mapping.MapService" not-null="true"/>
+
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
+      column="legendsetid" foreign-key="fk_externalmaplayer_legendsetid" />
+
+    <!-- Access properties -->
+
+    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_externalmaplayer_userid" />
+
+    <property name="publicAccess" length="8" />
+
+    <set name="userGroupAccesses" table="externalmaplayerusergroupaccesses">
+      <cache usage="read-write" />
+      <key column="externalmaplayerid" />
+      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+  </class>
+
+</hibernate-mapping>

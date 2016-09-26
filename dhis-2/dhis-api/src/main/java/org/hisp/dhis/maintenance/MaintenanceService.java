@@ -41,9 +41,17 @@ public interface MaintenanceService
      * Deletes data values registered with 0 as value and associated with
      * data elements with sum as aggregation operator.
      * 
-     * @return the number of affected rows.
+     * @return the number of deleted data values.
      */
     int deleteZeroDataValues();
+
+    /**
+     * Permanently deletes data values which have been soft deleted, i.e.
+     * data values where the deleted property is true.
+     * 
+     * @return the number of deleted data values.
+     */
+    int deleteSoftDeletedDataValues();
     
     /**
      * Deletes periods which do not have data values associated with them.

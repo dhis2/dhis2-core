@@ -42,8 +42,6 @@ import java.util.Set;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DefaultOrganisationUnitGroupService.java 5017 2008-04-25
- *          09:19:19Z larshelg $
  */
 @Transactional
 public class DefaultOrganisationUnitGroupService
@@ -201,19 +199,6 @@ public class DefaultOrganisationUnitGroupService
     public OrganisationUnitGroupSet getOrganisationUnitGroupSet( int id )
     {
         return organisationUnitGroupSetStore.get( id );
-    }
-
-    @Override
-    public OrganisationUnitGroupSet getOrganisationUnitGroupSet( int id, boolean i18nGroups )
-    {
-        OrganisationUnitGroupSet groupSet = getOrganisationUnitGroupSet( id );
-
-        if ( i18nGroups )
-        {
-            groupSet.getOrganisationUnitGroups();
-        }
-
-        return groupSet;
     }
 
     @Override

@@ -19,8 +19,6 @@ css/print.css?_rev=$!{buildRevision}
 ../dhis-web-dataentry/style/dhis-web-dataentry.css?_rev=$!{buildRevision}
 ../api/files/style?_rev=$!{buildRevision}
 ../favicon.ico
-javascripts/es5-shim.min.js?_rev=$!{buildRevision}
-javascripts/es5-sham.min.js?_rev=$!{buildRevision}
 javascripts/underscore.min.js?_rev=$!{buildRevision}
 javascripts/jQuery/jquery.min.js?_rev=$!{buildRevision}
 javascripts/jQuery/jquery.validate.js?_rev=$!{buildRevision}

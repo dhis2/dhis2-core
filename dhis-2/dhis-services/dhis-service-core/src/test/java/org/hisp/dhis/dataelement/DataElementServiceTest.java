@@ -178,28 +178,6 @@ public class DataElementServiceTest
     }
 
     @Test
-    public void testGetDataElementByName()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        int idA = dataElementService.addDataElement( dataElementA );
-        int idB = dataElementService.addDataElement( dataElementB );
-
-        dataElementA = dataElementService.getDataElementByName( "DataElementA" );
-        assertNotNull( dataElementA );
-        assertEquals( idA, dataElementA.getId() );
-        assertEquals( "DataElementA", dataElementA.getName() );
-
-        dataElementB = dataElementService.getDataElementByName( "DataElementB" );
-        assertNotNull( dataElementB );
-        assertEquals( idB, dataElementB.getId() );
-        assertEquals( "DataElementB", dataElementB.getName() );
-
-        DataElement dataElementC = dataElementService.getDataElementByName( "DataElementC" );
-        assertNull( dataElementC );
-    }
-
-    @Test
     public void testGetDataElementByShortName()
     {
         DataElement dataElementA = createDataElement( 'A' );
