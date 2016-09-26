@@ -215,42 +215,6 @@ public class DefaultDataElementCategoryService
         return categoryStore.getCategoriesNoAcl( DataDimensionType.ATTRIBUTE, true );
     }
 
-    @Override
-    public List<DataElementCategory> getDataElementCategoryBetween( int first, int max )
-    {
-        return categoryStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<DataElementCategory> getDataElementCategoryBetweenByName( String name, int first, int max )
-    {
-        return categoryStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public List<DataElementCategory> getDataElementCategoriesBetween( int first, int max )
-    {
-        return categoryStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<DataElementCategory> getDataElementCategoriesBetweenByName( String name, int first, int max )
-    {
-        return categoryStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public int getDataElementCategoryCount()
-    {
-        return categoryStore.getCount();
-    }
-
-    @Override
-    public int getDataElementCategoryCountByName( String name )
-    {
-        return categoryStore.getCountLikeName( name );
-    }
-
     // -------------------------------------------------------------------------
     // CategoryOption
     // -------------------------------------------------------------------------
@@ -328,31 +292,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<DataElementCategoryOption> getDataElementCategoryOptionsBetween( int first, int max )
-    {
-        return categoryOptionStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<DataElementCategoryOption> getDataElementCategoryOptionsBetweenByName( String name, int first,
-        int max )
-    {
-        return categoryOptionStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public int getDataElementCategoryOptionCount()
-    {
-        return categoryOptionStore.getCount();
-    }
-
-    @Override
-    public int getDataElementCategoryOptionCountByName( String name )
-    {
-        return categoryOptionStore.getCountLikeName( name );
-    }
-
-    @Override
     public Set<DataElementCategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
     {
         Set<DataElementCategoryOption> options = null;
@@ -422,30 +361,6 @@ public class DefaultDataElementCategoryService
     public DataElementCategoryCombo getDefaultDataElementCategoryCombo()
     {
         return getDataElementCategoryComboByName( DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-    }
-
-    @Override
-    public int getDataElementCategoryComboCount()
-    {
-        return categoryComboStore.getCount();
-    }
-
-    @Override
-    public int getDataElementCategoryComboCountByName( String name )
-    {
-        return categoryComboStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<DataElementCategoryCombo> getDataElementCategoryCombosBetween( int first, int max )
-    {
-        return categoryComboStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<DataElementCategoryCombo> getDataElementCategoryCombosBetweenByName( String name, int first, int max )
-    {
-        return categoryComboStore.getAllLikeName( name, first, max );
     }
 
     @Override
@@ -568,18 +483,6 @@ public class DefaultDataElementCategoryService
     public List<DataElementCategoryOptionCombo> getAllDataElementCategoryOptionCombos()
     {
         return categoryOptionComboStore.getAll();
-    }
-
-    @Override
-    public List<DataElementCategoryOptionCombo> getOptionCombosBetween( int min, int max )
-    {
-        return categoryOptionComboStore.getAllOrderedLastUpdated( min, max );
-    }
-
-    @Override
-    public Integer getOptionComboCount()
-    {
-        return categoryOptionComboStore.getCount();
     }
 
     @Override
@@ -793,18 +696,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public int getDataElementCategoryOptionComboCount()
-    {
-        return categoryOptionComboStore.getCount();
-    }
-
-    @Override
-    public int getDataElementCategoryOptionComboCountByName( String name )
-    {
-        return categoryOptionComboStore.getCountLikeName( name );
-    }
-
-    @Override
     public DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
         DataElementCategoryOptionCombo coc = idObjectManager.getObject( DataElementCategoryOptionCombo.class, property, id );
@@ -912,18 +803,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<CategoryOptionGroup> getCategoryOptionGroupsBetween( int first, int max )
-    {
-        return categoryOptionGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<CategoryOptionGroup> getCategoryOptionGroupsBetweenByName( int first, int max, String name )
-    {
-        return categoryOptionGroupStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
     public List<CategoryOptionGroup> getAllCategoryOptionGroups()
     {
         return categoryOptionGroupStore.getAll();
@@ -933,44 +812,6 @@ public class DefaultDataElementCategoryService
     public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
     {
         return categoryOptionGroupStore.getCategoryOptionGroups( groupSet );
-    }
-
-    @Override
-    public CategoryOptionGroup getCategoryOptionGroupByName( String name )
-    {
-        return categoryOptionGroupStore.getByName( name );
-    }
-
-    @Override
-    public CategoryOptionGroup getCategoryOptionGroupByCode( String code )
-    {
-        return categoryOptionGroupStore.getByCode( code );
-    }
-
-    @Override
-    public CategoryOptionGroup getCategoryOptionGroupByShortName( String shortName )
-    {
-        List<CategoryOptionGroup> categoryOptionGroups = new ArrayList<>(
-            categoryOptionGroupStore.getAllEqShortName( shortName ) );
-
-        if ( categoryOptionGroups.isEmpty() )
-        {
-            return null;
-        }
-
-        return categoryOptionGroups.get( 0 );
-    }
-
-    @Override
-    public int getCategoryOptionGroupCount()
-    {
-        return categoryOptionGroupStore.getCount();
-    }
-
-    @Override
-    public int getCategoryOptionGroupCountByName( String name )
-    {
-        return categoryOptionGroupStore.getCountLikeName( name );
     }
 
     @Override
@@ -1034,18 +875,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsBetween( int first, int max )
-    {
-        return categoryOptionGroupSetStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<CategoryOptionGroupSet> getCategoryOptionGroupSetsBetweenByName( int first, int max, String name )
-    {
-        return categoryOptionGroupSetStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
     public List<CategoryOptionGroupSet> getAllCategoryOptionGroupSets()
     {
         return categoryOptionGroupSetStore.getAll();
@@ -1061,23 +890,5 @@ public class DefaultDataElementCategoryService
     public List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsNoAcl()
     {
         return categoryOptionGroupSetStore.getCategoryOptionGroupSetsNoAcl( DataDimensionType.ATTRIBUTE, true );
-    }
-
-    @Override
-    public CategoryOptionGroupSet getCategoryOptionGroupSetByName( String name )
-    {
-        return categoryOptionGroupSetStore.getByName( name );
-    }
-
-    @Override
-    public int getCategoryOptionGroupSetCount()
-    {
-        return categoryOptionGroupSetStore.getCount();
-    }
-
-    @Override
-    public int getCategoryOptionGroupSetCountByName( String name )
-    {
-        return categoryOptionGroupSetStore.getCountLikeName( name );
     }
 }

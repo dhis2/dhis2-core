@@ -32,6 +32,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -40,6 +42,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Chau Thu Tran
@@ -56,7 +60,10 @@ public class ProgramDeletionHandler
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-    
+
+    @Autowired
+    private DataElementCategoryService categoryService;
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
@@ -65,6 +72,24 @@ public class ProgramDeletionHandler
     public String getClassName()
     {
         return Program.class.getSimpleName();
+    }
+
+    @Override
+    public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
+    {
+        DataElementCategoryCombo defaultCategoryCombo = categoryService
+            .getDataElementCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+
+        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+
+        for ( Program program : programs )
+        {            
+            if ( program != null && categoryCombo.equals( program.getCategoryCombo() ) )
+            {
+                program.setCategoryCombo( defaultCategoryCombo );
+                idObjectManager.updateNoAcl( program );
+            }
+        }        
     }
 
     @Override

@@ -113,9 +113,7 @@ function populateIntegrityItems( json ) {
     displayViolation( json.dataElementsInDataSetNotInForm, "dataElementsInDataSetNotInForm", true, asMapList );
     displayViolation( json.invalidCategoryCombos, "invalidCategoryCombos", false, asList );
     displayViolation( json.dataElementsAssignedToDataSetsWithDifferentPeriodTypes, "dataElementsAssignedToDataSetsWithDifferentPeriodTypes", true, asMapList );
-    displayViolation( json.categoryOptionCombosNotInDataElementCategoryCombo, "categoryOptionCombosNotInDataElementCategoryCombo", true, asMapList );
     displayViolation( json.dataSetsNotAssignedToOrganisationUnits, "dataSetsNotAssignedToOrganisationUnits", false, asList );
-    displayViolation( json.sectionsWithInvalidCategoryCombinations, "sectionsWithInvalidCategoryCombinations", false, asList );
     displayViolation( json.indicatorsWithIdenticalFormulas, "indicatorsWithIdenticalFormulas", false, asListList );
     displayViolation( json.indicatorsWithoutGroups, "indicatorsWithoutGroups", false, asList );
     displayViolation( json.invalidIndicatorNumerators, "invalidIndicatorNumerators", true, asMap );

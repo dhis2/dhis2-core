@@ -387,10 +387,7 @@ public class DataSet
 
         for ( DataElement element : dataElements )
         {
-            if ( element.hasCategoryCombo() )
-            {
-                optionCombos.addAll( element.getCategoryCombo().getOptionCombos() );
-            }
+            optionCombos.addAll( element.getCategoryCombo().getOptionCombos() );
         }
 
         return optionCombos;

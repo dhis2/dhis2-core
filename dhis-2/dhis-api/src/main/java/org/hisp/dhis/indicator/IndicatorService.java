@@ -58,27 +58,11 @@ public interface IndicatorService
 
     List<Indicator> getIndicatorsByUid( Collection<String> uids );
 
-    List<Indicator> getIndicatorByName( String name );
-
-    List<Indicator> getIndicatorByShortName( String shortName );
-
-    Indicator getIndicatorByCode( String code );
-
     List<Indicator> getIndicatorsWithGroupSets();
 
     List<Indicator> getIndicatorsWithoutGroups();
 
     List<Indicator> getIndicatorsWithDataSets();
-
-    int getIndicatorCountByName( String name );
-
-    List<Indicator> getIndicatorsLikeName( String name );
-
-    List<Indicator> getIndicatorsBetweenByName( String name, int first, int max );
-
-    int getIndicatorCount();
-
-    List<Indicator> getIndicatorsBetween( int first, int max );
 
     // -------------------------------------------------------------------------
     // IndicatorType
@@ -96,16 +80,6 @@ public interface IndicatorService
 
     List<IndicatorType> getAllIndicatorTypes();
 
-    IndicatorType getIndicatorTypeByName( String name );
-
-    List<IndicatorType> getIndicatorTypesBetween( int first, int max );
-
-    List<IndicatorType> getIndicatorTypesBetweenByName( String name, int first, int max );
-
-    int getIndicatorTypeCount();
-
-    int getIndicatorTypeCountByName( String name );
-
     // -------------------------------------------------------------------------
     // IndicatorGroup
     // -------------------------------------------------------------------------
@@ -118,21 +92,9 @@ public interface IndicatorService
 
     IndicatorGroup getIndicatorGroup( int id );
 
-    IndicatorGroup getIndicatorGroup( int id, boolean i18nIndicators );
-
     IndicatorGroup getIndicatorGroup( String uid );
 
     List<IndicatorGroup> getAllIndicatorGroups();
-
-    List<IndicatorGroup> getIndicatorGroupByName( String name );
-
-    List<IndicatorGroup> getIndicatorGroupsBetween( int first, int max );
-
-    List<IndicatorGroup> getIndicatorGroupsBetweenByName( String name, int first, int max );
-
-    int getIndicatorGroupCount();
-
-    int getIndicatorGroupCountByName( String name );
 
     // -------------------------------------------------------------------------
     // IndicatorGroupSet
@@ -146,21 +108,9 @@ public interface IndicatorService
 
     IndicatorGroupSet getIndicatorGroupSet( int id );
 
-    IndicatorGroupSet getIndicatorGroupSet( int id, boolean i18nGroups );
-
     IndicatorGroupSet getIndicatorGroupSet( String uid );
 
     List<IndicatorGroupSet> getIndicatorGroupSetByName( String name );
 
-    List<IndicatorGroupSet> getCompulsoryIndicatorGroupSetsWithMembers();
-
     List<IndicatorGroupSet> getAllIndicatorGroupSets();
-
-    List<IndicatorGroupSet> getIndicatorGroupSetsBetween( int first, int max );
-
-    List<IndicatorGroupSet> getIndicatorGroupSetsBetweenByName( String name, int first, int max );
-
-    int getIndicatorGroupSetCount();
-
-    int getIndicatorGroupSetCountByName( String name );
 }

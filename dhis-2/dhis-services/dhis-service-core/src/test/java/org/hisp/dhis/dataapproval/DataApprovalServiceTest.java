@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
@@ -61,11 +62,13 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
+@Category( IntegrationTest.class )
 public class DataApprovalServiceTest
     extends DhisTest
 {
@@ -315,9 +318,9 @@ public class DataApprovalServiceTest
         setDependency( dataApprovalStore, "currentUserService", mockCurrentUserService, CurrentUserService.class );
     }
 
-    // ---------------------------------------------------------------------
-    // Set Up Categories
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // Categories supportive methods
+    // -------------------------------------------------------------------------
 
     private void setUpCategories()
     {
@@ -425,12 +428,24 @@ public class DataApprovalServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void test()
+    public void testAddDuplicateDataApproval()
     {
+        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        setCurrentUserServiceDependencies( currentUserService );
+
+        Date date = new Date();
+        DataApproval dataApprovalA = new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA );
+        DataApproval dataApprovalB = new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA ); // Same
+
+        dataApprovalService.approveData( newArrayList( dataApprovalA ) );
+        dataApprovalService.approveData( newArrayList( dataApprovalB ) ); // Redundant, so call is ignored.
     }
 
     @Test
-    public void testAddAllAndGetDataApproval()
+    @Category( IntegrationTest.class )
+    public void testAddAllAndGetDataApprovalStatus()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
 
@@ -493,22 +508,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    public void testAddDuplicateDataApproval()
-    {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        setCurrentUserServiceDependencies( currentUserService );
-
-        Date date = new Date();
-        DataApproval dataApprovalA = new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA );
-        DataApproval dataApprovalB = new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, date, userA ); // Same
-
-        dataApprovalService.approveData( newArrayList( dataApprovalA ) );
-        dataApprovalService.approveData( newArrayList( dataApprovalB ) ); // Redundant, so call is ignored.
-    }
-
-    @Test
+    @Category( IntegrationTest.class )
     public void testDeleteDataApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -538,6 +538,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetDataApprovalState()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -632,6 +633,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetDataApprovalStateAbove()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -650,6 +652,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetDataApprovalStateWithMultipleChildren()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -699,6 +702,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testGetDataApprovalStateOtherPeriodTypes()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
@@ -716,6 +720,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayApproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -811,6 +816,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayApproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -876,6 +882,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayApproveSameAndLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -931,6 +938,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayApproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -955,6 +963,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayUnapproveSameLevel()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1012,6 +1021,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayUnapproveLowerLevels()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1068,6 +1078,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayUnapproveWithAcceptAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1124,6 +1135,7 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testMayUnapproveNoAuthority()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
@@ -1184,6 +1196,7 @@ public class DataApprovalServiceTest
     // -------------------------------------------------------------------------
 
     @Test
+    @Category( IntegrationTest.class )
     public void testApprovalsWithCategories()
     {
         setUpCategories();
@@ -1341,7 +1354,8 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    public void testWorkflows() throws Exception
+    @Category( IntegrationTest.class )
+    public void testWorkflows()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitB );
 
@@ -1365,7 +1379,8 @@ public class DataApprovalServiceTest
     }
 
     @Test
-    public void testPeriodsEndingDuringWorkflowApproval() throws Exception
+    @Category( IntegrationTest.class )
+    public void testPeriodsEndingDuringWorkflowApproval()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitC );
 
