@@ -91,6 +91,7 @@ import org.hisp.dhis.user.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
@@ -852,7 +853,12 @@ public class DataQueryParams
             
             if ( !des.isEmpty() )
             {
-                Set<DataElementCategoryCombo> categoryCombos = des.stream().map( d -> ((DataElement) d).getCategoryCombo() ).collect( Collectors.toSet() );
+                Set<DataElementCategoryCombo> categoryCombos = Sets.newHashSet();
+                
+                for ( DimensionalItemObject de : des )
+                {
+                    categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
+                }
                 
                 for ( DataElementCategoryCombo cc : categoryCombos )
                 {

@@ -1,8 +1,8 @@
-package org.hisp.dhis.datastatistics;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,93 +28,36 @@ package org.hisp.dhis.datastatistics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Date;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
 /**
- * Created by yrjanaff on 20.05.2016.
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class FavoriteStatistics
+public class DataSetElementSchemaDescriptor implements SchemaDescriptor
 {
-    private Integer position;
-    
-    private String name;
-    
-    private Integer views;
-    
-    private String id;
-    
-    private Date created;
+    public static final String SINGULAR = "dataSetElement";
 
-    public FavoriteStatistics()
-    {
-    }
+    public static final String PLURAL = "dataSetElements";
 
-    @JsonProperty
-    public Integer getPosition()
-    {
-        return position;
-    }
-
-    public void setPosition( Integer position )
-    {
-        this.position = position;
-    }
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public Integer getViews()
-    {
-        return views;
-    }
-
-    public void setViews( Integer views )
-    {
-        this.views = views;
-    }
-
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
-
-    public void setId( String id )
-    {
-        this.id = id;
-    }
-
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public String toString()
+    public Schema getSchema()
     {
-        return "FavoriteStatistics{" +
-            "position=" + position +
-            ", name='" + name + '\'' +
-            ", views=" + views +
-            ", id='" + id + '\'' +
-            ", created=" + created +
-            '}';
+        Schema schema = new Schema( DataSetElement.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setShareable( true );
+        schema.setOrder( 1350 );
+
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
+            Lists.newArrayList( "F_DATASET_PUBLIC_ADD", "F_DATASET_PRIVATE_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATASET_DELETE" ) ) );
+
+        return schema;
     }
 }
