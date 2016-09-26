@@ -345,8 +345,8 @@ function addProgramRule()
         ,success: function(data){
             console.log('data:  ', data);
             if( data.response && data.response.uid ){
-                    saveProgramRuleVariable();
-                    saveAction( data.response.uid );	
+                saveProgramRuleVariable();
+                saveAction( data.response.uid );	
             }				
         }
         ,error:  function(){}
