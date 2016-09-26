@@ -28,6 +28,7 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
@@ -401,8 +402,14 @@ public class HibernateProgramInstanceStore
         return result != null && result > 0;
     }
 
-    @Override public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
+    @Override
+    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {
+        if ( notificationDate == null )
+        {
+            return Lists.newArrayList();
+        }
+
         String hql = "select pi from ProgramInstance as pi " +
             "inner join pi.notificationTemplates as templates " +
             "where templates.notificationTrigger in (:triggers) " +

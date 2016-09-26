@@ -235,18 +235,6 @@ public class HibernateProgramStageInstanceStore
             return Lists.newArrayList();
         }
 
-//        Query query = getQuery(
-//            "select psi from ProgramStageInstance as psi " +
-//                "inner join psi.programStage as ps " +
-//                "inner join ps.notificationTemplates as nt " +
-//                "where :notificationTemplate in elements(nt) " +
-//                "and psi.dueDate is not null " +
-////                "and n.relativeScheduledDays is not null " +
-//                "and psi.executionDate is null " + // Event already happened?
-////                "and n.notificationTrigger = :notificationTrigger " +
-//                "and (day(:notificationDate) - day(psi.dueDate)) = n.relativeScheduledDays"
-//        );
-
         Query query = getQuery(
             "select psi from ProgramStageInstance as psi " +
                 "inner join psi.programStage as ps " +
