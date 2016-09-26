@@ -1079,6 +1079,8 @@ public class DefaultDataValueSetService
                         if ( existingValue != null && existingValue.isDeleted() )
                         {
                             dataValueBatchHandler.updateObject( internalValue );
+                            
+                            importCount++;
                         }
                         else if ( dataValueBatchHandler.addObject( internalValue ) )
                         {

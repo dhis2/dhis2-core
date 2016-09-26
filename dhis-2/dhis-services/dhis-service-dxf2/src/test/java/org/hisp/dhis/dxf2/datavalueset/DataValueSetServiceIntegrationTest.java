@@ -200,5 +200,33 @@ public class DataValueSetServiceIntegrationTest
                 
         assertEquals( 8, dataValueService.getAllDataValues().size() );
     }
-    
+
+    /**
+     * Import 12 data values where 4 are marked as deleted. Then import 12 data
+     * values which reverse deletion of the 4 values and update the other 8 
+     * values.
+     */
+    @Test
+    public void testImportReverseDeletedDataValueSetXml()
+        throws Exception
+    {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
+        
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 12, summary.getImportCount().getImported() );
+        
+        assertEquals( 8, dataValueService.getAllDataValues().size() );
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        
+        summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 8, summary.getImportCount().getUpdated() );
+        assertEquals( 4, summary.getImportCount().getImported() );
+
+        assertEquals( 12, dataValueService.getAllDataValues().size() );        
+    }
 }
