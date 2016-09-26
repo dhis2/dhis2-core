@@ -1,8 +1,8 @@
-package org.hisp.dhis.node;
+package org.hisp.dhis.node.transformers;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,43 +28,46 @@ package org.hisp.dhis.node;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.node.Node;
+import org.hisp.dhis.node.NodeTransformer;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PropertyConverter<S, D>
+@Component
+public class IsEmptyNodeTransformer implements NodeTransformer
 {
-    /**
-     * @return Public/external name of this transformer.
-     */
-    String name();
+    @Override
+    public String name()
+    {
+        return "isEmpty";
+    }
 
-    /**
-     * @param property Property instance belonging to value
-     * @param value    Actual value to transform
-     * @return true of false depending on support
-     */
-    boolean canConvertTo( Property property, S value );
+    @Override
+    public Node transform( Node node, List<String> args )
+    {
+        checkNotNull( node );
+        checkNotNull( node.getProperty() );
 
-    /**
-     * @param property Property instance belonging to value
-     * @param value    Actual value to transform
-     * @return true of false depending on support
-     */
-    boolean canConvertFrom( Property property, D value );
+        Property property = node.getProperty();
 
-    /**
-     * @param property Property instance belonging to value
-     * @param value    Actual value to transform
-     * @return Value transformed to a Node
-     */
-    D convertTo( Property property, S value );
+        if ( property.isCollection() )
+        {
+            return new SimpleNode( property.getCollectionName(), node.getChildren().isEmpty(), property.isAttribute() );
+        }
+        else if ( property.isSimple() )
+        {
+            return new SimpleNode( property.getName(), StringUtils.isEmpty( ((SimpleNode) node).getValue() ), property.isAttribute() );
+        }
 
-    /**
-     * @param property Property instance belonging to value
-     * @param value    Actual value to transform
-     * @return Value transformed to a Node
-     */
-    S convertFrom( Property property, D value );
+        return node;
+    }
 }

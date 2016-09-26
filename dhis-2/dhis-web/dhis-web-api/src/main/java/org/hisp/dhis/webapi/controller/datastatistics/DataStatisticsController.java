@@ -43,6 +43,7 @@ import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -61,13 +62,15 @@ import java.util.List;
 @ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
 public class DataStatisticsController
 {
+    private static final String RESOURCE_PATH = "/dataStatistics";
+    
     @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
     private DataStatisticsService dataStatisticsService;
 
-    @RequestMapping( value = "/dataStatistics", method = RequestMethod.POST )
+    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.CREATED )
     public void saveEvent( @RequestParam DataStatisticsEventType eventType, String favorite )
     {
@@ -78,7 +81,7 @@ public class DataStatisticsController
         dataStatisticsService.addEvent( event );
     }
 
-    @RequestMapping( value = "/dataStatistics", method = RequestMethod.GET )
+    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET )
     public @ResponseBody List<AggregatedStatistics> getReports( @RequestParam Date startDate,
         @RequestParam Date endDate, @RequestParam EventInterval interval, HttpServletResponse response )
         throws WebMessageException
@@ -91,7 +94,7 @@ public class DataStatisticsController
         return dataStatisticsService.getReports( startDate, endDate, interval );
     }
 
-    @RequestMapping( value = "/dataStatistics/favorites", method = RequestMethod.GET )
+    @RequestMapping( value = RESOURCE_PATH + "/favorites", method = RequestMethod.GET )
     public @ResponseBody List<FavoriteStatistics> getTopFavorites( @RequestParam DataStatisticsEventType eventType,
         @RequestParam( required = false ) Integer pageSize, @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) String username )
@@ -101,5 +104,11 @@ public class DataStatisticsController
         sortOrder = ObjectUtils.firstNonNull( sortOrder, SortOrder.DESC );
 
         return dataStatisticsService.getTopFavorites( eventType, pageSize, sortOrder, username );
+    }
+    
+    @RequestMapping( value = "/dataStatistics/favorites/{uid}", method = RequestMethod.GET )
+    public @ResponseBody FavoriteStatistics getFavoriteStatistics( @PathVariable( "uid" ) String uid )
+    {
+        return dataStatisticsService.getFavoriteStatistics( uid );
     }
 }

@@ -60,6 +60,8 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Required;
 
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -430,7 +432,7 @@ public class FacilityReportingServiceImpl
                     {
                         Collection<org.hisp.dhis.dataelement.DataElement> dataElements = apiDataSet.getDataElements();
                         Collection<org.hisp.dhis.datavalue.DataValue> dataValues = dataValueService.getDataValues(
-                            unit, period, dataElements );
+                            dataElements, Sets.newHashSet( period ), Sets.newHashSet( unit ) );
 
                         if ( dataValues != null && !dataValues.isEmpty() )
                         {

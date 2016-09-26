@@ -38,7 +38,6 @@ import org.hisp.dhis.period.PeriodType;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -81,41 +80,6 @@ public interface DataSetService
      * @return The DataSet with the given id or null if it does not exist.
      */
     DataSet getDataSet( int id );
-
-    /**
-     * Get a DataSet
-     *
-     * @param id               The unique identifier for the DataSet to get.
-     * @param i18nDataElements whether to i18n the data elements of this data set.
-     * @param i18nIndicators   whether to i18n the indicators of this data set.
-     * @param i18nOrgUnits     whether to i18n the org units of this data set.
-     * @return The DataSet with the given id or null if it does not exist.
-     */
-    DataSet getDataSet( int id, boolean i18nDataElements, boolean i18nIndicators, boolean i18nOrgUnits );
-
-    /**
-     * Get a DataSet
-     *
-     * @param id               The unique identifier for the DataSet to get.
-     * @param i18nDataElements whether to i18n the data elements of this data set.
-     * @param i18nIndicators   whether to i18n the indicators of this data set.
-     * @param i18nOrgUnits     whether to i18n the org units of this data set.
-     * @param i18nSections     whether to i18n the sections of this data set.
-     * @return The DataSet with the given id or null if it does not exist.
-     */
-    DataSet getDataSet( int id, boolean i18nDataElements, boolean i18nIndicators, boolean i18nOrgUnits, boolean i18nSections );
-
-    /**
-     * Get a DataSet
-     *
-     * @param id               The unique identifier for the DataSet to get.
-     * @param i18nDataElements whether to i18n the data elements of this data set.
-     * @param i18nIndicators   whether to i18n the indicators of this data set.
-     * @param i18nOrgUnits     whether to i18n the org units of this data set.
-     * @param i18nSections     whether to i18n the sections of this data set.
-     * @return The DataSet with the given id or null if it does not exist.
-     */
-    DataSet getDataSet( String id, boolean i18nDataElements, boolean i18nIndicators, boolean i18nOrgUnits, boolean i18nSections );
 
     /**
      * Returns the DataSet with the given UID.
@@ -200,15 +164,6 @@ public interface DataSetService
      * @return a list of data sets.
      */
     List<DataSet> getDataSetsByUidNoAcl( Collection<String> uids );
-
-    /**
-     * Returns a collection of data elements associated with the given
-     * corresponding data set.
-     *
-     * @param dataSet the data set object.
-     * @return a list of data elements.
-     */
-    Set<DataElement> getDataElements( DataSet dataSet );
 
     /**
      * Returns all DataSets that can be collected through mobile (one

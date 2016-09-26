@@ -43,15 +43,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementStore;
-import org.hisp.dhis.dataset.DataSet;
 import org.springframework.jdbc.BadSqlGrammarException;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -138,7 +135,7 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithGroupSets()
     {
-        String hql = "from DataElement d where d.groupSets.size > 0";
+        String hql = "from DataElement d where size(d.groupSets) > 0";
 
         return getQuery( hql ).list();
     }
@@ -180,7 +177,7 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithoutGroups()
     {
-        String hql = "from DataElement d where d.groups.size = 0";
+        String hql = "from DataElement d where size(d.groups) = 0";
 
         return getQuery( hql ).setCacheable( true ).list();
     }
@@ -189,7 +186,7 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithoutDataSets()
     {
-        String hql = "from DataElement d where d.dataSets.size = 0 and d.domainType =:domainType";
+        String hql = "from DataElement d where size(d.dataSetElements) = 0 and d.domainType =:domainType";
 
         return getQuery( hql ).setParameter( "domainType", DataElementDomain.AGGREGATE ).setCacheable( true ).list();
     }
@@ -198,18 +195,9 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithDataSets()
     {
-        String hql = "from DataElement d where d.dataSets.size > 0";
+        String hql = "from DataElement d where size(d.dataSetElements) > 0";
 
         return getQuery( hql ).setCacheable( true ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataElement> getDataElementsByDataSets( Collection<DataSet> dataSets )
-    {
-        String hql = "select distinct de from DataElement de join de.dataSets ds where ds.id in (:ids)";
-
-        return getQuery( hql ).setParameterList( "ids", getIdentifiers( dataSets ) ).list();
     }
 
     @Override
@@ -247,28 +235,6 @@ public class HibernateDataElementStore
         }
 
         return map;
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataElement> get( DataSet dataSet, String key, Integer max )
-    {
-        String hql = "select dataElement from DataSet dataSet inner join dataSet.dataElements as dataElement where dataSet.id = :dataSetId ";
-
-        if ( key != null )
-        {
-            hql += " and lower(dataElement.name) like lower('%" + key + "%') ";
-        }
-
-        Query query = getQuery( hql );
-        query.setInteger( "dataSetId", dataSet.getId() );
-
-        if ( max != null )
-        {
-            query.setMaxResults( max );
-        }
-
-        return query.list();
     }
 
     @Override

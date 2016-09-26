@@ -216,8 +216,8 @@ public class AnalyticsUtilsTest
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
         
-        deA.setCategoryCombo( ccA );
-        deB.setCategoryCombo( ccB );
+        deA.setDataElementCategoryCombo( ccA );
+        deB.setDataElementCategoryCombo( ccB );
         
         DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, deB ) );
         

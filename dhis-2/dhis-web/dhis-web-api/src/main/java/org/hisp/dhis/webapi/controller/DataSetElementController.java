@@ -1,8 +1,8 @@
-package org.hisp.dhis.node.converters;
+package org.hisp.dhis.webapi.controller;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,44 +28,17 @@ package org.hisp.dhis.node.converters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.AbstractNodePropertyConverter;
-import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.schema.Property;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.schema.descriptors.DataSetElementSchemaDescriptor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class SizeNodePropertyConverter extends AbstractNodePropertyConverter
+@Controller
+@RequestMapping( value = DataSetElementSchemaDescriptor.API_ENDPOINT )
+public class DataSetElementController
+    extends AbstractCrudController<DataSetElement>
 {
-    @Override
-    public String name()
-    {
-        return "size";
-    }
-
-    @Override
-    public boolean canConvertTo( Property property, Object value )
-    {
-        return property.isCollection() || String.class.isInstance( value );
-    }
-
-    @Override
-    public Node convertTo( Property property, Object value )
-    {
-        if ( property.isCollection() )
-        {
-            return new SimpleNode( property.getCollectionName(), ((Collection<?>) value).size(), property.isAttribute() );
-        }
-        else if ( String.class.isInstance( value ) )
-        {
-            return new SimpleNode( property.getName(), ((String) value).length(), property.isAttribute() );
-        }
-
-        throw new IllegalStateException( "Should never get here, this property/value is not supported by this field converter." );
-    }
 }

@@ -1,8 +1,8 @@
-package org.hisp.dhis.node.converters;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,45 +28,36 @@ package org.hisp.dhis.node.converters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.AbstractNodePropertyConverter;
-import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.schema.Property;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import java.util.Collection;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class IsNotEmptyNodePropertyConverter extends AbstractNodePropertyConverter
+public class DataSetElementSchemaDescriptor implements SchemaDescriptor
 {
-    @Override
-    public String name()
-    {
-        return "isNotEmpty";
-    }
+    public static final String SINGULAR = "dataSetElement";
+
+    public static final String PLURAL = "dataSetElements";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public boolean canConvertTo( Property property, Object value )
+    public Schema getSchema()
     {
-        return property.isCollection() || String.class.isInstance( value );
-    }
+        Schema schema = new Schema( DataSetElement.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setShareable( true );
+        schema.setOrder( 1350 );
 
-    @Override
-    public Node convertTo( Property property, Object value )
-    {
-        if ( property.isCollection() )
-        {
-            return new SimpleNode( property.getCollectionName(), !((Collection<?>) value).isEmpty(), property.isAttribute() );
-        }
-        else if ( String.class.isInstance( value ) )
-        {
-            return new SimpleNode( property.getName(), !StringUtils.isEmpty( value ), property.isAttribute() );
-        }
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
+            Lists.newArrayList( "F_DATASET_PUBLIC_ADD", "F_DATASET_PRIVATE_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_DATASET_DELETE" ) ) );
 
-        throw new IllegalStateException( "Should never get here, this property/value is not supported by this field converter." );
+        return schema;
     }
 }

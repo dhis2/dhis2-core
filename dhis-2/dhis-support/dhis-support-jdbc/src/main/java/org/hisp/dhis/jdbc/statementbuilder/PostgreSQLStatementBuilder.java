@@ -28,8 +28,6 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 /**
  * @author Lars Helge Overland
  */
@@ -115,18 +113,6 @@ public class PostgreSQLStatementBuilder
     }
 
     @Override
-    public String getDeleteZeroDataValues()
-    {
-        return
-            "DELETE FROM datavalue " +
-            "USING dataelement " +
-            "WHERE datavalue.dataelementid = dataelement.dataelementid " +
-            "AND dataelement.aggregationtype = 'sum' " +
-            "AND dataelement.zeroissignificant = false " +
-            "AND datavalue.value = '0'";
-    }
-
-    @Override
     public String getAddDate( String dateField, int days )
     {
         return "(" + dateField + "+" + days + ")";
@@ -136,46 +122,6 @@ public class PostgreSQLStatementBuilder
     public String getDaysBetweenDates( String fromColumn, String toColumn )
     {
         return toColumn + " - " + fromColumn;
-    }
-
-    @Override
-    public String queryDataElementStructureForOrgUnit()
-    {
-        StringBuilder sqlsb = new StringBuilder();
-        
-        sqlsb.append( "(SELECT DISTINCT de.dataelementid, (de.name || ' ' || cc.name) AS DataElement " );
-        sqlsb.append( "FROM dataelement AS de " );
-        sqlsb.append( "INNER JOIN categorycombos_optioncombos cat_opts on de.categorycomboid = cat_opts.categorycomboid ");
-        sqlsb.append( "INNER JOIN categoryoptioncombo cc on cat_opts.categoryoptioncomboid = cc.categoryoptioncomboid ");
-        sqlsb.append( "ORDER BY DataElement) " );
-        
-        return sqlsb.toString();           
-    }
-
-    @Override
-    public String queryRawDataElementsForOrgUnitBetweenPeriods(Integer orgUnitId, List<Integer> betweenPeriodIds)
-    {
-        StringBuilder sqlsb = new StringBuilder();
-
-        int i = 0;
-        
-        for ( Integer periodId : betweenPeriodIds )
-        {
-            i++;
-
-            sqlsb.append( "SELECT de.dataelementid, (de.name || ' ' || cc.name) AS DataElement, dv.value AS counts_of_aggregated_values, p.periodid AS PeriodId, p.startDate AS ColumnHeader " );
-            sqlsb.append( "FROM dataelement AS de " );
-            sqlsb.append( "INNER JOIN datavalue AS dv ON (de.dataelementid = dv.dataelementid) " );
-            sqlsb.append( "INNER JOIN period p ON (dv.periodid = p.periodid) " );
-            sqlsb.append( "INNER JOIN categorycombos_optioncombos cat_opts on de.categorycomboid = cat_opts.categorycomboid ");
-            sqlsb.append( "INNER JOIN categoryoptioncombo cc on cat_opts.categoryoptioncomboid = cc.categoryoptioncomboid ");
-            sqlsb.append( "WHERE dv.sourceid = '" + orgUnitId + "' " );
-            sqlsb.append( "AND dv.periodid = '" + periodId + "' " );
-
-            sqlsb.append( i == betweenPeriodIds.size() ? "ORDER BY ColumnHeader,dataelement" : " UNION " );
-        }
-        
-        return sqlsb.toString();
     }
 
     @Override

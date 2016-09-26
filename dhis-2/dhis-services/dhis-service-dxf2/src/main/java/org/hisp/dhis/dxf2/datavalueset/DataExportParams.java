@@ -61,6 +61,8 @@ public class DataExportParams
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
     private boolean includeChildren;
+    
+    private boolean includeDeleted;
 
     private Date lastUpdated;
     
@@ -150,6 +152,7 @@ public class DataExportParams
             add( "periods", periods ).
             add( "org units", organisationUnits ).
             add( "children", includeChildren ).
+            add( "deleted", includeDeleted ).
             add( "id schemes", idSchemes ).toString();
     }
 
@@ -225,6 +228,16 @@ public class DataExportParams
     public void setIncludeChildren( boolean includeChildren )
     {
         this.includeChildren = includeChildren;
+    }
+
+    public boolean isIncludeDeleted()
+    {
+        return includeDeleted;
+    }
+
+    public void setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
     }
 
     public Date getLastUpdated()

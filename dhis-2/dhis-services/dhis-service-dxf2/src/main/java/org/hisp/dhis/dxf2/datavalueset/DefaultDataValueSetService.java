@@ -183,7 +183,7 @@ public class DefaultDataValueSetService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
+        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
     {
         DataExportParams params = new DataExportParams();
 
@@ -216,6 +216,7 @@ public class DefaultDataValueSetService
         }
 
         params.setIncludeChildren( includeChildren );
+        params.setIncludeDeleted( includeDeleted );
         params.setLastUpdated( lastUpdated );
         params.setLastUpdatedDuration( lastUpdatedDuration );
         params.setLimit( limit );
@@ -394,7 +395,7 @@ public class DefaultDataValueSetService
         CollectionNode collectionNode = new CollectionNode( "dataValues" );
         collectionNode.setWrapping( false );
 
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryCombo().getSortedOptionCombos() )
+        for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
         {
             ComplexNode complexNode = collectionNode.addChild( new ComplexNode( "dataValue" ) );
 
@@ -888,7 +889,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
-                () -> dataElement.getCategoryCombo().getOptionCombos() ).contains( categoryOptionCombo ) )
+                () -> dataElement.getCategoryOptionCombos() ).contains( categoryOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( categoryOptionCombo.getUid(),
                     "Category option combo: " + categoryOptionCombo.getUid() + " must be part of category combo of data element: " + dataElement.getUid() ) );
@@ -1020,14 +1021,19 @@ public class DefaultDataValueSetService
             internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
-
+            internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
+            
             // -----------------------------------------------------------------
             // Save, update or delete data value
             // -----------------------------------------------------------------
 
-            DataValue existingValue = null;
-            
-            if ( !skipExistingCheck && ( existingValue = dataValueBatchHandler.findObject( internalValue ) ) != null )
+            DataValue existingValue = !skipExistingCheck ? dataValueBatchHandler.findObject( internalValue ) : null;
+
+            // -----------------------------------------------------------------
+            // Check soft deleted data values on update and import
+            // -----------------------------------------------------------------
+
+            if ( !skipExistingCheck && existingValue != null && !existingValue.isDeleted() )
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
@@ -1035,16 +1041,14 @@ public class DefaultDataValueSetService
                     {
                         DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
                         
-                        if ( !internalValue.isNullValue() )
+                        if ( internalValue.isNullValue() )
                         {
-                            dataValueBatchHandler.updateObject( internalValue );
-                        }
-                        else
-                        {
-                            dataValueBatchHandler.deleteObject( internalValue );
+                            internalValue.setDeleted( true );
                             
                             auditValue.setAuditType( AuditType.DELETE );
                         }
+                        
+                        dataValueBatchHandler.updateObject( internalValue );
                         
                         auditBatchHandler.addObject( auditValue );
                     }
@@ -1055,9 +1059,11 @@ public class DefaultDataValueSetService
                 {
                     if ( !dryRun )
                     {
-                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+                        internalValue.setDeleted( true );
                         
-                        dataValueBatchHandler.deleteObject( internalValue );
+                        dataValueBatchHandler.updateObject( internalValue );
+                        
+                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
                         
                         auditBatchHandler.addObject( auditValue );
                     }
@@ -1071,7 +1077,13 @@ public class DefaultDataValueSetService
                 {
                     if ( !dryRun && !internalValue.isNullValue() )
                     {
-                        if ( dataValueBatchHandler.addObject( internalValue ) )
+                        if ( existingValue != null && existingValue.isDeleted() )
+                        {
+                            dataValueBatchHandler.updateObject( internalValue );
+                            
+                            importCount++;
+                        }
+                        else if ( dataValueBatchHandler.addObject( internalValue ) )
                         {
                             importCount++;
                         }

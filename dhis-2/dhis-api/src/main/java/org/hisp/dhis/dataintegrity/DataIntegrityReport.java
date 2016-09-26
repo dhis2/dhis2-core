@@ -31,9 +31,7 @@ package org.hisp.dhis.dataintegrity;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,12 +66,8 @@ public class DataIntegrityReport
     
     private List<DataElementCategoryCombo> invalidCategoryCombos = new ArrayList<>();
 
-    private Map<DataSet, Set<DataElementOperand>> categoryOptionCombosNotInDataElementCategoryCombo = new HashMap<>();
-    
     private List<DataSet> dataSetsNotAssignedToOrganisationUnits = new ArrayList<>();
     
-    private List<Section> sectionsWithInvalidCategoryCombinations = new ArrayList<>();
-
     private Set<Set<Indicator>> indicatorsWithIdenticalFormulas = new HashSet<>();
     
     private List<Indicator> indicatorsWithoutGroups = new ArrayList<>();
@@ -175,16 +169,6 @@ public class DataIntegrityReport
         this.invalidCategoryCombos = invalidCategoryCombos;
     }
 
-    public Map<DataSet, Set<DataElementOperand>> getCategoryOptionCombosNotInDataElementCategoryCombo()
-    {
-        return categoryOptionCombosNotInDataElementCategoryCombo;
-    }
-
-    public void setCategoryOptionCombosNotInDataElementCategoryCombo( Map<DataSet, Set<DataElementOperand>> categoryOptionCombosNotInDataElementCategoryCombo )
-    {
-        this.categoryOptionCombosNotInDataElementCategoryCombo = categoryOptionCombosNotInDataElementCategoryCombo;
-    }
-
     public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
     {
         return dataSetsNotAssignedToOrganisationUnits;
@@ -193,16 +177,6 @@ public class DataIntegrityReport
     public void setDataSetsNotAssignedToOrganisationUnits( List<DataSet> dataSetsNotAssignedToOrganisationUnits )
     {
         this.dataSetsNotAssignedToOrganisationUnits = dataSetsNotAssignedToOrganisationUnits;
-    }
-
-    public List<Section> getSectionsWithInvalidCategoryCombinations()
-    {
-        return sectionsWithInvalidCategoryCombinations;
-    }
-
-    public void setSectionsWithInvalidCategoryCombinations( List<Section> sectionsWithInvalidCategoryCombinations )
-    {
-        this.sectionsWithInvalidCategoryCombinations = sectionsWithInvalidCategoryCombinations;
     }
 
     public Set<Set<Indicator>> getIndicatorsWithIdenticalFormulas()
