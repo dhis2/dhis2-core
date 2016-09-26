@@ -22,14 +22,6 @@
         }
       ],
       "timelyDays": 15,
-      "dataElements": [
-        {
-          "id": "nHwIqKAudKN"
-        },
-        {
-          "id": "VolAzjFe5zP"
-        }
-      ],
       "indicators": [ ],
       "noValueRequiresComment": false,
       "notifyCompletingUser": false,

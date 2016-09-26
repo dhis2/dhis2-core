@@ -28,14 +28,15 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 
 /**
  * @author Lars Helge Overland
@@ -47,7 +48,7 @@ public class DataSetElement
      * Data set, never null.
      */
     private DataSet dataSet;
-    
+
     /**
      * Data element, never null.
      */
@@ -66,7 +67,7 @@ public class DataSetElement
     {
         setAutoFields();
     }
-    
+
     public DataSetElement( DataSet dataSet, DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
         setAutoFields();
@@ -88,7 +89,7 @@ public class DataSetElement
     {
         return hasCategoryCombo() ? getCategoryCombo() : dataElement.getDataElementCategoryCombo();
     }
-    
+
     public boolean hasCategoryCombo()
     {
         return categoryCombo != null;
@@ -99,10 +100,10 @@ public class DataSetElement
     // -------------------------------------------------------------------------
 
     public int hashCode()
-    {        
+    {
         return dataSet.hashCode() * 31 * dataElement.hashCode();
     }
-    
+
     public boolean equals( Object other )
     {
         if ( this == other )
@@ -119,9 +120,9 @@ public class DataSetElement
         {
             return false;
         }
-        
+
         DataSetElement element = (DataSetElement) other;
-        
+
         return dataSet.equals( element.getDataSet() ) && dataElement.equals( element.getDataElement() );
     }
 
@@ -173,7 +174,7 @@ public class DataSetElement
 
     /**
      * Category combination of this data set element. Can be null, use
-     * {@link #getResolvedCategoryCombo} to get fall back to category 
+     * {@link #getResolvedCategoryCombo} to get fall back to category
      * combination of data element.
      */
     @JsonProperty
@@ -187,5 +188,29 @@ public class DataSetElement
     public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
         this.categoryCombo = categoryCombo;
+    }
+
+    @Override
+    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    {
+        super.mergeWith( other, mergeMode );
+
+        if ( other.getClass().isInstance( this ) )
+        {
+            DataSetElement dataSetElement = (DataSetElement) other;
+
+            if ( mergeMode.isReplace() )
+            {
+                dataElement = dataSetElement.getDataElement();
+                categoryCombo = dataSetElement.getCategoryCombo();
+                dataSet = dataSetElement.getDataSet();
+            }
+            else if ( mergeMode.isMerge() )
+            {
+                dataElement = dataSetElement.getDataElement() == null ? dataElement : dataSetElement.getDataElement();
+                categoryCombo = dataSetElement.getCategoryCombo() == null ? categoryCombo : dataSetElement.getCategoryCombo();
+                dataSet = dataSetElement.getDataSet() == null ? dataSet : dataSetElement.getDataSet();
+            }
+        }
     }
 }
