@@ -113,6 +113,16 @@ public class DefaultMaintenanceService
     }
     
     @Override
+    public int deleteSoftDeletedDataValues()
+    {
+        int result = maintenanceStore.deleteSoftDeletedDataValues();
+        
+        log.info( "Permanently deleted soft deleted data values: " + result );
+        
+        return result;
+    }
+    
+    @Override
     public void prunePeriods()
     {
         for ( Period period : periodService.getAllPeriods() )

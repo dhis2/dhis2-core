@@ -39,6 +39,7 @@ import javax.annotation.Resource;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,6 +52,9 @@ public class IndicatorStoreTest
 {
     @Autowired
     private IndicatorStore indicatorStore;
+    
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     @Resource(name="org.hisp.dhis.indicator.IndicatorTypeStore")
     private GenericIdentifiableObjectStore<IndicatorType> indicatorTypeStore;
@@ -302,5 +306,33 @@ public class IndicatorStoreTest
 
         Indicator indicatorC = indicatorStore.getByShortName( "IndicatorShortC" );
         assertNull( indicatorC );
+    }
+
+    @Test
+    public void testGetIndicatorsWithoutGroups()
+    {
+        IndicatorType type = new IndicatorType( "IndicatorType", 100, false );
+
+        indicatorTypeStore.save( type );
+
+        Indicator indicatorA = createIndicator( 'A', type );
+        Indicator indicatorB = createIndicator( 'B', type );
+        Indicator indicatorC = createIndicator( 'C', type );
+
+        indicatorStore.save( indicatorA );
+        indicatorStore.save( indicatorB );
+        indicatorStore.save( indicatorC );
+        
+        IndicatorGroup igA = createIndicatorGroup( 'A' );
+        
+        igA.addIndicator( indicatorA );
+        igA.addIndicator( indicatorB );
+        
+        idObjectManager.save( igA );
+        
+        List<Indicator> indicators = indicatorStore.getIndicatorsWithoutGroups();
+        
+        assertEquals( 1, indicators.size() );
+        assertTrue( indicators.contains( indicatorC ) );
     }
 }

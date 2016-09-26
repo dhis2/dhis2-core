@@ -67,6 +67,8 @@ public class DataValue
     protected String comment;
 
     protected Boolean followup;
+    
+    protected Boolean deleted;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -103,6 +105,7 @@ public class DataValue
             .add( "attributeOptionCombo", attributeOptionCombo )
             .add( "value", value )
             .add( "comment", comment )
+            .add( "deleted", deleted )
             .toString();
     }
 
@@ -240,6 +243,18 @@ public class DataValue
     public void setFollowup( Boolean followup )
     {
         this.followup = followup;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Boolean getDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( Boolean deleted )
+    {
+        this.deleted = deleted;
     }
 
     public void close()

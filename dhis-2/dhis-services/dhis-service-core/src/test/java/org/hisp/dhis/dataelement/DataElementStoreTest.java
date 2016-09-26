@@ -34,6 +34,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -63,6 +64,9 @@ public class DataElementStoreTest
 
     @Autowired
     private AttributeService attributeService;
+    
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     // -------------------------------------------------------------------------
     // Tests
@@ -321,6 +325,36 @@ public class DataElementStoreTest
         assertNotNull( dataElementStore.get( idA ).getAggregationLevels() );
         assertEquals( 2, dataElementStore.get( idA ).getAggregationLevels().size() );
         assertEquals( aggregationLevels, dataElementStore.get( idA ).getAggregationLevels() );
+    }
+    
+
+    @Test
+    public void testGetDataElementsWithoutGroups()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
+        DataElement dataElementE = createDataElement( 'E' );
+
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
+        dataElementStore.save( dataElementD );
+        dataElementStore.save( dataElementE );
+        
+        DataElementGroup dgA = createDataElementGroup( 'A' );
+        dgA.addDataElement( dataElementA );
+        dgA.addDataElement( dataElementD );
+        
+        idObjectManager.save( dgA );
+        
+        List<DataElement> dataElements = dataElementStore.getDataElementsWithoutGroups();
+        
+        assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( dataElementB ) );
+        assertTrue( dataElements.contains( dataElementC ) );
+        assertTrue( dataElements.contains( dataElementE ) );
     }
 
     @Test

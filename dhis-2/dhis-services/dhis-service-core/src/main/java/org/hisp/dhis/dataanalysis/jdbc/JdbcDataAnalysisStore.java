@@ -103,13 +103,14 @@ public class JdbcDataAnalysisStore
         
         String sql = 
             "select ou.organisationunitid, " +
-              "(select stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) " +
-              "from datavalue dv " +
-              "inner join period pe on dv.periodid = pe.periodid " +
-              "where dv.dataelementid = " + dataElement.getId() + " " +
-              "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
-              "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
-              "and dv.sourceid = ou.organisationunitid) as deviation " +
+                "(select stddev_pop( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) ) " +
+                "from datavalue dv " +
+                "inner join period pe on dv.periodid = pe.periodid " +
+                "where dv.dataelementid = " + dataElement.getId() + " " +
+                "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
+                "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
+                "and dv.sourceid = ou.organisationunitid " +
+                "and dv.deleted is false) as deviation " +
             "from organisationunit ou where (";
         
         for ( OrganisationUnit parent : parents )
@@ -153,7 +154,8 @@ public class JdbcDataAnalysisStore
                 "where dv.dataelementid = " + dataElement.getId() + " " +
                 "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
                 "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
-                "and dv.sourceid = ou.organisationunitid) as average " +
+                "and dv.sourceid = ou.organisationunitid " +
+                "and dv.deleted is false) as average " +
             "from organisationunit ou where (";
         
         for ( OrganisationUnit parent : parents )
@@ -215,7 +217,8 @@ public class JdbcDataAnalysisStore
             sql += "ou.path like '" + parent.getPath() + "%' or ";
         }
         
-        sql = TextUtils.removeLastOr( sql ) + ")";
+        sql = TextUtils.removeLastOr( sql ) + ") ";
+        sql += "and dv.deleted is false ";
         
         sql += statementBuilder.limitRecord( 0, limit );
         
@@ -272,7 +275,8 @@ public class JdbcDataAnalysisStore
                 "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > " + upperBoundMap.get( orgUnitUid ) + " ) ) or ";
         }
         
-        sql = sql.substring( 0, ( sql.length() - 3 ) ) + " )";
+        sql = TextUtils.removeLastOr( sql ) + " ) ";
+        sql += "and dv.deleted is false ";
         
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper( lowerBoundMap, upperBoundMap ) );
     }
@@ -293,6 +297,7 @@ public class JdbcDataAnalysisStore
             "join categoryoptioncombo cc on dv.categoryoptioncomboid = cc.categoryoptioncomboid " +
             "where ou.path like '%" + organisationUnit.getUid() + "%' " +
             "and dv.followup = true " +
+            "and dv.deleted is false " +
             statementBuilder.limitRecord( 0, limit );
         
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper() );

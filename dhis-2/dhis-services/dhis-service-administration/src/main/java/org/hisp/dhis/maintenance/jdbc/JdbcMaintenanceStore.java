@@ -63,4 +63,14 @@ public class JdbcMaintenanceStore
         
         return jdbcTemplate.update( sql );
     }
+
+    @Override
+    public int deleteSoftDeletedDataValues()
+    {
+        String sql =
+            "delete from datavalue dv " +
+            "where dv.deleted is true;";
+        
+        return jdbcTemplate.update( sql );
+    }
 }
