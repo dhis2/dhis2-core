@@ -87,7 +87,7 @@ public class ListGrid
     /**
      * A Map which can hold arbitrary meta-data.
      */
-    private Map<Object, Object> metaData;
+    private Map<String, Object> metaData;
 
     /**
      * A two dimensional List which simulates a grid where the first list
@@ -123,7 +123,7 @@ public class ListGrid
     /**
      * @param metaData meta data.
      */
-    public ListGrid( Map<Object, Object> metaData )
+    public ListGrid( Map<String, Object> metaData )
     {
         this.headers = new ArrayList<>();
         this.metaData = metaData;
@@ -249,19 +249,19 @@ public class ListGrid
 
     @Override
     @JsonProperty
-    public Map<Object, Object> getMetaData()
+    public Map<String, Object> getMetaData()
     {
         return metaData;
     }
 
     @Override
-    public void setMetaData( Map<Object, Object> metaData )
+    public void setMetaData( Map<String, Object> metaData )
     {
         this.metaData = metaData;
     }
 
     @Override
-    public void addMetaData( Object key, Object value )
+    public void addMetaData( String key, Object value )
     {
         this.metaData.put( key, value );
     }
@@ -318,6 +318,12 @@ public class ListGrid
         }
 
         return this;
+    }
+
+    @Override
+    public Grid addValuesAsList( List<Object> values )
+    {
+        return addValues( values.toArray() );        
     }
 
     @Override

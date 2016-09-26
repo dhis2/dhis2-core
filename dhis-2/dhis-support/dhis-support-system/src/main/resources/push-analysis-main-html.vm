@@ -1,0 +1,67 @@
+#macro( img $url )
+<img src="$url"/>
+#end
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html lang="en-GB" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <title> $!pushAnalysis.getName</title>
+    <meta name="viewport" content="width=device-width"/>
+    <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
+</head>
+
+<body style="background-color: rgb(249, 249, 249)">
+<table style="width: 100%;">
+    <tr>
+        <td></td>
+        <td style="max-width:600px!important;display:block!important;margin:0 auto!important;clear:both!important">
+            <div style="max-width:600px!important;padding:0!important;margin:0 auto">
+                <div style="overflow-x:auto;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 25px;background: #fff;padding: 10px;float:left">
+                    <table>
+                        <tr>
+                            <td>
+                                <h1>
+                                    $!pushAnalysis.getTitle()
+                                </h1>
+                                <small>$itemHtml.get( "date" )</small>
+                                <p> $!pushAnalysis.getMessage()</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                #foreach( $dashboardItem in $pushAnalysis.getDashboard().getItems() )
+
+                    #if($itemHtml.get( $dashboardItem.getUid() ) != "")
+
+                        <div style="overflow-x:auto;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 25px;background: #fff;padding: 10px;">
+                            <table style="margin: auto">
+                                <tr>
+                                    <td>
+
+                                        #if( $dashboardItem.getType() == "REPORT_TABLE" )
+                                            $itemHtml.get( $dashboardItem.getUid() )
+                                        #else
+                                            #img( $itemHtml.get( $dashboardItem.getUid() ) )
+                                        #end
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    #end
+
+                #end
+
+            </div>
+        </td>
+        <td>
+        </td>
+    </tr>
+</table>
+</body>
+
+</html>

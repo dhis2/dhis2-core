@@ -134,42 +134,6 @@ public class Section
         return dataElements != null && !dataElements.isEmpty() ? dataElements.get( 0 ).getCategoryCombo() : null;
     }
 
-    public boolean hasMultiDimensionalDataElement()
-    {
-        for ( DataElement element : dataElements )
-        {
-            if ( element.isMultiDimensional() )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public boolean categorComboIsInvalid()
-    {
-        if ( dataElements != null && dataElements.size() > 0 )
-        {
-            DataElementCategoryCombo categoryCombo = null;
-
-            for ( DataElement element : dataElements )
-            {
-                if ( element != null )
-                {
-                    if ( categoryCombo != null && !categoryCombo.equals( element.getCategoryCombo() ) )
-                    {
-                        return true;
-                    }
-
-                    categoryCombo = element.getCategoryCombo();
-                }
-            }
-        }
-
-        return false;
-    }
-
     public boolean hasDataElements()
     {
         return dataElements != null && !dataElements.isEmpty();

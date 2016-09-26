@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
@@ -116,6 +117,13 @@ public class DefaultProgramIndicatorService
     public void setStatementBuilder( StatementBuilder statementBuilder )
     {
         this.statementBuilder = statementBuilder;
+    }
+
+    private GenericIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
+
+    public void setProgramIndicatorGroupStore( GenericIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore )
+    {
+        this.programIndicatorGroupStore = programIndicatorGroupStore;
     }
 
     @Autowired
@@ -255,7 +263,7 @@ public class DefaultProgramIndicatorService
     {
         return getAnalyticsSQl( expression, true );
     }
-    
+
     @Override
     public String getAnalyticsSQl( String expression, boolean ignoreMissingValues )
     {
@@ -265,13 +273,13 @@ public class DefaultProgramIndicatorService
         }
 
         expression = TextUtils.removeNewlines( expression );
-        
+
         expression = getSubstitutedVariablesForAnalyticsSql( expression );
-        
+
         expression = getSubstitutedFunctionsAnalyticsSql( expression, false );
 
         expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues );
-        
+
         return expression;
     }
 
@@ -281,7 +289,7 @@ public class DefaultProgramIndicatorService
         {
             return null;
         }
-        
+
         StringBuffer buffer = new StringBuffer();
 
         Matcher matcher = ProgramIndicator.SQL_FUNC_PATTERN.matcher( expression );
@@ -290,26 +298,26 @@ public class DefaultProgramIndicatorService
         {
             String func = trim( matcher.group( 1 ) );
             String arguments = trim( matcher.group( 2 ) );
-            
+
             if ( func != null && arguments != null )
             {
                 String[] args = arguments.split( ProgramIndicator.ARGS_SPLIT );
-                
+
                 for ( int i = 0; i < args.length; i++ )
                 {
                     String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false );
                     args[i] = arg;
                 }
-                
+
                 SqlFunction function = SQL_FUNC_MAP.get( func );
-                
+
                 if ( function == null )
                 {
                     throw new IllegalStateException( "Function not recognized: " + func );
                 }
-                
+
                 String result = function.evaluate( args );
-    
+
                 matcher.appendReplacement( buffer, result );
             }
         }
@@ -323,7 +331,7 @@ public class DefaultProgramIndicatorService
         {
             return null;
         }
-        
+
         StringBuffer buffer = new StringBuffer();
 
         Matcher matcher = ProgramIndicator.VARIABLE_PATTERN.matcher( expression );
@@ -331,7 +339,7 @@ public class DefaultProgramIndicatorService
         while ( matcher.find() )
         {
             String var = matcher.group( 1 );
-            
+
             String sql = getVariableAsSql( var, expression );
 
             if ( sql != null )
@@ -339,17 +347,17 @@ public class DefaultProgramIndicatorService
                 matcher.appendReplacement( buffer, sql );
             }
         }
-        
+
         return TextUtils.appendTail( matcher, buffer );
     }
-    
+
     private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues )
     {
         if ( expression == null )
         {
             return null;
         }
-        
+
         StringBuffer buffer = new StringBuffer();
 
         Matcher matcher = ProgramIndicator.EXPRESSION_PATTERN.matcher( expression );
@@ -359,17 +367,17 @@ public class DefaultProgramIndicatorService
             String key = matcher.group( 1 );
             String el1 = matcher.group( 2 );
             String el2 = matcher.group( 3 );
-            
+
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
             {
                 String de = ignoreMissingValues ? getIgnoreNullSql( statementBuilder.columnQuote( el2 ) ) : statementBuilder.columnQuote( el2 );
-                
+
                 matcher.appendReplacement( buffer, de );
             }
             else if ( ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
             {
                 String at = ignoreMissingValues ? getIgnoreNullSql( statementBuilder.columnQuote( el1 ) ) : statementBuilder.columnQuote( el1 );
-                
+
                 matcher.appendReplacement( buffer, at );
             }
             else if ( ProgramIndicator.KEY_CONSTANT.equals( key ) )
@@ -390,19 +398,19 @@ public class DefaultProgramIndicatorService
     public String getAnyValueExistsClauseAnalyticsSql( String expression )
     {
         Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression );
-                
+
         if ( uids.isEmpty() )
         {
             return null;
         }
-        
+
         String sql = StringUtils.EMPTY;
-        
+
         for ( String uid : uids )
         {
             sql += statementBuilder.columnQuote( uid ) + " is not null or ";
         }
-        
+
         return TextUtils.removeLastOr( sql ).trim();
     }
 
@@ -534,7 +542,7 @@ public class DefaultProgramIndicatorService
     private String getVariableAsSql( String var, String expression )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
-        
+
         if ( ProgramIndicator.VAR_EXECUTION_DATE.equals( var ) )
         {
             return "executiondate";
@@ -597,4 +605,79 @@ public class DefaultProgramIndicatorService
     {
         return "coalesce(" + column + ",0)";
     }
+
+    // -------------------------------------------------------------------------
+    // ProgramIndicatorGroup
+    // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public int addProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
+    {
+        return programIndicatorGroupStore.save( programIndicatorGroup );
+    }
+
+    @Override
+    @Transactional
+    public void updateProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
+    {
+        programIndicatorGroupStore.update( programIndicatorGroup );
+    }
+
+    @Override
+    @Transactional
+    public void deleteProgramIndicatorGroup( ProgramIndicatorGroup programIndicatorGroup )
+    {
+        programIndicatorGroupStore.delete( programIndicatorGroup );
+    }
+
+    @Override
+    public ProgramIndicatorGroup getProgramIndicatorGroup( int id )
+    {
+        return programIndicatorGroupStore.get( id );
+    }
+
+    @Override
+    public ProgramIndicatorGroup getProgramIndicatorGroup( String uid )
+    {
+        return programIndicatorGroupStore.getByUid( uid );
+    }
+
+    @Override
+    public List<ProgramIndicatorGroup> getAllProgramIndicatorGroups()
+    {
+        return programIndicatorGroupStore.getAll();
+    }
+
+    @Override
+    public ProgramIndicatorGroup getProgramIndicatorGroupByName( String name )
+    {
+        return programIndicatorGroupStore.getByName( name );
+    }
+
+    @Override
+    public int getProgramIndicatorGroupCount()
+    {
+        return programIndicatorGroupStore.getCount();
+    }
+
+    @Override
+    public int getProgramIndicatorGroupCountByName( String name )
+    {
+        return programIndicatorGroupStore.getCountLikeName( name );
+    }
+
+    @Override
+    public List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max )
+    {
+        return  programIndicatorGroupStore.getAllOrderedName( first, max );
+    }
+
+    @Override
+    public List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetweenByName( String name, int first, int max )
+    {
+        return programIndicatorGroupStore.getAllLikeName( name, first, max );
+    }
+
+
 }

@@ -74,6 +74,10 @@ include::organisationUnit.adoc[]
 
 include::color.adoc[]
 
+include::option.adoc[]
+
+include::mapping.adoc[]
+
 
 
 ==  **LockException**

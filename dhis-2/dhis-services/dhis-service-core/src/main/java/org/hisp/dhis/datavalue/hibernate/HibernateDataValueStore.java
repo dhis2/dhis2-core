@@ -31,7 +31,6 @@ package org.hisp.dhis.datavalue.hibernate;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Projections;
@@ -47,16 +46,17 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.objectmapper.DataValueRowMapper;
-import org.hisp.dhis.system.objectmapper.DeflatedDataValueRowMapper;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import com.google.api.client.util.Sets;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,7 +65,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -99,6 +98,13 @@ public class HibernateDataValueStore
     {
         this.jdbcTemplate = jdbcTemplate;
     }
+    
+    private StatementBuilder statementBuilder;
+
+    public void setStatementBuilder( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
+    }
 
     // -------------------------------------------------------------------------
     // Basic DataValue
@@ -109,9 +115,7 @@ public class HibernateDataValueStore
     {
         dataValue.setPeriod( periodStore.reloadForceAddPeriod( dataValue.getPeriod() ) );
 
-        Session session = sessionFactory.getCurrentSession();
-
-        session.save( dataValue );
+        sessionFactory.getCurrentSession().save( dataValue );
     }
 
     @Override
@@ -119,17 +123,7 @@ public class HibernateDataValueStore
     {
         dataValue.setPeriod( periodStore.reloadForceAddPeriod( dataValue.getPeriod() ) );
 
-        Session session = sessionFactory.getCurrentSession();
-
-        session.update( dataValue );
-    }
-
-    @Override
-    public void deleteDataValue( DataValue dataValue )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        session.delete( dataValue );
+        sessionFactory.getCurrentSession().update( dataValue );
     }
 
     @Override
@@ -154,30 +148,38 @@ public class HibernateDataValueStore
             return null;
         }
 
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) );
-        criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
-
-        return (DataValue) criteria.uniqueResult();
+        return (DataValue) session.createCriteria( DataValue.class )
+            .add( Restrictions.eq( "dataElement", dataElement ) )
+            .add( Restrictions.eq( "period", storedPeriod ) )
+            .add( Restrictions.eq( "source", source ) )
+            .add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) )
+            .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
+            .add( Restrictions.eq( "deleted", false ) )
+            .uniqueResult();
     }
 
     @Override
-    public DataValue getDataValue( int dataElementId, int periodId, int sourceId, int categoryOptionComboId, int attributeOptionComboId )
+    public DataValue getSoftDeletedDataValue( DataValue dataValue )
     {
-        final String sql =
-            "select * from datavalue " +
-            "where dataelementid = " + dataElementId + " " +
-            "and periodid = " + periodId + " " +
-            "and sourceid = " + sourceId + " " +
-            "and categoryoptioncomboid = " + categoryOptionComboId + " " +
-            "and attributeoptioncomboid = " + attributeOptionComboId;
+        Session session = sessionFactory.getCurrentSession();
 
-        return jdbcTemplate.queryForObject( sql, new DataValueRowMapper() );
+        Period storedPeriod = periodStore.reloadPeriod( dataValue.getPeriod() );
+
+        if ( storedPeriod == null )
+        {
+            return null;
+        }
+
+        return (DataValue) session.createCriteria( DataValue.class )
+            .add( Restrictions.eq( "dataElement", dataValue.getDataElement() ) )
+            .add( Restrictions.eq( "period", storedPeriod ) )
+            .add( Restrictions.eq( "source", dataValue.getSource() ) )
+            .add( Restrictions.eq( "categoryOptionCombo", dataValue.getCategoryOptionCombo() ) )
+            .add( Restrictions.eq( "attributeOptionCombo", dataValue.getAttributeOptionCombo() ) )
+            .add( Restrictions.eq( "deleted", true ) )
+            .uniqueResult();
     }
-
+        
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
@@ -186,82 +188,48 @@ public class HibernateDataValueStore
     @SuppressWarnings( "unchecked" )
     public List<DataValue> getAllDataValues()
     {
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-
-        return criteria.list();
+        return sessionFactory.getCurrentSession()
+            .createCriteria( DataValue.class )
+            .add( Restrictions.eq( "deleted", false ) )
+            .list();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
+    public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
+        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
+    {        
+        Set<Period> storedPeriods = Sets.newHashSet();
+        
+        for ( Period period : periods )
+        {
+            storedPeriods.add( periodStore.reloadPeriod( period ) );
+        }
 
-        if ( storedPeriod == null )
+        if ( dataElements.isEmpty() && storedPeriods.isEmpty() && organisationUnits.isEmpty() )
         {
             return new ArrayList<>();
         }
-
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( OrganisationUnit source, DataElement dataElement )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( Collection<OrganisationUnit> sources, DataElement dataElement )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        if ( sources == null || sources.isEmpty() )
+        
+        Criteria criteria = sessionFactory.getCurrentSession()
+            .createCriteria( DataValue.class )
+            .add( Restrictions.eq( "deleted", false ) );
+        
+        if ( !dataElements.isEmpty() )
         {
-            return new ArrayList<>();
+            criteria.add( Restrictions.in( "dataElement", dataElements ) );
         }
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.in( "source", sources ) );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period, Collection<DataElement> dataElements )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
-
-        if ( storedPeriod == null || dataElements == null || dataElements.isEmpty() )
+        
+        if ( !storedPeriods.isEmpty() )
         {
-            return new ArrayList<>();
+            criteria.add( Restrictions.in( "period", storedPeriods ) );
         }
-
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.in( "dataElement", dataElements ) );
-
+        
+        if ( !organisationUnits.isEmpty() )
+        {
+            criteria.add( Restrictions.in( "source", organisationUnits ) );
+        }
+            
         return criteria.list();
     }
 
@@ -279,152 +247,13 @@ public class HibernateDataValueStore
 
         Session session = sessionFactory.getCurrentSession();
 
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.in( "dataElement", dataElements ) );
-        criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period, Collection<DataElement> dataElements,
-       Collection<DataElementCategoryOptionCombo> categoryOptionCombos )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
-
-        if ( storedPeriod == null || dataElements == null || dataElements.isEmpty() || categoryOptionCombos == null || categoryOptionCombos.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "source", source ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.in( "dataElement", dataElements ) );
-        criteria.add( Restrictions.in( "categoryOptionCombo", categoryOptionCombos ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( DataElement dataElement, Period period,
-        Collection<OrganisationUnit> sources )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
-
-        if ( storedPeriod == null || sources == null || sources.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.in( "source", sources ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( DataElement dataElement, Collection<Period> periods,
-        Collection<OrganisationUnit> sources )
-    {
-        Collection<Period> storedPeriods = new ArrayList<>();
-
-        for ( Period period : periods )
-        {
-            Period storedPeriod = periodStore.reloadPeriod( period );
-
-            if ( storedPeriod != null )
-            {
-                storedPeriods.add( storedPeriod );
-            }
-        }
-
-        if ( storedPeriods.isEmpty() || sources == null || sources.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-        criteria.add( Restrictions.in( "period", storedPeriods ) );
-        criteria.add( Restrictions.in( "source", sources ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
-       Collection<Period> periods, Collection<OrganisationUnit> sources )
-    {
-        Collection<Period> storedPeriods = new ArrayList<>();
-
-        for ( Period period : periods )
-        {
-            Period storedPeriod = periodStore.reloadPeriod( period );
-
-            if ( storedPeriod != null )
-            {
-                storedPeriods.add( storedPeriod );
-            }
-        }
-
-        if ( storedPeriods.isEmpty() || sources == null || sources.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-        criteria.add( Restrictions.eq( "categoryOptionCombo", categoryOptionCombo ) );
-        criteria.add( Restrictions.in( "period", storedPeriods ) );
-        criteria.add( Restrictions.in( "source", sources ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( Collection<DataElementCategoryOptionCombo> categoryOptionCombos )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        if ( categoryOptionCombos == null || categoryOptionCombos.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.in( "categoryOptionCombo", categoryOptionCombos ) );
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataValue> getDataValues( DataElement dataElement )
-    {
-        Session session = sessionFactory.getCurrentSession();
-
-        Criteria criteria = session.createCriteria( DataValue.class );
-        criteria.add( Restrictions.eq( "dataElement", dataElement ) );
-
-        return criteria.list();
+        return session.createCriteria( DataValue.class )
+            .add( Restrictions.in( "dataElement", dataElements ) )
+            .add( Restrictions.eq( "period", storedPeriod ) )
+            .add( Restrictions.eq( "source", source ) )
+            .add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) )
+            .add( Restrictions.eq( "deleted", false ) )
+            .list();
     }
 
     @Override
@@ -436,11 +265,14 @@ public class HibernateDataValueStore
         List<Integer> sourceIdList = IdentifiableObjectUtils.getIdentifiers( sources );
         Integer dataElementId = dataElement.getId();
 
-        String sql = "select categoryoptioncomboid, attributeoptioncomboid, value, sourceid, periodid, storedby, created, lastupdated, comment, followup " +
-            "from datavalue where dataelementid=" + dataElementId + " " +
+        String sql = "select categoryoptioncomboid, attributeoptioncomboid, value, " +
+            "sourceid, periodid, storedby, created, lastupdated, comment, followup " +
+            "from datavalue " +
+            "where dataelementid=" + dataElementId + " " +
             ( ( categoryOptionCombo == null ) ? "" : ( "and categoryoptioncomboid=" + categoryOptionCombo.getId() + " " ) ) +
             "and sourceid in (" + TextUtils.getCommaDelimitedString( sourceIdList ) + ") " +
-            "and periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ")";
+            "and periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
+            "and deleted is false";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -482,18 +314,19 @@ public class HibernateDataValueStore
         String sourcePrefix = source.getPath();
         Integer sourceId = source.getId();
 
-        String castType = "double precision"; //TODO use statement builder
+        String castType = statementBuilder.getDoubleColumnType();
 
-        String sql = "SELECT dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid, " +
-            "SUM(CAST(value AS "+castType+")) AS value " +
-            "FROM datavalue, organisationunit " +
-            "WHERE dataelementid=" + dataElementId + " " +
-            "AND sourceid = organisationunitid " +
+        String sql = "select dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid, " +
+            "sum(cast(value as "+castType+")) as value " +
+            "from datavalue, organisationunit " +
+            "where dataelementid=" + dataElementId + " " +
+            "and sourceid = organisationunitid " +
             ((categoryOptionCombo == null) ? "" :
                 ("and categoryoptioncomboid=" + categoryOptionCombo.getId() + " ")) +
-            "AND path LIKE '" + sourcePrefix + "%' " +
-            "AND periodid IN (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
-            "GROUP BY dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid";
+            "and path like '" + sourcePrefix + "%' " +
+            "and periodid in (" + TextUtils.getCommaDelimitedString( periodIdList ) + ") " +
+            "and deleted is false " +
+            "group by dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -517,33 +350,13 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public DataValue getLatestDataValues( DataElement dataElement, PeriodType periodType,
-        OrganisationUnit organisationUnit )
-    {
-        final String hsql = "SELECT v FROM DataValue v, Period p WHERE  v.dataElement =:dataElement "
-            + " AND v.period=p AND p.periodType=:periodType AND v.source=:source ORDER BY p.endDate DESC";
-
-        Session session = sessionFactory.getCurrentSession();
-
-        Query query = session.createQuery( hsql );
-
-        query.setParameter( "dataElement", dataElement );
-        query.setParameter( "periodType", periodType );
-        query.setParameter( "source", organisationUnit );
-        
-        query.setFirstResult( 0 );
-        query.setMaxResults( 1 );
-
-        return (DataValue) query.uniqueResult();
-    }
-        
-    @Override
     public int getDataValueCountLastUpdatedAfter( Date date )
     {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( DataValue.class );
-        
-        criteria.add( Restrictions.ge( "lastUpdated", date ) );
-        criteria.setProjection( Projections.rowCount() );
+        Criteria criteria = sessionFactory.getCurrentSession()
+            .createCriteria( DataValue.class )
+            .add( Restrictions.ge( "lastUpdated", date ) )
+            .add( Restrictions.eq( "deleted", false ) )
+            .setProjection( Projections.rowCount() );
 
         Number rs = (Number) criteria.uniqueResult();
 
@@ -590,6 +403,7 @@ public class HibernateDataValueStore
             "and p.startdate <= '" + DateUtils.getMediumDateString( date ) + "' " +
             "and p.enddate >= '" + DateUtils.getMediumDateString( date ) + "' " +
             "and p.periodtypeid in (" + TextUtils.getCommaDelimitedString( getIds( periodTypes ) ) + ") " +
+            "and dv.deleted is false " +
             whereCo + whereCog + whereCombo;
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -632,18 +446,6 @@ public class HibernateDataValueStore
         }
 
         return map;
-    }
-
-    @Override
-    public Collection<DeflatedDataValue> getDeflatedDataValues( int dataElementId, int periodId, Collection<Integer> sourceIds )
-    {
-        final String sql =
-            "SELECT * FROM datavalue " +
-            "WHERE dataelementid = " + dataElementId + " " +
-            "AND periodid = " + periodId + " " +
-            "AND sourceid IN ( " + getCommaDelimitedString( sourceIds ) + " )";
-        
-        return jdbcTemplate.query( sql, new DeflatedDataValueRowMapper() );
     }
     
     private List<Integer> getIds( Collection<PeriodType> periodTypes )

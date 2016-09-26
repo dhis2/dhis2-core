@@ -33,6 +33,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -80,6 +82,9 @@ public class UpdateProgramAction
 
     @Autowired
     private DataApprovalService dataApprovalService;
+    
+    @Autowired
+    private PeriodService periodService;
 
     // -------------------------------------------------------------------------
     // Input/Output
@@ -315,6 +320,27 @@ public class UpdateProgramAction
     {
         this.captureCoordinates = captureCoordinates;
     }
+    
+    private int expiryDays;
+
+    public void setExpiryDays( int expiryDays )
+    {
+        this.expiryDays = expiryDays;
+    }
+    
+    private int completeEventsExpiryDays;
+
+    public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
+    {
+        this.completeEventsExpiryDays = completeEventsExpiryDays;
+    }
+    
+    private String periodTypeName;
+
+    public void setPeriodTypeName( String periodTypeName )
+    {
+        this.periodTypeName = periodTypeName;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -350,6 +376,8 @@ public class UpdateProgramAction
         program.setDisplayFrontPageList( displayFrontPageList );
         program.setUseFirstStageDuringRegistration( useFirstStageDuringRegistration );
         program.setCaptureCoordinates( captureCoordinates );
+        program.setExpiryDays( expiryDays );
+        program.setCompleteEventsExpiryDays( completeEventsExpiryDays );
 
         if ( program.isRegistration() )
         {
@@ -358,6 +386,18 @@ public class UpdateProgramAction
         else
         {
             program.setIgnoreOverdueEvents( false );
+        }
+        
+        periodTypeName = StringUtils.trimToNull( periodTypeName );
+        
+        if ( periodTypeName != null )
+        {
+            PeriodType periodType = PeriodType.getPeriodTypeByName( periodTypeName );
+            program.setExpiryPeriodType( periodService.getPeriodTypeByClass( periodType.getClass() ) );
+        }
+        else
+        {
+        	program.setExpiryPeriodType( null );
         }
 
         if ( relationshipTypeId != null )

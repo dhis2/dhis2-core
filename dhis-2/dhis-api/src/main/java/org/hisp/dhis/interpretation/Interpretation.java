@@ -96,6 +96,7 @@ public class Interpretation
     public Interpretation( Chart chart, OrganisationUnit organisationUnit, String text )
     {
         this.chart = chart;
+        chart.getInterpretations().add( this );
         this.organisationUnit = organisationUnit;
         this.text = text;
     }
@@ -103,12 +104,14 @@ public class Interpretation
     public Interpretation( Map map, String text )
     {
         this.map = map;
+        map.getInterpretations().add( this );
         this.text = text;
     }
 
     public Interpretation( ReportTable reportTable, Period period, OrganisationUnit organisationUnit, String text )
     {
         this.reportTable = reportTable;
+        reportTable.getInterpretations().add( this );
         this.period = period;
         this.organisationUnit = organisationUnit;
         this.text = text;
@@ -117,12 +120,14 @@ public class Interpretation
     public Interpretation( EventReport eventReport, String text )
     {
         this.eventReport = eventReport;
+        eventReport.getInterpretations().add( this );
         this.text = text;
     }
 
     public Interpretation( EventChart eventChart, String text )
     {
         this.eventChart = eventChart;
+        eventChart.getInterpretations().add( this );
         this.text = text;
     }
     
@@ -137,7 +142,7 @@ public class Interpretation
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
+    
     /**
      * Overriding getUser in order to expose user in web api. Sharing is not enabled
      * for interpretations but "user" is used for representing the creator. Must

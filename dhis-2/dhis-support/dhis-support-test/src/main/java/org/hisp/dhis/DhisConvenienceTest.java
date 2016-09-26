@@ -152,17 +152,12 @@ public abstract class DhisConvenienceTest
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
 
     protected static final String BASE_UID = "abcdefghij";
-
     protected static final String BASE_IN_UID = "inabcdefgh";
-
     protected static final String BASE_DE_UID = "deabcdefgh";
-
     protected static final String BASE_DS_UID = "dsabcdefgh";
-
     protected static final String BASE_OU_UID = "ouabcdefgh";
-
+    protected static final String BASE_COC_UID = "cuabcdefgh";
     protected static final String BASE_USER_UID = "userabcdef";
-
     protected static final String BASE_USER_GROUP_UID = "ugabcdefgh";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
@@ -548,6 +543,18 @@ public abstract class DhisConvenienceTest
         return categoryOptionCombo;
     }
 
+    public static DataElementCategoryOptionCombo createCategoryOptionCombo( char uniqueCharacter )
+    {
+        DataElementCategoryOptionCombo coc = new DataElementCategoryOptionCombo();
+        coc.setAutoFields();
+
+        coc.setUid( BASE_COC_UID + uniqueCharacter );
+        coc.setName( "CategoryOptionCombo" + uniqueCharacter );
+        coc.setName( "CategoryOptionComboCode" + uniqueCharacter );
+
+        return coc;
+    }
+
     /**
      * @param categoryUniqueIdentifier A unique character to identify the
      *                                 category.
@@ -610,8 +617,6 @@ public abstract class DhisConvenienceTest
     {
         CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet( "CategoryOptionGroupSet" + categoryGroupSetUniqueIdentifier );
         categoryOptionGroupSet.setAutoFields();
-
-        // categoryOptionGroupSet.setMembers( new ArrayList<CategoryOptionGroup>() );
 
         for ( CategoryOptionGroup categoryOptionGroup : categoryOptionGroups )
         {
@@ -993,13 +998,17 @@ public abstract class DhisConvenienceTest
      * @param dataElement          The data element.
      * @param period               The period.
      * @param source               The source.
-     * @param value                The value.
-     * @param lastupdated          The date.value.
      * @param categoryOptionCombo  The category option combo.
      * @param attributeOptionCombo The attribute option combo.
+     * @param value                The value.
+     * @param comment              The comment.
+     * @param storedBy             The stored by.
+     * @param created              The created date.
+     * @param lastupdated          The last updated date.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        String value, Date lastupdated, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, 
+        String value, String comment, String storedBy, Date created, Date lastupdated )
     {
         DataValue dataValue = new DataValue();
 

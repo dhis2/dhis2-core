@@ -24,6 +24,12 @@
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programindicator_program" not-null="true" />
 
+    <set name="groups" table="programindicatorgroupmembers" inverse="true">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <many-to-many class="org.hisp.dhis.program.ProgramIndicatorGroup" column="programindicatorgroupid" />
+    </set>
+
     <property name="expression" type="text" />
 
     <property name="filter" type="text" />
@@ -41,17 +47,17 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_programindicator_legendset" />
 
+    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
+	
+    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
+	
     <property name="displayInForm" />
 
     <!-- Object Translation -->
     <set name="translations" table="programindicatortranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="programindicatorid" foreign-key="fk_objecttranslation_programindicatorid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
     
     <!-- Access properties -->
@@ -73,9 +79,5 @@
     </set>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

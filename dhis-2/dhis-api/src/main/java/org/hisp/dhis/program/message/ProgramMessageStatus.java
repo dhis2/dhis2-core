@@ -1,9 +1,5 @@
 package org.hisp.dhis.program.message;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -32,10 +28,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
 @JacksonXmlRootElement( localName = "programMessageStatus", namespace = DxfNamespaces.DXF_2_0 )
 public enum ProgramMessageStatus
 {

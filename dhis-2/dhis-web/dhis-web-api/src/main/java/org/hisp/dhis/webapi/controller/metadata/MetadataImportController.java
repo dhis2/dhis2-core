@@ -36,6 +36,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,8 +77,16 @@ public class MetadataImportController
         MetadataImportParams params = metadataImportService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setObjects( renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON ) );
 
-        ImportReport importReport = metadataImportService.importMetadata( params );
-        renderService.toJson( response.getOutputStream(), importReport );
+        if ( params.hasTaskId() )
+        {
+            startAsync( params );
+            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+        }
+        else
+        {
+            ImportReport importReport = metadataImportService.importMetadata( params );
+            renderService.toJson( response.getOutputStream(), importReport );
+        }
     }
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -87,7 +96,37 @@ public class MetadataImportController
         Metadata metadata = renderService.fromXml( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), Metadata.class );
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
 
-        ImportReport importReport = metadataImportService.importMetadata( params );
-        renderService.toXml( response.getOutputStream(), importReport );
+        if ( params.hasTaskId() )
+        {
+            startAsync( params );
+            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+        }
+        else
+        {
+            ImportReport importReport = metadataImportService.importMetadata( params );
+            renderService.toXml( response.getOutputStream(), importReport );
+        }
+    }
+
+    private void startAsync( MetadataImportParams params )
+    {
+        MetadataAsyncImporter asyncImporter = new MetadataAsyncImporter( params );
+        asyncImporter.run();
+    }
+
+    private class MetadataAsyncImporter extends SecurityContextRunnable
+    {
+        private final MetadataImportParams params;
+
+        MetadataAsyncImporter( MetadataImportParams params )
+        {
+            this.params = params;
+        }
+
+        @Override
+        public void call()
+        {
+            metadataImportService.importMetadata( params );
+        }
     }
 }

@@ -17,21 +17,30 @@
 
     <property name="name" column="name" not-null="true" length="230" />
 
+    <property name="description" type="text" />
+
     <property name="longitude" />
 
     <property name="latitude" />
 
     <property name="zoom" />
-    
+
     <property name="basemap" />
 
-    <list name="mapViews" table="mapmapviews">
+    <property name="title" />
+
+    <list name="mapViews" table="mapmapviews" cascade="all">
       <cache usage="read-write" />
       <key column="mapid" foreign-key="fk_mapmapview_mapid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="mapviewid" class="org.hisp.dhis.mapping.MapView"
         foreign-key="fk_mapmapview_mapviewid" />
     </list>
+
+    <set name="interpretations" inverse="true">
+      <key column="mapid" />
+      <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
+    </set>
 
     <!-- Access properties -->
     <property name="externalAccess" />
@@ -46,21 +55,6 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <!-- Object Translation -->
-    <set name="translations" table="maptranslations" cascade="delete-orphan">
-      <cache usage="read-write" />
-      <key column="mapid" foreign-key="fk_objecttranslation_mapid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
-    </set>
-
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

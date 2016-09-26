@@ -129,7 +129,7 @@ org.hisp.dhis.legend.LegendSet.attributeValues
 org.hisp.dhis.mapping.Map
 org.hisp.dhis.mapping.Map.mapViews
 org.hisp.dhis.mapping.Map.userGroupAccesses
-org.hisp.dhis.mapping.MapLayer
+org.hisp.dhis.mapping.ExternalMapLayer
 org.hisp.dhis.mapping.MapView
 org.hisp.dhis.mapping.MapView.dataDimensionItems
 org.hisp.dhis.mapping.MapView.organisationUnits

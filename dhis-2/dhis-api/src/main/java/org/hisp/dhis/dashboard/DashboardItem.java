@@ -37,10 +37,12 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -154,7 +156,7 @@ public class DashboardItem
      * Returns the actual item object if this dashboard item represents an
      * embedded item and not links to items.
      */
-    public IdentifiableObject getEmbeddedItem()
+    public InterpretableObject getEmbeddedItem()
     {
         if ( chart != null )
         {
@@ -180,6 +182,25 @@ public class DashboardItem
         return null;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getInterpretationCount()
+    {
+        InterpretableObject object = getEmbeddedItem();
+        
+        return object != null ? object.getInterpretations().size() : 0;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getInterpretationLikeCount()
+    {
+        InterpretableObject object = getEmbeddedItem();
+        
+        return object != null ? object.getInterpretations().
+            stream().mapToInt( Interpretation::getLikes ).sum() : 0;        
+    }
+    
     /**
      * Returns a list of the actual item objects if this dashboard item
      * represents a list of objects and not an embedded item.

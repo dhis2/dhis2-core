@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
@@ -285,8 +284,8 @@ public class DefaultSqlViewService
         {
             violation = "SQL query contains references to protected tables";
         }
-        
-        if (  StringUtils.indexOfAny( sql.toLowerCase(), SqlView.getIllegalKeyWords() ) != -1 )
+
+        if ( sql.matches( SqlView.getIllegalKeywordsRegex() ) )
         {
             violation = "SQL query contains illegal keywords";
         }

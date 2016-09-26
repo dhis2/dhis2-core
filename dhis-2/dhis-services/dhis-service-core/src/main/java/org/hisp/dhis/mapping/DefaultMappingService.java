@@ -28,8 +28,6 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.indicator.Indicator;
@@ -41,6 +39,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Jan Henrik Overland
@@ -68,11 +68,11 @@ public class DefaultMappingService
         this.mapViewStore = mapViewStore;
     }
 
-    private MapLayerStore mapLayerStore;
+    private ExternalMapLayerStore externalMapLayerStore;
 
-    public void setMapLayerStore( MapLayerStore mapLayerStore )
+    public void setExternalMapLayerStore( ExternalMapLayerStore externalMapLayerStore )
     {
-        this.mapLayerStore = mapLayerStore;
+        this.externalMapLayerStore = externalMapLayerStore;
     }
 
     private OrganisationUnitService organisationUnitService;
@@ -238,93 +238,55 @@ public class DefaultMappingService
         return mapViewStore.getAllLikeName( name, first, max );
     }
 
-    // -------------------------------------------------------------------------
-    // MapLayer
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int addMapLayer( MapLayer mapLayer )
-    {
-        return mapLayerStore.save( mapLayer );
-    }
-
-    @Override
-    public void updateMapLayer( MapLayer mapLayer )
-    {
-        mapLayerStore.update( mapLayer );
-    }
-
-    @Override
-    public void addOrUpdateMapLayer( String name, String type, String url, String layers, String time,
-        String fillColor, double fillOpacity, String strokeColor, int strokeWidth )
-    {
-        MapLayer mapLayer = mapLayerStore.getByName( name );
-
-        if ( mapLayer != null )
-        {
-            mapLayer.setName( name );
-            mapLayer.setType( type );
-            mapLayer.setUrl( url );
-            mapLayer.setLayers( layers );
-            mapLayer.setTime( time );
-            mapLayer.setFillColor( fillColor );
-            mapLayer.setFillOpacity( fillOpacity );
-            mapLayer.setStrokeColor( strokeColor );
-            mapLayer.setStrokeWidth( strokeWidth );
-
-            updateMapLayer( mapLayer );
-        }
-        else
-        {
-            addMapLayer( new MapLayer( name, type, url, layers, time, fillColor, fillOpacity, strokeColor, strokeWidth ) );
-        }
-    }
-
-    @Override
-    public void deleteMapLayer( MapLayer mapLayer )
-    {
-        mapLayerStore.delete( mapLayer );
-    }
-
-    @Override
-    public MapLayer getMapLayer( int id )
-    {
-        return mapLayerStore.get( id );
-    }
-
-    @Override
-    public MapLayer getMapLayer( String uid )
-    {
-        return mapLayerStore.getByUid( uid );
-    }
-
-    @Override
-    public MapLayer getMapLayerByName( String name )
-    {
-        return mapLayerStore.getByName( name );
-    }
-
-    @Override
-    public List<MapLayer> getMapLayersByType( String type )
-    {
-        return mapLayerStore.getMapLayersByType( type );
-    }
-
-    @Override
-    public MapLayer getMapLayerByMapSource( String mapSource )
-    {
-        return mapLayerStore.getMapLayerByMapSource( mapSource );
-    }
-
-    @Override
-    public List<MapLayer> getAllMapLayers()
-    {
-        return mapLayerStore.getAll();
-    }
-
     @Override
     public int countMapViewMaps( MapView mapView )
     {
         return mapStore.countMapViewMaps( mapView );
+    }
+
+
+    //-------------------------------------------
+    // ExternalMapLayer
+    //-------------------------------------------
+    @Override
+    public int addExternalMapLayer( ExternalMapLayer externalMapLayer )
+    {
+        return externalMapLayerStore.save( externalMapLayer );
+    }
+
+    @Override
+    public void updateExternalMapLayer( ExternalMapLayer externalMapLayer )
+    {
+        externalMapLayerStore.update( externalMapLayer );
+    }
+
+    @Override
+    public void deleteExternalMapLayer( ExternalMapLayer externalMapLayer )
+    {
+        externalMapLayerStore.delete( externalMapLayer );
+    }
+
+    @Override
+    public ExternalMapLayer getExternalMapLayer( int id )
+    {
+        return externalMapLayerStore.get( id );
+    }
+
+    @Override
+    public ExternalMapLayer getExternalMapLayer( String uid )
+    {
+        return externalMapLayerStore.getByUid( uid );
+    }
+
+    @Override
+    public ExternalMapLayer getExternalMapLayerByName( String name )
+    {
+        return externalMapLayerStore.getByName( name );
+    }
+
+    @Override
+    public List<ExternalMapLayer> getAllExternalMapLayers()
+    {
+        return externalMapLayerStore.getAll();
     }
 }

@@ -205,7 +205,7 @@ public class DefaultEventAnalyticsService
         
         if ( !params.isSkipMeta() )
         {
-            Map<Object, Object> metaData = new HashMap<>();
+            Map<String, Object> metaData = new HashMap<>();
 
             Map<String, String> uidNameMap = getUidNameMap( params );
             
@@ -303,7 +303,7 @@ public class DefaultEventAnalyticsService
         // Meta-data
         // ---------------------------------------------------------------------
 
-        Map<Object, Object> metaData = new HashMap<>();
+        Map<String, Object> metaData = new HashMap<>();
 
         Map<String, String> uidNameMap = getUidNameMap( params );
 

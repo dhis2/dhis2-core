@@ -116,6 +116,7 @@
     <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()"/>
+    <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()"/>
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
@@ -438,6 +439,18 @@
         <value>F_OPTIONSET_PUBLIC_ADD</value>
         <value>F_OPTIONSET_PRIVATE_ADD</value>
         <value>F_OPTIONSET_DELETE</value>
+        <value>F_OPTIONGROUP_PUBLIC_ADD</value>
+        <value>F_OPTIONGROUP_PRIVATE_ADD</value>
+        <value>F_OPTIONGROUP_DELETE</value>
+        <value>F_OPTIONGROUPSET_PUBLIC_ADD</value>
+        <value>F_OPTIONGROUPSET_PRIVATE_ADD</value>
+        <value>F_OPTIONGROUPSET_DELETE</value>
+        <value>F_PUSHANALYSIS_ADD</value>
+        <value>F_PUSHANALYSIS_DELETE</value>
+        <value>F_EXTERNALMAPLAYER_PRIVATE_ADD</value>
+        <value>F_EXTERNALMAPLAYER_PUBLIC_ADD</value>
+        <value>F_EXTERNALMAPLAYER_DELETE</value>
+
       </set>
     </property>
   </bean>

@@ -6,39 +6,22 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
   
   <!-- StatementManager -->
     
-  <bean id="statementManager" class="org.amplecode.quick.statement.JdbcStatementManager">
+  <bean id="statementManager" class="org.hisp.quick.statement.JdbcStatementManager">
     <property name="jdbcConfiguration" ref="jdbcConfiguration"/>
   </bean>
-  
-  <bean id="inMemoryStatementManager" class="org.amplecode.quick.statement.JdbcStatementManager">
-    <property name="inMemory" value="true"/>
-  </bean>
-  
+    
   <!-- BatchHandlerFactory -->
     
-  <bean id="batchHandlerFactory" class="org.amplecode.quick.factory.DefaultBatchHandlerFactory">
+  <bean id="batchHandlerFactory" class="org.hisp.quick.factory.DefaultBatchHandlerFactory">
     <property name="jdbcConfiguration" ref="jdbcConfiguration"/>
   </bean>
-  
-  <bean id="inMemoryBatchHandlerFactory" class="org.amplecode.quick.factory.DefaultBatchHandlerFactory">
-    <property name="inMemory" value="true"/>
-  </bean>
-  
+    
   <!-- Interceptor -->
     
-  <bean id="statementInterceptor" class="org.amplecode.quick.StatementInterceptor">
+  <bean id="statementInterceptor" class="org.hisp.quick.StatementInterceptor">
     <property name="statementManagers">
       <list>
         <ref bean="statementManager"/>
-      </list>
-    </property>
-  </bean>
-
-  <bean id="inMemoryStatementInterceptor" class="org.amplecode.quick.StatementInterceptor">
-    <property name="statementManagers">
-      <list>
-        <ref bean="statementManager"/>
-        <ref bean="inMemoryStatementManager"/>
       </list>
     </property>
   </bean>
@@ -57,7 +40,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 
   <!-- JdbcConfiguration -->
   
-  <bean id="jdbcConfiguration" class="org.amplecode.quick.configuration.JdbcConfigurationFactoryBean" init-method="init">
+  <bean id="jdbcConfiguration" class="org.hisp.quick.configuration.JdbcConfigurationFactoryBean" init-method="init">
 	<property name="dialect" ref="statementDialect"/>
 	<property name="driverClass" ref="driverClass"/>
     <property name="connectionUrl" ref="url"/>

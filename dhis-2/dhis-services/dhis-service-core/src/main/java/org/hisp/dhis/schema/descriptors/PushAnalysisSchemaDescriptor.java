@@ -29,6 +29,8 @@ public class PushAnalysisSchemaDescriptor
 
         schema.getAuthorities()
             .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PUSHANALYSIS_ADD" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PUSHANALYSIS_DELETE" ) ) );
 
         return schema;
     }

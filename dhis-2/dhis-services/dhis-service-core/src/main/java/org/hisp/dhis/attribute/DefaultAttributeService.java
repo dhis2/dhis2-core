@@ -265,6 +265,7 @@ public class DefaultAttributeService
         }
 
         Map<String, AttributeValue> attributeValueMap = attributeValues.stream()
+            .filter( av -> av.getAttribute() != null )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av ) );
 
         Iterator<AttributeValue> iterator = object.getAttributeValues().iterator();
@@ -274,7 +275,7 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = iterator.next();
 
-            if ( attributeValueMap.containsKey( attributeValue.getAttribute().getUid() ) )
+            if ( attributeValue.getAttribute() != null && attributeValueMap.containsKey( attributeValue.getAttribute().getUid() ) )
             {
                 AttributeValue av = attributeValueMap.get( attributeValue.getAttribute().getUid() );
 
@@ -295,7 +296,7 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = attributeValueMap.get( uid );
 
-            if ( !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
+            if ( attributeValue.getAttribute() != null && !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
             {
                 errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4010, attributeValue.getAttribute().getUid(), object.getClass().getSimpleName() ) );
             }

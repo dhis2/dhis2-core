@@ -73,6 +73,10 @@
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_dataelement_legendset" />
+    
+    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
+
+    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
 
     <!-- Dynamic attribute values -->
     <set name="attributeValues" table="dataelementattributevalues" cascade="delete-orphan">
@@ -85,11 +89,7 @@
     <set name="translations" table="dataelementtranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_objecttranslation_dataelementid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->
@@ -105,7 +105,4 @@
 
   </class>
 
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 </hibernate-mapping>

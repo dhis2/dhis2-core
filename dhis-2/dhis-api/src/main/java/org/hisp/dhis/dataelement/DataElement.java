@@ -34,8 +34,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -81,7 +83,7 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElement
-    extends BaseDimensionalItemObject
+    extends BaseDataDimensionalItemObject implements DataDimensionalItemObject
 {
     public static final String[] I18N_PROPERTIES = { "name", "shortName", "description", "formName" };
 
@@ -145,7 +147,7 @@ public class DataElement
      * The option set for comments linked to this data element, can be null.
      */
     private OptionSet commentOptionSet;
-
+    
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -395,37 +397,6 @@ public class DataElement
     public boolean hasAggregationLevels()
     {
         return aggregationLevels != null && aggregationLevels.size() > 0;
-    }
-
-    public boolean hasCategoryCombo()
-    {
-        return categoryCombo != null;
-    }
-
-    /**
-     * Tests whether the DataElement is associated with a
-     * DataElementCategoryCombo with more than one DataElementCategory, or any
-     * DataElementCategory with more than one DataElementCategoryOption.
-     */
-    public boolean isMultiDimensional()
-    {
-        if ( categoryCombo != null )
-        {
-            if ( categoryCombo.getCategories().size() > 1 )
-            {
-                return true;
-            }
-
-            for ( DataElementCategory category : categoryCombo.getCategories() )
-            {
-                if ( category.getCategoryOptions().size() > 1 )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**

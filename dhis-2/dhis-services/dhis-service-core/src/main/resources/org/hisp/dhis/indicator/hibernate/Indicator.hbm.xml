@@ -50,6 +50,13 @@
       <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
     </set>
 
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_indicator_legendset" />
+      
+    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
+
+    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
+
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_indicator_userid" />
 
@@ -69,24 +76,13 @@
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
-    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
-      foreign-key="fk_indicator_legendset" />
-
     <!-- Object Translation -->
     <set name="translations" table="indicatortranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="indicatorid" foreign-key="fk_objecttranslation_indicatorid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

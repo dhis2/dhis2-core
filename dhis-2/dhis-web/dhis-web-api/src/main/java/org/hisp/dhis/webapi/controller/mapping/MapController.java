@@ -63,8 +63,8 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
@@ -126,15 +126,6 @@ public class MapController
         Map map = deserializeJsonEntity( request, response );
         map.getTranslations().clear();
 
-        mergeMap( map );
-
-        for ( MapView view : map.getMapViews() )
-        {
-            mergeMapView( view );
-
-            mappingService.addMapView( view );
-        }
-
         mappingService.addMap( map );
 
         response.addHeader( "Location", MapSchemaDescriptor.API_ENDPOINT + "/" + map.getUid() );
@@ -153,37 +144,33 @@ public class MapController
             throw new WebMessageException( WebMessageUtils.notFound( "Map does not exist: " + uid ) );
         }
 
-        Iterator<MapView> views = map.getMapViews().iterator();
-
-        while ( views.hasNext() )
-        {
-            MapView view = views.next();
-            views.remove();
-            mappingService.deleteMapView( view );
-        }
-
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         Map newMap = deserializeJsonEntity( request, response );
-        newMap.setTranslations( map.getTranslations() );
-
-        mergeMap( newMap );
-
-        for ( MapView view : newMap.getMapViews() )
-        {
-            mergeMapView( view );
-
-            mappingService.addMapView( view );
-        }
 
         map.mergeWith( newMap, params.getMergeMode() );
+
+        mappingService.updateMap( map );
+    }
+
+    @Override
+    protected void preUpdateEntity( Map map, Map newMap )
+    {
+        map.getMapViews().clear();
 
         if ( newMap.getUser() == null )
         {
             map.setUser( null );
         }
+    }
 
-        mappingService.updateMap( map );
+    @Override
+    protected Map deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    {
+        Map map = super.deserializeJsonEntity( request, response );
+        mergeMap( map );
+
+        return map;
     }
 
     //--------------------------------------------------------------------------
@@ -265,6 +252,8 @@ public class MapController
         {
             map.setUser( currentUserService.getCurrentUser() );
         }
+
+        map.getMapViews().forEach( this::mergeMapView );
     }
 
     private void mergeMapView( MapView view )
@@ -304,6 +293,8 @@ public class MapController
         if ( image != null )
         {
             contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "map.png", attachment );
+
+
 
             ImageIO.write( image, "PNG", response.getOutputStream() );
         }

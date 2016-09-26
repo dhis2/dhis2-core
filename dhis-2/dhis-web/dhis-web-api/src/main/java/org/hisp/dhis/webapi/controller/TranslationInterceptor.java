@@ -47,6 +47,7 @@ import java.util.Locale;
 public class TranslationInterceptor extends HandlerInterceptorAdapter
 {
     private static String PARAM_TRANSLATE = "translate";
+
     private static String PARAM_LOCALE = "locale";
 
     @Autowired
@@ -69,14 +70,14 @@ public class TranslationInterceptor extends HandlerInterceptorAdapter
 
     private void setUserContext( User user, TranslateParams translateParams )
     {
-        Locale dbLocale = getLocaleWithDefault( translateParams );
+        Locale dbLocale = getLocaleWithDefault( translateParams, user );
         UserContext.setUser( user );
         UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
     }
 
-    private Locale getLocaleWithDefault( TranslateParams translateParams )
+    private Locale getLocaleWithDefault( TranslateParams translateParams, User user )
     {
         return translateParams.isTranslate() ?
-            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
+            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE, user ) ) : null;
     }
 }

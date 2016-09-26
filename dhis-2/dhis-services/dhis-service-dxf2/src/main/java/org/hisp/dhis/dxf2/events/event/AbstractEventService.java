@@ -63,6 +63,8 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -414,7 +416,9 @@ public abstract class AbstractEventService
         {
             return new ImportSummary( ImportStatus.ERROR, "Program is not assigned to this organisation unit: " + event.getOrgUnit() ).incrementIgnored();
         }
-
+        
+        validateExpiryDays( event, program, null );        
+        
         return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event,
             user, importOptions );
     }
@@ -716,7 +720,7 @@ public abstract class AbstractEventService
         if ( event.getDueDate() != null )
         {
             dueDate = DateUtils.parseDate( event.getDueDate() );
-        }
+        }        
 
         String storedBy = getStoredBy( event, null, user );
         programStageInstance.setStoredBy( storedBy );
@@ -768,6 +772,10 @@ public abstract class AbstractEventService
                 programStageInstance.setLongitude( null );
             }
         }
+        
+        Program program = getProgram( importOptions.getIdSchemes().getProgramIdScheme(), event.getProgram() );
+        
+        validateExpiryDays( event, program, programStageInstance );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -1394,5 +1402,76 @@ public abstract class AbstractEventService
 
             throw new IllegalQueryException( violation );
         }
+    }
+    
+    private void validateExpiryDays( Event event, Program program, ProgramStageInstance programStageInstance )
+    {    	
+    	
+    	if( event.getStatus() == EventStatus.COMPLETED || programStageInstance != null && programStageInstance.getStatus() == EventStatus.COMPLETED  )
+    	{    		
+    		Date referenceDate = null;
+    		
+    		if( programStageInstance != null )
+    		{
+    			referenceDate = programStageInstance.getCompletedDate();
+    		}
+    		
+    		else
+    		{
+    			if( event.getCompletedDate() != null )
+    			{
+    				referenceDate = DateUtils.parseDate( event.getCompletedDate() );
+    			}
+    		}
+    		
+    		if( referenceDate == null )
+			{
+				throw new IllegalQueryException( "Event needs to have completed date." );
+			}
+    		
+    		
+    		if( (new Date()).after( DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() + 1 ) ) )
+            {
+                throw new IllegalQueryException( "The event's completness date has expired. Not possible to make changes to this event" );
+            }
+    	}
+    	
+    	PeriodType periodType = program.getExpiryPeriodType();
+    	
+    	if( periodType != null )
+    	{    		
+    		if( programStageInstance != null )
+    		{
+    			Date today = new Date();
+    			
+    			if(  programStageInstance.getExecutionDate() == null )
+    			{
+    				throw new IllegalQueryException( "Event needs to have event date." );
+    			}
+    			
+    			Period period = periodType.createPeriod(  programStageInstance.getExecutionDate() );
+    			
+    			if( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() + 1 ) ) )
+                {
+                    throw new IllegalQueryException( "The program's expiry date has passed. It is not possible to make changes to this event." );
+                }
+    		}
+    		else
+    		{
+    			String referenceDate = event.getEventDate() != null ? event.getEventDate() : event.getDueDate() != null ? event.getDueDate() : null;
+    			
+    			if( referenceDate == null )
+    			{
+    				throw new IllegalQueryException( "Event needs to have at least one (event or schedule) date. " );
+    			}
+    			
+    			Period period = periodType.createPeriod( new Date() );
+    			
+    			if( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
+                {
+                    throw new IllegalQueryException( "The event's date belongs to an expired period. It is not possble to create such event.");
+                }
+    		}    		
+    	}
     }
 }

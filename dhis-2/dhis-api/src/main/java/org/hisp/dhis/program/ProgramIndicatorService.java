@@ -152,4 +152,31 @@ public interface ProgramIndicatorService
      *         {@link ProgramIndicator.INVALID_VARIABLES_IN_EXPRESSION}.
      */
     String filterIsValid( String filter );
+
+    // -------------------------------------------------------------------------
+    // ProgramIndicatorGroup
+    // -------------------------------------------------------------------------
+
+    int addProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+
+    void updateProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+
+    void deleteProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+
+    ProgramIndicatorGroup getProgramIndicatorGroup( int id );
+
+    ProgramIndicatorGroup getProgramIndicatorGroup( String uid );
+
+    List<ProgramIndicatorGroup> getAllProgramIndicatorGroups();
+
+    ProgramIndicatorGroup getProgramIndicatorGroupByName( String name );
+
+    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetween( int first, int max );
+
+    List<ProgramIndicatorGroup> getProgramIndicatorGroupsBetweenByName( String name, int first, int max );
+
+    int getProgramIndicatorGroupCount();
+
+    int getProgramIndicatorGroupCountByName( String name );
+
 }

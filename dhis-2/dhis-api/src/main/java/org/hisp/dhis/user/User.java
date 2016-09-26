@@ -399,6 +399,11 @@ public class User
         return user != null && user.getUsername() != null ? user.getUsername() : "[Unknown]";
     }
 
+    public boolean hasEmail()
+    {
+        return email != null && !email.isEmpty();
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

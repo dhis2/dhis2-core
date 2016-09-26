@@ -28,12 +28,9 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.translation.Translation;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -43,32 +40,6 @@ import static org.junit.Assert.*;
  */
 public class LocaleUtilsTest
 {
-    @Test
-    public void testGetTranslationsHighestSpecifity()
-    {
-        Locale l1 = new Locale( "en", "UK", "en" );
-        Locale l2 = new Locale( "en", "UK" );
-        Locale l3 = new Locale( "en" );
-        
-        Translation t1 = new Translation( DataElement.class.getSimpleName(), l1.toString(), "name", "Name", "1" );
-        Translation t2 = new Translation( DataElement.class.getSimpleName(), l2.toString(), "name", "Name","1" );
-        Translation t3 = new Translation( DataElement.class.getSimpleName(), l3.toString(), "name", "Name","1" );
-
-        Translation t4 = new Translation( DataElement.class.getSimpleName(), l1.toString(), "shortName", "Short name", "1");
-        Translation t5 = new Translation( DataElement.class.getSimpleName(), l2.toString(), "shortName", "Short name", "1");
-        
-        Translation t6 = new Translation( DataElement.class.getSimpleName(), l2.toString(), "code", "Code", "1");
-        
-        List<Translation> list = Arrays.asList( t1, t2, t3, t4, t5, t6 );
-        
-        List<Translation> translations = LocaleUtils.getTranslationsHighestSpecifity( list );
-        
-        assertEquals( 3, translations.size() );
-        assertTrue( translations.contains( t1 ) );
-        assertTrue( translations.contains( t4 ) );
-        assertTrue( translations.contains( t6 ) );
-    }
-
     @Test
     public void testGetLocaleFallbacks()
     {

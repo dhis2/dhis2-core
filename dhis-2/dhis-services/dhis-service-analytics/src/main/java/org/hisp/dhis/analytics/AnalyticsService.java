@@ -33,6 +33,7 @@ import java.util.Map;
 
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 
 /**
  * <p>
@@ -101,7 +102,10 @@ import org.hisp.dhis.common.Grid;
 public interface AnalyticsService
 {
     /**
-     * Generates aggregated values for the given query.
+     * Generates aggregated values for the given query. 
+     * 
+     * If meta data is included in the query, the meta data map of the grid
+     * will contain keys described in {@link AnalyticsMetaDataKey}.
      * 
      * @param params the data query parameters.
      * @return aggregated data as a Grid object.
@@ -114,12 +118,24 @@ public interface AnalyticsService
      * in columns and rows dimension arguments. If columns and rows are null or
      * empty, the normalized table will be returned.
      * 
+     * If meta data is included in the query, the meta data map of the grid
+     * will contain keys described in {@link AnalyticsMetaDataKey}.
+     * 
      * @param params the data query parameters.
      * @param columns the identifiers of the dimensions to use as columns.
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
     Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows );
+    
+    /**
+     * Generates a data value set for the given query. The query must contain
+     * a data, period and organisation unit dimension.
+     * 
+     * @param params the data query parameters.
+     * @return a data value set representing aggregated data.
+     */
+    DataValueSet getAggregatedDataValueSet( DataQueryParams params );
     
     /**
      * Generates an aggregated value grid for the given query based on the given

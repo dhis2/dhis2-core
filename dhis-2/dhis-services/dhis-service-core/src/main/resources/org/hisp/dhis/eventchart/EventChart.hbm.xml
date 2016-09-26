@@ -114,6 +114,13 @@
 
     <property name="completedOnly" column="completedonly" />
 
+    <property name="title" />
+    
+    <set name="interpretations" inverse="true">
+      <key column="eventchartid" />
+      <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
+    </set>
+
     <property name="type" length="40" not-null="true">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.chart.ChartType</param>
@@ -173,13 +180,17 @@
 
     <property name="hideLegend" />
 
-    <property name="regression" />
-
     <property name="hideTitle" />
 
     <property name="hideSubtitle" />
 
-    <property name="title" />
+    <property name="regressionType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.RegressionType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <property name="targetLineValue" />
 
@@ -204,22 +215,13 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-
     <!-- Object Translation -->
     <set name="translations" table="eventcharttranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_objecttranslation_eventchartid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

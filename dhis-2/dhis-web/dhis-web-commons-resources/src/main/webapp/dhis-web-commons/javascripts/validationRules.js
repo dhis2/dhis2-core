@@ -552,6 +552,12 @@ var validationRules = {
             "required" : true
         }
     },
+    "programIndicatorGroup" : {
+        "name" : {
+            "required" : true,
+            "rangelength" : [ 2, 230 ]
+        }
+    },
     "programStageSection" : {
         "name" : {
             "required" : true,

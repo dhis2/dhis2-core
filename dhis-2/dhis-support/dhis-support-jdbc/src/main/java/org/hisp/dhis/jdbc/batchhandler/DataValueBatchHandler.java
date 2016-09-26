@@ -28,11 +28,15 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.amplecode.quick.JdbcConfiguration;
-import org.amplecode.quick.batchhandler.AbstractBatchHandler;
+import org.hisp.quick.JdbcConfiguration;
+import org.hisp.quick.batchhandler.AbstractBatchHandler;
 import org.hisp.dhis.datavalue.DataValue;
 
 import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -46,7 +50,7 @@ public class DataValueBatchHandler
  
     public DataValueBatchHandler( JdbcConfiguration config )
     {
-        super( config, true );
+        super( config );
     }
 
     // -------------------------------------------------------------------------
@@ -54,80 +58,115 @@ public class DataValueBatchHandler
     // -------------------------------------------------------------------------
 
     @Override
-    protected void setTableName()
+    public String getTableName()
     {
-        statementBuilder.setTableName( "datavalue" );
+        return "datavalue";
     }
 
     @Override
-    protected void setIdentifierColumns()
+    public String getAutoIncrementColumn()
     {
-        statementBuilder.setIdentifierColumn( "dataelementid" );
-        statementBuilder.setIdentifierColumn( "periodid" );
-        statementBuilder.setIdentifierColumn( "sourceid" );
-        statementBuilder.setIdentifierColumn( "categoryoptioncomboid" );
-        statementBuilder.setIdentifierColumn( "attributeoptioncomboid" );
+        return null;
     }
 
     @Override
-    protected void setIdentifierValues( DataValue value )
-    {        
-        statementBuilder.setIdentifierValue( value.getDataElement().getId() );
-        statementBuilder.setIdentifierValue( value.getPeriod().getId() );
-        statementBuilder.setIdentifierValue( value.getSource().getId() );
-        statementBuilder.setIdentifierValue( value.getCategoryOptionCombo().getId() );
-        statementBuilder.setIdentifierValue( value.getAttributeOptionCombo().getId() );
-    }
-    
-    @Override
-    protected void setUniqueColumns()
+    public boolean isInclusiveUniqueColumns()
     {
-        statementBuilder.setUniqueColumn( "dataelementid" );
-        statementBuilder.setUniqueColumn( "periodid" );
-        statementBuilder.setUniqueColumn( "sourceid" );
-        statementBuilder.setUniqueColumn( "categoryoptioncomboid" );
-        statementBuilder.setUniqueColumn( "attributeoptioncomboid" );
+        return true;
     }
     
     @Override
-    protected void setUniqueValues( DataValue value )
-    {        
-        statementBuilder.setUniqueValue( value.getDataElement().getId() );
-        statementBuilder.setUniqueValue( value.getPeriod().getId() );
-        statementBuilder.setUniqueValue( value.getSource().getId() );
-        statementBuilder.setUniqueValue( value.getCategoryOptionCombo().getId() );
-        statementBuilder.setUniqueValue( value.getAttributeOptionCombo().getId() );
-    }
-    
-    @Override
-    protected void setColumns()
+    public List<String> getIdentifierColumns()
     {
-        statementBuilder.setColumn( "dataelementid" );
-        statementBuilder.setColumn( "periodid" );
-        statementBuilder.setColumn( "sourceid" );
-        statementBuilder.setColumn( "categoryoptioncomboid" );
-        statementBuilder.setColumn( "attributeoptioncomboid" );
-        statementBuilder.setColumn( "value" );
-        statementBuilder.setColumn( "storedby" );
-        statementBuilder.setColumn( "created ");
-        statementBuilder.setColumn( "lastupdated" );
-        statementBuilder.setColumn( "comment" );
-        statementBuilder.setColumn( "followup" );
+        return getStringList(
+            "dataelementid",
+            "periodid",
+            "sourceid",
+            "categoryoptioncomboid",
+            "attributeoptioncomboid" );
+    }
+
+    @Override
+    public List<Object> getIdentifierValues( DataValue value )
+    {
+        return getObjectList(
+            value.getDataElement().getId(),
+            value.getPeriod().getId(),
+            value.getSource().getId(),
+            value.getCategoryOptionCombo().getId(),
+            value.getAttributeOptionCombo().getId() );
     }
     
     @Override
-    protected void setValues( DataValue value )
+    public List<String> getUniqueColumns()
+    {
+        return getStringList(
+            "dataelementid",
+            "periodid",
+            "sourceid",
+            "categoryoptioncomboid",
+            "attributeoptioncomboid" );
+    }
+    
+    @Override
+    public List<Object> getUniqueValues( DataValue value )
     {        
-        statementBuilder.setValue( value.getDataElement().getId() );
-        statementBuilder.setValue( value.getPeriod().getId() );
-        statementBuilder.setValue( value.getSource().getId() );
-        statementBuilder.setValue( value.getCategoryOptionCombo().getId() );
-        statementBuilder.setValue( value.getAttributeOptionCombo().getId() );
-        statementBuilder.setValue( value.getValue() );
-        statementBuilder.setValue( value.getStoredBy() );
-        statementBuilder.setValue( getLongDateString( value.getCreated() ) );
-        statementBuilder.setValue( getLongDateString( value.getLastUpdated() ) );
-        statementBuilder.setValue( value.getComment() );
-        statementBuilder.setValue( value.isFollowup() );
+        return getObjectList(
+            value.getDataElement().getId(),
+            value.getPeriod().getId(),
+            value.getSource().getId(),
+            value.getCategoryOptionCombo().getId(),
+            value.getAttributeOptionCombo().getId() );
+    }
+    
+    @Override
+    public List<String> getColumns()
+    {
+        return getStringList(
+            "dataelementid",
+            "periodid",
+            "sourceid",
+            "categoryoptioncomboid",
+            "attributeoptioncomboid",
+            "value",
+            "storedby",
+            "created",
+            "lastupdated",
+            "comment",
+            "followup",
+            "deleted" );
+    }
+    
+    @Override
+    public List<Object> getValues( DataValue value )
+    {        
+        return getObjectList(
+            value.getDataElement().getId(),
+            value.getPeriod().getId(),
+            value.getSource().getId(),
+            value.getCategoryOptionCombo().getId(),
+            value.getAttributeOptionCombo().getId(),
+            value.getValue(),
+            value.getStoredBy(),
+            getLongDateString( value.getCreated() ),
+            getLongDateString( value.getLastUpdated() ),
+            value.getComment(),
+            value.isFollowup(),
+            value.isDeleted() );
+    }
+
+    @Override
+    public DataValue mapRow( ResultSet resultSet )
+        throws SQLException
+    {
+        DataValue dv = new DataValue();
+        
+        dv.setValue( resultSet.getString( "value" ) );
+        dv.setStoredBy( resultSet.getString( "storedBy" ) );
+        dv.setComment( resultSet.getString( "comment" ) );
+        dv.setFollowup( resultSet.getBoolean( "followup" ) );
+        dv.setDeleted( resultSet.getBoolean( "deleted" ) );
+        
+        return dv;
     }
 }

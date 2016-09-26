@@ -28,14 +28,12 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
-import org.hisp.dhis.node.LinearNodePipeline;
-import org.hisp.dhis.node.NodePropertyConverter;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Maps;
+import org.hisp.dhis.node.LinearNodePipeline;
+
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,29 +42,12 @@ public class FieldMap extends ForwardingMap<String, FieldMap>
 {
     private final Map<String, FieldMap> delegate = Maps.newHashMap();
 
-    private NodePropertyConverter nodePropertyConverter;
-
     private final LinearNodePipeline pipeline = new LinearNodePipeline();
 
     @Override
     protected Map<String, FieldMap> delegate()
     {
         return delegate;
-    }
-
-    public NodePropertyConverter getNodePropertyConverter()
-    {
-        return nodePropertyConverter;
-    }
-
-    public void setNodePropertyConverter( NodePropertyConverter nodePropertyConverter )
-    {
-        this.nodePropertyConverter = nodePropertyConverter;
-    }
-
-    public boolean haveNodePropertyConverter()
-    {
-        return nodePropertyConverter != null;
     }
 
     public LinearNodePipeline getPipeline()
@@ -79,7 +60,6 @@ public class FieldMap extends ForwardingMap<String, FieldMap>
     {
         return MoreObjects.toStringHelper( this )
             .add( "map", standardToString() )
-            .add( "nodePropertyConverter", nodePropertyConverter )
             .toString();
     }
 }
