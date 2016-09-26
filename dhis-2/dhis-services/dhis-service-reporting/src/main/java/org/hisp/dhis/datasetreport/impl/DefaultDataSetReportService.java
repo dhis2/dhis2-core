@@ -255,7 +255,7 @@ public class DefaultDataSetReportService
         
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
-            map.putValue( element.getCategoryCombo(), element.getDataElement() );
+            map.putValue( element.getResolvedCategoryCombo(), element.getDataElement() );
         }
 
         DataSet tmpDataSet = new DataSet( dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType() );

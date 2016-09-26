@@ -57,7 +57,7 @@ public class AdxDataSetMetadata
         
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
-            catCombos.add( element.getCategoryCombo() );
+            catCombos.add( element.getResolvedCategoryCombo() );
         }
 
         for ( DataElementCategoryCombo categoryCombo : catCombos )
