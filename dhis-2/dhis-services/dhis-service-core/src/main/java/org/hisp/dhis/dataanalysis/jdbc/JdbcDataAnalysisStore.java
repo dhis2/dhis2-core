@@ -218,7 +218,7 @@ public class JdbcDataAnalysisStore
         }
         
         sql = TextUtils.removeLastOr( sql ) + ") ";
-        sql += "and dv.deleted is false";
+        sql += "and dv.deleted is false ";
         
         sql += statementBuilder.limitRecord( 0, limit );
         
@@ -276,7 +276,7 @@ public class JdbcDataAnalysisStore
         }
         
         sql = TextUtils.removeLastOr( sql ) + " ) ";
-        sql += "and dv.deleted is false";
+        sql += "and dv.deleted is false ";
         
         return jdbcTemplate.query( sql, new DeflatedDataValueNameMinMaxRowMapper( lowerBoundMap, upperBoundMap ) );
     }
