@@ -133,7 +133,8 @@ public class DataValueBatchHandler
             "created",
             "lastupdated",
             "comment",
-            "followup" );
+            "followup",
+            "deleted" );
     }
     
     @Override
@@ -150,7 +151,8 @@ public class DataValueBatchHandler
             getLongDateString( value.getCreated() ),
             getLongDateString( value.getLastUpdated() ),
             value.getComment(),
-            value.isFollowup() );
+            value.isFollowup(),
+            value.isDeleted() );
     }
 
     @Override
@@ -163,6 +165,7 @@ public class DataValueBatchHandler
         dv.setStoredBy( resultSet.getString( "storedBy" ) );
         dv.setComment( resultSet.getString( "comment" ) );
         dv.setFollowup( resultSet.getBoolean( "followup" ) );
+        dv.setDeleted( resultSet.getBoolean( "deleted" ) );
         
         return dv;
     }

@@ -1,0 +1,8 @@
+<dataValueSet xmlns="http://dhis2.org/schema/dxf/2.0">
+    <dataValue dataElement="eY5ehpbEsB7" period="201201" orgUnit="DiszpKrYNg8" value="20009" storedBy="john" timestamp="2012-05-01" comment="comment09" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201201" orgUnit="BdfsJfj87js" value="20010" storedBy="john" timestamp="2012-05-01" comment="comment10" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201202" orgUnit="DiszpKrYNg8" value="20011" storedBy="john" timestamp="2012-05-01" comment="comment11" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201202" orgUnit="BdfsJfj87js" value="20012" storedBy="john" timestamp="2012-05-01" comment="comment12" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201203" orgUnit="DiszpKrYNg8" value="20013" storedBy="john" timestamp="2012-05-01" comment="comment13" followup="false"/>
+    <dataValue dataElement="eY5ehpbEsB7" period="201203" orgUnit="BdfsJfj87js" value="20014" storedBy="john" timestamp="2012-05-01" comment="comment14" followup="false"/>
+</dataValueSet>
