@@ -98,7 +98,7 @@ public class MetadataVersionController
             {
                 versionToReturn = versionService.getVersionByName( versionName );
 
-                if(versionToReturn == null)
+                if ( versionToReturn == null )
                 {
                     throw new MetadataVersionException( "No metadata version with name " + versionName + " exists. Please check again later." );
                 }
@@ -109,7 +109,7 @@ public class MetadataVersionController
             {
                 versionToReturn = versionService.getCurrentVersion();
                 
-                if(versionToReturn == null)
+                if ( versionToReturn == null )
                 {
                     throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
                 }
