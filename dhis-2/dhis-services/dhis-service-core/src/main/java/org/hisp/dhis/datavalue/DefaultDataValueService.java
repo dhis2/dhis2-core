@@ -59,6 +59,9 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
+ * Data value service implementation. Note that data values are softly deleted,
+ * which implies having the deleted property set to true and updated.
+ * 
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
