@@ -348,9 +348,9 @@ function addProgramRule()
 			,data: JSON.stringify(json_Data)
 			,success: function(data){
                                 console.log('data:  ', data);
-				if( data.response && data.response.lastImported ){
+				if( data.response && data.response.uid ){
 					saveProgramRuleVariable();
-					saveAction( data.response.lastImported );	
+					saveAction( data.response.uid );	
 				}				
 			}
 			,error:  function(){}
