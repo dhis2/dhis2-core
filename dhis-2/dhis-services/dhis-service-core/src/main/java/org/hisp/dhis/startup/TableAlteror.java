@@ -927,6 +927,8 @@ public class TableAlteror
         
         updateEnums();
 
+        upgradeDataValueSoftDelete();
+        
         initOauth2();
 
         upgradeDataValuesWithAttributeOptionCombo();
@@ -954,6 +956,13 @@ public class TableAlteror
         upgradeDataSetElements();
 
         log.info( "Tables updated" );
+    }
+    
+    private void upgradeDataValueSoftDelete()
+    {
+        executeSql( "update datavalue set deleted = false where deleted is null" );
+        executeSql( "alter table datavalue alter column deleted set not null" );
+        executeSql( "create index in_datavalue_deleted on datavalue(deleted)" );
     }
 
     private void initOauth2()

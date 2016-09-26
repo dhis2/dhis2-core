@@ -118,6 +118,12 @@ public class StreamingJsonDataValue extends DataValue
     {
         writeObjectField( "followUp", followUp );
     }
+    
+    @Override
+    public void setDeleted( Boolean deleted )
+    {
+        writeObjectField( "deleted", deleted );
+    }
 
     @Override
     public void close()

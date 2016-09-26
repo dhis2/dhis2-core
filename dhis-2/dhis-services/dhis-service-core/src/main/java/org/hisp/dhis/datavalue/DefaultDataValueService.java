@@ -59,6 +59,9 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
+ * Data value service implementation. Note that data values are softly deleted,
+ * which implies having the deleted property set to true and updated.
+ * 
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
@@ -141,7 +144,7 @@ public class DefaultDataValueService
         }
 
         // ---------------------------------------------------------------------
-        // Save
+        // Set default category option combo if null
         // ---------------------------------------------------------------------
 
         if ( dataValue.getCategoryOptionCombo() == null )
@@ -156,7 +159,23 @@ public class DefaultDataValueService
 
         dataValue.setCreated( new Date() );
 
-        dataValueStore.addDataValue( dataValue );
+        // ---------------------------------------------------------------------
+        // Check and restore soft deleted value
+        // ---------------------------------------------------------------------
+
+        DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
+        
+        if ( softDelete != null )
+        {
+            softDelete.mergeWith( dataValue );
+            softDelete.setDeleted( false );
+            
+            dataValueStore.updateDataValue( softDelete );
+        }
+        else
+        {
+            dataValueStore.addDataValue( dataValue );
+        }
 
         return true;
     }
@@ -191,7 +210,9 @@ public class DefaultDataValueService
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
 
-        dataValueStore.deleteDataValue( dataValue );
+        dataValue.setDeleted( true );
+        
+        dataValueStore.updateDataValue( dataValue );
     }
     
     @Override

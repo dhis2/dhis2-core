@@ -119,7 +119,7 @@ public class DefaultAdxDataService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate, 
-        Set<String> organisationUnits, boolean includeChildren, Date lastUpdated, Integer limit, IdSchemes idSchemes ) 
+        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, Integer limit, IdSchemes idSchemes ) 
     {
         DataExportParams params = new DataExportParams();
 
@@ -144,6 +144,7 @@ public class DefaultAdxDataService
         }
 
         params.setIncludeChildren( includeChildren );
+        params.setIncludeDeleted( includeDeleted );
         params.setLastUpdated( lastUpdated );
         params.setLimit( limit );
         params.setIdSchemes( idSchemes );

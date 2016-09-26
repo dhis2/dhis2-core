@@ -122,7 +122,10 @@ public class AnalyticsUtils
             sql += "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel" + level + " = " + ou.getId() + ")) or ";            
         }
 
-        sql = TextUtils.removeLastOr( sql ) + ") limit 100000;";
+        sql = TextUtils.removeLastOr( sql ) + ") ";
+        sql += 
+            "and dv.deleted is false " +
+            "limit 100000";
         
         return sql;
     }

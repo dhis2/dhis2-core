@@ -135,7 +135,7 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithGroupSets()
     {
-        String hql = "from DataElement d where d.groupSets.size > 0";
+        String hql = "from DataElement d where size(d.groupSets) > 0";
 
         return getQuery( hql ).list();
     }
@@ -177,7 +177,7 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithoutGroups()
     {
-        String hql = "from DataElement d where d.groups.size = 0";
+        String hql = "from DataElement d where size(d.groups) = 0";
 
         return getQuery( hql ).setCacheable( true ).list();
     }
@@ -186,7 +186,7 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithoutDataSets()
     {
-        String hql = "from DataElement d where d.dataSetElements.size = 0 and d.domainType =:domainType";
+        String hql = "from DataElement d where size(d.dataSetElements) = 0 and d.domainType =:domainType";
 
         return getQuery( hql ).setParameter( "domainType", DataElementDomain.AGGREGATE ).setCacheable( true ).list();
     }
@@ -195,7 +195,7 @@ public class HibernateDataElementStore
     @SuppressWarnings( "unchecked" )
     public List<DataElement> getDataElementsWithDataSets()
     {
-        String hql = "from DataElement d where d.dataSetElements.size > 0";
+        String hql = "from DataElement d where size(d.dataSetElements) > 0";
 
         return getQuery( hql ).setCacheable( true ).list();
     }
