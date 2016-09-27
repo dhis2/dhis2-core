@@ -77,4 +77,15 @@ public class DefaultMetadataSystemSettingService
     {
         return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/history";
     }
+
+    public void setSystemMetadataVersion(String versionName)
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.SYSTEM_METADATA_VERSION, versionName );
+    }
+
+    public String getSystemMetadataVersion()
+    {
+        return (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+    }
+
 }

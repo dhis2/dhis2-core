@@ -33,6 +33,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
+import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
@@ -72,7 +73,7 @@ public class DefaultMetadataVersionServiceTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    private MetadataSystemSettingService metadataSystemSettingService;
 
     private MetadataVersion versionA;
     private MetadataVersion versionB;
@@ -208,7 +209,7 @@ public class DefaultMetadataVersionServiceTest
         assertEquals( VersionType.ATOMIC, versionService.getCurrentVersion().getType() );
 
         //testing if correct version name is saved in system setting
-        assertEquals( "Version_2", systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION ) );
+        assertEquals( "Version_2", metadataSystemSettingService.getSystemMetadataVersion() );
 
         //testing hash code for the given metadata string
         KeyJsonValue metadaVersionSnap = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_2" );

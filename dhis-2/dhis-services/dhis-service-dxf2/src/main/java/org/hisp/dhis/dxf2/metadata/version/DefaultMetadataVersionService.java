@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
+import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -90,7 +91,7 @@ public class DefaultMetadataVersionService
     private NodeService nodeService;
 
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    private MetadataSystemSettingService metadataSystemSettingService;
 
     // -------------------------------------------------------------------------
     // MetadataVersionService implementation
@@ -235,7 +236,7 @@ public class DefaultMetadataVersionService
         try
         {
             addVersion( version );
-            systemSettingManager.saveSystemSetting( SettingKey.SYSTEM_METADATA_VERSION, version.getName() );
+            metadataSystemSettingService.setSystemMetadataVersion( version.getName() );
         }
         catch ( Exception ex )
         {
