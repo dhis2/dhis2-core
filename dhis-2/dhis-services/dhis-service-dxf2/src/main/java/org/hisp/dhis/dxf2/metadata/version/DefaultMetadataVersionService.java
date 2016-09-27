@@ -47,6 +47,8 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +88,9 @@ public class DefaultMetadataVersionService
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // MetadataVersionService implementation
@@ -230,6 +235,7 @@ public class DefaultMetadataVersionService
         try
         {
             addVersion( version );
+            systemSettingManager.saveSystemSetting( SettingKey.SYSTEM_METADATA_VERSION, version.getName() );
         }
         catch ( Exception ex )
         {

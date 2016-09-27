@@ -134,7 +134,8 @@ public enum SettingKey
     METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),
     METADATA_LAST_FAILED_TIME("keyMetadataLastFailedTime", Date.class  ),
     METADATA_SYNC_CRON( "metaDataSyncCron",String.class ),
-    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class);
+    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class),
+    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class);
 
     private final String name;
     

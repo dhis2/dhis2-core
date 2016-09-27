@@ -43,8 +43,6 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -62,9 +60,6 @@ import org.springframework.core.io.ClassPathResource;
 public class DefaultSystemService
     implements SystemService
 {
-    @Autowired
-    private MetadataVersionService versionService;
-
     @Autowired
     private LocationManager locationManager;
 
@@ -254,15 +249,12 @@ public class DefaultSystemService
         Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
         Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
         String metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
-        MetadataVersion systemMetadataVersion = versionService.getCurrentVersion();
+        String systemMetadataVersion = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
         Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
 
         info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
 
-        if ( systemMetadataVersion != null )
-        {
-            info.setSystemMetadataVersion( systemMetadataVersion.getName() );
-        }
+        info.setSystemMetadataVersion( systemMetadataVersion );
 
         if ( metadataSyncCron == null || metadataSyncCron.isEmpty() )
         {
