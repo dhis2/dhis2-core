@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,35 +28,45 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ProgramTrackedEntityAttributeSchemaDescriptor implements SchemaDescriptor
+@JacksonXmlRootElement( localName = "identifiableObjects", namespace = DxfNamespaces.DXF_2_0 )
+public class IdentifiableObjects
 {
-    public static final String SINGULAR = "programTrackedEntityAttribute";
+    private List<BaseIdentifiableObject> identifiableObjects = new ArrayList<>();
 
-    public static final String PLURAL = "programTrackedEntityAttributes";
+    public IdentifiableObjects()
+    {
+    }
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "identifiableObjects", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "identifiableObject", namespace = DxfNamespaces.DXF_2_0 )
+    public List<BaseIdentifiableObject> getIdentifiableObjects()
+    {
+        return identifiableObjects;
+    }
+
+    public void setIdentifiableObjects( List<BaseIdentifiableObject> identifiableObjects )
+    {
+        this.identifiableObjects = identifiableObjects;
+    }
 
     @Override
-    public Schema getSchema()
+    public String toString()
     {
-        Schema schema = new Schema( ProgramTrackedEntityAttribute.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1500 );
-
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_PRIVATE_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_DELETE" ) ) );
-
-        return schema;
+        return MoreObjects.toStringHelper( this )
+            .add( "identifiableObjects", identifiableObjects )
+            .toString();
     }
 }
