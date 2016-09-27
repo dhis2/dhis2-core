@@ -51,8 +51,6 @@ public class SchedulingStrategy
     private String dataSynchStrategy;
 
     private String dataStatisticsStrategy;
-
-    // TODO Add program notifications?
     
     public SchedulingStrategy()
     {
