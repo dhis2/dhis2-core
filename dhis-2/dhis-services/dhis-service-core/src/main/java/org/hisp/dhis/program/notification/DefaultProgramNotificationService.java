@@ -126,11 +126,8 @@ public class DefaultProgramNotificationService
             MessageBatch psiBatch = createEventMessageBatch( notification, programStageInstances );
             MessageBatch psBatch = createEnrollmentMessageBatch( notification, programInstances );
 
-            sendDhisMessages( psiBatch.dhisMessages );
-            sendDhisMessages( psBatch.dhisMessages );
-
-            sendProgramMessages( psiBatch.programMessages );
-            sendProgramMessages( psBatch.programMessages );
+            sendAll( psiBatch );
+            sendAll( psBatch );
         }
 
         clock.logTime( String.format( "Processed and sent ProgramStageNotification messages in %s", clock.time() ) );
@@ -152,8 +149,7 @@ public class DefaultProgramNotificationService
         for ( ProgramNotificationTemplate template : templates )
         {
             MessageBatch batch = createSingleEnrollmentMessageBatch( template, programInstance );
-            sendDhisMessages( batch.dhisMessages );
-            sendProgramMessages( batch.programMessages );
+            sendAll( batch );
         }
     }
 
@@ -173,8 +169,7 @@ public class DefaultProgramNotificationService
         for ( ProgramNotificationTemplate template : templates )
         {
             MessageBatch batch = createSingleEventMessageBatch( template, programStageInstance );
-            sendDhisMessages( batch.dhisMessages );
-            sendProgramMessages( batch.programMessages );
+            sendAll( batch );
         }
     }
 
@@ -318,6 +313,12 @@ public class DefaultProgramNotificationService
     private void sendProgramMessages( Set<ProgramMessage> messages )
     {
         programMessageService.sendMessages( Lists.newArrayList( messages ) );
+    }
+
+    private void sendAll( MessageBatch messageBatch )
+    {
+        sendDhisMessages( messageBatch.dhisMessages );
+        sendProgramMessages( messageBatch.programMessages );
     }
 
     // -------------------------------------------------------------------------
