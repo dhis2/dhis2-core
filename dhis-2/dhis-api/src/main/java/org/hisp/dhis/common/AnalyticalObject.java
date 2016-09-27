@@ -67,6 +67,8 @@ public interface AnalyticalObject
     boolean removeDataDimensionItem( DimensionalItemObject object );
     
     String getTitle();
+    
+    boolean hasUserOrgUnit();
 
     void clearTransientState();
 }
