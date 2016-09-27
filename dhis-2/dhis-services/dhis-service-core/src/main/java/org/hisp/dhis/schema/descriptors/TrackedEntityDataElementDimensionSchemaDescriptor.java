@@ -37,9 +37,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
  */
 public class TrackedEntityDataElementDimensionSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "dataElementDimension";
+    public static final String SINGULAR = "trackedEntityDataElementDimension";
 
-    public static final String PLURAL = "dataElementDimensions";
+    public static final String PLURAL = "trackedEntityDataElementDimensions";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
