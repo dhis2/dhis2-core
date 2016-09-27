@@ -75,6 +75,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -120,6 +121,7 @@ public class EnrollmentController
         @RequestParam( required = false ) Date programEndDate,
         @RequestParam( required = false ) String trackedEntity,
         @RequestParam( required = false ) String trackedEntityInstance,
+        @RequestParam( required = false ) String enrollment,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
@@ -134,11 +136,21 @@ public class EnrollmentController
 
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
 
-        ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-            programEndDate, trackedEntity, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
+        List<Enrollment> enrollments;
 
-        List<Enrollment> enrollments = new ArrayList<>( enrollmentService.getEnrollments(
-            programInstanceService.getProgramInstances( params ) ) );
+        if ( enrollment == null )
+        {
+            ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
+                programEndDate, trackedEntity, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging );
+
+            enrollments = new ArrayList<>( enrollmentService.getEnrollments(
+                programInstanceService.getProgramInstances( params ) ) );
+        }
+        else
+        {
+            Set<String> enrollmentIds = TextUtils.splitToArray( enrollment, TextUtils.SEMICOLON );
+            enrollments = enrollmentIds != null ?  enrollmentIds.stream().map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() ) : null;
+        }
 
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( fieldFilterService.filter( Enrollment.class, enrollments, fields ) );
