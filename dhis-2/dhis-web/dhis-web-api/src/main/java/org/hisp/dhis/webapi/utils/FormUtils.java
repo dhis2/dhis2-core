@@ -159,7 +159,6 @@ public class FormUtils
 
                     List<DataElementCategoryOption> options = cat.getCategoryOptions();
 
-
                     if ( options != null && options.size() > 0 )
                     {
                         for ( DataElementCategoryOption option : options )
@@ -171,11 +170,13 @@ public class FormUtils
                                 o.setLabel( option.getName() );
                                 o.setStartDate( option.getStartDate() );
                                 o.setEndDate( option.getEndDate() );
-                                c.getOptions().add( o );
+                                o.setOrganisationUnits( option.getOrganisationUnits() );
 
+                                c.getOptions().add( o );
                             }
                         }
                     }
+                    
                     catCombo.getCategories().add( c );
                 }
             }
