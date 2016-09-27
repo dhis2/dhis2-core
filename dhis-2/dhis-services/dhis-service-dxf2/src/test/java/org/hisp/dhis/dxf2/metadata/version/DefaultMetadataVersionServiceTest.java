@@ -33,6 +33,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
+import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
@@ -42,6 +43,8 @@ import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +71,9 @@ public class DefaultMetadataVersionServiceTest
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private MetadataSystemSettingService metadataSystemSettingService;
 
     private MetadataVersion versionA;
     private MetadataVersion versionB;
@@ -201,6 +207,9 @@ public class DefaultMetadataVersionServiceTest
         //testing if correct version is saved in metadataVersion table
         assertEquals( "Version_2", versionService.getCurrentVersion().getName() );
         assertEquals( VersionType.ATOMIC, versionService.getCurrentVersion().getType() );
+
+        //testing if correct version name is saved in system setting
+        assertEquals( "Version_2", metadataSystemSettingService.getSystemMetadataVersion() );
 
         //testing hash code for the given metadata string
         KeyJsonValue metadaVersionSnap = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_2" );

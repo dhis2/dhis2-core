@@ -46,4 +46,8 @@ public interface MetadataSystemSettingService
     String getMetaDataDifferenceURL( String versionName );
 
     String getEntireVersionHistory();
+
+    void setSystemMetadataVersion(String versionName);
+
+    String getSystemMetadataVersion();
 }
