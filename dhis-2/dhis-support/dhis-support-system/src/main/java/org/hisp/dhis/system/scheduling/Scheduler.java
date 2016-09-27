@@ -55,6 +55,15 @@ public interface Scheduler
     void executeTask( Runnable task );
 
     /**
+     * Execute the given task immediately. The task can be referenced
+     * again through the given task key if the current task is not completed. A task cannot be scheduled if another
+     * task with the same key is already scheduled.
+     *
+     * @task the task to execute.
+     */
+    void executeTask( String taskKey, Runnable task );
+
+    /**
      * Execute the given task immediately and return a ListenableFuture.
      *
      * @param callable the task to execute.
@@ -108,4 +117,13 @@ public interface Scheduler
      * @return the task status.
      */
     ScheduledTaskStatus getTaskStatus( String key );
+
+    /**
+     * Gets the status for the current task with the given key.
+     *
+     * @param key the task key.
+     * @return the task status.
+     */
+    ScheduledTaskStatus getCurrentTaskStatus( String key );
+
 }

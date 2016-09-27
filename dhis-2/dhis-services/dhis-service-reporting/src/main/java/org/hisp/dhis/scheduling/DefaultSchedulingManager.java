@@ -201,10 +201,17 @@ public class DefaultSchedulingManager
     public void executeTask( String taskKey )
     {
         Runnable task = tasks.get( taskKey );
-        
-        if (task != null)
+
+        if ( task != null && !isTaskInProgress( taskKey ) )
         {
-            scheduler.executeTask( task );
+            scheduler.executeTask( taskKey, task );
         }
     }
+
+    @Override
+    public boolean isTaskInProgress(String taskKey)
+    {
+        return ScheduledTaskStatus.RUNNING == scheduler.getCurrentTaskStatus( taskKey );
+    }
+
 }
