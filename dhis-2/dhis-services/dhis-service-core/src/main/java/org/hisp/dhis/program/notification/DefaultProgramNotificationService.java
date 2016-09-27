@@ -131,7 +131,6 @@ public class DefaultProgramNotificationService
 
             sendProgramMessages( psiBatch.programMessages );
             sendProgramMessages( psBatch.programMessages );
-
         }
 
         clock.logTime( String.format( "Processed and sent ProgramStageNotification messages in %s", clock.time() ) );
