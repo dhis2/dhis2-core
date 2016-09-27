@@ -1,10 +1,5 @@
 $(document).ready(function () {
 
-    if($('#metadataSyncStatus').val())
-    {
-        alert($('#metadataSyncStatus').val());
-    }
-
     if ($('#isRunning').val() == 'true') 
     {
         $('.scheduling').attr('disabled', 'disabled');
@@ -191,10 +186,17 @@ $(document).ready(function () {
         defaultScheduler();
     });
 
-    $("#submitSyncNow").unbind("click").click(function (e)
+    $("#submitSyncSchedule").unbind("click").click(function (e)
     {
         e.stopPropagation();
-        $("#metadataSyncNowForm").submit();
+        var button = this;
+        $(button).attr("disabled", "disabled");
+        $.post('executeMetaDataSyncTask.action', {
+            executeNow: true,
+            taskKey: "metadataSyncTask"
+        }, function (json) {
+            $(button).removeAttr("disabled");
+        });
     });
 
 });

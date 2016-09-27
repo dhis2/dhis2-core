@@ -60,7 +60,7 @@ public interface SchedulingManager
      * Execute the Task.
      */
     void executeTask(String taskKey);
-
+    
     /**
      * Schedules the given tasks. The task map will replace the currently scheduled
      * tasks.
@@ -98,11 +98,5 @@ public interface SchedulingManager
     /**
      * Gets the task status.
      */
-    ScheduledTaskStatus getTaskStatus();
-
-    /**
-     *
-     * Returns the status of the currently executing task.
-     */
-    boolean isTaskInProgress(String taskKey);
+    ScheduledTaskStatus getTaskStatus();   
 }

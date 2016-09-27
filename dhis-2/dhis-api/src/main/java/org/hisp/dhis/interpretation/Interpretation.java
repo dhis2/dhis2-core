@@ -117,17 +117,19 @@ public class Interpretation
         this.text = text;
     }
     
-    public Interpretation( EventReport eventReport, String text )
+    public Interpretation( EventReport eventReport, OrganisationUnit organisationUnit, String text )
     {
         this.eventReport = eventReport;
         eventReport.getInterpretations().add( this );
+        this.organisationUnit = organisationUnit;
         this.text = text;
     }
 
-    public Interpretation( EventChart eventChart, String text )
+    public Interpretation( EventChart eventChart, OrganisationUnit organisationUnit, String text )
     {
         this.eventChart = eventChart;
         eventChart.getInterpretations().add( this );
+        this.organisationUnit = organisationUnit;
         this.text = text;
     }
     
