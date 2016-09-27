@@ -135,16 +135,22 @@ public class DefaultProgramNotificationService
 
     @Transactional
     @Override
-    public void sendImmediateNotifications( ProgramInstance programInstance )
+    public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
     {
-        Set<ProgramNotificationTemplate> templates = programInstance.getProgram().getNotificationTemplates().stream()
-            .filter( n -> n.getNotificationTrigger().isImmediate() )
-            .collect( Collectors.toSet() );
+        Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, NotificationTrigger.COMPLETION );
 
-        if ( templates.isEmpty() )
+        for ( ProgramNotificationTemplate template : templates )
         {
-            return;
+            MessageBatch batch = createSingleEventMessageBatch( template, programStageInstance );
+            sendAll( batch );
         }
+    }
+
+    @Transactional
+    @Override
+    public void sendCompletionNotifications( ProgramInstance programInstance )
+    {
+        Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, NotificationTrigger.COMPLETION );
 
         for ( ProgramNotificationTemplate template : templates )
         {
@@ -155,20 +161,13 @@ public class DefaultProgramNotificationService
 
     @Transactional
     @Override
-    public void sendImmediateNotifications( ProgramStageInstance programStageInstance )
+    public void sendEnrollmentNotifications( ProgramInstance programInstance )
     {
-        Set<ProgramNotificationTemplate> templates = programStageInstance.getProgramStage().getNotificationTemplates().stream()
-            .filter( n -> n.getNotificationTrigger().isImmediate() )
-            .collect( Collectors.toSet() );
-
-        if ( templates.isEmpty() )
-        {
-            return;
-        }
+        Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, NotificationTrigger.ENROLLMENT );
 
         for ( ProgramNotificationTemplate template : templates )
         {
-            MessageBatch batch = createSingleEventMessageBatch( template, programStageInstance );
+            MessageBatch batch = createSingleEnrollmentMessageBatch( template, programInstance );
             sendAll( batch );
         }
     }
@@ -283,6 +282,20 @@ public class DefaultProgramNotificationService
         }
 
         return recipients;
+    }
+
+    private Set<ProgramNotificationTemplate> resolveTemplates( ProgramInstance programInstance, final NotificationTrigger trigger )
+    {
+        return programInstance.getProgram().getNotificationTemplates().stream()
+            .filter( t -> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
+    }
+
+    private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
+    {
+        return programStageInstance.getProgramStage().getNotificationTemplates().stream()
+            .filter( t-> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
     }
 
     private DhisMessage createDhisMessage( ProgramStageInstance psi, ProgramNotificationTemplate template )

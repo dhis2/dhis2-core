@@ -1310,6 +1310,7 @@
     <property name="smsSender" ref="smsMessageSender" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="reminderService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
+    <property name="programNotificationService" ref="org.hisp.dhis.program.notification.ProgramNotificationService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
   </bean>
 

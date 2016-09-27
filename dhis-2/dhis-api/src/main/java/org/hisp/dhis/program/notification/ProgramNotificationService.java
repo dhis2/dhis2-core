@@ -62,13 +62,34 @@ public interface ProgramNotificationService
      * Send immediate notifications for the {@link ProgramStageInstance }, if any.
      *
      * @param programStageInstance the ProgramStageInstance.
+     * @param immediateTrigger the NotificationTrigger for which to send notifications.
+     *                         Example: 'COMPLETION'. Non-applicable triggers will be ignored.
      */
-    void sendImmediateNotifications( ProgramStageInstance programStageInstance );
 
     /**
-     * Send immediate notifications for the {@link ProgramInstance }, if any.
+     * Send completion notifications for the ProgramStageInstance.
+     * If the ProgramStage is not configured with suitable
+     * {@link ProgramNotificationTemplate templates}, nothing will happen.
+     *
+     * @param programStageInstance the ProgramStageInstance.
+     */
+    void sendCompletionNotifications( ProgramStageInstance programStageInstance );
+
+    /**
+     * Send completion notifications for the ProgramInstance.
+     * If the Program is not configured with suitable
+     * {@link ProgramNotificationTemplate templates}, nothing will happen.
      *
      * @param programInstance the ProgramInstance.
      */
-    void sendImmediateNotifications( ProgramInstance programInstance );
+    void sendCompletionNotifications( ProgramInstance programInstance );
+
+    /**
+     * Send enrollment notifications for the ProgramInstance.
+     * If the Program is not configured with suitable
+     * {@link ProgramNotificationTemplate templates}, nothing will happen.
+
+     * @param programInstance the ProgramInstance.
+     */
+    void sendEnrollmentNotifications( ProgramInstance programInstance );
 }
