@@ -30,7 +30,6 @@
     <module>dhis-api</module>
     <module>dhis-services</module>
     <module>dhis-support</module>
-    <module>dhis-web</module>
   </modules>
 
   <licenses>

@@ -211,7 +211,7 @@ public class DefaultSchedulingManager
     @Override
     public boolean isTaskInProgress(String taskKey)
     {
-        return ScheduledTaskStatus.RUNNING.equals( scheduler.getCurrentTaskStatus( taskKey ) );
+        return ScheduledTaskStatus.RUNNING== scheduler.getCurrentTaskStatus( taskKey );
     }
 
 }
