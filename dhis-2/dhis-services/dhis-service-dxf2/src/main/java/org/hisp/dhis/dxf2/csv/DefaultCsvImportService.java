@@ -216,11 +216,11 @@ public class DefaultCsvImportService
                     DataElementCategoryCombo cc = new DataElementCategoryCombo();
                     cc.setUid( categoryComboUid );
                     cc.setAutoFields();
-                    object.setCategoryCombo( cc );
+                    object.setDataElementCategoryCombo( cc );
                 }
                 else
                 {
-                    object.setCategoryCombo( categoryCombo );
+                    object.setDataElementCategoryCombo( categoryCombo );
                 }
 
                 if ( optionSetUid != null )

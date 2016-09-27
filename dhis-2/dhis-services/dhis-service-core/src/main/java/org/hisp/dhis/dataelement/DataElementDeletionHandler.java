@@ -32,6 +32,7 @@ import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGOR
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -75,9 +76,9 @@ public class DataElementDeletionHandler
 
         for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
-            if ( dataElement != null && dataElement.getCategoryCombo().equals( categoryCombo ) )
+            if ( dataElement != null && dataElement.getDataElementCategoryCombo().equals( categoryCombo ) )
             {
-                dataElement.setCategoryCombo( defaultCategoryCombo );
+                dataElement.setDataElementCategoryCombo( defaultCategoryCombo );
 
                 idObjectManager.updateNoAcl( dataElement );
             }
@@ -87,10 +88,10 @@ public class DataElementDeletionHandler
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        for ( DataElement element : dataSet.getDataElements() )
+        for ( DataSetElement element : dataSet.getDataSetElements() )
         {
-            element.getDataSets().remove( dataSet );
-            idObjectManager.updateNoAcl( element );
+            dataSet.removeDataSetElement( element );
+            idObjectManager.updateNoAcl( element.getDataElement() );
         }
     }
 

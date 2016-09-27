@@ -133,14 +133,14 @@ public class ObjectBundleServiceAttributesTest
 
         for ( DataElement dataElement : dataElements )
         {
-            assertNotNull( dataElement.getCategoryCombo() );
-            assertEquals( defaults.get( DataElementCategoryCombo.class ), dataElement.getCategoryCombo() );
+            assertNotNull( dataElement.getDataElementCategoryCombo() );
+            assertEquals( defaults.get( DataElementCategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
         }
 
         assertFalse( dataSet.getSources().isEmpty() );
-        assertFalse( dataSet.getDataElements().isEmpty() );
+        assertFalse( dataSet.getDataSetElements().isEmpty() );
         assertEquals( 1, dataSet.getSources().size() );
-        assertEquals( 2, dataSet.getDataElements().size() );
+        assertEquals( 2, dataSet.getDataSetElements().size() );
         assertEquals( PeriodType.getPeriodTypeByName( "Monthly" ), dataSet.getPeriodType() );
 
         assertNotNull( user.getUserCredentials() );

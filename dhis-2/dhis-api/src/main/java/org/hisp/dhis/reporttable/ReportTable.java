@@ -332,7 +332,7 @@ public class ReportTable
 
         if ( isDimensional() )
         {
-            transientCategoryOptionCombos.addAll( getCategoryCombo().getSortedOptionCombos() );
+            transientCategoryOptionCombos.addAll( getFirstCategoryCombo().getSortedOptionCombos() );
             verify( nonEmptyLists( transientCategoryOptionCombos ) == 1, "Category option combos size must be larger than 0" );
         }
 
@@ -706,11 +706,11 @@ public class ReportTable
     /**
      * Returns the category combo of the first data element.
      */
-    private DataElementCategoryCombo getCategoryCombo()
+    private DataElementCategoryCombo getFirstCategoryCombo()
     {
         if ( !getDataElements().isEmpty() )
         {
-            return getDataElements().get( 0 ).getCategoryCombo();
+            return getDataElements().get( 0 ).getCategoryCombos().iterator().next();
         }
 
         return null;

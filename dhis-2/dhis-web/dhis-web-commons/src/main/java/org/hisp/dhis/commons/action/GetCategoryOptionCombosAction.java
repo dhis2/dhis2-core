@@ -111,12 +111,7 @@ public class GetCategoryOptionCombosAction
 
             if ( dataElement != null )
             {
-                DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo();
-
-                if ( categoryCombo != null )
-                {
-                    categoryOptionCombos = categoryCombo.getOptionCombos();
-                }
+                categoryOptionCombos = dataElement.getCategoryOptionCombos();
             }
         }
         else if ( categoryComboId != null )

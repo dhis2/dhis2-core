@@ -193,13 +193,7 @@ public class DefaultDataSetService
     {
         return dataSetStore.getByUidNoAcl( uids );
     }
-
-    @Override
-    public Set<DataElement> getDataElements( DataSet dataSet )
-    {
-        return dataSet.getDataElements();
-    }
-
+    
     @Override
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {

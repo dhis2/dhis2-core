@@ -52,6 +52,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datasetreport.DataSetReportService;
@@ -252,13 +253,13 @@ public class DefaultDataSetReportService
     {
         ListMap<DataElementCategoryCombo, DataElement> map = new ListMap<>();
         
-        for ( DataElement dataElement : dataSet.getDataElements() )
+        for ( DataSetElement element : dataSet.getDataSetElements() )
         {
-            map.putValue( dataElement.getCategoryCombo(), dataElement );
+            map.putValue( element.getResolvedCategoryCombo(), element.getDataElement() );
         }
 
-        DataSet temp = new DataSet( dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType() );
-        temp.setDataElements( dataSet.getDataElements() );
+        DataSet tmpDataSet = new DataSet( dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType() );
+        tmpDataSet.setDataSetElements( dataSet.getDataSetElements() );
         
         for ( DataElementCategoryCombo categoryCombo : map.keySet() )
         {
@@ -268,10 +269,10 @@ public class DefaultDataSetReportService
             
             Section section = new Section( name, dataSet, dataElements, null );
             
-            temp.getSections().add( section );
+            tmpDataSet.getSections().add( section );
         }
         
-        return getSectionDataSetReport( temp, period, unit, dimensions, selectedUnitOnly, format, i18n );
+        return getSectionDataSetReport( tmpDataSet, period, unit, dimensions, selectedUnitOnly, format, i18n );
     }
     
     // -------------------------------------------------------------------------

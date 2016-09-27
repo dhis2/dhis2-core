@@ -329,23 +329,23 @@ public class ValidationRuleServiceTest
         organisationUnitService.addOrganisationUnit( sourceF );
         organisationUnitService.addOrganisationUnit( sourceG );
 
-        dataSetMonthly.getDataElements().add( dataElementA );
-        dataSetMonthly.getDataElements().add( dataElementB );
-        dataSetMonthly.getDataElements().add( dataElementC );
-        dataSetMonthly.getDataElements().add( dataElementD );
+        dataSetMonthly.addDataSetElement( dataElementA );
+        dataSetMonthly.addDataSetElement( dataElementB );
+        dataSetMonthly.addDataSetElement( dataElementC );
+        dataSetMonthly.addDataSetElement( dataElementD );
 
-        dataSetWeekly.getDataElements().add( dataElementE );
+        dataSetWeekly.addDataSetElement( dataElementE );
 
-        dataSetYearly.getDataElements().add( dataElementE );
+        dataSetYearly.addDataSetElement( dataElementE );
 
-        dataElementA.getDataSets().add( dataSetMonthly );
-        dataElementB.getDataSets().add( dataSetMonthly );
-        dataElementC.getDataSets().add( dataSetMonthly );
-        dataElementD.getDataSets().add( dataSetMonthly );
+        dataElementA.addDataSetElement( dataSetMonthly );
+        dataElementB.addDataSetElement( dataSetMonthly );
+        dataElementC.addDataSetElement( dataSetMonthly );
+        dataElementD.addDataSetElement( dataSetMonthly );
 
-        dataElementE.getDataSets().add( dataSetWeekly );
+        dataElementE.addDataSetElement( dataSetWeekly );
 
-        dataElementE.getDataSets().add( dataSetYearly );
+        dataElementE.addDataSetElement( dataSetYearly );
 
         dataSetService.addDataSet( dataSetWeekly );
         dataSetService.addDataSet( dataSetMonthly );
