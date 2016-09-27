@@ -42,6 +42,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
@@ -755,6 +756,7 @@ public class ObjectBundleServiceTest
         objectBundleService.commit( bundle );
 
         List<DataSet> dataSets = manager.getAll( DataSet.class );
+        List<DataSetElement> dataSetElements = manager.getAll( DataSetElement.class );
         List<Section> sections = manager.getAll( Section.class );
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
@@ -764,10 +766,12 @@ public class ObjectBundleServiceTest
         assertFalse( organisationUnits.isEmpty() );
         assertFalse( dataElements.isEmpty() );
         assertFalse( dataSets.isEmpty() );
+        assertFalse( dataSetElements.isEmpty() );
         assertFalse( users.isEmpty() );
         assertFalse( userRoles.isEmpty() );
 
         assertEquals( 1, dataSets.size() );
+        assertEquals( 2, dataSetElements.size() );
         assertEquals( 2, sections.size() );
 
         DataSet dataSet = dataSets.get( 0 );
