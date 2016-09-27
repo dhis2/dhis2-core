@@ -69,6 +69,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -616,6 +617,14 @@ public abstract class DeletionHandler
     }
 
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    {
+    }
+
+    public void allowDeleteProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
+    {
+    }
+
+    public void deleteProgramNotificationTemplate( ProgramNotificationTemplate programNotificationTemplate )
     {
     }
 

@@ -35,6 +35,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.sms.SmsServiceException;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.system.util.DateUtils;
@@ -98,6 +99,13 @@ public class DefaultProgramStageInstanceService
     public void setReminderService( TrackedEntityInstanceReminderService reminderService )
     {
         this.reminderService = reminderService;
+    }
+
+    private ProgramNotificationService programNotificationService;
+
+    public void setProgramNotificationService( ProgramNotificationService programNotificationService )
+    {
+        this.programNotificationService = programNotificationService;
     }
 
     private MessageService messageService;
@@ -202,6 +210,10 @@ public class DefaultProgramStageInstanceService
 
         if ( sendNotifications )
         {
+            programNotificationService.sendCompletionNotifications( programStageInstance );
+
+            // TODO Should be removed. Replaced by above call.
+
             // ---------------------------------------------------------------------
             // Send SMS message when to completed the event
             // ---------------------------------------------------------------------
