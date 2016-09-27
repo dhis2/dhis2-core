@@ -113,7 +113,8 @@ public class InterpretationController
     @RequestMapping( value = "/chart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeChartInterpretation(
         @PathVariable( "uid" ) String uid,
-        @RequestBody String text, 
+        @RequestParam( value = "ou", required = false ) String orgUnitUid,
+        @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         Chart chart = idObjectManager.get( Chart.class, uid );
@@ -125,14 +126,21 @@ public class InterpretationController
 
         User user = currentUserService.getCurrentUser();
 
-        // ---------------------------------------------------------------------
-        // When chart has user org unit, store current user org unit with
-        // interpretation so chart will refer to the original org unit later
-        // ---------------------------------------------------------------------
+        OrganisationUnit orgUnit = null;
 
-        OrganisationUnit unit = chart.hasUserOrgUnit() && user.hasOrganisationUnit() ? user.getOrganisationUnit() : null;
+        if ( orgUnitUid != null )
+        {
+            orgUnit = idObjectManager.get( OrganisationUnit.class, orgUnitUid );
 
-        createIntepretation( new Interpretation( chart, unit, text ), request, response );
+            if ( orgUnit == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid ) );
+            }
+        } else {
+            orgUnit = chart.hasUserOrgUnit() && user.hasOrganisationUnit() ? user.getOrganisationUnit() : null;
+        }
+
+        createIntepretation( new Interpretation( chart, orgUnit, text ), request, response );
     }
 
     @RequestMapping( value = "/map/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
