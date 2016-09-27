@@ -29,7 +29,7 @@ package org.hisp.dhis.program.notification;
  */
 
 import java.util.EnumSet;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -61,10 +61,9 @@ public enum ProgramStageTemplateVariable
     DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
     CURRENT_DATE( "current_date" );
 
-    private static final Set<String> allValidExpressionNames =
+    private static final Map<String, ProgramStageTemplateVariable> variableNameMap =
         EnumSet.allOf( ProgramStageTemplateVariable.class ).stream()
-            .map( ProgramStageTemplateVariable::getVariableName )
-            .collect( Collectors.toSet() );
+            .collect( Collectors.toMap( ProgramStageTemplateVariable::getVariableName, e -> e ) );
 
     private final String variableName;
 
@@ -81,6 +80,11 @@ public enum ProgramStageTemplateVariable
 
     public static boolean isValidVariableName( String expressionName )
     {
-        return allValidExpressionNames.contains( expressionName );
+        return variableNameMap.keySet().contains( expressionName );
+    }
+
+    public static ProgramStageTemplateVariable fromVariableName( String variableName )
+    {
+        return variableNameMap.get( variableName );
     }
 }

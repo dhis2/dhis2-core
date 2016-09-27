@@ -126,7 +126,6 @@ public class ShowUpdateProgramNotificationAction
             attributes = Lists.newArrayList();
         }
 
-
         return SUCCESS;
     }
 }

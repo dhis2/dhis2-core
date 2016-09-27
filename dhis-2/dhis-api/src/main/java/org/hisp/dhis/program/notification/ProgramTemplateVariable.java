@@ -29,7 +29,7 @@ package org.hisp.dhis.program.notification;
  */
 
 import java.util.EnumSet;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -53,10 +53,9 @@ public enum ProgramTemplateVariable
     ORG_UNIT_NAME( "org_unit_name" ),
     CURRENT_DATE( "current_date" );
 
-    private static final Set<String> allValidExpressionNames =
+    private static final Map<String, ProgramTemplateVariable> variableNameMap =
         EnumSet.allOf( ProgramTemplateVariable.class ).stream()
-            .map( ProgramTemplateVariable::getVariableName )
-            .collect( Collectors.toSet() );
+            .collect( Collectors.toMap( ProgramTemplateVariable::getVariableName, e -> e ) );
 
     private final String variableName;
 
@@ -73,6 +72,11 @@ public enum ProgramTemplateVariable
 
     public static boolean isValidVariableName( String expressionName )
     {
-        return allValidExpressionNames.contains( expressionName );
+        return variableNameMap.keySet().contains( expressionName );
+    }
+
+    public static ProgramTemplateVariable fromVariableName( String variableName )
+    {
+        return variableNameMap.get( variableName );
     }
 }

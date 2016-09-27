@@ -161,7 +161,7 @@ public class NotificationMessageRenderer
 
         matcher.appendTail( sb );
 
-        return matcher.toString();
+        return sb.toString();
     }
 
     private static Set<String> extractProgramStageVariables( String input )
@@ -186,7 +186,7 @@ public class NotificationMessageRenderer
 
     private static void warnOfUnrecognizedVariables( Set<String> unrecognizedVariables )
     {
-        if ( !unrecognizedVariables.isEmpty() )
+        if ( unrecognizedVariables != null && !unrecognizedVariables.isEmpty() )
         {
             log.warn( String.format( "%d unrecognized variable expressions were ignored: %s" ,
                 unrecognizedVariables.size(), Arrays.toString( unrecognizedVariables.toArray() ) ) );
@@ -203,7 +203,7 @@ public class NotificationMessageRenderer
         return variables.stream()
             .collect( Collectors.toMap(
                 v -> v,
-                v -> EVENT_VARIABLE_RESOLVERS.get( ProgramStageTemplateVariable.valueOf( v ) ).apply( programStageInstance ) )
+                v -> EVENT_VARIABLE_RESOLVERS.get( ProgramStageTemplateVariable.fromVariableName( v ) ).apply( programStageInstance ) )
             );
     }
 
@@ -212,7 +212,7 @@ public class NotificationMessageRenderer
         return variables.stream()
             .collect( Collectors.toMap(
                 v -> v,
-                v -> ENROLLMENT_VARIABLE_RESOLVERS.get( ProgramStageTemplateVariable.valueOf( v ) ).apply( programInstance ) )
+                v -> ENROLLMENT_VARIABLE_RESOLVERS.get( ProgramTemplateVariable.fromVariableName( v ) ).apply( programInstance ) )
             );
     }
 

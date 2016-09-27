@@ -125,8 +125,8 @@ public class DefaultProgramNotificationService
             List<ProgramInstance> programInstances =
                 programInstanceStore.getWithScheduledNotifications( notification, notificationDate );
 
-            MessageBatch psiBatch = createEventMessageBatch( notification, programStageInstances );
-            MessageBatch psBatch = createEnrollmentMessageBatch( notification, programInstances );
+            MessageBatch psiBatch = createProgramStageInstanceMessageBatch( notification, programStageInstances );
+            MessageBatch psBatch = createProgramInstanceMessageBatch( notification, programInstances );
 
             sendAll( psiBatch );
             sendAll( psBatch );
@@ -145,7 +145,7 @@ public class DefaultProgramNotificationService
 
         for ( ProgramNotificationTemplate template : templates )
         {
-            MessageBatch batch = createSingleEventMessageBatch( template, programStageInstance );
+            MessageBatch batch = createSingleProgramStageInstanceMessageBatch( template, programStageInstance );
             sendAll( batch );
         }
     }
@@ -158,7 +158,7 @@ public class DefaultProgramNotificationService
 
         for ( ProgramNotificationTemplate template : templates )
         {
-            MessageBatch batch = createSingleEnrollmentMessageBatch( template, programInstance );
+            MessageBatch batch = createSingleProgramInstanceMessageBatch( template, programInstance );
             sendAll( batch );
         }
     }
@@ -171,7 +171,7 @@ public class DefaultProgramNotificationService
 
         for ( ProgramNotificationTemplate template : templates )
         {
-            MessageBatch batch = createSingleEnrollmentMessageBatch( template, programInstance );
+            MessageBatch batch = createSingleProgramInstanceMessageBatch( template, programInstance );
             sendAll( batch );
         }
     }
@@ -180,7 +180,7 @@ public class DefaultProgramNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private MessageBatch createEventMessageBatch( ProgramNotificationTemplate template, List<ProgramStageInstance> programStageInstances )
+    private MessageBatch createProgramStageInstanceMessageBatch( ProgramNotificationTemplate template, List<ProgramStageInstance> programStageInstances )
     {
         MessageBatch batch = new MessageBatch( template );
 
@@ -204,7 +204,7 @@ public class DefaultProgramNotificationService
         return batch;
     }
 
-    private MessageBatch createEnrollmentMessageBatch( ProgramNotificationTemplate template, List<ProgramInstance> programInstances )
+    private MessageBatch createProgramInstanceMessageBatch( ProgramNotificationTemplate template, List<ProgramInstance> programInstances )
     {
         MessageBatch batch = new MessageBatch( template );
 
@@ -220,7 +220,7 @@ public class DefaultProgramNotificationService
         return batch;
     }
 
-    private MessageBatch createSingleEnrollmentMessageBatch( ProgramNotificationTemplate template, ProgramInstance programInstance )
+    private MessageBatch createSingleProgramInstanceMessageBatch( ProgramNotificationTemplate template, ProgramInstance programInstance )
     {
         MessageBatch batch = new MessageBatch( template );
 
@@ -236,7 +236,7 @@ public class DefaultProgramNotificationService
         return batch;
     }
 
-    private MessageBatch createSingleEventMessageBatch( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
+    private MessageBatch createSingleProgramStageInstanceMessageBatch( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
     {
         MessageBatch batch = new MessageBatch( template );
 
