@@ -78,6 +78,8 @@ public class ScheduleTasksAction
     private static final String STRATEGY_LAST_3_YEARS_DAILY = "last3YearsDaily";
     private static final String STRATEGY_ENABLED = "enabled";
     private static final String STRATEGY_EVERY_MIDNIGHT = "everyMidNight";
+    private static final String TASK_STARTED = "task_started";
+    private static final String TASK_ALREADY_RUNNING = "task_already_running";
 
     private static final String STRATEGY_DAILY_5_AM = "dailyFiveAM";
     private static final String STRATEGY_DAILY_6_AM = "dailySixAM";
@@ -323,6 +325,13 @@ public class ScheduleTasksAction
         return lastDataStatisticSuccess;
     }
 
+    private String metadataSyncStatus;
+    public String getMetadataSyncStatus(){ return metadataSyncStatus; }
+    public void setMetadataSyncStatus(String metadataSyncStatus )
+    {
+        this.metadataSyncStatus = metadataSyncStatus;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -332,9 +341,16 @@ public class ScheduleTasksAction
     {
         if ( executeNow )
         {
-            schedulingManager.executeTask( taskKey );
+            if(schedulingManager.isTaskInProgress( TASK_META_DATA_SYNC ))
+            {
+                metadataSyncStatus = TASK_ALREADY_RUNNING;
+            }
+            else
+            {
+                schedulingManager.executeTask( TASK_META_DATA_SYNC );
+                metadataSyncStatus = TASK_STARTED;
+            }
 
-            return SUCCESS;
         }
 
         if ( schedule )
@@ -526,7 +542,6 @@ public class ScheduleTasksAction
 
         status = schedulingManager.getTaskStatus();
         running = ScheduledTaskStatus.RUNNING.equals( status );
-
         levels = organisationUnitService.getOrganisationUnitLevels();
 
         lastResourceTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
