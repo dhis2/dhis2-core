@@ -106,7 +106,7 @@ public enum NotificationTrigger
         return APPLICABLE_TO_PROGRAM_INSTANCE;
     }
 
-    public static Set<NotificationTrigger> gettApplicableToProgramStageInstance()
+    public static Set<NotificationTrigger> getAllApplicableToProgramStageInstance()
     {
         return APPLICABLE_TO_PROGRAM_STAGE_INSTANCE;
     }

@@ -115,6 +115,8 @@ public class DefaultProgramNotificationService
                 .filter( n -> n.getNotificationTrigger().isScheduled() )
                 .collect( Collectors.toList() );
 
+        int totalMessageCount = 0;
+
         for ( ProgramNotificationTemplate notification : scheduledNotifications )
         {
             List<ProgramStageInstance> programStageInstances =
@@ -128,9 +130,11 @@ public class DefaultProgramNotificationService
 
             sendAll( psiBatch );
             sendAll( psBatch );
+
+            totalMessageCount += psiBatch.messageCount() + psBatch.messageCount();
         }
 
-        clock.logTime( String.format( "Processed and sent ProgramStageNotification messages in %s", clock.time() ) );
+        clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
     }
 
     @Transactional
@@ -353,6 +357,11 @@ public class DefaultProgramNotificationService
         MessageBatch( ProgramNotificationTemplate template)
         {
             this.template = template;
+        }
+
+        int messageCount()
+        {
+            return dhisMessages.size() + programMessages.size();
         }
     }
 }

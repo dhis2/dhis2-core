@@ -28,7 +28,8 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
@@ -410,8 +411,14 @@ public class HibernateProgramInstanceStore
             return Lists.newArrayList();
         }
 
+        if ( template.getNotificationTrigger() != NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE ||
+            template.getNotificationTrigger() != NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE )
+        {
+            return Lists.newArrayList();
+        }
+
         String hql = "select pi from ProgramInstance as pi " +
-            "inner join pi.notificationTemplates as templates " +
+            "inner join pi.program.notificationTemplates as templates " +
             "where templates.notificationTrigger in (:triggers) " +
             "and templates.relativeScheduledDays is not null " +
             "and :notificationTemplate in elements(templates) ";
@@ -435,10 +442,10 @@ public class HibernateProgramInstanceStore
 
         Query query = getQuery( hql );
 
-        Set<NotificationTrigger> applicableTriggers = NotificationTrigger.getAllScheduledTriggers();
-        applicableTriggers.retainAll( NotificationTrigger.getAllApplicableToProgramInstance() );
-
-        Set<String> triggerNames = applicableTriggers.stream().map( Enum::name ).collect( Collectors.toSet() );
+        Set<String> triggerNames = Sets.union(
+            NotificationTrigger.getAllScheduledTriggers(),
+            NotificationTrigger.getAllApplicableToProgramInstance()
+        ).stream().map( Enum::name ).collect( Collectors.toSet() );
 
         query.setEntity( "notificationTemplate", template );
         query.setParameterList( "triggers", triggerNames, StringType.INSTANCE );
