@@ -1323,6 +1323,7 @@
     class="org.hisp.dhis.program.notification.DefaultProgramNotificationService">
     <property name="programMessageService" ref="org.hisp.dhis.program.message.ProgramMessageService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="programInstanceStore" ref="org.hisp.dhis.program.ProgramInstanceStore" />
     <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
   </bean>

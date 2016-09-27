@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -77,6 +78,13 @@ public class DefaultProgramNotificationService
         this.messageService = messageService;
     }
 
+    private ProgramInstanceStore programInstanceStore;
+
+    public void setProgramInstanceStore( ProgramInstanceStore programInstanceStore )
+    {
+        this.programInstanceStore = programInstanceStore;
+    }
+
     private ProgramStageInstanceStore programStageInstanceStore;
 
     public void setProgramStageInstanceStore( ProgramStageInstanceStore programStageInstanceStore )
@@ -111,6 +119,10 @@ public class DefaultProgramNotificationService
         {
             List<ProgramStageInstance> programStageInstances =
                 programStageInstanceStore.getWithScheduledNotifications( notification, notificationDate );
+
+            // TODO
+            List<ProgramInstance> programInstances =
+                programInstanceStore.getWithScheduledNotifications( notification, notificationDate );
 
             MessageBatch batch = createMessageBatch( notification, programStageInstances );
 
