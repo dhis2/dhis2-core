@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.CategorySchemaDescriptor;
@@ -160,7 +161,11 @@ public class DataElementCategoryControllerDocumentation
     {
         MockHttpSession session = getSession( "F_CATEGORY_PUBLIC_ADD" );
 
-        DataElementCategory cat = createDataElementCategory( 'A' );
+        DataElementCategoryOption categoryOptionA = createCategoryOption( 'A' );
+        DataElementCategoryOption categoryOptionB = createCategoryOption( 'B' );
+        DataElementCategoryOption categoryOptionC = createCategoryOption( 'C' );
+
+        DataElementCategory cat = createDataElementCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
 
         Schema schema = schemaService.getSchema( DataElementCategory.class );
 
