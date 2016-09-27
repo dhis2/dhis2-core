@@ -28,7 +28,7 @@ package org.hisp.dhis.trackedentity.action.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Program;
