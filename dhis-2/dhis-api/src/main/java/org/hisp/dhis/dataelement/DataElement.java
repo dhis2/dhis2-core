@@ -202,7 +202,7 @@ public class DataElement
      * 
      * @param dataSet the data set.
      */
-    public boolean addDataSetElement( DataSet dataSet )
+    public boolean addDataSetElement2( DataSet dataSet )
     {
         DataSetElement element = new DataSetElement( dataSet, this, null );
         dataSet.getDataSetElements().add( element );
@@ -216,7 +216,7 @@ public class DataElement
      * @param dataSet the data set.
      * @param categoryCombo the category combination.
      */
-    public boolean addDataSetElement( DataSet dataSet, DataElementCategoryCombo categoryCombo )
+    public boolean addDataSetElement2( DataSet dataSet, DataElementCategoryCombo categoryCombo )
     {
         DataSetElement element = new DataSetElement( dataSet, this, categoryCombo );
         dataSet.getDataSetElements().add( element );

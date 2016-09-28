@@ -36,7 +36,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -74,9 +73,6 @@ public class NotificationMessageRendererTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramInstanceStore programInstanceStore;
-
-    @Autowired
     private ProgramInstanceService programInstanceService;
 
     @Autowired
@@ -102,13 +98,9 @@ public class NotificationMessageRendererTest
 
     private ProgramInstance programInstanceA;
 
-    private ProgramInstance programInstanceB;
-
     private ProgramStage programStageA;
 
     private ProgramStageInstance programStageInstanceA;
-
-    private ProgramNotificationTemplate notificationA;
 
     private TrackedEntityAttribute teiAttrX, teiAttrY, teiAttrZ;
 
@@ -137,7 +129,6 @@ public class NotificationMessageRendererTest
         programA.setProgramStages( Collections.singleton( programStageA ) );
         programService.updateProgram( programA );
 
-//        programInstanceA = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programA );
         programInstanceA.setUid( "UID-PIA" );
         programInstanceService.addProgramInstance( programInstanceA );
 
@@ -201,6 +192,6 @@ public class NotificationMessageRendererTest
             NotificationMessageRenderer.render( programStageInstanceA, programNotificationTemplateA );
 
         assertNotNull( rendered );
-        // TODO Actually check contents. :---)
+        // TODO Actually check contents
     }
 }

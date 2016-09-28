@@ -228,6 +228,12 @@ public abstract class AbstractNode implements Node
         return sortedChildren;
     }
 
+    public void setChildren( List<Node> children )
+    {
+        this.children = children;
+        this.sortedChildren = null;
+    }
+
     @Override
     public int getOrder()
     {
@@ -265,7 +271,7 @@ public abstract class AbstractNode implements Node
         {
             return true;
         }
-        
+
         if ( obj == null || getClass() != obj.getClass() )
         {
             return false;
