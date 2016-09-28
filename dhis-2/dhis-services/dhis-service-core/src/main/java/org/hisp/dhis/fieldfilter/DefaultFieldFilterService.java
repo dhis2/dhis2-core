@@ -68,7 +68,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 {
     private static final Log log = LogFactory.getLog( DefaultFieldFilterService.class );
 
-    private final Pattern MUTATOR_PATTERN = Pattern.compile( "^(?<field>\\w+)(?<type>\\||::)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
+    private final Pattern MUTATOR_PATTERN = Pattern.compile( "^(?<field>\\w+)(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
     @Autowired
     private FieldParser fieldParser;
@@ -372,7 +372,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             {
                 cleanupFields.add( fieldKey );
             }
-            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|" ) )
+            else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|" ) || fieldKey.contains( "~" ) )
             {
                 Matcher matcher = MUTATOR_PATTERN.matcher( fieldKey );
 
