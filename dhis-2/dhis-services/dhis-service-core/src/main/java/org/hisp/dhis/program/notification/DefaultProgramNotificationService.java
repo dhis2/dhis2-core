@@ -141,44 +141,48 @@ public class DefaultProgramNotificationService
     @Override
     public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
     {
-        Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, NotificationTrigger.COMPLETION );
-
-        for ( ProgramNotificationTemplate template : templates )
-        {
-            MessageBatch batch = createSingleProgramStageInstanceMessageBatch( template, programStageInstance );
-            sendAll( batch );
-        }
+        sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
     public void sendCompletionNotifications( ProgramInstance programInstance )
     {
-        Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, NotificationTrigger.COMPLETION );
-
-        for ( ProgramNotificationTemplate template : templates )
-        {
-            MessageBatch batch = createSingleProgramInstanceMessageBatch( template, programInstance );
-            sendAll( batch );
-        }
+        sendProgramInstanceNotifications( programInstance, NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
     public void sendEnrollmentNotifications( ProgramInstance programInstance )
     {
-        Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, NotificationTrigger.ENROLLMENT );
-
-        for ( ProgramNotificationTemplate template : templates )
-        {
-            MessageBatch batch = createSingleProgramInstanceMessageBatch( template, programInstance );
-            sendAll( batch );
-        }
+        sendProgramInstanceNotifications( programInstance, NotificationTrigger.ENROLLMENT );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance, NotificationTrigger trigger )
+    {
+        Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
+
+        for ( ProgramNotificationTemplate template : templates )
+        {
+            MessageBatch batch = createProgramStageInstanceMessageBatch( template, Lists.newArrayList( programStageInstance ) );
+            sendAll( batch );
+        }
+    }
+
+    private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
+    {
+        Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
+
+        for ( ProgramNotificationTemplate template : templates )
+        {
+            MessageBatch batch = createProgramInstanceMessageBatch( template, Lists.newArrayList( programInstance ) );
+            sendAll( batch );
+        }
+    }
 
     private MessageBatch createProgramStageInstanceMessageBatch( ProgramNotificationTemplate template, List<ProgramStageInstance> programStageInstances )
     {
@@ -212,41 +216,17 @@ public class DefaultProgramNotificationService
         {
             batch.programMessages.addAll(
                 programInstances.stream()
-                    .map( ps -> createProgramMessage( ps, template ) )
+                    .map( pi -> createProgramMessage( pi, template ) )
                     .collect( Collectors.toSet() )
             );
         }
-
-        return batch;
-    }
-
-    private MessageBatch createSingleProgramInstanceMessageBatch( ProgramNotificationTemplate template, ProgramInstance programInstance )
-    {
-        MessageBatch batch = new MessageBatch();
-
-        if ( template.getNotificationRecipient().isExternalRecipient() )
-        {
-            batch.programMessages.add( createProgramMessage( programInstance, template ) );
-        }
         else
         {
-            batch.dhisMessages.add( createDhisMessage( programInstance, template ) );
-        }
-
-        return batch;
-    }
-
-    private MessageBatch createSingleProgramStageInstanceMessageBatch( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
-    {
-        MessageBatch batch = new MessageBatch();
-
-        if ( template.getNotificationRecipient().isExternalRecipient() )
-        {
-            batch.programMessages.add( createProgramMessage( programStageInstance, template ) );
-        }
-        else
-        {
-            batch.dhisMessages.add( createDhisMessage( programStageInstance, template ) );
+            batch.dhisMessages.addAll(
+                programInstances.stream()
+                    .map( ps -> createDhisMessage( ps, template ) )
+                    .collect( Collectors.toSet() )
+            );
         }
 
         return batch;
