@@ -169,14 +169,11 @@ public class DataIntegrityServiceTest
 
         dataSetA.addDataSetElement( elementA );
         dataSetA.addDataSetElement( elementB );
-        elementA.addDataSetElement( dataSetA );
-        elementB.addDataSetElement( dataSetA );
         
         dataSetA.getSources().add( unitA );
         unitA.getDataSets().add( dataSetA );
         
-        dataSetB.addDataSetElement( elementA );
-        elementA.addDataSetElement( dataSetB );        
+        dataSetB.addDataSetElement( elementA );     
         
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
