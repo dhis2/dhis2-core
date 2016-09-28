@@ -21,6 +21,14 @@
   ],
   "dataSets": [
     {
+      "dataSetElements": [
+        {
+          "id": "WTOZ7gqbASV"
+        },
+        {
+          "id": "rSChycu6mOY"
+        }
+      ],
       "version": 5,
       "name": "Updated Data Set",
       "user": {
