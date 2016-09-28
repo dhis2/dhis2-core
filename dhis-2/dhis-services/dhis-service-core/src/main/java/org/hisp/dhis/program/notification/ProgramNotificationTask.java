@@ -28,7 +28,6 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.NoSecurityContextRunnable;
@@ -38,7 +37,6 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -85,21 +83,13 @@ public class ProgramNotificationTask
 
             notifier.notify( taskId, NotificationLevel.INFO, "Generated and sent scheduled program notifications: " + clock.time(), true );
         }
-        catch ( RuntimeException rte )
+        catch ( RuntimeException ex )
         {
-            String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
 
-            notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + rte.getMessage(), true );
-
-            messageService.sendSystemNotification(
-                "Generating and sending scheduled program notifications failed",
-                "The process failed, please check the server logs. Time of failure: " + new DateTime().toString() + ". " +
-                "System:" + title + " " +
-                "Message: " + rte.getMessage() + " " +
-                "Cause: " + DebugUtils.getStackTrace( rte.getCause() )
-            );
-
-            throw rte;
+            messageService.sendSystemErrorNotification( "Generating and sending scheduled program notifications failed", ex );
+            
+            throw ex;
         }
 
         systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS, new Date( clock.getStartTime() ) );
