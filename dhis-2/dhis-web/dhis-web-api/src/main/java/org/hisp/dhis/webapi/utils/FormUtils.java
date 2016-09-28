@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -163,20 +164,34 @@ public class FormUtils
                     {
                         for ( DataElementCategoryOption option : options )
                         {
-                            if ( userOrganisationUnits != null && !Collections.disjoint( userOrganisationUnits, option.getOrganisationUnits() ) )
+                            Option o = new Option();
+                            o.setId( option.getUid() );
+                            o.setLabel( option.getName() );
+                            o.setStartDate( option.getStartDate() );
+                            o.setEndDate( option.getEndDate() );
+
+                            Set<OrganisationUnit> catOptionOUs = option.getOrganisationUnits();
+
+                            if ( userOrganisationUnits == null || userOrganisationUnits.isEmpty() || catOptionOUs == null || catOptionOUs.isEmpty() )
                             {
-                                Option o = new Option();
-                                o.setId( option.getUid() );
-                                o.setLabel( option.getName() );
-                                o.setStartDate( option.getStartDate() );
-                                o.setEndDate( option.getEndDate() );
-                                o.setOrganisationUnits( option.getOrganisationUnits() );
+                                c.getOptions().add( o );
+                            }
+                            else if ( userOrganisationUnits != null && catOptionOUs != null && !Collections.disjoint( userOrganisationUnits, catOptionOUs ) )
+                            {
+                                HashSet<OrganisationUnit> organisationUnits = new HashSet<>();
+
+                                catOptionOUs.stream().filter( ou -> userOrganisationUnits.contains( ou ) ).forEach( ou -> {
+                                    organisationUnits.add( ou );
+                                    organisationUnits.addAll( getChildren( ou , new HashSet<>() ) ) ;
+                                });
+
+                                o.setOrganisationUnits( organisationUnits );
 
                                 c.getOptions().add( o );
                             }
                         }
                     }
-                    
+
                     catCombo.getCategories().add( c );
                 }
             }
@@ -359,5 +374,20 @@ public class FormUtils
         }
 
         return cacheMap;
+    }
+
+    private static Set<OrganisationUnit> getChildren( OrganisationUnit ou, Set<OrganisationUnit> children )
+    {
+
+        if ( ou != null && ou.getChildren() != null )
+        {
+            for ( OrganisationUnit organisationUnit : ou.getChildren() )
+            {
+                children.add( organisationUnit );
+                children.addAll( getChildren( organisationUnit, children ) );
+            }
+        }
+
+        return children;
     }
 }
