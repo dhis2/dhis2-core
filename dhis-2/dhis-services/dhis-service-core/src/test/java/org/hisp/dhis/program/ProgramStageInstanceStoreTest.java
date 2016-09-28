@@ -28,19 +28,25 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.NotificationRecipient;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -49,7 +55,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
@@ -80,6 +88,9 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
+
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramStageNotificationStore")
+    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programStageNotificationStore;
 
     private OrganisationUnit organisationUnitA;
 
@@ -132,6 +143,12 @@ public class ProgramStageInstanceStoreTest
     private TrackedEntityInstance entityInstanceB;
 
     private Program programA;
+
+    private ProgramNotificationTemplate psnA;
+
+    private ProgramNotificationTemplate psnB;
+
+    private ProgramNotificationTemplate psnC;
 
     @Override
     public void setUpTest()
@@ -264,6 +281,18 @@ public class ProgramStageInstanceStoreTest
         programStageInstanceD2 = new ProgramStageInstance( programInstanceB, stageD );
         programStageInstanceD2.setDueDate( enrollmentDate );
         programStageInstanceD2.setUid( "UID-D2" );
+
+        /**
+         * ProgramStageNotifications
+         */
+
+        psnA = getProgramStageNotification( "A", -2 ); // Notify two days before
+        psnB = getProgramStageNotification( "B" ); // Notify on event
+        psnC = getProgramStageNotification( "C", 2 ); // Notify two days after
+
+        programStageNotificationStore.save( psnA );
+        programStageNotificationStore.save( psnB );
+        programStageNotificationStore.save( psnC );
     }
 
     @Test
@@ -339,5 +368,81 @@ public class ProgramStageInstanceStoreTest
 
         int count = programStageInstanceStore.getOverDueCount( stageA, orgunitIds, incidenDate, enrollmentDate );
         assertEquals( 1, count );
+    }
+
+//    @Ignore( "Work in progress" )
+//    @Test
+//    public void testGetWithNotificationsOnDate()
+//    {
+//        stageA.setNotificationTemplates( Sets.newHashSet( psnA, psnB, psnC ) );
+//        programStageService.updateProgramStage( stageA );
+//        programService.updateProgram( programA );
+//
+//        // Dates
+//
+//        Calendar cal = Calendar.getInstance();
+//        PeriodType.clearTimeOfDay( cal );
+//
+//        Date today = cal.getTime();     // 2016-01-10
+//
+//        cal.add( Calendar.DATE, 1 );    // 2016-01-11
+//        Date tomorrow = cal.getTime();
+//
+//        cal.add( Calendar.DATE, 1 );    // 2016-01-12
+//        Date inTwoDays = cal.getTime();
+//
+//        cal.add( Calendar.DATE, -4 );   // 2016-01-08
+//        Date twoDaysAgo = cal.getTime();
+//
+//        // Set due in two days
+//
+//        programStageInstanceA.setDueDate( inTwoDays );
+//        programStageInstanceStore.save( programStageInstanceA );
+//
+//        List<ProgramStageInstance> instances = programStageInstanceStore.getWithNotificationsOnDate( today );
+//        assertEquals( 1, instances.size() );
+//
+//        instances = programStageInstanceStore.getWithNotificationsOnDate( tomorrow );
+//        assertTrue( instances.isEmpty() );
+//
+//        // Set due two days ago
+//
+//        programStageInstanceA.setDueDate( twoDaysAgo );
+//        programStageInstanceStore.update( programStageInstanceA );
+//        instances = programStageInstanceStore.getWithNotificationsOnDate( today );
+//
+//        assertEquals( 1, instances.size() );
+//
+//        assertTrue( instances.get( 0 ).getProgramStage().getNotificationTemplates().contains( psnC ) );
+//    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private ProgramNotificationTemplate getProgramStageNotification( String name, int daysBeforeOrAfter ) {
+        return new ProgramNotificationTemplate(
+            name,
+            "Subject template",
+            "Message template",
+            NotificationTrigger.SCHEDULED_DAYS_DUE_DATE,
+            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Sets.newHashSet(),
+            daysBeforeOrAfter,
+            null
+         );
+    }
+
+    private ProgramNotificationTemplate getProgramStageNotification( String name ) {
+        return new ProgramNotificationTemplate(
+            name,
+            "Subject template",
+            "Message template",
+            NotificationTrigger.COMPLETION,
+            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Sets.newHashSet(),
+            0,
+            null
+        );
     }
 }

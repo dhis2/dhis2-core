@@ -262,7 +262,7 @@ public class DefaultPdfDataEntryFormService
         // row.
         for ( DataElement dataElement : dataElements )
         {
-            for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryCombo().getSortedOptionCombos() )
+            for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
             {
                 String categoryOptionComboDisplayName = "";
 

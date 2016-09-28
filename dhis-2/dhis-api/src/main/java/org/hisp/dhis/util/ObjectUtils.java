@@ -164,7 +164,7 @@ public class ObjectUtils
      *        each item in the given collection.
      * @return a Set of items.
      */
-    public static <T, U, V extends Collection<U>> Set<U> addAll( Collection<T> items, Function<T, V> collectionMapper )
+    public static <T, U, V extends Collection<U>> Set<U> getAll( Collection<T> items, Function<T, V> collectionMapper )
     {
         Set<U> set = Sets.newHashSet();        
         items.forEach( item -> set.addAll( collectionMapper.apply( item ) ) );        

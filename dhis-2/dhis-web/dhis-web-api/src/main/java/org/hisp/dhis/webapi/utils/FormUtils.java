@@ -268,7 +268,7 @@ public class FormUtils
 
         for ( DataElement dataElement : dataElements )
         {
-            for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryCombo().getSortedOptionCombos() )
+            for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
             {
                 if ( !isDisabled( dataElement, categoryOptionCombo, greyedFields ) )
                 {

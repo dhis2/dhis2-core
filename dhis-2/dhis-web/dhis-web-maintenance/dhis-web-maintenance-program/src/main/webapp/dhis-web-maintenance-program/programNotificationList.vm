@@ -1,0 +1,83 @@
+<h3>$i18n.getString( "program_notifications" )</h3>
+
+<h5>$encoder.htmlEncode( $program.displayName )</h5>
+
+<input type="hidden" id="programUid" value="$program.uid">
+<input type="hidden" id="programId" value="$program.id">
+
+<div id="contextMenu" class="contextMenu" style="width: 250px;">
+    <ul id="contextMenuItems" class="contextMenuItems">
+        <li><a data-target-fn="showUpdateProgramNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "edit" )</a></li>
+        <li><a data-target-fn="removeProgramNotification"><i class="fa fa-edit"></i>&nbsp;&nbsp;$i18n.getString( "remove" )</a></li>
+    </ul>
+</div>
+
+<table class="mainPageTable">
+    <tr>
+        <td style="vertical-align:top;">
+            <table width="100%">
+                <tr valign="bottom">
+                    <td align="right">
+                        <input type="button" value="$i18n.getString( "add_new" )"
+                               onclick="window.location.href='showAddProgramNotification.action?id=$program.id'" style="width: 70px;">
+                    </td>
+                </tr>
+            </table>
+
+            <table class="listTable" id="listTable">
+                <col>
+                <thead>
+                    <tr>
+                        <th>$i18n.getString( "name" )</th>
+                    </tr>
+                </thead>
+                <tbody id="list">
+                    #foreach( $template in $program.notificationTemplates )
+                    <tr id="tr${template.id}"
+                        data-id="$!template.id"
+                        data-uid="$!template.uid" data-type="ProgramNotificationTemplate"
+                        data-name="$encoder.htmlEncode( $!template.displayName )"
+                        data-can-manage="$security.canManage( $template )"
+                        data-can-update="$security.canUpdate( $template )">
+                        <td>$encoder.htmlEncode( $!template.displayName )</td>
+                    </tr>
+                    #end
+                </tbody>
+            </table>
+                <p></p>
+                #parse( "/dhis-web-commons/paging/paging.vm" )
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    // TODO Intialize i18n strings
+    $( function() {
+        dhis2.contextmenu.makeContextMenu( {
+            menuId: 'contextMenu',
+            menuItemActiveClass: 'contextMenuItemActive'
+        } );
+    } );
+
+    function removeProgramNotification( template ) {
+
+        var programUid = document.querySelector( '#programUid' ).value;
+        var programId = document.querySelector( '#programId' ).value;
+
+        jQuery.ajax( {
+            url : '../api/programs/' + programUid + '/notificationTemplates/' + template.uid,
+            type : 'DELETE',
+            dataType : 'json'
+        } ).success( function ( result ) {
+            window.location.href = 'programNotification.action?id=' + programId;
+        } ).fail( function ( result ) {
+            setHeaderDelayMessage( "Error: " + result.response );
+            throw "Deletion failed";
+        } );
+    };
+
+    function showUpdateProgramNotification( template ) {
+        var programUid = document.querySelector( '#programUid' ).value;
+        window.location.href = 'showUpdateProgramNotification.action?programUid=' + programUid + '&uid=' + template.uid;
+    };
+</script>

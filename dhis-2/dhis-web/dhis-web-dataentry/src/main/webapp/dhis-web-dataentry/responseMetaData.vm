@@ -19,8 +19,8 @@
 "optionSets": {
 #set( $size = $dataElementsWithOptionSet.size() )
 #foreach( $dataElement in $dataElementsWithOptionSet )
-#set( $size2 = $dataElement.categoryCombo.getSortedOptionCombos().size() )
-#foreach( $option in $dataElement.categoryCombo.getSortedOptionCombos() )"${dataElement.uid}-${option.uid}":{"uid":"$encoder.jsonEncode( ${dataElement.optionSet.uid} )","v":${dataElement.optionSet.version}}#if( $velocityCount < $size2 ),#end#end #if( $velocityCount < $size ),#end
+#set( $size2 = $dataElement.getSortedCategoryOptionCombos().size() )
+#foreach( $option in $dataElement.getSortedCategoryOptionCombos() )"${dataElement.uid}-${option.uid}":{"uid":"$encoder.jsonEncode( ${dataElement.optionSet.uid} )","v":${dataElement.optionSet.version}}#if( $velocityCount < $size2 ),#end#end #if( $velocityCount < $size ),#end
 #end },
 
 "indicatorFormulas": {

@@ -166,6 +166,7 @@
         <entry key="smsSchedulerTask" value-ref="smsSchedulerTask" />
         <entry key="sendScheduledMessageTask" value-ref="sendScheduledMessageTask" />
         <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
+        <entry key="scheduledProgramNotificationsTask" value-ref="scheduledProgramNotificationsTask" />
       </map>
     </property>
   </bean>

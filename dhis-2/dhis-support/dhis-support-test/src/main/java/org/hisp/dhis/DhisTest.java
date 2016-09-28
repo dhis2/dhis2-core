@@ -113,8 +113,7 @@ public abstract class DhisTest
     }
 
     /**
-     * Method to override. Requires the DbmsManager bean to present in the
-     * application context.
+     * Method to override.
      */
     protected boolean emptyDatabaseAfterTest()
     {

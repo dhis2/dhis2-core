@@ -62,7 +62,7 @@ public class ObjectUtilsTest
     }
     
     @Test
-    public void testAddAll()
+    public void testGetAll()
     {
         DataElementCategory ctA = new DataElementCategory( "CategoryA", DataDimensionType.DISAGGREGATION );
         DataElementCategory ctB = new DataElementCategory( "CategoryB", DataDimensionType.DISAGGREGATION );
@@ -79,7 +79,7 @@ public class ObjectUtilsTest
         
         List<DataElementCategoryCombo> ccs = Lists.newArrayList( ccA, ccB );
         
-        Set<DataElementCategory> cts = ObjectUtils.addAll( ccs, cc -> cc.getCategories() );
+        Set<DataElementCategory> cts = ObjectUtils.getAll( ccs, cc -> cc.getCategories() );
         
         assertEquals( 4, cts.size() );
         assertTrue( cts.contains( ctA ) );

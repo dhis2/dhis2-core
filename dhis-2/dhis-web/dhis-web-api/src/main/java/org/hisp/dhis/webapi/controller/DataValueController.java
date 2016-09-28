@@ -190,7 +190,7 @@ public class DataValueController
                 "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
         }
 
-        if ( strictCategoryOptionCombos && !dataElement.getCategoryCombo().getOptionCombos().contains( categoryOptionCombo ) )
+        if ( strictCategoryOptionCombos && !dataElement.getCategoryOptionCombos().contains( categoryOptionCombo ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
                 "Category option combo: " + categoryOptionCombo.getUid() + " must be part of category combo of data element: " + dataElement.getUid() ) );

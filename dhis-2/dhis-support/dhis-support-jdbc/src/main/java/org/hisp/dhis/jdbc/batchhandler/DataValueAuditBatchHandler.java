@@ -28,6 +28,8 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
@@ -35,8 +37,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.datavalue.DataValueAudit;
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
 /**
  * @author Lars Helge Overland
@@ -125,7 +126,7 @@ public class DataValueAuditBatchHandler
             dataValueAudit.getAttributeOptionCombo().getId(),
             dataValueAudit.getValue(),
             dataValueAudit.getModifiedBy(),
-            dataValueAudit.getCreated(),
+            getLongDateString( dataValueAudit.getCreated() ),
             dataValueAudit.getAuditType().toString() );
     }
 

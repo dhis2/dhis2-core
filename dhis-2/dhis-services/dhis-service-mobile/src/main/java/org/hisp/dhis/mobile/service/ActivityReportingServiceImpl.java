@@ -1082,7 +1082,7 @@ public class ActivityReportingServiceImpl
             }
 
             // Category Option Combo
-            if ( programStageDataElement.getDataElement().getCategoryCombo() != null )
+            if ( programStageDataElement.getDataElement().getCategoryCombos() != null )
             {
                 mobileDataElement.setCategoryOptionCombos(
                     ModelMapping.getCategoryOptionCombos( programStageDataElement.getDataElement() ) );
@@ -1307,7 +1307,7 @@ public class ActivityReportingServiceImpl
                 {
                     mobileDataElement.setOptionSet( null );
                 }
-                if ( programStageDataElement.getDataElement().getCategoryCombo() != null )
+                if ( programStageDataElement.getDataElement().getCategoryCombos() != null )
                 {
                     mobileDataElement.setCategoryOptionCombos(
                         ModelMapping.getCategoryOptionCombos( programStageDataElement.getDataElement() ) );

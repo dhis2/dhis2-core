@@ -74,13 +74,13 @@ public class DefaultSystemService
 
     @Autowired
     private CalendarService calendarService;
-    
+
     @Autowired
     private SystemSettingManager systemSettingManager;
-    
+
     @Autowired
     private DataSourceManager dataSourceManager;
-    
+
     /**
      * Variable holding fixed system info state.
      */
@@ -104,21 +104,44 @@ public class DefaultSystemService
 
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
-        
+
         Date now = new Date();
-        
         SystemInfo info = systemInfo.instance();
-        
+
         info.setCalendar( calendarService.getSystemCalendar().name() );
         info.setDateFormat( calendarService.getSystemDateFormat().getJs() );
         info.setServerDate( new Date() );
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
-        
+
+        setSystemMetadataVersionInfo(info);
         return info;
     }
-    
+
+    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
+    {
+
+        if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
+        {
+            return null;
+        }
+        else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
+        {
+            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
+        }
+
+        if ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 )
+        {
+            return lastFailedMetadataSyncTime;
+        }
+        else
+        {
+            return lastSuccessfulMetadataSyncTime;
+        }
+
+    }
+
     private SystemInfo getFixedSystemInfo()
     {
         SystemInfo info = new SystemInfo();
@@ -148,7 +171,7 @@ public class DefaultSystemService
                 String buildTime = properties.getProperty( "build.time" );
 
                 DateTimeFormatter dateFormat = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" );
-                
+
                 info.setBuildTime( new DateTime( dateFormat.parseDateTime( buildTime ) ).toDate() );
             }
             catch ( IOException ex )
@@ -180,14 +203,14 @@ public class DefaultSystemService
 
         info.setFileStoreProvider( dhisConfig.getProperty( ConfigurationKey.FILESTORE_PROVIDER ) );
         info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
-        
+
         // ---------------------------------------------------------------------
         // Database
         // ---------------------------------------------------------------------
 
         info.setDatabaseInfo( databaseInfo );
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
-        
+
         // ---------------------------------------------------------------------
         // System env variables and properties
         // ---------------------------------------------------------------------
@@ -218,5 +241,30 @@ public class DefaultSystemService
         info.setSystemId( config.getSystemId() );
 
         return info;
+    }
+
+    private void setSystemMetadataVersionInfo(SystemInfo info)
+    {
+        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
+        Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        Date metadataLastFailedTime = (Date) systemSettingManager.getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
+        String metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
+        String systemMetadataVersion = (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+        Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
+
+        info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
+
+        info.setSystemMetadataVersion( systemMetadataVersion );
+
+        if ( metadataSyncCron == null || metadataSyncCron.isEmpty() )
+        {
+            info.setIsMetadataSyncEnabled( false );
+        }
+        else
+        {
+            info.setIsMetadataSyncEnabled( true );
+        }
+
+        info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 }

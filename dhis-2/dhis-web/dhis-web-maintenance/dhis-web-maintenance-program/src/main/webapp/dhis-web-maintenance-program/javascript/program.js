@@ -42,6 +42,10 @@ function programReminder( context ){
   location.href = 'programReminder.action?id=' + context.id;
 }
 
+function programNotification( context ){
+  location.href = 'programNotification.action?id=' + context.id;
+}
+
 function viewProgramEntryForm( context ){
   location.href = 'viewProgramEntryForm.action?programId=' + context.id;
 }
