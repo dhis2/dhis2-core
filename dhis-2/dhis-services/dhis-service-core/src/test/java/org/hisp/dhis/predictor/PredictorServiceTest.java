@@ -126,10 +126,6 @@ public class PredictorServiceTest
     public void setUpTest()
         throws Exception
     {
-        periodTypeMonthly = PeriodType.getPeriodTypeByName( "Monthly" );
-        dataSetMonthly = createDataSet( 'M', periodTypeMonthly );
-        dataSetService.addDataSet( dataSetMonthly );
-
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
         
         dataElementA = createDataElement( 'A' );
@@ -138,22 +134,11 @@ public class PredictorServiceTest
         dataElementD = createDataElement( 'D' );
         dataElementX = createDataElement( 'X', ValueType.NUMBER, AggregationType.NONE );
 
-        dataElementA.getDataSets().add( dataSetMonthly );
-        dataElementB.getDataSets().add( dataSetMonthly );
-        dataElementC.getDataSets().add( dataSetMonthly );
-        dataElementD.getDataSets().add( dataSetMonthly );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementX );
-
-        dataElementService.updateDataElement( dataElementA );
-        dataElementService.updateDataElement( dataElementB );
-        dataElementService.updateDataElement( dataElementC );
-        dataElementService.updateDataElement( dataElementD );
-        dataElementService.updateDataElement( dataElementX );
 
         dataElements = new HashSet<>();
 
@@ -161,20 +146,6 @@ public class PredictorServiceTest
         dataElements.add( dataElementB );
         dataElements.add( dataElementC );
         dataElements.add( dataElementD );
-
-        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
-
-        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
-
-        optionCombos = new HashSet<>();
-        optionCombos.add( categoryOptionCombo );
-
-        expressionA = createExpression(
-            "AVG(#{" + dataElementA.getUid() + "})+" + "1.5*STDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
-        expressionB = new Expression( "expressionB", "descriptionB", dataElements );
-
-        expressionService.addExpression( expressionB );
-        expressionService.addExpression( expressionA );
 
         sourceA = createOrganisationUnit( 'A' );
         sourceB = createOrganisationUnit( 'B' );
@@ -192,23 +163,38 @@ public class PredictorServiceTest
         organisationUnitService.addOrganisationUnit( sourceF );
         organisationUnitService.addOrganisationUnit( sourceG );
 
-        joinDataSetToSource( dataSetMonthly, sourceA );
-        joinDataSetToSource( dataSetMonthly, sourceB );
-        joinDataSetToSource( dataSetMonthly, sourceC );
-        joinDataSetToSource( dataSetMonthly, sourceD );
-        joinDataSetToSource( dataSetMonthly, sourceE );
-        joinDataSetToSource( dataSetMonthly, sourceF );
-        joinDataSetToSource( dataSetMonthly, sourceG );
+        periodTypeMonthly = PeriodType.getPeriodTypeByName( "Monthly" );
+        dataSetMonthly = createDataSet( 'M', periodTypeMonthly );
+        
+        dataSetMonthly.addDataSetElement( dataElementA );
+        dataSetMonthly.addDataSetElement( dataElementB );
+        dataSetMonthly.addDataSetElement( dataElementC );
+        dataSetMonthly.addDataSetElement( dataElementD );
+        dataSetMonthly.addDataSetElement( dataElementX );
 
-        dataSetMonthly.getDataElements().add( dataElementA );
-        dataSetMonthly.getDataElements().add( dataElementB );
-        dataSetMonthly.getDataElements().add( dataElementC );
-        dataSetMonthly.getDataElements().add( dataElementD );
+        dataSetMonthly.addOrganisationUnit( sourceA );
+        dataSetMonthly.addOrganisationUnit( sourceB );
+        dataSetMonthly.addOrganisationUnit( sourceC );
+        dataSetMonthly.addOrganisationUnit( sourceD );
+        dataSetMonthly.addOrganisationUnit( sourceE );
+        dataSetMonthly.addOrganisationUnit( sourceF );
+        dataSetMonthly.addOrganisationUnit( sourceG );
+        
+        dataSetService.addDataSet( dataSetMonthly );
+        
+        DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
-        dataElementA.getDataSets().add( dataSetMonthly );
-        dataElementB.getDataSets().add( dataSetMonthly );
-        dataElementC.getDataSets().add( dataSetMonthly );
-        dataElementD.getDataSets().add( dataSetMonthly );
+        defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+
+        optionCombos = new HashSet<>();
+        optionCombos.add( categoryOptionCombo );
+
+        expressionA = createExpression(
+            "AVG(#{" + dataElementA.getUid() + "})+" + "1.5*STDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
+        expressionB = new Expression( "expressionB", "descriptionB", dataElements );
+
+        expressionService.addExpression( expressionB );
+        expressionService.addExpression( expressionA );
     }
 
     // -------------------------------------------------------------------------
@@ -234,19 +220,6 @@ public class PredictorServiceTest
     {
         Set<DataElement> elts = expressionService.getDataElementsInExpression( string );
         return new Expression( string, description, elts );
-    }
-
-    private void joinDataSetToSource( DataSet dataSet, OrganisationUnit source )
-    {
-        source.getDataSets().add( dataSet );
-        dataSet.getSources().add( source );
-    }
-
-    private Set<DataElement> dataElementSet( DataElement elt1 )
-    {
-        HashSet<DataElement> result = new HashSet<DataElement>();
-        result.add( elt1 );
-        return result;
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, Number value )
@@ -565,7 +538,7 @@ public class PredictorServiceTest
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, "GetPredictionsSequential",
             new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
-                dataElementSet( dataElementA ) ),
+                Sets.newHashSet( dataElementA ) ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
         Iterable<DataValue> stream = predictorService.getPredictions( p, monthStart( 2001, 7 ),
@@ -588,7 +561,7 @@ public class PredictorServiceTest
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, "GetPredictionsSeasonal",
             new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
-                dataElementSet( dataElementA ) ),
+                Sets.newHashSet( dataElementA ) ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 
         Iterable<DataValue> stream = predictorService.getPredictions( p, monthStart( 2001, 7 ),
@@ -638,7 +611,7 @@ public class PredictorServiceTest
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, "PredictSequential",
             new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
-                dataElementSet( dataElementA ) ),
+                Sets.newHashSet( dataElementA ) ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
         predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) );

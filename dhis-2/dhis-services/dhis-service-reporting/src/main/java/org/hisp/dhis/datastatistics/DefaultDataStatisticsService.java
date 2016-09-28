@@ -1,7 +1,5 @@
 package org.hisp.dhis.datastatistics;
 
-import org.hisp.dhis.analytics.SortOrder;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -29,6 +27,8 @@ import org.hisp.dhis.analytics.SortOrder;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.hisp.dhis.analytics.SortOrder;
 
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;

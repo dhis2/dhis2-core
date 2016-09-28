@@ -250,7 +250,6 @@ public class PushAnalysis
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-
     public String getTitle()
     {
         return title;

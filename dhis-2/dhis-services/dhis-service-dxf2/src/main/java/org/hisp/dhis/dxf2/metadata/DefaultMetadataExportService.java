@@ -443,7 +443,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( !metadata.containsKey( DataElement.class ) ) metadata.put( DataElement.class, new HashSet<>() );
         metadata.get( DataElement.class ).add( dataElement );
 
-        handleCategoryCombo( metadata, dataElement.getCategoryCombo() );
+        handleCategoryCombo( metadata, dataElement.getDataElementCategoryCombo() );
         handleOptionSet( metadata, dataElement.getOptionSet() );
         handleOptionSet( metadata, dataElement.getCommentOptionSet() );
 

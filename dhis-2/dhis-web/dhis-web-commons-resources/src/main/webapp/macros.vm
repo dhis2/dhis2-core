@@ -536,3 +536,11 @@ jQuery.each(attributes, function(i, item) {
 <select id="${args.prefix}Validator" style="display:none"></select>
 
 #end
+
+#macro( absValue $integer )#if( $integer > -1 )#set( $res = $integer )$res#else#set( $res = $integer * -1)$res#end#end
+
+#macro( setIfEnumCollectionContains $name $enumCollection $value )
+    #foreach ( $item in $enumCollection )
+        #if ( $item.name().equals( $name ) )$value#end
+    #end
+#end

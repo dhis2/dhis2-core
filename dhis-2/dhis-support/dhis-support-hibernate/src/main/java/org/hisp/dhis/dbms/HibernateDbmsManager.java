@@ -149,7 +149,7 @@ public class HibernateDbmsManager
         emptyTable( "lockexception" );
 
         emptyTable( "datasetsource" );
-        emptyTable( "datasetmembers" );
+        emptyTable( "datasetelement" );
         emptyTable( "datasetindicators" );
         emptyTable( "datasetoperands" );
         emptyTable( "dataset" );

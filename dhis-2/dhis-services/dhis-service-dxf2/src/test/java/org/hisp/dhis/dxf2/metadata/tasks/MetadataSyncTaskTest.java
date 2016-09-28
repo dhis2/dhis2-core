@@ -46,7 +46,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.ArrayList;
@@ -106,14 +105,6 @@ public class MetadataSyncTaskTest
         metadataVersions.add( metadataVersion );
     }
 
-    @Test
-    public void testShouldSetMetadataVersionEnabledToTrue() throws Exception
-    {
-        metadataSyncTask.onApplicationEvent( mock( ContextRefreshedEvent.class ) );
-
-        verify( systemSettingManager ).saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
-    }
-
     // TODO: can we write more tests. This might cover a lot more tests.
     // TODO: don't test on how it happens. test for the result
     @Test
@@ -124,6 +115,7 @@ public class MetadataSyncTaskTest
         when( metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion ) ).thenReturn( metadataVersions );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
+        verify (metadataSyncPreProcessor).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -141,6 +133,7 @@ public class MetadataSyncTaskTest
         doNothing().when( metadataRetryContext ).updateRetryContext( any( String.class ), any( String.class ), eq( metadataVersion ) );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
+        verify (metadataSyncPreProcessor).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleAggregateDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
@@ -160,6 +153,7 @@ public class MetadataSyncTaskTest
         when( metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, metadataRetryContext, metadataVersion ) ).thenReturn( true );
         metadataSyncTask.runSyncTask( metadataRetryContext );
 
+        verify (metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleEventDataPush( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleCurrentMetadataVersion( metadataRetryContext );
