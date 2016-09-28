@@ -97,7 +97,7 @@
             <option value="disabled">$i18n.getString( "disabled" )</option>
             <option value="enabled"#if( $metadataSyncStrategy && $metadataSyncStrategy == "enabled" ) selected="selected"#end>$i18n.getString( "enabled" )</option>
         </select>
-      <input id="submitSyncNow" type="button" style="width:140px" value="$i18n.getString( 'Sync Now' )"/>
+      <input id="submitSyncNow" type="button" style="width:140px" value="$i18n.getString( 'synchronize_now' )"/>
     </div>
 
     <div id="scheduler" class="setting settingIndent schedulerWrapper scheduling">
@@ -208,12 +208,14 @@
 </div>
 
 </form>
-<form id="metadataSyncNowForm" method="post" action="executeMetaDataSyncTask.action">
-    <input type="hidden" id="executeNowTaskStatus" name="executeNowTaskStatus" type="hidden"
-    #if ( ${executeNowTaskStatus} ==  'task_already_running')
-           value="$i18n.getString( 'metadata_sync_in_progress' )"
-    #elseif ( ${executeNowTaskStatus} == "task_started" )
-           value="$i18n.getString( 'metadata_sync_has_started' )"
+
+<form id="metadataSyncNowForm" method="post" action="executeMetaDataSyncTask.action"></form>
+
+<input type="hidden" id="currentRunningTaskStatus" name="currentRunningTaskStatus" type="hidden"
+    #if ( ${currentRunningTaskStatus} == "task_already_running" )
+           value="$i18n.getString( "metadata_sync_in_progress" )"
+    #elseif ( ${currentRunningTaskStatus} == "task_started" )
+           value="$i18n.getString( "metadata_sync_has_started" )"
     #end
-</form>
+    >
 <span id="info">$i18n.getString( "scheduling_is" ) $!i18n.getString( $!status.key )</span>

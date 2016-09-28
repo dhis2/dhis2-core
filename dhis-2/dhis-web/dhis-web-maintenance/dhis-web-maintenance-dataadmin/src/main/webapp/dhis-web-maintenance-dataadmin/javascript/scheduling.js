@@ -1,8 +1,8 @@
 $(document).ready(function () {
 
-    if($('#executeNowTaskStatus').val())
+    if($('#currentRunningTaskStatus').val())
     {
-        alert($('#executeNowTaskStatus').val());
+        setHeaderDelayMessage( $('#currentRunningTaskStatus').val() );
     }
 
     if ($('#isRunning').val() == 'true') 
@@ -240,7 +240,8 @@ function submitSchedulingForm()
     if($("#metadataSyncStrategy").val() == "enabled")
     {
         var cron = getCronExpression();
-        if(cron)
+
+        if( cron )
         {
             $('#metadataSyncCron').val(cron);
             $('.scheduling').removeAttr('disabled');
@@ -248,7 +249,7 @@ function submitSchedulingForm()
         }
         else 
         {
-            alert( metadata_sync_scheduler_alert );
+            setHeaderDelayMessage( metadata_sync_scheduler_alert );
         }
     }
     else
