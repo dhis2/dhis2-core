@@ -315,6 +315,7 @@
       <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
       <param name="javascripts">javascript/scheduling.js</param>
       <param name="executeNow">true</param>
+      <param name="taskKey">metadataSyncTask</param>
       <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
     </action>
 

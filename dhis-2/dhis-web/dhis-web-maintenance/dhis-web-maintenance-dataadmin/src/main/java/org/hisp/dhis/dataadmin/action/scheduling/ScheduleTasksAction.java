@@ -325,11 +325,11 @@ public class ScheduleTasksAction
         return lastDataStatisticSuccess;
     }
 
-    private String metadataSyncStatus;
-    public String getMetadataSyncStatus(){ return metadataSyncStatus; }
-    public void setMetadataSyncStatus(String metadataSyncStatus )
+    private String executeNowTaskStatus;
+    public String getExecuteNowTaskStatus(){ return executeNowTaskStatus; }
+    public void setExecuteNowTaskStatus(String executeNowTaskStatus )
     {
-        this.metadataSyncStatus = metadataSyncStatus;
+        this.executeNowTaskStatus = executeNowTaskStatus;
     }
 
     // -------------------------------------------------------------------------
@@ -341,14 +341,14 @@ public class ScheduleTasksAction
     {
         if ( executeNow )
         {
-            if(schedulingManager.isTaskInProgress( TASK_META_DATA_SYNC ))
+            if(schedulingManager.isTaskInProgress( taskKey ))
             {
-                metadataSyncStatus = TASK_ALREADY_RUNNING;
+                executeNowTaskStatus = TASK_ALREADY_RUNNING;
             }
             else
             {
-                schedulingManager.executeTask( TASK_META_DATA_SYNC );
-                metadataSyncStatus = TASK_STARTED;
+                schedulingManager.executeTask( taskKey );
+                executeNowTaskStatus = TASK_STARTED;
             }
 
         }

@@ -1,8 +1,8 @@
 $(document).ready(function () {
 
-    if($('#metadataSyncStatus').val())
+    if($('#executeNowTaskStatus').val())
     {
-        alert($('#metadataSyncStatus').val());
+        alert($('#executeNowTaskStatus').val());
     }
 
     if ($('#isRunning').val() == 'true') 

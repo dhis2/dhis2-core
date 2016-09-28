@@ -209,10 +209,10 @@
 
 </form>
 <form id="metadataSyncNowForm" method="post" action="executeMetaDataSyncTask.action">
-    <input type="hidden" id="metadataSyncStatus" name="metadataSyncStatus" type="hidden"
-    #if ( ${metadataSyncStatus} ==  'task_already_running')
+    <input type="hidden" id="executeNowTaskStatus" name="executeNowTaskStatus" type="hidden"
+    #if ( ${executeNowTaskStatus} ==  'task_already_running')
            value="$i18n.getString( 'metadata_sync_in_progress' )"
-    #elseif ( ${metadataSyncStatus} == "task_started" )
+    #elseif ( ${executeNowTaskStatus} == "task_started" )
            value="$i18n.getString( 'metadata_sync_has_started' )"
     #end
 </form>
