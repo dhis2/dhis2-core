@@ -135,42 +135,6 @@ public class ValidationRuleServiceTest
 
     private Period periodB;
 
-    private Period periodC;
-
-    private Period periodD;
-
-    private Period periodE;
-
-    private Period periodF;
-
-    private Period periodG;
-
-    private Period periodH;
-
-    private Period periodI;
-
-    private Period periodJ;
-
-    private Period periodK;
-
-    private Period periodL;
-
-    private Period periodM;
-
-    private Period periodN;
-
-    private Period periodO;
-
-    private Period periodP;
-
-    private Period periodW;
-
-    private Period periodX;
-
-    private Period periodY;
-
-    private Period periodZ;
-
     private OrganisationUnit sourceA;
 
     private OrganisationUnit sourceB;
@@ -282,29 +246,7 @@ public class ValidationRuleServiceTest
 
         periodA = createPeriod( periodTypeMonthly, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( periodTypeMonthly, getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
-        periodC = createPeriod( periodTypeMonthly, getDate( 2000, 5, 1 ), getDate( 2000, 5, 31 ) );
-        periodD = createPeriod( periodTypeMonthly, getDate( 2000, 6, 1 ), getDate( 2000, 6, 30 ) );
-        periodE = createPeriod( periodTypeMonthly, getDate( 2000, 7, 1 ), getDate( 2000, 7, 31 ) );
-
-        periodF = createPeriod( periodTypeMonthly, getDate( 2001, 3, 1 ), getDate( 2001, 3, 31 ) );
-        periodG = createPeriod( periodTypeMonthly, getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) );
-        periodH = createPeriod( periodTypeMonthly, getDate( 2001, 5, 1 ), getDate( 2001, 5, 31 ) );
-        periodI = createPeriod( periodTypeMonthly, getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) );
-        periodJ = createPeriod( periodTypeMonthly, getDate( 2001, 7, 1 ), getDate( 2001, 7, 31 ) );
-
-        periodK = createPeriod( periodTypeMonthly, getDate( 2002, 3, 1 ), getDate( 2002, 3, 31 ) );
-        periodL = createPeriod( periodTypeMonthly, getDate( 2002, 4, 1 ), getDate( 2002, 4, 30 ) );
-        periodM = createPeriod( periodTypeMonthly, getDate( 2002, 5, 1 ), getDate( 2002, 5, 31 ) );
-        periodN = createPeriod( periodTypeMonthly, getDate( 2002, 6, 1 ), getDate( 2002, 6, 30 ) );
-        periodO = createPeriod( periodTypeMonthly, getDate( 2002, 7, 1 ), getDate( 2002, 7, 31 ) );
-        periodP = createPeriod( periodTypeMonthly, getDate( 2002, 8, 1 ), getDate( 2002, 8, 31 ) );
-
-        periodW = createPeriod( periodTypeWeekly, getDate( 2002, 4, 1 ), getDate( 2000, 4, 7 ) );
-
-        periodX = createPeriod( periodTypeYearly, getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) );
-        periodY = createPeriod( periodTypeYearly, getDate( 2001, 1, 1 ), getDate( 2001, 12, 31 ) );
-        periodZ = createPeriod( periodTypeYearly, getDate( 2002, 1, 1 ), getDate( 2002, 12, 31 ) );
-
+     
         dataSetWeekly = createDataSet( 'W', periodTypeWeekly );
         dataSetMonthly = createDataSet( 'M', periodTypeMonthly );
         dataSetYearly = createDataSet( 'Y', periodTypeYearly );
