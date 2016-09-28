@@ -338,15 +338,6 @@ public class ValidationRuleServiceTest
 
         dataSetYearly.addDataSetElement( dataElementE );
 
-        dataElementA.addDataSetElement( dataSetMonthly );
-        dataElementB.addDataSetElement( dataSetMonthly );
-        dataElementC.addDataSetElement( dataSetMonthly );
-        dataElementD.addDataSetElement( dataSetMonthly );
-
-        dataElementE.addDataSetElement( dataSetWeekly );
-
-        dataElementE.addDataSetElement( dataSetYearly );
-
         dataSetService.addDataSet( dataSetWeekly );
         dataSetService.addDataSet( dataSetMonthly );
         dataSetService.addDataSet( dataSetYearly );

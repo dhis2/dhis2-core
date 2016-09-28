@@ -308,16 +308,15 @@
       <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
     </action>
 
-
     <action name="executeMetaDataSyncTask" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
-      <result name="success" type="redirect">viewScheduledTasks.action</result>
+      <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-dataadmin/viewScheduledTasks.vm</param>
       <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
       <param name="javascripts">javascript/scheduling.js</param>
       <param name="executeNow">true</param>
+      <param name="taskKey">metaDataSyncTask</param>
       <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
     </action>
-
 
     <action name="scheduleTasks" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
       <result name="success" type="velocity">/main.vm</result>
@@ -336,6 +335,6 @@
       <param name="executeNow">true</param>
       <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
     </action>
-    
+
   </package>
 </struts>

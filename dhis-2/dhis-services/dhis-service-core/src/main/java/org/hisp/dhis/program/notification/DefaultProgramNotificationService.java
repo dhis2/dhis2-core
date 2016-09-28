@@ -182,7 +182,7 @@ public class DefaultProgramNotificationService
 
     private MessageBatch createProgramStageInstanceMessageBatch( ProgramNotificationTemplate template, List<ProgramStageInstance> programStageInstances )
     {
-        MessageBatch batch = new MessageBatch( template );
+        MessageBatch batch = new MessageBatch();
 
         if ( template.getNotificationRecipient().isExternalRecipient() )
         {
@@ -206,7 +206,7 @@ public class DefaultProgramNotificationService
 
     private MessageBatch createProgramInstanceMessageBatch( ProgramNotificationTemplate template, List<ProgramInstance> programInstances )
     {
-        MessageBatch batch = new MessageBatch( template );
+        MessageBatch batch = new MessageBatch();
 
         if ( template.getNotificationRecipient().isExternalRecipient() )
         {
@@ -222,7 +222,7 @@ public class DefaultProgramNotificationService
 
     private MessageBatch createSingleProgramInstanceMessageBatch( ProgramNotificationTemplate template, ProgramInstance programInstance )
     {
-        MessageBatch batch = new MessageBatch( template );
+        MessageBatch batch = new MessageBatch();
 
         if ( template.getNotificationRecipient().isExternalRecipient() )
         {
@@ -238,7 +238,7 @@ public class DefaultProgramNotificationService
 
     private MessageBatch createSingleProgramStageInstanceMessageBatch( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
     {
-        MessageBatch batch = new MessageBatch( template );
+        MessageBatch batch = new MessageBatch();
 
         if ( template.getNotificationRecipient().isExternalRecipient() )
         {
@@ -350,14 +350,8 @@ public class DefaultProgramNotificationService
 
     private static class MessageBatch
     {
-        ProgramNotificationTemplate template;
         Set<DhisMessage> dhisMessages = Sets.newHashSet();
         Set<ProgramMessage> programMessages = Sets.newHashSet();
-
-        MessageBatch( ProgramNotificationTemplate template)
-        {
-            this.template = template;
-        }
 
         int messageCount()
         {

@@ -41,6 +41,8 @@
 
   <bean id="org.hisp.dhis.node.NodeService" class="org.hisp.dhis.node.DefaultNodeService" />
 
+  <bean class="org.hisp.dhis.node.transformers.PagingNodeTransformer" />
+
   <bean class="org.hisp.dhis.node.transformers.RenameNodeTransformer" />
 
   <bean class="org.hisp.dhis.node.transformers.IsEmptyNodeTransformer" />

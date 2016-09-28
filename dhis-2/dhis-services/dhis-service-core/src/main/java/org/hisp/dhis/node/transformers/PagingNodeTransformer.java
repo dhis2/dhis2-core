@@ -1,10 +1,8 @@
-package org.hisp.dhis.dxf2.synch;
-
-import org.hisp.dhis.message.MessageService;
+package org.hisp.dhis.node.transformers;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,59 +28,65 @@ import org.hisp.dhis.message.MessageService;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.node.AbstractNode;
+import org.hisp.dhis.node.Node;
+import org.hisp.dhis.node.NodeTransformer;
+import org.hisp.dhis.schema.Property;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataSynchronizationTask
-    implements Runnable
+@Component
+public class PagingNodeTransformer implements NodeTransformer
 {
-    @Autowired
-    private SynchronizationManager synchronizationManager;
-    
-    @Autowired
-    private MessageService messageService;
-
-    @Autowired
-    private Notifier notifier;
-
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
+    @Override
+    public String name()
     {
-        this.taskId = taskId;
+        return "paging";
     }
 
-    // -------------------------------------------------------------------------
-    // Runnable implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public void run()
+    public Node transform( Node node, List<String> args )
     {
-        try
-        {
-            synchronizationManager.executeDataPush();
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( taskId, "Data synch failed: " + ex.getMessage() );
-        }
+        checkNotNull( node );
+        checkArgument( !args.isEmpty(), "paging requires at least one parameter, .e.g: property|paging(page, pageSize)" );
+        checkNotNull( node.getProperty() );
+
+        int page;
+        int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
         try
         {
-            synchronizationManager.executeAnonymousEventPush();
+            page = Integer.parseInt( args.get( 0 ) );
+
+            if ( args.size() > 1 )
+            {
+                pageSize = Integer.parseInt( args.get( 1 ) );
+            }
         }
-        catch ( RuntimeException ex )
+        catch ( NumberFormatException ex )
         {
-            notifier.notify( taskId, "Event synch failed: " + ex.getMessage() );
-            
-            messageService.sendSystemErrorNotification( "Event synch failed", ex );
+            return node;
         }
 
-        notifier.notify( taskId, "Data/Event synch successful" );
+        Property property = node.getProperty();
+
+        if ( property.isCollection() )
+        {
+            Pager pager = new Pager( page, node.getChildren().size(), pageSize );
+            ((AbstractNode) node).setChildren( PagerUtils.pageCollection( node.getChildren(), pager ) );
+
+            return node;
+        }
+
+        return node;
     }
 }
