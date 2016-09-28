@@ -31,6 +31,7 @@ package org.hisp.dhis.message;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
@@ -38,15 +39,19 @@ import org.hisp.dhis.email.Email;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.*;
 import org.hisp.dhis.util.ObjectUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 /**
  * @author Lars Helge Overland
@@ -58,9 +63,7 @@ public class DefaultMessageService
     private static final Log log = LogFactory.getLog( DefaultMessageService.class );
 
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
-
     private static final String COMPLETE_TEMPLATE = "completeness_message";
-
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
 
     // -------------------------------------------------------------------------
@@ -255,6 +258,23 @@ public class DefaultMessageService
         return sendFeedback( subject, text, null );
     }
 
+    @Override
+    public int sendSystemErrorNotification( String subject, Throwable t )
+    {
+        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String baseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
+        
+        String text = new StringBuilder()
+            .append( subject + LN + LN )
+            .append( "System title: " + title + LN )
+            .append( "Base URL: " + baseUrl + LN )
+            .append( "Time: " + new DateTime().toString() + LN )
+            .append( "Message: " + t.getMessage() + LN + LN )
+            .append( "Cause: " + DebugUtils.getStackTrace( t.getCause() ) ).toString();
+        
+        return sendSystemNotification( subject, text );
+    }
+    
     @Override
     public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal )
     {
