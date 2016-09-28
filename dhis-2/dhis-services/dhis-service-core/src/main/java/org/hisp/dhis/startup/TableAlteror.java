@@ -59,7 +59,6 @@ public class TableAlteror
 
     @Autowired
     private StatementManager statementManager;
-
     @Autowired
     private StatementBuilder statementBuilder;
 
@@ -928,7 +927,9 @@ public class TableAlteror
         
         updateEnums();
 
-        oauth2();
+        upgradeDataValueSoftDelete();
+        
+        initOauth2();
 
         upgradeDataValuesWithAttributeOptionCombo();
         upgradeCompleteDataSetRegistrationsWithAttributeOptionCombo();
@@ -952,11 +953,19 @@ public class TableAlteror
         upgradeDataDimensionItemsToReportingRateMetric();
 
         updateObjectTranslation();
+        upgradeDataSetElements();
 
         log.info( "Tables updated" );
     }
+    
+    private void upgradeDataValueSoftDelete()
+    {
+        executeSql( "update datavalue set deleted = false where deleted is null" );
+        executeSql( "alter table datavalue alter column deleted set not null" );
+        executeSql( "create index in_datavalue_deleted on datavalue(deleted)" );
+    }
 
-    public void oauth2()
+    private void initOauth2()
     {
         // OAuth2
         executeSql( "CREATE TABLE oauth_code (" +
@@ -1047,6 +1056,29 @@ public class TableAlteror
         executeSql( "update dataentryform set style='NONE' where style='none'" );
     }
 
+    private void upgradeDataSetElements()
+    {
+        String autoIncr = statementBuilder.getAutoIncrementValue();
+        String uid = statementBuilder.getUid();
+        
+        String insertSql = 
+            "insert into datasetelement(datasetelementid,uid,datasetid,dataelementid,created,lastupdated) " +
+            "select " + autoIncr + "  as datasetelementid, " +
+            uid + " as uid, " +
+            "dsm.datasetid as datasetid, " +
+            "dsm.dataelementid as dataelementid, " +
+            "now() as created, " +
+            "now() as lastupdated " +
+            "from datasetmembers dsm; " +
+            "drop table datasetmembers; ";        
+        
+        executeSql( insertSql );
+        
+        executeSql( "alter table datasetelement alter column uid set not null" );
+        executeSql( "alter table datasetelement alter column created set not null" );
+        executeSql( "alter table datasetelement alter column lastupdated set not null" );
+    }
+    
     private void upgradeAggregationType( String table )
     {
         executeSql( "update " + table + " set aggregationtype='SUM' where aggregationtype='sum'" );

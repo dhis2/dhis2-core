@@ -47,7 +47,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -295,7 +294,6 @@ public class DefaultExpressionService
             comboId = null;
         }
         
-        final DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo();
         final DataElementCategoryOptionCombo defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         
         if ( comboId == null || comboId == defaultCombo.getUid() )
@@ -311,7 +309,7 @@ public class DefaultExpressionService
         if ( comboId == null )
         {
             Double sum = 0.0;
-            final Set<DataElementCategoryOptionCombo> combos = categoryCombo.getOptionCombos();
+            final Set<DataElementCategoryOptionCombo> combos = dataElement.getCategoryOptionCombos();
 
             for ( DataElementCategoryOptionCombo combo : combos )
             {
@@ -921,9 +919,7 @@ public class DefaultExpressionService
 
                 final DataElement dataElement = idObjectManager.getNoAcl( DataElement.class, matcher.group( 1 ) );
 
-                final DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo();
-
-                for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getOptionCombos() )
+                for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryOptionCombos() )
                 {
                     replace.append( EXP_OPEN ).append( dataElement.getUid() ).append( SEPARATOR ).
                         append( categoryOptionCombo.getUid() ).append( EXP_CLOSE ).append( "+" );

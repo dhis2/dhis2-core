@@ -81,6 +81,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -139,6 +140,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Date programIncidentStartDate,
         @RequestParam( required = false ) Date programIncidentEndDate,
         @RequestParam( required = false ) String trackedEntity,
+        @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -159,13 +161,24 @@ public class TrackedEntityInstanceController
 
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
 
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        List<TrackedEntityInstance> trackedEntityInstances;
+
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
             eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging );
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( params );
+        if ( trackedEntityInstance == null )
+        {
+            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( params );
+        }
+        else
+        {
+            Set<String> trackedEntityInstanceIds = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
 
-        RootNode rootNode = NodeUtils.createMetadata();
+            trackedEntityInstances = trackedEntityInstanceIds != null ? trackedEntityInstanceIds.stream().map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id ) ).collect( Collectors.toList()) : null;
+        }
 
         if ( params.isPaging() && params.isTotalPages() )
         {

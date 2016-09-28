@@ -28,7 +28,10 @@ package org.hisp.dhis.dataadmin.action.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.opensymphony.xwork2.Action;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ListMap;
@@ -52,10 +55,14 @@ import static org.hisp.dhis.scheduling.SchedulingManager.TASK_META_DATA_SYNC;
 import static org.hisp.dhis.scheduling.SchedulingManager.TASK_MONITORING_LAST_DAY;
 import static org.hisp.dhis.scheduling.SchedulingManager.TASK_RESOURCE_TABLE;
 import static org.hisp.dhis.scheduling.SchedulingManager.TASK_RESOURCE_TABLE_15_MINS;
+import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SCHEDULED_PROGRAM_NOTIFICATIONS;
 import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SEND_SCHEDULED_SMS;
 import static org.hisp.dhis.scheduling.SchedulingManager.TASK_SMS_SCHEDULER;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_0AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_11PM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_5AM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_6AM;
+import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_7AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_8AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_15MIN;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
@@ -71,6 +78,18 @@ public class ScheduleTasksAction
     private static final String STRATEGY_LAST_3_YEARS_DAILY = "last3YearsDaily";
     private static final String STRATEGY_ENABLED = "enabled";
     private static final String STRATEGY_EVERY_MIDNIGHT = "everyMidNight";
+
+    private static final String STRATEGY_DAILY_5_AM = "dailyFiveAM";
+    private static final String STRATEGY_DAILY_6_AM = "dailySixAM";
+    private static final String STRATEGY_DAILY_7_AM = "dailySevenAM";
+    private static final String STRATEGY_DAILY_8_AM = "dailyEightAM";
+
+    private BiMap<String, String> STRATEGY_TO_CRON = new ImmutableBiMap.Builder<String, String>()
+        .put( STRATEGY_DAILY_5_AM, CRON_DAILY_5AM )
+        .put( STRATEGY_DAILY_6_AM, CRON_DAILY_6AM )
+        .put( STRATEGY_DAILY_7_AM, CRON_DAILY_7AM )
+        .put( STRATEGY_DAILY_8_AM, CRON_DAILY_8AM )
+        .build();
 
     private static final Log log = LogFactory.getLog( ScheduleTasksAction.class );
 
@@ -176,6 +195,18 @@ public class ScheduleTasksAction
         this.smsSchedulerStrategy = smsSchedulerStrategy;
     }
 
+    private String programNotificationSchedulerStrategy;
+
+    public String getProgramNotificationSchedulerStrategy()
+    {
+        return programNotificationSchedulerStrategy;
+    }
+
+    public void setProgramNotificationSchedulerStrategy( String programNotificationSchedulerStrategy )
+    {
+        this.programNotificationSchedulerStrategy = programNotificationSchedulerStrategy;
+    }
+
     private String dataStatisticsStrategy;
 
     public String getDataStatisticsStrategy()
@@ -278,6 +309,13 @@ public class ScheduleTasksAction
         return lastSmsSchedulerSuccess;
     }
 
+    private Date lastProgramNotificationSchedulerSuccess;
+
+    public Date getLastProgramNotificationSchedulerSuccess()
+    {
+        return lastProgramNotificationSchedulerSuccess;
+    }
+
     private Date lastDataStatisticSuccess;
 
     public Date getLastDataStatisticSuccess()
@@ -307,6 +345,10 @@ public class ScheduleTasksAction
             }
             else
             {
+                // -------------------------------------------------------------
+                // Build new schedule
+                // -------------------------------------------------------------
+
                 ListMap<String, String> cronKeyMap = new ListMap<>();
                 
                 // -------------------------------------------------------------
@@ -353,7 +395,7 @@ public class ScheduleTasksAction
                     cronKeyMap.putValue( CRON_EVERY_MIN, TASK_DATA_SYNCH );
                 }
 
-                if( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
+                if ( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
                 {
                     cronKeyMap.putValue( metadataSyncCron, TASK_META_DATA_SYNC );
                     systemSettingManager.saveSystemSetting( SettingKey.METADATA_SYNC_CRON,metadataSyncCron );
@@ -363,18 +405,45 @@ public class ScheduleTasksAction
                 // -------------------------------------------------------------
                 // SMS Scheduler
                 // -------------------------------------------------------------
-                
-                if ( STRATEGY_EVERY_MIDNIGHT.equals( smsSchedulerStrategy ) )   
+
+                if ( STRATEGY_EVERY_MIDNIGHT.equals( smsSchedulerStrategy ) )
                 {
                     cronKeyMap.putValue( CRON_DAILY_11PM, TASK_SMS_SCHEDULER );
                     cronKeyMap.putValue( CRON_DAILY_8AM, TASK_SEND_SCHEDULED_SMS );
                 }
 
+                // -------------------------------------------------------------
+                // Program notifications scheduler
+                // -------------------------------------------------------------
+
+                if ( StringUtils.isNotEmpty( programNotificationSchedulerStrategy ) )
+                {
+                    String cron = STRATEGY_TO_CRON.get( programNotificationSchedulerStrategy );
+
+                    if ( cron == null )
+                    {
+                        log.warn( "Unrecognized scheduling strategy for program notifications: " + programNotificationSchedulerStrategy );
+                    }
+                    else
+                    {
+                        cronKeyMap.putValue( cron, TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+                    }
+                }
+
+                // -------------------------------------------------------------
+                // Commit new schedule
+                // -------------------------------------------------------------
+
                 schedulingManager.scheduleTasks( cronKeyMap );
+
             }
         }
         else
         {
+            // -------------------------------------------------------------
+            // Populate fields
+            // -------------------------------------------------------------
+
             Collection<String> keys = schedulingManager.getScheduledKeys();
 
             // -----------------------------------------------------------------
@@ -430,7 +499,6 @@ public class ScheduleTasksAction
                 smsSchedulerStrategy = STRATEGY_EVERY_MIDNIGHT;
             }
 
-
             // -------------------------------------------------------------
             // Metadata sync Scheduler
             // -------------------------------------------------------------
@@ -439,6 +507,20 @@ public class ScheduleTasksAction
             {
                 metadataSyncStrategy = STRATEGY_ENABLED;
                 metadataSyncCron = (String) systemSettingManager.getSystemSetting( SettingKey.METADATA_SYNC_CRON );
+            }
+
+            // -------------------------------------------------------------
+            // Program notifications scheduler
+            // -------------------------------------------------------------
+
+            if ( keys.contains( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS ) )
+            {
+                String cron = schedulingManager.getCronForTask( TASK_SCHEDULED_PROGRAM_NOTIFICATIONS );
+
+                if ( cron != null )
+                {
+                    programNotificationSchedulerStrategy = STRATEGY_TO_CRON.inverse().get( cron );
+                }
             }
         }
 
@@ -454,6 +536,7 @@ public class ScheduleTasksAction
         lastDataStatisticSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_STATISTIC );
         lastDataSyncSuccess = synchronizationManager.getLastSynchSuccess();
         lastMetaDataSyncSuccess = (Date)systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        lastProgramNotificationSchedulerSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS );
 
         log.info( "Status: " + status );
         log.info( "Running: " + running );

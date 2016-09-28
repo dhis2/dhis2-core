@@ -157,6 +157,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="periodStore" ref="org.hisp.dhis.period.PeriodStore" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
+    <property name="statementBuilder" ref="statementBuilder" />
   </bean>
 
   <bean id="org.hisp.dhis.dataapproval.DataApprovalStore" class="org.hisp.dhis.dataapproval.hibernate.HibernateDataApprovalStore">
@@ -211,6 +212,12 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
     <property name="transientIdentifiableProperties" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataset.DataSetElementStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.DataSetElement" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.dataset.DataSetStore" class="org.hisp.dhis.dataset.hibernate.HibernateDataSetStore">
@@ -1303,6 +1310,7 @@
     <property name="smsSender" ref="smsMessageSender" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="reminderService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
+    <property name="programNotificationService" ref="org.hisp.dhis.program.notification.ProgramNotificationService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
   </bean>
 
@@ -1310,6 +1318,15 @@
 
   <bean id="org.hisp.dhis.program.ProgramStageService" class="org.hisp.dhis.program.DefaultProgramStageService">
     <property name="programStageStore" ref="org.hisp.dhis.program.ProgramStageStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationService"
+    class="org.hisp.dhis.program.notification.DefaultProgramNotificationService">
+    <property name="programMessageService" ref="org.hisp.dhis.program.message.ProgramMessageService" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="programInstanceStore" ref="org.hisp.dhis.program.ProgramInstanceStore" />
+    <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
+    <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
   </bean>
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
@@ -1394,6 +1411,7 @@
   <bean id="org.hisp.dhis.predictor.PredictorService" class="org.hisp.dhis.predictor.DefaultPredictorService" />
 
   <bean id="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore"
+
     class="org.hisp.dhis.hibernate.HibernateGenericStore">
     <property name="clazz" value="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1409,6 +1427,13 @@
     <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="transientIdentifiableProperties" value="true" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.notification.ProgramStageNotificationStore"
+    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.eventreport.EventReportService" class="org.hisp.dhis.eventreport.DefaultEventReportService">
@@ -1449,7 +1474,6 @@
 
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
 
-
   <!-- I18n UI -->
 
   <bean id="org.hisp.dhis.i18n.locale.LocaleManager" class="org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager">
@@ -1472,6 +1496,11 @@
   <!-- Scheduled task for data monitoring -->
 
   <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
+
+  <!-- Scheduled task for scheduled program notifications -->
+
+  <bean id="scheduledProgramNotificationsTask"
+    class="org.hisp.dhis.program.notification.ProgramNotificationTask" scope="prototype" />
 
   <!-- Startup routine definitions -->
 

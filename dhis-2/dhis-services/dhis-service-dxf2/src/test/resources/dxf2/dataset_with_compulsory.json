@@ -210,6 +210,17 @@
       ]
     }
   ],
+  "dataSetElements": [
+    {
+      "id": "rSChycu6mOY",
+      "dataElement": {
+        "id": "lQBOv8uoqn0"
+      },
+      "dataSet": {
+        "id": "couZzkKqTjV"
+      }
+    }
+  ],
   "dataSets": [
     {
       "user": {
@@ -251,11 +262,6 @@
           "dataElement": {
             "id": "lQBOv8uoqn0"
           }
-        }
-      ],
-      "dataElements": [
-        {
-          "id": "lQBOv8uoqn0"
         }
       ],
       "code": "DataSetCodeA",
