@@ -48,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -252,6 +253,34 @@ public class DefaultProgramNotificationService
             template.getDeliveryChannels(), programInstance );
     }
 
+    private Set<User> resolveDhisMessageRecipients(
+        ProgramNotificationTemplate template, @Nullable ProgramInstance programInstance, @Nullable ProgramStageInstance programStageInstance )
+    {
+        if ( programInstance == null && programStageInstance == null )
+        {
+            throw new IllegalArgumentException( "Either of the arguments [programInstance, programStageInstance] must be non-null" );
+        }
+
+        Set<User> recipients = Sets.newHashSet();
+
+        NotificationRecipient recipientType = template.getNotificationRecipient();
+
+        if ( recipientType == NotificationRecipient.USER_GROUP )
+        {
+            recipients.addAll( template.getRecipientUserGroup().getMembers() );
+        }
+        else if ( recipientType == NotificationRecipient.USERS_AT_ORGANISATION_UNIT )
+        {
+
+            OrganisationUnit organisationUnit =
+                programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
+
+            recipients.addAll( organisationUnit.getUsers() );
+        }
+
+        return recipients;
+    }
+
     private ProgramMessageRecipients resolveProgramMessageRecipients(
         ProgramNotificationTemplate template, OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
     {
@@ -290,6 +319,7 @@ public class DefaultProgramNotificationService
         DhisMessage dhisMessage = new DhisMessage();
 
         dhisMessage.message = NotificationMessageRenderer.render( psi, template );
+        dhisMessage.recipients = resolveDhisMessageRecipients( template, null, psi );
 
         return dhisMessage;
     }
@@ -299,6 +329,7 @@ public class DefaultProgramNotificationService
         DhisMessage dhisMessage = new DhisMessage();
 
         dhisMessage.message = NotificationMessageRenderer.render( pi, template );
+        dhisMessage.recipients = resolveDhisMessageRecipients( template, pi, null );
 
         return dhisMessage;
     }
