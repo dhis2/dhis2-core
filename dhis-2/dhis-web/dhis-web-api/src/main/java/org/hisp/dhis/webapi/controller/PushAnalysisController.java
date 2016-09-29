@@ -99,7 +99,7 @@ public class PushAnalysisController
         }
 
         contextUtils
-            .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
+            .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE );
 
         logger.info(
             "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
@@ -126,7 +126,7 @@ public class PushAnalysisController
      * @throws Exception
      */
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    @RequestMapping( value = "/{uid}/run", method = RequestMethod.POST )
+    @RequestMapping( value = "/{uid}/run", method = RequestMethod.GET )
     public void sendPushAnalysis(
         @PathVariable() String uid
     )
