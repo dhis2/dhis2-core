@@ -43,6 +43,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Days;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -91,6 +92,7 @@ public class NotificationMessageRenderer
             .put( ProgramStageTemplateVariable.DUE_DATE,             psi -> DateUtils.getMediumDateString( psi.getDueDate() ) ) // TODO Figure out formatting to use for Date
             .put( ProgramStageTemplateVariable.DAYS_SINCE_DUE_DATE,  psi -> daysSinceDue( psi ) )
             .put( ProgramStageTemplateVariable.DAYS_UNTIL_DUE_DATE,  psi -> daysUntilDue( psi ) )
+            .put( ProgramStageTemplateVariable.CURRENT_DATE,         psi -> DateUtils.getMediumDateString( new Date() ) )
             .build();
 
     /**
@@ -100,6 +102,7 @@ public class NotificationMessageRenderer
         = new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
             .put( ProgramTemplateVariable.PROGRAM_NAME,     ps -> ps.getProgram().getDisplayName() )
             .put( ProgramTemplateVariable.ORG_UNIT_NAME,    ps -> ps.getOrganisationUnit().getDisplayName() )
+            .put( ProgramTemplateVariable.CURRENT_DATE,     ps -> DateUtils.getMediumDateString( new Date() ) )
             .build();
 
     // -------------------------------------------------------------------------
