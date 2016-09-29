@@ -878,7 +878,26 @@ public class DataValueSetServiceTest
     }
 
     @Test
-    public void testImportDataValuesWithDatasetAllowsPeriods ( )
+    public void testImportNullDataValues()
+        throws Exception
+    {
+        in = new ClassPathResource( "datavalueset/dataValueSetANull.xml" ).getInputStream();
+
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( 2, summary.getImportCount().getIgnored() );
+        assertEquals( 1, summary.getImportCount().getImported() );
+        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+
+        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+
+        assertNotNull( dataValues );
+        assertEquals( 1, dataValues.size() );        
+    }
+    
+    @Test
+    public void testImportDataValuesWithDatasetAllowsPeriods()
         throws Exception
     {
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );

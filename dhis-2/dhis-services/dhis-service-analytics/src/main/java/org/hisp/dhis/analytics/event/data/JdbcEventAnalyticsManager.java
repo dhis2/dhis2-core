@@ -725,6 +725,11 @@ public class JdbcEventAnalyticsManager
         // Various filters
         // ---------------------------------------------------------------------
 
+        if ( params.hasEventStatus() )
+        {
+            sql += "and psistatus = '" + params.getEventStatus().name() + "' ";
+        }
+
         if ( params.isCoordinatesOnly() )
         {
             sql += "and (longitude is not null and latitude is not null) ";
@@ -744,7 +749,7 @@ public class JdbcEventAnalyticsManager
         {
             sql += "and geom && ST_MakeEnvelope(" + params.getBbox() + ",4326)";
         }
-
+        
         return sql;
     }
     
