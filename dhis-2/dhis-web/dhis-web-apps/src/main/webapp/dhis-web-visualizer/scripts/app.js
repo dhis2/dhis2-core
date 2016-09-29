@@ -3172,100 +3172,80 @@ Ext.onReady( function() {
             },
             loadTotalsPage: function(uid, filter, append, noPaging, fn) {
                 var store = this,
-					params = {},
-                    types = ns.core.conf.valueType.aAggregateTypes.join(','),
-                    path;
+                    params = {},
+                    baseUrl = ns.core.init.contextPath + '/api/dataElements.json?',
+                    fieldsUrl = 'fields=dimensionItem|rename(id),' + namePropertyUrl,
+                    filterUrl = '&filter=domainType:eq:AGGREGATE' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
+
+                var url = baseUrl + fieldsUrl + filterUrl;
 
                 if (store.nextPage === store.lastPage) {
                     return;
                 }
 
-				if (Ext.isString(uid)) {
-					path = '/dataElements.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
-				}
-				else if (uid === 0) {
-					path = '/dataElements.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=domainType:eq:AGGREGATE' + '' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
-				}
+                if (Ext.isString(uid)) {
+                    url += '&filter=dataElementGroups.id:eq:' + uid;
+                }
 
-				if (!path) {
-					return;
-				}
-
-				if (noPaging) {
-					params.paging = false;
-				}
-				else {
-					params.page = store.nextPage;
-					params.pageSize = 50;
-				}
+                if (noPaging) {
+                    params.paging = false;
+                }
+                else {
+                    params.page = store.nextPage;
+                    params.pageSize = 50;
+                }
 
                 store.isPending = true;
                 ns.core.web.mask.show(dataElementAvailable.boundList);
 
-                Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api' + path,
-                    params: params,
-                    success: function(r) {
-                        var response = Ext.decode(r.responseText),
-                            data = response.dataElements || [],
-                            pager = response.pager;
+                $.getJSON(encodeURI(url), params, function(response) {
+                    var data = response.dataElements || [],
+                        pager = response.pager;
 
-                        store.loadStore(data, pager, append, fn);
-                    },
-                    callback: function() {
-                        store.isPending = false;
-                        ns.core.web.mask.hide(dataElementAvailable.boundList);
-                    }
+                    store.loadStore(data, pager, append, fn);
+                }).complete(function() {
+                    store.isPending = false;
+                    ns.core.web.mask.hide(dataElementAvailable.boundList);
                 });
             },
 			loadDetailsPage: function(uid, filter, append, noPaging, fn) {
                 var store = this,
-					params = {},
-                    types = ns.core.conf.valueType.aAggregateTypes.join(','),
-                    path;
+                    params = {},
+                    baseUrl = ns.core.init.contextPath + '/api/dataElementOperands.json?',
+                    fieldsUrl = 'fields=dimensionItem|rename(id),' + namePropertyUrl,
+                    filterUrl = filter ? '&filter=' + nameProperty + ':ilike:' + filter : '';
+
+                var url = baseUrl + fieldsUrl + filterUrl;
 
                 if (store.nextPage === store.lastPage) {
                     return;
                 }
 
-				if (Ext.isString(uid)) {
-					path = '/dataElementOperands.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']&filter=dataElement.dataElementGroups.id:eq:' + uid + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
-				}
-				else if (uid === 0) {
-					path = '/dataElementOperands.json?fields=dimensionItem|rename(id),' + namePropertyUrl + '&filter=valueType:in:[' + types + ']' + (filter ? '&filter=' + nameProperty + ':ilike:' + filter : '');
-				}
+                if (Ext.isString(uid)) {
+                    url += '&filter=dataElement.dataElementGroups.id:eq:' + uid;
+                }
 
-				if (!path) {
-					return;
-				}
-
-				if (noPaging) {
-					params.paging = false;
-				}
-				else {
-					params.page = store.nextPage;
-					params.pageSize = 50;
-				}
+                if (noPaging) {
+                    params.paging = false;
+                }
+                else {
+                    params.page = store.nextPage;
+                    params.pageSize = 50;
+                }
 
                 store.isPending = true;
                 ns.core.web.mask.show(dataElementAvailable.boundList);
 
-                Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api' + path,
-                    params: params,
-                    success: function(r) {
-                        var response = Ext.decode(r.responseText),
-							data = response.objects || response.dataElementOperands || [],
-                            pager = response.pager;
+                $.getJSON(encodeURI(url), params, function(response) {
+                    var data = response.objects || response.dataElementOperands || [],
+                        pager = response.pager;
 
-                        store.loadStore(data, pager, append, fn);
-                    },
-                    callback: function() {
-                        store.isPending = false;
-                        ns.core.web.mask.hide(dataElementAvailable.boundList);
-                    }
+                    store.loadStore(data, pager, append, fn);
+                }).complete(function() {
+                    store.isPending = false;
+                    ns.core.web.mask.hide(dataElementAvailable.boundList);
                 });
-			},
+            },
             loadStore: function(data, pager, append, fn) {
 				pager = pager || {};
 
