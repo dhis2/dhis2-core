@@ -157,20 +157,24 @@ public class EmailMessageSender
                 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
                 
-                return new MessageResponseStatus( "sent", EmailResponse.SENT, true );
+                status = new MessageResponseStatus( "Sent", EmailResponse.SENT, true );
+            }
+            else
+            {
+                status = new MessageResponseStatus( "No recipients found", EmailResponse.ABORTED, false );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Could not send email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Failed", EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Failed", EmailResponse.FAILED, false );
         }
 
         return status;
