@@ -101,7 +101,7 @@ public class GetTranslationsAction
 
         IdentifiableObject object = identifiableObjectManager.getObject( objectUid , className );
 
-        translations = TranslationUtils.convertTranslations( object.getTranslations(), locale.getLanguage() );
+        translations = TranslationUtils.convertTranslations( object.getTranslations(), locale );
 
         return SUCCESS;
     }
