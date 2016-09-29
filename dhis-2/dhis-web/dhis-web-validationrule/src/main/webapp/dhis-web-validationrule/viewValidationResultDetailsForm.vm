@@ -16,10 +16,6 @@
     	<td>$i18n.getString( "description" )</td>
     	<td>$encoder.htmlEncode( $!validationRule.description )</td>
     </tr>
-    <tr>
-    	<td>$i18n.getString( "rule_type" )</td>
-    	<td>$encoder.htmlEncode( $i18n.getString( "$!validationRule.ruleType" ) )</td>
-    </tr>
 </table>
 
 <h3>$i18n.getString( "left_side" )</h3>
