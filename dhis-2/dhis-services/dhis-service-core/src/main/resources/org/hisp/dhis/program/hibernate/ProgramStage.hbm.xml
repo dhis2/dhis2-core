@@ -26,7 +26,7 @@
 
     <property name="repeatable" column="repeatable" not-null="true" />
 
-    <set name="programStageDataElements" order-by="sort_order" cascade="save-update">
+    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
     </set>
@@ -75,7 +75,7 @@
     <property name="reportDateToUse" />
 
     <property name="preGenerateUID" />
-    
+
     <property name="hideDueDate" />
 
     <property name="sortOrder" column="sort_order" />
