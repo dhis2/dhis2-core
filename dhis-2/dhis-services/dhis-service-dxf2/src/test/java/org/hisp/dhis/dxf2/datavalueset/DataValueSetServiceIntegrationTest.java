@@ -322,7 +322,7 @@ public class DataValueSetServiceIntegrationTest
         
         assertEquals( 12, dataValueService.getAllDataValues().size() );
         
-        // Delete 4 values
+        // Delete 4 values, add 2 values
         
         in = new ClassPathResource( "datavalueset/dataValueSetBNewDeleted.xml" ).getInputStream();
         
