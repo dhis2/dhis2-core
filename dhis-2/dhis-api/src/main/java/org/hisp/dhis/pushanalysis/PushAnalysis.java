@@ -30,6 +30,7 @@ package org.hisp.dhis.pushanalysis;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -208,6 +209,21 @@ public class PushAnalysis
     }
 
     @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "dashboard", dashboard )
+            .add( "title", title )
+            .add( "message", message )
+            .add( "recipientUserGroups", recipientUserGroups )
+            .add( "enabled", enabled )
+            .add( "lastRun", lastRun )
+            .add( "schedulingFrequency", schedulingFrequency )
+            .add( "schedulingDayOfFrequency", schedulingDayOfFrequency )
+            .toString();
+    }
+
+    @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
 
@@ -223,6 +239,7 @@ public class PushAnalysis
                 dashboard = pushAnalysis.getDashboard();
                 recipientUserGroups = pushAnalysis.getRecipientUserGroups();
                 name = pushAnalysis.getName();
+                title = pushAnalysis.getTitle();
                 message = pushAnalysis.getMessage();
                 enabled = pushAnalysis.getEnabled();
                 schedulingDayOfFrequency = pushAnalysis.getSchedulingDayOfFrequency();
@@ -235,6 +252,7 @@ public class PushAnalysis
                 recipientUserGroups = pushAnalysis.getRecipientUserGroups() == null ?
                     recipientUserGroups :
                     pushAnalysis.getRecipientUserGroups();
+                title = pushAnalysis.getTitle() == null ? title : pushAnalysis.getTitle();
                 name = pushAnalysis.getName() == null ? name : pushAnalysis.getName();
                 message = pushAnalysis.getMessage() == null ? message : pushAnalysis.getMessage();
                 enabled = pushAnalysis.getEnabled();
