@@ -44,6 +44,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.sms.SmsServiceException;
 import org.hisp.dhis.sms.outbound.OutboundSms;
+import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
@@ -114,6 +115,9 @@ public class DefaultProgramInstanceService
     @Autowired
     private I18nManager i18nManager;
 
+    @Autowired
+    private OutboundSmsService outBoundSmsService;
+    
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -669,6 +673,8 @@ public class DefaultProgramInstanceService
                 outboundSms.setRecipients( phoneNumbers );
                 outboundSms.setSender( currentUserService.getCurrentUsername() );
                 smsSender.sendMessage( null, outboundSms.getMessage(), outboundSms.getRecipients() );
+                
+                outBoundSmsService.saveOutboundSms( outboundSms );
             }
             catch ( SmsServiceException e )
             {
