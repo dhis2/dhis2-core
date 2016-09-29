@@ -126,7 +126,7 @@ public class PushAnalysisController
      * @throws Exception
      */
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    @RequestMapping( value = "/{uid}/run", method = RequestMethod.GET )
+    @RequestMapping( value = "/{uid}/run", method = RequestMethod.POST )
     public void sendPushAnalysis(
         @PathVariable() String uid
     )
