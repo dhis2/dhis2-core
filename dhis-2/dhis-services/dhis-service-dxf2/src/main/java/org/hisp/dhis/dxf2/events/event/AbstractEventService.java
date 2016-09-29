@@ -1407,38 +1407,41 @@ public abstract class AbstractEventService
     private void validateExpiryDays( Event event, Program program, ProgramStageInstance programStageInstance )
     {    	
     	
-    	if( event.getStatus() == EventStatus.COMPLETED || programStageInstance != null && programStageInstance.getStatus() == EventStatus.COMPLETED  )
-    	{    		
-    		Date referenceDate = null;
-    		
-    		if( programStageInstance != null )
-    		{
-    			referenceDate = programStageInstance.getCompletedDate();
-    		}
-    		
-    		else
-    		{
-    			if( event.getCompletedDate() != null )
+    	if( program.getCompleteEventsExpiryDays() > 0  )
+    	{
+    		if( event.getStatus() == EventStatus.COMPLETED || programStageInstance != null && programStageInstance.getStatus() == EventStatus.COMPLETED )
+        	{    		
+        		Date referenceDate = null;
+        		
+        		if( programStageInstance != null )
+        		{
+        			referenceDate = programStageInstance.getCompletedDate();
+        		}
+        		
+        		else
+        		{
+        			if( event.getCompletedDate() != null )
+        			{
+        				referenceDate = DateUtils.parseDate( event.getCompletedDate() );
+        			}
+        		}
+        		
+        		if( referenceDate == null )
     			{
-    				referenceDate = DateUtils.parseDate( event.getCompletedDate() );
+    				throw new IllegalQueryException( "Event needs to have completed date." );
     			}
-    		}
-    		
-    		if( referenceDate == null )
-			{
-				throw new IllegalQueryException( "Event needs to have completed date." );
-			}
-    		
-    		
-    		if( (new Date()).after( DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() + 1 ) ) )
-            {
-                throw new IllegalQueryException( "The event's completness date has expired. Not possible to make changes to this event" );
-            }
-    	}
+        		
+        		
+        		if( (new Date()).after( DateUtils.getDateAfterAddition( referenceDate, program.getCompleteEventsExpiryDays() ) ) )
+                {
+                    throw new IllegalQueryException( "The event's completness date has expired. Not possible to make changes to this event" );
+                }
+        	}
+    	}    	
     	
     	PeriodType periodType = program.getExpiryPeriodType();
     	
-    	if( periodType != null )
+    	if( periodType != null && program.getExpiryDays() > 0 )
     	{    		
     		if( programStageInstance != null )
     		{
@@ -1451,7 +1454,7 @@ public abstract class AbstractEventService
     			
     			Period period = periodType.createPeriod(  programStageInstance.getExecutionDate() );
     			
-    			if( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() + 1 ) ) )
+    			if( today.after( DateUtils.getDateAfterAddition( period.getEndDate(), program.getExpiryDays() ) ) )
                 {
                     throw new IllegalQueryException( "The program's expiry date has passed. It is not possible to make changes to this event." );
                 }
