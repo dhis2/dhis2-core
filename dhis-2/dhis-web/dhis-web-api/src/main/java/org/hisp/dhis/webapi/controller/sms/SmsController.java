@@ -41,6 +41,7 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,7 +86,7 @@ public class SmsController
     // GET
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole(' F_MOBILE_SENDSMS')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/commands", method = RequestMethod.GET, produces = "application/json" )
     public void getSmsCommands( HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -94,11 +95,12 @@ public class SmsController
 
         if ( commands != null && !commands.isEmpty() )
         {
+        	response.setContentType( MediaType.APPLICATION_JSON_VALUE );
             renderService.toJson( response.getOutputStream(), commands );
         }
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole(' F_MOBILE_SENDSMS')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/commands/{commandName}", method = RequestMethod.GET, produces = "application/json" )
     public void getSmsCommandTypes( @PathVariable( "commandName" ) String commandName, @RequestParam ParserType type,
         HttpServletRequest request, HttpServletResponse response )
@@ -110,7 +112,7 @@ public class SmsController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "No SMS command found" ) );
         }
-
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), command );
     }
 
@@ -118,7 +120,7 @@ public class SmsController
     // POST
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole(' F_MOBILE_SENDSMS')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/outbound", method = RequestMethod.POST )
     public void sendSMSMessage( @RequestParam String recipient, @RequestParam String message,
         HttpServletResponse response, HttpServletRequest request )
@@ -146,7 +148,7 @@ public class SmsController
         }
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole(' F_MOBILE_SENDSMS')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/outbound", method = RequestMethod.POST, consumes = "application/json" )
     public void sendSMSMessage( HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException, IOException
