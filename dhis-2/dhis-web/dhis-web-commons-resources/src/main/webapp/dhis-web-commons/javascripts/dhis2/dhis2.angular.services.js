@@ -529,11 +529,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 					                                            ' d2-function="saveDatavalue(prStDes.' + fieldId + ', currentEvent, value )" >' +
 					                                    ' </d2-org-unit-tree>';
                                     }
-                                    else {
+                                    else if (prStDe.dataElement.valueType === "TEXT") {
                                         newInputField = '<span class="hideInPrint"><input type="text" ' +
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
+                                    }
+                                    else{
+                                    	newInputField = ' {{"unsupported_value_type" | translate }}: ' + prStDe.dataElement.valueType;
                                     }
                                 }
                             }
@@ -709,11 +712,19 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></textarea></span>';
                                 }
-                                else {
+                                else if (att.valueType === "TEXT") {
                                     newInputField = '<input type="text" ' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + '>';
                                 }
+                                else if (att.valueType === "PHONE_NUMBER") {
+                                    newInputField = '<input type="text" ' +
+                                        ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
+                                        commonInputFieldProperty + '>';
+                                }
+                                else {                                	
+                                    newInputField = ' {{"unsupported_value_type" | translate }} ' + att.valueType;
+                                }                                
                             }
                         }
                         else{
