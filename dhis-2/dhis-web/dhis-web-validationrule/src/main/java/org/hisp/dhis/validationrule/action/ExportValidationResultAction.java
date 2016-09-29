@@ -143,7 +143,6 @@ public class ExportValidationResultAction
         grid.addHeader( new GridHeader( i18n.getString( "period" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "validation_rule" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "importance" ), false, true ) );
-        grid.addHeader( new GridHeader( i18n.getString( "rule_type" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "left_side_description" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "value" ), false, false ) );
         grid.addHeader( new GridHeader( i18n.getString( "operator" ), false, false ) );
