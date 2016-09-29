@@ -7,6 +7,8 @@
 <script type="text/javascript" src="../dhis-web-commons/oust/oust.js"></script>
 <script type="text/javascript" src="javascript/dashboard.js"></script>
 
+<script type="text/javascript" src="../dhis-web-commons/javascripts/date.js"></script>
+
 <script type="text/javascript">
 
 var i18n_share_your_interpretation_of = '$encoder.jsEscape( $i18n.getString( "share_your_interpretation_of" ), "'")';
@@ -38,6 +40,8 @@ jQuery( document ).ready( function() {
 });
 
 </script>
+<div id="interpretationPopup">
+</div>
 
 <div id="dashboardHeader"><h3>
 #if( !$currentUser.profileFilled )<a class="alert" href="../dhis-web-user-profile/#/profile">$i18n.getString( "update_profile" )</a> &nbsp;&#8226;&nbsp;#end
