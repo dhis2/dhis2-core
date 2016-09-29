@@ -42,6 +42,7 @@ import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.sms.BatchResponseStatus;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -245,12 +246,14 @@ public class DefaultProgramNotificationService
     {
         NotificationMessage message = NotificationMessageRenderer.render( programInstance, template );
 
-        return new ProgramMessage( message.getSubject(), message.getMessage(),
-            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance.getEntityInstance() ) );
+        return new ProgramMessage(
+            message.getSubject(), message.getMessage(),
+            resolveProgramMessageRecipients( template, programInstance.getOrganisationUnit(), programInstance.getEntityInstance() ),
+            template.getDeliveryChannels(), programInstance );
     }
 
-    private ProgramMessageRecipients resolveProgramMessageRecipients( ProgramNotificationTemplate template,
-        OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
+    private ProgramMessageRecipients resolveProgramMessageRecipients(
+        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, TrackedEntityInstance trackedEntityInstance )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -309,7 +312,16 @@ public class DefaultProgramNotificationService
 
     private void sendProgramMessages( Set<ProgramMessage> messages )
     {
-        programMessageService.sendMessages( Lists.newArrayList( messages ) );
+        if ( messages.isEmpty() )
+        {
+            return;
+        }
+
+        log.debug( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
+
+        BatchResponseStatus status = programMessageService.sendMessages( Lists.newArrayList( messages ) );
+
+        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );
     }
 
     private void sendAll( MessageBatch messageBatch )
