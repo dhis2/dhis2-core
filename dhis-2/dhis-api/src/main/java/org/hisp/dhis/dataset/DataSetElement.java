@@ -31,6 +31,7 @@ package org.hisp.dhis.dataset;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.base.Objects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -99,9 +100,10 @@ public class DataSetElement
     // Hash code and equals
     // -------------------------------------------------------------------------
 
+    @Override
     public int hashCode()
     {
-        return dataSet.hashCode() * 31 * dataElement.hashCode();
+        return Objects.hashCode( super.hashCode(), dataSet, dataElement );
     }
 
     public boolean equals( Object other )

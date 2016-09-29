@@ -63,6 +63,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendService;
@@ -121,11 +122,11 @@ public class DefaultEventDataQueryService
     public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, boolean collapseDataDimensions,
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, boolean collapseDataDimensions,
         boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, displayProperty, userOrgUnit, null, null, format );
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, displayProperty, userOrgUnit, null, null, format );
 
         EventQueryParams params = new EventQueryParams.Builder( query )
             .withValue( getValueDimension( value ) )
@@ -145,7 +146,7 @@ public class DefaultEventDataQueryService
     public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
-        boolean coordinatesOnly, DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize,
+        boolean coordinatesOnly, EventStatus eventStatus, DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize,
         I18nFormat format )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder();
@@ -251,6 +252,7 @@ public class DefaultEventDataQueryService
             .withCompletedOnly( completedOnly )
             .withHierarchyMeta( hierarchyMeta )
             .withCoordinatesOnly( coordinatesOnly )
+            .withEventStatus( eventStatus )
             .withDisplayProperty( displayProperty )
             .withPage( page )
             .withPageSize( pageSize ).build();

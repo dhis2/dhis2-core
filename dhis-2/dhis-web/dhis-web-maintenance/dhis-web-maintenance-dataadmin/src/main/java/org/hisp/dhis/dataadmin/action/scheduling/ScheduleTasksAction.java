@@ -73,6 +73,9 @@ import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
 public class ScheduleTasksAction
     implements Action
 {
+    private static final String TASK_STARTED = "task_started";
+    private static final String TASK_ALREADY_RUNNING = "task_already_running";
+
     private static final String STRATEGY_ALL_DAILY = "allDaily";
     private static final String STRATEGY_ALL_15_MIN = "allEvery15Min";
     private static final String STRATEGY_LAST_3_YEARS_DAILY = "last3YearsDaily";
@@ -297,6 +300,7 @@ public class ScheduleTasksAction
     {
         return lastDataSyncSuccess;
     }
+
     public Date getLastMetaDataSyncSuccess()
     {
         return lastMetaDataSyncSuccess;
@@ -323,6 +327,18 @@ public class ScheduleTasksAction
         return lastDataStatisticSuccess;
     }
 
+    private String currentRunningTaskStatus;
+
+    public String getCurrentRunningTaskStatus()
+    {
+        return currentRunningTaskStatus;
+    }
+
+    public void setCurrentRunningTaskStatus( String currentRunningTaskStatus )
+    {
+        this.currentRunningTaskStatus = currentRunningTaskStatus;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -332,9 +348,15 @@ public class ScheduleTasksAction
     {
         if ( executeNow )
         {
-            schedulingManager.executeTask( taskKey );
-
-            return SUCCESS;
+            if ( schedulingManager.isTaskInProgress( taskKey ) )
+            {
+                currentRunningTaskStatus = TASK_ALREADY_RUNNING;
+            }
+            else
+            {
+                schedulingManager.executeTask( taskKey );
+                currentRunningTaskStatus = TASK_STARTED;
+            }
         }
 
         if ( schedule )
@@ -350,7 +372,7 @@ public class ScheduleTasksAction
                 // -------------------------------------------------------------
 
                 ListMap<String, String> cronKeyMap = new ListMap<>();
-                
+
                 // -------------------------------------------------------------
                 // Resource tables
                 // -------------------------------------------------------------
@@ -398,7 +420,7 @@ public class ScheduleTasksAction
                 if ( STRATEGY_ENABLED.equals( metadataSyncStrategy ) )
                 {
                     cronKeyMap.putValue( metadataSyncCron, TASK_META_DATA_SYNC );
-                    systemSettingManager.saveSystemSetting( SettingKey.METADATA_SYNC_CRON,metadataSyncCron );
+                    systemSettingManager.saveSystemSetting( SettingKey.METADATA_SYNC_CRON, metadataSyncCron );
                     systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
                 }
 
@@ -526,7 +548,6 @@ public class ScheduleTasksAction
 
         status = schedulingManager.getTaskStatus();
         running = ScheduledTaskStatus.RUNNING.equals( status );
-
         levels = organisationUnitService.getOrganisationUnitLevels();
 
         lastResourceTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
@@ -535,7 +556,7 @@ public class ScheduleTasksAction
         lastSmsSchedulerSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SMS_SCHEDULING );
         lastDataStatisticSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_DATA_STATISTIC );
         lastDataSyncSuccess = synchronizationManager.getLastSynchSuccess();
-        lastMetaDataSyncSuccess = (Date)systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        lastMetaDataSyncSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
         lastProgramNotificationSchedulerSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS );
 
         log.info( "Status: " + status );

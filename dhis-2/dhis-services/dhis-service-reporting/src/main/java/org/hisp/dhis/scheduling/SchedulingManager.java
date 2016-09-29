@@ -45,7 +45,7 @@ public interface SchedulingManager
     String TASK_ANALYTICS_LAST_3_YEARS = "analyticsLast3YearsTask";
     String TASK_MONITORING_LAST_DAY = "monitoringLastDayTask";
     String TASK_DATA_SYNCH = "dataSynchTask";
-    String TASK_META_DATA_SYNC = "metadataSyncTask";
+    String TASK_META_DATA_SYNC = "metaDataSyncTask";
     String TASK_SMS_SCHEDULER = "smsSchedulerTask";
     String TASK_SEND_SCHEDULED_SMS = "sendScheduledMessageTask";
     String TASK_SEND_SCHEDULED_SMS_NOW = "sendScheduledMessageTaskNow";
@@ -60,7 +60,7 @@ public interface SchedulingManager
      * Execute the Task.
      */
     void executeTask(String taskKey);
-    
+
     /**
      * Schedules the given tasks. The task map will replace the currently scheduled
      * tasks.
@@ -98,5 +98,11 @@ public interface SchedulingManager
     /**
      * Gets the task status.
      */
-    ScheduledTaskStatus getTaskStatus();   
+    ScheduledTaskStatus getTaskStatus();
+
+    /**
+     *
+     * Returns the status of the currently executing task.
+     */
+    boolean isTaskInProgress(String taskKey);
 }
