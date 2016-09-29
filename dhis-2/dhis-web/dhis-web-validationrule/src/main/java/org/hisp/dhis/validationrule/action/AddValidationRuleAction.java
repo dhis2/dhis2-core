@@ -258,21 +258,10 @@ public class AddValidationRuleAction
         validationRule.setOperator( Operator.valueOf( operator ) );
         validationRule.setLeftSide( leftSide );
         validationRule.setRightSide( rightSide );
-        
-        if ( skipTest != null )
-        {
-            validationRule.setSampleSkipTest( skipTest );
-        }
-        
-        validationRule.setOrganisationUnitLevel( organisationUnitLevel );
 
         PeriodType periodType = periodService.getPeriodTypeByName( periodTypeName );
         validationRule.setPeriodType( periodType );
 
-        validationRule.setSequentialSampleCount( sequentialSampleCount );
-        validationRule.setAnnualSampleCount( annualSampleCount );
-        validationRule.setSequentialSkipCount( sequentialSkipCount );
-        
         validationRuleService.saveValidationRule( validationRule );
 
         return SUCCESS;

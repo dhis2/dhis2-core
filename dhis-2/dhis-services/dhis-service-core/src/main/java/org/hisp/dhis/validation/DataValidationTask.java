@@ -50,7 +50,6 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -146,32 +145,15 @@ public class DataValidationTask
                         {
                             if ( evaluateValidationCheck( currentValueMap, lastUpdatedMap, rule ) )
                             {
-                                int n_years = rule.getAnnualSampleCount() == null ? 0 : rule.getAnnualSampleCount();
-                                int window = rule.getSequentialSampleCount() == null ? 0
-                                    : rule.getSequentialSampleCount();
-                                int skip = rule.getSequentialSkipCount() == null ? 0
-                                    : rule.getSequentialSkipCount();
-                                Collection<PeriodType> periodTypes = context.getRuleXMap().get( rule )
-                                    .getAllowedPastPeriodTypes();
-
-                                log.debug( "Rule " + rule.getName() + " @" + period.getDisplayShortName() + " & "
-                                    + sourceX.getSource() + " window=" + window + ", years=" + n_years );
-                                Map<Integer, Double> leftSideValues = getRuleExpressionValueMap
-                                    ( rule.getLeftSide(), rule.getSampleSkipTest(),
-                                        currentValueMap, incompleteValuesMap, sourceX.getSource(),
-                                        period, window, n_years, skip,
-                                        periodTypeX, periodTypes, lastUpdatedMap, sourceDataElements );
+                                Map<Integer, Double> leftSideValues =
+                                    getExpressionValueMap( rule.getLeftSide(), currentValueMap, incompleteValuesMap );
 
                                 if ( !leftSideValues.isEmpty()
                                     || Operator.compulsory_pair.equals( rule.getOperator() )
                                     || Operator.exclusive_pair.equals( rule.getOperator() ) )
                                 {
-                                    Map<Integer, Double> rightSideValues = getRuleExpressionValueMap
-                                        ( rule.getRightSide(), rule.getSampleSkipTest(),
-                                            currentValueMap, incompleteValuesMap, sourceX.getSource(),
-                                            period, window, n_years, skip, periodTypeX, periodTypes, lastUpdatedMap,
-                                            sourceDataElements );
-
+                                    Map<Integer, Double> rightSideValues =
+                                        getExpressionValueMap( rule.getRightSide(), currentValueMap, incompleteValuesMap );
                                     if ( !rightSideValues.isEmpty()
                                         || Operator.compulsory_pair.equals( rule.getOperator() )
                                         || Operator.exclusive_pair.equals( rule.getOperator() ) )
@@ -362,39 +344,20 @@ public class DataValidationTask
      * @param incompleteValuesMap map of values that were incomplete.
      * @return map of values.
      */
-    private Map<Integer, Double> getExpressionValueMap( Expression expression, Set<Integer> skipCombos,
+    private Map<Integer, Double> getExpressionValueMap( Expression expression,
         MapMap<Integer, DataElementOperand, Double> valueMap,
         SetMap<Integer, DataElementOperand> incompleteValuesMap )
     {
         Map<Integer, Double> expressionValueMap = new HashMap<>();
 
-        if ( skipCombos == null )
+        for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
         {
-            for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
-            {
-                Double value = expressionService.getExpressionValue( expression, entry.getValue(),
+            Double value = expressionService.getExpressionValue( expression, entry.getValue(),
                     context.getConstantMap(), null, null, incompleteValuesMap.getSet( entry.getKey() ), null );
 
-                if ( MathUtils.isValidDouble( value ) )
-                {
-                    expressionValueMap.put( entry.getKey(), value );
-                }
-            }
-        }
-        else
-        {
-            for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
+            if ( MathUtils.isValidDouble( value ) )
             {
-                if ( !(skipCombos.contains( entry.getKey() )) )
-                {
-                    Double value = expressionService.getExpressionValue( expression, entry.getValue(),
-                        context.getConstantMap(), null, null, incompleteValuesMap.getSet( entry.getKey() ), null );
-
-                    if ( MathUtils.isValidDouble( value ) )
-                    {
-                        expressionValueMap.put( entry.getKey(), value );
-                    }
-                }
+                expressionValueMap.put( entry.getKey(), value );
             }
         }
 
@@ -446,81 +409,6 @@ public class DataValidationTask
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Generalized surveillance rules
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns the aggregated values of an expression
-     *
-     * @param expression         the expression whose values are being fetched
-     * @param skipTest           an expression (or null) specifying conditions for which values will be discarded
-     * @param source             organisation unit being evaluated
-     * @param period             current period being considered
-     * @param window             how many annual samples (before and after the current period)
-     * @param n_years            how many past years to include in the aggregate sample
-     * @param skip               how many periods to skip before the current period
-     * @param px
-     * @param periodTypes        applicable period types
-     * @param lastUpdatedMap
-     * @param sourceDataElements the data elements collected by the organisation unit
-     * @return the aggregated values for the expression as a map by attribute category combo
-     */
-    private ListMap<Integer, Double> getAggregateValueMap
-    ( Expression expression, Expression skipTest, OrganisationUnit source,
-        Period period, int window, int n_years, int skip, PeriodTypeExtended px, Collection<PeriodType> periodTypes,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap, Collection<DataElement> sourceDataElements )
-    {
-        ListMap<Integer, Double> results = new ListMap<Integer, Double>();
-        PeriodType periodType = period.getPeriodType();
-        Calendar yearly = PeriodType.createCalendarInstance( period.getStartDate() );
-
-        for ( int years = 0; years <= n_years; years++ )
-        {
-            // Defensive copy because createPeriod mutates Calendar.
-            Calendar each_year = PeriodType.createCalendarInstance( yearly.getTime() );
-            // To track the period at the same time in preceding years.
-            Period base_period = periodType.createPeriod( each_year );
-
-            if ( years > 0 )
-            {
-                // For past years, fetch a window around the period at the same time of year as this period.
-
-                // This first call gets the value for the same period in the previous year:
-                getPeriodValues( results, expression, skipTest, source, base_period, 0, px,
-                    periodTypes, lastUpdatedMap, sourceDataElements );
-                // And if we're taking a window, this gets values for periods both before and after the same period
-                if ( window != 0 )
-                {
-                    getPeriodValues( results, expression, skipTest, source, periodType.getNextPeriod( base_period ),
-                        window - 1, px, periodTypes, lastUpdatedMap, sourceDataElements );
-                    getPeriodValues( results, expression, skipTest, source, periodType.getPreviousPeriod( base_period ),
-                        1 - window, px, periodTypes, lastUpdatedMap, sourceDataElements );
-                }
-            }
-            else if ( window != 0 )
-            {
-                int steps = window - 1, skipping = skip;
-                Period start = periodType.getPreviousPeriod( base_period );
-                while ( skipping > 0 )
-                {
-                    start = periodType.getPreviousPeriod( start );
-                    skipping--;
-                    steps--;
-                }
-                if ( steps >= 0 )
-                {
-                    getPeriodValues( results, expression, skipTest, source, start,
-                        -steps, px, periodTypes, lastUpdatedMap, sourceDataElements );
-                }
-            }
-
-            // Move to the previous year.
-            yearly.set( Calendar.YEAR, yearly.get( Calendar.YEAR ) - 1 );
-        }
-
-        return results;
-    }
 
     /**
      * Gathers the values of an expression for a given organisation unit and
@@ -556,12 +444,10 @@ public class DataValidationTask
         SetMap<Integer, DataElementOperand> incompleteValuesMap = new SetMap<Integer, DataElementOperand>();
 
         Set<DataElement> dataElements = getExpressionDataElements( expression );
-        Set<Integer> skipCombos = (skipTest == null) ? (null) : getSkipCombos( skipTest, source, sourceElements,
-            px, periodTypes, periodInstance, lastUpdatedMap, incompleteValuesMap );
 
         MapMap<Integer, DataElementOperand, Double> dataValueMapByAttributeCombo = getValueMap( 
             px, dataElements, sourceElements, periodTypes, periodInstance, source, lastUpdatedMap, incompleteValuesMap );
-        Map<Integer, Double> eValues = getExpressionValueMap( expression, skipCombos, dataValueMapByAttributeCombo, incompleteValuesMap );
+        Map<Integer, Double> eValues = getExpressionValueMap( expression, dataValueMapByAttributeCombo, incompleteValuesMap );
         
         results.putValueMap( eValues );
 
@@ -593,31 +479,6 @@ public class DataValidationTask
         }
     }
 
-    private Set<Integer> getSkipCombos( Expression skipTest, OrganisationUnit source, Collection<DataElement> sourceElements,
-        PeriodTypeExtended px, Collection<PeriodType> periodTypes, Period period,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap, SetMap<Integer, DataElementOperand> incompleteValuesMap )
-    {
-        Set<Integer> results = new HashSet<Integer>();
-        Set<DataElement> dataElements = getExpressionDataElements( skipTest );
-
-        MapMap<Integer, DataElementOperand, Double> skipMap = getValueMap
-            ( px, dataElements, sourceElements, periodTypes, period, source, lastUpdatedMap, incompleteValuesMap );
-        
-        for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : skipMap.entrySet() )
-        {
-            Integer combo = entry.getKey();
-            Object value = expressionService.getExpressionObjectValue( skipTest, entry.getValue(),
-                context.getConstantMap(), null, null, incompleteValuesMap.getSet( entry.getKey() ), null );
-
-            if ( !(falsy( value )) )
-            {
-                results.add( combo );
-            }
-        }
-
-        return results.isEmpty() ? null : results;
-    }
-
     /**
      * Returns the data elements referenced in an expression, as a set. This will
      * return an empty set if e.getPresentDataNeeded returns null.
@@ -632,69 +493,4 @@ public class DataValidationTask
         return elts != null ? elts : Sets.newHashSet();
     }
 
-    /**
-     * Evaluates an expression, returning a map of values by attribute option
-     * combo.
-     *
-     * @param expression          expression to evaluate.
-     * @param valueMap            Map of value maps, by attribute option combo.
-     * @param incompleteValuesMap map of values that were incomplete.
-     * @return map of values.
-     */
-    private Map<Integer, Double> getRuleExpressionValueMap
-    ( Expression expression, Expression skipTest,
-        MapMap<Integer, DataElementOperand, Double> valueMap, SetMap<Integer, DataElementOperand> incompleteValuesMap,
-        OrganisationUnit source, Period period, int window, int n_years, int skip, PeriodTypeExtended px,
-        Collection<PeriodType> periodTypes, MapMap<Integer, DataElementOperand, Date> lastUpdatedMap,
-        Collection<DataElement> sourceElements )
-    {
-        Map<Integer, Double> expressionValueMap = new HashMap<>();
-        Map<Integer, ListMap<String, Double>> aggregateValuesMap = new HashMap<>();
-        Set<String> aggregates = expressionService.getAggregatesInExpression( expression.getExpression() );
-
-        if ( aggregates.isEmpty() )
-        {
-            return getExpressionValueMap( expression, null, valueMap, incompleteValuesMap );
-        }
-
-        for ( String subExpression : aggregates )
-        {
-            Expression subexp = new Expression( subExpression, "aggregated", new HashSet<DataElement>( sourceElements ) );
-
-            ListMap<Integer, Double> aggregateValues = getAggregateValueMap
-                ( subexp, skipTest, source, period, window, n_years, skip,
-                    px, periodTypes, lastUpdatedMap, sourceElements );
-
-            for ( Integer attributeOptionCombo : aggregateValues.keySet() )
-            {
-                ListMap<String, Double> aggmap;
-
-                if ( aggregateValuesMap.containsKey( attributeOptionCombo ) )
-                {
-                    aggmap = aggregateValuesMap.get( attributeOptionCombo );
-                }
-                else
-                {
-                    aggmap = new ListMap<>();
-                    aggregateValuesMap.put( attributeOptionCombo, aggmap );
-                }
-
-                aggmap.put( subExpression, aggregateValues.get( attributeOptionCombo ) );
-            }
-        }
-
-        for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
-        {
-            Double value = expressionService.getExpressionValue( expression, entry.getValue(),
-                context.getConstantMap(), null, null, incompleteValuesMap.getSet( entry.getKey() ),
-                aggregateValuesMap.get( entry.getKey() ) );
-
-            if ( MathUtils.isValidDouble( value ) )
-            {
-                expressionValueMap.put( entry.getKey(), value );
-            }
-        }
-
-        return expressionValueMap;
-    }
 }

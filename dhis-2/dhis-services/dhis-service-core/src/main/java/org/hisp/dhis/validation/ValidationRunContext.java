@@ -241,7 +241,7 @@ public class ValidationRunContext
 
             // Add the ValidationRuleExtended
             Collection<PeriodType> allowedPastPeriodTypes = getAllowedPeriodTypesForDataElements(
-                rule.getPastDataElements(), rule.getPeriodType() );
+                rule.getCurrentDataElements(), rule.getPeriodType() );
             ValidationRuleExtended ruleX = new ValidationRuleExtended( rule, allowedPastPeriodTypes );
             ruleXMap.put( rule, ruleX );
         }
