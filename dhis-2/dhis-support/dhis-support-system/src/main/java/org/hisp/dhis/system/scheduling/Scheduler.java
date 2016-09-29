@@ -39,13 +39,18 @@ import java.util.concurrent.Callable;
  */
 public interface Scheduler
 {
-    String CRON_DAILY_0AM = "0 0 0 * * ?";
     String CRON_DAILY_11PM = "0 0 23 * * ?";
+    String CRON_DAILY_0AM = "0 0 0 * * ?";
     String CRON_DAILY_2AM = "0 0 2 * * ?";
+    String CRON_DAILY_5AM = "0 0 5 * * ?";
+    String CRON_DAILY_6AM = "0 0 6 * * ?";
+    String CRON_DAILY_7AM = "0 0 7 * * ?";
+    String CRON_DAILY_8AM = "0 0 8 * * ?";
+
     String CRON_EVERY_MIN = "0 0/1 * * * ?";
     String CRON_EVERY_15MIN = "0 0/15 * * * ?";
+
     String CRON_TEST = "0 * * * * ?";
-    String CRON_DAILY_8AM = "0 0 8 * * ?";
 
     /**
      * Execute the given task immediately.
@@ -53,6 +58,15 @@ public interface Scheduler
      * @task the task to execute.
      */
     void executeTask( Runnable task );
+
+    /**
+     * Execute the given task immediately. The task can be referenced
+     * again through the given task key if the current task is not completed. A task cannot be scheduled if another
+     * task with the same key is already scheduled.
+     *
+     * @task the task to execute.
+     */
+    void executeTask( String taskKey, Runnable task );
 
     /**
      * Execute the given task immediately and return a ListenableFuture.
@@ -108,4 +122,13 @@ public interface Scheduler
      * @return the task status.
      */
     ScheduledTaskStatus getTaskStatus( String key );
+
+    /**
+     * Gets the status for the current task with the given key.
+     *
+     * @param key the task key.
+     * @return the task status.
+     */
+    ScheduledTaskStatus getCurrentTaskStatus( String key );
+
 }

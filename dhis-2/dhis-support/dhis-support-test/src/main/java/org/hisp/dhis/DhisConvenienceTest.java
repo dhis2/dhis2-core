@@ -410,11 +410,11 @@ public abstract class DhisConvenienceTest
 
         if ( categoryCombo != null )
         {
-            dataElement.setCategoryCombo( categoryCombo );
+            dataElement.setDataElementCategoryCombo( categoryCombo );
         }
         else if ( categoryService != null )
         {
-            dataElement.setCategoryCombo( categoryService.getDefaultDataElementCategoryCombo() );
+            dataElement.setDataElementCategoryCombo( categoryService.getDefaultDataElementCategoryCombo() );
         }
 
         return dataElement;

@@ -44,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -79,7 +80,10 @@ public class ProgramStage
 
     private String executionDateLabel;
 
+    @Deprecated
     private Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
+
+    private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
     private Boolean autoGenerateEvent = true;
 
@@ -208,6 +212,20 @@ public class ProgramStage
     public void setReminders( Set<TrackedEntityInstanceReminder> reminders )
     {
         this.reminders = reminders;
+    }
+
+    @JsonProperty( "notificationTemplates" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "notificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramNotificationTemplate> getNotificationTemplates()
+    {
+        return notificationTemplates;
+    }
+
+    public void setNotificationTemplates( Set<ProgramNotificationTemplate> notificationTemplates )
+    {
+        this.notificationTemplates = notificationTemplates;
     }
 
     @JsonProperty
@@ -361,6 +379,7 @@ public class ProgramStage
         this.displayGenerateEventBox = displayGenerateEventBox;
     }
 
+    // TODO Deprecate?
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDefaultTemplateMessage()
@@ -551,6 +570,9 @@ public class ProgramStage
 
             reminders.clear();
             reminders.addAll( programStage.getReminders() );
+
+            notificationTemplates.clear();
+            notificationTemplates.addAll( programStage.getNotificationTemplates() );
         }
     }
 }

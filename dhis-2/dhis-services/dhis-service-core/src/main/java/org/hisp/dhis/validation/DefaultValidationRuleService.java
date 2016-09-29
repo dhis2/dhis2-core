@@ -290,7 +290,7 @@ public class DefaultValidationRuleService
         {
             for ( DataElement de : dataSet.getDataElements() )
             {
-                for ( DataElementCategoryOptionCombo co : de.getCategoryCombo().getOptionCombos() )
+                for ( DataElementCategoryOptionCombo co : de.getCategoryOptionCombos() )
                 {
                     DataValue dv = dataValueService.getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
 
@@ -635,19 +635,28 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public ValidationRule getValidationRule( int id ) { return validationRuleStore.get( id ); }
+    public ValidationRule getValidationRule( int id )
+    {
+        return validationRuleStore.get( id );
+    }
 
     @Override
-    public ValidationRule getValidationRule( String uid ) { return validationRuleStore.getByUid( uid ); }
+    public ValidationRule getValidationRule( String uid )
+    {
+        return validationRuleStore.getByUid( uid );
+    }
 
     @Override
-    public ValidationRule getValidationRuleByName( String name ) { return validationRuleStore.getByName( name ); }
+    public ValidationRule getValidationRuleByName( String name )
+    {
+        return validationRuleStore.getByName( name );
+    }
 
     @Override
-    public List<ValidationRule> getAllValidationRules() { return validationRuleStore.getAll(); }
-
-    @Override
-    public List<ValidationRule> getValidationRulesByName( String name ) { return validationRuleStore.getAllLikeName( name ); }
+    public List<ValidationRule> getAllValidationRules()
+    {
+        return validationRuleStore.getAll();
+    }
 
     @Override
     public List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements )

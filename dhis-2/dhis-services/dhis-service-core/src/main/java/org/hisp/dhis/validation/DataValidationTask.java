@@ -362,9 +362,7 @@ public class DataValidationTask
      * @param incompleteValuesMap map of values that were incomplete.
      * @return map of values.
      */
-    private Map<Integer, Double> getExpressionValueMap
-    ( Expression expression,
-        Set<Integer> skipCombos,
+    private Map<Integer, Double> getExpressionValueMap( Expression expression, Set<Integer> skipCombos,
         MapMap<Integer, DataElementOperand, Double> valueMap,
         SetMap<Integer, DataElementOperand> incompleteValuesMap )
     {
@@ -386,6 +384,7 @@ public class DataValidationTask
         else
         {
             for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
+            {
                 if ( !(skipCombos.contains( entry.getKey() )) )
                 {
                     Double value = expressionService.getExpressionValue( expression, entry.getValue(),
@@ -396,7 +395,7 @@ public class DataValidationTask
                         expressionValueMap.put( entry.getKey(), value );
                     }
                 }
-
+            }
         }
 
         return expressionValueMap;

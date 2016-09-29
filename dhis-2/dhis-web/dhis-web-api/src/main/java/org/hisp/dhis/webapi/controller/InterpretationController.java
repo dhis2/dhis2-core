@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.chart.Chart;
+import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -75,7 +76,7 @@ public class InterpretationController
     private IdentifiableObjectManager idObjectManager;
 
     // -------------------------------------------------------------------------
-    // Interpretation
+    // Intepretation create
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/reportTable/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
@@ -95,17 +96,7 @@ public class InterpretationController
 
         Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
 
-        OrganisationUnit orgUnit = null;
-
-        if ( orgUnitUid != null )
-        {
-            orgUnit = idObjectManager.get( OrganisationUnit.class, orgUnitUid );
-
-            if ( orgUnit == null )
-            {
-                throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid ) );
-            }
-        }
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, reportTable, currentUserService.getCurrentUser() );
 
         createIntepretation( new Interpretation( reportTable, period, orgUnit, text ), request, response );
     }
@@ -113,6 +104,7 @@ public class InterpretationController
     @RequestMapping( value = "/chart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeChartInterpretation(
         @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String orgUnitUid,
         @RequestBody String text, 
         HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
@@ -123,18 +115,11 @@ public class InterpretationController
             throw new WebMessageException( WebMessageUtils.conflict( "Chart does not exist or is not accessible: " + uid ) );
         }
 
-        User user = currentUserService.getCurrentUser();
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, chart, currentUserService.getCurrentUser() );
 
-        // ---------------------------------------------------------------------
-        // When chart has user org unit, store current user org unit with
-        // interpretation so chart will refer to the original org unit later
-        // ---------------------------------------------------------------------
-
-        OrganisationUnit unit = chart.hasUserOrgUnit() && user.hasOrganisationUnit() ? user.getOrganisationUnit() : null;
-
-        createIntepretation( new Interpretation( chart, unit, text ), request, response );
+        createIntepretation( new Interpretation( chart, orgUnit, text ), request, response );
     }
-
+    
     @RequestMapping( value = "/map/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeMapInterpretation(
         @PathVariable( "uid" ) String uid,
@@ -154,6 +139,7 @@ public class InterpretationController
     @RequestMapping( value = "/eventReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeEventReportInterpretation(
         @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String orgUnitUid,
         @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
@@ -163,13 +149,16 @@ public class InterpretationController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Event report does not exist or is not accessible: " + uid ) );
         }
-        
-        createIntepretation( new Interpretation( eventReport, text ), request, response );
+
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport, currentUserService.getCurrentUser() );
+
+        createIntepretation( new Interpretation( eventReport, orgUnit, text ), request, response );
     }
 
     @RequestMapping( value = "/eventChart/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
     public void writeEventChartInterpretation(
         @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String orgUnitUid,
         @RequestBody String text,
         HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
@@ -179,8 +168,10 @@ public class InterpretationController
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Event chart does not exist or is not accessible: " + uid ) );
         }
-        
-        createIntepretation( new Interpretation( eventChart, text ), request, response );
+
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart, currentUserService.getCurrentUser() );
+
+        createIntepretation( new Interpretation( eventChart, orgUnit, text ), request, response );
     }
         
     @RequestMapping( value = "/dataSetReport/{uid}", method = RequestMethod.POST, consumes = { "text/html", "text/plain" } )
@@ -214,6 +205,52 @@ public class InterpretationController
 
         createIntepretation( new Interpretation( dataSet, period, orgUnit, text ), request, response );
     }
+
+    /**
+     * Returns the organisation unit with the given identifier. If not existing,
+     * returns the user organisation unit if the analytical object specifies
+     * a user organisation unit. If not, returns null.
+     */
+    private OrganisationUnit getUserOrganisationUnit( String uid, AnalyticalObject analyticalObject, User user )
+        throws WebMessageException
+    {
+        OrganisationUnit unit = null;
+        
+        if ( uid != null )
+        {
+            unit = idObjectManager.get( OrganisationUnit.class, uid );
+
+            if ( unit == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist or is not accessible: " + uid ) );
+            }
+            
+            return unit;
+        }
+        else if ( analyticalObject.hasUserOrgUnit() && user.hasOrganisationUnit() )
+        {
+            unit = user.getOrganisationUnit();
+        }
+        
+        return unit;
+    }
+
+    /**
+     * Saves the given interpretation, adds location header and returns a web
+     * message response.
+     */
+    private void createIntepretation( Interpretation interpretation, HttpServletRequest request, HttpServletResponse response )
+    {
+        interpretationService.saveInterpretation( interpretation );
+
+        response.addHeader( "Location", InterpretationSchemaDescriptor.API_ENDPOINT + "/" + interpretation.getUid() );
+        
+        webMessageService.send( WebMessageUtils.created( "Interpretation created" ), response, request );
+    }
+    
+    // -------------------------------------------------------------------------
+    // Interpretation update
+    // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -257,19 +294,6 @@ public class InterpretationController
         interpretationService.deleteInterpretation( interpretation );
     }
 
-    /**
-     * Saves the given interpretation, adds location header and returns a web
-     * message response.
-     */
-    private void createIntepretation( Interpretation interpretation, HttpServletRequest request, HttpServletResponse response )
-    {
-        interpretationService.saveInterpretation( interpretation );
-
-        response.addHeader( "Location", InterpretationSchemaDescriptor.API_ENDPOINT + "/" + interpretation.getUid() );
-        
-        webMessageService.send( WebMessageUtils.created( "Interpretation created" ), response, request );
-    }
-    
     // -------------------------------------------------------------------------
     // Comment
     // -------------------------------------------------------------------------

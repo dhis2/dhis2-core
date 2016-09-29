@@ -26,7 +26,7 @@
 
     <property name="repeatable" column="repeatable" not-null="true" />
 
-    <set name="programStageDataElements" order-by="sort_order" cascade="save-update">
+    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
     </set>
@@ -43,9 +43,15 @@
 
     <property name="executionDateLabel" column="executiondatelabel" />
 
+    <!-- TODO deprecate this -->
     <set name="reminders" order-by="daysAllowedSendMessage" cascade="all">
       <key column="programStageid" />
       <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
+    </set>
+
+    <set name="notificationTemplates" cascade="all">
+      <key column="programstageid" />
+      <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
 
     <property name="autoGenerateEvent" />
@@ -69,7 +75,7 @@
     <property name="reportDateToUse" />
 
     <property name="preGenerateUID" />
-    
+
     <property name="hideDueDate" />
 
     <property name="sortOrder" column="sort_order" />

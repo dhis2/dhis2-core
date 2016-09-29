@@ -41,8 +41,6 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Date;
@@ -56,7 +54,7 @@ import java.util.List;
  * @author anilkumk
  */
 public class MetadataSyncTask
-    implements Runnable, ApplicationListener<ContextRefreshedEvent>
+    implements Runnable
 {
     private static final Log log = LogFactory.getLog( MetadataSyncTask.class );
 
@@ -88,19 +86,6 @@ public class MetadataSyncTask
     private MetadataRetryContext metadataRetryContext;
 
     @Override
-    public void onApplicationEvent( ContextRefreshedEvent contextRefreshedEvent )
-    {
-        try
-        {
-            systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Exception occurred while saving system setting 'keyVersionEnabled' " + e.getMessage(), e );
-        }
-    }
-
-    @Override
     public void run()
     {
         log.info( "Metadata Sync cron Job started" );
@@ -128,6 +113,7 @@ public class MetadataSyncTask
 
     public void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException
     {
+        metadataSyncPreProcessor.setUp( context );
 
         metadataSyncPreProcessor.handleAggregateDataPush( context );
 

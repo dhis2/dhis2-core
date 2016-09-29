@@ -84,6 +84,7 @@ public class DefaultSchemaService
         add( new DataElementSchemaDescriptor() ).
         add( new DataEntryFormSchemaDescriptor() ).
         add( new DataSetSchemaDescriptor() ).
+        add( new DataSetElementSchemaDescriptor() ).
         add( new DocumentSchemaDescriptor() ).
         add( new EventChartSchemaDescriptor() ).
         add( new EventReportSchemaDescriptor() ).
@@ -118,6 +119,7 @@ public class DefaultSchemaService
         add( new ProgramStageSchemaDescriptor() ).
         add( new ProgramStageSectionSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeSchemaDescriptor() ).
+        add( new ProgramNotificationTemplateSchemaDescriptor() ).
         add( new ProgramValidationSchemaDescriptor() ).
         add( new RelationshipTypeSchemaDescriptor() ).
         add( new ReportSchemaDescriptor() ).

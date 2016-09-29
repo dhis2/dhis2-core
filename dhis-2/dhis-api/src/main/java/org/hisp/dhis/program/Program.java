@@ -45,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.period.PeriodType;
@@ -100,7 +101,10 @@ public class Program
 
     private Boolean onlyEnrollOnce = false;
 
+    @Deprecated
     private Set<TrackedEntityInstanceReminder> instanceReminders = new HashSet<>();
+
+    private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
     private Boolean selectEnrollmentDatesInFuture = false;
 
@@ -530,6 +534,20 @@ public class Program
     public void setInstanceReminders( Set<TrackedEntityInstanceReminder> instanceReminders )
     {
         this.instanceReminders = instanceReminders;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "notificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramNotificationTemplate> getNotificationTemplates()
+    {
+        return notificationTemplates;
+    }
+
+    public void setNotificationTemplates( Set<ProgramNotificationTemplate> notificationTemplates )
+    {
+        this.notificationTemplates = notificationTemplates;
     }
 
     @JsonProperty

@@ -24,11 +24,9 @@
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
-    <set name="dataElements" table="datasetmembers">
-      <cache usage="read-write" />
+    <set name="dataSetElements" table="datasetelement" cascade="all-delete-orphan">
       <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" />
-      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-        foreign-key="fk_dataset_dataelementid" />
+      <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>
 
     <set name="indicators" table="datasetindicators">
@@ -103,7 +101,7 @@
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_dataset_legendset" />
-      
+
     <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
 
     <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />

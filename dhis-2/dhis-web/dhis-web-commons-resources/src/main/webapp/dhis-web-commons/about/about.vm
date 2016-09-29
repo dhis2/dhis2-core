@@ -13,6 +13,15 @@
   <dt>$i18n.getString( "time_since_last_analytics_table_generation" ):</dt><dd>$!info.intervalSinceLastAnalyticsTableSuccess</dd>
   <dt>$i18n.getString( "last_analytics_table_runtime" ):</dt><dd>$!info.lastAnalyticsTableRuntime</dd>
   <dt>$i18n.getString( "environment_variable" ):</dt><dd>$!info.environmentVariable</dd>
+
+  #if ( $info.isMetadataVersionEnabled && $!info.systemMetadataVersion )
+    <dt>$i18n.getString( "metadata_version" ):</dt><dd>$!info.systemMetadataVersion</dd>
+  #end
+
+  #if ( $info.isMetadataSyncEnabled && $!info.lastMetadataVersionSyncAttempt)
+    <dt>$i18n.getString( "last_metadata_sync_attempt_time" ):</dt><dd>$!format.formatDateTime( $!info.lastMetadataVersionSyncAttempt )</dd>
+  #end
+
   #if ( $currentUserIsSuper )
   <dt>$i18n.getString( "external_configuration_directory" ):</dt><dd>$!info.externalDirectory</dd>
   <dt>$i18n.getString( "file_store_provider" ):</dt><dd>$!info.fileStoreProvider</dd>

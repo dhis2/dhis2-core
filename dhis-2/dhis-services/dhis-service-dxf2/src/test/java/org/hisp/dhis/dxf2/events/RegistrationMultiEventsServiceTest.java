@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.events;
 import org.hamcrest.CoreMatchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
@@ -54,8 +55,8 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
@@ -196,6 +197,7 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testSaveWithoutProgramStageShouldFail()
     {
         Event event = createEvent( programA.getUid(), null, organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(),
@@ -207,6 +209,7 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testSaveWithoutEnrollmentShouldFail()
     {
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -217,38 +220,7 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
-    @Ignore
-    public void testSaveSameEventMultipleTimesShouldOnlyGive1Event()
-    {
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
-        importSummary = eventService.addEvent( event, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
-        importSummary = eventService.addEvent( event, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
-        importSummary = eventService.addEvent( event, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
-        EventSearchParams params = new EventSearchParams();
-        params.setProgram( programA );
-        params.setProgramStage( programStageA );
-        params.setOrgUnit( organisationUnitA );
-        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.SELECTED );
-
-        assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
-    }
-
-    @Test
+    @Category( IntegrationTest.class )
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -284,6 +256,7 @@ public class RegistrationMultiEventsServiceTest
     }
 
     @Test
+    @Category( IntegrationTest.class )
     public void testSaveRepeatableStageWithEventIdShouldNotCreateAdditionalEvents()
     {
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
@@ -324,6 +297,10 @@ public class RegistrationMultiEventsServiceTest
 
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
     }
+
+    // -------------------------------------------------------------------------
+    // Supportive tests
+    // -------------------------------------------------------------------------
 
     private Enrollment createEnrollment( String program, String person )
     {

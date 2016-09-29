@@ -29,8 +29,6 @@ package org.hisp.dhis.indicator;
  */
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -39,7 +37,6 @@ import java.util.List;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Transactional
 public class DefaultIndicatorService
@@ -124,24 +121,6 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public List<Indicator> getIndicatorByName( String name )
-    {
-        return new ArrayList<>( indicatorStore.getAllEqName( name ) );
-    }
-
-    @Override
-    public List<Indicator> getIndicatorByShortName( String shortName )
-    {
-        return new ArrayList<>( indicatorStore.getAllEqShortName( shortName ) );
-    }
-
-    @Override
-    public Indicator getIndicatorByCode( String code )
-    {
-        return indicatorStore.getByCode( code );
-    }
-
-    @Override
     public List<Indicator> getIndicatorsWithGroupSets()
     {
         return indicatorStore.getIndicatorsWithGroupSets();
@@ -157,36 +136,6 @@ public class DefaultIndicatorService
     public List<Indicator> getIndicatorsWithDataSets()
     {
         return indicatorStore.getIndicatorsWithDataSets();
-    }
-
-    @Override
-    public List<Indicator> getIndicatorsLikeName( String name )
-    {
-        return indicatorStore.getAllLikeName( name ) ;
-    }
-
-    @Override
-    public int getIndicatorCount()
-    {
-        return indicatorStore.getCount();
-    }
-
-    @Override
-    public int getIndicatorCountByName( String name )
-    {
-        return  indicatorStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<Indicator> getIndicatorsBetween( int first, int max )
-    {
-        return indicatorStore.getAllOrderedName( first, max ) ;
-    }
-
-    @Override
-    public List<Indicator> getIndicatorsBetweenByName( String name, int first, int max )
-    {
-        return indicatorStore.getAllLikeName( name, first, max ) ;
     }
 
     // -------------------------------------------------------------------------
@@ -229,36 +178,6 @@ public class DefaultIndicatorService
         return indicatorTypeStore.getAll();
     }
 
-    @Override
-    public IndicatorType getIndicatorTypeByName( String name )
-    {
-        return indicatorTypeStore.getByName( name );
-    }
-
-    @Override
-    public int getIndicatorTypeCount()
-    {
-        return indicatorTypeStore.getCount();
-    }
-
-    @Override
-    public int getIndicatorTypeCountByName( String name )
-    {
-        return indicatorTypeStore.getCountLikeName( name ) ;
-    }
-
-    @Override
-    public List<IndicatorType> getIndicatorTypesBetween( int first, int max )
-    {
-        return indicatorTypeStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<IndicatorType> getIndicatorTypesBetweenByName( String name, int first, int max )
-    {
-        return indicatorTypeStore.getAllLikeName( name, first, max ) ;
-    }
-
     // -------------------------------------------------------------------------
     // IndicatorGroup
     // -------------------------------------------------------------------------
@@ -288,19 +207,6 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public IndicatorGroup getIndicatorGroup( int id, boolean i18nIndicators )
-    {
-        IndicatorGroup group = getIndicatorGroup( id );
-
-        if ( i18nIndicators )
-        {
-            group.getMembers();
-        }
-
-        return group;
-    }
-
-    @Override
     public IndicatorGroup getIndicatorGroup( String uid )
     {
         return indicatorGroupStore.getByUid( uid );
@@ -310,36 +216,6 @@ public class DefaultIndicatorService
     public List<IndicatorGroup> getAllIndicatorGroups()
     {
         return indicatorGroupStore.getAll();
-    }
-
-    @Override
-    public List<IndicatorGroup> getIndicatorGroupByName( String name )
-    {
-        return new ArrayList<>( indicatorGroupStore.getAllEqName( name ) );
-    }
-
-    @Override
-    public int getIndicatorGroupCount()
-    {
-        return indicatorGroupStore.getCount();
-    }
-
-    @Override
-    public int getIndicatorGroupCountByName( String name )
-    {
-        return indicatorGroupStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<IndicatorGroup> getIndicatorGroupsBetween( int first, int max )
-    {
-        return  indicatorGroupStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<IndicatorGroup> getIndicatorGroupsBetweenByName( String name, int first, int max )
-    {
-        return indicatorGroupStore.getAllLikeName( name, first, max );
     }
 
     // -------------------------------------------------------------------------
@@ -371,19 +247,6 @@ public class DefaultIndicatorService
     }
 
     @Override
-    public IndicatorGroupSet getIndicatorGroupSet( int id, boolean i18nGroups )
-    {
-        IndicatorGroupSet groupSet = getIndicatorGroupSet( id );
-
-        if ( i18nGroups )
-        {
-            groupSet.getMembers();
-        }
-
-        return groupSet;
-    }
-
-    @Override
     public IndicatorGroupSet getIndicatorGroupSet( String uid )
     {
         return indicatorGroupSetStore.getByUid( uid );
@@ -395,46 +258,10 @@ public class DefaultIndicatorService
         return new ArrayList<>( indicatorGroupSetStore.getAllEqName( name ) );
     }
 
-    @Override
-    public List<IndicatorGroupSet> getCompulsoryIndicatorGroupSetsWithMembers()
-    {
-        return FilterUtils.filter( getAllIndicatorGroupSets(), new Filter<IndicatorGroupSet>()
-        {
-            @Override
-            public boolean retain( IndicatorGroupSet object )
-            {
-                return object.isCompulsory() && object.hasIndicatorGroups();
-            }
-        } );
-    }
 
     @Override
     public List<IndicatorGroupSet> getAllIndicatorGroupSets()
     {
         return indicatorGroupSetStore.getAll();
-    }
-
-    @Override
-    public int getIndicatorGroupSetCount()
-    {
-        return indicatorGroupSetStore.getCount();
-    }
-
-    @Override
-    public int getIndicatorGroupSetCountByName( String name )
-    {
-        return  indicatorGroupSetStore.getCountLikeName( name );
-    }
-
-    @Override
-    public List<IndicatorGroupSet> getIndicatorGroupSetsBetween( int first, int max )
-    {
-        return indicatorGroupSetStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<IndicatorGroupSet> getIndicatorGroupSetsBetweenByName( String name, int first, int max )
-    {
-        return indicatorGroupSetStore.getAllLikeName( name, first, max );
     }
 }

@@ -27,10 +27,8 @@
 
   <bean id="org.hisp.dhis.de.action.LoadFormAction" class="org.hisp.dhis.de.action.LoadFormAction" scope="prototype">
     <property name="dataEntryFormService" ref="org.hisp.dhis.dataentryform.DataEntryFormService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
 
   <bean id="org.hisp.dhis.de.action.SaveMinMaxLimitsAction" class="org.hisp.dhis.de.action.SaveMinMaxLimitsAction" scope="prototype">

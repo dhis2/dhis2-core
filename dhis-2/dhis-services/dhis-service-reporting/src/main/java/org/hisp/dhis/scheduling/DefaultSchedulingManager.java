@@ -28,11 +28,6 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.datastatistics.DataStatisticsTask;
 import org.hisp.dhis.fileresource.FileResourceCleanUpTask;
@@ -43,6 +38,11 @@ import org.hisp.dhis.system.scheduling.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
@@ -83,7 +83,7 @@ public class DefaultSchedulingManager
     
     @Autowired
     private DataStatisticsTask dataStatisticsTask;
-    
+
     // TODO Avoid map, use bean identifier directly and get bean from context
 
     // -------------------------------------------------------------------------
@@ -146,7 +146,17 @@ public class DefaultSchedulingManager
     {
         return (ListMap<String, String>) systemSettingManager.getSystemSetting( SettingKey.SCHEDULED_TASKS, new ListMap<String, String>() );
     }
-    
+
+    @Override
+    public String getCronForTask( final String taskKey )
+    {
+        return getCronKeyMap().entrySet().stream()
+            .filter( entry -> entry.getValue().contains( taskKey ) )
+            .findAny()
+            .map( Map.Entry::getKey )
+            .orElse( null );
+    }
+
     @Override
     public Set<String> getScheduledKeys()
     {
@@ -173,7 +183,7 @@ public class DefaultSchedulingManager
         }
         
         String firstTask = cronKeyMap.keySet().iterator().next();
-        
+
         return scheduler.getTaskStatus( firstTask );
     }
 
@@ -201,10 +211,17 @@ public class DefaultSchedulingManager
     public void executeTask( String taskKey )
     {
         Runnable task = tasks.get( taskKey );
-        
-        if (task != null)
+
+        if ( task != null && !isTaskInProgress( taskKey ) )
         {
-            scheduler.executeTask( task );
+            scheduler.executeTask( taskKey, task );
         }
     }
+
+    @Override
+    public boolean isTaskInProgress(String taskKey)
+    {
+        return ScheduledTaskStatus.RUNNING == scheduler.getCurrentTaskStatus( taskKey );
+    }
+
 }

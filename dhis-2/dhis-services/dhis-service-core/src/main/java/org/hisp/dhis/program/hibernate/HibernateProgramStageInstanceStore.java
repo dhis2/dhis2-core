@@ -28,10 +28,14 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.type.StringType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
@@ -42,6 +46,8 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.SchedulingProgramObject;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
@@ -53,6 +59,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -217,6 +225,39 @@ public class HibernateProgramStageInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    @Override
+    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate notificationTemplate, Date notificationDate )
+    {
+        if ( notificationDate == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        Query query = getQuery(
+            "select psi from ProgramStageInstance as psi " +
+                "inner join psi.programStage as ps " +
+                "inner join ps.notificationTemplates as templates " +
+                "where templates.notificationTrigger in (:triggers) " +
+                "and templates.relativeScheduledDays is not null " + // ?
+                "and :notificationTemplate in elements(templates) " +
+                "and psi.dueDate is not null " +
+                "and psi.executionDate is null " +
+                "and ( day(cast(:notificationDate as date)) - day(cast(psi.dueDate as date)) ) = templates.relativeScheduledDays"
+        );
+
+        Set<String> triggerNames = Sets.union(
+            NotificationTrigger.getAllScheduledTriggers(),
+            NotificationTrigger.getAllApplicableToProgramStageInstance()
+        ).stream().map( Enum::name ).collect( Collectors.toSet() );
+
+        query.setEntity( "notificationTemplate", notificationTemplate );
+        query.setParameterList( "triggers", triggerNames, StringType.INSTANCE );
+        query.setDate( "notificationDate", notificationDate );
+
+        return query.list();
     }
 
     // -------------------------------------------------------------------------

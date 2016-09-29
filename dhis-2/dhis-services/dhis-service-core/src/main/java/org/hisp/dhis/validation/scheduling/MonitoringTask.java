@@ -33,14 +33,12 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 import java.util.Date;
 
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -88,16 +86,9 @@ public class MonitoringTask
         }
         catch ( RuntimeException ex )
         {
-            String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-
             notifier.notify( taskId, ERROR, "Process failed: " + ex.getMessage(), true );
             
-            messageService.sendSystemNotification( 
-                "Monitoring process failed",
-                "Monitoring process failed, please check the logs. Time: " + new DateTime().toString() + ". " +
-                "System: " + title + " " +
-                "Message: " + ex.getMessage() + " " +
-                "Cause: " + DebugUtils.getStackTrace( ex.getCause() ) );
+            messageService.sendSystemErrorNotification( "Monitoring process failed", ex );
             
             throw ex;
         }

@@ -1,5 +1,10 @@
 $(document).ready(function () {
 
+    if($('#currentRunningTaskStatus').val())
+    {
+        setHeaderDelayMessage( $('#currentRunningTaskStatus').val() );
+    }
+
     if ($('#isRunning').val() == 'true') 
     {
         $('.scheduling').attr('disabled', 'disabled');
@@ -186,17 +191,10 @@ $(document).ready(function () {
         defaultScheduler();
     });
 
-    $("#submitSyncSchedule").unbind("click").click(function (e)
+    $("#submitSyncNow").unbind("click").click(function (e)
     {
         e.stopPropagation();
-        var button = this;
-        $(button).attr("disabled", "disabled");
-        $.post('executeMetaDataSyncTask.action', {
-            executeNow: true,
-            taskKey: "metadataSyncTask"
-        }, function (json) {
-            $(button).removeAttr("disabled");
-        });
+        $("#metadataSyncNowForm").submit();
     });
 
 });
@@ -242,7 +240,8 @@ function submitSchedulingForm()
     if($("#metadataSyncStrategy").val() == "enabled")
     {
         var cron = getCronExpression();
-        if(cron)
+
+        if( cron )
         {
             $('#metadataSyncCron').val(cron);
             $('.scheduling').removeAttr('disabled');
@@ -250,7 +249,7 @@ function submitSchedulingForm()
         }
         else 
         {
-            alert( metadata_sync_scheduler_alert );
+            setHeaderDelayMessage( metadata_sync_scheduler_alert );
         }
     }
     else

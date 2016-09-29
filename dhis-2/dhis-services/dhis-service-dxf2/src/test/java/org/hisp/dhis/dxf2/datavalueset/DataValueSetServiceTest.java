@@ -246,10 +246,10 @@ public class DataValueSetServiceTest
 
         idObjectManager.save( osA );
 
-        dsA.addDataElement( deA );
-        dsA.addDataElement( deB );
-        dsA.addDataElement( deC );
-        dsA.addDataElement( deD );
+        dsA.addDataSetElement( deA );
+        dsA.addDataSetElement( deB );
+        dsA.addDataSetElement( deC );
+        dsA.addDataSetElement( deD );
 
         addAttributeValue( ouA, attribute, "OU1" );
         organisationUnitService.addOrganisationUnit( ouA );
@@ -399,7 +399,7 @@ public class DataValueSetServiceTest
     public void testImportDataValuesXmlWithCodeB()
         throws Exception
     {
-        in = new ClassPathResource( "datavalueset/dataValueSetBcode.xml" ).getInputStream();
+        in = new ClassPathResource( "datavalueset/dataValueSetBCode.xml" ).getInputStream();
 
         ImportOptions importOptions = new ImportOptions()
             .setIdScheme( "CODE" )
@@ -422,7 +422,7 @@ public class DataValueSetServiceTest
     public void testImportDataValuesXmlWithAttribute()
         throws Exception
     {
-        in = new ClassPathResource( "datavalueset/dataValueSetBattribute.xml" ).getInputStream();
+        in = new ClassPathResource( "datavalueset/dataValueSetBAttribute.xml" ).getInputStream();
 
         ImportOptions importOptions = new ImportOptions()
             .setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
@@ -467,7 +467,7 @@ public class DataValueSetServiceTest
     public void testImportDataValuesXmlWithAttributePreheatCacheTrue()
         throws Exception
     {
-        in = new ClassPathResource( "datavalueset/dataValueSetBattribute.xml" ).getInputStream();
+        in = new ClassPathResource( "datavalueset/dataValueSetBAttribute.xml" ).getInputStream();
 
         ImportOptions importOptions = new ImportOptions()
             .setPreheatCache( true )
@@ -491,7 +491,7 @@ public class DataValueSetServiceTest
     public void testImportDataValuesXmlWithCodePreheatCacheTrue()
         throws Exception
     {
-        in = new ClassPathResource( "datavalueset/dataValueSetBcode.xml" ).getInputStream();
+        in = new ClassPathResource( "datavalueset/dataValueSetBCode.xml" ).getInputStream();
 
         ImportOptions importOptions = new ImportOptions()
             .setPreheatCache( true )

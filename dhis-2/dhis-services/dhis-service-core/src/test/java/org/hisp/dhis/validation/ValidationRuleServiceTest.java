@@ -54,16 +54,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.Operator.*;
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -94,13 +85,9 @@ public class ValidationRuleServiceTest
     private OrganisationUnitService organisationUnitService;
 
     private DataElement dataElementA;
-
     private DataElement dataElementB;
-
     private DataElement dataElementC;
-
     private DataElement dataElementD;
-
     private DataElement dataElementE;
 
     private Set<DataElementCategoryOptionCombo> optionCombos;
@@ -108,21 +95,13 @@ public class ValidationRuleServiceTest
     private DataElementCategoryOptionCombo optionCombo;
 
     private Expression expressionA;
-
     private Expression expressionB;
-
     private Expression expressionC;
-
     private Expression expressionD;
-
     private Expression expressionE;
-
     private Expression expressionF;
-
     private Expression expressionG;
-
     private Expression expressionH;
-
     private Expression expressionX;
 
     private DataSet dataSetWeekly;
@@ -132,21 +111,14 @@ public class ValidationRuleServiceTest
     private DataSet dataSetYearly;
 
     private Period periodA;
-
     private Period periodB;
 
     private OrganisationUnit sourceA;
-
     private OrganisationUnit sourceB;
-
     private OrganisationUnit sourceC;
-
     private OrganisationUnit sourceD;
-
     private OrganisationUnit sourceE;
-
     private OrganisationUnit sourceF;
-
     private OrganisationUnit sourceG;
 
     private Set<OrganisationUnit> sourcesA = new HashSet<>();
@@ -154,21 +126,15 @@ public class ValidationRuleServiceTest
     private Set<OrganisationUnit> allSources = new HashSet<>();
 
     private ValidationRule validationRuleA;
-
     private ValidationRule validationRuleB;
-
     private ValidationRule validationRuleC;
-
     private ValidationRule validationRuleD;
-
     private ValidationRule validationRuleX;
 
     private ValidationRuleGroup group;
 
     private PeriodType periodTypeWeekly;
-
     private PeriodType periodTypeMonthly;
-
     private PeriodType periodTypeYearly;
 
     private DataElementCategoryOptionCombo defaultCombo;
@@ -176,12 +142,6 @@ public class ValidationRuleServiceTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
-    private void joinDataSetToSource( DataSet dataSet, OrganisationUnit source )
-    {
-        source.getDataSets().add( dataSet );
-        dataSet.getSources().add( source );
-    }
 
     @Override
     public void setUpTest()
@@ -215,25 +175,25 @@ public class ValidationRuleServiceTest
 
         expressionA = new Expression(
             "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA",
-            dataElementSet( dataElementA, dataElementB ) );
+            Sets.newHashSet( dataElementA, dataElementB ) );
         expressionB = new Expression(
             "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB",
-            dataElementSet( dataElementC, dataElementD ) );
-        expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC", dataElementSet( dataElementB ) );
-        expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD", dataElementSet( dataElementB ) );
+            Sets.newHashSet( dataElementC, dataElementD ) );
+        expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC", Sets.newHashSet( dataElementB ) );
+        expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD", Sets.newHashSet( dataElementB ) );
         expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE",
-            dataElementSet( dataElementB ), dataElementSet( dataElementB ) );
+            Sets.newHashSet( dataElementB ), Sets.newHashSet( dataElementB ) );
         expressionF = new Expression(
             "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF",
-            dataElementSet( dataElementB, dataElementE ) );
+            Sets.newHashSet( dataElementB, dataElementE ) );
         expressionG = new Expression(
             "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})",
-            "expressionG", dataElementSet( dataElementB, dataElementE ), dataElementSet( dataElementB, dataElementE ) );
+            "expressionG", Sets.newHashSet( dataElementB, dataElementE ), Sets.newHashSet( dataElementB, dataElementE ) );
         expressionH = new Expression(
             "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
-            "expressionH", dataElementSet(), dataElementSet( dataElementB ) );
+            "expressionH", Sets.newHashSet(), Sets.newHashSet( dataElementB ) );
         expressionX = new Expression( "#{" + dataElementB.getUid() + suffix + "}>250",
-            "expressionX", dataElementSet( dataElementB ), dataElementSet() );
+            "expressionX", Sets.newHashSet( dataElementB ), Sets.newHashSet() );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -270,25 +230,25 @@ public class ValidationRuleServiceTest
         allSources.add( sourceF );
         allSources.add( sourceG );
 
-        joinDataSetToSource( dataSetMonthly, sourceA );
-        joinDataSetToSource( dataSetMonthly, sourceB );
-        joinDataSetToSource( dataSetMonthly, sourceC );
-        joinDataSetToSource( dataSetMonthly, sourceD );
-        joinDataSetToSource( dataSetMonthly, sourceE );
-        joinDataSetToSource( dataSetMonthly, sourceF );
+        dataSetMonthly.addOrganisationUnit( sourceA );
+        dataSetMonthly.addOrganisationUnit( sourceB );
+        dataSetMonthly.addOrganisationUnit( sourceC );
+        dataSetMonthly.addOrganisationUnit( sourceD );
+        dataSetMonthly.addOrganisationUnit( sourceE );
+        dataSetMonthly.addOrganisationUnit( sourceF );
 
-        joinDataSetToSource( dataSetWeekly, sourceB );
-        joinDataSetToSource( dataSetWeekly, sourceC );
-        joinDataSetToSource( dataSetWeekly, sourceD );
-        joinDataSetToSource( dataSetWeekly, sourceE );
-        joinDataSetToSource( dataSetWeekly, sourceF );
-        joinDataSetToSource( dataSetWeekly, sourceG );
+        dataSetWeekly.addOrganisationUnit( sourceB );
+        dataSetWeekly.addOrganisationUnit( sourceC );
+        dataSetWeekly.addOrganisationUnit( sourceD );
+        dataSetWeekly.addOrganisationUnit( sourceE );
+        dataSetWeekly.addOrganisationUnit( sourceF );
+        dataSetWeekly.addOrganisationUnit( sourceG );
 
-        joinDataSetToSource( dataSetYearly, sourceB );
-        joinDataSetToSource( dataSetYearly, sourceC );
-        joinDataSetToSource( dataSetYearly, sourceD );
-        joinDataSetToSource( dataSetYearly, sourceE );
-        joinDataSetToSource( dataSetYearly, sourceF );
+        dataSetYearly.addOrganisationUnit( sourceB );
+        dataSetYearly.addOrganisationUnit( sourceC );
+        dataSetYearly.addOrganisationUnit( sourceD );
+        dataSetYearly.addOrganisationUnit( sourceE );
+        dataSetYearly.addOrganisationUnit( sourceF );
 
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
@@ -298,23 +258,14 @@ public class ValidationRuleServiceTest
         organisationUnitService.addOrganisationUnit( sourceF );
         organisationUnitService.addOrganisationUnit( sourceG );
 
-        dataSetMonthly.getDataElements().add( dataElementA );
-        dataSetMonthly.getDataElements().add( dataElementB );
-        dataSetMonthly.getDataElements().add( dataElementC );
-        dataSetMonthly.getDataElements().add( dataElementD );
+        dataSetMonthly.addDataSetElement( dataElementA );
+        dataSetMonthly.addDataSetElement( dataElementB );
+        dataSetMonthly.addDataSetElement( dataElementC );
+        dataSetMonthly.addDataSetElement( dataElementD );
 
-        dataSetWeekly.getDataElements().add( dataElementE );
+        dataSetWeekly.addDataSetElement( dataElementE );
 
-        dataSetYearly.getDataElements().add( dataElementE );
-
-        dataElementA.getDataSets().add( dataSetMonthly );
-        dataElementB.getDataSets().add( dataSetMonthly );
-        dataElementC.getDataSets().add( dataSetMonthly );
-        dataElementD.getDataSets().add( dataSetMonthly );
-
-        dataElementE.getDataSets().add( dataSetWeekly );
-
-        dataElementE.getDataSets().add( dataSetYearly );
+        dataSetYearly.addDataSetElement( dataElementE );
 
         dataSetService.addDataSet( dataSetWeekly );
         dataSetService.addDataSet( dataSetMonthly );
@@ -366,26 +317,6 @@ public class ValidationRuleServiceTest
         List<ValidationResult> resultList = new ArrayList<>( results );
         Collections.sort( resultList );
         return resultList;
-    }
-
-    private Set<DataElement> dataElementSet()
-    {
-        return new HashSet<DataElement>();
-    }
-
-    private Set<DataElement> dataElementSet( DataElement elt1 )
-    {
-        HashSet<DataElement> result = new HashSet<DataElement>();
-        result.add( elt1 );
-        return result;
-    }
-
-    private Set<DataElement> dataElementSet( DataElement elt1, DataElement elt2 )
-    {
-        HashSet<DataElement> result = new HashSet<DataElement>();
-        result.add( elt1 );
-        result.add( elt2 );
-        return result;
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, String value )

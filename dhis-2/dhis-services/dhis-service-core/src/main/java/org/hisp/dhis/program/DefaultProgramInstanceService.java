@@ -37,13 +37,15 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.sms.SmsServiceException;
 import org.hisp.dhis.sms.outbound.OutboundSms;
+import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
@@ -55,6 +57,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -63,9 +66,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Resource;
-
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 /**
  * @author Abyot Asalefew
@@ -112,7 +115,13 @@ public class DefaultProgramInstanceService
     private TrackedEntityService trackedEntityService;
 
     @Autowired
+    private ProgramNotificationService programNotificationService;
+
+    @Autowired
     private I18nManager i18nManager;
+    
+    @Autowired
+    private OutboundSmsService outBoundSmsService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -489,6 +498,14 @@ public class DefaultProgramInstanceService
         addProgramInstance( programInstance );
 
         // -----------------------------------------------------------------
+        // Send enrollment notifications (if any)
+        // -----------------------------------------------------------------
+
+        programNotificationService.sendEnrollmentNotifications( programInstance );
+
+        // TODO Remove all below?
+
+        // -----------------------------------------------------------------
         // Send messages after enrolling in program
         // -----------------------------------------------------------------
 
@@ -547,6 +564,10 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
         // Send sms-message when to completed the program
         // ---------------------------------------------------------------------
+
+        programNotificationService.sendCompletionNotifications( programInstance );
+
+        // TODO Remove this. Replaced by call to ProgramNotificationService.
 
         List<OutboundSms> outboundSms = programInstance.getOutboundSms();
 
@@ -669,6 +690,8 @@ public class DefaultProgramInstanceService
                 outboundSms.setRecipients( phoneNumbers );
                 outboundSms.setSender( currentUserService.getCurrentUsername() );
                 smsSender.sendMessage( null, outboundSms.getMessage(), outboundSms.getRecipients() );
+                
+                outBoundSmsService.saveOutboundSms( outboundSms );
             }
             catch ( SmsServiceException e )
             {

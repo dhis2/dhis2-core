@@ -50,6 +50,7 @@ public class StreamingDataValue
     private static final String FIELD_LAST_UPDATED = "lastUpdated";
     private static final String FIELD_COMMENT = "comment";
     private static final String FIELD_FOLLOWUP = "followUp";
+    private static final String FIELD_DELETED = "deleted";
 
     private XMLWriter writer;
 
@@ -135,6 +136,12 @@ public class StreamingDataValue
         return followup = followup == null ? valueOf( reader.getAttributeValue( FIELD_FOLLOWUP ) ) : followup;
     }
 
+    @Override
+    public Boolean getDeleted()
+    {
+        return deleted = deleted == null ? valueOf( reader.getAttributeValue( FIELD_DELETED ) ) : deleted;
+    }
+    
     //--------------------------------------------------------------------------
     // Setters
     //--------------------------------------------------------------------------
@@ -197,6 +204,12 @@ public class StreamingDataValue
     public void setFollowup( Boolean followup )
     {
         writer.writeAttribute( FIELD_FOLLOWUP, valueOf( followup ) );
+    }
+    
+    @Override
+    public void setDeleted( Boolean deleted )
+    {
+        writer.writeAttribute( FIELD_DELETED, valueOf( deleted ) );
     }
 
     @Override

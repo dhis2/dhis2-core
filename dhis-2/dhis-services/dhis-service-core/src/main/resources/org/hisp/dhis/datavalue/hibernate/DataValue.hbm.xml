@@ -25,6 +25,8 @@
     <property name="comment" length="50000" />
 
     <property name="followup" />
+    
+    <property name="deleted" column="deleted" index="in_datavalue_deleted" />
 
   </class>
 </hibernate-mapping>

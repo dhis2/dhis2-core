@@ -59,6 +59,9 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
 /**
+ * Data value service implementation. Note that data values are softly deleted,
+ * which implies having the deleted property set to true and updated.
+ * 
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
@@ -141,7 +144,7 @@ public class DefaultDataValueService
         }
 
         // ---------------------------------------------------------------------
-        // Save
+        // Set default category option combo if null
         // ---------------------------------------------------------------------
 
         if ( dataValue.getCategoryOptionCombo() == null )
@@ -156,7 +159,23 @@ public class DefaultDataValueService
 
         dataValue.setCreated( new Date() );
 
-        dataValueStore.addDataValue( dataValue );
+        // ---------------------------------------------------------------------
+        // Check and restore soft deleted value
+        // ---------------------------------------------------------------------
+
+        DataValue softDelete = dataValueStore.getSoftDeletedDataValue( dataValue );
+        
+        if ( softDelete != null )
+        {
+            softDelete.mergeWith( dataValue );
+            softDelete.setDeleted( false );
+            
+            dataValueStore.updateDataValue( softDelete );
+        }
+        else
+        {
+            dataValueStore.addDataValue( dataValue );
+        }
 
         return true;
     }
@@ -191,7 +210,9 @@ public class DefaultDataValueService
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
 
-        dataValueStore.deleteDataValue( dataValue );
+        dataValue.setDeleted( true );
+        
+        dataValueStore.updateDataValue( dataValue );
     }
     
     @Override
@@ -216,14 +237,6 @@ public class DefaultDataValueService
         return dataValueStore.getDataValue( dataElement, period, source, categoryOptionCombo, attributeOptionCombo );
     }
 
-    @Override
-    public DataValue getDataValue( int dataElementId, int periodId, int sourceId, int categoryOptionComboId )
-    {
-        DataElementCategoryOptionCombo defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
-
-        return dataValueStore.getDataValue( dataElementId, periodId, sourceId, categoryOptionComboId, defaultOptionCombo.getId() );
-    }
-
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
@@ -233,76 +246,19 @@ public class DefaultDataValueService
     {
         return dataValueStore.getAllDataValues();
     }
-
+    
     @Override
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period )
+    public List<DataValue> getDataValues( Collection<DataElement> dataElements, 
+        Collection<Period> periods, Collection<OrganisationUnit> organisationUnits )
     {
-        return dataValueStore.getDataValues( source, period );
+        return dataValueStore.getDataValues( dataElements, periods, organisationUnits );
     }
-
-    @Override
-    public List<DataValue> getDataValues( OrganisationUnit source, DataElement dataElement )
-    {
-        return dataValueStore.getDataValues( source, dataElement );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( Collection<OrganisationUnit> sources, DataElement dataElement )
-    {
-        return dataValueStore.getDataValues( sources, dataElement );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period, Collection<DataElement> dataElements )
-    {
-        return dataValueStore.getDataValues( source, period, dataElements );
-    }
-
+    
     @Override
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, DataElementCategoryOptionCombo attributeOptionCombo )
     {
         return dataValueStore.getDataValues( source, period, dataElements, attributeOptionCombo );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( OrganisationUnit source, Period period, Collection<DataElement> dataElements,
-        Collection<DataElementCategoryOptionCombo> optionCombos )
-    {
-        return dataValueStore.getDataValues( source, period, dataElements, optionCombos );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( DataElement dataElement, Period period,
-        Collection<OrganisationUnit> sources )
-    {
-        return dataValueStore.getDataValues( dataElement, period, sources );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( DataElement dataElement, Collection<Period> periods,
-        Collection<OrganisationUnit> sources )
-    {
-        return dataValueStore.getDataValues( dataElement, periods, sources );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( DataElement dataElement, DataElementCategoryOptionCombo optionCombo,
-        Collection<Period> periods, Collection<OrganisationUnit> sources )
-    {
-        return dataValueStore.getDataValues( dataElement, optionCombo, periods, sources );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( Collection<DataElementCategoryOptionCombo> optionCombos )
-    {
-        return dataValueStore.getDataValues( optionCombos );
-    }
-
-    @Override
-    public List<DataValue> getDataValues( DataElement dataElement )
-    {
-        return dataValueStore.getDataValues( dataElement );
     }
 
     @Override
@@ -381,7 +337,7 @@ public class DefaultDataValueService
                 Integer periodId = ddv.getPeriodId();
                 Integer aoc = ddv.getAttributeOptionComboId();
                 
-                if ( !( period2aoc.hasValue( periodId, aoc ) ) )
+                if ( !( period2aoc.containsValue( periodId, aoc ) ) )
                 {
                     DataValue dv = accumulatedValues.getValue( periodId, aoc );
                     
@@ -415,13 +371,6 @@ public class DefaultDataValueService
     }
 
     @Override
-    public DataValue getLatestDataValues( DataElement dataElement, PeriodType periodType,
-        OrganisationUnit organisationUnit )
-    {
-        return dataValueStore.getLatestDataValues( dataElement, periodType, organisationUnit );
-    }
-
-    @Override
     public int getDataValueCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -444,11 +393,5 @@ public class DefaultDataValueService
     {
         return dataValueStore.getDataValueMapByAttributeCombo( dataElements, date, source, periodTypes, attributeCombo,
             cogDimensionConstraints, coDimensionConstraints, lastUpdatedMap );
-    }
-
-    @Override
-    public Collection<DeflatedDataValue> getDeflatedDataValues( int dataElementId, int periodId, Collection<Integer> sourceIds )
-    {
-        return dataValueStore.getDeflatedDataValues( dataElementId, periodId, sourceIds );
     }
 }

@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Collection;
@@ -255,4 +256,13 @@ public interface ProgramInstanceStore
      * @return true/false depending on result
      */
     boolean exists( String uid );
+
+    /**
+     * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
+     *
+     * @param template the template.
+     * @param notificationDate the Date for which the notification is scheduled.
+     * @return a list of ProgramInstance.
+     */
+    List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 }

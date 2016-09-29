@@ -5,6 +5,10 @@ $(function() {
   });
 });
 
+function programStageNotification(context) {
+	location.href = 'programStageNotification.action?id=' + context.id;
+}
+
 function programStageReminder(context){
 	 location.href = 'programStageReminder.action?id=' + context.id;
 }

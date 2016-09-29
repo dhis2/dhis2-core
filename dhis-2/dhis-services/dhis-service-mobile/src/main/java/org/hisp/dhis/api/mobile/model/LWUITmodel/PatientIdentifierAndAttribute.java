@@ -85,24 +85,18 @@ public class PatientIdentifierAndAttribute
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
     {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void serializeVersion2_8( DataOutputStream dataOutputStream )
         throws IOException
     {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void serializeVersion2_9( DataOutputStream dataOutputStream )
         throws IOException
     {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -122,6 +116,5 @@ public class PatientIdentifierAndAttribute
                 pa.serialize( dout );
             }
         }
-
     }
 }
