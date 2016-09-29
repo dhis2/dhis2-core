@@ -209,10 +209,10 @@
 				</select>
 			</td>
 		</td>
-		<tr name="deSourceType">
+		<tr name="deProgramStage" style='display:none'>
 			<td>$i18n.getString('source_program_stage')</td>
 			<td>
-				<select type="" id="programStageId" disabled style="width:250px;" onchange="getDataElementsByStage();">
+				<select type="" id="programStageId" style="width:250px;" onchange="getDataElementsByStage();">
 					<option value="">[All]</option>
 					#foreach( $programStage in $program.programStages )
 						<option value="$programStage.uid">$programStage.displayName</option>
