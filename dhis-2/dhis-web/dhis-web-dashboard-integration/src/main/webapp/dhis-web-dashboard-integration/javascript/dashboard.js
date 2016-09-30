@@ -571,10 +571,10 @@ dhis2.db.renderDashboard = function (id) {
             });
 
             // report table
-            //reportTablePlugin.url = '..';
-            //reportTablePlugin.dashboard = true;
-            //reportTablePlugin.showTitles = true;
-            //reportTablePlugin.load(dhis2.db.reportTableItems);
+            reportTablePlugin.url = '..';
+            reportTablePlugin.dashboard = true;
+            reportTablePlugin.showTitles = true;
+            reportTablePlugin.load(dhis2.db.reportTableItems);
 
             // chart
             chartPlugin.url = '..';
@@ -736,7 +736,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
         };
 
         if (autoRender) {
-            //reportTablePlugin.load(pluginItem);
+            reportTablePlugin.load(pluginItem);
         }
         else {
             pluginItems.push(pluginItem);
