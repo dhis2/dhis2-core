@@ -1111,18 +1111,24 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         get: function (uid) {
             var promise = $http.get('../api/fileResources/' + uid).then(function (response) {
                 return response.data;
+            } ,function(error) {
+                return null;
             });
             return promise;
         },
         delete: function (uid) {
             var promise = $http.get('../api/fileResources/' + uid).then(function (response) {
                 return response.data;
+            } ,function(error) {
+                return null;
             });
             return promise;
         },
         download: function (fileName) {
             var promise = $http.get(fileName).then(function (response) {
                 return response.data;
+            }, function(error) {
+                return null;
             });
             return promise;
         },
@@ -1132,6 +1138,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             var headers = {transformRequest: angular.identity, headers: {'Content-Type': undefined}};
             var promise = $http.post('../api/fileResources', formData, headers).then(function(response){
                 return response.data;
+            },function(error) {
+               return null;
             });
             return promise;
         }
