@@ -28,8 +28,9 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.security.SecureRandom;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.RandomStringUtils;
 
 /**
  * @author bobj
@@ -57,7 +58,7 @@ public class CodeGenerator
     {
         return generateCode( CODESIZE );
     }
-        
+    
     /**
      * Generates a pseudo random string using the allowed characters.
      * 
@@ -66,20 +67,10 @@ public class CodeGenerator
      */
     public static String generateCode( int codeSize )
     {
-        // Using the system default algorithm and seed
-        SecureRandom sr = new SecureRandom();
-
-        char[] randomChars = new char[codeSize];
+        String first = RandomStringUtils.randomAlphabetic( 1 );
+        String code = RandomStringUtils.randomAlphanumeric( codeSize - 1 );
         
-        // first char should be a letter
-        randomChars[0] = letters.charAt( sr.nextInt( letters.length() ) );
-        
-        for ( int i = 1; i < codeSize; ++i )
-        {
-            randomChars[i] = ALLOWED_CHARS.charAt( sr.nextInt( NUMBER_OF_CODEPOINTS ) );
-        }
-        
-        return new String( randomChars );
+        return first + code;
     }
     
     /**
