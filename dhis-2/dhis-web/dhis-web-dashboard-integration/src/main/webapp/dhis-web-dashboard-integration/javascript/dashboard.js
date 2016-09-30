@@ -27,10 +27,10 @@ dhis2.db.maxItems = 40;
 dhis2.db.shapeNormal = "NORMAL";
 dhis2.db.shapeDoubleWidth = "DOUBLE_WIDTH";
 dhis2.db.shapeFullWidth = "FULL_WIDTH";
-dhis2.db.widthNormal = 408;
-dhis2.db.widthDouble = 847;
+dhis2.db.widthNormal = 417;
+dhis2.db.widthDouble = 856;
 dhis2.db.visualItemTypes = ["CHART", "EVENT_CHART", "MAP", "REPORT_TABLE", "EVENT_REPORT", "APP"];
-dhis2.db.itemContentHeight = 308;
+dhis2.db.itemContentHeight = 317;
 dhis2.db.itemScrollbarWidth = /\bchrome\b/.test(navigator.userAgent.toLowerCase()) ? 8 : 17;
 dhis2.db.reportTableItems = [];
 dhis2.db.chartItems = [];
@@ -437,8 +437,8 @@ dhis2.db.clearDashboard = function () {
 
 dhis2.db.getFullWidth = function () {
     var viewPortWidth = $(window).width(),
-        spacing = 31,
-        itemWidth = 408,
+        spacing = 22,
+        itemWidth = dhis2.db.widthNormal,
         items = Math.floor(( viewPortWidth - spacing ) / ( itemWidth + spacing )),
         fullWidth = ( items * itemWidth ) + ( ( items - 1 ) * spacing );
 
@@ -571,10 +571,10 @@ dhis2.db.renderDashboard = function (id) {
             });
 
             // report table
-            reportTablePlugin.url = '..';
-            reportTablePlugin.dashboard = true;
-            reportTablePlugin.showTitles = true;
-            reportTablePlugin.load(dhis2.db.reportTableItems);
+            //reportTablePlugin.url = '..';
+            //reportTablePlugin.dashboard = true;
+            //reportTablePlugin.showTitles = true;
+            //reportTablePlugin.load(dhis2.db.reportTableItems);
 
             // chart
             chartPlugin.url = '..';
@@ -736,7 +736,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
         };
 
         if (autoRender) {
-            reportTablePlugin.load(pluginItem);
+            //reportTablePlugin.load(pluginItem);
         }
         else {
             pluginItems.push(pluginItem);

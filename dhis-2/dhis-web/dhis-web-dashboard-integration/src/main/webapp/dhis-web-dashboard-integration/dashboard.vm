@@ -1,9 +1,5 @@
 #sharingDialog()
-<script type="text/javascript" src="../dhis-web-pivot/reporttable.js"></script>
-<script type="text/javascript" src="../dhis-web-visualizer/chart.js"></script>
-<script type="text/javascript" src="../dhis-web-mapping/map.js"></script>
-<script type="text/javascript" src="plugin/eventreport.js"></script>
-<script type="text/javascript" src="plugin/eventchart.js"></script>
+<script type="text/javascript" src="chart.js"></script>
 <script type="text/javascript" src="../dhis-web-commons/oust/oust.js"></script>
 <script type="text/javascript" src="javascript/dashboard.js"></script>
 
