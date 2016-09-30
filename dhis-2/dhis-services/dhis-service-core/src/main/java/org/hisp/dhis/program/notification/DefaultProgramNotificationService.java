@@ -168,6 +168,14 @@ public class DefaultProgramNotificationService
     {
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
 
+        if ( templates.isEmpty() )
+        {
+            return;
+        }
+
+        log.info( String.format(
+            "Found %d ProgramNotificationTemplates relevant to ProgramStageInstance %s", templates.size(), programStageInstance.getUid() ) );
+
         for ( ProgramNotificationTemplate template : templates )
         {
             MessageBatch batch = createProgramStageInstanceMessageBatch( template, Lists.newArrayList( programStageInstance ) );
