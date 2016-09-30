@@ -447,6 +447,7 @@ public class DefaultAnalyticsService
                     .withTimely( ( REPORTING_RATE_ON_TIME == metric || ACTUAL_REPORTS_ON_TIME == metric ) ).build();
                 
                 addReportingRates( dataSourceParams, grid, metric );
+
             }
         }
     }
