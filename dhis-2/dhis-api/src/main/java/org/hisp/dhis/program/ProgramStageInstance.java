@@ -158,7 +158,7 @@ public class ProgramStageInstance
 
     public boolean isCompleted()
     {
-        return (status == EventStatus.COMPLETED) ? true : false;
+        return status == EventStatus.COMPLETED;
     }
 
     public OrganisationUnit getOrganisationUnit()
