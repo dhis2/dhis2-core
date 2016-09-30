@@ -28,16 +28,8 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
@@ -47,8 +39,15 @@ import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.MessageBatch;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Simplistic http gateway sending smses through a get to a url constructed from
@@ -123,8 +122,6 @@ public class SimplisticHttpGetGateWay
         try
         {
             URL requestURL = new URL( uri.build().encode( "ISO-8859-1" ).toUriString() );
-
-            log.info( "Requesting URL: " + uri.build().toString() );
 
             URLConnection conn = requestURL.openConnection();
 

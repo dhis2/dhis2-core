@@ -28,12 +28,12 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.message.DeliveryChannel;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -52,7 +52,7 @@ public class MessageResponseSummary
     
     private MessageBatchStatus batchStatus;
     
-    private String resposneMessage;
+    private String responseMessage;
     
     private String errorMessage;
     
@@ -132,14 +132,14 @@ public class MessageResponseSummary
 
     @JsonProperty( value = "responseMessage" )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getResposneMessage()
+    public String getResponseMessage()
     {
-        return resposneMessage;
+        return responseMessage;
     }
 
-    public void setResposneMessage( String resposneMessage )
+    public void setResposneMessage( String responseMessage )
     {
-        this.resposneMessage = resposneMessage;
+        this.responseMessage = responseMessage;
     }
 
     @JsonProperty( value = "errorMessage" )
@@ -164,5 +164,19 @@ public class MessageResponseSummary
     public void setChannel( DeliveryChannel channel )
     {
         this.channel = channel;
+    }
+
+    @Override public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "total", total )
+            .add( "failed", failed )
+            .add( "pending", pending )
+            .add( "sent", sent )
+            .add( "batchStatus", batchStatus )
+            .add( "responseMessage", responseMessage )
+            .add( "errorMessage", errorMessage )
+            .add( "channel", channel )
+            .toString();
     }
 }

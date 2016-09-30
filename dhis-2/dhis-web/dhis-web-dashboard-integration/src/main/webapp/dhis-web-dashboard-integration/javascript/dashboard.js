@@ -352,8 +352,8 @@ dhis2.db.removeDashboard = function () {
 
 dhis2.db.translateDashboard = function () {
     if (undefined !== dhis2.db.current()) {
-        var currentPage = "/dhis-web-dashboard-integration/index.action"
-        document.location.href = "../dhis-web-commons/i18n.action?className=Dashboard&uid=" + dhis2.db.current() + "&returnUrl=" + currentPage;
+        var currentPage = encodeURI(window.location.href);
+        window.location.href = "../dhis-web-commons/i18n.action?className=Dashboard&uid=" + dhis2.db.current() + "&returnUrl=" + currentPage;
     }
 }
 

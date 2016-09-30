@@ -28,7 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.security.SecureRandom;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 /**
@@ -66,12 +66,11 @@ public class CodeGenerator
      */
     public static String generateCode( int codeSize )
     {
-        // Using the system default algorithm and seed
-        SecureRandom sr = new SecureRandom();
+        Random sr = new Random();
 
         char[] randomChars = new char[codeSize];
         
-        // first char should be a letter
+        // First char should be a letter
         randomChars[0] = letters.charAt( sr.nextInt( letters.length() ) );
         
         for ( int i = 1; i < codeSize; ++i )

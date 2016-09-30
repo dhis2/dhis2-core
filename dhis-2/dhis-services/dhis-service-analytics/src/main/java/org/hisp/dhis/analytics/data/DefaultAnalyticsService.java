@@ -509,7 +509,7 @@ public class DefaultAnalyticsService
                     .withIncludeNumDen( false )
                     .ignoreDataApproval() // No approval for reporting rates
                     .withAggregationType( AggregationType.COUNT )
-                    .withTimely( (REPORTING_RATE_ON_TIME == metric || ACTUAL_REPORTS_ON_TIME == metric) ).build();
+                    .withTimely( ( REPORTING_RATE_ON_TIME == metric || ACTUAL_REPORTS_ON_TIME == metric ) ).build();
 
                 addReportingRates( dataSourceParams, grid, metric, params.isIncludeNumDen() );
             }

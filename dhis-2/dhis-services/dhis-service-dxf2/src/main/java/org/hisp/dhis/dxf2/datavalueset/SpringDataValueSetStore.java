@@ -152,6 +152,7 @@ public class SpringDataValueSetStore
             {
                 DataValue dataValue = dataValueSet.getDataValueInstance();
                 PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "ptname" ) );
+                boolean deleted = rs.getBoolean( "deleted" );
 
                 dataValue.setDataElement( rs.getString( "deid" ) );
                 dataValue.setPeriod( pt.createPeriod( rs.getDate( "pestart" ), calendar ).getIsoDate() );
@@ -164,7 +165,12 @@ public class SpringDataValueSetStore
                 dataValue.setLastUpdated( getLongGmtDateString( rs.getTimestamp( "lastupdated" ) ) );
                 dataValue.setComment( rs.getString( "comment" ) );
                 dataValue.setFollowup( rs.getBoolean( "followup" ) );
-                dataValue.setDeleted( rs.getBoolean( "deleted" ) );
+
+                if ( deleted )
+                {
+                    dataValue.setDeleted( deleted );
+                }
+                
                 dataValue.close();
             }
         } );

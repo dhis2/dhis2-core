@@ -35,7 +35,8 @@ package org.hisp.dhis.email;
 public enum EmailResponse
 {
     SENT( "success" ),
-    FAILED( "failed" );
+    FAILED( "failed" ),
+    ABORTED( "aborted" );
     
     private String responseMessage;
 

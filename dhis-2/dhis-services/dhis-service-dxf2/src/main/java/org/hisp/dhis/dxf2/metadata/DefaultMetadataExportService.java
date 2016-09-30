@@ -43,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -341,7 +342,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( !metadata.containsKey( DataSet.class ) ) metadata.put( DataSet.class, new HashSet<>() );
         metadata.get( DataSet.class ).add( dataSet );
 
-        dataSet.getDataElements().forEach( dataElement -> handleDataElement( metadata, dataElement ) );
+        dataSet.getDataSetElements().forEach( dataSetElement -> handleDataSetElement( metadata, dataSetElement ) );
         dataSet.getSections().forEach( section -> handleSection( metadata, section ) );
         dataSet.getIndicators().forEach( indicator -> handleIndicator( metadata, indicator ) );
 
@@ -437,6 +438,18 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
+    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleDataSetElement( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataSetElement dataSetElement )
+    {
+        if ( dataSetElement == null ) return metadata;
+        if ( !metadata.containsKey( DataSetElement.class ) ) metadata.put( DataSetElement.class, new HashSet<>() );
+        metadata.get( DataSetElement.class ).add( dataSetElement );
+        
+        handleDataElement( metadata, dataSetElement.getDataElement() );
+        handleCategoryCombo( metadata, dataSetElement.getCategoryCombo() );
+        
+        return metadata;
+    }
+    
     private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleDataElement( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataElement dataElement )
     {
         if ( dataElement == null ) return metadata;
