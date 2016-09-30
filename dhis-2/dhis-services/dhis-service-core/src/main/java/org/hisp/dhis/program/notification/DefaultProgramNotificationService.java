@@ -173,9 +173,6 @@ public class DefaultProgramNotificationService
             return;
         }
 
-        log.info( String.format(
-            "Found %d ProgramNotificationTemplates relevant to ProgramStageInstance %s", templates.size(), programStageInstance.getUid() ) );
-
         for ( ProgramNotificationTemplate template : templates )
         {
             MessageBatch batch = createProgramStageInstanceMessageBatch( template, Lists.newArrayList( programStageInstance ) );
@@ -318,7 +315,7 @@ public class DefaultProgramNotificationService
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
     {
         return programStageInstance.getProgramStage().getNotificationTemplates().stream()
-            .filter( t-> t.getNotificationTrigger() == trigger )
+            .filter( t -> t.getNotificationTrigger() == trigger )
             .collect( Collectors.toSet() );
     }
 
