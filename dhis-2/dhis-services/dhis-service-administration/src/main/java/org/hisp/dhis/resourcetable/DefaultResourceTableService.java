@@ -38,7 +38,6 @@ import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
@@ -50,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.resourcetable.table.CategoryOptionComboNameResourceTable;
 import org.hisp.dhis.resourcetable.table.CategoryOptionComboResourceTable;
-import org.hisp.dhis.resourcetable.table.CategoryOptionGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.CategoryResourceTable;
 import org.hisp.dhis.resourcetable.table.DataApprovalMinLevelResourceTable;
 import org.hisp.dhis.resourcetable.table.DataElementGroupSetResourceTable;
@@ -161,15 +159,6 @@ public class DefaultResourceTableService
         resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable( 
             idObjectManager.getAllNoAcl( DataElementCategoryCombo.class ), 
             statementBuilder.getColumnQuote() ) );
-    }
-
-    @Override
-    @Transactional
-    public void generateCategoryOptionGroupSetTable()
-    {
-        resourceTableStore.generateResourceTable( new CategoryOptionGroupSetResourceTable(
-            idObjectManager.getAllNoAcl( CategoryOptionGroupSet.class ),
-            statementBuilder.getColumnQuote(), idObjectManager.getAllNoAcl( DataElementCategoryOptionCombo.class ) ) );
     }
 
     @Override
