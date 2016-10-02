@@ -36,6 +36,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 
 /**
@@ -63,6 +64,7 @@ public interface EventDataQueryService
      * @param sortOrder the sort order of the aggregate values.
      * @param limit the max limit of records to return.
      * @param outputType the event output type.
+     * @param eventStatus the event status.
      * @param collapseDataDimensions collapse data dimensions into a single dimension.
      * @param aggregateData return aggregated data values for data dimensions instead of items.
      * @param displayProperty the display property to use for meta-data.
@@ -70,9 +72,10 @@ public interface EventDataQueryService
      * @param format the i18n format.
      */
     EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
-        Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, 
-        boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy, SortOrder sortOrder, Integer limit, 
-        EventOutputType outputType, boolean collapseDataDimensions, boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format );
+        Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta, 
+        boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy, 
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, boolean collapseDataDimensions, 
+        boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format );
 
     /**
      * Used for event query.
@@ -97,9 +100,10 @@ public interface EventDataQueryService
      * @param pageSize the page size.
      * @param format the i18n format.
      */
-    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, Set<String> dimension, Set<String> filter, 
-        OrganisationUnitSelectionMode ouMode, Set<String> asc, Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, boolean coordinatesOnly, 
-        DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format );
+    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
+        Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc, 
+        Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, 
+        boolean coordinatesOnly, EventStatus eventStatus, DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format );
     
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 }

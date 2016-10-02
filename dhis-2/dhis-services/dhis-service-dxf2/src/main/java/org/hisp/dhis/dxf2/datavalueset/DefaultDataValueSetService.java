@@ -1037,55 +1037,72 @@ public class DefaultDataValueSetService
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
-                    if ( !dryRun )
-                    {
-                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
-                        
-                        if ( internalValue.isNullValue() )
-                        {
-                            internalValue.setDeleted( true );
-                            
-                            auditValue.setAuditType( AuditType.DELETE );
-                        }
-                        
-                        dataValueBatchHandler.updateObject( internalValue );
-                        
-                        auditBatchHandler.addObject( auditValue );
-                    }
-
-                    updateCount++;
-                }
-                else if ( strategy.isDelete() )
-                {
-                    if ( !dryRun )
+                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
+                    
+                    if ( internalValue.isNullValue() || internalValue.isDeleted() )
                     {
                         internalValue.setDeleted( true );
                         
+                        auditValue.setAuditType( AuditType.DELETE );
+                        
+                        deleteCount++;
+                    }
+                    else
+                    {
+                        updateCount++;
+                    }
+                    
+                    if ( !dryRun )
+                    {
                         dataValueBatchHandler.updateObject( internalValue );
-                        
-                        DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
-                        
+                    
+                        auditBatchHandler.addObject( auditValue );
+                    }                    
+                }
+                else if ( strategy.isDelete() )
+                {                    
+                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+                    
+                    internalValue.setDeleted( true );
+                    
+                    deleteCount++;
+                    
+                    if ( !dryRun )
+                    {
+                        dataValueBatchHandler.updateObject( internalValue );
+                    
                         auditBatchHandler.addObject( auditValue );
                     }
-
-                    deleteCount++;
                 }
             }
             else
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isCreate() )
                 {
-                    if ( !dryRun && !internalValue.isNullValue() )
+                    if ( !internalValue.isNullValue() ) // Ignore null values
                     {
                         if ( existingValue != null && existingValue.isDeleted() )
                         {
-                            dataValueBatchHandler.updateObject( internalValue );
+                            importCount++;
                             
-                            importCount++;
+                            if ( !dryRun )
+                            {
+                                dataValueBatchHandler.updateObject( internalValue );
+                            }
                         }
-                        else if ( dataValueBatchHandler.addObject( internalValue ) )
+                        else 
                         {
-                            importCount++;
+                            boolean added = false;
+                            
+                            if ( !dryRun )
+                            {
+                                added = dataValueBatchHandler.addObject( internalValue );
+                            }
+                            
+                            if ( dryRun || added )
+                            {
+                                importCount++;
+                            }
                         }
                     }
                 }

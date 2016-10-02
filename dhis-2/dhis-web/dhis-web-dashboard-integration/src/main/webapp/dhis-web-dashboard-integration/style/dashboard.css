@@ -15,8 +15,8 @@
 }
 
 #dashboardMenu
-{  
-  position: absolute; 
+{
+  position: absolute;
   margin-top: 6px;
 }
 
@@ -79,7 +79,7 @@
 .currentDashboard
 {
   background-color: #f1f1f1;
-} 
+}
 
 .horizontalMenu ul
 {
@@ -96,10 +96,10 @@
 {
   background-color: #fff;
   border: 1px solid #ccc;
-  height: 333px;
-  width: 408px;
-  padding: 6px;
-  margin: 0 17px 17px 0;
+  height: 342px;
+  width: 417px;
+  padding: 4px;
+  margin: 0 8px 8px 0;
   border-radius: 3px;
   cursor: pointer;
   box-shadow: #ddd 0 1px 2px 0;
@@ -156,8 +156,8 @@
 
 .itemHeader
 {
-  margin: 0 0 5px 0;
-  padding: 0 0 3px 0;
+  margin: 0 0 4px 0;
+  padding: 1px 2px 3px 0;
   border-bottom: 1px solid #e0e0e0;
   cursor: move;
   color: #3162C5;
@@ -259,7 +259,7 @@
 }
 
 #hitDiv li
-{ 
+{
   list-style-type: none;
 }
 
@@ -367,8 +367,8 @@
 
 #chartView
 {
-  display: none; 
-  padding: 0; 
+  display: none;
+  padding: 0;
   margin: 0;
 }
 
@@ -427,7 +427,7 @@ a.alert, .alert
 }
 
 .recipientsDiv
-{ 
+{
   width: 660px;
   padding-left: 40px;
 }
@@ -457,7 +457,7 @@ a.alert, .alert
 .messageBottomDiv
 {
   width: 700px;
-  border-top: 1px solid #cccccc; 
+  border-top: 1px solid #cccccc;
   margin-top: 20px;
   padding-top: 18px;
   margin-bottom: 50px;
@@ -506,7 +506,7 @@ a.alert, .alert
   margin-top: 15px;
 }
 
-div#selectionTree 
+div#selectionTree
 {
   height: 200px;
 }
@@ -717,9 +717,9 @@ div#selectionTree
 
 #userProfileLink
 {
-  position: relative; 
-  top: -3px; 
-  display: inline-block; 
+  position: relative;
+  top: -3px;
+  display: inline-block;
   margin-left: 200px;
 }
 

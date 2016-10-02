@@ -28,11 +28,8 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.net.URI;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,8 +46,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import java.net.URI;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -129,8 +128,6 @@ public class BulkSmsGateway
         try
         {
             URI url = uriBuilder.build().encode( "ISO-8859-1" ).toUri();
-
-            log.info( "Sending via url  " + url.toString() );
 
             responseEntity = restTemplate.exchange( url, HttpMethod.POST, null, String.class );
         }

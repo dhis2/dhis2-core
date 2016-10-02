@@ -27,12 +27,13 @@ dhis2.db.maxItems = 40;
 dhis2.db.shapeNormal = "NORMAL";
 dhis2.db.shapeDoubleWidth = "DOUBLE_WIDTH";
 dhis2.db.shapeFullWidth = "FULL_WIDTH";
-dhis2.db.widthNormal = 408;
-dhis2.db.widthDouble = 847;
+dhis2.db.widthNormal = 421;
+dhis2.db.widthDouble = 860;
 dhis2.db.visualItemTypes = ["CHART", "EVENT_CHART", "MAP", "REPORT_TABLE", "EVENT_REPORT", "APP"];
-dhis2.db.itemContentHeight = 308;
+dhis2.db.itemContentHeight = 317;
 dhis2.db.itemScrollbarWidth = /\bchrome\b/.test(navigator.userAgent.toLowerCase()) ? 8 : 17;
 dhis2.db.reportTableItems = [];
+dhis2.db.chartItems = [];
 
 // TODO support table as link and embedded
 // TODO double horizontal size
@@ -102,7 +103,8 @@ dhis2.db.tmpl = {
     "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"CHART\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
     "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"CHART\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
-    "<div id='plugin-${itemId}' style='font-family:sans-serif !important'></div>" +
+    "<div id='plugin-${itemId}' style='width:100%; height:" + dhis2.db.itemContentHeight + "px'></div>" +
+    //"<div id='plugin-${itemId}' style='font-family:sans-serif !important'></div>" +
     "</div></li>",
     
     eventChartItem: "<li id='liDrop-${itemId}' class='liDropItem'><div class='dropItem' id='drop-${itemId}' style='${style}' data-item='${itemId}'></div></li>" +
@@ -375,8 +377,8 @@ dhis2.db.removeDashboard = function () {
 
 dhis2.db.translateDashboard = function () {
     if (undefined !== dhis2.db.current()) {
-        var currentPage = "/dhis-web-dashboard-integration/index.action"
-        document.location.href = "../dhis-web-commons/i18n.action?className=Dashboard&uid=" + dhis2.db.current() + "&returnUrl=" + currentPage;
+        var currentPage = encodeURI(window.location.href);
+        window.location.href = "../dhis-web-commons/i18n.action?className=Dashboard&uid=" + dhis2.db.current() + "&returnUrl=" + currentPage;
     }
 }
 
@@ -460,8 +462,8 @@ dhis2.db.clearDashboard = function () {
 
 dhis2.db.getFullWidth = function () {
     var viewPortWidth = $(window).width(),
-        spacing = 31,
-        itemWidth = 408,
+        spacing = 18,
+        itemWidth = dhis2.db.widthNormal,
         items = Math.floor(( viewPortWidth - spacing ) / ( itemWidth + spacing )),
         fullWidth = ( items * itemWidth ) + ( ( items - 1 ) * spacing );
 
@@ -551,7 +553,7 @@ dhis2.db.drawWideItems = function () {
 dhis2.db.renderDashboardWithEvent = function (id) {
 	dhis2.db.renderDashboard(id);
     dhis2.db.registerDashboardViewEvent();
-}	
+}
 
 dhis2.db.renderDashboard = function (id) {
     if (!id) {
@@ -559,6 +561,7 @@ dhis2.db.renderDashboard = function (id) {
     }
 
     dhis2.db.reportTableItems = [];
+    dhis2.db.chartItems = [];
 
     var fullWidth = dhis2.db.getFullWidth();
 
@@ -594,8 +597,15 @@ dhis2.db.renderDashboard = function (id) {
 
             // report table
             reportTablePlugin.url = '..';
+            reportTablePlugin.dashboard = true;
             reportTablePlugin.showTitles = true;
             reportTablePlugin.load(dhis2.db.reportTableItems);
+
+            // chart
+            chartPlugin.url = '..';
+            chartPlugin.dashboard = true;
+            chartPlugin.showTitles = true;
+            chartPlugin.load(dhis2.db.chartItems);
 
             dhis2.db.renderLastDropItem($d);
         }
@@ -629,6 +639,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
     var userOrgUnit = dhis2.db.currentUserOrgUnit || [];
 
     if ("CHART" == dashboardItem.type) {
+        var pluginItems = dhis2.db.chartItems;
         var content = $.tmpl(dhis2.db.tmpl.chartItem, {
             "itemId": dashboardItem.id,
             "id": dashboardItem.chart.id,
@@ -643,36 +654,19 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
         });
         dhis2.db.preOrAppend($d, content, prepend);
 
-        DHIS.getChart({
+        var pluginItem = {
             url: '..',
             el: 'plugin-' + dashboardItem.id,
             id: dashboardItem.chart.id,
-            width: width,
-            height: dhis2.db.itemContentHeight,
-            dashboard: true,
-            crossDomain: false,
-            skipMask: true,
-            userOrgUnit: userOrgUnit,
-            domainAxisStyle: {
-                labelRotation: 45,
-                labelFont: '10px sans-serif',
-                labelColor: '#111'
-            },
-            rangeAxisStyle: {
-                labelFont: '9px sans-serif'
-            },
-            legendStyle: {
-                labelFont: 'normal 10px sans-serif',
-                labelColor: '#222',
-                labelMarkerSize: 10,
-                titleFont: 'bold 12px sans-serif',
-                titleColor: '#333'
-            },
-            seriesStyle: {
-                labelColor: '#333',
-                labelFont: '9px sans-serif'
-            }
-        });
+            userOrgUnit: userOrgUnit
+        };
+
+        if (autoRender) {
+            chartPlugin.load(pluginItem);
+        }
+        else {
+            pluginItems.push(pluginItem);
+        }
     }
     else if ("EVENT_CHART" == dashboardItem.type) {
         var content = $.tmpl(dhis2.db.tmpl.eventChartItem, {

@@ -48,9 +48,9 @@ public class AnalyticsTableColumn
     // -------------------------------------------------------------------------
 
     /**
-     * @param name column name.
-     * @param dataType column data type.
-     * @param alias column alias and name.
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
      */
     public AnalyticsTableColumn( String name, String dataType, String alias )
     {
@@ -60,9 +60,9 @@ public class AnalyticsTableColumn
     }
 
     /**
-     * @param name column name.
-     * @param dataType column data type.
-     * @param alias column alias and name.
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
      * @param skipIndex indicates whether to skip indexing this column.
      */
     public AnalyticsTableColumn( String name, String dataType, String alias, boolean skipIndex )
@@ -74,9 +74,9 @@ public class AnalyticsTableColumn
     }
 
     /**
-     * @param name column name.
-     * @param dataType column data type.
-     * @param alias column alias and name.
+     * @param name analytics table column name.
+     * @param dataType analytics table column data type.
+     * @param alias source table column alias and name.
      * @param skipIndex indicates whether to skip indexing this column.
      * @param indexType index type.
      */

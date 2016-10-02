@@ -34,7 +34,9 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -140,7 +142,7 @@ public class DataValueSetServiceIntegrationTest
      * Import 12 data values.
      */
     @Test
-    public void testImportDataValueSetXml()
+    public void testImportValuesXml()
         throws Exception
     {
         assertEquals( 0, dataValueService.getAllDataValues().size() );
@@ -150,6 +152,8 @@ public class DataValueSetServiceIntegrationTest
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
         
         assertEquals( 12, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
         
         assertEquals( 12, dataValueService.getAllDataValues().size() );
     }
@@ -158,7 +162,7 @@ public class DataValueSetServiceIntegrationTest
      * Import 12 data values. Then import 6 data values, where 4 are updates.
      */
     @Test
-    public void testImportUpdateDataValueSetXml()
+    public void testImportUpdateValuesXml()
         throws Exception
     {
         assertEquals( 0, dataValueService.getAllDataValues().size() );
@@ -177,17 +181,19 @@ public class DataValueSetServiceIntegrationTest
         
         summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 4, summary.getImportCount().getUpdated() );
         assertEquals( 2, summary.getImportCount().getImported() );
+        assertEquals( 4, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
         
         assertEquals( 14, dataValueService.getAllDataValues().size() );
     }
 
     /**
-     * Import 12 data values where 4 are marked as deleted.
+     * Import 12 data values where 4 are marked as deleted. Deleted values should
+     * count as imports when there are no existing non-deleted matching values.
      */
     @Test
-    public void testImportDeletedDataValueSetXml()
+    public void testImportDeletedValuesXml()
         throws Exception
     {
         assertEquals( 0, dataValueService.getAllDataValues().size() );
@@ -197,6 +203,8 @@ public class DataValueSetServiceIntegrationTest
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
         
         assertEquals( 12, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
                 
         assertEquals( 8, dataValueService.getAllDataValues().size() );
     }
@@ -207,7 +215,7 @@ public class DataValueSetServiceIntegrationTest
      * values.
      */
     @Test
-    public void testImportReverseDeletedDataValueSetXml()
+    public void testImportReverseDeletedValuesXml()
         throws Exception
     {
         assertEquals( 0, dataValueService.getAllDataValues().size() );
@@ -225,10 +233,139 @@ public class DataValueSetServiceIntegrationTest
         in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
         
         summary = dataValueSetService.saveDataValueSet( in );
-        
-        assertEquals( 8, summary.getImportCount().getUpdated() );
+
         assertEquals( 4, summary.getImportCount().getImported() );
+        assertEquals( 8, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
 
         assertEquals( 12, dataValueService.getAllDataValues().size() );        
+    }
+    
+    /**
+     * Import 12 data values where 4 are marked as deleted. Then import 12 data
+     * values which reverse deletion of the 4 values, update 4 values and add 4 
+     * values.
+     */
+    @Test
+    public void testImportAddAndReverseDeletedValuesXml()
+        throws Exception
+    {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
+        
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 12, summary.getImportCount().getImported() );
+        
+        assertEquals( 8, dataValueService.getAllDataValues().size() );
+        
+        // Reverse deletion and update
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetBNew.xml" ).getInputStream();
+        
+        summary = dataValueSetService.saveDataValueSet( in );
+
+        assertEquals( 8, summary.getImportCount().getImported() );
+        assertEquals( 4, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
+
+        assertEquals( 16, dataValueService.getAllDataValues().size() );        
+    }    
+    
+    /**
+     * Import 12 data values. Then import 12 values where 4 are marked as
+     * deleted.
+     */
+    @Test
+    public void testDeleteValuesXml()
+        throws Exception
+    {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 12, summary.getImportCount().getImported() );
+        
+        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        
+        // Delete 4 values
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
+        
+        summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 0, summary.getImportCount().getImported() );
+        assertEquals( 8, summary.getImportCount().getUpdated() );
+        assertEquals( 4, summary.getImportCount().getDeleted() );
+                
+        assertEquals( 8, dataValueService.getAllDataValues().size() );
+    }
+
+    /**
+     * Import 12 data values. Then import 12 values where 4 are marked as
+     * deleted, 6 are updates and 2 are new.
+     */
+    @Test
+    public void testImportAndDeleteValuesXml()
+        throws Exception
+    {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 12, summary.getImportCount().getImported() );
+        
+        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        
+        // Delete 4 values, add 2 values
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetBNewDeleted.xml" ).getInputStream();
+        
+        summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 2, summary.getImportCount().getImported() );
+        assertEquals( 6, summary.getImportCount().getUpdated() );
+        assertEquals( 4, summary.getImportCount().getDeleted() );
+                
+        assertEquals( 10, dataValueService.getAllDataValues().size() );
+    }
+    
+    /**
+     * Import 12 data values. Then import the same 12 data values with import
+     * strategy delete.
+     */
+    @Test
+    public void testImportValuesDeleteStrategyXml()
+        throws Exception
+    {
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+
+        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        
+        assertEquals( 12, summary.getImportCount().getImported() );
+                
+        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        
+        // Import with delete strategy
+        
+        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        
+        ImportOptions options = new ImportOptions()
+            .setStrategy( ImportStrategy.DELETE );
+        
+        summary = dataValueSetService.saveDataValueSet( in, options );
+        
+        assertEquals( 0, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 12, summary.getImportCount().getDeleted() );
+        
+        assertEquals( 0, dataValueService.getAllDataValues().size() );        
     }
 }

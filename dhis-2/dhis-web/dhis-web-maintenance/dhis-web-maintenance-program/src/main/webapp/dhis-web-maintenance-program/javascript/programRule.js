@@ -255,8 +255,8 @@ function getDEVariableJson( variableName, sourceType, dataElementId, programStag
         + '"programRuleVariableSourceType": "' +  sourceType + '",'
         + '"dataElement": { "id" : "' + dataElementId + '"},'
         + '"program": { "id" :"' + getFieldValue("programId") + '"},'
-        + '"useCodeForOptionSet": "' + useOptionSetCode + '",'
-        + '"programStage": { "id" :  "' + programStageId + '"}'
+        + '"useCodeForOptionSet": "' + useOptionSetCode + '"'
+        + (programStageId ? ',"programStage": { "id" :  "' + programStageId + '"}' : "")
         + '}';
 
     return json_Data;
@@ -436,30 +436,30 @@ function sourceTypeOnChange()
     var sourceType = getFieldValue("sourceType");
     if( sourceType === "DATAELEMENT_NEWEST_EVENT_PROGRAM" ){
         setFieldValue( "programStageId", "" );
-        disable("programStageId");
+        $("[name='deProgramStage']").hide();
         $("[name='deSourceType']").show();
         $("[name='teiAttrSourceType']").hide();		
     }
     else if( sourceType === "DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE" ){
-        enable("programStageId");
+        $("[name='deProgramStage']").show();
         $("[name='deSourceType']").show();
         $("[name='teiAttrSourceType']").hide();	
     }
     else if( sourceType === "DATAELEMENT_CURRENT_EVENT" ){
         setFieldValue( "programStageId", "" );
-        disable("programStageId");
+        $("[name='deProgramStage']").hide();
         $("[name='deSourceType']").show();
         $("[name='teiAttrSourceType']").hide();		
     }
     else if( sourceType === "DATAELEMENT_PREVIOUS_EVENT" ){
         setFieldValue( "programStageId", "" );
-        disable("programStageId");
+        $("[name='deProgramStage']").hide();
         $("[name='deSourceType']").show();
         $("[name='teiAttrSourceType']").hide();		
     }
     else if( sourceType === "TEI_ATTRIBUTE" ){
         setFieldValue( "programStageId", "" );
-        disable("programStageId");
+        $("[name='deProgramStage']").hide();
         $("[name='deSourceType']").hide();
         $("[name='teiAttrSourceType']").show();	
     }
