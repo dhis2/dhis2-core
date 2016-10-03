@@ -28,10 +28,8 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -44,7 +42,6 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,9 +72,6 @@ public class DataValidationTask
 
     @Autowired
     private ExpressionService expressionService;
-
-    @Autowired
-    private PeriodService periodService;
 
     @Autowired
     private DataValueService dataValueService;
@@ -117,8 +111,8 @@ public class DataValidationTask
 
     private void runInternal()
     {
-        if ( context.getValidationResults().size() < (ValidationRunType.INTERACTIVE == context.getRunType()
-            ? ValidationRuleService.MAX_INTERACTIVE_ALERTS : ValidationRuleService.MAX_SCHEDULED_ALERTS) )
+        if ( context.getValidationResults().size() < (ValidationRunType.INTERACTIVE == context.getRunType() ? 
+            ValidationRuleService.MAX_INTERACTIVE_ALERTS : ValidationRuleService.MAX_SCHEDULED_ALERTS) )
         {
             for ( PeriodTypeExtended periodTypeX : context.getPeriodTypeExtendedMap().values() )
             {
@@ -312,29 +306,6 @@ public class DataValidationTask
         return evaluate;
     }
 
-    private boolean falsy( Object o )
-    {
-        if ( o instanceof Boolean )
-        {
-            Boolean b = (Boolean) o;
-            return b.booleanValue();
-        }
-        else if ( o instanceof Number )
-        {
-            Number n = (Number) o;
-            return (n.intValue() == 0);
-        }
-        else if ( o instanceof String )
-        {
-            String s = (String) o;
-            return s.isEmpty();
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     /**
      * Evaluates an expression, returning a map of values by attribute option
      * combo.
@@ -394,8 +365,6 @@ public class DataValidationTask
             + ruleDataElements.size() + "] sourceDataElements[" + sourceDataElements.size() + "] elementsToGet["
             + dataElementsToGet.size() + "] allowedPeriodTypes[" + allowedPeriodTypes.size() + "]" );
 
-        MapMap<Integer, DataElementOperand, Double> dataValueMap = null;
-
         if ( dataElementsToGet.isEmpty() )
         {
             return new MapMap<>();
@@ -405,92 +374,6 @@ public class DataValidationTask
             return dataValueService.getDataValueMapByAttributeCombo( dataElementsToGet,
                 period.getStartDate(), source, allowedPeriodTypes, context.getAttributeCombo(),
                 context.getCogDimensionConstraints(), context.getCoDimensionConstraints(), lastUpdatedMap );
-
         }
     }
-
-
-    /**
-     * Gathers the values of an expression for a given organisation unit and
-     * period, accumulating a range of values around the given period.
-     * <p>
-     * Note that for a surveillance-type rule, evaluating the right side
-     * expression can result in sampling multiple periods and/or child
-     * organisation units.
-     *
-     * @param results        the ListMap into which results will be stored
-     * @param expression     the expression to be evaluated
-     * @param source         the organisation unit
-     * @param period         the main period for the validation rule evaluation
-     * @param window         how many periods (before and after) to collect
-     * @param px             the period type extended information
-     * @param periodTypes    the period types in which the data may exist
-     * @param sourceElements the data elements configured for this organisation
-     *                       unit
-     */
-    private void getPeriodValues( ListMap<Integer, Double> results, Expression expression, Expression skipTest, OrganisationUnit source,
-        Period period, int window, PeriodTypeExtended px, Collection<PeriodType> periodTypes,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap, Collection<DataElement> sourceElements )
-    {
-        PeriodType periodType = period.getPeriodType();
-        Period periodInstance = periodService.getPeriod( period.getStartDate(),
-            period.getEndDate(), periodType );
-
-        if ( periodInstance == null )
-        {
-            return;
-        }
-
-        SetMap<Integer, DataElementOperand> incompleteValuesMap = new SetMap<Integer, DataElementOperand>();
-
-        Set<DataElement> dataElements = getExpressionDataElements( expression );
-
-        MapMap<Integer, DataElementOperand, Double> dataValueMapByAttributeCombo = getValueMap( 
-            px, dataElements, sourceElements, periodTypes, periodInstance, source, lastUpdatedMap, incompleteValuesMap );
-        Map<Integer, Double> eValues = getExpressionValueMap( expression, dataValueMapByAttributeCombo, incompleteValuesMap );
-        
-        results.putValueMap( eValues );
-
-        int direction = ((window < 0) ? (-1) : (window > 0) ? (1) : (0));
-        int steps = ((direction > 0) ? (window) : (direction < 0) ? (-window) : (0));
-
-        log.debug( "Gathering '" + expression.getExpression() + "' " + "at " + period + " (" + window + ") " + "from "
-            + source.getName() + " starting with: " + results );
-
-        if ( direction == 0 )
-        {
-            return;
-        }
-
-        Period scan = new Period( periodInstance );
-
-        for ( int count = 0; count < steps; count++ )
-        {
-            if ( direction < 0 )
-            {
-                scan = periodType.getPreviousPeriod( scan );
-            }
-            else
-            {
-                scan = periodType.getNextPeriod( scan );
-            }
-
-            getPeriodValues( results, expression, skipTest, source, scan, 0, px, periodTypes, lastUpdatedMap, sourceElements );
-        }
-    }
-
-    /**
-     * Returns the data elements referenced in an expression, as a set. This will
-     * return an empty set if e.getPresentDataNeeded returns null.
-     *
-     * @param expression expression to evaluate.
-     * @return a Set of DataElement(s)
-     */
-    private Set<DataElement> getExpressionDataElements( Expression expression )
-    {
-        Set<DataElement> elts = expression.getDataElementsInExpression();
-
-        return elts != null ? elts : Sets.newHashSet();
-    }
-
 }

@@ -109,13 +109,6 @@ public class AddValidationRuleAction
         this.importance = importance;
     }
 
-    private String ruleType;
-
-    public void setRuleType( String ruleType )
-    {
-        this.ruleType = ruleType;
-    }
-
     private String operator;
 
     public void setOperator( String operator )
@@ -179,39 +172,11 @@ public class AddValidationRuleAction
         this.rightSideMissingValueStrategy = rightSideMissingValueStrategy;
     }
 
-    private Integer organisationUnitLevel;
-
-    public void setOrganisationUnitLevel( Integer organisationUnitLevel )
-    {
-        this.organisationUnitLevel = organisationUnitLevel;
-    }
-
     private String periodTypeName;
 
     public void setPeriodTypeName( String periodTypeName )
     {
         this.periodTypeName = periodTypeName;
-    }
-
-    private Integer sequentialSampleCount;
-
-    public void setSequentialSampleCount( Integer sequentialSampleCount )
-    {
-        this.sequentialSampleCount = sequentialSampleCount;
-    }
-
-    private Integer annualSampleCount;
-
-    public void setAnnualSampleCount( Integer annualSampleCount )
-    {
-        this.annualSampleCount = annualSampleCount;
-    }
-
-    private Integer sequentialSkipCount;
-
-    public void setSequentialSkipCount( Integer sequentialSkipCount )
-    {
-        this.sequentialSkipCount = sequentialSkipCount;
     }
 
     // -------------------------------------------------------------------------

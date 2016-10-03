@@ -112,7 +112,6 @@ public class ValidationRuleServiceTest
     private Expression expressionF;
     private Expression expressionG;
     private Expression expressionH;
-    private Expression expressionX;
 
     private DataSet dataSetWeekly;
 
@@ -202,8 +201,6 @@ public class ValidationRuleServiceTest
         expressionH = new Expression(
             "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
             "expressionH", Sets.newHashSet(), Sets.newHashSet( dataElementB ) );
-        expressionX = new Expression( "#{" + dataElementB.getUid() + suffix + "}>250",
-            "expressionX", Sets.newHashSet( dataElementB ), Sets.newHashSet() );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );

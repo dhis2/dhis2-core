@@ -113,13 +113,6 @@ public class UpdateValidationRuleAction
         this.importance = importance;
     }
 
-    private String ruleType;
-
-    public void setRuleType( String ruleType )
-    {
-        this.ruleType = ruleType;
-    }
-
     private String operator;
 
     public void setOperator( String operator )
@@ -169,46 +162,11 @@ public class UpdateValidationRuleAction
         this.rightSideMissingValueStrategy = rightSideMissingValueStrategy;
     }
 
-    private String skipTestExpression;
-
-    public void setSkipTestExpression( String skipTestExpression )
-    {
-        this.skipTestExpression = skipTestExpression;
-    }
-
-    private String skipTestDescription;
-
-    public void setSkipTestDescription( String skipTestDescription )
-    {
-        this.skipTestDescription = skipTestDescription;
-    }
-
     private String periodTypeName;
 
     public void setPeriodTypeName( String periodTypeName )
     {
         this.periodTypeName = periodTypeName;
-    }
-
-    private Integer sequentialSampleCount;
-
-    public void setSequentialSampleCount( Integer sequentialSampleCount )
-    {
-        this.sequentialSampleCount = sequentialSampleCount;
-    }
-
-    private Integer annualSampleCount;
-
-    public void setAnnualSampleCount( Integer annualSampleCount )
-    {
-        this.annualSampleCount = annualSampleCount;
-    }
-
-    private Integer sequentialSkipCount;
-
-    public void setSequentialSkipCount( Integer sequentialSkipCount )
-    {
-        this.sequentialSkipCount = sequentialSkipCount;
     }
 
     // -------------------------------------------------------------------------
