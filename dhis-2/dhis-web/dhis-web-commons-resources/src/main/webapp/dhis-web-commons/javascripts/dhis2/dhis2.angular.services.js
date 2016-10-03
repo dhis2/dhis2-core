@@ -4,7 +4,7 @@
 var d2Services = angular.module('d2Services', ['ngResource'])
 
 /* Factory for loading translation strings */
-.factory('i18nLoader', function ($q, $http, SessionStorageService) {
+.factory('i18nLoader', function ($q, $http, SessionStorageService, DHIS2URL) {
 
     var getTranslationStrings = function (locale) {
         var defaultUrl = 'i18n/i18n_app.properties';
@@ -35,7 +35,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     var getLocale = function () {
         var locale = 'en';
 
-        var promise = $http.get('../api/me/profile.json').then(function (response) {
+        var promise = $http.get( DHIS2URL + '/me/profile.json').then(function (response) {
             SessionStorageService.set('USER_PROFILE', response.data);
             if (response.data && response.data.settings && response.data.settings.keyUiLocale) {
                 locale = response.data.settings.keyUiLocale;
@@ -1105,19 +1105,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* Service for uploading/downloading file */
-.service('FileService', function ($http) {
+.service('FileService', function ($http, DHIS2URL) {
 
     return {
         get: function (uid) {
-            var promise = $http.get('../api/fileResources/' + uid).then(function (response) {
-                return response.data;
-            } ,function(error) {
-                return null;
-            });
-            return promise;
-        },
-        delete: function (uid) {
-            var promise = $http.delete('../api/fileResources/' + uid).then(function (response) {
+            var promise = $http.get(DHIS2URL + '/fileResources/' + uid).then(function (response) {
                 return response.data;
             } ,function(error) {
                 return null;
@@ -1136,7 +1128,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             var formData = new FormData();
             formData.append('file', file);
             var headers = {transformRequest: angular.identity, headers: {'Content-Type': undefined}};
-            var promise = $http.post('../api/fileResources', formData, headers).then(function(response){
+            var promise = $http.post(DHIS2URL + '/fileResources', formData, headers).then(function(response){
                 return response.data;
             },function(error) {
                return null;
@@ -2838,17 +2830,17 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     }
 })
 
-.service('AuditHistoryDataService', function( $http, $translate, NotificationService) {
+.service('AuditHistoryDataService', function( $http, $translate, NotificationService, DHIS2URL ) {
     this.getAuditHistoryData = function(dataId, dataType ) {
         var url="";
         if (dataType === "attribute") {
-            url="../api/audits/trackedEntityAttributeValue?tei="+dataId+"&skipPaging=true";
+            url="/audits/trackedEntityAttributeValue?tei="+dataId+"&skipPaging=true";
             
         } else {
-            url="../api/audits/trackedEntityDataValue?psi="+dataId+"&skipPaging=true";
+            url="/audits/trackedEntityDataValue?psi="+dataId+"&skipPaging=true";
         }
 
-        var promise = $http.get(url).then(function( response ) {
+        var promise = $http.get(DHIS2URL + url).then(function( response ) {
             return response.data;
         }, function( response ) {
             if( response && response.data && response.data.status === 'ERROR' ) {
