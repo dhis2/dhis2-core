@@ -178,7 +178,8 @@ public class DefaultValidationRuleService
             sources, periods, rules, attributeCombo, 
             null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
+            categoryService.getCoDimensionConstraints( user.getUserCredentials() ),
+            false ), applicationContext );
 
         formatPeriods( results, format );
 
@@ -314,9 +315,7 @@ public class DefaultValidationRuleService
 
         for ( ValidationRule validationRule : getAllValidationRules() )
         {
-            if ( validationRule.getRuleType() == RuleType.VALIDATION )
-            {
-                Set<DataElement> validationRuleElements = new HashSet<>();
+            Set<DataElement> validationRuleElements = new HashSet<>();
                 validationRuleElements.addAll( validationRule.getLeftSide().getDataElementsInExpression() );
                 validationRuleElements.addAll( validationRule.getRightSide().getDataElementsInExpression() );
 
@@ -324,7 +323,6 @@ public class DefaultValidationRuleService
                 {
                     rulesForDataElements.add( validationRule );
                 }
-            }
         }
 
         return rulesForDataElements;

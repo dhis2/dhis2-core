@@ -28,16 +28,7 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.csvreader.CsvReader;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -65,11 +56,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.Importance;
-import org.hisp.dhis.validation.RuleType;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.csvreader.CsvReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
 
 /**
  * TODO Unit testing
@@ -287,7 +285,8 @@ public class DefaultCsvImportService
                 object.setDescription( getSafe( values, 3, null, 255 ) );
                 object.setInstruction( getSafe( values, 4, null, 255 ) );
                 object.setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
-                object.setRuleType( RuleType.valueOf( getSafe( values, 6, RuleType.VALIDATION.toString(), 255 ) ) );
+                // Left here so nobody wonders what field 6 is for
+                // object.setRuleType( RuleType.valueOf( getSafe( values, 6, RuleType.VALIDATION.toString(), 255 ) ) );
                 object.setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
                 object.setPeriodType( PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
 

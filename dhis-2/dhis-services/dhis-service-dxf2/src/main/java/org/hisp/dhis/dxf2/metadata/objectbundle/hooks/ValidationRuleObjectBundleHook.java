@@ -49,7 +49,6 @@ public class ValidationRuleObjectBundleHook
         }
 
         ValidationRule validationRule = (ValidationRule) object;
-        Expression skipTest = validationRule.getSampleSkipTest();
 
         preheatService.connectReferences( validationRule.getLeftSide(), bundle.getPreheat(),
             bundle.getPreheatIdentifier() );
@@ -57,18 +56,8 @@ public class ValidationRuleObjectBundleHook
         preheatService.connectReferences( validationRule.getRightSide(), bundle.getPreheat(),
             bundle.getPreheatIdentifier() );
 
-        if ( skipTest != null )
-        {
-            preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        }
-
         sessionFactory.getCurrentSession().save( validationRule.getLeftSide() );
         sessionFactory.getCurrentSession().save( validationRule.getRightSide() );
-
-        if ( skipTest != null )
-        {
-            sessionFactory.getCurrentSession().save( skipTest );
-        }
 
         if ( validationRule.getPeriodType() != null )
         {
@@ -87,7 +76,6 @@ public class ValidationRuleObjectBundleHook
         }
 
         ValidationRule validationRule = (ValidationRule) object;
-        Expression skipTest = validationRule.getSampleSkipTest();
 
         preheatService.connectReferences( validationRule.getLeftSide(), bundle.getPreheat(),
             bundle.getPreheatIdentifier() );
@@ -95,18 +83,8 @@ public class ValidationRuleObjectBundleHook
         preheatService.connectReferences( validationRule.getRightSide(), bundle.getPreheat(),
             bundle.getPreheatIdentifier() );
 
-        if ( skipTest != null )
-        {
-            preheatService.connectReferences( skipTest, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        }
-
         sessionFactory.getCurrentSession().save( validationRule.getLeftSide() );
         sessionFactory.getCurrentSession().save( validationRule.getRightSide() );
-
-        if ( skipTest != null )
-        {
-            sessionFactory.getCurrentSession().save( skipTest );
-        }
 
         if ( validationRule.getPeriodType() != null )
         {

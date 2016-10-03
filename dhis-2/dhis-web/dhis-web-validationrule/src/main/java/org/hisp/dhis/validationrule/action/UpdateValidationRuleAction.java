@@ -36,7 +36,6 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.Importance;
-import org.hisp.dhis.validation.RuleType;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 
@@ -222,48 +221,26 @@ public class UpdateValidationRuleAction
         ValidationRule validationRule = validationRuleService.getValidationRule( id );
         Expression leftSide = validationRule.getLeftSide();
         Expression rightSide = validationRule.getRightSide();
-        Expression skipTest = validationRule.getSampleSkipTest();
 
         validationRule.setName( StringUtils.trimToNull( name ) );
         validationRule.setDescription( StringUtils.trimToNull( description ) );
         validationRule.setInstruction( StringUtils.trimToNull( instruction ) );
         validationRule.setImportance( Importance.valueOf( StringUtils.trimToNull( importance ) ) );
-        validationRule.setRuleType( RuleType.valueOf( StringUtils.trimToNull( ruleType ) ) );
         validationRule.setOperator( Operator.valueOf( operator ) );
 
         leftSide.setExpression( leftSideExpression );
         leftSide.setDescription( leftSideDescription );
         leftSide.setMissingValueStrategy( safeValueOf( leftSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
         leftSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( leftSideExpression ) );
-        leftSide.setSampleElementsInExpression( expressionService.getSampleElementsInExpression( leftSideExpression ) );
 
         rightSide.setExpression( rightSideExpression );
         rightSide.setDescription( rightSideDescription );
         rightSide.setMissingValueStrategy( safeValueOf( rightSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
         rightSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( rightSideExpression ) );
-        rightSide.setSampleElementsInExpression( expressionService.getSampleElementsInExpression( rightSideExpression ) );
-
-        if ( skipTestExpression != null && skipTest == null )
-        {
-            skipTest = new Expression();
-            validationRule.setSampleSkipTest( skipTest );
-        }
-        
-        if ( skipTest != null )
-        {
-            skipTest.setExpression( skipTestExpression );
-            skipTest.setDescription( skipTestDescription );
-            skipTest.setDataElementsInExpression( expressionService.getDataElementsInExpression( skipTestExpression ) );
-            skipTest.setSampleElementsInExpression( expressionService.getSampleElementsInExpression( skipTestExpression ) );
-        }
 
         PeriodType periodType = periodService.getPeriodTypeByName( periodTypeName );
         validationRule.setPeriodType( periodType == null ? null : periodService.getPeriodTypeByClass( periodType.getClass() ) );
 
-        validationRule.setSequentialSampleCount( sequentialSampleCount );
-        validationRule.setAnnualSampleCount( annualSampleCount );
-        validationRule.setSequentialSkipCount( sequentialSkipCount );
-        
         validationRuleService.updateValidationRule( validationRule );
 
         return SUCCESS;

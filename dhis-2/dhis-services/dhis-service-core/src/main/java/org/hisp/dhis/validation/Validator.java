@@ -28,14 +28,14 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.system.util.SystemUtils;
+import org.springframework.context.ApplicationContext;
+
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.system.util.SystemUtils;
-import org.springframework.context.ApplicationContext;
 
 /**
  * Evaluates validation rules.
@@ -55,7 +55,8 @@ public class Validator
     public static Collection<ValidationResult> validate( ValidationRunContext context, 
         ApplicationContext applicationContext )
     {
-        DataElementCategoryService categoryService = (DataElementCategoryService) 
+        long startTime = System.nanoTime();
+        DataElementCategoryService categoryService = (DataElementCategoryService)
             applicationContext.getBean( DataElementCategoryService.class );
                 
         int threadPoolSize = getThreadPoolSize( context );
@@ -85,6 +86,10 @@ public class Validator
 
         reloadAttributeOptionCombos( context.getValidationResults(), categoryService );
 
+        System.out.println( "Handled all " + context.getRuleXMap().size() + " rules " +
+            "to get " + context.getValidationResults().size() + " violations " +
+            "in " + ((System.nanoTime()-startTime)/1000000.0) + " milliseconds.");
+
         return context.getValidationResults();
     }
 
@@ -108,7 +113,7 @@ public class Validator
             threadPoolSize = context.getCountOfSourcesToValidate();
         }
 
-        return threadPoolSize;
+	return threadPoolSize;
     }
 
     /**
