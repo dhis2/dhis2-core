@@ -185,7 +185,7 @@ public class I18nAction
 
         IdentifiableObject object = identifiableObjectManager.getObject( uid, className );
 
-        translations = TranslationUtils.convertTranslations( object.getTranslations(), currentLocale.getLanguage() );
+        translations = TranslationUtils.convertTranslations( object.getTranslations(), currentLocale );
 
         referenceTranslations = TranslationUtils.getObjectPropertyValues( object );
 
