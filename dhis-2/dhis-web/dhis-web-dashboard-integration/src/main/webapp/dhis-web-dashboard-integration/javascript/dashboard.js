@@ -181,7 +181,7 @@ dhis2.db.tmpl = {
     
     favoriteDescription : "<div id='favoriteDescription'>${description}</div>",
 
-	interpretation : "<a href='javascript:dhis2.db.${exploreFunction}( \"${favoriteId}\" )'><div id='interpretationContainer'><div>" +
+	interpretation : "<a href='javascript:dhis2.db.${exploreFunction}( \"${favoriteId}\", \"${interpretationId}\" )'><div id='interpretationContainer'><div>" +
 	"<label class='interpretationUser'>${userDisplayName}</label>" +
 	"<label>${formatDate(lastUpdated, 'yy-MM-dd')}</label></div>" +
 	"<div><label>${text}</label></div>" +
@@ -1095,8 +1095,9 @@ dhis2.db.getIndex = function (itemId) {
     return parseInt($(".liDropItem").index($("#liDrop-" + itemId)));
 }
 
-dhis2.db.exploreChart = function (uid) {
-    window.location.href = "../dhis-web-visualizer/index.html?id=" + uid;
+dhis2.db.exploreChart = function (uid, interpretationId) {
+    //window.location.href = "../dhis-web-visualizer/index.html?id=" + uid;
+    window.location.href = "../dhis-web-visualizer/index.html?id=" + uid + ((interpretationId)?("&interpretationId=" + interpretationId):"");
 }
 
 dhis2.db.exploreEventChart = function (uid) {
@@ -1107,8 +1108,9 @@ dhis2.db.exploreMap = function (uid) {
     window.location.href = "../dhis-web-mapping/index.html?id=" + uid;
 }
 
-dhis2.db.exploreReportTable = function (uid) {
-    window.location.href = "../dhis-web-pivot/index.html?id=" + uid;
+dhis2.db.exploreReportTable = function (uid, interpretationId) {
+    //window.location.href = "../dhis-web-pivot/index.html?id=" + uid;
+    window.location.href = "../dhis-web-pivot/index.html?id=" + uid + ((interpretationId)?("&interpretationId=" + interpretationId):"");
 }
 
 dhis2.db.exploreEventReport = function (uid) {
@@ -1597,7 +1599,7 @@ dhis2.db.showInterpretationPopup = function (event, id, type) {
 		exploreFunction = 'exploreEventReport'
 	}
 	
-	$.getJSON("../api/" + urlPath + "/" + id + ".json?fields=id,displayDescription,interpretations[text,lastUpdated,user[displayName],comments,likes]&" + dhis2.util.cacheBust(), function (data) {
+	$.getJSON("../api/" + urlPath + "/" + id + ".json?fields=id,displayDescription,interpretations[id, text,lastUpdated,user[displayName],comments,likes]&" + dhis2.util.cacheBust(), function (data) {
 		var interpretationPopup = $('#interpretationPopup');
 		
 		// Remove any previous content
@@ -1614,6 +1616,7 @@ dhis2.db.showInterpretationPopup = function (event, id, type) {
 			var interpretation = data.interpretations[i];
 			var interpretationContent = $.tmpl(dhis2.db.tmpl.interpretation, {
 				"favoriteId": id,
+                "interpretationId": interpretation.id,
 			    "userDisplayName": interpretation.user.displayName,
 			    "lastUpdated": new Date(interpretation.lastUpdated),
 			    "text": interpretation.text,
