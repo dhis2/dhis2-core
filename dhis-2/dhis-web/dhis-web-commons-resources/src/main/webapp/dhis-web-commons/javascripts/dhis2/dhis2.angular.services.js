@@ -1116,14 +1116,6 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             });
             return promise;
         },
-        delete: function (uid) {
-            var promise = $http.get(DHIS2URL + '/fileResources/' + uid).then(function (response) {
-                return response.data;
-            } ,function(error) {
-                return null;
-            });
-            return promise;
-        },
         download: function (fileName) {
             var promise = $http.get(fileName).then(function (response) {
                 return response.data;
