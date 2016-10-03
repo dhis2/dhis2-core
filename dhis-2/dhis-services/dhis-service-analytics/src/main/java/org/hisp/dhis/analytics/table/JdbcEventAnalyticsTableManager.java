@@ -46,6 +46,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -248,7 +249,10 @@ public class JdbcEventAnalyticsTableManager
 
         List<OrganisationUnitGroupSet> orgUnitGroupSets = 
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
-        
+
+        List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
+            categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
+
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
@@ -259,7 +263,12 @@ public class JdbcEventAnalyticsTableManager
         {
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ) );
         }
-        
+
+        for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
+        {
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ) ) );
+        }
+
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
             String column = quote( periodType.getName().toLowerCase() );

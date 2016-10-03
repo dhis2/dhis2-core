@@ -27,10 +27,10 @@ dhis2.db.maxItems = 40;
 dhis2.db.shapeNormal = "NORMAL";
 dhis2.db.shapeDoubleWidth = "DOUBLE_WIDTH";
 dhis2.db.shapeFullWidth = "FULL_WIDTH";
-dhis2.db.widthNormal = 408;
-dhis2.db.widthDouble = 847;
+dhis2.db.widthNormal = 421;
+dhis2.db.widthDouble = 860;
 dhis2.db.visualItemTypes = ["CHART", "EVENT_CHART", "MAP", "REPORT_TABLE", "EVENT_REPORT", "APP"];
-dhis2.db.itemContentHeight = 308;
+dhis2.db.itemContentHeight = 317;
 dhis2.db.itemScrollbarWidth = /\bchrome\b/.test(navigator.userAgent.toLowerCase()) ? 8 : 17;
 dhis2.db.reportTableItems = [];
 dhis2.db.chartItems = [];
@@ -352,8 +352,8 @@ dhis2.db.removeDashboard = function () {
 
 dhis2.db.translateDashboard = function () {
     if (undefined !== dhis2.db.current()) {
-        var currentPage = "/dhis-web-dashboard-integration/index.action"
-        document.location.href = "../dhis-web-commons/i18n.action?className=Dashboard&uid=" + dhis2.db.current() + "&returnUrl=" + currentPage;
+        var currentPage = encodeURI(window.location.href);
+        window.location.href = "../dhis-web-commons/i18n.action?className=Dashboard&uid=" + dhis2.db.current() + "&returnUrl=" + currentPage;
     }
 }
 
@@ -437,8 +437,8 @@ dhis2.db.clearDashboard = function () {
 
 dhis2.db.getFullWidth = function () {
     var viewPortWidth = $(window).width(),
-        spacing = 31,
-        itemWidth = 408,
+        spacing = 18,
+        itemWidth = dhis2.db.widthNormal,
         items = Math.floor(( viewPortWidth - spacing ) / ( itemWidth + spacing )),
         fullWidth = ( items * itemWidth ) + ( ( items - 1 ) * spacing );
 
