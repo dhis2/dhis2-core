@@ -197,7 +197,7 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
-    public void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean sendNotifications,
+    public void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications,
         I18nFormat format )
     {
         Calendar today = Calendar.getInstance();
@@ -208,7 +208,7 @@ public class DefaultProgramStageInstanceService
         programStageInstance.setCompletedDate( date );
         programStageInstance.setCompletedBy( currentUserService.getCurrentUsername() );
 
-        if ( sendNotifications )
+        if ( !skipNotifications )
         {
             programNotificationService.sendCompletionNotifications( programStageInstance );
 
