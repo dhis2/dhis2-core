@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,13 +60,19 @@ public class TranslationUtils
         return translations;
     }
 
-    public static Map<String, String> convertTranslations( Set<ObjectTranslation> translations, String locale )
+    public static Map<String, String> convertTranslations( Set<ObjectTranslation> translations, Locale locale )
     {
+
+        if ( translations == null || locale == null )
+        {
+            return null;
+        }
+
         Map<String, String> translationMap = new Hashtable<>();
 
         for ( ObjectTranslation translation : translations )
         {
-            if ( translation.getProperty() != null && translation.getValue() != null && translation.getLocale().equals( locale ))
+            if ( translation.getValue() != null && translation.getLocale().equals( locale.toString() ) )
             {
                 translationMap.put( translation.getProperty().name().replace( "_","" ).toLowerCase(), translation.getValue() );
             }
