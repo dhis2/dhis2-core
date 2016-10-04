@@ -39,7 +39,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -258,42 +257,6 @@ public class ProgramInstanceServiceTest
     }
 
     @Test
-    public void testGetProgramInstancesByProgramList()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programInstanceService.addProgramInstance( programInstanceC );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        List<Program> programs = new ArrayList<>();
-        programs.add( programA );
-        programs.add( programB );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( programs );
-        assertEquals( 3, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceB ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
-
-    @Test
-    public void testGetProgramInstancesByEntityInstanceProgram()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate,
-            incidenDate, organisationUnitA );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstanceService.updateProgramInstance( programInstance );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstance ) );
-    }
-
-    @Test
     public void testGetProgramInstancesByEntityInstanceProgramStatus()
     {
         programInstanceService.addProgramInstance( programInstanceA );
@@ -316,70 +279,6 @@ public class ProgramInstanceServiceTest
         programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA, ProgramStatus.ACTIVE );
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
-    }
-
-    @Test
-    public void testGetProgramInstancesByOuProgram()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceC );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( programA,
-            organisationUnitA, 0, 10 );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-    }
-
-    @Test
-    public void testGetProgramInstancesByOuListProgramPeriod()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( programA,
-            orgunitIds, incidenDate, enrollmentDate, null, null );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
-
-    @Test
-    public void testCountProgramInstancesByOuListProgramPeriod()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        int count = programInstanceService.countProgramInstances( programA, orgunitIds, incidenDate, enrollmentDate );
-        assertEquals( 2, count );
-    }
-
-    @Test
-    public void testGetProgramInstancesByOuListProgramStatusPeriod()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstancesByStatus(
-            ProgramStatus.ACTIVE, programA, orgunitIds, incidenDate, enrollmentDate );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
-
-    @Test
-    public void testCountProgramInstancesByStatus()
-    {
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programInstanceService.addProgramInstance( programInstanceD );
-
-        int count = programInstanceService.countProgramInstancesByStatus( ProgramStatus.ACTIVE, programA,
-            orgunitIds, incidenDate, enrollmentDate );
-        assertEquals( 2, count );
     }
 
     @Test

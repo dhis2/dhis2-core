@@ -113,9 +113,10 @@ public class UserQueryParams
         return query;
     }
 
-    public void setQuery( String query )
+    public UserQueryParams setQuery( String query )
     {
         this.query = query;
+        return this;
     }
 
     public String getPhoneNumber()
@@ -123,9 +124,10 @@ public class UserQueryParams
         return phoneNumber;
     }
 
-    public void setPhoneNumber( String phoneNumber )
+    public UserQueryParams setPhoneNumber( String phoneNumber )
     {
         this.phoneNumber = phoneNumber;
+        return this;
     }
 
     public User getUser()
@@ -133,9 +135,10 @@ public class UserQueryParams
         return user;
     }
 
-    public void setUser( User user )
+    public UserQueryParams setUser( User user )
     {
         this.user = user;
+        return this;
     }
 
     public boolean isCanManage()
@@ -143,9 +146,10 @@ public class UserQueryParams
         return canManage;
     }
 
-    public void setCanManage( boolean canManage )
+    public UserQueryParams setCanManage( boolean canManage )
     {
         this.canManage = canManage;
+        return this;
     }
 
     public boolean isAuthSubset()
@@ -153,9 +157,10 @@ public class UserQueryParams
         return authSubset;
     }
 
-    public void setAuthSubset( boolean authSubset )
+    public UserQueryParams setAuthSubset( boolean authSubset )
     {
         this.authSubset = authSubset;
+        return this;
     }
 
     public boolean isDisjointRoles()
@@ -163,9 +168,10 @@ public class UserQueryParams
         return disjointRoles;
     }
 
-    public void setDisjointRoles( boolean disjointRoles )
+    public UserQueryParams setDisjointRoles( boolean disjointRoles )
     {
         this.disjointRoles = disjointRoles;
+        return this;
     }
 
     public Date getLastLogin()
@@ -173,9 +179,10 @@ public class UserQueryParams
         return lastLogin;
     }
 
-    public void setLastLogin( Date lastLogin )
+    public UserQueryParams setLastLogin( Date lastLogin )
     {
         this.lastLogin = lastLogin;
+        return this;
     }
 
     public Date getInactiveSince()
@@ -183,9 +190,10 @@ public class UserQueryParams
         return inactiveSince;
     }
 
-    public void setInactiveSince( Date inactiveSince )
+    public UserQueryParams setInactiveSince( Date inactiveSince )
     {
         this.inactiveSince = inactiveSince;
+        return this;
     }
 
     public Integer getInactiveMonths()
@@ -193,9 +201,10 @@ public class UserQueryParams
         return inactiveMonths;
     }
 
-    public void setInactiveMonths( Integer inactiveMonths )
+    public UserQueryParams setInactiveMonths( Integer inactiveMonths )
     {
         this.inactiveMonths = inactiveMonths;
+        return this;
     }
 
     public boolean isSelfRegistered()
@@ -203,9 +212,10 @@ public class UserQueryParams
         return selfRegistered;
     }
 
-    public void setSelfRegistered( boolean selfRegistered )
+    public UserQueryParams setSelfRegistered( boolean selfRegistered )
     {
         this.selfRegistered = selfRegistered;
+        return this;
     }
 
     public UserInvitationStatus getInvitationStatus()
@@ -213,9 +223,10 @@ public class UserQueryParams
         return invitationStatus;
     }
 
-    public void setInvitationStatus( UserInvitationStatus invitationStatus )
+    public UserQueryParams setInvitationStatus( UserInvitationStatus invitationStatus )
     {
         this.invitationStatus = invitationStatus;
+        return this;
     }
 
     public OrganisationUnit getOrganisationUnit()
@@ -223,9 +234,10 @@ public class UserQueryParams
         return organisationUnit;
     }
 
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
+    public UserQueryParams setOrganisationUnit( OrganisationUnit organisationUnit )
     {
         this.organisationUnit = organisationUnit;
+        return this;
     }
 
     public Integer getFirst()
@@ -233,9 +245,10 @@ public class UserQueryParams
         return first;
     }
 
-    public void setFirst( Integer first )
+    public UserQueryParams setFirst( Integer first )
     {
         this.first = first;
+        return this;
     }
 
     public Integer getMax()
@@ -243,8 +256,9 @@ public class UserQueryParams
         return max;
     }
 
-    public void setMax( Integer max )
+    public UserQueryParams setMax( Integer max )
     {
         this.max = max;
+        return this;
     }    
 }

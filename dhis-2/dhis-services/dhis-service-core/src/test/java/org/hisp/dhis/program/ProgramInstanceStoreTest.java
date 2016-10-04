@@ -38,7 +38,6 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -207,25 +206,6 @@ public class ProgramInstanceStoreTest
     }
 
     @Test
-    public void testGetProgramInstancesByProgramList()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceC );
-        programInstanceStore.save( programInstanceD );
-
-        List<Program> programs = new ArrayList<>();
-        programs.add( programA );
-        programs.add( programB );
-
-        List<ProgramInstance> programInstances = programInstanceStore.get( programs );
-        assertEquals( 3, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceB ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
-
-    @Test
     public void testGetProgramInstancesByEntityInstanceProgramStatus()
     {
         programInstanceStore.save( programInstanceA );
@@ -240,68 +220,5 @@ public class ProgramInstanceStoreTest
         programInstances = programInstanceStore.get( entityInstanceA, programA, ProgramStatus.ACTIVE );
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
-    }
-
-    @Test
-    public void testGetProgramInstancesByOuProgram()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceC );
-        programInstanceStore.save( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceStore.get( programA, organisationUnitA, 0, 10 );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-    }
-
-    @Test
-    public void testGetProgramInstancesByOuListProgramPeriod()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceStore.get( programA, orgunitIds, incidentDate,
-            enrollmentDate, null, null );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
-
-    @Test
-    public void testCountProgramInstancesByOuListProgramPeriod()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
-
-        int count = programInstanceStore.count( programA, orgunitIds, incidentDate, enrollmentDate );
-        assertEquals( 2, count );
-    }
-
-    @Test
-    public void testGetProgramInstancesByOuListProgramStatusPeriod()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
-
-        List<ProgramInstance> programInstances = programInstanceStore.getByStatus( ProgramStatus.ACTIVE, programA,
-            orgunitIds, incidentDate, enrollmentDate );
-
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
-
-    @Test
-    public void testCountProgramInstancesByStatus()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
-
-        int count = programInstanceStore.countByStatus( ProgramStatus.ACTIVE, programA, orgunitIds, incidentDate, enrollmentDate );
-        assertEquals( 2, count );
     }
 }

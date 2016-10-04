@@ -39,7 +39,6 @@ import org.hibernate.type.StringType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -54,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -168,35 +166,6 @@ public class HibernateProgramStageInstanceStore
         }
 
         return schedulingProgramObjects;
-    }
-
-    @Override
-    public int getOverDueCount( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate )
-    {
-        Calendar yesterday = Calendar.getInstance();
-        yesterday.add( Calendar.DATE, -1 );
-        PeriodType.clearTimeOfDay( yesterday );
-        Date now = yesterday.getTime();
-
-        if ( endDate.before( now ) )
-        {
-            now = endDate;
-        }
-
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "programInstance", "programInstance" );
-        criteria.createAlias( "programInstance.entityInstance", "entityInstance" );
-        criteria.createAlias( "entityInstance.organisationUnit", "regOrgunit" );
-        criteria.add( Restrictions.eq( "programStage", programStage ) );
-        criteria.add( Restrictions.isNull( "programInstance.endDate" ) );
-        criteria.add( Restrictions.isNull( "executionDate" ) );
-        criteria.add( Restrictions.between( "dueDate", startDate, now ) );
-        criteria.add( Restrictions.in( "regOrgunit.id", orgunitIds ) );
-        criteria.setProjection( Projections.rowCount() ).uniqueResult();
-
-        Number rs = (Number) criteria.setProjection( Projections.rowCount() ).uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
     }
 
     @Override
