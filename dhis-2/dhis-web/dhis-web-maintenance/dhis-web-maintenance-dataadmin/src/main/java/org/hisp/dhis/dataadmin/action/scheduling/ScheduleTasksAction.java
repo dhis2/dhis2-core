@@ -78,7 +78,6 @@ public class ScheduleTasksAction
     private static final String STRATEGY_ALL_15_MIN = "allEvery15Min";
     private static final String STRATEGY_LAST_3_YEARS_DAILY = "last3YearsDaily";
     private static final String STRATEGY_ENABLED = "enabled";
-    private static final String STRATEGY_EVERY_MIDNIGHT = "everyMidNight";
 
     private static final String STRATEGY_DAILY_5_AM = "dailyFiveAM";
     private static final String STRATEGY_DAILY_6_AM = "dailySixAM";

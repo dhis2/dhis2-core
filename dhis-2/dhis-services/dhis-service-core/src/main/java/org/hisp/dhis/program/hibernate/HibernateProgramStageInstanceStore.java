@@ -31,7 +31,6 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -130,28 +129,26 @@ public class HibernateProgramStageInstanceStore
             return Lists.newArrayList();
         }
 
-        Query query = getQuery(
+        String hql =
             "select psi from ProgramStageInstance as psi " +
-                "inner join psi.programStage as ps " +
-                "inner join ps.notificationTemplates as templates " +
-                "where templates.notificationTrigger in (:triggers) " +
-                "and templates.relativeScheduledDays is not null " + // ?
-                "and :notificationTemplate in elements(templates) " +
-                "and psi.dueDate is not null " +
-                "and psi.executionDate is null " +
-                "and ( day(cast(:notificationDate as date)) - day(cast(psi.dueDate as date)) ) = templates.relativeScheduledDays"
-        );
-
+            "inner join psi.programStage as ps " +
+            "inner join ps.notificationTemplates as templates " +
+            "where templates.notificationTrigger in (:triggers) " +
+            "and templates.relativeScheduledDays is not null " + // ?
+            "and :notificationTemplate in elements(templates) " +
+            "and psi.dueDate is not null " +
+            "and psi.executionDate is null " +
+            "and ( day(cast(:notificationDate as date)) - day(cast(psi.dueDate as date)) ) = templates.relativeScheduledDays";
+        
         Set<String> triggerNames = Sets.union(
             NotificationTrigger.getAllScheduledTriggers(),
             NotificationTrigger.getAllApplicableToProgramStageInstance()
         ).stream().map( Enum::name ).collect( Collectors.toSet() );
 
-        query.setEntity( "notificationTemplate", notificationTemplate );
-        query.setParameterList( "triggers", triggerNames, StringType.INSTANCE );
-        query.setDate( "notificationDate", notificationDate );
-
-        return query.list();
+        return getQuery( hql )
+            .setEntity( "notificationTemplate", notificationTemplate )
+            .setParameterList( "triggers", triggerNames, StringType.INSTANCE )
+            .setDate( "notificationDate", notificationDate ).list();
     }
 
     // -------------------------------------------------------------------------
