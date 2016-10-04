@@ -758,8 +758,8 @@ public abstract class AbstractEventService
 
             if ( programStageInstance.isCompleted() )
             {
-                programStageInstanceService.completeProgramStageInstance( programStageInstance,
-                    importOptions.isSendNotifications(), i18nManager.getI18nFormat() );
+                programStageInstanceService.completeProgramStageInstance(
+                    programStageInstance, importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1325,8 +1325,9 @@ public abstract class AbstractEventService
             programStageInstance.setStatus( EventStatus.COMPLETED );
             programStageInstance.setCompletedDate( new Date() );
             programStageInstance.setCompletedBy( completedBy );
-            programStageInstanceService.completeProgramStageInstance( programStageInstance,
-                importOptions.isSendNotifications(), i18nManager.getI18nFormat() );
+
+            programStageInstanceService.completeProgramStageInstance(
+                programStageInstance, importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
         }
     }
 

@@ -112,28 +112,16 @@ public class DefaultProgramNotificationService
         Clock clock = new Clock( log ).startClock()
             .logTime( "Processing ProgramStageNotification messages" );
 
-        List<ProgramNotificationTemplate> scheduledNotifications =
-            identifiableObjectManager.getAll( ProgramNotificationTemplate.class ).stream()
-                .filter( n -> n.getNotificationTrigger().isScheduled() )
-                .collect( Collectors.toList() );
+        List<ProgramNotificationTemplate> scheduledTemplates = getScheduledTemplates();
 
         int totalMessageCount = 0;
 
-        for ( ProgramNotificationTemplate notification : scheduledNotifications )
+        for ( ProgramNotificationTemplate template : scheduledTemplates )
         {
-            List<ProgramStageInstance> programStageInstances =
-                programStageInstanceStore.getWithScheduledNotifications( notification, notificationDate );
+            MessageBatch batch = createScheduledMessageBatchForDay( template, notificationDate );
+            sendAll( batch );
 
-            List<ProgramInstance> programInstances =
-                programInstanceStore.getWithScheduledNotifications( notification, notificationDate );
-
-            MessageBatch psiBatch = createProgramStageInstanceMessageBatch( notification, programStageInstances );
-            MessageBatch psBatch = createProgramInstanceMessageBatch( notification, programInstances );
-
-            sendAll( psiBatch );
-            sendAll( psBatch );
-
-            totalMessageCount += psiBatch.messageCount() + psBatch.messageCount();
+            totalMessageCount += batch.messageCount();
         }
 
         clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
@@ -164,9 +152,35 @@ public class DefaultProgramNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    private MessageBatch createScheduledMessageBatchForDay( ProgramNotificationTemplate template, Date day )
+    {
+        List<ProgramStageInstance> programStageInstances =
+            programStageInstanceStore.getWithScheduledNotifications( template, day );
+
+        List<ProgramInstance> programInstances =
+            programInstanceStore.getWithScheduledNotifications( template, day );
+
+        MessageBatch psiBatch = createProgramStageInstanceMessageBatch( template, programStageInstances );
+        MessageBatch psBatch = createProgramInstanceMessageBatch( template, programInstances );
+
+        return new MessageBatch( psiBatch, psBatch );
+    }
+
+    private List<ProgramNotificationTemplate> getScheduledTemplates()
+    {
+        return identifiableObjectManager.getAll( ProgramNotificationTemplate.class ).stream()
+            .filter( n -> n.getNotificationTrigger().isScheduled() )
+            .collect( Collectors.toList() );
+    }
+
     private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance, NotificationTrigger trigger )
     {
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
+
+        if ( templates.isEmpty() )
+        {
+            return;
+        }
 
         for ( ProgramNotificationTemplate template : templates )
         {
@@ -310,7 +324,7 @@ public class DefaultProgramNotificationService
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
     {
         return programStageInstance.getProgramStage().getNotificationTemplates().stream()
-            .filter( t-> t.getNotificationTrigger() == trigger )
+            .filter( t -> t.getNotificationTrigger() == trigger )
             .collect( Collectors.toSet() );
     }
 
@@ -375,6 +389,15 @@ public class DefaultProgramNotificationService
     {
         Set<DhisMessage> dhisMessages = Sets.newHashSet();
         Set<ProgramMessage> programMessages = Sets.newHashSet();
+
+        MessageBatch( MessageBatch ...batches )
+        {
+            for ( MessageBatch batch : batches )
+            {
+                dhisMessages.addAll( batch.dhisMessages );
+                programMessages.addAll( batch.programMessages );
+            }
+        }
 
         int messageCount()
         {

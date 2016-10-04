@@ -71,11 +71,9 @@ public class ValidationRuleDeletionHandler
             
             Expression leftSide = rule.getLeftSide();
             Expression rightSide = rule.getRightSide();
-            Expression skipTest= rule.getSampleSkipTest();
 
             if ( (leftSide != null && leftSide.equals( expression )) ||
-                 (rightSide != null && rightSide.equals( expression )) ||
-                 (skipTest != null && skipTest.equals( expression )))
+                 (rightSide != null && rightSide.equals( expression )) )
             {
                 iterator.remove();
                 validationRuleService.deleteValidationRule( rule );

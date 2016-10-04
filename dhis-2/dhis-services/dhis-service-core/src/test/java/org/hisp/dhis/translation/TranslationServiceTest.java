@@ -44,13 +44,11 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public class TranslationServiceTest
     extends DhisSpringTest
 {

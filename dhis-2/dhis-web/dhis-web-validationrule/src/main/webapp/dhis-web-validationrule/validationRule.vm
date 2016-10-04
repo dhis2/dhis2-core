@@ -105,7 +105,6 @@
 				</div>				
 				<p><label>$i18n.getString( "name" ):</label><br><span id="nameField"></span></p>
 				<p><label>$i18n.getString( "description" ):</label><br><span id="descriptionField"></span></p>
-				<p><label>$i18n.getString( "rule_type" ):</label><br><span id="ruleTypeField"></span></p>
 				<p id="organisationUnitLevelP"><label>$i18n.getString( "organisation_unit_level" ):</label><br><span id="organisationUnitLevelField"></span></p>
 				<p id="sequentialSampleCountP"><label>$i18n.getString( "sequential_sample_count" ):</label><br><span id="sequentialSampleCountField"></span></p>
 				<p id="annualSampleCountP"><label>$i18n.getString( "annual_sample_count" ):</label><br><span id="annualSampleCountField"></span></p>

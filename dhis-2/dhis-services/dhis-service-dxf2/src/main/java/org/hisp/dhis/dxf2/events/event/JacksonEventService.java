@@ -120,40 +120,16 @@ public class JacksonEventService extends AbstractEventService
     public List<Event> getEventsXml( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<Event> events = new ArrayList<>();
 
-        try
-        {
-            Events fromXml = fromXml( input, Events.class );
-            events.addAll( fromXml.getEvents() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            Event fromXml = fromXml( input, Event.class );
-            events.add( fromXml );
-        }
-
-        return events;
+        return parseXmlEvents( input );
     }
 
     @Override
     public List<Event> getEventsJson( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<Event> events = new ArrayList<>();
 
-        try
-        {
-            Events fromXml = fromJson( input, Events.class );
-            events.addAll( fromXml.getEvents() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            Event fromXml = fromJson( input, Event.class );
-            events.add( fromXml );
-        }
-
-        return events;
+        return parseJsonEvents( input );
     }
 
     @Override
@@ -166,18 +142,7 @@ public class JacksonEventService extends AbstractEventService
     public ImportSummaries addEventsXml( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<Event> events = new ArrayList<>();
-
-        try
-        {
-            Events fromXml = fromXml( input, Events.class );
-            events.addAll( fromXml.getEvents() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            Event fromXml = fromXml( input, Event.class );
-            events.add( fromXml );
-        }
+        List<Event> events = parseXmlEvents( input );
 
         return addEvents( events, taskId, importOptions );
     }
@@ -192,21 +157,50 @@ public class JacksonEventService extends AbstractEventService
     public ImportSummaries addEventsJson( InputStream inputStream, TaskId taskId, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+
+        List<Event> events = parseJsonEvents( input );
+
+        return addEvents( events, taskId, importOptions );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private List<Event> parseXmlEvents( String input ) throws IOException
+    {
         List<Event> events = new ArrayList<>();
 
         try
         {
-            Events fromJson = fromJson( input, Events.class );
-            events.addAll( fromJson.getEvents() );
+            Events multiple = fromXml( input, Events.class );
+            events.addAll( multiple.getEvents() );
         }
         catch ( JsonMappingException ex )
         {
-            Event fromJson = fromJson( input, Event.class );
-            events.add( fromJson );
-            importOptions.setSendNotifications( true );
+            Event single = fromXml( input, Event.class );
+            events.add( single );
         }
 
-        return addEvents( events, taskId, importOptions );
+        return events;
+    }
+
+    private List<Event> parseJsonEvents( String input ) throws IOException
+    {
+        List<Event> events = new ArrayList<>();
+
+        try
+        {
+            Events multiple = fromJson( input, Events.class );
+            events.addAll( multiple.getEvents() );
+        }
+        catch ( JsonMappingException ex )
+        {
+            Event single = fromJson( input, Event.class );
+            events.add( single );
+        }
+
+        return events;
     }
 
     private ImportSummaries addEvents( List<Event> events, TaskId taskId, ImportOptions importOptions )
