@@ -825,10 +825,13 @@ public class DataSet
             mobile = dataSet.isMobile();
             validCompleteOnly = dataSet.isValidCompleteOnly();
             version = dataSet.getVersion();
+            timelyDays = dataSet.getTimelyDays();
+            notifyCompletingUser = dataSet.isNotifyCompletingUser();
 
             if ( mergeMode.isReplace() )
             {
                 periodType = dataSet.getPeriodType();
+                categoryCombo = dataSet.getCategoryCombo();
                 dataEntryForm = dataSet.getDataEntryForm();
                 notificationRecipients = dataSet.getNotificationRecipients();
                 startDate = dataSet.getStartDate();
@@ -837,6 +840,7 @@ public class DataSet
             else if ( mergeMode.isMerge() )
             {
                 periodType = dataSet.getPeriodType() == null ? periodType : dataSet.getPeriodType();
+                categoryCombo = dataSet.getCategoryCombo() == null ? categoryCombo : dataSet.getCategoryCombo();
                 dataEntryForm = dataSet.getDataEntryForm() == null ? dataEntryForm : dataSet.getDataEntryForm();
                 notificationRecipients = dataSet.getNotificationRecipients() == null ? notificationRecipients : dataSet.getNotificationRecipients();
                 startDate = dataSet.getStartDate() == null ? startDate : dataSet.getStartDate();

@@ -209,20 +209,6 @@ public class DataElement
         return dataSetElements.add( element );
     }
 
-    /**
-     * Adds a data set element using the given data set, this data element and
-     * the given category combo.
-     * 
-     * @param dataSet the data set.
-     * @param categoryCombo the category combination.
-     */
-    public boolean addDataSetElement2( DataSet dataSet, DataElementCategoryCombo categoryCombo )
-    {
-        DataSetElement element = new DataSetElement( dataSet, this, categoryCombo );
-        dataSet.getDataSetElements().add( element );
-        return dataSetElements.add( element );
-    }
-    
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
