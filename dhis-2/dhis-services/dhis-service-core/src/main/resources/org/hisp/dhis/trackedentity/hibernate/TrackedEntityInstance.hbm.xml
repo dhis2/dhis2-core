@@ -25,7 +25,7 @@
     </set>
 
     <many-to-one name="representative" class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="representativeid"
-      foreign-key="fk_trackedentityinstance_representativeid" lazy="false" />
+      foreign-key="fk_trackedentityinstance_representativeid" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_trackedentityinstance_organisationunitid" not-null="true" lazy="false" />

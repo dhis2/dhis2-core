@@ -66,7 +66,7 @@
         column="messageconversationid" />
     </list>
 
-    <list name="comments" table="programinstancecomments" cascade="all" lazy="false">
+    <list name="comments" table="programinstancecomments" cascade="all">
       <key column="programinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many column="trackedentitycommentid" unique="true" class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
