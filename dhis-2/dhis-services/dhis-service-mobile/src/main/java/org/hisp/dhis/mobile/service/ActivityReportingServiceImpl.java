@@ -316,8 +316,8 @@ public class ActivityReportingServiceImpl
 
         List<Activity> items = new ArrayList<>();
 
-        TrackedEntityInstanceQueryParams param = new TrackedEntityInstanceQueryParams();
-        param.addOrganisationUnit( unit );
+        TrackedEntityInstanceQueryParams param = new TrackedEntityInstanceQueryParams()
+            .addOrganisationUnit( unit );
 
         Grid trackedEntityDrid = entityInstanceService.getTrackedEntityInstancesGrid( param );
         List<List<Object>> entityInstanceList = trackedEntityDrid.getRows();

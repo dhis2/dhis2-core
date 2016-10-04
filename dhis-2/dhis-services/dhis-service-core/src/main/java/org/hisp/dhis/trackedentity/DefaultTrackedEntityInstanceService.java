@@ -424,24 +424,24 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Tracked entity does not exist: " + program );
         }
 
-        params.setQuery( queryFilter );
-        params.setProgram( pr );
-        params.setProgramStatus( programStatus );
-        params.setFollowUp( followUp );
-        params.setProgramEnrollmentStartDate( programEnrollmentStartDate );
-        params.setProgramEnrollmentEndDate( programEnrollmentEndDate );
-        params.setProgramIncidentStartDate( programIncidentStartDate );
-        params.setProgramIncidentEndDate( programIncidentEndDate );
-        params.setTrackedEntity( te );
-        params.setOrganisationUnitMode( ouMode );
-        params.setEventStatus( eventStatus );
-        params.setEventStartDate( eventStartDate );
-        params.setEventEndDate( eventEndDate );
-        params.setSkipMeta( skipMeta );
-        params.setPage( page );
-        params.setPageSize( pageSize );
-        params.setTotalPages( totalPages );
-        params.setSkipPaging( skipPaging );
+        params.setQuery( queryFilter )
+            .setProgram( pr )
+            .setProgramStatus( programStatus )
+            .setFollowUp( followUp )
+            .setProgramEnrollmentStartDate( programEnrollmentStartDate )
+            .setProgramEnrollmentEndDate( programEnrollmentEndDate )
+            .setProgramIncidentStartDate( programIncidentStartDate )
+            .setProgramIncidentEndDate( programIncidentEndDate )
+            .setTrackedEntity( te )
+            .setOrganisationUnitMode( ouMode )
+            .setEventStatus( eventStatus )
+            .setEventStartDate( eventStartDate )
+            .setEventEndDate( eventEndDate )
+            .setSkipMeta( skipMeta )
+            .setPage( page )
+            .setPageSize( pageSize )
+            .setTotalPages( totalPages )
+            .setSkipPaging( skipPaging );
 
         return params;
     }
@@ -626,6 +626,7 @@ public class DefaultTrackedEntityInstanceService
                 if ( relationshipTypeId != null )
                 {
                     RelationshipType relType = relationshipTypeService.getRelationshipType( relationshipTypeId );
+                    
                     if ( relType != null )
                     {
                         rel.setRelationshipType( relType );

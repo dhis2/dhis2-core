@@ -204,25 +204,28 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Adds a query item as attribute to the parameters.
      */
-    public void addAttribute( QueryItem attribute )
+    public TrackedEntityInstanceQueryParams addAttribute( QueryItem attribute )
     {
         this.attributes.add( attribute );
+        return this;
     }
     
     /**
      * Adds a query item as filter to the parameters.
      */
-    public void addFilter( QueryItem filter )
+    public TrackedEntityInstanceQueryParams addFilter( QueryItem filter )
     {
         this.filters.add( filter );
+        return this;
     }
     
     /**
      * Adds an organisation unit to the parameters.
      */
-    public void addOrganisationUnit( OrganisationUnit unit )
+    public TrackedEntityInstanceQueryParams addOrganisationUnit( OrganisationUnit unit )
     {
         this.organisationUnits.add( unit );
+        return this;
     }
 
     /**
@@ -291,15 +294,16 @@ public class TrackedEntityInstanceQueryParams
         }
     }
     
-    public void addAttributes( List<QueryItem> attrs )
+    public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
+        return this;
     }
     
     /**
      * Add the given attributes to this params if they are not already present.
      */
-    public void addAttributesIfNotExist( List<QueryItem> attrs )
+    public TrackedEntityInstanceQueryParams addAttributesIfNotExist( List<QueryItem> attrs )
     {
         for ( QueryItem attr : attrs )
         {
@@ -308,12 +312,14 @@ public class TrackedEntityInstanceQueryParams
                 attributes.add( attr );            
             }
         }
+        
+        return this;
     }
     
     /**
-     * Adds the given filters to this params if they are not already present.
+     * Adds the given filters to this parameters if they are not already present.
      */
-    public void addFiltersIfNotExist( List<QueryItem> filtrs )
+    public TrackedEntityInstanceQueryParams addFiltersIfNotExist( List<QueryItem> filtrs )
     {
         for ( QueryItem filter : filtrs )
         {
@@ -322,7 +328,10 @@ public class TrackedEntityInstanceQueryParams
                 filters.add( filter );
             }
         }
+
+        return this;
     }
+    
     /**
      * Indicates whether this is a logical OR query, meaning that a query string
      * is specified and instances which matches this query on one or more attributes
@@ -335,7 +344,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a query.
+     * Indicates whether this parameters specifies a query.
      */
     public boolean hasQuery()
     {
@@ -392,7 +401,7 @@ public class TrackedEntityInstanceQueryParams
     }
            
     /**
-     * Indicates whether this params specifies any attributes and/or filters.
+     * Indicates whether this parameters specifies any attributes and/or filters.
      */
     public boolean hasAttributesOrFilters()
     {
@@ -400,7 +409,7 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this params specifies any attributes.
+     * Indicates whether this parameters specifies any attributes.
      */
     public boolean hasAttributes()
     {
@@ -408,7 +417,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies any filters.
+     * Indicates whether this parameters specifies any filters.
      */
     public boolean hasFilters()
     {
@@ -416,7 +425,7 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether this params specifies any organisation units.
+     * Indicates whether this parameters specifies any organisation units.
      */
     public boolean hasOrganisationUnits()
     {
@@ -424,7 +433,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a program.
+     * Indicates whether this parameters specifies a program.
      */
     public boolean hasProgram()
     {
@@ -432,7 +441,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a program status.
+     * Indicates whether this parameters specifies a program status.
      */
     public boolean hasProgramStatus()
     {
@@ -440,7 +449,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies follow up for the given program.
+     * Indicates whether this parameters specifies follow up for the given program.
      * Follow up can be specified as true or false.
      */
     public boolean hasFollowUp()
@@ -449,7 +458,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a program enrollment start date.
+     * Indicates whether this parameters specifies a program enrollment start date.
      */
     public boolean hasProgramEnrollmentStartDate()
     {
@@ -457,7 +466,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a program enrollment end date.
+     * Indicates whether this parameters specifies a program enrollment end date.
      */
     public boolean hasProgramEnrollmentEndDate()
     {
@@ -465,7 +474,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a program incident start date.
+     * Indicates whether this parameters specifies a program incident start date.
      */
     public boolean hasProgramIncidentStartDate()
     {
@@ -473,7 +482,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a program incident end date.
+     * Indicates whether this parameters specifies a program incident end date.
      */
     public boolean hasProgramIncidentEndDate()
     {
@@ -481,7 +490,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies a tracked entity.
+     * Indicates whether this parameters specifies a tracked entity.
      */
     public boolean hasTrackedEntity()
     {
@@ -489,7 +498,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params is of the given organisation unit mode.
+     * Indicates whether this parameters is of the given organisation unit mode.
      */
     public boolean isOrganisationUnitMode( OrganisationUnitSelectionMode mode )
     {
@@ -514,7 +523,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies an event start date.
+     * Indicates whether this parameters specifies an event start date.
      */
     public boolean hasEventStartDate()
     {
@@ -522,7 +531,7 @@ public class TrackedEntityInstanceQueryParams
     }
     
     /**
-     * Indicates whether this params specifies an event end date.
+     * Indicates whether this parameters specifies an event end date.
      */
     public boolean hasEventEndDate()
     {
@@ -596,9 +605,10 @@ public class TrackedEntityInstanceQueryParams
         return lastUpdated;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public TrackedEntityInstanceQueryParams setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+        return this;
     }
 
     public QueryFilter getQuery()
@@ -606,9 +616,10 @@ public class TrackedEntityInstanceQueryParams
         return query;
     }
 
-    public void setQuery( QueryFilter query )
+    public TrackedEntityInstanceQueryParams setQuery( QueryFilter query )
     {
         this.query = query;
+        return this;
     }
 
     public List<QueryItem> getAttributes()
@@ -616,9 +627,10 @@ public class TrackedEntityInstanceQueryParams
         return attributes;
     }
 
-    public void setAttributes( List<QueryItem> attributes )
+    public TrackedEntityInstanceQueryParams setAttributes( List<QueryItem> attributes )
     {
         this.attributes = attributes;
+        return this;
     }
 
     public List<QueryItem> getFilters()
@@ -626,9 +638,10 @@ public class TrackedEntityInstanceQueryParams
         return filters;
     }
 
-    public void setFilters( List<QueryItem> filters )
+    public TrackedEntityInstanceQueryParams setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
+        return this;
     }
 
     public Set<OrganisationUnit> getOrganisationUnits()
@@ -636,9 +649,10 @@ public class TrackedEntityInstanceQueryParams
         return organisationUnits;
     }
 
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    public TrackedEntityInstanceQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
+        return this;
     }
 
     public Program getProgram()
@@ -646,9 +660,10 @@ public class TrackedEntityInstanceQueryParams
         return program;
     }
 
-    public void setProgram( Program program )
+    public TrackedEntityInstanceQueryParams setProgram( Program program )
     {
         this.program = program;
+        return this;
     }
 
     public ProgramStatus getProgramStatus()
@@ -656,9 +671,10 @@ public class TrackedEntityInstanceQueryParams
         return programStatus;
     }
 
-    public void setProgramStatus( ProgramStatus programStatus )
+    public TrackedEntityInstanceQueryParams setProgramStatus( ProgramStatus programStatus )
     {
         this.programStatus = programStatus;
+        return this;
     }
 
     public Boolean getFollowUp()
@@ -666,9 +682,10 @@ public class TrackedEntityInstanceQueryParams
         return followUp;
     }
 
-    public void setFollowUp( Boolean followUp )
+    public TrackedEntityInstanceQueryParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
+        return this;
     }
 
     public Date getProgramEnrollmentStartDate()
@@ -676,9 +693,10 @@ public class TrackedEntityInstanceQueryParams
         return programEnrollmentStartDate;
     }
 
-    public void setProgramEnrollmentStartDate( Date programEnrollmentStartDate )
+    public TrackedEntityInstanceQueryParams setProgramEnrollmentStartDate( Date programEnrollmentStartDate )
     {
         this.programEnrollmentStartDate = programEnrollmentStartDate;
+        return this;
     }
 
     public Date getProgramEnrollmentEndDate()
@@ -686,9 +704,10 @@ public class TrackedEntityInstanceQueryParams
         return programEnrollmentEndDate != null ? DateUtils.addDays(programEnrollmentEndDate, 1) : programEnrollmentEndDate;
     }
 
-    public void setProgramEnrollmentEndDate( Date programEnrollmentEndDate )
+    public TrackedEntityInstanceQueryParams setProgramEnrollmentEndDate( Date programEnrollmentEndDate )
     {
         this.programEnrollmentEndDate = programEnrollmentEndDate;
+        return this;
     }
 
     public Date getProgramIncidentStartDate()
@@ -696,9 +715,10 @@ public class TrackedEntityInstanceQueryParams
         return programIncidentStartDate;
     }
 
-    public void setProgramIncidentStartDate( Date programIncidentStartDate )
+    public TrackedEntityInstanceQueryParams setProgramIncidentStartDate( Date programIncidentStartDate )
     {
         this.programIncidentStartDate = programIncidentStartDate;
+        return this;
     }
 
     public Date getProgramIncidentEndDate()
@@ -706,9 +726,10 @@ public class TrackedEntityInstanceQueryParams
         return programIncidentEndDate != null ? DateUtils.addDays(programIncidentEndDate, 1) : programIncidentEndDate;
     }
 
-    public void setProgramIncidentEndDate( Date programIncidentEndDate )
+    public TrackedEntityInstanceQueryParams setProgramIncidentEndDate( Date programIncidentEndDate )
     {
         this.programIncidentEndDate = programIncidentEndDate;
+        return this;
     }
 
     public TrackedEntity getTrackedEntity()
@@ -716,9 +737,10 @@ public class TrackedEntityInstanceQueryParams
         return trackedEntity;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public TrackedEntityInstanceQueryParams setTrackedEntity( TrackedEntity trackedEntity )
     {
         this.trackedEntity = trackedEntity;
+        return this;
     }
 
     public OrganisationUnitSelectionMode getOrganisationUnitMode()
@@ -726,9 +748,10 @@ public class TrackedEntityInstanceQueryParams
         return organisationUnitMode;
     }
 
-    public void setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
+    public TrackedEntityInstanceQueryParams setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
     {
         this.organisationUnitMode = organisationUnitMode;
+        return this;
     }
 
     public EventStatus getEventStatus()
@@ -736,9 +759,10 @@ public class TrackedEntityInstanceQueryParams
         return eventStatus;
     }
 
-    public void setEventStatus( EventStatus eventStatus )
+    public TrackedEntityInstanceQueryParams setEventStatus( EventStatus eventStatus )
     {
         this.eventStatus = eventStatus;
+        return this;
     }
 
     public Date getEventStartDate()
@@ -746,9 +770,10 @@ public class TrackedEntityInstanceQueryParams
         return eventStartDate;
     }
 
-    public void setEventStartDate( Date eventStartDate )
+    public TrackedEntityInstanceQueryParams setEventStartDate( Date eventStartDate )
     {
         this.eventStartDate = eventStartDate;
+        return this;
     }
 
     public Date getEventEndDate()
@@ -756,9 +781,10 @@ public class TrackedEntityInstanceQueryParams
         return eventEndDate;
     }
 
-    public void setEventEndDate( Date eventEndDate )
+    public TrackedEntityInstanceQueryParams setEventEndDate( Date eventEndDate )
     {
         this.eventEndDate = eventEndDate;
+        return this;
     }
 
     public boolean isSkipMeta()
@@ -766,9 +792,10 @@ public class TrackedEntityInstanceQueryParams
         return skipMeta;
     }
 
-    public void setSkipMeta( boolean skipMeta )
+    public TrackedEntityInstanceQueryParams setSkipMeta( boolean skipMeta )
     {
         this.skipMeta = skipMeta;
+        return this;
     }
     
     public Integer getPage()
@@ -776,9 +803,10 @@ public class TrackedEntityInstanceQueryParams
         return page;
     }
 
-    public void setPage( Integer page )
+    public TrackedEntityInstanceQueryParams setPage( Integer page )
     {
         this.page = page;
+        return this;
     }
 
     public Integer getPageSize()
@@ -786,9 +814,10 @@ public class TrackedEntityInstanceQueryParams
         return pageSize;
     }
 
-    public void setPageSize( Integer pageSize )
+    public TrackedEntityInstanceQueryParams setPageSize( Integer pageSize )
     {
         this.pageSize = pageSize;
+        return this;
     }
 
     public boolean isTotalPages()
@@ -796,9 +825,10 @@ public class TrackedEntityInstanceQueryParams
         return totalPages;
     }
 
-    public void setTotalPages( boolean totalPages )
+    public TrackedEntityInstanceQueryParams setTotalPages( boolean totalPages )
     {
         this.totalPages = totalPages;
+        return this;
     }
 
     public boolean isSkipPaging()
@@ -806,9 +836,10 @@ public class TrackedEntityInstanceQueryParams
         return skipPaging;
     }
 
-    public void setSkipPaging( boolean skipPaging )
+    public TrackedEntityInstanceQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+        return this;
     }
 
     public User getUser()
@@ -816,8 +847,9 @@ public class TrackedEntityInstanceQueryParams
         return user;
     }
 
-    public void setUser( User user )
+    public TrackedEntityInstanceQueryParams setUser( User user )
     {
         this.user = user;
+        return this;
     }
 }
