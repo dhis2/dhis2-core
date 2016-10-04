@@ -40,7 +40,6 @@ import org.hisp.dhis.program.notification.NotificationRecipient;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
 import org.junit.Test;
@@ -164,29 +163,10 @@ public class ProgramStageInstanceStoreTest
 
         stageA = new ProgramStage( "A", programA );
 
-        TrackedEntityInstanceReminder reminderA = createTrackedEntityInstanceReminder( 'A', 0, "Test program stage message template",
-            TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE, TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE, null,
-            TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        TrackedEntityInstanceReminder reminderB = createTrackedEntityInstanceReminder( 'B', 0, "Test program stage message template",
-            TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE, TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE,
-            TrackedEntityInstanceReminder.SEND_WHEN_TO_C0MPLETED_EVENT, TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
-        reminders.add( reminderA );
-        reminders.add( reminderB );
-        stageA.setReminders( reminders );
-
         programStageService.saveProgramStage( stageA );
 
         stageB = new ProgramStage( "B", programA );
-        TrackedEntityInstanceReminder reminderC = createTrackedEntityInstanceReminder( 'C', 0, "Test program stage message template",
-            TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE, TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE,
-            TrackedEntityInstanceReminder.SEND_WHEN_TO_C0MPLETED_EVENT, TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
 
-        reminders = new HashSet<>();
-        reminders.add( reminderC );
-        stageB.setReminders( reminders );
         programStageService.saveProgramStage( stageB );
 
         Set<ProgramStage> programStages = new HashSet<>();

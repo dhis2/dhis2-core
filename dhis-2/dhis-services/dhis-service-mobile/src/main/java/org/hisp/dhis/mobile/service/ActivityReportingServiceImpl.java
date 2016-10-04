@@ -58,11 +58,11 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -85,17 +85,12 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.sms.SmsServiceException;
-import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -183,8 +178,6 @@ public class ActivityReportingServiceImpl
     private TrackedEntityService trackedEntityService;
 
     private I18nManager i18nManager;
-
-    private TrackedEntityInstanceReminderService reminderService;
 
     private UserService userService;
 
@@ -701,7 +694,7 @@ public class ActivityReportingServiceImpl
         patient.getProgramInstances().add( programInstance );
         entityInstanceService.updateTrackedEntityInstance( patient );
         patient = entityInstanceService.getTrackedEntityInstance( patientId );
-        this.sendMessages( programInstance, TrackedEntityInstanceReminder.SEND_WHEN_TO_ENROLLMENT );
+
         return getPatientModel( patient );
     }
 
@@ -2400,60 +2393,6 @@ public class ActivityReportingServiceImpl
         return PROGRAM_COMPLETED;
     }
 
-    private Collection<OutboundSms> sendMessages( ProgramInstance programInstance, int status )
-    {
-        TrackedEntityInstance entityInstance = programInstance.getEntityInstance();
-        Collection<OutboundSms> outboundSmsList = new HashSet<>();
-
-        Collection<TrackedEntityInstanceReminder> reminders = programInstance.getProgram().getInstanceReminders();
-
-        for ( TrackedEntityInstanceReminder rm : reminders )
-        {
-            if ( rm != null && rm.getWhenToSend() != null && rm.getWhenToSend() == status
-                && (rm.getMessageType() == TrackedEntityInstanceReminder.MESSAGE_TYPE_DIRECT_SMS
-                    || rm.getMessageType() == TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH) )
-            {
-                OutboundSms outboundSms = sendProgramMessage( rm, programInstance, entityInstance );
-
-                if ( outboundSms != null )
-                {
-                    outboundSmsList.add( outboundSms );
-                }
-            }
-        }
-
-        return outboundSmsList;
-    }
-
-    private OutboundSms sendProgramMessage( TrackedEntityInstanceReminder reminder, ProgramInstance programInstance,
-        TrackedEntityInstance entityInstance )
-    {
-        I18nFormat format = i18nManager.getI18nFormat();
-
-        Set<String> phoneNumbers = reminderService.getPhoneNumbers( reminder, entityInstance );
-        OutboundSms outboundSms = null;
-
-        if ( phoneNumbers.size() > 0 )
-        {
-            String msg = reminderService.getMessageFromTemplate( reminder, programInstance, format );
-
-            try
-            {
-                outboundSms = new OutboundSms();
-                outboundSms.setMessage( msg );
-                outboundSms.setRecipients( phoneNumbers );
-                outboundSms.setSender( currentUserService.getCurrentUsername() );
-                smsSender.sendMessage( null, outboundSms.getMessage(), outboundSms.getRecipients() );
-            }
-            catch ( SmsServiceException e )
-            {
-                e.printStackTrace();
-            }
-        }
-
-        return outboundSms;
-    }
-
     public I18nManager getI18nManager()
     {
         return i18nManager;
@@ -2462,16 +2401,6 @@ public class ActivityReportingServiceImpl
     public void setI18nManager( I18nManager i18nManager )
     {
         this.i18nManager = i18nManager;
-    }
-
-    public TrackedEntityInstanceReminderService getReminderService()
-    {
-        return reminderService;
-    }
-
-    public void setReminderService( TrackedEntityInstanceReminderService reminderService )
-    {
-        this.reminderService = reminderService;
     }
 
     public TrackedEntityService getTrackedEntityService()

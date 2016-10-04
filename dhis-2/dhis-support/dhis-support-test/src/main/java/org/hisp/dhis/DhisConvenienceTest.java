@@ -97,7 +97,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -1570,21 +1569,6 @@ public abstract class DhisConvenienceTest
         relationshipType.setName( "RelationshipType" + uniqueChar );
 
         return relationshipType;
-    }
-
-    /**
-     * @param uniqueCharacter A unique character to identify the object.
-     * @return TrackedEntityInstanceReminder
-     */
-    public static TrackedEntityInstanceReminder createTrackedEntityInstanceReminder( char uniqueCharacter, 
-        Integer daysAllowedSendMessage, String templateMessage, String dateToCompare,
-        Integer sendTo, Integer whenToSend, Integer messageType )
-    {
-        TrackedEntityInstanceReminder reminder = new TrackedEntityInstanceReminder( "Reminder" + uniqueCharacter, daysAllowedSendMessage,
-            templateMessage, dateToCompare, sendTo, whenToSend, messageType );
-        reminder.setAutoFields();
-        
-        return reminder;
     }
 
     /**

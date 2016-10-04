@@ -1564,7 +1564,6 @@ public class TableAlteror
         addTranslationTable( listTables, "TrackedEntityAttribute", "trackedentityattributetranslations", "trackedentityattribute", "trackedentityattributeid" );
         addTranslationTable( listTables, "TrackedEntityAttributeGroup", "trackedentityattributegrouptranslations", "trackedentityattributegroup", "trackedentityattributegroupid" );
         addTranslationTable( listTables, "TrackedEntityInstance", "trackedentityinstancetranslations", "trackedentityinstance", "trackedentityinstanceid" );
-        addTranslationTable( listTables, "TrackedEntityInstanceReminder", "trackedentityinstanceremindertranslations", "trackedentityinstancereminder", "trackedentityinstancereminderid" );
         addTranslationTable( listTables, "User", "userinfotranslations", "userinfo", "userinfoid" );
         addTranslationTable( listTables, "UserAuthorityGroup", "userroletranslations", "userrole", "userroleid" );
         addTranslationTable( listTables, "UserCredentials", "usertranslations", "users", "userid" );

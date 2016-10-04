@@ -33,7 +33,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -181,13 +180,6 @@ public interface ProgramInstanceService
      * @return ProgramInstance list
      */
     List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
-
-    /**
-     * Retrieve scheduled list of entityInstances registered
-     *
-     * @return A SchedulingProgramObject list
-     */
-    Collection<SchedulingProgramObject> getScheduledMessages();
 
     /**
      * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.

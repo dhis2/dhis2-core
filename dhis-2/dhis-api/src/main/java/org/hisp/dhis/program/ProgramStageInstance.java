@@ -33,7 +33,6 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
 import java.util.ArrayList;
@@ -59,9 +58,6 @@ public class ProgramStageInstance
     private OrganisationUnit organisationUnit;
 
     private DataElementCategoryOptionCombo attributeOptionCombo;
-
-    @Deprecated
-    private List<OutboundSms> outboundSms = new ArrayList<>();
 
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
@@ -179,16 +175,6 @@ public class ProgramStageInstance
     public void setAttributeOptionCombo( DataElementCategoryOptionCombo attributeOptionCombo )
     {
         this.attributeOptionCombo = attributeOptionCombo;
-    }
-
-    public List<OutboundSms> getOutboundSms()
-    {
-        return outboundSms;
-    }
-
-    public void setOutboundSms( List<OutboundSms> outboundSms )
-    {
-        this.outboundSms = outboundSms;
     }
 
     public Date getCompletedDate()

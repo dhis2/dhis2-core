@@ -78,7 +78,7 @@
       "selectIncidentDatesInFuture": false,
       "lastUpdated": "2016-03-10T07:27:24.600+0000",
       "name": "ProgramA",
-      "trackedEntityInstanceReminders": [ ]
+      "notificationTemplates": [ ]
     }
   ],
   "validationRules": [
@@ -459,7 +459,7 @@
       "created": "2016-03-10T07:27:15.692+0000",
       "displayGenerateEventBox": false,
       "programStageSections": [ ],
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "name": "ProgramA",
       "hideDueDate": false,
       "lastUpdated": "2016-03-10T07:27:58.736+0000",

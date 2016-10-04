@@ -163,8 +163,6 @@
         <entry key="monitoringLastDayTask" value-ref="monitoringLastDayTask" />
         <entry key="dataSynchTask" value-ref="dataSynchTask" />
         <entry key="metadataSyncTask" value-ref="metadataSyncTask" />
-        <entry key="smsSchedulerTask" value-ref="smsSchedulerTask" />
-        <entry key="sendScheduledMessageTask" value-ref="sendScheduledMessageTask" />
         <entry key="sendScheduledMessageTaskNow" value-ref="sendScheduledMessageTaskNow" />
         <entry key="scheduledProgramNotificationsTask" value-ref="scheduledProgramNotificationsTask" />
       </map>

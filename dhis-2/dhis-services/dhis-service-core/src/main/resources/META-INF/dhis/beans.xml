@@ -1309,11 +1309,8 @@
     class="org.hisp.dhis.program.DefaultProgramStageInstanceService">
     <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
     <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
-    <property name="smsSender" ref="smsMessageSender" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="reminderService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
     <property name="programNotificationService" ref="org.hisp.dhis.program.notification.ProgramNotificationService" />
-    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
   </bean>
 
   <bean id="org.hisp.dhis.program.ProgramInstanceService" class="org.hisp.dhis.program.DefaultProgramInstanceService" />
@@ -1417,18 +1414,6 @@
     class="org.hisp.dhis.hibernate.HibernateGenericStore">
     <property name="clazz" value="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
     <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService"
-    class="org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceReminderService">
-    <property name="reminderStore" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderStore" />
-  </bean>
-
-  <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderStore"
-    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
-    <property name="clazz" value="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="transientIdentifiableProperties" value="true" />
   </bean>
 
   <bean id="org.hisp.dhis.program.notification.ProgramStageNotificationStore"
@@ -1567,7 +1552,6 @@
         <value>trackedentityinstance</value>
         <value>trackedentityattribute</value>
         <value>trackedentityattributegroup</value>
-        <value>trackedentityinstancereminder</value>
         <value>program</value>
         <value>programindicator</value>
         <value>programstage</value>

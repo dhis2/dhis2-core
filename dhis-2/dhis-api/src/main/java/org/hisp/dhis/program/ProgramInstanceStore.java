@@ -32,7 +32,6 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -89,13 +88,6 @@ public interface ProgramInstanceStore
      * @return ProgramInstance list
      */
     List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
-
-    /**
-     * Rerieve schedule list of patiens registered
-     *
-     * @return A SchedulingProgramObject list
-     */
-    Collection<SchedulingProgramObject> getSendMesssageEvents( String dateToCompare );
 
     /**
      * Checks for the existence of a PI by UID
