@@ -13,10 +13,10 @@
     </id>
 
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-      foreign-key="fk_dataelementoperand_dataelement" unique-key="dataelement_operand_unique_key" />
+      foreign-key="fk_dataelementoperand_dataelement" />
 
     <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
-      column="categoryoptioncomboid" foreign-key="fk_dataelementoperand_dataelementcategoryoptioncombo" unique-key="dataelement_operand_unique_key" />
+      column="categoryoptioncomboid" foreign-key="fk_dataelementoperand_dataelementcategoryoptioncombo" />
 
   </class>
 </hibernate-mapping>
