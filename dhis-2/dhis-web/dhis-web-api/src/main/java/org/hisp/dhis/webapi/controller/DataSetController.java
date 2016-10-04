@@ -304,7 +304,7 @@ public class DataSetController
         i18nService.internationalise( dataSet.getDataElements() );
         i18nService.internationalise( dataSet.getSections() );
 
-        Form form = FormUtils.fromDataSet( dataSets.get( 0 ), metaData );
+        Form form = FormUtils.fromDataSet( dataSets.get( 0 ), metaData, null );
 
 
         Set<String> options = null;
@@ -424,8 +424,7 @@ public class DataSetController
     }
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response )
-        throws WebMessageException, IOException
+    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response ) throws WebMessageException, IOException
     {
         DataSet dataSet = dataSetService.getDataSet( pvUid );
 
