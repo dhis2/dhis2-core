@@ -963,7 +963,15 @@ public class TableAlteror
         updateObjectTranslation();
         upgradeDataSetElements();
 
+        removeOutdatedTranslationProperties();
+
         log.info( "Tables updated" );
+    }
+    
+    private void removeOutdatedTranslationProperties()
+    {
+        executeSql( "delete from indicatortranslations where objecttranslationid in (select objecttranslationid from objecttranslation where property in ('numeratorDescription', 'denominatorDescription'))" );
+        executeSql( "delete from objecttranslation where property in ('numeratorDescription', 'denominatorDescription')" );
     }
     
     private void upgradeDataValueSoftDelete()
