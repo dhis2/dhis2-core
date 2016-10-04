@@ -234,7 +234,6 @@ public class TableAlteror
         executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_MANAGEMENT' where authority='F_PATIENT_MANAGEMENT'" );
         executeSql( "update userroleauthorities set authority='F_NAME_BASED_DATA_ENTRY' where authority='F_NAME_BASED_DATA_ENTRY'" );
         executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_ATTRIBUTEVALUE_DELETE' where authority='F_PATIENTATTRIBUTEVALUE_DELETE'" );
-        executeSql( "update userroleauthorities set authority='F_TRACKED_ENTITY_INSTANCE_REMINDER_MANAGEMENT' where authority='F_PATIENT_REMINDER_MANAGEMENT'" );
 
         executeSql( "ALTER TABLE program_attributes RENAME COLUMN programattributeid TO programtrackedentityattributeid" );
         createPersonTrackedEntity();
