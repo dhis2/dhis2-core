@@ -30,7 +30,6 @@ package org.hisp.dhis.light.dataentry.action;
 
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.light.utils.FormUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -117,7 +116,7 @@ public class GetDataSetsAction
 
         dataSets = formUtils.getDataSetsForCurrentUser( organisationUnitId );
 
-        Collections.sort( dataSets, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( dataSets );
         
         organisationUnit = organisationUnitService.getOrganisationUnit( organisationUnitId );
 

@@ -28,7 +28,6 @@ package org.hisp.dhis.trackedentity.action.programindicatorgroup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -99,7 +98,7 @@ public class GetProgramIndicatorGroupListAction
                     paging.getPageSize() );
         }
 
-        Collections.sort( programIndicatorGroups, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programIndicatorGroups );
 
         return SUCCESS;
     }

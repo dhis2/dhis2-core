@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -100,8 +99,8 @@ public class GetDataCompletenessOptionsAction
         dataSets = new ArrayList<>( dataSetService.getAllDataSets() );
         groupSets = new ArrayList<>( organisationUnitGroupService.getAllOrganisationUnitGroupSets() );
         
-        Collections.sort( dataSets, IdentifiableObjectNameComparator.INSTANCE );
-        Collections.sort( groupSets, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( dataSets );
+        Collections.sort( groupSets );
         
         periodTypes = PeriodType.getAvailablePeriodTypes();
         

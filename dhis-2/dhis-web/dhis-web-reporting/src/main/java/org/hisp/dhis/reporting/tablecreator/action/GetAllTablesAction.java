@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
@@ -100,7 +99,7 @@ public class GetAllTablesAction
             tables = new ArrayList<>( reportTableService.getReportTablesBetween( paging.getStartPos(), paging.getPageSize() ) );
         }
         
-        Collections.sort( tables, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( tables );
         
         return SUCCESS;
     }

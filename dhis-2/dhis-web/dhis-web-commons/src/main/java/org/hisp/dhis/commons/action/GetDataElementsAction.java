@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.action;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -225,7 +224,7 @@ public class GetDataElementsAction
             dataElements = new ArrayList<>();
         }
 
-        Collections.sort( dataElements, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( dataElements );
 
         if ( aggregate )
         {

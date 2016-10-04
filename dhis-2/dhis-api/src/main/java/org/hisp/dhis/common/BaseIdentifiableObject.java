@@ -178,10 +178,20 @@ public class BaseIdentifiableObject
     // Comparable implementation
     // -------------------------------------------------------------------------
 
+    /**
+     * Compares objects based on display name. A null display name is ordered
+     * after a non-null display name.
+     */
     @Override
     public int compareTo( IdentifiableObject object )
     {
-        return name == null ? (object.getDisplayName() == null ? 0 : -1) : name.compareTo( object.getDisplayName() );
+        if ( this.getDisplayName() == null )
+        {
+            return object.getDisplayName() == null ? 0 : 1;
+        }
+        
+        return object.getDisplayName() == null ? -1 : 
+            this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 
     // -------------------------------------------------------------------------

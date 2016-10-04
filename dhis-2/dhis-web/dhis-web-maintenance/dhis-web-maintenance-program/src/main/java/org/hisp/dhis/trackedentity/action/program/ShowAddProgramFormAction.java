@@ -31,7 +31,6 @@ package org.hisp.dhis.trackedentity.action.program;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -194,26 +193,26 @@ public class ShowAddProgramFormAction
         programs = programService.getAllPrograms();
 
         programs.removeAll( programService.getPrograms( ProgramType.WITHOUT_REGISTRATION ) );
-        Collections.sort( programs, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programs );
 
         availableAttributes = trackedEntityAttributeService.getAllTrackedEntityAttributes();
-        Collections.sort( availableAttributes, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( availableAttributes );
 
         userGroups = userGroupService.getAllUserGroups();
-        Collections.sort( userGroups, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( userGroups );
 
         relationshipTypes = relationshipTypeService.getAllRelationshipTypes();
-        Collections.sort( relationshipTypes, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( relationshipTypes );
 
         trackedEntities = trackedEntityService.getAllTrackedEntity();
-        Collections.sort( trackedEntities, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( trackedEntities );
 
         attributes = attributeService.getAttributes( Program.class );
 
         categoryCombos = new ArrayList<>( categoryService.getAttributeCategoryCombos() );
 
         workflows = new ArrayList<>( dataApprovalService.getAllWorkflows() );
-        Collections.sort( workflows, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( workflows );
         
         periodTypes = periodService.getAllPeriodTypes();
 

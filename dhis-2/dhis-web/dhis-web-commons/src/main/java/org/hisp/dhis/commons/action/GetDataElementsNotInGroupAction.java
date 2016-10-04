@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -101,7 +100,7 @@ public class GetDataElementsNotInGroupAction
 
             groupMembers = new ArrayList<>( group.getMembers() );
 
-            Collections.sort( groupMembers, new IdentifiableObjectNameComparator() );
+            Collections.sort( groupMembers );
         }
 
         // ---------------------------------------------------------------------
@@ -112,7 +111,7 @@ public class GetDataElementsNotInGroupAction
 
         dataElements.removeAll( groupMembers );
 
-        Collections.sort( dataElements, new IdentifiableObjectNameComparator() );
+        Collections.sort( dataElements );
 
         if ( usePaging )
         {

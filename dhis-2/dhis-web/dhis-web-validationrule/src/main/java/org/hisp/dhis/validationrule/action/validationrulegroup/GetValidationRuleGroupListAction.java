@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -100,7 +99,7 @@ public class GetValidationRuleGroupListAction
             validationRuleGroups = new ArrayList<>( validationRuleService.getValidationRuleGroupsBetween( paging.getStartPos(), paging.getPageSize() ) );
         }
         
-        Collections.sort( validationRuleGroups, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( validationRuleGroups );
         
         return SUCCESS;
     }

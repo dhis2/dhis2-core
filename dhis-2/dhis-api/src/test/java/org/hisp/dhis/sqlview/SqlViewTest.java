@@ -32,12 +32,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -66,5 +69,34 @@ public class SqlViewTest
         Map<String, String> expected = ImmutableMap.of( "type", "NUMBER", "aggregationType", "AVERAGE" );
         
         assertEquals( expected, SqlView.getCriteria( params ) );
+    }
+
+    @Test
+    public void testCompareTo()
+    {
+        SqlView svA = new SqlView( "SqlViewA", "", SqlViewType.QUERY );
+        SqlView svB = new SqlView( "SqlViewB", "", SqlViewType.QUERY );
+        SqlView svC = new SqlView( "SqlViewC", "", SqlViewType.QUERY );
+        SqlView svD = new SqlView( "SqlViewD", "", SqlViewType.QUERY );
+        SqlView svE = new SqlView( "SqlViewE", "", SqlViewType.QUERY );
+        SqlView svF = new SqlView( null, null, SqlViewType.QUERY );
+        
+        svA.setUid( "UidA" );
+        svB.setUid( "UidB" );
+        svC.setUid( "UidC" );
+        svD.setUid( "UidD" );
+        svE.setUid( "UidE" );
+        svF.setUid( "UidF" );
+        
+        List<SqlView> list = Lists.newArrayList( svB, svE, svF, svC, svA, svD );
+        
+        Collections.sort( list );
+        
+        assertEquals( svA, list.get( 0 ) );
+        assertEquals( svB, list.get( 1 ) );
+        assertEquals( svC, list.get( 2 ) );
+        assertEquals( svD, list.get( 3 ) );
+        assertEquals( svE, list.get( 4 ) );
+        assertEquals( svF, list.get( 5 ) );
     }
 }

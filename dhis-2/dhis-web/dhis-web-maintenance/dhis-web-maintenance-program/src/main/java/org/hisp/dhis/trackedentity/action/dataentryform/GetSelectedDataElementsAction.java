@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -41,7 +40,6 @@ import com.opensymphony.xwork2.Action;
 
 /**
  * @author Bharath Kumar
- * @version $Id$
  */
 public class GetSelectedDataElementsAction
     implements Action
@@ -87,7 +85,7 @@ public class GetSelectedDataElementsAction
 
         dataElementList = new ArrayList<>( programStage.getAllDataElements() );
 
-        Collections.sort( dataElementList, new IdentifiableObjectNameComparator() );
+        Collections.sort( dataElementList );
 
         return SUCCESS;
     }

@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -208,7 +207,7 @@ public class ViewDataEntryFormAction
 
         programStages.remove( programStage );
 
-        Collections.sort( programStages, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programStages );
 
         // ---------------------------------------------------------------------
         // Get selected program-stage
@@ -216,7 +215,7 @@ public class ViewDataEntryFormAction
 
         dataElements = new ArrayList<>( programStage.getAllDataElements() );
 
-        Collections.sort( dataElements, new IdentifiableObjectNameComparator() );
+        Collections.sort( dataElements );
 
         flags = systemSettingManager.getFlags();
 

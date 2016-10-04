@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramType;
@@ -138,17 +137,17 @@ public class ShowAddProgramStageFormAction
     {
         programs = programService.getAllPrograms();
         programs.removeAll( programService.getPrograms( ProgramType.WITHOUT_REGISTRATION ) );
-        Collections.sort( programs, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programs );
 
         availableAttributes = attributeService.getAllTrackedEntityAttributes();
 
         userGroups = userGroupService.getAllUserGroups();
 
         relationshipTypes = relationshipTypeService.getAllRelationshipTypes();
-        Collections.sort( relationshipTypes, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( relationshipTypes );
 
         trackedEntities = trackedEntityService.getAllTrackedEntity();
-        Collections.sort( trackedEntities, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( trackedEntities );
 
         return SUCCESS;
     }

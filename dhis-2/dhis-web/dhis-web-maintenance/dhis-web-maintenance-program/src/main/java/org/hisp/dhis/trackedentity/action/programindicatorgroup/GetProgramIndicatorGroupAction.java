@@ -29,7 +29,6 @@ package org.hisp.dhis.trackedentity.action.programindicatorgroup;
  */
 
 import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -94,7 +93,7 @@ public class GetProgramIndicatorGroupAction
         if ( programIndicatorGroup != null )
         {
             programIndicators = new ArrayList<>( programIndicatorGroup.getMembers() );
-            Collections.sort( programIndicators, IdentifiableObjectNameComparator.INSTANCE );
+            Collections.sort( programIndicators );
         }
 
         return SUCCESS;
