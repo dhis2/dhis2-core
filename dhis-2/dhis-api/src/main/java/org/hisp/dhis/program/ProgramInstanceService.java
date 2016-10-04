@@ -162,18 +162,6 @@ public interface ProgramInstanceService
     List<ProgramInstance> getProgramInstances( Program program );
 
     /**
-     * Retrieve program instances of whom registered in to a orgunit from
-     * program list with a certain status
-     *
-     * @param programs         Program list
-     * @param organisationUnit Organisation Unit
-     * @param status           Status of program-instance, include STATUS_ACTIVE,
-     *                         STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( Collection<Program> programs, OrganisationUnit organisationUnit, ProgramStatus status );
-
-    /**
      * Retrieve program instances on a program by status
      *
      * @param program Program

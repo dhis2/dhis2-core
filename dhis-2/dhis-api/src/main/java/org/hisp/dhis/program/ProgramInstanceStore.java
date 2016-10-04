@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
@@ -69,18 +68,6 @@ public interface ProgramInstanceStore
      * @return ProgramInstance list
      */
     List<ProgramInstance> get( Program program );
-
-    /**
-     * Retrieve program instances of whom registered in to a orgunit from
-     * program list with a certain status
-     *
-     * @param programs         Program list
-     * @param organisationUnit Organisation Unit
-     * @param status           Status of program-instance, include STATUS_ACTIVE,
-     *                         STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> get( Collection<Program> programs, OrganisationUnit organisationUnit, ProgramStatus status );
 
     /**
      * Retrieve program instances on a program by status

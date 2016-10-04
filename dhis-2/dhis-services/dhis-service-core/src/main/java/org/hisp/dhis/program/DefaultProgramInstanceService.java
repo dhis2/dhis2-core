@@ -356,13 +356,6 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    public List<ProgramInstance> getProgramInstances( Collection<Program> programs,
-        OrganisationUnit organisationUnit, ProgramStatus status )
-    {
-        return programInstanceStore.get( programs, organisationUnit, status );
-    }
-
-    @Override
     public List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status )
     {
         return programInstanceStore.get( program, status );

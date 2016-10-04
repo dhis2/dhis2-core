@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -179,22 +178,6 @@ public class HibernateProgramInstanceStore
     public List<ProgramInstance> get( Program program )
     {
         return getCriteria( Restrictions.eq( "program", program ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( Collection<Program> programs, OrganisationUnit organisationUnit, ProgramStatus status )
-    {
-        if ( programs == null || programs.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        return getCriteria(
-            Restrictions.eq( "status", status ),
-            Restrictions.in( "program", programs ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            add( Restrictions.eq( "entityInstance.organisationUnit", organisationUnit ) ).list();
     }
 
     @Override
