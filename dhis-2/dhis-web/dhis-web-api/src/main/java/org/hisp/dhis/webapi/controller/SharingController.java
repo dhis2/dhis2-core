@@ -98,6 +98,10 @@ public class SharingController
     @Autowired
     private RenderService renderService;
 
+    // -------------------------------------------------------------------------
+    // Resources
+    // -------------------------------------------------------------------------
+
     @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
     public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response ) throws IOException, WebMessageException
     {
@@ -199,13 +203,19 @@ public class SharingController
 
         Sharing sharing = renderService.fromJson( request.getInputStream(), Sharing.class );
 
+        // ---------------------------------------------------------------------
         // Ignore externalAccess if user is not allowed to make objects external
+        // ---------------------------------------------------------------------
+        
         if ( aclService.canExternalize( user, object.getClass() ) )
         {
             object.setExternalAccess( sharing.getObject().hasExternalAccess() );
         }
 
+        // ---------------------------------------------------------------------
         // Ignore publicAccess if user is not allowed to make objects public
+        // ---------------------------------------------------------------------
+        
         if ( aclService.canCreatePublic( user, object.getClass() ) )
         {
             object.setPublicAccess( sharing.getObject().getPublicAccess() );
@@ -244,28 +254,7 @@ public class SharingController
 
         manager.updateNoAcl( object );
 
-        StringBuilder builder = new StringBuilder();
-
-        builder.append( "'" ).append( currentUserService.getCurrentUsername() ).append( "'" );
-        builder.append( " update sharing on " ).append( object.getClass().getName() );
-        builder.append( ", uid: " ).append( object.getUid() ).append( ", name: " ).append( object.getName() );
-        builder.append( ", publicAccess: " ).append( object.getPublicAccess() );
-        builder.append( ", externalAccess: " ).append( object.getExternalAccess() );
-
-        if ( !object.getUserGroupAccesses().isEmpty() )
-        {
-            builder.append( ", userGroupAccesses: " );
-
-            for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
-            {
-                builder.append( "{ uid: " ).append( userGroupAccess.getUserGroup().getUid() );
-                builder.append( ", name: " ).append( userGroupAccess.getUserGroup().getName() );
-                builder.append( ", access: " ).append( userGroupAccess.getAccess() );
-                builder.append( " } " );
-            }
-        }
-
-        log.info( builder );
+        log.info( sharingToString( object ) );
 
         webMessageService.send( WebMessageUtils.ok( "Access control set" ), response, request );
     }
@@ -297,5 +286,35 @@ public class SharingController
         }
 
         renderService.toJson( response.getOutputStream(), sharingUserGroups );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private String sharingToString( BaseIdentifiableObject object )
+    {
+        StringBuilder builder = new StringBuilder()
+            .append( "'" ).append( currentUserService.getCurrentUsername() ).append( "'" )
+            .append( " update sharing on " ).append( object.getClass().getName() )
+            .append( ", uid: " ).append( object.getUid() )
+            .append( ", name: " ).append( object.getName() )
+            .append( ", publicAccess: " ).append( object.getPublicAccess() )
+            .append( ", externalAccess: " ).append( object.getExternalAccess() );
+
+        if ( !object.getUserGroupAccesses().isEmpty() )
+        {
+            builder.append( ", userGroupAccesses: " );
+
+            for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+            {
+                builder.append( "{uid: " ).append( userGroupAccess.getUserGroup().getUid() )
+                    .append( ", name: " ).append( userGroupAccess.getUserGroup().getName() )
+                    .append( ", access: " ).append( userGroupAccess.getAccess() )
+                    .append( "} " );
+            }
+        }
+        
+        return builder.toString();
     }
 }

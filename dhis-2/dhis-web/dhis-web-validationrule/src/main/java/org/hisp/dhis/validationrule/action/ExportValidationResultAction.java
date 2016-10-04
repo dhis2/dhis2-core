@@ -143,7 +143,6 @@ public class ExportValidationResultAction
         grid.addHeader( new GridHeader( i18n.getString( "period" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "validation_rule" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "importance" ), false, true ) );
-        grid.addHeader( new GridHeader( i18n.getString( "rule_type" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "left_side_description" ), false, true ) );
         grid.addHeader( new GridHeader( i18n.getString( "value" ), false, false ) );
         grid.addHeader( new GridHeader( i18n.getString( "operator" ), false, false ) );
@@ -160,7 +159,6 @@ public class ExportValidationResultAction
             grid.addValue( format.formatPeriod( period ) );
             grid.addValue( validationResult.getValidationRule().getName() );
             grid.addValue( i18n.getString( validationResult.getValidationRule().getImportance().toString().toLowerCase() ) );
-            grid.addValue( i18n.getString( validationResult.getValidationRule().getRuleType().toString().toLowerCase() ) );
             grid.addValue( validationResult.getValidationRule().getLeftSide().getDescription() ); //TODO lazy prone
             grid.addValue( String.valueOf( validationResult.getLeftsideValue() ) );
             grid.addValue( i18n.getString( validationResult.getValidationRule().getOperator().toString() ) );

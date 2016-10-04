@@ -29,12 +29,12 @@ package org.hisp.dhis.startup;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.quick.StatementHolder;
-import org.hisp.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.quick.StatementHolder;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +59,7 @@ public class TableAlteror
 
     @Autowired
     private StatementManager statementManager;
+    
     @Autowired
     private StatementBuilder statementBuilder;
 
@@ -924,6 +925,13 @@ public class TableAlteror
         executeSql( "update eventchart set regressiontype = 'LINEAR' where regression is true" );
         executeSql( "alter table eventchart alter column regressiontype set not null" );
         executeSql( "alter table eventchart drop column regression" );
+
+        executeSql( "alter table validationrule drop column ruletype" );
+        executeSql( "alter table validationrule drop column skiptestexpressionid" );
+        executeSql( "alter table validationrule drop column organisationunitlevel" );
+        executeSql( "alter table validationrule drop column sequentialsamplecount" );
+        executeSql( "alter table validationrule drop column annualsamplecount" );
+        executeSql( "alter table validationrule drop column sequentialskipcount" );
         
         updateEnums();
 
