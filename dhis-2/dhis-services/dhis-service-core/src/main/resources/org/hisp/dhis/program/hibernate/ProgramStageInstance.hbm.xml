@@ -34,13 +34,6 @@
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
 
-    <list name="outboundSms" table="programstageinstance_outboundsms">
-      <key column="programstageinstanceid" />
-      <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.sms.outbound.OutboundSms"
-        column="outboundsmsid" />
-    </list>
-
     <list name="messageConversations" table="programstageinstance_messageconversation">
       <key column="programstageinstanceid" />
       <list-index column="sort_order" base="1" />
