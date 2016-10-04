@@ -160,11 +160,13 @@
   padding: 1px 2px 3px 0;
   border-bottom: 1px solid #e0e0e0;
   cursor: move;
+  color: #3162C5;
 }
 
 .itemHeader a
 {
   margin-left: 5px;
+  margin-right: 5px;
 }
 
 .itemList
@@ -277,6 +279,13 @@
 {
   display: inline-block;
   padding: 9px 3% 7px 3%;
+}
+
+.fa-comments-o,
+.fa-thumbs-o-up
+{
+  margin-right: 3px;
+  margin-left: 3px;
 }
 
 .dragIcon
@@ -808,4 +817,52 @@ div#selectionTree
   top: 0;
   width: 960px;
 }
+}
+
+/*----------------------------------------------------------------------------*/
+/* Interpretation Popup style                                                                */
+/*----------------------------------------------------------------------------*/
+
+#interpretationPopup
+{
+  position: absolute;
+  padding: 6px;
+  top: 0;
+  left: 0;
+  display: none;
+  z-index: 1000000;
+  background-color: #fff;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  box-shadow: #ddd 0 1px 2px 0;
+  width: 408px;
+}
+
+#interpretationPopup a{
+  color: #000;
+  text-decoration: none;
+}
+
+#interpretationContainer{
+  margin-bottom: 8px;
+}
+
+#interpretationContainer,
+#interpretationContainer div,
+#interpretationContainer label
+{
+  cursor:pointer !important;	
+}
+
+#interpretationContainer.div{
+  margin-bottom: 5px;
+}
+
+.likeComment{
+	background-color:#efefef;
+}	
+.interpretationUser{
+  margin-right:10px;
+  font-weight:bold;
+  color:#3162C5;
 }
