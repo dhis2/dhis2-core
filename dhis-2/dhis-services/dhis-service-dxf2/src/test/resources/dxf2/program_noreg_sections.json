@@ -251,7 +251,7 @@
     {
       "blockEntryForm": false,
       "generatedByEnrollmentDate": false,
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "attributeValues": [ ],
       "program": {
         "id": "s5uvS0Q7jnX"
@@ -586,7 +586,7 @@
       "name": "ProgramA",
       "publicAccess": "rw------",
       "attributeValues": [ ],
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "programType": "WITHOUT_REGISTRATION",
       "created": "2016-03-10T07:27:15.681+0000",
       "enrollmentDateLabel": "Enrollment Date",

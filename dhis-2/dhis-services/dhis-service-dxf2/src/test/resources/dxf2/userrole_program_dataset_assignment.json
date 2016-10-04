@@ -157,7 +157,7 @@
       "excecutionDateLabel": "Report date",
       "preGenerateUID": false,
       "minDaysFromStart": 0,
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "created": "2016-03-31T05:16:32.688+0000",
       "programStageSections": [ ],
       "sortOrder": 1,
@@ -362,7 +362,7 @@
   ],
   "programs": [
     {
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "shortName": "ProgramShortA",
       "created": "2016-03-31T05:16:08.193+0000",
       "validationCriterias": [ ],

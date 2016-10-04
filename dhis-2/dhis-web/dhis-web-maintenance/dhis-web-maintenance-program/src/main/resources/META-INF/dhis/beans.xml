@@ -100,7 +100,6 @@
     <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
     <property name="programStageDataElementService"
       ref="org.hisp.dhis.program.ProgramStageDataElementService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
@@ -128,7 +127,6 @@
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="programStageDataElementService"
       ref="org.hisp.dhis.program.ProgramStageDataElementService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 

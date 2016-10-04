@@ -48,7 +48,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 
 import java.util.HashSet;
 import java.util.List;
@@ -79,9 +78,6 @@ public class ProgramStage
     private Integer standardInterval;
 
     private String executionDateLabel;
-
-    @Deprecated
-    private Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
 
     private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
@@ -198,20 +194,6 @@ public class ProgramStage
     public void setRemindCompleted( Boolean remindCompleted )
     {
         this.remindCompleted = remindCompleted;
-    }
-
-    @JsonProperty( "trackedEntityInstanceReminders" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "trackedEntityInstanceReminders", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityInstanceReminder", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<TrackedEntityInstanceReminder> getReminders()
-    {
-        return reminders;
-    }
-
-    public void setReminders( Set<TrackedEntityInstanceReminder> reminders )
-    {
-        this.reminders = reminders;
     }
 
     @JsonProperty( "notificationTemplates" )
@@ -567,9 +549,6 @@ public class ProgramStage
                 programStageSections.add( programStageSection );
                 programStageSection.setProgramStage( this );
             }
-
-            reminders.clear();
-            reminders.addAll( programStage.getReminders() );
 
             notificationTemplates.clear();
             notificationTemplates.addAll( programStage.getNotificationTemplates() );

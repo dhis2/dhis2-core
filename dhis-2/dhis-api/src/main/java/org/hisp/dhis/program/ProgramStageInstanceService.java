@@ -128,13 +128,6 @@ public interface ProgramStageInstanceService
     long getProgramStageInstanceCount( int days );
 
     /**
-     * Retrieve scheduled list of entityInstances registered.
-     *
-     * @return A list of SchedulingProgramObject.
-     */
-    Collection<SchedulingProgramObject> getSendMessageEvents();
-
-    /**
      * Complete an event. Besides, program template messages will be sent if it was
      * defined for sending upon completion.
      *

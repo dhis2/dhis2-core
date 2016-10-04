@@ -30,7 +30,7 @@
           "id": "LKlMVtBr3sF"
         }
       ],
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "displayGenerateEventBox": false,
       "preGenerateUID": false,
       "programStageSections": [ ]
@@ -42,7 +42,7 @@
       "minDaysFromStart": 0,
       "lastUpdated": "2016-03-11T07:01:02.882+0000",
       "allowGenerateNextVisit": false,
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "displayGenerateEventBox": false,
       "programStageSections": [ ],
       "preGenerateUID": false,
@@ -206,7 +206,7 @@
       "trackedEntity": {
         "id": "vmZxWXOw5CD"
       },
-      "trackedEntityInstanceReminders": [ ],
+      "notificationTemplates": [ ],
       "programTrackedEntityAttributes": [
         {
           "id": "zReHWMUoEDQ"

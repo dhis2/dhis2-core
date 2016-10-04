@@ -178,6 +178,7 @@ org.hisp.dhis.program.ProgramStage
 org.hisp.dhis.program.ProgramStage.attributeValues
 org.hisp.dhis.program.ProgramStageSection
 org.hisp.dhis.program.ProgramValidation
+org.hisp.dhis.program.notification.ProgramNotificationTemplate
 org.hisp.dhis.programrule.ProgramRule
 org.hisp.dhis.programrule.ProgramRuleAction
 org.hisp.dhis.programrule.ProgramRuleVariable
@@ -213,7 +214,6 @@ org.hisp.dhis.trackedentity.TrackedEntityAttribute.attributeValues
 org.hisp.dhis.trackedentity.TrackedEntityAttribute.userGroupAccesses
 org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup
 org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup.attributes
-org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder
 org.hisp.dhis.translation.ObjectTranslation
 org.hisp.dhis.translation.Translation
 org.hisp.dhis.user.User

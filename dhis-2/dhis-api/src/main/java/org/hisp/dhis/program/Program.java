@@ -53,7 +53,6 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.validation.ValidationCriteria;
 
@@ -100,9 +99,6 @@ public class Program
     private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
     private Boolean onlyEnrollOnce = false;
-
-    @Deprecated
-    private Set<TrackedEntityInstanceReminder> instanceReminders = new HashSet<>();
 
     private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
@@ -522,20 +518,6 @@ public class Program
         this.onlyEnrollOnce = onlyEnrollOnce;
     }
 
-    @JsonProperty( "trackedEntityInstanceReminders" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "trackedEntityInstanceReminders", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityInstanceReminder", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<TrackedEntityInstanceReminder> getInstanceReminders()
-    {
-        return instanceReminders;
-    }
-
-    public void setInstanceReminders( Set<TrackedEntityInstanceReminder> instanceReminders )
-    {
-        this.instanceReminders = instanceReminders;
-    }
-
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "notificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
@@ -863,8 +845,8 @@ public class Program
             userRoles.clear();
             userRoles.addAll( program.getUserRoles() );
 
-            instanceReminders.clear();
-            instanceReminders.addAll( program.getInstanceReminders() );
+            notificationTemplates.clear();
+            notificationTemplates.addAll( program.getNotificationTemplates() );
         }
     }
 }

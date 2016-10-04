@@ -75,13 +75,6 @@ public interface ProgramStageInstanceStore
     List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
-     * Retrieve scheduled list of entityInstances registered
-     *
-     * @return A SchedulingProgramObject list
-     */
-    Collection<SchedulingProgramObject> getSendMessageEvents();
-
-    /**
      * Get the number of events by completed status
      *
      * @param programStage Program
