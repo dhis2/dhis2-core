@@ -291,7 +291,7 @@ public class DefaultProgramInstanceService
     @Override
     public void decideAccess( ProgramInstanceQueryParams params )
     {
-
+        // TODO Check access for current user
     }
 
     @Override
@@ -353,13 +353,6 @@ public class DefaultProgramInstanceService
     public List<ProgramInstance> getProgramInstances( Program program )
     {
         return programInstanceStore.get( program );
-    }
-
-    @Override
-    public List<ProgramInstance> getProgramInstances( Collection<Program> programs,
-        OrganisationUnit organisationUnit, ProgramStatus status )
-    {
-        return programInstanceStore.get( programs, organisationUnit, status );
     }
 
     @Override

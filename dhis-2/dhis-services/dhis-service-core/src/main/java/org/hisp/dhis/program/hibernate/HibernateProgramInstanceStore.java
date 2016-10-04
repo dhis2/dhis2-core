@@ -53,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -67,6 +66,7 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * @author Abyot Asalefew
+ * @author Lars Helge Overland
  */
 public class HibernateProgramInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramInstance>
@@ -83,6 +83,7 @@ public class HibernateProgramInstanceStore
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params );
+        
         Query query = getQuery( hql );
 
         return ((Number) query.iterate().next()).intValue();
@@ -93,8 +94,9 @@ public class HibernateProgramInstanceStore
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params );
+        
         Query query = getQuery( hql );
-
+        
         if ( params.isPaging() )
         {
             query.setFirstResult( params.getOffset() );
@@ -179,22 +181,6 @@ public class HibernateProgramInstanceStore
     public List<ProgramInstance> get( Program program )
     {
         return getCriteria( Restrictions.eq( "program", program ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( Collection<Program> programs, OrganisationUnit organisationUnit, ProgramStatus status )
-    {
-        if ( programs == null || programs.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        return getCriteria(
-            Restrictions.eq( "status", status ),
-            Restrictions.in( "program", programs ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            add( Restrictions.eq( "entityInstance.organisationUnit", organisationUnit ) ).list();
     }
 
     @Override
