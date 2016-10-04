@@ -193,6 +193,7 @@ public class HibernateProgramInstanceStore
         return result != null && result > 0;
     }
 
+    @SuppressWarnings( "unchecked" )
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {
@@ -241,6 +242,6 @@ public class HibernateProgramInstanceStore
         query.setParameterList( "triggers", triggerNames, StringType.INSTANCE );
         query.setDate( "notificationDate", notificationDate );
 
-        return null;
+        return query.list();
     }
 }
