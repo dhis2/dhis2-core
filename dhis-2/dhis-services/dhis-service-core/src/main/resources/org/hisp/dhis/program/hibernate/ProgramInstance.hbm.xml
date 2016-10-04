@@ -73,7 +73,7 @@
     </list>
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
-      foreign-key="fk_programinstance_organisationunitid" not-null="false" lazy="false" />
+      foreign-key="fk_programinstance_organisationunitid" />
 
   </class>
 

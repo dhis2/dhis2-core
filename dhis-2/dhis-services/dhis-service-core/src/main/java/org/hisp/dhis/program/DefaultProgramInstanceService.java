@@ -291,7 +291,7 @@ public class DefaultProgramInstanceService
     @Override
     public void decideAccess( ProgramInstanceQueryParams params )
     {
-
+        // TODO Check access for current user
     }
 
     @Override

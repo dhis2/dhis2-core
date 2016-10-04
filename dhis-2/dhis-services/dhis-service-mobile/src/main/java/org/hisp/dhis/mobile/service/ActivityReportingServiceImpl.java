@@ -809,7 +809,8 @@ public class ActivityReportingServiceImpl
         List<ProgramInstance> listOfProgramInstance = new ArrayList<>(
             programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
                 .setTrackedEntityInstance( patient )
-                .setProgramStatus( ProgramStatus.ACTIVE ) ) );
+                .setProgramStatus( ProgramStatus.ACTIVE )
+                .setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) ) );
 
         if ( listOfProgramInstance.size() > 0 )
         {
@@ -823,7 +824,8 @@ public class ActivityReportingServiceImpl
         List<ProgramInstance> listOfCompletedProgramInstance = new ArrayList<>(
             programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
                 .setTrackedEntityInstance( patient )
-                .setProgramStatus( ProgramStatus.COMPLETED ) ) );
+                .setProgramStatus( ProgramStatus.COMPLETED )
+                .setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) ) );
 
         if ( listOfCompletedProgramInstance.size() > 0 )
         {
@@ -1967,22 +1969,20 @@ public class ActivityReportingServiceImpl
                 oldProgramStageIntance.getProgramStage() );
 
             newProgramStageInstance.setDueDate( DateUtils.getMediumDate( nextDueDate ) );
-
-            // newProgramStageInstance.setOrganisationUnit( orgUnit );
         }
         else
         {
             programInstance = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
                 .setTrackedEntityInstance( trackedEntityInstance )
-                .setProgram( program ) ).iterator()
-                .next();
+                .setProgram( program )
+                .setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
+                .iterator().next();
 
             newProgramStageInstance = new ProgramStageInstance();
             newProgramStageInstance.setProgramInstance( programInstance );
             newProgramStageInstance.setProgramStage( programStage );
             newProgramStageInstance.setDueDate( DateUtils.getMediumDate( nextDueDate ) );
             newProgramStageInstance.setExecutionDate( DateUtils.getMediumDate( nextDueDate ) );
-            // newProgramStageInstance.setOrganisationUnit( orgUnit );
         }
 
         newProgramStageInstance.setOrganisationUnit( orgUnit );

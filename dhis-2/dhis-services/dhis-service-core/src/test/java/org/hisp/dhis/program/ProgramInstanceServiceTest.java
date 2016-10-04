@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -38,6 +39,8 @@ import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Sets;
 
 import java.util.Collection;
 import java.util.Date;
@@ -162,17 +165,21 @@ public class ProgramInstanceServiceTest
 
         programInstanceA = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programA );
         programInstanceA.setUid( "UID-A" );
+        programInstanceA.setOrganisationUnit( organisationUnitA );
 
         programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programB );
         programInstanceB.setUid( "UID-B" );
         programInstanceB.setStatus( ProgramStatus.CANCELLED );
+        programInstanceB.setOrganisationUnit( organisationUnitB );
 
         programInstanceC = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programC );
         programInstanceC.setUid( "UID-C" );
         programInstanceC.setStatus( ProgramStatus.COMPLETED );
+        programInstanceC.setOrganisationUnit( organisationUnitA );
 
         programInstanceD = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceB, programA );
         programInstanceD.setUid( "UID-D" );
+        programInstanceD.setOrganisationUnit( organisationUnitB );
     }
 
     @Test
@@ -203,7 +210,6 @@ public class ProgramInstanceServiceTest
 
         assertNull( programInstanceService.getProgramInstance( idA ) );
         assertNull( programInstanceService.getProgramInstance( idB ) );
-
     }
 
     @Test
@@ -276,7 +282,23 @@ public class ProgramInstanceServiceTest
         assertTrue( programInstances.contains( programInstance1 ) );
         assertTrue( programInstances.contains( programInstance2 ) );
 
-        programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA, ProgramStatus.ACTIVE );
+        programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA,
+            ProgramStatus.ACTIVE );
+        assertEquals( 1, programInstances.size() );
+        assertTrue( programInstances.contains( programInstanceA ) );
+    }
+
+    @Test
+    public void testGetProgramInstancesByOuProgram()
+    {
+        programInstanceService.addProgramInstance( programInstanceA );
+        programInstanceService.addProgramInstance( programInstanceC );
+        programInstanceService.addProgramInstance( programInstanceD );
+        
+        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
+                .setProgram( programA )
+                .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
+                .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
     }
