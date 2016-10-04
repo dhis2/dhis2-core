@@ -63,9 +63,11 @@ public class HibernateProgramInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
-    // -------------------------------------------------------------------------
-    // Implemented methods
-    // -------------------------------------------------------------------------
+    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
+        Sets.union(
+            NotificationTrigger.getAllApplicableToProgramInstance(),
+            NotificationTrigger.getAllScheduledTriggers()
+        );
 
     @Override
     public int countProgramInstances( ProgramInstanceQueryParams params )
@@ -197,13 +199,7 @@ public class HibernateProgramInstanceStore
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {
-        if ( notificationDate == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        if ( template.getNotificationTrigger() != NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE ||
-            template.getNotificationTrigger() != NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE )
+        if ( notificationDate == null || !SCHEDULED_PROGRAM_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }
@@ -214,34 +210,35 @@ public class HibernateProgramInstanceStore
             "and templates.relativeScheduledDays is not null " +
             "and :notificationTemplate in elements(templates) ";
 
-        String dateProperty = null;
-
-        if ( template.getNotificationTrigger() == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )
-        {
-            dateProperty = "enrollmentDate";
-        }
-        else if ( template.getNotificationTrigger() == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE )
-        {
-            dateProperty = "incidentDate";
-        }
+        String dateProperty = toDateProperty( template.getNotificationTrigger() );
 
         if ( dateProperty != null )
         {
             hql += "and pi." + dateProperty + " is not null ";
-            hql += "and ( day(cast(:notificationDate as date)) - day(cast(pi." + dateProperty + " as date)) ) = templates.relativeScheduledDays";
+            hql += "and ( day(cast(:notificationDate as date)) - day(cast(pi." + dateProperty + " as date)) ) " +
+                "= templates.relativeScheduledDays";
         }
 
-        Query query = getQuery( hql );
+        Set<String> triggerNames = SCHEDULED_PROGRAM_INSTANCE_TRIGGERS
+            .stream().map( Enum::name ).collect( Collectors.toSet() );
 
-        Set<String> triggerNames = Sets.union(
-            NotificationTrigger.getAllScheduledTriggers(),
-            NotificationTrigger.getAllApplicableToProgramInstance()
-        ).stream().map( Enum::name ).collect( Collectors.toSet() );
+        return getQuery( hql )
+            .setEntity( "notificationTemplate", template )
+            .setParameterList( "triggers", triggerNames, StringType.INSTANCE )
+            .setDate( "notificationDate", notificationDate ).list();
+    }
 
-        query.setEntity( "notificationTemplate", template );
-        query.setParameterList( "triggers", triggerNames, StringType.INSTANCE );
-        query.setDate( "notificationDate", notificationDate );
+    private String toDateProperty( NotificationTrigger trigger )
+    {
+        if ( trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )
+        {
+            return "enrollmentDate";
+        }
+        else if ( trigger == NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE )
+        {
+            return "incidentDate";
+        }
 
-        return query.list();
+        return null;
     }
 }

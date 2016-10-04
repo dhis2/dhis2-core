@@ -58,6 +58,12 @@ public class HibernateProgramStageInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
 {
+    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
+        Sets.union(
+            NotificationTrigger.getAllApplicableToProgramStageInstance(),
+            NotificationTrigger.getAllScheduledTriggers()
+        );
+
     @Override
     @SuppressWarnings( "unchecked" )
     public ProgramStageInstance get( ProgramInstance programInstance, ProgramStage programStage )
@@ -122,9 +128,9 @@ public class HibernateProgramStageInstanceStore
 
     @SuppressWarnings( "unchecked" )
     @Override
-    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate notificationTemplate, Date notificationDate )
+    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
     {
-        if ( notificationDate == null )
+        if ( notificationDate == null || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }
@@ -139,14 +145,12 @@ public class HibernateProgramStageInstanceStore
             "and psi.dueDate is not null " +
             "and psi.executionDate is null " +
             "and ( day(cast(:notificationDate as date)) - day(cast(psi.dueDate as date)) ) = templates.relativeScheduledDays";
-        
-        Set<String> triggerNames = Sets.union(
-            NotificationTrigger.getAllScheduledTriggers(),
-            NotificationTrigger.getAllApplicableToProgramStageInstance()
-        ).stream().map( Enum::name ).collect( Collectors.toSet() );
+
+        Set<String> triggerNames = SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS
+            .stream().map( Enum::name ).collect( Collectors.toSet() );
 
         return getQuery( hql )
-            .setEntity( "notificationTemplate", notificationTemplate )
+            .setEntity( "notificationTemplate", template )
             .setParameterList( "triggers", triggerNames, StringType.INSTANCE )
             .setDate( "notificationDate", notificationDate ).list();
     }
