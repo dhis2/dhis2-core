@@ -269,9 +269,10 @@ public class ProgramInstanceQueryParams
         return lastUpdated;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public ProgramInstanceQueryParams setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+        return this;
     }
 
     public Set<OrganisationUnit> getOrganisationUnits()
@@ -279,9 +280,10 @@ public class ProgramInstanceQueryParams
         return organisationUnits;
     }
 
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    public ProgramInstanceQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
+        return this;
     }
 
     public OrganisationUnitSelectionMode getOrganisationUnitMode()
@@ -289,9 +291,10 @@ public class ProgramInstanceQueryParams
         return organisationUnitMode;
     }
 
-    public void setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
+    public ProgramInstanceQueryParams setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
     {
         this.organisationUnitMode = organisationUnitMode;
+        return this;
     }
 
     public Program getProgram()
@@ -299,9 +302,10 @@ public class ProgramInstanceQueryParams
         return program;
     }
 
-    public void setProgram( Program program )
+    public ProgramInstanceQueryParams setProgram( Program program )
     {
         this.program = program;
+        return this;
     }
 
     public ProgramStatus getProgramStatus()
@@ -309,9 +313,10 @@ public class ProgramInstanceQueryParams
         return programStatus;
     }
 
-    public void setProgramStatus( ProgramStatus programStatus )
+    public ProgramInstanceQueryParams setProgramStatus( ProgramStatus programStatus )
     {
         this.programStatus = programStatus;
+        return this;
     }
 
     public Boolean getFollowUp()
@@ -319,9 +324,10 @@ public class ProgramInstanceQueryParams
         return followUp;
     }
 
-    public void setFollowUp( Boolean followUp )
+    public ProgramInstanceQueryParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
+        return this;
     }
 
     public Date getProgramStartDate()
@@ -329,9 +335,10 @@ public class ProgramInstanceQueryParams
         return programStartDate;
     }
 
-    public void setProgramStartDate( Date programStartDate )
+    public ProgramInstanceQueryParams setProgramStartDate( Date programStartDate )
     {
         this.programStartDate = programStartDate;
+        return this;
     }
 
     public Date getProgramEndDate()
@@ -339,9 +346,10 @@ public class ProgramInstanceQueryParams
         return programEndDate;
     }
 
-    public void setProgramEndDate( Date programEndDate )
+    public ProgramInstanceQueryParams setProgramEndDate( Date programEndDate )
     {
         this.programEndDate = programEndDate;
+        return this;
     }
 
     public TrackedEntity getTrackedEntity()
@@ -349,9 +357,10 @@ public class ProgramInstanceQueryParams
         return trackedEntity;
     }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
+    public ProgramInstanceQueryParams setTrackedEntity( TrackedEntity trackedEntity )
     {
         this.trackedEntity = trackedEntity;
+        return this;
     }
 
     public TrackedEntityInstance getTrackedEntityInstance()
@@ -359,9 +368,10 @@ public class ProgramInstanceQueryParams
         return trackedEntityInstance;
     }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public ProgramInstanceQueryParams setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
     {
         this.trackedEntityInstance = trackedEntityInstance;
+        return this;
     }
 
     public Integer getPage()
@@ -369,9 +379,10 @@ public class ProgramInstanceQueryParams
         return page;
     }
 
-    public void setPage( Integer page )
+    public ProgramInstanceQueryParams setPage( Integer page )
     {
         this.page = page;
+        return this;
     }
 
     public Integer getPageSize()
@@ -379,9 +390,10 @@ public class ProgramInstanceQueryParams
         return pageSize;
     }
 
-    public void setPageSize( Integer pageSize )
+    public ProgramInstanceQueryParams setPageSize( Integer pageSize )
     {
         this.pageSize = pageSize;
+        return this;
     }
 
     public boolean isTotalPages()
@@ -389,9 +401,10 @@ public class ProgramInstanceQueryParams
         return totalPages;
     }
 
-    public void setTotalPages( boolean totalPages )
+    public ProgramInstanceQueryParams setTotalPages( boolean totalPages )
     {
         this.totalPages = totalPages;
+        return this;
     }
 
     public boolean isSkipPaging()
@@ -399,8 +412,9 @@ public class ProgramInstanceQueryParams
         return skipPaging;
     }
 
-    public void setSkipPaging( boolean skipPaging )
+    public ProgramInstanceQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+        return this;
     }
 }

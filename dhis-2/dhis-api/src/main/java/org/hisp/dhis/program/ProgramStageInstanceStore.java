@@ -95,17 +95,6 @@ public interface ProgramStageInstanceStore
     int count( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate, Boolean completed );
 
     /**
-     * Get the number of over due events of a program stage in a certain period
-     *
-     * @param programStage ProgramStage
-     * @param orgunitIds   The ids of orgunits where the events happened
-     * @param startDate    Optional date the instance should be on or after.
-     * @param endDate      Optional date the instance should be on or before.
-     * @return A number
-     */
-    int getOverDueCount( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate );
-
-    /**
      * Get the number of ProgramStageInstances updates since the given Date.
      *
      * @param time the time.

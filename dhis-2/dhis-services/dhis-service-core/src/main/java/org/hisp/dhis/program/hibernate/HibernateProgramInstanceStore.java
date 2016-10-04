@@ -30,10 +30,7 @@ package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.type.StringType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -186,33 +183,6 @@ public class HibernateProgramInstanceStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( Collection<Program> programs )
-    {
-        if ( programs == null || programs.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        return getCriteria( Restrictions.in( "program", programs ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( Collection<Program> programs, OrganisationUnit organisationUnit )
-    {
-        if ( programs == null || programs.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        return getCriteria(
-            Restrictions.in( "program", programs ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            add( Restrictions.eq( "entityInstance.organisationUnit", organisationUnit ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( Collection<Program> programs, OrganisationUnit organisationUnit, ProgramStatus status )
     {
         if ( programs == null || programs.isEmpty() )
@@ -236,164 +206,10 @@ public class HibernateProgramInstanceStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( Collection<Program> programs, ProgramStatus status )
-    {
-        if ( programs == null || programs.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
-
-        return getCriteria( Restrictions.in( "program", programs ), Restrictions.eq( "status", status ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( TrackedEntityInstance entityInstance, ProgramStatus status )
-    {
-        return getCriteria( Restrictions.eq( "entityInstance", entityInstance ), Restrictions.eq( "status", status ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program )
-    {
-        return getCriteria( Restrictions.eq( "entityInstance", entityInstance ), Restrictions.eq( "program", program ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
     public List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
         return getCriteria( Restrictions.eq( "entityInstance", entityInstance ), Restrictions.eq( "program", program ),
             Restrictions.eq( "status", status ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( Program program, OrganisationUnit organisationUnit, Integer min, Integer max )
-    {
-        Criteria criteria = getCriteria(
-            Restrictions.eq( "program", program ), Restrictions.isNull( "endDate" ) ).
-            add( Restrictions.eq( "entityInstance.organisationUnit", organisationUnit ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            addOrder( Order.asc( "entityInstance.id" ) );
-
-        if ( min != null )
-        {
-            criteria.setFirstResult( min );
-        }
-
-        if ( max != null )
-        {
-            criteria.setMaxResults( max );
-        }
-
-        return criteria.list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> get( Program program, Collection<Integer> orgunitIds, Date startDate,
-        Date endDate, Integer min, Integer max )
-    {
-        Criteria criteria = getCriteria( Restrictions.eq( "program", program ),
-            Restrictions.ge( "enrollmentDate", startDate ), Restrictions.le( "enrollmentDate", endDate ) )
-            .createAlias( "entityInstance", "entityInstance" ).createAlias( "entityInstance.organisationUnit", "organisationUnit" )
-            .add( Restrictions.in( "organisationUnit.id", orgunitIds ) ).addOrder( Order.asc( "entityInstance.id" ) );
-
-        if ( min != null )
-        {
-            criteria.setFirstResult( min );
-        }
-
-        if ( max != null )
-        {
-            criteria.setMaxResults( max );
-        }
-
-        return criteria.list();
-    }
-
-    @Override
-    public int count( Program program, OrganisationUnit organisationUnit )
-    {
-        Number rs = (Number) getCriteria(
-            Restrictions.eq( "program", program ), Restrictions.isNull( "endDate" ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            add( Restrictions.eq( "entityInstance.organisationUnit", organisationUnit ) ).
-            setProjection( Projections.rowCount() ).uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
-    }
-
-    @Override
-    public int count( Program program, Collection<Integer> orgunitIds, Date startDate, Date endDate )
-    {
-        Number rs = (Number) getCriteria(
-            Restrictions.eq( "program", program ),
-            Restrictions.ge( "enrollmentDate", startDate ),
-            Restrictions.le( "enrollmentDate", endDate ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            createAlias( "entityInstance.organisationUnit", "organisationUnit" ).
-            add( Restrictions.in( "organisationUnit.id", orgunitIds ) ).
-            setProjection( Projections.rowCount() ).uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
-    }
-
-    @Override
-    public int countByStatus( ProgramStatus status, Program program, Collection<Integer> orgunitIds, Date startDate, Date endDate )
-    {
-        Number rs = (Number) getCriteria(
-            Restrictions.eq( "program", program ),
-            Restrictions.between( "enrollmentDate", startDate, endDate ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            createAlias( "entityInstance.organisationUnit", "organisationUnit" ).
-            add( Restrictions.in( "organisationUnit.id", orgunitIds ) ).
-            add( Restrictions.eq( "status", status ) ).
-            setProjection( Projections.rowCount() ).uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> getByStatus( ProgramStatus status, Program program, Collection<Integer> orgunitIds,
-        Date startDate, Date endDate )
-    {
-        return getCriteria(
-            Restrictions.eq( "program", program ),
-            Restrictions.between( "enrollmentDate", startDate, endDate ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            createAlias( "entityInstance.organisationUnit", "organisationUnit" ).
-            add( Restrictions.in( "organisationUnit.id", orgunitIds ) ).
-            add( Restrictions.eq( "status", status ) ).list();
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramInstance> getByStatus( ProgramStatus status, Program program, Collection<Integer> orgunitIds,
-        Date startDate, Date endDate, Integer min, Integer max )
-    {
-        Criteria criteria = getCriteria(
-            Restrictions.eq( "program", program ),
-            Restrictions.between( "enrollmentDate", startDate, endDate ) ).
-            createAlias( "entityInstance", "entityInstance" ).
-            createAlias( "entityInstance.organisationUnit", "organisationUnit" ).
-            add( Restrictions.in( "organisationUnit.id", orgunitIds ) ).
-            add( Restrictions.eq( "status", status ) );
-
-        if ( min != null )
-        {
-            criteria.setFirstResult( min );
-        }
-
-        if ( max != null )
-        {
-            criteria.setMaxResults( max );
-        }
-
-        return criteria.list();
     }
 
     @Override

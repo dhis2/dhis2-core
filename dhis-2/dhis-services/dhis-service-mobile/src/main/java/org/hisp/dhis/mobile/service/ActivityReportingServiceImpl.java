@@ -68,6 +68,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -805,9 +806,10 @@ public class ActivityReportingServiceImpl
 
         patientModel.setAttributes( patientAtts );
 
-        // Set current programs
         List<ProgramInstance> listOfProgramInstance = new ArrayList<>(
-            programInstanceService.getProgramInstances( patient, ProgramStatus.ACTIVE ) );
+            programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
+                .setTrackedEntityInstance( patient )
+                .setProgramStatus( ProgramStatus.ACTIVE ) ) );
 
         if ( listOfProgramInstance.size() > 0 )
         {
@@ -818,9 +820,10 @@ public class ActivityReportingServiceImpl
         }
         patientModel.setEnrollmentPrograms( mobileProgramInstanceList );
 
-        // Set completed programs
         List<ProgramInstance> listOfCompletedProgramInstance = new ArrayList<>(
-            programInstanceService.getProgramInstances( patient, ProgramStatus.COMPLETED ) );
+            programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
+                .setTrackedEntityInstance( patient )
+                .setProgramStatus( ProgramStatus.COMPLETED ) ) );
 
         if ( listOfCompletedProgramInstance.size() > 0 )
         {
@@ -1969,7 +1972,9 @@ public class ActivityReportingServiceImpl
         }
         else
         {
-            programInstance = programInstanceService.getProgramInstances( trackedEntityInstance, program ).iterator()
+            programInstance = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
+                .setTrackedEntityInstance( trackedEntityInstance )
+                .setProgram( program ) ).iterator()
                 .next();
 
             newProgramStageInstance = new ProgramStageInstance();

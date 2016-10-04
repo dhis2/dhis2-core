@@ -356,29 +356,10 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    public List<ProgramInstance> getProgramInstances( Collection<Program> programs )
-    {
-        return programInstanceStore.get( programs );
-    }
-
-    @Override
-    public List<ProgramInstance> getProgramInstances( Collection<Program> programs,
-        OrganisationUnit organisationUnit )
-    {
-        return programInstanceStore.get( programs, organisationUnit );
-    }
-
-    @Override
     public List<ProgramInstance> getProgramInstances( Collection<Program> programs,
         OrganisationUnit organisationUnit, ProgramStatus status )
     {
         return programInstanceStore.get( programs, organisationUnit, status );
-    }
-
-    @Override
-    public List<ProgramInstance> getProgramInstances( Collection<Program> programs, ProgramStatus status )
-    {
-        return programInstanceStore.get( programs, status );
     }
 
     @Override
@@ -388,54 +369,9 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, ProgramStatus status )
-    {
-        return programInstanceStore.get( entityInstance, status );
-    }
-
-    @Override
-    public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program )
-    {
-        return programInstanceStore.get( entityInstance, program );
-    }
-
-    @Override
     public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
         return programInstanceStore.get( entityInstance, program, status );
-    }
-
-    @Override
-    public List<ProgramInstance> getProgramInstances( Program program, OrganisationUnit organisationUnit, Integer min, Integer max )
-    {
-        return programInstanceStore.get( program, organisationUnit, min, max );
-    }
-
-    @Override
-    public List<ProgramInstance> getProgramInstances( Program program, Collection<Integer> orgunitIds,
-        Date startDate, Date endDate, Integer min, Integer max )
-    {
-        return programInstanceStore.get( program, orgunitIds, startDate, endDate, min, max );
-    }
-
-    @Override
-    public int countProgramInstances( Program program, Collection<Integer> orgunitIds, Date startDate, Date endDate )
-    {
-        return programInstanceStore.count( program, orgunitIds, startDate, endDate );
-    }
-
-    @Override
-    public int countProgramInstancesByStatus( ProgramStatus status, Program program, Collection<Integer> orgunitIds,
-        Date startDate, Date endDate )
-    {
-        return programInstanceStore.countByStatus( status, program, orgunitIds, startDate, endDate );
-    }
-
-    @Override
-    public List<ProgramInstance> getProgramInstancesByStatus( ProgramStatus status, Program program,
-        Collection<Integer> orgunitIds, Date startDate, Date endDate )
-    {
-        return programInstanceStore.getByStatus( status, program, orgunitIds, startDate, endDate );
     }
 
     @Override

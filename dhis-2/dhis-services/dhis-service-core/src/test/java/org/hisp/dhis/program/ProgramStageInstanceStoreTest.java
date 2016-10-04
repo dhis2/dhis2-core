@@ -35,8 +35,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.NotificationRecipient;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -49,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -72,9 +69,6 @@ public class ProgramStageInstanceStoreTest
     private ProgramStageDataElementStore programStageDataElementStore;
 
     @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
     private DataElementService dataElementService;
 
     @Autowired
@@ -95,10 +89,6 @@ public class ProgramStageInstanceStoreTest
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
-
-    private int orgunitAId;
-
-    private int orgunitBId;
 
     private ProgramStage stageA;
 
@@ -153,12 +143,6 @@ public class ProgramStageInstanceStoreTest
     @Override
     public void setUpTest()
     {
-        organisationUnitA = createOrganisationUnit( 'A' );
-        orgunitAId = organisationUnitService.addOrganisationUnit( organisationUnitA );
-
-        organisationUnitB = createOrganisationUnit( 'B' );
-        orgunitBId = organisationUnitService.addOrganisationUnit( organisationUnitB );
-
         entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
@@ -346,28 +330,6 @@ public class ProgramStageInstanceStoreTest
         assertEquals( 2, stageInstances.size() );
         assertTrue( stageInstances.contains( programStageInstanceB ) );
         assertTrue( stageInstances.contains( programStageInstanceD1 ) );
-    }
-
-    @Test
-    public void testGetOverDueEventCount()
-    {
-        Calendar cal = Calendar.getInstance();
-        PeriodType.clearTimeOfDay( cal );
-        cal.add( Calendar.DATE, -1 );
-        Date date = cal.getTime();
-
-        programStageInstanceA.setDueDate( date );
-        programStageInstanceB.setDueDate( date );
-
-        programStageInstanceStore.save( programStageInstanceA );
-        programStageInstanceStore.save( programStageInstanceB );
-
-        List<Integer> orgunitIds = new ArrayList<>();
-        orgunitIds.add( orgunitAId );
-        orgunitIds.add( orgunitBId );
-
-        int count = programStageInstanceStore.getOverDueCount( stageA, orgunitIds, incidenDate, enrollmentDate );
-        assertEquals( 1, count );
     }
 
 //    @Ignore( "Work in progress" )
