@@ -11,6 +11,7 @@
         var notificationTrigger = qs( '#notificationTrigger' );
         var daysContainer = qs( '#daysContainer' );
         var days = qs( '#days' );
+        var deliveryChannelsContainer = qs( '#deliveryChannelsContainer' );
         var subjectTemplateTextArea = qs( '#subjectTemplate' );
         var messageTemplateTextArea = qs( '#messageTemplate' );
         var saveButton = qs( '#save' );
@@ -37,13 +38,22 @@
         // Click handlers
 
         recipientSelector.addEventListener( "change", function( e ) {
-            if ( recipientSelector.value === 'USER_GROUP' ) {
+            var recipient = recipientSelector.value;
+
+            if ( recipient === 'USER_GROUP' ) {
                 userGroupContainer.style.display = 'table-row';
                 userGroup.disabled = false;
             } else {
                 userGroupContainer.style.display = 'none';
                 userGroup.value = "";
                 userGroup.disabled = true;
+            }
+
+            if ( isExternalRecipient( recipient ) ) {
+                deliveryChannelsContainer.style.display = 'table-row';
+            } else {
+                deliveryChannelsContainer.style.display = 'none';
+                clearDeliveryChannels();
             }
         });
 
@@ -69,6 +79,10 @@
 
         // Internal
 
+        function isExternalRecipient( recipient ) {
+            return recipient === 'TRACKED_ENTITY_INSTANCE' || recipient === 'ORGANISATION_UNIT_CONTACT';
+        }
+
         function returnToListing() {
             if ( ownerType === 'program' ) {
                 window.location.href = 'programNotification.action?id=' + ownerId;
@@ -82,6 +96,14 @@
                 document.forms[ 'deliveryChannelsForm' ].elements[ 'deliveryChannels[]' ] )
                 .filter( function( cb ) { return cb.checked; } )
                 .map( function( cb ) { return cb.value; } );
+        }
+
+        function clearDeliveryChannels() {
+            Array.prototype.slice.call(
+                document.forms[ 'deliveryChannelsForm' ].elements[ 'deliveryChannels[]' ] )
+                .forEach( function( cb ) {
+                    cb.checked = false;
+                } );
         }
 
         function getUserGroup() {
@@ -135,7 +157,7 @@
             .fail( function( jqXhr, textStatus, error ) {
                 onSaveFail( jqXhr, textStatus, error );
             } );
-        };
+        }
 
         function saveToProgram( programUid, templateUid ) {
             return jQuery.ajax( {
