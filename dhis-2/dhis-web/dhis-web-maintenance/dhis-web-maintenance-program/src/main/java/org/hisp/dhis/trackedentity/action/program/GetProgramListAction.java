@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -103,7 +102,7 @@ public class GetProgramListAction
                 paging.getPageSize() );
         }
 
-        Collections.sort( programs, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programs );
 
         return SUCCESS;
     }

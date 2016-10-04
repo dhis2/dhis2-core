@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.paging.ActionPagingSupport;
@@ -137,7 +136,7 @@ public class GetDataSetsAction
             }            
         }
 
-        Collections.sort( dataSets, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( dataSets );
 
         if ( usePaging )
         {

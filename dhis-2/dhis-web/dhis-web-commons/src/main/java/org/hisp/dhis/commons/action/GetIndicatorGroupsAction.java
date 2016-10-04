@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.paging.ActionPagingSupport;
@@ -101,7 +100,7 @@ public class GetIndicatorGroupsAction
             indicatorGroups = IdentifiableObjectUtils.filterNameByKey( indicatorGroups, key, true );
         }
 
-        Collections.sort( indicatorGroups, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( indicatorGroups );
 
         if ( usePaging )
         {

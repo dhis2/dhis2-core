@@ -34,14 +34,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 
 /**
  * @author Margrethe Store
- * @version $Id: GetValidationRuleListAction.java 5331 2008-06-04 10:59:13Z larshelg $
  */
 public class GetValidationRuleListAction 
     extends ActionPagingSupport<ValidationRule>
@@ -100,7 +98,7 @@ public class GetValidationRuleListAction
             validationRulesList = new ArrayList<>( validationRuleService.getValidationRulesBetween( paging.getStartPos(), paging.getPageSize() ) );
         }
 
-        Collections.sort( validationRulesList, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( validationRulesList );
         
         return SUCCESS;
     }

@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -123,7 +122,7 @@ public class GetValidationCriteriaAction
 
         attribute = program.getTrackedEntityAttributes();
 
-        Collections.sort( attribute, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( attribute );
 
         return SUCCESS;
     }

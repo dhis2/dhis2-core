@@ -35,7 +35,6 @@ import java.util.List;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.util.ContextUtils;
 
 import com.opensymphony.xwork2.Action;
@@ -79,7 +78,7 @@ public class GetAttributesAction
         
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), attributes );
         
-        Collections.sort( attributes, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( attributes );
 
         return SUCCESS;
     }

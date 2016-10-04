@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -157,7 +156,7 @@ public class GetProgramAction
 
         programIndicators = new ArrayList<>( program.getProgramIndicators() );
 
-        Collections.sort( programIndicators, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programIndicators );
 
         return SUCCESS;
     }
