@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.notification.NotificationRecipient;
@@ -57,6 +58,9 @@ public class ProgramNotificationTemplateObjectBundleHook
         preProcess( template );
     }
 
+    /**
+     * Removes any non-valid combinations of properties on the template object.
+     */
     private void preProcess( ProgramNotificationTemplate template )
     {
         if ( template.getNotificationTrigger().isImmediate() )
@@ -64,9 +68,14 @@ public class ProgramNotificationTemplateObjectBundleHook
             template.setRelativeScheduledDays( null );
         }
 
-        if ( ! ( NotificationRecipient.USER_GROUP == template.getNotificationRecipient() ) )
+        if ( NotificationRecipient.USER_GROUP != template.getNotificationRecipient() )
         {
             template.setRecipientUserGroup( null );
+        }
+
+        if ( ! ( template.getNotificationRecipient().isExternalRecipient() ) )
+        {
+            template.setDeliveryChannels( Sets.newHashSet() );
         }
     }
 }
