@@ -843,6 +843,10 @@ div#selectionTree
 	text-decoration: none;
 }
 
+#interpretationContainer{
+  margin-bottom: 8px;
+}
+
 #interpretationContainer,
 #interpretationContainer div,
 #interpretationContainer label
