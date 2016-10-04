@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.validation.ValidationRule;
@@ -133,13 +132,13 @@ public class ShowUpdateValidationRuleGroupFormAction
 
         groupMembers = new ArrayList<>( validationRuleGroup.getMembers() );
 
-        Collections.sort( groupMembers, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( groupMembers );
         
         availableUserGroupsToAlert = new ArrayList<>( userGroupService.getAllUserGroups() );
 
         userGroupsToAlert = new ArrayList<>( validationRuleGroup.getUserGroupsToAlert() );
         
-        Collections.sort( userGroupsToAlert, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( userGroupsToAlert );
 
         alertByOrgUnits = validationRuleGroup.isAlertByOrgUnits();
 

@@ -29,7 +29,6 @@ package org.hisp.dhis.validationrule.action;
  */
 
 import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -152,7 +151,7 @@ public class GetFilteredDataElementsAction
 
             List<DataSet> dataSets = new ArrayList<>( dataSetService.getDataSetsByPeriodType( periodType ) );
 
-            Collections.sort( dataSets, IdentifiableObjectNameComparator.INSTANCE );
+            Collections.sort( dataSets );
 
             // -----------------------------------------------------------------
             // Get available dataelements into the dataSets
@@ -174,7 +173,7 @@ public class GetFilteredDataElementsAction
             dataElements = new ArrayList<>( getIntegerDataElements( members ) );
         }
 
-        Collections.sort( dataElements, new IdentifiableObjectNameComparator() );
+        Collections.sort( dataElements );
 
         // ---------------------------------------------------------------------
         // Create Operands

@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.action;
 
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.indicator.Indicator;
@@ -144,7 +143,7 @@ public class GetIndicatorsAction
             indicators = new ArrayList<>();
         }
 
-        Collections.sort( indicators, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( indicators );
 
         if ( usePaging )
         {

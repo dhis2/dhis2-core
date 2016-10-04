@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
@@ -110,7 +109,7 @@ public class GetReportOptionsAction
     {
         reportTables = new ArrayList<>( reportTableService.getAllReportTables() );
         
-        Collections.sort( reportTables, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( reportTables );
         
         if ( id != null )
         {

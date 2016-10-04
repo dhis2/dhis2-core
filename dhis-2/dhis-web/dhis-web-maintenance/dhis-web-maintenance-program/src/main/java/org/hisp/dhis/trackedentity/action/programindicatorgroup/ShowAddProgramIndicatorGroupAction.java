@@ -31,7 +31,6 @@ package org.hisp.dhis.trackedentity.action.programindicatorgroup;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +69,7 @@ public class ShowAddProgramIndicatorGroupAction
     public String execute()
     {
         programIndicators = programIndicatorService.getAllProgramIndicators();
-        Collections.sort( programIndicators, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programIndicators );
 
         return SUCCESS;
     }

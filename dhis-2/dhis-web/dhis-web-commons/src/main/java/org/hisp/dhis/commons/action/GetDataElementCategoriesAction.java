@@ -28,7 +28,6 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.paging.ActionPagingSupport;
@@ -102,7 +101,7 @@ public class GetDataElementCategoriesAction
                 dataElementCategoryService.getDisaggregationCategories() );
         }
 
-        Collections.sort( dataElementCategories, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( dataElementCategories );
 
         if ( usePaging )
         {

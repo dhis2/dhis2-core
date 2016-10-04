@@ -38,7 +38,6 @@ import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -236,7 +235,7 @@ public class FormUtilsImpl
         Validate.notNull( user );
 
         List<OrganisationUnit> organisationUnits = new ArrayList<>( user.getOrganisationUnits() );
-        Collections.sort( organisationUnits, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( organisationUnits );
 
         return organisationUnitWithDataSetsFilter( organisationUnits );
     }

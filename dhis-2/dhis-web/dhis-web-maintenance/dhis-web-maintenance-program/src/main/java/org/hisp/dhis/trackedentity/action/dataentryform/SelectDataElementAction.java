@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -110,7 +109,7 @@ public class SelectDataElementAction
             	dataElements =  FilterUtils.filter( dataElements, new DataElementStringTypeFilter());
             }
             
-            Collections.sort( new ArrayList<>( dataElements ), new IdentifiableObjectNameComparator() );
+            Collections.sort( new ArrayList<>( dataElements ) );
         }
 
         return SUCCESS;

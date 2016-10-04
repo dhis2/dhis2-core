@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -227,10 +226,10 @@ public class GetDataSetReportOptionsAction
         categoryOptionGroupSets = new ArrayList<>( categoryService.getAllCategoryOptionGroupSets() );
         organisationUnitGroupSets = new ArrayList<>( organisationUnitGroupService.getAllOrganisationUnitGroupSets() );
 
-        Collections.sort( dataSets, IdentifiableObjectNameComparator.INSTANCE );   
-        Collections.sort( categoryCombos, IdentifiableObjectNameComparator.INSTANCE );
-        Collections.sort( categoryOptionGroupSets, IdentifiableObjectNameComparator.INSTANCE );
-        Collections.sort( organisationUnitGroupSets, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( dataSets );   
+        Collections.sort( categoryCombos );
+        Collections.sort( categoryOptionGroupSets );
+        Collections.sort( organisationUnitGroupSets );
         
         return SUCCESS;
     }

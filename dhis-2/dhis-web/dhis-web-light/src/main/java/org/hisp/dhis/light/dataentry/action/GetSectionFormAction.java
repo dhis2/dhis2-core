@@ -30,7 +30,6 @@ package org.hisp.dhis.light.dataentry.action;
 
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -244,7 +243,7 @@ public class GetSectionFormAction
         {
             name = "Default";
             dataElements = new ArrayList<>( dataSet.getDataElements() );
-            Collections.sort( dataElements, new IdentifiableObjectNameComparator() );
+            Collections.sort( dataElements );
         }
 
         validationViolations = formUtils.getValidationViolations( organisationUnit, dataElements, period );

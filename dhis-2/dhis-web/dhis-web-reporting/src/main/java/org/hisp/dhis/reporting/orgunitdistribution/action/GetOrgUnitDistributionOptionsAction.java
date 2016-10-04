@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 
@@ -75,7 +74,7 @@ public class GetOrgUnitDistributionOptionsAction
     {
         groupSets = new ArrayList<>( organisationUnitGroupService.getAllOrganisationUnitGroupSets() );
         
-        Collections.sort( groupSets, IdentifiableObjectNameComparator.INSTANCE );        
+        Collections.sort( groupSets );        
         
         return SUCCESS;
     }

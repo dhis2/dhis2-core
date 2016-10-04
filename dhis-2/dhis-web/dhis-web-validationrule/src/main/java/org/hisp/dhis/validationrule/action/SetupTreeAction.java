@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
@@ -120,7 +119,7 @@ public class SetupTreeAction
 
         validationRuleGroups = new ArrayList<>( validationRuleService.getAllValidationRuleGroups() );
 
-        Collections.sort( validationRuleGroups, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( validationRuleGroups );
 
         return SUCCESS;
     }
