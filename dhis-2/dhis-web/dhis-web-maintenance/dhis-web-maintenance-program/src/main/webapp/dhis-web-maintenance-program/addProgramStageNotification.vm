@@ -76,7 +76,7 @@
                 </select>
             </td>
         </tr>
-        <tr>
+        <tr id="deliveryChannelsContainer">
             <td><label for="deliveryChannelsForm">$i18n.getString( "message_type" )</label></td>
             <td>
                 <form id="deliveryChannelsForm">
