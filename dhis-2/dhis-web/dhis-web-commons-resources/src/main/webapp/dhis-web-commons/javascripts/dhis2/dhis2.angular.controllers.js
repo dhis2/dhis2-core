@@ -102,11 +102,10 @@ var d2Controllers = angular.module('d2Controllers', [])
 			};
                         
     var style = {fillColor: "green",
-                    weight: 2,
-                    opacity: 1,
-                    color: 'white',
-                    dashArray: '3',
-                    fillOpacity: 0.3
+                    weight: 1,
+                    opacity: 0.8,
+                    color: 'black',
+                    fillOpacity: 0
                 };
 
     $scope.marker = $scope.location && $scope.location.lat && $scope.location.lng ? {m1: {lat: $scope.location.lat, lng: $scope.location.lng, draggable: true}} : {};
@@ -148,11 +147,11 @@ var d2Controllers = angular.module('d2Controllers', [])
         
         layer.on("mouseover",function(e){            
             $("#polygon-label").text( feature.properties.name );            
-            highlightFeature(e);
+            //highlightFeature(e);
         });
         layer.on("mouseout",function(e){
             $("#polygon-label").text('');
-            resetHighlight(e);
+            //resetHighlight(e);
         });
         
         
