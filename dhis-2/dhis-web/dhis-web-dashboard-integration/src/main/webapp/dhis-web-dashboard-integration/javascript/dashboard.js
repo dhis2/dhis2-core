@@ -1547,7 +1547,7 @@ dhis2.db.initInterpretationPopupEvents = function(){
 	// On mouse leave pop up wait 800 ms and hide panel. If mouse comes back into the panel, pop up will not be hidden 
 	interpretationPopup.mouseleave(function(){
 		dhis2.db.timer = setTimeout(function(){
-			dhis2.db.hideInterpretationPopup.hide();
+			dhis2.db.hideInterpretationPopup();
 	    }, 800);
 	});
 	
