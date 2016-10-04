@@ -825,22 +825,22 @@ div#selectionTree
 
 #interpretationPopup
 {
-	position: absolute;
-    padding: 6px;
-    top: 0;
-    left: 0;
-    display: none;
-    z-index: 1000000;
-    background-color: #fff;
-    border-radius: 3px;
-    border: 1px solid #ccc;
-    box-shadow: #ddd 0 1px 2px 0;
-    width: 408px;
+  position: absolute;
+  padding: 6px;
+  top: 0;
+  left: 0;
+  display: none;
+  z-index: 1000000;
+  background-color: #fff;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  box-shadow: #ddd 0 1px 2px 0;
+  width: 408px;
 }
 
 #interpretationPopup a{
-	color: #000;
-	text-decoration: none;
+  color: #000;
+  text-decoration: none;
 }
 
 #interpretationContainer{
@@ -851,18 +851,18 @@ div#selectionTree
 #interpretationContainer div,
 #interpretationContainer label
 {
-	cursor:pointer !important;	
+  cursor:pointer !important;	
 }
 
 #interpretationContainer.div{
-	margin-bottom: 5px;
+  margin-bottom: 5px;
 }
 
 .likeComment{
 	background-color:#efefef;
 }	
 .interpretationUser{
-	margin-right:10px;
-	font-weight:bold;
-	color:#3162C5;
+  margin-right:10px;
+  font-weight:bold;
+  color:#3162C5;
 }
