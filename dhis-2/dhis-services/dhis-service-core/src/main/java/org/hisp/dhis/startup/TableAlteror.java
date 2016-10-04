@@ -29,7 +29,6 @@ package org.hisp.dhis.startup;
  */
 
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -37,8 +36,6 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.hisp.quick.StatementHolder;
 import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
@@ -62,11 +59,9 @@ public class TableAlteror
 
     @Autowired
     private StatementManager statementManager;
+    
     @Autowired
     private StatementBuilder statementBuilder;
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
 
     // -------------------------------------------------------------------------
     // Execute
@@ -930,6 +925,13 @@ public class TableAlteror
         executeSql( "update eventchart set regressiontype = 'LINEAR' where regression is true" );
         executeSql( "alter table eventchart alter column regressiontype set not null" );
         executeSql( "alter table eventchart drop column regression" );
+
+        executeSql( "alter table validationrule drop column ruletype" );
+        executeSql( "alter table validationrule drop column skiptestexpressionid" );
+        executeSql( "alter table validationrule drop column organisationunitlevel" );
+        executeSql( "alter table validationrule drop column sequentialsamplecount" );
+        executeSql( "alter table validationrule drop column annualsamplecount" );
+        executeSql( "alter table validationrule drop column sequentialskipcount" );
         
         updateEnums();
 
@@ -960,8 +962,6 @@ public class TableAlteror
 
         updateObjectTranslation();
         upgradeDataSetElements();
-
-        removeSurveillanceRules();
 
         log.info( "Tables updated" );
     }
@@ -1603,48 +1603,4 @@ public class TableAlteror
 
         }
     }
-
-    /**
-     * Upgrade data dimension items for legacy data sets to use REPORTING_RATE
-     * as metric.
-     */
-    public void removeSurveillanceRules()
-    {
-        List<Integer> expressionIds=new ArrayList<>();
-        List<Integer> ruleIds=new ArrayList<>();
-        SqlRowSet ruleExpressions = jdbcTemplate.queryForRowSet(
-            "SELECT validationruleid, leftexpressionid, rightexpressionid, skiptestexpressionid " +
-                " FROM validationrule WHERE ruletype='SURVEILLANCE'" );
-
-        while ( ruleExpressions.next() )
-        {
-            ruleIds.add( ruleExpressions.getInt( 1 ) );
-            expressionIds.add( ruleExpressions.getInt( 2 ) );
-            expressionIds.add( ruleExpressions.getInt( 3 ) );
-
-            if ( ( ruleExpressions.getObject( 4 ) != null ) &&
-                 ( ruleExpressions.getInt( 4 ) != 0 ) )
-            {
-                expressionIds.add( ruleExpressions.getInt( 4 ) );
-
-            }
-        }
-
-        if (ruleIds.size() > 0 )
-        {
-            System.out.println( "Removing " + ruleIds.size() + " surveillance rules" );
-            jdbcTemplate.update( "DELETE FROM validationrulegroupmembers WHERE validationruleid in (" +
-                StringUtils.join( ruleIds, "," ) + ")" );
-            jdbcTemplate.update( "DELETE FROM validationrule WHERE ruletype='SURVEILLANCE'" );
-
-            System.out.println( "Removing " + expressionIds.size() + " dependent expressions" );
-            jdbcTemplate.update( "DELETE FROM expressiondataelement where expressionid in (" +
-                StringUtils.join( expressionIds, "," ) + ")" );
-            jdbcTemplate.update( "DELETE FROM expressionsampleelement where expressionid in (" +
-                StringUtils.join( expressionIds, "," ) + ")" );
-            jdbcTemplate.update( "DELETE FROM expression where expressionid in (" +
-                StringUtils.join( expressionIds, "," ) + ")" );
-        }
-    }
-
 }
