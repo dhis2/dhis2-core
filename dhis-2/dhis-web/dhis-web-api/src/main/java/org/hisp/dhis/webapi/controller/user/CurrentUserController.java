@@ -681,7 +681,7 @@ public class CurrentUserController
                 formDataSet.setId( uid );
                 formDataSet.setLabel( dataSet.getDisplayName() );
 
-                forms.getForms().put( uid, FormUtils.fromDataSet( dataSet, false ) );
+                forms.getForms().put( uid, FormUtils.fromDataSet( dataSet, false, userOrganisationUnits ) );
                 formOrganisationUnit.getDataSets().add( formDataSet );
 
                 if ( optionSets )

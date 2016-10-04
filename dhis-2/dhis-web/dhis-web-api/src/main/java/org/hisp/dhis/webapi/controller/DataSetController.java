@@ -308,7 +308,7 @@ public class DataSetController
     {
         DataSet dataSet = dataSets.get( 0 );
 
-        Form form = FormUtils.fromDataSet( dataSets.get( 0 ), metaData );
+        Form form = FormUtils.fromDataSet( dataSets.get( 0 ), metaData, null );
 
 
         Set<String> options = null;
