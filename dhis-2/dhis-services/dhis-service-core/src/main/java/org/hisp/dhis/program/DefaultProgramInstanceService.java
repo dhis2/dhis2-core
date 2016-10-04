@@ -34,14 +34,10 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
-import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -51,7 +47,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -85,14 +80,7 @@ public class DefaultProgramInstanceService
     private ProgramService programService;
 
     @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
-
-    @Autowired
     private CurrentUserService currentUserService;
-
-    @Autowired
-    private MessageService messageService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -105,12 +93,6 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ProgramNotificationService programNotificationService;
-
-    @Autowired
-    private I18nManager i18nManager;
-    
-    @Autowired
-    private OutboundSmsService outBoundSmsService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
