@@ -31,6 +31,7 @@ package org.hisp.dhis.program;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
@@ -82,8 +83,11 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
+    
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
-    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramStageNotificationStore")
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramStageNotificationStore" )
     private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programStageNotificationStore;
 
     private OrganisationUnit organisationUnitA;
@@ -143,15 +147,18 @@ public class ProgramStageInstanceStoreTest
     @Override
     public void setUpTest()
     {
+        organisationUnitA = createOrganisationUnit( 'A' );
+        organisationUnitB = createOrganisationUnit( 'B' );
+        
+        idObjectManager.save( organisationUnitA );
+        idObjectManager.save( organisationUnitB );
+        
         entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
         entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
-        /**
-         * Program A
-         */
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programService.addProgram( programA );
 
