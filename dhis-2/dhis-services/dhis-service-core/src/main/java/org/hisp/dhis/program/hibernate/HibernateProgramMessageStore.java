@@ -103,7 +103,7 @@ public class HibernateProgramMessageStore
 
         if ( params.hasProgramInstance() )
         {
-            hql += helper.whereAnd() + "pm.programInstance=" + params.getProgramInstrance().getId();
+            hql += helper.whereAnd() + "pm.programInstance=" + params.getProgramInstance().getId();
         }
 
         if ( params.hasProgramStageInstance() )
