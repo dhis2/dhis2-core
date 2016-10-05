@@ -637,7 +637,7 @@ public class DataSet
     }
 
     @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getStartDate()
     {
@@ -650,7 +650,7 @@ public class DataSet
     }
 
     @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getEndDate()
     {

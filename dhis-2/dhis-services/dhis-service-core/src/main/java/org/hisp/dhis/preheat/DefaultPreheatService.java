@@ -430,6 +430,7 @@ public class DefaultPreheatService implements PreheatService
         for ( Class<? extends IdentifiableObject> objectClass : scanObjects.keySet() )
         {
             Schema schema = schemaService.getDynamicSchema( objectClass );
+
             List<Property> identifiableProperties = schema.getProperties().stream()
                 .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
                 .collect( Collectors.toList() );

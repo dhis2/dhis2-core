@@ -34,7 +34,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * Records the approval of DataSet values for a given OrganisationUnit and
@@ -187,6 +191,7 @@ public class DataApprovalLevel
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE, persisted = Property.Value.TRUE, owner = Property.Value.TRUE )
     public CategoryOptionGroupSet getCategoryOptionGroupSet()
     {
         return categoryOptionGroupSet;
@@ -207,5 +212,29 @@ public class DataApprovalLevel
     public void setOrgUnitLevelName( String orgUnitLevelName )
     {
         this.orgUnitLevelName = orgUnitLevelName;
+    }
+
+    @Override
+    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    {
+        super.mergeWith( other, mergeMode );
+
+        if ( other.getClass().isInstance( this ) )
+        {
+            DataApprovalLevel dataApprovalLevel = (DataApprovalLevel) other;
+
+            level = dataApprovalLevel.getLevel();
+            orgUnitLevel = dataApprovalLevel.getOrgUnitLevel();
+
+            if ( mergeMode.isReplace() )
+            {
+                categoryOptionGroupSet = dataApprovalLevel.getCategoryOptionGroupSet();
+            }
+            else if ( mergeMode.isMerge() )
+            {
+                categoryOptionGroupSet = dataApprovalLevel.getCategoryOptionGroupSet() == null ?
+                    categoryOptionGroupSet : dataApprovalLevel.getCategoryOptionGroupSet();
+            }
+        }
     }
 }
