@@ -52,6 +52,8 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -79,7 +81,9 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -145,6 +149,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    protected SchemaValidator schemaValidator;
 
     @Autowired
     protected LinkService linkService;
@@ -293,7 +300,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
-    public void updateTranslations(
+    public void replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
@@ -315,6 +322,46 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
+
+        TypeReport typeReport = new TypeReport( ObjectTranslation.class );
+
+        List<ObjectTranslation> objectTranslations = Lists.newArrayList( object.getTranslations() );
+
+        for ( int idx = 0; idx < object.getTranslations().size(); idx++ )
+        {
+            ObjectReport objectReport = new ObjectReport( ObjectTranslation.class, idx );
+            ObjectTranslation translation = objectTranslations.get( idx );
+
+            if ( translation.getLocale() == null )
+            {
+                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
+            }
+
+            if ( translation.getProperty() == null )
+            {
+                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "property" ).setErrorKlass( getEntityClass() ) );
+            }
+
+            if ( translation.getValue() == null )
+            {
+                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
+            }
+
+            typeReport.addObjectReport( objectReport );
+
+            if ( !objectReport.isEmpty() )
+            {
+                typeReport.getStats().incIgnored();
+            }
+        }
+
+        if ( !typeReport.getErrorReports().isEmpty() )
+        {
+            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
+            webMessageService.send( webMessage, response, request );
+            return;
+        }
+
         manager.updateTranslations( persistedObject, object.getTranslations() );
 
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );

@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.TypeReportWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
@@ -233,6 +234,26 @@ public final class WebMessageUtils
         {
             webMessage.setMessage( "One more more errors occurred, please see full details in import report." );
             webMessage.setStatus( Status.WARNING );
+            webMessage.setHttpStatus( HttpStatus.CONFLICT );
+        }
+
+        return webMessage;
+    }
+
+    public static WebMessage typeReport( TypeReport typeReport )
+    {
+        WebMessage webMessage = new WebMessage();
+        webMessage.setResponse( new TypeReportWebMessageResponse( typeReport ) );
+
+        if ( typeReport.getErrorReports().isEmpty() )
+        {
+            webMessage.setStatus( Status.OK );
+            webMessage.setHttpStatus( HttpStatus.OK );
+        }
+        else
+        {
+            webMessage.setMessage( "One more more errors occurred, please see full details in import report." );
+            webMessage.setStatus( Status.ERROR );
             webMessage.setHttpStatus( HttpStatus.CONFLICT );
         }
 
