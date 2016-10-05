@@ -162,7 +162,7 @@ public class OrganisationUnitGroup
     @JsonProperty( "organisationUnitGroupSet" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
     public OrganisationUnitGroupSet getGroupSet()
     {
         return groupSet;

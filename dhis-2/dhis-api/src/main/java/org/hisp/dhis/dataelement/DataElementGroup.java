@@ -172,7 +172,7 @@ public class DataElementGroup
     @JsonProperty( "dataElementGroupSet" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
     public DataElementGroupSet getGroupSet()
     {
         return groupSet;

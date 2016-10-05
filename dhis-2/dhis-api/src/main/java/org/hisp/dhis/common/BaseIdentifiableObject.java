@@ -41,7 +41,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.Required;
+import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -214,7 +214,7 @@ public class BaseIdentifiableObject
     @JsonProperty( value = "id" )
     @JacksonXmlProperty( localName = "id", isAttribute = true )
     @Description( "The Unique Identifier for this Object." )
-    @Property( value = PropertyType.IDENTIFIER, required = Required.FALSE )
+    @Property( value = PropertyType.IDENTIFIER, required = Value.FALSE )
     @PropertyRange( min = 11, max = 11 )
     public String getUid()
     {
@@ -275,7 +275,7 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The date this object was created." )
-    @Property( value = PropertyType.DATE, required = Required.FALSE )
+    @Property( value = PropertyType.DATE, required = Value.FALSE )
     public Date getCreated()
     {
         return created;
@@ -290,7 +290,7 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The date this object was last updated." )
-    @Property( value = PropertyType.DATE, required = Required.FALSE )
+    @Property( value = PropertyType.DATE, required = Value.FALSE )
     public Date getLastUpdated()
     {
         return lastUpdated;
