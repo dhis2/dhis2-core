@@ -346,6 +346,12 @@ public class DefaultDashboardService
         return dashboardItemStore.countDocumentDashboardItems( document );
     }
 
+    @Override
+    public int countUserDashboardItems( User user )
+    {
+        return dashboardItemStore.countUserDashboardItems( user );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
