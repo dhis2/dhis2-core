@@ -361,6 +361,8 @@ public class AddProgramStageAction
         programStage.setSortOrder( program.getProgramStages().size() + 1 );
         programStage.setHideDueDate( hideDueDate );
 
+        program.getProgramStages().add( programStage );
+
         if ( jsonAttributeValues != null )
         {
             attributeService.updateAttributeValues( programStage, jsonAttributeValues );
