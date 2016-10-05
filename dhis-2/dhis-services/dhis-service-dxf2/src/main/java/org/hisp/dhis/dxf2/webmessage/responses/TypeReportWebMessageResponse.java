@@ -2,7 +2,7 @@ package org.hisp.dhis.dxf2.webmessage.responses;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,8 +33,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.Status;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.TypeReport;
 import org.springframework.util.Assert;
@@ -44,36 +44,36 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ImportReportWebMessageResponse
+public class TypeReportWebMessageResponse
     extends AbstractWebMessageResponse
 {
-    private final ImportReport importReport;
+    private final TypeReport typeReport;
 
-    public ImportReportWebMessageResponse( ImportReport importReport )
+    public TypeReportWebMessageResponse( TypeReport typeReport )
     {
-        Assert.notNull( importReport, "ImportReport is require to be non-null." );
-        this.importReport = importReport;
+        Assert.notNull( typeReport, "ImportReport is require to be non-null." );
+        this.typeReport = typeReport;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Status getStatus()
     {
-        return importReport.getStatus();
+        return typeReport.getErrorReports().isEmpty() ? Status.OK : Status.ERROR;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Stats getStats()
     {
-        return importReport.getStats();
+        return typeReport.getStats();
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TypeReport> getTypeReports()
+    @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
+    public List<ObjectReport> getObjectReports()
     {
-        return importReport.getTypeReports();
+        return typeReport.getObjectReports();
     }
 }
