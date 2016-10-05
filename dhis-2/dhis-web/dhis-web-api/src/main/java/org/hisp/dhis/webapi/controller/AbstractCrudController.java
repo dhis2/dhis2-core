@@ -300,7 +300,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
-    public void updateTranslations(
+    public void replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
