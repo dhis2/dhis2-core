@@ -28,7 +28,6 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -42,9 +41,6 @@ public class UserDeletionHandler
 {
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -101,11 +97,5 @@ public class UserDeletionHandler
         }
 
         return null;
-    }
-
-    @Override
-    public void deleteUser( User user )
-    {
-        sessionFactory.getCurrentSession().delete( user.getUserCredentials() );
     }
 }

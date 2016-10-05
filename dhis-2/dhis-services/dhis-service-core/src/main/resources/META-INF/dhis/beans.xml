@@ -1714,6 +1714,8 @@
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler"
     class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" />
 
+  <bean id="org.hisp.dhis.user.UserCredentialsDeletionHandler" class="org.hisp.dhis.user.UserCredentialsDeletionHandler" />
+  
   <bean id="org.hisp.dhis.user.UserDeletionHandler" class="org.hisp.dhis.user.UserDeletionHandler" />
 
   <bean id="org.hisp.dhis.user.UserGroupDeletionHandler" class="org.hisp.dhis.user.UserGroupDeletionHandler">
