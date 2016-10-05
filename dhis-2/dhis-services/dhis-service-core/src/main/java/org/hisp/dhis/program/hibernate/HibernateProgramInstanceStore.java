@@ -52,8 +52,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * @author Abyot Asalefew
@@ -76,6 +74,61 @@ public class HibernateProgramInstanceStore
         
         Query query = getQuery( hql );
 
+        if ( params.hasLastUpdated() )
+        {
+            query.setTimestamp( "lastUpdated",  params.getLastUpdated() );
+        }
+
+        if ( params.hasTrackedEntityInstance() )
+        {
+            query.setEntity( "trackedEntityInstance", params.getTrackedEntityInstance() );
+        }
+
+        if ( params.hasTrackedEntity() )
+        {
+            query.setEntity( "trackedEntity",  params.getTrackedEntity() );
+        }
+
+        if ( params.hasOrganisationUnits() )
+        {
+            if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
+            {
+                for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
+                {
+                    query.setString( organisationUnit.getUid() + "path" , "%" + organisationUnit.getPath() + "%'" );
+                }
+            }
+            else
+            {
+               query.setParameterList( "orgUnitIds",  getUids( params.getOrganisationUnits() ) );
+            }
+        }
+
+        if ( params.hasProgram() )
+        {
+           query.setEntity( "program", params.getProgram() );
+        }
+
+        if ( params.hasProgramStatus() )
+        {
+           query.setParameter( "programStatus", params.getProgramStatus() );
+        }
+
+        if ( params.hasFollowUp() )
+        {
+            query.setBoolean( "isFollowUp", params.getFollowUp() );
+        }
+
+        if ( params.hasProgramStartDate() )
+        {
+            query.setTimestamp( "programStartdate", params.getProgramStartDate() );
+        }
+
+        if ( params.hasProgramEndDate() )
+        {
+            query.setTimestamp( "programEndDate",  params.getProgramEndDate() );
+        }
+
         return ((Number) query.iterate().next()).intValue();
     }
 
@@ -84,9 +137,64 @@ public class HibernateProgramInstanceStore
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params );
-        
+
         Query query = getQuery( hql );
-        
+
+        if ( params.hasLastUpdated() )
+        {
+            query.setTimestamp( "lastUpdated",  params.getLastUpdated() );
+        }
+
+        if ( params.hasTrackedEntityInstance() )
+        {
+            query.setEntity( "trackedEntityInstance", params.getTrackedEntityInstance() );
+        }
+
+        if ( params.hasTrackedEntity() )
+        {
+            query.setEntity( "trackedEntity",  params.getTrackedEntity() );
+        }
+
+        if ( params.hasOrganisationUnits() )
+        {
+            if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
+            {
+                for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
+                {
+                    query.setString( organisationUnit.getUid() + "path" , "%" + organisationUnit.getPath() + "%'" );
+                }
+            }
+            else
+            {
+                query.setParameterList( "orgUnitIds",  getUids( params.getOrganisationUnits() ) );
+            }
+        }
+
+        if ( params.hasProgram() )
+        {
+            query.setEntity( "program", params.getProgram() );
+        }
+
+        if ( params.hasProgramStatus() )
+        {
+            query.setParameter( "programStatus", params.getProgramStatus() );
+        }
+
+        if ( params.hasFollowUp() )
+        {
+            query.setBoolean( "isFollowUp", params.getFollowUp() );
+        }
+
+        if ( params.hasProgramStartDate() )
+        {
+            query.setTimestamp( "programStartdate", params.getProgramStartDate() );
+        }
+
+        if ( params.hasProgramEndDate() )
+        {
+            query.setTimestamp( "programEndDate",  params.getProgramEndDate() );
+        }
+
         if ( params.isPaging() )
         {
             query.setFirstResult( params.getOffset() );
@@ -99,21 +207,22 @@ public class HibernateProgramInstanceStore
     private String buildProgramInstanceHql( ProgramInstanceQueryParams params )
     {
         String hql = "from ProgramInstance pi";
+
         SqlHelper hlp = new SqlHelper( true );
 
         if ( params.hasLastUpdated() )
         {
-            hql += hlp.whereAnd() + "pi.lastUpdated >= '" + getMediumDateString( params.getLastUpdated() ) + "'";
+            hql += hlp.whereAnd() + "pi.lastUpdated >= :lastUpdated " ;
         }
 
         if ( params.hasTrackedEntityInstance() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityInstance().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance = :trackedEntityInstance ";
         }
 
         if ( params.hasTrackedEntity() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntity.uid = '" + params.getTrackedEntity().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntity = :trackedEntity ";
         }
 
         if ( params.hasOrganisationUnits() )
@@ -125,7 +234,7 @@ public class HibernateProgramInstanceStore
 
                 for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
                 {
-                    ouClause += orHlp.or() + "pi.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
+                    ouClause += orHlp.or() + "pi.organisationUnit.path LIKE  :" + organisationUnit.getUid() + "path" ;
                 }
 
                 ouClause += ")";
@@ -134,33 +243,33 @@ public class HibernateProgramInstanceStore
             }
             else
             {
-                hql += hlp.whereAnd() + "pi.organisationUnit.uid in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
+                hql += hlp.whereAnd() + "pi.organisationUnit.uid in :orgUnitIds ";
             }
         }
 
         if ( params.hasProgram() )
         {
-            hql += hlp.whereAnd() + "pi.program.uid = '" + params.getProgram().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.program = :program ";
         }
 
         if ( params.hasProgramStatus() )
         {
-            hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
+            hql += hlp.whereAnd() + "pi.status = :programStatus ";
         }
 
         if ( params.hasFollowUp() )
         {
-            hql += hlp.whereAnd() + "pi.followup = " + params.getFollowUp();
+            hql += hlp.whereAnd() + "pi.followup = :isFollowUp ";
         }
 
         if ( params.hasProgramStartDate() )
         {
-            hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramStartDate() ) + "'";
+            hql += hlp.whereAnd() + "pi.enrollmentDate >= :programStartdate ";
         }
 
         if ( params.hasProgramEndDate() )
         {
-            hql += hlp.whereAnd() + "pi.enrollmentDate <= '" + getMediumDateString( params.getProgramEndDate() ) + "'";
+            hql += hlp.whereAnd() + "pi.enrollmentDate <= :programEndDate ";
         }
 
         return hql;
