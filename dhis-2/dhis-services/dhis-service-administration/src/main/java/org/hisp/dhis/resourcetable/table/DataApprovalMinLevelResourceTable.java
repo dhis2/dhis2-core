@@ -62,8 +62,9 @@ public class DataApprovalMinLevelResourceTable
             "periodid integer not null, " +
             "organisationunitid integer not null, " +
             "attributeoptioncomboid integer not null, " +
-            "minlevel integer not null);";
-
+            "minlevel integer not null, " +
+            "primary key (datasetid,periodid,attributeoptioncomboid,organisationunitid))";
+        
         return sql;
     }
 
@@ -105,10 +106,6 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList(
-            "create index in_dataapprovalminlevel_datasetid_" + getRandomSuffix() + " on " + getTempTableName() + "(datasetid);",
-            "create index in_dataapprovalminlevel_periodid_" + getRandomSuffix() + " on " + getTempTableName() + "(periodid);",
-            "create index in_dataapprovalminlevel_organisationunitid_" + getRandomSuffix() + " on " + getTempTableName() + "(organisationunitid);",
-            "create index in_dataapprovalminlevel_attributeoptioncomboid_" + getRandomSuffix() + " on " + getTempTableName() + "(attributeoptioncomboid);" );      
+        return Lists.newArrayList();      
     }
 }
