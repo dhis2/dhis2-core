@@ -40,7 +40,11 @@ import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.CronUtils;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.fileresource.ExternalFileResourceService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
@@ -64,12 +68,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
-import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -77,7 +81,12 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Stian Sandvold
@@ -122,7 +131,8 @@ public class DefaultPushAnalysisService
     @Autowired
     private I18nManager i18nManager;
 
-    @Resource( name = "emailMessageSender" )
+    @Autowired
+    @Qualifier( "emailMessageSender" )
     private MessageSender messageSender;
 
     private HashMap<PushAnalysis, Boolean> pushAnalysisIsRunning = new HashMap<>();
@@ -366,22 +376,22 @@ public class DefaultPushAnalysisService
 
         switch ( item.getType() )
         {
-        case MAP:
-            return generateMapHtml( item.getMap(), user );
-        case CHART:
-            return generateChartHtml( item.getChart(), user );
-        case REPORT_TABLE:
-            return generateReportTableHtml( item.getReportTable(), user );
-        case EVENT_CHART:
-            // TODO: Add support for EventCharts
-            return "";
-        case EVENT_REPORT:
-            // TODO: Add support for EventReports
-            return "";
-        default:
-            log( taskId, NotificationLevel.WARN,
-                "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
-            return "";
+            case MAP:
+                return generateMapHtml( item.getMap(), user );
+            case CHART:
+                return generateChartHtml( item.getChart(), user );
+            case REPORT_TABLE:
+                return generateReportTableHtml( item.getReportTable(), user );
+            case EVENT_CHART:
+                // TODO: Add support for EventCharts
+                return "";
+            case EVENT_REPORT:
+                // TODO: Add support for EventReports
+                return "";
+            default:
+                log( taskId, NotificationLevel.WARN,
+                    "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
+                return "";
         }
     }
 
@@ -493,15 +503,15 @@ public class DefaultPushAnalysisService
 
         switch ( notificationLevel )
         {
-        case INFO:
-            log.info( message );
-            break;
-        case WARN:
-            log.warn( message, exception );
-            break;
-        case ERROR:
-            log.error( message, exception );
-            break;
+            case INFO:
+                log.info( message );
+                break;
+            case WARN:
+                log.warn( message, exception );
+                break;
+            case ERROR:
+                log.error( message, exception );
+                break;
         }
     }
 
@@ -537,14 +547,14 @@ public class DefaultPushAnalysisService
     {
         switch ( pushAnalysis.getSchedulingFrequency() )
         {
-        case DAILY:
-            return CronUtils.getDailyCronExpression( 0, HOUR_TO_RUN );
-        case WEEKLY:
-            return CronUtils.getWeeklyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-        case MONTHLY:
-            return CronUtils.getMonthlyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
-        default:
-            return null;
+            case DAILY:
+                return CronUtils.getDailyCronExpression( 0, HOUR_TO_RUN );
+            case WEEKLY:
+                return CronUtils.getWeeklyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
+            case MONTHLY:
+                return CronUtils.getMonthlyCronExpression( 0, HOUR_TO_RUN, pushAnalysis.getSchedulingDayOfFrequency() );
+            default:
+                return null;
         }
     }
 

@@ -68,7 +68,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 {
     private static final Log log = LogFactory.getLog( DefaultFieldFilterService.class );
 
-    private final Pattern MUTATOR_PATTERN = Pattern.compile( "^(?<field>\\w+)(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
+    //private final Pattern MUTATOR_PATTERN = Pattern.compile( "^(?<field>\\w+)(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
     private final Pattern FIELD_PATTERN = Pattern.compile( "^(?<field>\\w+)" );
 
