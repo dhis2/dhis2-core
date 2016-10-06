@@ -821,7 +821,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
 
-        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getDeletions() )
+        {
+            deleteCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getAdditions() )
         {
             addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
         }
@@ -835,7 +840,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
 
-        for ( IdentifiableObject identifiableObject : identifiableObjects.getIdentifiableObjects() )
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getDeletions() )
+        {
+            deleteCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
+        }
+
+        for ( IdentifiableObject identifiableObject : identifiableObjects.getAdditions() )
         {
             addCollectionItem( pvUid, pvProperty, identifiableObject.getUid(), request, response );
         }
