@@ -1,8 +1,6 @@
 var duplicate = false;
 jQuery( document ).ready( function()
 {
-	showHideUserGroup();
-
 	checkValueIsExist( "name", "validateProgramStage.action", {id:getFieldValue('programId'), programStageId:getFieldValue('id')});	
 	
 	jQuery("#availableList").dhisAjaxSelect({

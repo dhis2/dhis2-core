@@ -31,11 +31,8 @@ package org.hisp.dhis.user;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 
-import java.util.Iterator;
-
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public class UserAuthorityGroupDeletionHandler
     extends DeletionHandler
@@ -74,15 +71,10 @@ public class UserAuthorityGroupDeletionHandler
     }
 
     @Override
-    public void deleteUser( User user )
+    public void deleteUserCredentials( UserCredentials credentials )
     {
-        UserCredentials credentials = user.getUserCredentials();
-
-        Iterator<UserAuthorityGroup> iterator = credentials.getUserAuthorityGroups().iterator();
-
-        while ( iterator.hasNext() )
+        for ( UserAuthorityGroup group : credentials.getUserAuthorityGroups() )
         {
-            UserAuthorityGroup group = iterator.next();
             group.getMembers().remove( credentials );
             userService.updateUserAuthorityGroup( group );
         }

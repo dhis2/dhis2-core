@@ -39,8 +39,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.system.util.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -110,6 +112,9 @@ public class DefaultUserService
         this.passwordManager = passwordManager;
     }
 
+    @Autowired
+    private DeletionManager deletionManager;
+    
     // -------------------------------------------------------------------------
     // UserService implementation
     // -------------------------------------------------------------------------
@@ -139,8 +144,12 @@ public class DefaultUserService
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );
 
-        userCredentialsStore.delete( user.getUserCredentials() );
-
+        // Invoke deletion manager directly for credentials, not intercepted
+        
+        deletionManager.execute( user.getUserCredentials() );
+        
+        // Credentials deleted through deletion handler
+        
         userStore.delete( user );
     }
 

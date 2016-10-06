@@ -38,6 +38,7 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.CronUtils;
+import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
@@ -88,6 +89,8 @@ public class DefaultPushAnalysisService
     private static final int HOUR_TO_RUN = 4; // should run at 04:00
 
     private static final Log log = LogFactory.getLog( DefaultPushAnalysisService.class );
+
+    private static final Encoder encoder = new Encoder();
 
     @Autowired
     private Notifier notifier;
@@ -327,6 +330,7 @@ public class DefaultPushAnalysisService
 
         context.put( "pushAnalysis", pushAnalysis );
         context.put( "itemHtml", itemHtml );
+        context.put( "encoder", encoder );
 
         //----------------------------------------------------------------------
         // Render template and return result after removing newline characters

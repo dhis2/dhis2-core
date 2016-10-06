@@ -38,6 +38,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -86,6 +87,15 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     {
         Query query = getQuery( "select count(distinct c) from DashboardItem c where :document in elements(c.resources)" );
         query.setEntity( "document", document );
+
+        return ((Long) query.uniqueResult()).intValue();
+    }
+
+    @Override
+    public int countUserDashboardItems( User user )
+    {
+        Query query = getQuery( "select count(distinct c) from DashboardItem c where :user in elements(c.users)" );
+        query.setEntity( "user", user );
 
         return ((Long) query.uniqueResult()).intValue();
     }

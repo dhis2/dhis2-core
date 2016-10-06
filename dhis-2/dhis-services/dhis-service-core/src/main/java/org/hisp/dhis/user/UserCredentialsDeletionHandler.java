@@ -1,4 +1,4 @@
-package org.hisp.dhis.dashboard;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,62 +28,31 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.document.Document;
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.report.Report;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Lars Helge Overland
  */
-public class DashboardItemDeletionHandler extends DeletionHandler
+public class UserCredentialsDeletionHandler
+    extends DeletionHandler
 {
     @Autowired
-    private DashboardService dashboardService;
-
-    @Override
-    protected String getClassName()
-    {
-        return DashboardItem.class.getSimpleName();
-    }
-
-    @Override
-    public String allowDeleteMap( Map map )
-    {
-        return dashboardService.countMapDashboardItems( map ) == 0 ? null : ERROR;
-    }
-
-    @Override
-    public String allowDeleteChart( Chart chart )
-    {
-        return dashboardService.countChartDashboardItems( chart ) == 0 ? null : ERROR;
-    }
-
-    @Override
-    public String allowDeleteReportTable( ReportTable reportTable )
-    {
-        return dashboardService.countReportTableDashboardItems( reportTable ) == 0 ? null : ERROR;
-    }
-
-    @Override
-    public String allowDeleteReport( Report report )
-    {
-        return dashboardService.countReportDashboardItems( report ) == 0 ? null : ERROR;
-    }
+    private UserCredentialsStore userCredentialsStore;
     
+    // -------------------------------------------------------------------------
+    // DeletionHandler implementation
+    // -------------------------------------------------------------------------
+
     @Override
-    public String allowDeleteDocument( Document document )
+    public String getClassName()
     {
-        return dashboardService.countDocumentDashboardItems( document ) == 0 ? null : ERROR;
+        return UserCredentials.class.getSimpleName();
     }
-    
+
     @Override
-    public String allowDeleteUser( User user )
+    public void deleteUser( User user )
     {
-        return dashboardService.countUserDashboardItems( user ) == 0 ? null : ERROR;
+        userCredentialsStore.delete( user.getUserCredentials() );
     }
 }

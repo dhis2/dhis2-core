@@ -361,14 +361,6 @@ public class ProgramStage
         this.displayGenerateEventBox = displayGenerateEventBox;
     }
 
-    // TODO Deprecate?
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDefaultTemplateMessage()
-    {
-        return "Dear {person-name}, please come to your appointment on {program-stage-name} at {due-date}";
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getCaptureCoordinates()

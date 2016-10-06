@@ -23,10 +23,10 @@
                         <tr>
                             <td>
                                 <h1>
-                                    $!pushAnalysis.getTitle()
+                                    $!encoder.htmlEncode( $pushAnalysis.getTitle() )
                                 </h1>
                                 <small>$itemHtml.get( "date" )</small>
-                                <p> $!pushAnalysis.getMessage()</p>
+                                <p> $!encoder.htmlEncode( $pushAnalysis.getMessage() )</p>
                             </td>
                         </tr>
                     </table>

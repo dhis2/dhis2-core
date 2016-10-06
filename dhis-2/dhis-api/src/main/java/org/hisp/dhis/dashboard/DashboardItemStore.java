@@ -34,6 +34,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,6 +51,8 @@ public interface DashboardItemStore
     int countReportDashboardItems( Report report );
 
     int countDocumentDashboardItems( Document document );
+    
+    int countUserDashboardItems( User user );
 
     Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
 }

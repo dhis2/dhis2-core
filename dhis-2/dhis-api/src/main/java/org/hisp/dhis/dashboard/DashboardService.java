@@ -35,6 +35,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
@@ -88,4 +89,6 @@ public interface DashboardService
     int countReportDashboardItems( Report report );
 
     int countDocumentDashboardItems( Document document );
+    
+    int countUserDashboardItems( User user );
 }

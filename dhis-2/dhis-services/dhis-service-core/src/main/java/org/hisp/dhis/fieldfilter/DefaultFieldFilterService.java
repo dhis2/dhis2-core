@@ -70,6 +70,10 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final Pattern MUTATOR_PATTERN = Pattern.compile( "^(?<field>\\w+)(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
+    private final Pattern FIELD_PATTERN = Pattern.compile( "^(?<field>\\w+)" );
+
+    private final Pattern TRANSFORMER_PATTERN = Pattern.compile( "(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
+
     @Autowired
     private FieldParser fieldParser;
 
@@ -374,26 +378,33 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
             else if ( fieldKey.contains( "::" ) || fieldKey.contains( "|" ) || fieldKey.contains( "~" ) )
             {
-                Matcher matcher = MUTATOR_PATTERN.matcher( fieldKey );
+                Matcher matcher = FIELD_PATTERN.matcher( fieldKey );
 
                 if ( !matcher.find() )
                 {
                     continue;
                 }
 
+                String fieldName = matcher.group( "field" );
+
                 FieldMap value = new FieldMap();
 
-                String nameMatch = matcher.group( "name" );
-                String argsMatch = matcher.group( "args" );
+                matcher = TRANSFORMER_PATTERN.matcher( fieldKey );
 
-                if ( transformers.containsKey( nameMatch ) )
+                while ( matcher.find() )
                 {
-                    NodeTransformer transformer = transformers.get( nameMatch );
-                    List<String> args = argsMatch == null ? new ArrayList<>() : Lists.newArrayList( argsMatch.split( ";" ) );
-                    value.getPipeline().addTransformer( transformer, args );
+                    String nameMatch = matcher.group( "name" );
+                    String argsMatch = matcher.group( "args" );
+
+                    if ( transformers.containsKey( nameMatch ) )
+                    {
+                        NodeTransformer transformer = transformers.get( nameMatch );
+                        List<String> args = argsMatch == null ? new ArrayList<>() : Lists.newArrayList( argsMatch.split( ";" ) );
+                        value.getPipeline().addTransformer( transformer, args );
+                    }
                 }
 
-                fieldMap.put( matcher.group( "field" ), value );
+                fieldMap.put( fieldName, value );
 
                 cleanupFields.add( fieldKey );
             }
