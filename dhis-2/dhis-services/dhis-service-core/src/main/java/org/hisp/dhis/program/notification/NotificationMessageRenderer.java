@@ -28,6 +28,7 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Sets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.apache.commons.logging.Log;
@@ -174,7 +175,9 @@ public class NotificationMessageRenderer
 
         warnOfUnrecognizedVariables( groupedVariables.get( false ) );
 
-        return groupedVariables.get( true );
+        Set<String> variables = groupedVariables.get( true );
+
+        return variables != null ? variables : Sets.newHashSet();
     }
 
     private static Set<String> extractProgramVariables( String input )
@@ -184,7 +187,9 @@ public class NotificationMessageRenderer
 
         warnOfUnrecognizedVariables( groupedVariables.get( false ) );
 
-        return groupedVariables.get( true );
+        Set<String> variables = groupedVariables.get( true );
+
+        return variables != null ? variables : Sets.newHashSet();
     }
 
     private static void warnOfUnrecognizedVariables( Set<String> unrecognizedVariables )
