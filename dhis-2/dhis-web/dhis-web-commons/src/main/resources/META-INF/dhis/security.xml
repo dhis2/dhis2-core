@@ -375,7 +375,10 @@
         <value>F_OAUTH2_CLIENT_MANAGE</value>
         <value>F_PROGRAM_DASHBOARD_CONFIG_ADMIN</value>
         <value>F_GIS_ADMIN</value>
-        <value>F_LEGEND_SET_ADD</value>
+        <value>F_LEGEND_ADD</value>
+        <value>F_LEGEND_DELETE</value>
+        <value>F_LEGEND_SET_PUBLIC_ADD</value>
+        <value>F_LEGEND_SET_PRIVATE_ADD</value>
         <value>F_LEGEND_SET_DELETE</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
