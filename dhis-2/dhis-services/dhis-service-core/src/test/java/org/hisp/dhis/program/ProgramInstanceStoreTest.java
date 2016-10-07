@@ -28,9 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.program.notification.NotificationRecipient;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
@@ -67,6 +73,9 @@ public class ProgramInstanceStoreTest
 
     @Autowired
     private ProgramStageService programStageService;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     private Date incidentDate;
 
@@ -205,5 +214,35 @@ public class ProgramInstanceStoreTest
         programInstances = programInstanceStore.get( entityInstanceA, programA, ProgramStatus.ACTIVE );
         assertEquals( 1, programInstances.size() );
         assertTrue( programInstances.contains( programInstanceA ) );
+    }
+
+    private void setUpNotifications()
+    {
+        ProgramNotificationTemplate template = new ProgramNotificationTemplate(
+            "template A",
+            "Subject",
+            "Message",
+            NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE,
+            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Sets.newHashSet( DeliveryChannel.SMS, DeliveryChannel.EMAIL ),
+            -2,
+            null
+        );
+
+        idObjectManager.save( template );
+        programA.setNotificationTemplates( Sets.newHashSet( template ) );
+
+        programService.updateProgram( programA );
+
+        programInstanceStore.update( programInstanceA );
+    }
+
+    @Test
+    public void testGetWithScheduledNotifications()
+    {
+        programInstanceStore.save( programInstanceA );
+        setUpNotifications();
+
+        // TODO Do test here
     }
 }

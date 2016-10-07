@@ -160,7 +160,11 @@ public class NotificationMessageRenderer
         {
             String uid = matcher.group( 1 );
             String value = identifierToValueMap.get( uid );
-            matcher.appendReplacement( sb, value );
+
+            if ( value != null )
+            {
+                matcher.appendReplacement( sb, value );
+            } // TODO Log warning or substitute null-value with placeholder?
         }
 
         matcher.appendTail( sb );
