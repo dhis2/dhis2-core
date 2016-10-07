@@ -1108,17 +1108,15 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         },
         get: function (name) {
             var promise = $http.get(GRIDCOLUMNS_URL+name).then(function (response) {
-                var userName =  SessionStorageService.get('USER_PROFILE').username;
                 if (response && response.data && response.data.gridColumns) {
-                    SessionStorageService.set(name+"_"+userName, {id:name, columns:response.data.gridColumns});
+                    SessionStorageService.set(name, {id:name, columns:response.data.gridColumns});
                     return response.data.gridColumns;
                 } else {
                     NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("gridColumns_invalid"));
                     return null;
                 }
             }, function (error) {
-                var userName =  SessionStorageService.get('USER_PROFILE').username;
-                var gridColumnsFromSessionStore = SessionStorageService.get(name+"_"+userName);
+                var gridColumnsFromSessionStore = SessionStorageService.get(name);
                 if (gridColumnsFromSessionStore && gridColumnsFromSessionStore.columns) {
                     return gridColumnsFromSessionStore.columns;
                 }
