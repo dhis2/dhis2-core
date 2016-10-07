@@ -323,14 +323,18 @@ public class DefaultPushAnalysisService
         //----------------------------------------------------------------------
 
         HashMap<String, String> itemHtml = new HashMap<>();
+        HashMap<String, String> itemLink = new HashMap<>();
 
         for ( DashboardItem item : pushAnalysis.getDashboard().getItems() )
         {
             itemHtml.put( item.getUid(), getItemHtml( item, user, taskId ) );
+            itemLink.put( item.getUid(), getItemLink( item ));
         }
 
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
         itemHtml.put( "date", dateFormat.format( Calendar.getInstance().getTime() ) );
+        itemHtml.put( "instanceBaseUrl", systemSettingManager.getInstanceBaseUrl() );
+        itemHtml.put( "instanceName", (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE ) );
 
         //----------------------------------------------------------------------
         // Set up template context, including pre-processed dashboard items
@@ -340,6 +344,7 @@ public class DefaultPushAnalysisService
 
         context.put( "pushAnalysis", pushAnalysis );
         context.put( "itemHtml", itemHtml );
+        context.put( "itemLink", itemLink );
         context.put( "encoder", encoder );
 
         //----------------------------------------------------------------------
@@ -393,6 +398,26 @@ public class DefaultPushAnalysisService
                     "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
                 return "";
         }
+    }
+
+    private String getItemLink( DashboardItem item )
+    {
+        String result = systemSettingManager.getInstanceBaseUrl();
+
+        switch ( item.getType() )
+        {
+        case MAP:
+            result += "/dhis-web-mapping/index.html?id=" + item.getMap().getUid();
+            break;
+        case REPORT_TABLE:
+            result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
+            break;
+        case CHART:
+            result += "/dhis-web-visualizer/index.html?id=" + item.getChart().getUid();
+            break;
+        }
+
+        return result;
     }
 
     /**
