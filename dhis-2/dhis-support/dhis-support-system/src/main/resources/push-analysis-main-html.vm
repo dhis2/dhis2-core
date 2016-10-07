@@ -3,7 +3,7 @@
 #end
 
 #macro( link $url $label )
-<a href="$url" style="font-size: 12px; text-decoration: none; color: #4c9ce4">$label</a>
+<a href="$url" style="font-size: 12px; text-decoration: none; color: #4c9ce4;font-family: Arial, sans-serif">$label</a>
 #end
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -48,14 +48,14 @@
                                         #if( $dashboardItem.getType() == "REPORT_TABLE" )
                                             $itemHtml.get( $dashboardItem.getUid() )
                                             <br />
-                                            #link ( $itemLink.get( $dashboardItem.getUid() ), "View in the Pivot Table app" )
+                                            #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Pivot Table app" )
                                         #else
                                             #img( $itemHtml.get( $dashboardItem.getUid() ) )
                                             <br />
                                             #if( $dashboardItem.getType() == "MAP" )
-                                                #link ( $itemLink.get( $dashboardItem.getUid() ), "View in the GIS app" )
+                                                #link ( $itemLink.get( $dashboardItem.getUid() ), "View in GIS app" )
                                             #else
-                                                #link ( $itemLink.get( $dashboardItem.getUid() ), "View in the Visualizer app" )
+                                                #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Visualizer app" )
                                             #end
                                         #end
 
@@ -68,7 +68,7 @@
 
                 #end
 
-                <div style="overflow-x:auto;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 25px;background: #fff;padding: 10px;">
+                <div style="overflow-x:auto;max-width:578px;min-width:278px;width:100%;border:solid 1px #fff;border-radius: 8px;margin-bottom: 25px;background: #fff;padding: 10px;font-size: 12px">
                     <table style="margin: auto">
                         <tr>
                             <td>
