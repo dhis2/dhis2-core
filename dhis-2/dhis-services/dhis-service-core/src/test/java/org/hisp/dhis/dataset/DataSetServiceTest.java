@@ -79,14 +79,17 @@ public class DataSetServiceTest
     private PeriodType periodType;
 
     private Period period;
-    
+
+    private DataElement dataElementA;
+    private DataElement dataElementB;
+
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
     private OrganisationUnit unitD;
     private OrganisationUnit unitE;
     private OrganisationUnit unitF;
-
+    
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
     private CurrentUserService mockCurrentUserService;
@@ -138,6 +141,12 @@ public class DataSetServiceTest
 
         period = createPeriod( periodType, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodService.addPeriod( period );
+
+        dataElementA = createDataElement( 'A' );
+        dataElementB = createDataElement( 'B' );
+        
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
         
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
@@ -390,15 +399,9 @@ public class DataSetServiceTest
         dataSetB.setExpiryDays( 10 );
         dataSetB.setTimelyDays( 15 );
 
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        
         dataSetA.addDataSetElement( dataElementA );
         dataSetB.addDataSetElement( dataElementA );
 
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
 
