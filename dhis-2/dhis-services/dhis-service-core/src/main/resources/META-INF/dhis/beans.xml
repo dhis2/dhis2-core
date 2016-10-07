@@ -1787,6 +1787,8 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimensionDeletionHandler" />
+
   <bean id="org.hisp.dhis.program.ProgramStageDataElementDeletionHandler"
     class="org.hisp.dhis.program.ProgramStageDataElementDeletionHandler">
   </bean>
