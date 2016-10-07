@@ -110,7 +110,7 @@ public class LegendSetController
 
     @Override
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_DELETE')or hasRole('ALL')" )
+    @PreAuthorize( "hasRole('F_GIS_ADMIN') or hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
@@ -121,15 +121,7 @@ public class LegendSetController
             throw new WebMessageException( WebMessageUtils.notFound( "Legend set does not exist: " + uid ) );
         }
 
-        Iterator<Legend> legends = legendSet.getLegends().iterator();
-
-        while ( legends.hasNext() )
-        {
-            Legend legend = legends.next();
-            legends.remove();
-            legendService.deleteLegend( legend );
-        }
-
+        legendSet.getLegends().clear();
         legendService.deleteLegendSet( legendSet );
     }
 }
