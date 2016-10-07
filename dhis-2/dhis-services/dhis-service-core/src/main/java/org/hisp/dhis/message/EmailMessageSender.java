@@ -157,7 +157,7 @@ public class EmailMessageSender
                 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
                 
-                status = new MessageResponseStatus( "Sent", EmailResponse.SENT, true );
+                status = new MessageResponseStatus( "Email sent", EmailResponse.SENT, true );
             }
             else
             {
@@ -168,13 +168,13 @@ public class EmailMessageSender
         {
             log.warn( "Could not send email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus( "Failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus( "Failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;
@@ -220,20 +220,24 @@ public class EmailMessageSender
 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
 
-                return new MessageResponseStatus( "sent", EmailResponse.SENT, true );
+                return new MessageResponseStatus( "Email sent", EmailResponse.SENT, true );
+            }
+            else
+            {
+                status = new MessageResponseStatus( "No recipients found", EmailResponse.ABORTED, false );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;
