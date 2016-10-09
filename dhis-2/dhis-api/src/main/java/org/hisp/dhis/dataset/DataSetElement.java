@@ -106,26 +106,37 @@ public class DataSetElement
         return Objects.hashCode( super.hashCode(), dataSet, dataElement );
     }
 
-    public boolean equals( Object other )
+    @Override
+    public boolean equals( Object object )
     {
-        if ( this == other )
+        if ( this == object )
         {
             return true;
         }
 
-        if ( other == null )
+        if ( object == null )
         {
             return false;
         }
 
-        if ( !getClass().isAssignableFrom( other.getClass() ) )
+        if ( !getClass().isAssignableFrom( object.getClass() ) )
         {
             return false;
         }
 
-        DataSetElement element = (DataSetElement) other;
+        DataSetElement other = (DataSetElement) object;
 
-        return dataSet.equals( element.getDataSet() ) && dataElement.equals( element.getDataElement() );
+        return objectEquals( other );
+    }
+    
+    public boolean objectEquals( DataSetElement other )
+    {
+        if ( getCategoryCombo() != null ? !getCategoryCombo().equals( other.getCategoryCombo() ) : other.getCategoryCombo() != null )
+        {
+            return false;
+        }
+        
+        return dataSet.equals( other.getDataSet() ) && dataElement.equals( other.getDataElement() );
     }
 
     @Override

@@ -297,7 +297,8 @@ public class DefaultPushAnalysisService
             }
         }
 
-        // Update lastRun date:
+        // Update lastRun date
+        
         pushAnalysis.setLastRun( new Date() );
         pushAnalysisStore.update( pushAnalysis );
 
@@ -378,7 +379,6 @@ public class DefaultPushAnalysisService
     private String getItemHtml( DashboardItem item, User user, TaskId taskId )
         throws Exception
     {
-
         switch ( item.getType() )
         {
             case MAP:
@@ -406,15 +406,17 @@ public class DefaultPushAnalysisService
 
         switch ( item.getType() )
         {
-        case MAP:
-            result += "/dhis-web-mapping/index.html?id=" + item.getMap().getUid();
-            break;
-        case REPORT_TABLE:
-            result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
-            break;
-        case CHART:
-            result += "/dhis-web-visualizer/index.html?id=" + item.getChart().getUid();
-            break;
+            case MAP:
+                result += "/dhis-web-mapping/index.html?id=" + item.getMap().getUid();
+                break;
+            case REPORT_TABLE:
+                result += "/dhis-web-pivot/index.html?id=" + item.getReportTable().getUid();
+                break;
+            case CHART:
+                result += "/dhis-web-visualizer/index.html?id=" + item.getChart().getUid();
+                break;
+            default:
+                break;
         }
 
         return result;

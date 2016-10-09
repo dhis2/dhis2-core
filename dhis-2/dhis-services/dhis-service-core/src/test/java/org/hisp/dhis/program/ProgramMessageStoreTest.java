@@ -66,8 +66,6 @@ public class ProgramMessageStoreTest
 
     private ProgramInstance programInstanceA;
 
-    private ProgramStageInstance psiA;
-
     private TrackedEntityInstance teiA;
 
     private TrackedEntityInstance entityInstanceA;
