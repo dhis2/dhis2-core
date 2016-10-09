@@ -69,6 +69,13 @@ public class DataSetElement
         setAutoFields();
     }
 
+    public DataSetElement( DataSet dataSet, DataElement dataElement )
+    {
+        setAutoFields();
+        this.dataSet = dataSet;
+        this.dataElement = dataElement;
+    }
+
     public DataSetElement( DataSet dataSet, DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
         setAutoFields();
@@ -130,12 +137,7 @@ public class DataSetElement
     }
     
     public boolean objectEquals( DataSetElement other )
-    {
-        if ( getCategoryCombo() != null ? !getCategoryCombo().equals( other.getCategoryCombo() ) : other.getCategoryCombo() != null )
-        {
-            return false;
-        }
-        
+    {        
         return dataSet.equals( other.getDataSet() ) && dataElement.equals( other.getDataElement() );
     }
 
