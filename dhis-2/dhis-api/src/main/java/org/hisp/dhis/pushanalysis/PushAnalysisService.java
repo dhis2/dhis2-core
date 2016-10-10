@@ -1,5 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
+import java.io.IOException;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -60,10 +62,10 @@ public interface PushAnalysisService
      * @param user User to base data on
      * @param taskId TaskId to track process
      * @return String containing a HTML report
-     * @throws
+     * @throws IOException if the upload of report content failed.
      */
     String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
-        throws Exception;
+        throws IOException;
 
     /**
      * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,

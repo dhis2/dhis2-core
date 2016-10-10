@@ -51,6 +51,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -79,19 +81,19 @@ public class PushAnalysisController
     @RequestMapping( value = "/{uid}/render", method = RequestMethod.GET )
     public void renderPushAnalytics(
         @PathVariable() String uid,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response ) throws WebMessageException, IOException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
         
         if ( pushAnalysis == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
+                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE );
 
-        log.info( "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
+        log.info( "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'" );
 
         String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
         response.getWriter().write( result );
@@ -100,14 +102,13 @@ public class PushAnalysisController
 
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{uid}/run", method = RequestMethod.POST )
-    public void sendPushAnalysis( @PathVariable() String uid ) throws Exception
+    public void sendPushAnalysis( @PathVariable() String uid ) throws WebMessageException, IOException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
         
         if ( pushAnalysis == null )
         {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
         scheduler.executeTask( new PushAnalysisTask(

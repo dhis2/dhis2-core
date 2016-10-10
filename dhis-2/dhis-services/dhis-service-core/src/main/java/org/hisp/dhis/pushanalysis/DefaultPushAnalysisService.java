@@ -307,7 +307,7 @@ public class DefaultPushAnalysisService
 
     @Override
     public String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
-        throws Exception
+        throws IOException
     {
         if ( taskId == null )
         {
@@ -377,7 +377,7 @@ public class DefaultPushAnalysisService
      * @throws Exception
      */
     private String getItemHtml( DashboardItem item, User user, TaskId taskId )
-        throws Exception
+        throws IOException
     {
         switch ( item.getType() )
         {
@@ -468,7 +468,6 @@ public class DefaultPushAnalysisService
      * @throws Exception
      */
     private String generateReportTableHtml( ReportTable reportTable, User user )
-        throws Exception
     {
         StringWriter stringWriter = new StringWriter();
 
