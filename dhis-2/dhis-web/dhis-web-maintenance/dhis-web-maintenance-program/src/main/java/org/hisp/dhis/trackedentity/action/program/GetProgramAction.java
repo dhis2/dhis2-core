@@ -28,11 +28,10 @@ package org.hisp.dhis.trackedentity.action.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
+import org.hisp.dhis.i18n.I18nService;
+import org.hisp.dhis.i18n.I18nUtils;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -41,8 +40,11 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -82,6 +84,9 @@ public class GetProgramAction
     {
         this.periodService = periodService;
     }
+
+    @Autowired
+    private I18nService i18nService;
 
     // -------------------------------------------------------------------------
     // Input/Output
@@ -150,6 +155,8 @@ public class GetProgramAction
         periodTypes = periodService.getAllPeriodTypes();
 
         program = programService.getProgram( id );
+
+        I18nUtils.i18n( i18nService, program.getProgramStages() );
 
         selectionTreeManager.setSelectedOrganisationUnits( program.getOrganisationUnits() );
 

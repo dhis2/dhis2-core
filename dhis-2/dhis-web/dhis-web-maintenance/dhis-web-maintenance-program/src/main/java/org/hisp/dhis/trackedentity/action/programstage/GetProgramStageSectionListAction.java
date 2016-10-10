@@ -28,16 +28,18 @@ package org.hisp.dhis.trackedentity.action.programstage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.i18n.I18nService;
+import org.hisp.dhis.i18n.I18nUtils;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.comparator.ProgramStageSectionSortOrderComparator;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -56,6 +58,9 @@ public class GetProgramStageSectionListAction
     {
         this.programStageService = programStageService;
     }
+
+    @Autowired
+    private I18nService i18nService;
 
     // -------------------------------------------------------------------------
     // Input/Output
@@ -98,6 +103,8 @@ public class GetProgramStageSectionListAction
         programStage = programStageService.getProgramStage( id );
 
         sections = new ArrayList<>( programStage.getProgramStageSections() );
+
+        I18nUtils.i18n( i18nService, sections );
 
         Collections.sort( sections, new ProgramStageSectionSortOrderComparator() );
 
