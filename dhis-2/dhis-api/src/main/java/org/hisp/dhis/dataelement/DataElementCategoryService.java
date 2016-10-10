@@ -29,6 +29,7 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.user.UserCredentials;
 
@@ -471,6 +472,12 @@ public interface DataElementCategoryService
      */
     void updateOptionCombos( DataElementCategoryCombo categoryCombo );
 
+    /**
+     * Generates the complete set of category option combos for the given
+     * category combo. Removes obsolete category option combos.
+     * 
+     * @param categoryCombo the DataElementCategoryCombo.
+     */
     void addAndPruneOptionCombos( DataElementCategoryCombo categoryCombo );
 
     /**
@@ -491,6 +498,9 @@ public interface DataElementCategoryService
 
     Map<String, Integer> getDataElementCategoryOptionComboUidIdMap();
 
+    /**
+     * Updates the name property of all category option combinations.
+     */
     void updateCategoryOptionComboNames();
 
     // -------------------------------------------------------------------------
@@ -498,7 +508,7 @@ public interface DataElementCategoryService
     // -------------------------------------------------------------------------
 
     /**
-     * Gets the Operands for the given Collection of DataElements.
+     * Returns generated Operands for the given Collection of DataElements.
      *
      * @param dataElements the Collection of DataElements.
      * @return the Operands for the given Collection of DataElements.
@@ -506,14 +516,20 @@ public interface DataElementCategoryService
     List<DataElementOperand> getOperands( Collection<DataElement> dataElements );
 
     /**
-     * Gets the Operands for the given Collection of DataElements.
+     * Returns generated Operands for the given Collection of DataElements.
      *
      * @param dataElements  the Collection of DataElements.
-     * @param includeTotals whether to include DataElement totals in the
-     *                      Collection of Operands.
+     * @param includeTotals whether to include DataElement totals.
      * @return the Operands for the given Collection of DataElements.
      */
     List<DataElementOperand> getOperands( Collection<DataElement> dataElements, boolean includeTotals );
+    
+    /**
+     * Returns generated Operands for the given data set. Totals are included.
+     * 
+     * @param dataSet the data set.
+     */
+    List<DataElementOperand> getOperands( DataSet dataSet );
 
     // -------------------------------------------------------------------------
     // CategoryOptionGroup
