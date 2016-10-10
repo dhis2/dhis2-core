@@ -681,6 +681,11 @@ public class CurrentUserController
                 formDataSet.setId( uid );
                 formDataSet.setLabel( dataSet.getDisplayName() );
 
+                dataSet.getCategoryCombo().getCategories().forEach( cat -> {
+                    cat.setAccess( aclService.getAccess( cat, currentUser ) );
+                    cat.getCategoryOptions().forEach( catOpts -> catOpts.setAccess( aclService.getAccess( catOpts, currentUser ) ) );
+                });
+
                 forms.getForms().put( uid, FormUtils.fromDataSet( dataSet, false, userOrganisationUnits ) );
                 formOrganisationUnit.getDataSets().add( formDataSet );
 

@@ -154,6 +154,11 @@ public class FormUtils
             {
                 for ( DataElementCategory cat : cats )
                 {
+                    if ( cat.getAccess() != null && !cat.getAccess().isRead() )
+                    {
+                        continue;
+                    }
+
                     Category c = new Category();
                     c.setId( cat.getUid() );
                     c.setLabel( cat.getName() );
@@ -164,6 +169,11 @@ public class FormUtils
                     {
                         for ( DataElementCategoryOption option : options )
                         {
+                            if ( option.getAccess() != null && !option.getAccess().isRead() )
+                            {
+                                continue;
+                            }
+
                             Option o = new Option();
                             o.setId( option.getUid() );
                             o.setLabel( option.getName() );
