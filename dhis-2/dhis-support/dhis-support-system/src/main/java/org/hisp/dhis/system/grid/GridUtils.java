@@ -315,7 +315,7 @@ public class GridUtils
      * Writes a CSV representation of the given Grid to the given OutputStream.
      */
     public static void toCsv( Grid grid, Writer writer )
-        throws Exception
+        throws IOException
     {
         if ( grid == null )
         {
@@ -379,7 +379,6 @@ public class GridUtils
      * Writes a JRXML (Jasper Reports XML) representation of the given Grid to the given Writer.
      */
     public static void toJrxml( Grid grid, Map<?, ?> params, Writer writer )
-        throws Exception
     {
         render( grid, params, writer, JASPER_TEMPLATE );
     }
@@ -388,7 +387,6 @@ public class GridUtils
      * Writes a HTML representation of the given Grid to the given Writer.
      */
     public static void toHtml( Grid grid, Writer writer )
-        throws Exception
     {
         render( grid, null, writer, HTML_TEMPLATE );
     }
@@ -397,7 +395,6 @@ public class GridUtils
      * Writes a HTML representation of the given Grid to the given Writer.
      */
     public static void toHtmlCss( Grid grid, Writer writer )
-        throws Exception
     {
         render( grid, null, writer, HTML_CSS_TEMPLATE );
     }
@@ -406,7 +403,6 @@ public class GridUtils
      * Writes a HTML representation of the given Grid to the given Writer.
      */
     public static void toHtmlInlineCss( Grid grid, Writer writer )
-        throws Exception
     {
         render( grid, null, writer, HTML_INLINE_CSS_TEMPLATE );
     }
@@ -653,7 +649,6 @@ public class GridUtils
      * Render using Velocity.
      */
     private static void render( Grid grid, Map<?, ?> params, Writer writer, String template )
-        throws Exception
     {
         final VelocityContext context = new VelocityContext();
 
