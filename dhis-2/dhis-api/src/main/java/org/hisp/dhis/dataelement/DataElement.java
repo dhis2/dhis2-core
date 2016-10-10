@@ -240,8 +240,8 @@ public class DataElement
     public DataElementCategoryCombo getCategoryCombo( DataSet dataSet )
     {
         for ( DataSetElement element : dataSetElements )
-        {
-            if ( dataSet.equals( element.getDataSet() ) && element.hasCategoryCombo() )
+        {            
+            if ( dataSet.typedEquals( element.getDataSet() ) && element.hasCategoryCombo() )
             {
                 return element.getCategoryCombo();
             }

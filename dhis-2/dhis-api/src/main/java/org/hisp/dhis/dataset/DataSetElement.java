@@ -154,6 +154,7 @@ public class DataSetElement
             "\"lastUpdated\":\"" + getLastUpdated() + "\", " +
             "\"dataSet\":\"" + dataSet + "\", " +
             "\"dataElement\":\"" + dataElement + "\" " +
+            "\"categoryCombo\":\"" + categoryCombo + "\" " +
             "}";
     }
 
@@ -216,15 +217,15 @@ public class DataSetElement
 
             if ( mergeMode.isReplace() )
             {
+                dataSet = dataSetElement.getDataSet();
                 dataElement = dataSetElement.getDataElement();
                 categoryCombo = dataSetElement.getCategoryCombo();
-                dataSet = dataSetElement.getDataSet();
             }
             else if ( mergeMode.isMerge() )
             {
+                dataSet = dataSetElement.getDataSet() == null ? dataSet : dataSetElement.getDataSet();
                 dataElement = dataSetElement.getDataElement() == null ? dataElement : dataSetElement.getDataElement();
                 categoryCombo = dataSetElement.getCategoryCombo() == null ? categoryCombo : dataSetElement.getCategoryCombo();
-                dataSet = dataSetElement.getDataSet() == null ? dataSet : dataSetElement.getDataSet();
             }
         }
     }
