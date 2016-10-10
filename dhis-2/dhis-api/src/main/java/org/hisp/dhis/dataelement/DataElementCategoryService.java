@@ -35,7 +35,6 @@ import org.hisp.dhis.user.UserCredentials;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -412,7 +411,7 @@ public interface DataElementCategoryService
      * Retrieves the DataElementCategoryOptionCombo with the given Collection of
      * DataElementCategoryOptions.
      *
-     * @param categoryOptions
+     * @param categoryOptions the collection of DataElementCategoryOptions.
      */
     DataElementCategoryOptionCombo getDataElementCategoryOptionCombo(
         Collection<DataElementCategoryOption> categoryOptions );
@@ -495,8 +494,6 @@ public interface DataElementCategoryService
      * @return a category option combo.
      */
     DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id );
-
-    Map<String, Integer> getDataElementCategoryOptionComboUidIdMap();
 
     /**
      * Updates the name property of all category option combinations.

@@ -47,11 +47,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -684,19 +682,6 @@ public class DefaultDataElementCategoryService
         {
             addAndPruneOptionCombos( categoryCombo );
         }
-    }
-
-    @Override
-    public Map<String, Integer> getDataElementCategoryOptionComboUidIdMap()
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( DataElementCategoryOptionCombo coc : getAllDataElementCategoryOptionCombos() )
-        {
-            map.put( coc.getUid(), coc.getId() );
-        }
-
-        return map;
     }
 
     @Override
