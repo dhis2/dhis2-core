@@ -129,6 +129,9 @@ public class Section
         return getCategoryCombo() != null;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DataElementCategoryCombo getCategoryCombo()
     {
         for ( DataElement dataElement : dataElements )
