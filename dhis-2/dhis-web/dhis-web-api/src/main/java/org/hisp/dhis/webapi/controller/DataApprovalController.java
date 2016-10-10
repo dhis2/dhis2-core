@@ -61,6 +61,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -584,6 +585,7 @@ public class DataApprovalController
         periods = periodService.reloadPeriods( periods );
 
         User user = currentUserService.getCurrentUser();
+        DataElementCategoryOptionCombo defaultOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         Date date = new Date();
 
         Set<DataApproval> set = new HashSet<>(); // Avoid duplicates when different data sets have the same work flow
@@ -601,6 +603,7 @@ public class DataApprovalController
             {
                 OrganisationUnit unit = organisationUnitService.getOrganisationUnit( approval.getOu() );
                 DataElementCategoryOptionCombo optionCombo = categoryService.getDataElementCategoryOptionCombo( approval.getAoc() );
+                optionCombo = ObjectUtils.firstNonNull( optionCombo, defaultOptionCombo );
 
                 for ( Period period : periods )
                 {
