@@ -329,6 +329,7 @@
     <property name="excludes">
       <set>
         <value>dhis-web-commons-menu</value>
+        <value>dhis-web-commons-menu-management</value>
         <value>dhis-web-commons-oust</value>
         <value>dhis-web-commons-ouwt</value>
         <value>dhis-web-commons-security</value>
@@ -448,8 +449,8 @@
         <value>F_OPTIONGROUPSET_PUBLIC_ADD</value>
         <value>F_OPTIONGROUPSET_PRIVATE_ADD</value>
         <value>F_OPTIONGROUPSET_DELETE</value>
-        <value>F_PUSHANALYSIS_ADD</value>
-        <value>F_PUSHANALYSIS_DELETE</value>
+        <value>F_PUSH_ANALYSIS_ADD</value>
+        <value>F_PUSH_ANALYSIS_DELETE</value>
         <value>F_EXTERNALMAPLAYER_PRIVATE_ADD</value>
         <value>F_EXTERNALMAPLAYER_PUBLIC_ADD</value>
         <value>F_EXTERNALMAPLAYER_DELETE</value>
