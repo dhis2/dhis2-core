@@ -499,6 +499,39 @@ public class BaseIdentifiableObject
 
         return true;
     }
+    
+    /**
+     * Equality check against typed identifiable object. This method is not
+     * vulnerable to proxy issues, where an uninitialized object class type
+     * fails comparison to a real class.
+     * 
+     * @param other the identifiable object to compare this object against.
+     * @return true if equal.
+     */
+    public boolean typedEquals( IdentifiableObject other )
+    {
+        if ( other == null )
+        {
+            return false;
+        }
+
+        if ( getUid() != null ? !getUid().equals( other.getUid() ) : other.getUid() != null )
+        {
+            return false;
+        }
+
+        if ( getCode() != null ? !getCode().equals( other.getCode() ) : other.getCode() != null )
+        {
+            return false;
+        }
+
+        if ( getName() != null ? !getName().equals( other.getName() ) : other.getName() != null )
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     // -------------------------------------------------------------------------
     // Logic

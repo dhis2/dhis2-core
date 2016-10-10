@@ -105,6 +105,8 @@ public class BaseDimensionalObject
     // Constructors
     //--------------------------------------------------------------------------
 
+    // TODO displayName collides with translation solution, rename
+    
     public BaseDimensionalObject()
     {
     }
@@ -384,6 +386,7 @@ public class BaseDimensionalObject
             .add( "type", dimensionType )
             .add( "dimension name", dimensionName )
             .add( "display name", displayName )
+            .add( "object name", name )
             .add( "items", items )
             .add( "all items", allItems )
             .add( "legend set", legendSet )

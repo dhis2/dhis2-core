@@ -330,6 +330,7 @@ public class LoadFormAction
         if ( dataSet.getFormType().isDefault() )
         {
             DataSet dataSetCopy = new DataSet();
+            dataSetCopy.setUid( dataSet.getUid() );
             dataSetCopy.setName( dataSet.getName() );
             dataSetCopy.setShortName( dataSet.getShortName() );
             dataSetCopy.setRenderAsTabs( dataSet.isRenderAsTabs() );
@@ -347,8 +348,8 @@ public class LoadFormAction
                 section.setId( i );
                 section.setName( name );
                 section.setSortOrder( i );
-                section.setDataSet( dataSet );
-                dataSet.getSections().add( section );
+                section.setDataSet( dataSetCopy );
+                dataSetCopy.getSections().add( section );
 
                 section.getDataElements().addAll( orderedDataElements.get( categoryCombo ) );
                 section.setIndicators( new ArrayList<>( dataSet.getIndicators() ) );
