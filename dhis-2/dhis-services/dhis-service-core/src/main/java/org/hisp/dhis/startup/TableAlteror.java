@@ -1095,6 +1095,7 @@ public class TableAlteror
         executeSql( "alter table datasetelement alter column uid set not null" );
         executeSql( "alter table datasetelement alter column created set not null" );
         executeSql( "alter table datasetelement alter column lastupdated set not null" );
+        executeSql( "alter table datasetelement alter column datasetid drop not null" );
     }
     
     private void upgradeAggregationType( String table )

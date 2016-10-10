@@ -308,7 +308,7 @@ public class DataSetServiceTest
 
         // Remove data element A
         
-        dataSet.removeDataSetElement( dataElementA, null );
+        dataSet.removeDataSetElement( dataElementA );
         
         dataSetService.updateDataSet( dataSet );
         
@@ -319,7 +319,7 @@ public class DataSetServiceTest
 
         // Remove data element B
         
-        dataSet.removeDataSetElement( dataElementB, null );
+        dataSet.removeDataSetElement( dataElementB );
 
         dataSetService.updateDataSet( dataSet );
         
