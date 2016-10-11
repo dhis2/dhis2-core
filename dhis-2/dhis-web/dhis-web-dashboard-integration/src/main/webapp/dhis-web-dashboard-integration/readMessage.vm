@@ -46,6 +46,16 @@
                     <option value="SOLVED" #if(${conversation.status} == "SOLVED") selected #end>Status: Solved</option>
                 </select>
             </li>
+            <li>
+                <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee('${conversation.uid}')">
+                    #if(!$conversation.getAssignee())
+                        <option value="null" selected>Assign to user</option>
+                    #end
+                    #foreach($user in $feedbackRecipientGroupUsers)
+                        <option value="${user.getUid()}" #if($conversation.getAssignee().getUid() == $user.getUid()) selected #end>Assigned to: ${user.getName()}</option>
+                    #end
+                </select>
+            </li>
         #end
         <li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( "back" )</a></li>
         <li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToBottom()">$i18n.getString( "scroll_down" )</a></li>

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -59,12 +60,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -92,6 +88,9 @@ public class MessageConversationController
 
     @Autowired
     private UserGroupService userGroupService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Override
     protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
@@ -373,6 +372,60 @@ public class MessageConversationController
         messageConversation.setStatus( messageConversationStatus );
         messageService.updateMessageConversation( messageConversation );
         marked.addChild( new SimpleNode( "uid", messageConversation.getUid() ) );
+        response.setStatus( HttpServletResponse.SC_OK );
+
+        return responseNode;
+    }
+
+    //--------------------------------------------------------------------------
+    // Assign user
+    //--------------------------------------------------------------------------
+
+    @RequestMapping( value = "/{uid}/assign", method = RequestMethod.POST, produces = {
+        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+    public @ResponseBody RootNode setMessageStatus(
+        @PathVariable String uid,
+        @RequestBody( required = true ) User assignee,
+        HttpServletResponse response )
+    {
+        RootNode responseNode = new RootNode( "response" );
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( !canModifyUserConversation( user, user ) &&
+            (messageService.hasAccessToManageFeedbackMessages( user )) )
+        {
+            throw new UpdateAccessDeniedException( "Not authorized to modify this object." );
+        }
+
+        org.hisp.dhis.message.MessageConversation messageConversation = messageService
+            .getMessageConversation( uid );
+
+        if ( messageConversation == null )
+        {
+            response.setStatus( HttpServletResponse.SC_NOT_FOUND );
+            responseNode.addChild( new SimpleNode( "message", "No MessageConversation found for the given ID." ) );
+            return responseNode;
+        }
+
+        User userToAssign;
+        if ( (userToAssign = userService.getUser( assignee.getUid() )) == null )
+        {
+            response.setStatus( HttpServletResponse.SC_NOT_FOUND );
+            responseNode.addChild( new SimpleNode( "message", "Could not find user to assign" ) );
+            return responseNode;
+        }
+
+        if( !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
+        {
+            response.setStatus( HttpServletResponse.SC_CONFLICT );
+            responseNode.addChild( new SimpleNode( "message", "User provided is not a member of the system's feedback recipient group" ) );
+            return responseNode;
+        }
+
+        messageConversation.setAssignee( userToAssign );
+        messageService.updateMessageConversation( messageConversation );
+        responseNode.addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned to ticket" ) );
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
