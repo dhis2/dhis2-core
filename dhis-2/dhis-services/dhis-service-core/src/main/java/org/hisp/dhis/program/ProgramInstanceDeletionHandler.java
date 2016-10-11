@@ -33,8 +33,6 @@ import java.util.Iterator;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 
 /**
  * @author Quang Nguyen
@@ -53,13 +51,6 @@ public class ProgramInstanceDeletionHandler
         this.programInstanceService = programInstanceService;
     }
 
-    private TrackedEntityCommentService commentService;
-
-    public void setCommentService( TrackedEntityCommentService commentService )
-    {
-        this.commentService = commentService;
-    }
-
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -71,18 +62,13 @@ public class ProgramInstanceDeletionHandler
     }
 
     @Override
-    public void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
+    public void deleteTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
     {
-        for ( ProgramInstance programInstance : entityInstance.getProgramInstances() )
+        for ( ProgramInstance programInstance : trackedEntityInstance.getProgramInstances() )
         {
-            for( TrackedEntityComment comment : programInstance.getComments())
-            {
-                commentService.deleteTrackedEntityComment( comment );
-            }
-
             programInstanceService.deleteProgramInstance( programInstance );
         }
-    }
+    }   
 
     @Override
     public void deleteProgram( Program program )
