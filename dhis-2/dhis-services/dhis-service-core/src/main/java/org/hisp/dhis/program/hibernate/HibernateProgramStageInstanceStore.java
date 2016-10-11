@@ -141,9 +141,6 @@ public class HibernateProgramStageInstanceStore
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
 
-        System.out.println( "psi template : " + template.getName() );
-        System.out.println( "psi query target date: " + targetDate.toString() );
-
         String hql =
             "select distinct psi from ProgramStageInstance as psi " +
             "inner join psi.programStage as ps " +
