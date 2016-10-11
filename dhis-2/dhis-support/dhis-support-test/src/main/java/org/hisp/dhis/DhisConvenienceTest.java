@@ -84,6 +84,9 @@ import org.hisp.dhis.program.message.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
+import org.hisp.dhis.program.notification.NotificationRecipient;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -1604,6 +1607,21 @@ public abstract class DhisConvenienceTest
         constant.setValue( value );
 
         return constant;
+    }
+
+    protected static ProgramNotificationTemplate createProgramNotificationTemplate(
+        String name, int days, NotificationTrigger trigger )
+    {
+        return new ProgramNotificationTemplate(
+            name,
+            "Subject",
+            "Message",
+            trigger,
+            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Sets.newHashSet(),
+            days,
+            null
+        );
     }
 
     // -------------------------------------------------------------------------

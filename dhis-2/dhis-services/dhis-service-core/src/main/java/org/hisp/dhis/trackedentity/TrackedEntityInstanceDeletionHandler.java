@@ -52,7 +52,7 @@ public class TrackedEntityInstanceDeletionHandler
 
     private JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )    
     {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -65,13 +65,6 @@ public class TrackedEntityInstanceDeletionHandler
     protected String getClassName()
     {
         return TrackedEntityInstance.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
-    {
-        //TODO handle instance representative
-        //TODO re-consider representative concept / implement in TEI query
     }
 
     @Override
