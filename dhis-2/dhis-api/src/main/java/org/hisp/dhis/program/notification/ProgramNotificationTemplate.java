@@ -107,6 +107,7 @@ public class ProgramNotificationTemplate
         this.subjectTemplate = subjectTemplate;
     }
 
+    @PropertyRange( min = 1, max = 10000 )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getMessageTemplate()

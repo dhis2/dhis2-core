@@ -76,7 +76,7 @@ public class NotificationMessageRenderer
 
     private static final int SMS_CHAR_LIMIT = 160 * 4;  // Four concatenated SMS messages
     private static final int EMAIL_CHAR_LIMIT = 10000;  // Somewhat arbitrarily chosen limits
-    private static final int SUBJECT_CHAR_LIMIT = 60;   //
+    private static final int SUBJECT_CHAR_LIMIT = 100;   //
 
     private static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
     private static final String MISSING_VALUE_REPLACEMENT = "[N/A]";

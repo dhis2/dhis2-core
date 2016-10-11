@@ -1416,7 +1416,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.notification.ProgramStageNotificationStore"
+  <bean id="org.hisp.dhis.program.notification.ProgramNotificationStore"
     class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     <property name="sessionFactory" ref="sessionFactory" />
