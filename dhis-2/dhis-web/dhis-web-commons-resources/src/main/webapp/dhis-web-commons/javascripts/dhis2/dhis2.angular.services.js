@@ -2571,82 +2571,93 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 });
             });
         },
-        processRuleEffectAttribute: function(context, selectedTei, tei, currentEvent, currentEventOriginialValue, affectedEvent, attributesById, prStDes, hiddenFields, hiddenSections, warningMessages, assignedFields, optionSets){
+        processRuleEffectsForTrackedEntityAttributes: function(context, currentTei, teiOriginalValues, attributesById, optionSets ) {
+            var hiddenFields = {};
+            var assignedFields = {};
+            var hiddenSections = {};
+            var warningMessages = [];
+            
             angular.forEach($rootScope.ruleeffects[context], function (effect) {
-                if (effect.trackedEntityAttribute) {
-                    //in the data entry controller we only care about the "hidefield", showerror and showwarning actions
-                    if (effect.action === "HIDEFIELD") {
-                        if (effect.trackedEntityAttribute) {
-                            if (effect.ineffect && selectedTei[effect.trackedEntityAttribute.id]) {
-                                //If a field is going to be hidden, but contains a value, we need to take action;
-                                if (effect.content) {
-                                    //TODO: Alerts is going to be replaced with a proper display mecanism.
-                                    alert(effect.content);
-                                }
-                                else {
-                                    //TODO: Alerts is going to be replaced with a proper display mecanism.
-                                    alert(attributesById[effect.trackedEntityAttribute.id].displayName + "Was blanked out and hidden by your last action");
-                                }
-
-                                //Blank out the value:
-                                selectedTei[effect.trackedEntityAttribute.id] = "";
+                if (effect.ineffect) {
+                    if (effect.action === "HIDEFIELD" && effect.trackedEntityAttribute) {
+                        if (currentTei[effect.trackedEntityAttribute.id]) {
+                            //If a field is going to be hidden, but contains a value, we need to take action;
+                            if (effect.content) {
+                                //TODO: Alerts is going to be replaced with a proper display mecanism.
+                                alert(effect.content);
+                            }
+                            else {
+                                //TODO: Alerts is going to be replaced with a proper display mecanism.
+                                alert(attributesById[effect.trackedEntityAttribute.id].displayName + " was blanked out and hidden by your last action");
                             }
 
-                            hiddenFields[effect.trackedEntityAttribute.id] = effect.ineffect;
+                            //Blank out the value:
+                            currentTei[effect.trackedEntityAttribute.id] = "";
                         }
-                        else {
-                            $log.warn("ProgramRuleAction " + effect.id + " is of type HIDEFIELD, bot does not have an attribute defined");
-                        }
+
+                        hiddenFields[effect.trackedEntityAttribute.id] = true;
                     } else if (effect.action === "SHOWERROR") {
-                        if (effect.trackedEntityAttribute) {                        
-                            if(effect.ineffect) {
-                                var headerText =  $translate.instant('validation_error');
-                                var bodyText = effect.content + (effect.data ? effect.data : "");
+                        if(effect.ineffect) {
+                            var headerText =  $translate.instant('validation_error');
+                            var bodyText = effect.content + (effect.data ? effect.data : "");
 
-                                NotificationService.showNotifcationDialog(headerText, bodyText);
-                                selectedTei[effect.trackedEntityAttribute.id] = tei[effect.trackedEntityAttribute.id];
+                            NotificationService.showNotifcationDialog(headerText, bodyText);
+                            if( effect.trackedEntityAttribute ) {
+                                currentTei[effect.trackedEntityAttribute.id] = teiOriginalValues[effect.trackedEntityAttribute.id];
                             }
-                        }
-                        else {
-                            $log.warn("ProgramRuleAction " + effect.id + " is of type HIDEFIELD, bot does not have an attribute defined");
                         }
                     } else if (effect.action === "SHOWWARNING") {
-                        if (effect.trackedEntityAttribute) {
-                            if(effect.ineffect) {
-                                var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
-                                warningMessages.push(message);
+                        if(effect.ineffect) {
+                            var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
+                            warningMessages.push(message);
+
+                            if( effect.trackedEntityAttribute ) {
                                 warningMessages[effect.trackedEntityAttribute.id] = message;
                             }
                         }
-                        else {
-                            $log.warn("ProgramRuleAction " + effect.id + " is of type HIDEFIELD, bot does not have an attribute defined");
+                    }
+                    else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
+                        var processedValue = $filter('trimquotes')(effect.data);
+
+                        if(attributesById[effect.trackedEntityAttribute.id].optionSet) {
+                            processedValue = OptionSetService.getName(
+                                    optionSets[attributesById[effect.trackedEntityAttribute.id].optionSet.id].options, processedValue)
                         }
+
+                        processedValue = processedValue === "true" ? true : processedValue;
+                        processedValue = processedValue === "false" ? false : processedValue;
+
+                        //For "ASSIGN" actions where we have a dataelement, we save the calculated value to the dataelement:
+                        currentTei[effect.trackedEntityAttribute.id] = processedValue;
+                        assignedFields[effect.trackedEntityAttribute.id] = true;
                     }
                 }
-                
-                if(effect.dataElement && effect.ineffect) {
-                    //in the data entry controller we only care about the "hidefield" actions
-                    if(effect.action === "HIDEFIELD") {
-                        if(effect.dataElement) {
-                            if(affectedEvent && affectedEvent[effect.dataElement.id]) {
-                                //If a field is going to be hidden, but contains a value, we need to take action;
-                                if(effect.content) {
-                                    //TODO: Alerts is going to be replaced with a proper display mecanism.
-                                    alert(effect.content);
-                                }
-                                else {
-                                    //TODO: Alerts is going to be replaced with a proper display mecanism.
-                                    alert(prStDes[effect.dataElement.id].dataElement.formName + "Was blanked out and hidden by your last action");
-                                }
-
-                                //Blank out the value:
-                                affectedEvent[effect.dataElement.id] = "";
+            });
+            return {currentTei: currentTei, hiddenFields: hiddenFields, hiddenSections: hiddenSections, warningMessages: warningMessages, assignedFields: assignedFields};
+        },
+        processRuleEffectsForEvent: function(eventId, currentEvent, currentEventOriginalValues, prStDes, optionSets ) {
+            var hiddenFields = {};
+            var assignedFields = {};
+            var hiddenSections = {};
+            var warningMessages = [];
+            
+            angular.forEach($rootScope.ruleeffects[eventId], function (effect) {
+                if (effect.ineffect) {
+                    if (effect.action === "HIDEFIELD" && effect.dataElement) {
+                        if(currentEvent[effect.dataElement.id]) {
+                            //If a field is going to be hidden, but contains a value, we need to take action;
+                            if(effect.content) {
+                                //TODO: Alerts is going to be replaced with a proper display mecanism.
+                                alert(effect.content);
                             }
-                            hiddenFields[effect.dataElement.id] = effect.ineffect;
+                            else {
+                                //TODO: Alerts is going to be replaced with a proper display mecanism.
+                                alert(prStDes[effect.dataElement.id].dataElement.formName + "Was blanked out and hidden by your last action");
+                            }
+
                         }
-                        else {
-                            $log.warn("ProgramRuleAction " + effect.id + " is of type HIDEFIELD, bot does not have a dataelement defined");
-                        }
+                        
+                        hiddenFields[effect.dataElement.id] = true;
                     }
                     else if(effect.action === "HIDESECTION") {
                         if(effect.programStageSection){
@@ -2658,30 +2669,46 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         var bodyTxt = effect.content + (effect.data ? effect.data : "");
                         NotificationService.showNotifcationDialog(headerTxt, bodyTxt);
 
-                        currentEvent[effect.dataElement.id] = currentEventOriginialValue[effect.dataElement.id];
+                        currentEvent[effect.dataElement.id] = currentEventOriginalValues[effect.dataElement.id];
                     }
                     else if(effect.action === "SHOWWARNING"){
                         warningMessages.push(effect.content + (effect.data ? effect.data : ""));
                     }
-                    else if (effect.action === "ASSIGN") {
+                    else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
                         var processedValue = $filter('trimquotes')(effect.data);
 
-                        if(attributesById[effect.trackedEntityAttribute.id].optionSet) {
+                        if(prStDes[effect.dataElement.id].dataElement.optionSet) {
                             processedValue = OptionSetService.getName(
-                                    optionSets[attributesById[effect.trackedEntityAttribute.id].optionSet.id].options, processedValue)
+                                    optionSets[prStDes[effect.dataElement.id].dataElement.optionSet.id].options, processedValue)
                         }
 
                         processedValue = processedValue === "true" ? true : processedValue;
                         processedValue = processedValue === "false" ? false : processedValue;
-                        
-                        //For "ASSIGN" actions where we have a dataelement, we save the calculated value to the dataelement:
-                        selectedTei[effect.trackedEntityAttribute.id] = processedValue;
-                        assignedFields[effect.trackedEntityAttribute.id] = true;
+
+                        currentEvent[effect.dataElement.id] = processedValue;
+                        assignedFields[effect.dataElement.id] = true;
                     }
                 }
             });
+        
+            return {currentEvent: currentEvent, hiddenFields: hiddenFields, hiddenSections: hiddenSections, warningMessages: warningMessages, assignedFields: assignedFields};
+        },
+        processRuleEffectAttribute: function(context, selectedTei, tei, currentEvent, currentEventOriginialValue, affectedEvent, attributesById, prStDes, hiddenFields, hiddenSections, warningMessages, assignedFields, optionSets){
+            //Function used from registration controller to process effects for the tracked entity instance and for the events in the same operation
+            var teiAttributesEffects = this.processRuleEffectsForTrackedEntityAttributes(context, selectedTei, tei, attributesById, optionSets );
+            teiAttributesEffects.selectedTei = teiAttributesEffects.currentTei;
             
-            return {selectedTei: selectedTei, currentEvent: currentEvent, hiddenFields: hiddenFields, hiddenSections: hiddenSections, warningMessages: warningMessages, assignedFields: assignedFields};            }
+            if(context === "SINGLE_EVENT" && currentEvent && prStDes ) {
+                var eventEffects = this.processRuleEffectsForEvent("SINGLE_EVENT", currentEvent, currentEventOriginialValue, prStDes, optionSets);
+                teiAttributesEffects.warningMessages = angular.extend(teiAttributesEffects.warningMessages,eventEffects.warningMessages);
+                teiAttributesEffects.hiddenFields = angular.extend(teiAttributesEffects.hiddenFields,eventEffects.hiddenFields);
+                teiAttributesEffects.hiddenSections = angular.extend(teiAttributesEffects.hiddenSections,eventEffects.hiddenSections);
+                teiAttributesEffects.assignedFields = angular.extend(teiAttributesEffects.assignedFields,eventEffects.assignedFields);
+                teiAttributesEffects.currentEvent = eventEffects.currentEvent;
+            }
+            
+            return teiAttributesEffects;
+        }
     };
 })
 
