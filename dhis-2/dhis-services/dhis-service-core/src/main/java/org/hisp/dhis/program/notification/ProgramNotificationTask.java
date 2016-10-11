@@ -36,9 +36,9 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -97,6 +97,10 @@ public class ProgramNotificationTask
 
     private void runInternal()
     {
-        programNotificationService.sendScheduledNotificationsForDay( DateUtils.getDateForTomorrow( 0 ) );
+        // Today at 00:00:00
+        Calendar calendar = Calendar.getInstance();
+        calendar.set( Calendar.HOUR, 0 );
+
+        programNotificationService.sendScheduledNotificationsForDay( calendar.getTime() );
     }
 }

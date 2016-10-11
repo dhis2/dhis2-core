@@ -136,11 +136,13 @@ public class HibernateProgramStageInstanceStore
 
         if ( template.getRelativeScheduledDays() == null )
         {
-            System.out.println( "WTF DUDE" );
             return Lists.newArrayList();
         }
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
+
+        System.out.println( "psi template : " + template.getName() );
+        System.out.println( "psi query target date: " + targetDate.toString() );
 
         String hql =
             "select distinct psi from ProgramStageInstance as psi " +
