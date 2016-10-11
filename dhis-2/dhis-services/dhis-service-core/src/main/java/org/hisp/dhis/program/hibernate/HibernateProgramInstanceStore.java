@@ -217,10 +217,12 @@ public class HibernateProgramInstanceStore
             "inner join pi.program as p " +
             "where :notificationTemplate in elements(p.notificationTemplates) " +
             "and pi." + dateProperty + " is not null " +
+            "and pi.status = :activeEnrollmentStatus " +
             "and cast(:targetDate as date) = pi." + dateProperty;
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
+            .setString( "activeEnrollmentStatus", ProgramStatus.ACTIVE.name() )
             .setDate( "targetDate", targetDate ).list();
     }
 
