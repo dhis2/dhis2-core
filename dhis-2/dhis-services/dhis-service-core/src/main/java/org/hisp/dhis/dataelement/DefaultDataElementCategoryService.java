@@ -1,5 +1,7 @@
 package org.hisp.dhis.dataelement;
 
+import com.google.common.collect.Lists;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -37,17 +39,17 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -683,19 +685,6 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public Map<String, Integer> getDataElementCategoryOptionComboUidIdMap()
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( DataElementCategoryOptionCombo coc : getAllDataElementCategoryOptionCombos() )
-        {
-            map.put( coc.getUid(), coc.getId() );
-        }
-
-        return map;
-    }
-
-    @Override
     public DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
         DataElementCategoryOptionCombo coc = idObjectManager.getObject( DataElementCategoryOptionCombo.class, property, id );
@@ -735,33 +724,55 @@ public class DefaultDataElementCategoryService
     @Override
     public List<DataElementOperand> getOperands( Collection<DataElement> dataElements, boolean includeTotals )
     {
-        List<DataElementOperand> operands = new ArrayList<>();
+        List<DataElementOperand> operands = Lists.newArrayList();
 
         for ( DataElement dataElement : dataElements )
         {
             for ( DataElementCategoryCombo categoryCombo : dataElement.getCategoryCombos() )
             {
-                if ( !categoryCombo.isDefault() && includeTotals )
-                {
-                    DataElementOperand operand = new DataElementOperand( dataElement );
-                    operand.updateProperties( dataElement );
-
-                    operands.add( operand );
-                }
-
-                for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
-                {
-                    DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
-                    operand.updateProperties( dataElement, categoryOptionCombo );
-
-                    operands.add( operand );
-                }
+                operands.addAll( getOperands( dataElement, categoryCombo, includeTotals ) );
             }
         }
 
         return operands;
     }
 
+    @Override
+    public List<DataElementOperand> getOperands( DataSet dataSet )
+    {
+        List<DataElementOperand> operands = Lists.newArrayList();
+                
+        for ( DataSetElement element : dataSet.getDataSetElements() )
+        {            
+            operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo(), true ) );
+        }
+        
+        return operands;
+    }
+
+    private List<DataElementOperand> getOperands( DataElement dataElement, DataElementCategoryCombo categoryCombo, boolean includeTotals )
+    {
+        List<DataElementOperand> operands = Lists.newArrayList();
+        
+        if ( !categoryCombo.isDefault() && includeTotals )
+        {
+            DataElementOperand operand = new DataElementOperand( dataElement );
+            operand.updateProperties( dataElement );
+
+            operands.add( operand );
+        }
+
+        for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
+        {
+            DataElementOperand operand = new DataElementOperand( dataElement, categoryOptionCombo );
+            operand.updateProperties( dataElement, categoryOptionCombo );
+
+            operands.add( operand );
+        }
+        
+        return operands;
+    }
+    
     // -------------------------------------------------------------------------
     // CategoryOptionGroup
     // -------------------------------------------------------------------------

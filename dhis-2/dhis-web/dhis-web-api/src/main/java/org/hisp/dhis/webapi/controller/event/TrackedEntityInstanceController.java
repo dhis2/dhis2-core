@@ -85,12 +85,12 @@ import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *         <p>
- *         <p>
- *         The following statements are added not to cause api break.
- *         They need to be remove say in 2.26 or so once users are aware of the changes.
- *         programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
- *         programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
+ * <p>
+ * The following statements are added not to cause api break.
+ * They need to be remove say in 2.26 or so once users are aware of the changes.
+ * 
+ * programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
+ * programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
  */
 @Controller
 @RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
@@ -480,13 +480,13 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_DELETE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteTrackedEntityInstance( @PathVariable String id ) throws WebMessageException
     {
         if ( !instanceService.trackedEntityInstanceExists( id ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Tracked entity instance not found for ID " + id ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Tracked entity instance not found: " + id ) );
         }
 
         trackedEntityInstanceService.deleteTrackedEntityInstance( id );

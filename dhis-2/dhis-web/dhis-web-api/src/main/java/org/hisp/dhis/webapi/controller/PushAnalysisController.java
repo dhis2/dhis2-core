@@ -51,6 +51,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -62,7 +64,7 @@ import javax.servlet.http.HttpServletResponse;
 public class PushAnalysisController
     extends AbstractCrudController<PushAnalysis>
 {
-    private static final Log logger = LogFactory.getLog( PushAnalysisController.class );
+    private static final Log log = LogFactory.getLog( PushAnalysisController.class );
 
     @Autowired
     private PushAnalysisService pushAnalysisService;
@@ -76,68 +78,37 @@ public class PushAnalysisController
     @Autowired
     private Scheduler scheduler;
 
-    /**
-     * Endpoint that renders the same content as a Push Analysis email would contain, for the logged in user.
-     * Used for users to preview the content of Push Analysis
-     *
-     * @param uid      Push Analysis uid
-     * @param response
-     * @throws Exception
-     */
     @RequestMapping( value = "/{uid}/render", method = RequestMethod.GET )
     public void renderPushAnalytics(
         @PathVariable() String uid,
-        HttpServletResponse response
-    )
-        throws WebMessageException
+        HttpServletResponse response ) throws WebMessageException, IOException
     {
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
+        
         if ( pushAnalysis == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
+                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
-        contextUtils
-            .configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE );
 
-        logger.info(
-            "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'." );
+        log.info( "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'" );
 
-        try
-        {
-            String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
-            response.getWriter().write( result );
-            response.getWriter().close();
-
-        }
-        catch ( Exception e )
-        {
-            logger.error( "Failed to render push analysis" );
-            e.printStackTrace();
-        }
-
+        String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser(), null );
+        response.getWriter().write( result );
+        response.getWriter().close();
     }
 
-    /**
-     * This endpoint let's the user manually trigger a PushAnalysis run.
-     *
-     * @param uid      of the PushAnalysis to run
-     * @throws Exception
-     */
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @RequestMapping( value = "/{uid}/run", method = RequestMethod.POST )
-    public void sendPushAnalysis(
-        @PathVariable() String uid
-    )
-        throws Exception
+    public void sendPushAnalysis( @PathVariable() String uid ) throws WebMessageException, IOException
     {
-
         PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
+        
         if ( pushAnalysis == null )
         {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found." ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Push analysis with uid " + uid + " was not found" ) );
         }
 
         scheduler.executeTask( new PushAnalysisTask(

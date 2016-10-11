@@ -34,6 +34,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
@@ -74,18 +75,25 @@ public class DataElementOperandController
         {
             boolean totals = options.isTrue( "totals" );
 
-            String deGroup = CollectionUtils.popStartsWith( filters, "dataElement.dataElementGroups.id:eq:" );
-            deGroup = deGroup != null ? deGroup.substring( "dataElement.dataElementGroups.id:eq:".length() ) : null;
+            String deg = CollectionUtils.popStartsWith( filters, "dataElement.dataElementGroups.id:eq:" );
+            deg = deg != null ? deg.substring( "dataElement.dataElementGroups.id:eq:".length() ) : null;
+            
+            String ds = options.get( "dataSet" );
 
-            if ( deGroup != null )
+            if ( deg != null )
             {
-                DataElementGroup dataElementGroup = manager.get( DataElementGroup.class, deGroup );
-                dataElementOperands = new ArrayList<>( dataElementCategoryService.getOperands( dataElementGroup.getMembers(), totals ) );
+                DataElementGroup dataElementGroup = manager.get( DataElementGroup.class, deg );
+                dataElementOperands = dataElementCategoryService.getOperands( dataElementGroup.getMembers(), totals );
+            }
+            else if ( ds != null )
+            {
+                DataSet dataSet = manager.get( DataSet.class, ds );
+                dataElementOperands = dataElementCategoryService.getOperands( dataSet );
             }
             else
             {
                 List<DataElement> dataElements = new ArrayList<>( manager.getAllSorted( DataElement.class ) );
-                dataElementOperands = new ArrayList<>( dataElementCategoryService.getOperands( dataElements, totals ) );
+                dataElementOperands = dataElementCategoryService.getOperands( dataElements, totals );
             }
         }
 

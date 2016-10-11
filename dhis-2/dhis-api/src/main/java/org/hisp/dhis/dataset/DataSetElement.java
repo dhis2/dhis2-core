@@ -69,6 +69,13 @@ public class DataSetElement
         setAutoFields();
     }
 
+    public DataSetElement( DataSet dataSet, DataElement dataElement )
+    {
+        setAutoFields();
+        this.dataSet = dataSet;
+        this.dataElement = dataElement;
+    }
+
     public DataSetElement( DataSet dataSet, DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
         setAutoFields();
@@ -83,8 +90,8 @@ public class DataSetElement
 
     /**
      * Returns the category combination of this data set element, if null,
-     * then returns the category combination of the data element of this data
-     * set element.
+     * returns the category combination of the data element of this data set 
+     * element.
      */
     public DataElementCategoryCombo getResolvedCategoryCombo()
     {
@@ -106,26 +113,32 @@ public class DataSetElement
         return Objects.hashCode( super.hashCode(), dataSet, dataElement );
     }
 
-    public boolean equals( Object other )
+    @Override
+    public boolean equals( Object object )
     {
-        if ( this == other )
+        if ( this == object )
         {
             return true;
         }
 
-        if ( other == null )
+        if ( object == null )
         {
             return false;
         }
 
-        if ( !getClass().isAssignableFrom( other.getClass() ) )
+        if ( !getClass().isAssignableFrom( object.getClass() ) )
         {
             return false;
         }
 
-        DataSetElement element = (DataSetElement) other;
+        DataSetElement other = (DataSetElement) object;
 
-        return dataSet.equals( element.getDataSet() ) && dataElement.equals( element.getDataElement() );
+        return objectEquals( other );
+    }
+    
+    public boolean objectEquals( DataSetElement other )
+    {        
+        return dataSet.equals( other.getDataSet() ) && dataElement.equals( other.getDataElement() );
     }
 
     @Override
@@ -141,6 +154,7 @@ public class DataSetElement
             "\"lastUpdated\":\"" + getLastUpdated() + "\", " +
             "\"dataSet\":\"" + dataSet + "\", " +
             "\"dataElement\":\"" + dataElement + "\" " +
+            "\"categoryCombo\":\"" + categoryCombo + "\" " +
             "}";
     }
 
@@ -203,15 +217,15 @@ public class DataSetElement
 
             if ( mergeMode.isReplace() )
             {
+                dataSet = dataSetElement.getDataSet();
                 dataElement = dataSetElement.getDataElement();
                 categoryCombo = dataSetElement.getCategoryCombo();
-                dataSet = dataSetElement.getDataSet();
             }
             else if ( mergeMode.isMerge() )
             {
+                dataSet = dataSetElement.getDataSet() == null ? dataSet : dataSetElement.getDataSet();
                 dataElement = dataSetElement.getDataElement() == null ? dataElement : dataSetElement.getDataElement();
                 categoryCombo = dataSetElement.getCategoryCombo() == null ? categoryCombo : dataSetElement.getCategoryCombo();
-                dataSet = dataSetElement.getDataSet() == null ? dataSet : dataSetElement.getDataSet();
             }
         }
     }

@@ -328,47 +328,29 @@ public abstract class AbstractEventService
 
             programInstance = programInstances.get( 0 );
 
-            if ( program.isWithoutRegistration() )
+            if ( !programStage.getRepeatable() )
             {
-                List<ProgramStageInstance> programStageInstances = new ArrayList<>(
-                    programStageInstanceService.getProgramStageInstances( programInstances, EventStatus.ACTIVE ) );
+                programStageInstance = programStageInstanceService.getProgramStageInstance( programInstance,
+                    programStage );
 
-                if ( programStageInstances.isEmpty() )
-                {
-                    return new ImportSummary( ImportStatus.ERROR, "Tracked entity instance: " + entityInstance.getUid()
-                        + " is not enrolled in program stage: " + programStage.getUid() ).incrementIgnored();
-                }
-                else if ( programStageInstances.size() > 1 )
+                if ( programStageInstance != null )
                 {
                     return new ImportSummary( ImportStatus.ERROR,
-                        "Tracked entity instance: " + entityInstance.getUid()
-                            + " have multiple active enrollments in program stage: " + programStage.getUid() )
-                                .incrementIgnored();
+                        "Program stage is not repeatable and an event already exists" ).incrementIgnored();
                 }
-
-                programStageInstance = programStageInstances.get( 0 );
             }
             else
             {
-                if ( !programStage.getRepeatable() )
+                if ( event.getEvent() != null )
                 {
-                    programStageInstance = programStageInstanceService.getProgramStageInstance( programInstance,
-                        programStage );
-                }
-                else
-                {
-                    if ( event.getEvent() != null )
-                    {
-                        programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
+                    programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
 
-                        if ( programStageInstance == null )
+                    if ( programStageInstance == null )
+                    {
+                        if ( !CodeGenerator.isValidCode( event.getEvent() ) )
                         {
-                            if ( !CodeGenerator.isValidCode( event.getEvent() ) )
-                            {
-                                return new ImportSummary( ImportStatus.ERROR,
-                                    "Event.event did not point to a valid event: " + event.getEvent() )
-                                        .incrementIgnored();
-                            }
+                            return new ImportSummary( ImportStatus.ERROR,
+                                "Event.event did not point to a valid event: " + event.getEvent() ).incrementIgnored();
                         }
                     }
                 }
@@ -758,8 +740,8 @@ public abstract class AbstractEventService
 
             if ( programStageInstance.isCompleted() )
             {
-                programStageInstanceService.completeProgramStageInstance(
-                    programStageInstance, importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+                programStageInstanceService.completeProgramStageInstance( programStageInstance,
+                    importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
             }
         }
         else if ( event.getStatus() == EventStatus.SKIPPED )
@@ -1326,8 +1308,8 @@ public abstract class AbstractEventService
             programStageInstance.setCompletedDate( new Date() );
             programStageInstance.setCompletedBy( completedBy );
 
-            programStageInstanceService.completeProgramStageInstance(
-                programStageInstance, importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+            programStageInstanceService.completeProgramStageInstance( programStageInstance,
+                importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
         }
     }
 

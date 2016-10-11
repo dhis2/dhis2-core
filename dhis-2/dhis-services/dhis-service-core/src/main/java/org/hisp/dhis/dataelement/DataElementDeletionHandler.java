@@ -30,6 +30,8 @@ package org.hisp.dhis.dataelement;
 
 import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
+import java.util.Iterator;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -88,8 +90,13 @@ public class DataElementDeletionHandler
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        for ( DataSetElement element : dataSet.getDataSetElements() )
+        Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
+        
+        while ( elements.hasNext() )
         {
+            DataSetElement element = elements.next();
+            elements.remove();
+            
             dataSet.removeDataSetElement( element );
             idObjectManager.updateNoAcl( element.getDataElement() );
         }

@@ -66,6 +66,7 @@ import org.hisp.dhis.user.UserGroup;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -289,6 +290,12 @@ public class DataSet
         sources.addAll( updates );
     }
 
+    public boolean addDataSetElement( DataSetElement element )
+    {
+        element.getDataElement().getDataSetElements().add( element );
+        return dataSetElements.add( element );
+    }
+    
     /**
      * Adds a data set element using this data set, the given data element and
      * no category combo.
@@ -315,13 +322,41 @@ public class DataSet
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
-
+        
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
         return element.getDataElement().getDataSetElements().remove( element );
     }
-
+    
+    public void removeDataSetElement( DataElement dataElement )
+    {
+        Iterator<DataSetElement> elements = dataSetElements.iterator();
+        
+        while ( elements.hasNext() )
+        {
+            DataSetElement element = elements.next();
+            
+            DataSetElement other = new DataSetElement( this, dataElement );
+            
+            if ( element.objectEquals( other ) )
+            {
+                elements.remove();
+                element.getDataElement().getDataSetElements().remove( element );
+            }
+        }
+    }
+    
+    public void removeAllDataSetElements()
+    {
+        for ( DataSetElement element : dataSetElements )
+        {
+            element.getDataElement().getDataSetElements().remove( element );
+        }
+        
+        dataSetElements.clear();
+    }
+    
     public void addIndicator( Indicator indicator )
     {
         indicators.add( indicator );
@@ -847,8 +882,8 @@ public class DataSet
                 endDate = dataSet.getEndDate() == null ? endDate : dataSet.getEndDate();
             }
 
-            dataSetElements.clear();            
-            dataSet.getDataSetElements().forEach( e -> dataSetElements.add( e ) );
+            removeAllDataSetElements();
+            dataSet.getDataSetElements().forEach( this::addDataSetElement );
 
             indicators.clear();
             dataSet.getIndicators().forEach( this::addIndicator );

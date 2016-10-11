@@ -1,5 +1,7 @@
 package org.hisp.dhis.predictor;
 
+import org.hisp.dhis.dataelement.DataElement;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -32,6 +34,7 @@ import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Ken Haase
@@ -63,7 +66,7 @@ public class PredictorDeletionHandler
     @Override
     public void deleteExpression( Expression expression )
     {
-        Iterator<Predictor > iterator = predictorService.getAllPredictors().iterator();
+        Iterator<Predictor> iterator = predictorService.getAllPredictors().iterator();
         
         while ( iterator.hasNext() )
         {
@@ -72,13 +75,28 @@ public class PredictorDeletionHandler
             Expression generator = predictor.getGenerator();
             Expression skipTest= predictor.getSampleSkipTest();
 
-            if ( (generator != null && generator.equals( expression )) ||
-                 (skipTest != null && skipTest.equals( expression )))
+            if ( generator != null && generator.equals( expression ) ||
+                 skipTest != null && skipTest.equals( expression ) )
             {
                 iterator.remove();
                 predictorService.deletePredictor ( predictor );
             }
         }
     }
-
+    
+    @Override
+    public String allowDeleteDataElement( DataElement dataElement )
+    {
+        List<Predictor> predictors = predictorService.getAllPredictors();
+        
+        for ( Predictor predictor : predictors )
+        {
+            if ( dataElement.typedEquals( predictor.getOutput() ) )
+            {
+                return predictor.getName();
+            }
+        }
+        
+        return null;
+    }
 }

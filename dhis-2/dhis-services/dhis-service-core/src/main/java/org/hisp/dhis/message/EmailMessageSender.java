@@ -46,6 +46,7 @@ import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.sms.MessageResponseSummary;
 import org.hisp.dhis.sms.OutBoundMessage;
 import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -140,7 +141,7 @@ public class EmailMessageSender
                 boolean doSend = forceSend
                     || (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, user );
 
-                if ( doSend && user.getEmail() != null && !user.getEmail().trim().isEmpty() )
+                if ( doSend && ValidationUtils.emailIsValid( user.getEmail() ) )
                 {
                     email.addBcc( user.getEmail() );
 
@@ -157,24 +158,24 @@ public class EmailMessageSender
                 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
                 
-                status = new MessageResponseStatus( "Sent", EmailResponse.SENT, true );
+                status = new MessageResponseStatus( "Email sent", EmailResponse.SENT, true );
             }
             else
             {
-                status = new MessageResponseStatus( "No recipients found", EmailResponse.ABORTED, false );
+                status = new MessageResponseStatus( "No valid recipients found", EmailResponse.ABORTED, false );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Could not send email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus( "Failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
             
-            status = new MessageResponseStatus( "Failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;
@@ -220,20 +221,24 @@ public class EmailMessageSender
 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
 
-                return new MessageResponseStatus( "sent", EmailResponse.SENT, true );
+                return new MessageResponseStatus( "Email sent", EmailResponse.SENT, true );
+            }
+            else
+            {
+                status = new MessageResponseStatus( "No recipients found", EmailResponse.ABORTED, false );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new MessageResponseStatus( "failed", EmailResponse.FAILED, false );
+            status = new MessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;

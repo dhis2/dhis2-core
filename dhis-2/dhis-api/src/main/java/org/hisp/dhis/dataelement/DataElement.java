@@ -196,19 +196,6 @@ public class DataElement
         updates.forEach( this::addDataElementGroup );
     }
 
-    /**
-     * Adds a data set element using the given data set, this data element and
-     * no category combo.
-     * 
-     * @param dataSet the data set.
-     */
-    public boolean addDataSetElement2( DataSet dataSet )
-    {
-        DataSetElement element = new DataSetElement( dataSet, this, null );
-        dataSet.getDataSetElements().add( element );
-        return dataSetElements.add( element );
-    }
-
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
@@ -241,7 +228,7 @@ public class DataElement
     {
         for ( DataSetElement element : dataSetElements )
         {
-            if ( dataSet.equals( element.getDataSet() ) && element.hasCategoryCombo() )
+            if ( dataSet.typedEquals( element.getDataSet() ) && element.hasCategoryCombo() )
             {
                 return element.getCategoryCombo();
             }
