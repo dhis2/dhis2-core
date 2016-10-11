@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.NotificationRecipient;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -47,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -137,11 +139,11 @@ public class ProgramStageInstanceStoreTest
 
     private Program programA;
 
-    private ProgramNotificationTemplate psnA;
+    private ProgramNotificationTemplate psnX;
 
-    private ProgramNotificationTemplate psnB;
+    private ProgramNotificationTemplate psnY;
 
-    private ProgramNotificationTemplate psnC;
+    private ProgramNotificationTemplate psnZ;
 
     @Override
     public void setUpTest()
@@ -252,18 +254,6 @@ public class ProgramStageInstanceStoreTest
         programStageInstanceD2 = new ProgramStageInstance( programInstanceB, stageD );
         programStageInstanceD2.setDueDate( enrollmentDate );
         programStageInstanceD2.setUid( "UID-D2" );
-
-        /**
-         * ProgramStageNotifications
-         */
-
-        psnA = getProgramStageNotification( "A", -2 ); // Notify two days before
-        psnB = getProgramStageNotification( "B" ); // Notify on event
-        psnC = getProgramStageNotification( "C", 2 ); // Notify two days after
-
-        programStageNotificationStore.save( psnA );
-        programStageNotificationStore.save( psnB );
-        programStageNotificationStore.save( psnC );
     }
 
     @Test
@@ -319,51 +309,108 @@ public class ProgramStageInstanceStoreTest
         assertTrue( stageInstances.contains( programStageInstanceD1 ) );
     }
 
-//    @Ignore( "Work in progress" )
-//    @Test
-//    public void testGetWithNotificationsOnDate()
-//    {
-//        stageA.setNotificationTemplates( Sets.newHashSet( psnA, psnB, psnC ) );
-//        programStageService.updateProgramStage( stageA );
-//        programService.updateProgram( programA );
-//
-//        // Dates
-//
-//        Calendar cal = Calendar.getInstance();
-//        PeriodType.clearTimeOfDay( cal );
-//
-//        Date today = cal.getTime();     // 2016-01-10
-//
-//        cal.add( Calendar.DATE, 1 );    // 2016-01-11
-//        Date tomorrow = cal.getTime();
-//
-//        cal.add( Calendar.DATE, 1 );    // 2016-01-12
-//        Date inTwoDays = cal.getTime();
-//
-//        cal.add( Calendar.DATE, -4 );   // 2016-01-08
-//        Date twoDaysAgo = cal.getTime();
-//
-//        // Set due in two days
-//
-//        programStageInstanceA.setDueDate( inTwoDays );
-//        programStageInstanceStore.save( programStageInstanceA );
-//
-//        List<ProgramStageInstance> instances = programStageInstanceStore.getWithNotificationsOnDate( today );
-//        assertEquals( 1, instances.size() );
-//
-//        instances = programStageInstanceStore.getWithNotificationsOnDate( tomorrow );
-//        assertTrue( instances.isEmpty() );
-//
-//        // Set due two days ago
-//
-//        programStageInstanceA.setDueDate( twoDaysAgo );
-//        programStageInstanceStore.update( programStageInstanceA );
-//        instances = programStageInstanceStore.getWithNotificationsOnDate( today );
-//
-//        assertEquals( 1, instances.size() );
-//
-//        assertTrue( instances.get( 0 ).getProgramStage().getNotificationTemplates().contains( psnC ) );
-//    }
+    @Test
+    public void testGetWithNotificationsOnDate()
+    {
+
+        ProgramNotificationTemplate
+            a1 = getProgramStageNotification( "a1", -1 ),
+            a2 = getProgramStageNotification( "a2", -2 ),
+            a3 = getProgramStageNotification( "a3", 1 ),
+            b1 = getProgramStageNotification( "b1", -1 ),
+            b2 = getProgramStageNotification( "b2", -2 ),
+            b3 = getProgramStageNotification( "b3", 1 ),
+            c1 = getProgramStageNotification( "c1", -1 ),
+            c2 = getProgramStageNotification( "c2", -2 ),
+            c3 = getProgramStageNotification( "c3", 1 );
+
+        programStageNotificationStore.save( a1 );
+        programStageNotificationStore.save( a2 );
+        programStageNotificationStore.save( a3 );
+        programStageNotificationStore.save( b1 );
+        programStageNotificationStore.save( b2 );
+        programStageNotificationStore.save( b3 );
+        programStageNotificationStore.save( c1 );
+        programStageNotificationStore.save( c2 );
+        programStageNotificationStore.save( c3 );
+
+        // Stage
+
+        stageA.setNotificationTemplates( Sets.newHashSet( a1, a2, a3 ) );
+        programStageService.updateProgramStage( stageA );
+
+        stageB.setNotificationTemplates( Sets.newHashSet( b1, b2, b3 ) );
+        programStageService.updateProgramStage( stageB );
+
+        stageC.setNotificationTemplates( Sets.newHashSet( c1, c2, c3 ) );
+        programStageService.updateProgramStage( stageC );
+
+        // Dates
+
+        Calendar cal = Calendar.getInstance();
+        PeriodType.clearTimeOfDay( cal );
+
+        Date today = cal.getTime();     // 2016-01-10 -> "today"
+
+        cal.add( Calendar.DATE, 1 );    // 2016-01-11
+        Date tomorrow = cal.getTime();
+
+        cal.add( Calendar.DATE, -2 ); // 2016-01-09
+        Date yesterday = cal.getTime();
+
+        // Events
+
+        ProgramStageInstance eventA = new ProgramStageInstance( programInstanceA, stageA );
+        eventA.setDueDate( tomorrow );
+        programStageInstanceStore.save( eventA );
+
+        ProgramStageInstance eventB = new ProgramStageInstance( programInstanceB, stageB );
+        eventB.setDueDate( today );
+        programStageInstanceStore.save( eventB );
+
+        ProgramStageInstance eventC = new ProgramStageInstance( programInstanceB, stageC );
+        eventC.setDueDate( yesterday );
+        programStageInstanceStore.save( eventC );
+
+        // Queries
+
+        List<ProgramStageInstance> results;
+
+        // A
+
+        results = programStageInstanceStore.getWithScheduledNotifications( a1, today );
+        assertEquals( 1, results.size() );
+        assertEquals( eventA, results.get( 0 ) );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( a2, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( a3, today );
+        assertEquals( 0, results.size() );
+
+        // B
+
+        results = programStageInstanceStore.getWithScheduledNotifications( b1, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( b2, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( b3, today );
+        assertEquals( 0, results.size() );
+
+        // C
+
+        results = programStageInstanceStore.getWithScheduledNotifications( c1, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( c2, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( c3, today );
+        assertEquals( 1, results.size() );
+        assertEquals( eventC, results.get( 0 ) );
+    }
 
     // -------------------------------------------------------------------------
     // Supportive methods

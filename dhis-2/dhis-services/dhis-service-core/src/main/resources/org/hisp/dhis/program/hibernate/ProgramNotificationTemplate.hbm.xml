@@ -24,7 +24,7 @@
 
     <property name="subjectTemplate" column="subjecttemplate" not-null="false" length="100" />
 
-    <property name="messageTemplate" column="messagetemplate" not-null="false" type="text" />
+    <property name="messageTemplate" column="messagetemplate" not-null="true" type="text" />
 
     <property name="notificationTrigger" column="notificationtrigger">
       <type name="org.hibernate.type.EnumType">
