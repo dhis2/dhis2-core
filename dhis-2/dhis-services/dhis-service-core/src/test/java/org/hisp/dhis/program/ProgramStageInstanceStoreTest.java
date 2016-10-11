@@ -38,7 +38,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.NotificationRecipient;
-import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -54,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -88,8 +88,8 @@ public class ProgramStageInstanceStoreTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramStageNotificationStore" )
-    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programStageNotificationStore;
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
+    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private OrganisationUnit organisationUnitA;
 
@@ -310,29 +310,29 @@ public class ProgramStageInstanceStoreTest
     }
 
     @Test
-    public void testGetWithNotificationsOnDate()
+    public void testGetWithScheduledNotifications()
     {
 
         ProgramNotificationTemplate
-            a1 = getProgramStageNotification( "a1", -1 ),
-            a2 = getProgramStageNotification( "a2", -2 ),
-            a3 = getProgramStageNotification( "a3", 1 ),
-            b1 = getProgramStageNotification( "b1", -1 ),
-            b2 = getProgramStageNotification( "b2", -2 ),
-            b3 = getProgramStageNotification( "b3", 1 ),
-            c1 = getProgramStageNotification( "c1", -1 ),
-            c2 = getProgramStageNotification( "c2", -2 ),
-            c3 = getProgramStageNotification( "c3", 1 );
+            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_DUE_DATE ),
+            a2 = createProgramNotificationTemplate( "a2", -2, SCHEDULED_DAYS_DUE_DATE ),
+            a3 = createProgramNotificationTemplate( "a3", 1, SCHEDULED_DAYS_DUE_DATE ),
+            b1 = createProgramNotificationTemplate( "b1", -1, SCHEDULED_DAYS_DUE_DATE ),
+            b2 = createProgramNotificationTemplate( "b2", -2, SCHEDULED_DAYS_DUE_DATE ),
+            b3 = createProgramNotificationTemplate( "b3", 1, SCHEDULED_DAYS_DUE_DATE ),
+            c1 = createProgramNotificationTemplate( "c1", -1, SCHEDULED_DAYS_DUE_DATE ),
+            c2 = createProgramNotificationTemplate( "c2", -2, SCHEDULED_DAYS_DUE_DATE ),
+            c3 = createProgramNotificationTemplate( "c3", 1, SCHEDULED_DAYS_DUE_DATE );
 
-        programStageNotificationStore.save( a1 );
-        programStageNotificationStore.save( a2 );
-        programStageNotificationStore.save( a3 );
-        programStageNotificationStore.save( b1 );
-        programStageNotificationStore.save( b2 );
-        programStageNotificationStore.save( b3 );
-        programStageNotificationStore.save( c1 );
-        programStageNotificationStore.save( c2 );
-        programStageNotificationStore.save( c3 );
+        programNotificationStore.save( a1 );
+        programNotificationStore.save( a2 );
+        programNotificationStore.save( a3 );
+        programNotificationStore.save( b1 );
+        programNotificationStore.save( b2 );
+        programNotificationStore.save( b3 );
+        programNotificationStore.save( c1 );
+        programNotificationStore.save( c2 );
+        programNotificationStore.save( c3 );
 
         // Stage
 
@@ -416,29 +416,16 @@ public class ProgramStageInstanceStoreTest
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private ProgramNotificationTemplate getProgramStageNotification( String name, int daysBeforeOrAfter ) {
+    private ProgramNotificationTemplate createProgramNotification( String name, int days ) {
         return new ProgramNotificationTemplate(
             name,
             "Subject template",
             "Message template",
-            NotificationTrigger.SCHEDULED_DAYS_DUE_DATE,
+            SCHEDULED_DAYS_DUE_DATE,
             NotificationRecipient.TRACKED_ENTITY_INSTANCE,
             Sets.newHashSet(),
-            daysBeforeOrAfter,
+            days,
             null
          );
-    }
-
-    private ProgramNotificationTemplate getProgramStageNotification( String name ) {
-        return new ProgramNotificationTemplate(
-            name,
-            "Subject template",
-            "Message template",
-            NotificationTrigger.COMPLETION,
-            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
-            Sets.newHashSet(),
-            0,
-            null
-        );
     }
 }

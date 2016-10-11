@@ -212,11 +212,9 @@ public class HibernateProgramInstanceStore
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
 
-        // TODO Null checks
-
         String hql =
             "select distinct pi from ProgramInstance as pi " +
-            "inner join ps.program as p " +
+            "inner join pi.program as p " +
             "where :notificationTemplate in elements(p.notificationTemplates) " +
             "and pi." + dateProperty + " is not null " +
             "and cast(:targetDate as date) = pi." + dateProperty;
@@ -224,23 +222,6 @@ public class HibernateProgramInstanceStore
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
             .setDate( "targetDate", targetDate ).list();
-//
-//        String hql = "select distinct pi from ProgramInstance as pi " +
-//            "inner join pi.program.notificationTemplates as templates " +
-//            "where templates.notificationTrigger in (:triggers) " +
-//            "and templates.relativeScheduledDays is not null " +
-//            "and :notificationTemplate in elements(templates) " +
-//            "and pi." + dateProperty + " is not null " +
-//            "and ( day(cast(:notificationDate as date)) - day(cast(pi." + dateProperty + " as date)) ) " +
-//                "= templates.relativeScheduledDays";
-//
-//        Set<String> triggerNames = SCHEDULED_PROGRAM_INSTANCE_TRIGGERS
-//            .stream().map( Enum::name ).collect( Collectors.toSet() );
-//
-//        return getQuery( hql )
-//            .setEntity( "notificationTemplate", template )
-//            .setParameterList( "triggers", triggerNames, StringType.INSTANCE )
-//            .setDate( "notificationDate", notificationDate ).list();
     }
 
     private String toDateProperty( NotificationTrigger trigger )
