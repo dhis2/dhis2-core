@@ -84,6 +84,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.*;
 import org.hisp.dhis.validation.ValidationCriteria;
@@ -526,6 +527,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
+    {
+        return null;
+    }
+    
+    public void deleteTrackedEntityComment( TrackedEntityComment entityComment )
+    {
+    }
+
+    public String allowDeleteTrackedEntityComment( TrackedEntityComment entityComment )
     {
         return null;
     }
