@@ -63,7 +63,7 @@ public class HibernateProgramInstanceStore
     implements ProgramInstanceStore
 {
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
-        Sets.union(
+        Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramInstance(),
             NotificationTrigger.getAllScheduledTriggers()
         );
