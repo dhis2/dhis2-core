@@ -2497,7 +2497,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             }
 
                             hiddenFields[effect.trackedEntityAttribute.id] = true;
-                        } else if (effect.action === "SHOWERROR") {
+                        } else if (effect.action === "SHOWERROR" && effect.trackedEntityAttribute) {
                             if(effect.ineffect) {
                                 var dialogOptions = {
                                     headerText: $translate.instant('validation_error'),
@@ -2508,7 +2508,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     currentTei[effect.trackedEntityAttribute.id] = teiOriginalValues[effect.trackedEntityAttribute.id];
                                 }
                             }
-                        } else if (effect.action === "SHOWWARNING") {
+                        } else if (effect.action === "SHOWWARNING" && effect.trackedEntityAttribute) {
                             if(effect.ineffect) {
                                 var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
                                 warningMessages.push(message);
@@ -2521,7 +2521,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
                             var processedValue = $filter('trimquotes')(effect.data);
 
-                            if(attributesById[effect.trackedEntityAttribute.id].optionSet) {
+                            if(attributesById[effect.trackedEntityAttribute.id] && 
+                                    attributesById[effect.trackedEntityAttribute.id].optionSet) {
                                 processedValue = OptionSetService.getName(
                                         optionSets[attributesById[effect.trackedEntityAttribute.id].optionSet.id].options, processedValue)
                             }
@@ -2578,10 +2579,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         else if(effect.action === "SHOWWARNING"){
                             warningMessages.push(effect.content + (effect.data ? effect.data : ""));
                         }
-                        else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
+                        else if (effect.action === "ASSIGN" && effect.dataElement) {
                             var processedValue = $filter('trimquotes')(effect.data);
 
-                            if(prStDes[effect.dataElement.id].dataElement.optionSet) {
+                            if(prStDes[effect.dataElement.id] 
+                                    && prStDes[effect.dataElement.id].dataElement.optionSet) {
                                 processedValue = OptionSetService.getName(
                                         optionSets[prStDes[effect.dataElement.id].dataElement.optionSet.id].options, processedValue)
                             }
