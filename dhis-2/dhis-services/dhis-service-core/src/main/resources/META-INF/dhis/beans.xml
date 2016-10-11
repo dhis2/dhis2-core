@@ -1766,7 +1766,6 @@
   <bean id="org.hisp.dhis.program.ProgramInstanceDeletionHandler"
     class="org.hisp.dhis.program.ProgramInstanceDeletionHandler">
     <property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
-    <property name="commentService" ref="org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService" />
   </bean>
 
   <bean id="org.hisp.dhis.relationship.RelationshipDeletionHandler"
