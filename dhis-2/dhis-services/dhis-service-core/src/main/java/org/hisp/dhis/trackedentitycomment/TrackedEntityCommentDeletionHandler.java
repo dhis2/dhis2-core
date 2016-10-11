@@ -5,6 +5,10 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
+ */
 public class TrackedEntityCommentDeletionHandler
     extends DeletionHandler
 {
