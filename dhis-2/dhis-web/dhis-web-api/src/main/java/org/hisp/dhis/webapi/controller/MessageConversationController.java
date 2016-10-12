@@ -385,7 +385,7 @@ public class MessageConversationController
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode setMessageStatus(
         @PathVariable String uid,
-        @RequestBody( required = true ) User assignee,
+        @RequestParam( required = true ) String userId,
         HttpServletResponse response )
     {
         RootNode responseNode = new RootNode( "response" );
@@ -409,7 +409,7 @@ public class MessageConversationController
         }
 
         User userToAssign;
-        if ( (userToAssign = userService.getUser( assignee.getUid() )) == null )
+        if ( (userToAssign = userService.getUser( userId )) == null )
         {
             response.setStatus( HttpServletResponse.SC_NOT_FOUND );
             responseNode.addChild( new SimpleNode( "message", "Could not find user to assign" ) );
