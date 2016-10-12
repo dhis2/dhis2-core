@@ -1073,7 +1073,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
 })
 
-.service('GridColumnService', function ($http, DHIS2URL, $translate, SessionStorageService, NotificationService) {
+.service('GridColumnService', function ($http, $q, DHIS2URL, $translate, SessionStorageService, NotificationService) {
     var GRIDCOLUMNS_URL = DHIS2URL+'/userDataStore/gridColumns/';
     return {
         columnExists: function (cols, id) {
@@ -1089,22 +1089,30 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             }
             return colExists;
         },
-        set: function (gridColumns, created, name) {
-            var method = created ? "put":"post";
-            var promise = $http({
-                method: method,
-                url: GRIDCOLUMNS_URL+name,
+        set: function (gridColumns, name) {
+            var deferred = $q.defer();
+            var httpMessage = {
+                method: "put",
+                url: GRIDCOLUMNS_URL + name,
                 data: {"gridColumns": gridColumns},
                 headers: {'Content-Type': 'application/json;charset=UTF-8'}
-            }).then(function (response) {
-                return response.data;
+            };
+
+            $http(httpMessage).then(function (response) {
+                deferred.resolve(response.data);
             },function (error) {
-                if (error && error.data) {
-                    return error.data;
-                }
-                return null;
+                httpMessage.method = "post";
+                $http(httpMessage).then(function (response) {
+                    deferred.resolve(response.data);
+                }, function (error) {
+                    if (error && error.data) {
+                        deferred.resolve(error.data);
+                    } else {
+                        deferred.resolve(null);
+                    }
+                });
             });
-            return promise;
+            return deferred.promise;
         },
         get: function (name) {
             var promise = $http.get(GRIDCOLUMNS_URL+name).then(function (response) {
@@ -2596,7 +2604,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         }
 
                         hiddenFields[effect.trackedEntityAttribute.id] = true;
-                    } else if (effect.action === "SHOWERROR") {
+                    } else if (effect.action === "SHOWERROR" && effect.trackedEntityAttribute) {
                         if(effect.ineffect) {
                             var headerText =  $translate.instant('validation_error');
                             var bodyText = effect.content + (effect.data ? effect.data : "");
@@ -2606,7 +2614,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 currentTei[effect.trackedEntityAttribute.id] = teiOriginalValues[effect.trackedEntityAttribute.id];
                             }
                         }
-                    } else if (effect.action === "SHOWWARNING") {
+                    } else if (effect.action === "SHOWWARNING" && effect.trackedEntityAttribute) {
                         if(effect.ineffect) {
                             var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
                             warningMessages.push(message);
@@ -2619,7 +2627,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
                         var processedValue = $filter('trimquotes')(effect.data);
 
-                        if(attributesById[effect.trackedEntityAttribute.id].optionSet) {
+                        if(attributesById[effect.trackedEntityAttribute.id]
+                                && attributesById[effect.trackedEntityAttribute.id].optionSet) {
                             processedValue = OptionSetService.getName(
                                     optionSets[attributesById[effect.trackedEntityAttribute.id].optionSet.id].options, processedValue)
                         }
@@ -2677,7 +2686,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
                         var processedValue = $filter('trimquotes')(effect.data);
 
-                        if(prStDes[effect.dataElement.id].dataElement.optionSet) {
+                        if(prStDes[effect.dataElement.id] 
+                                && prStDes[effect.dataElement.id].dataElement.optionSet) {
                             processedValue = OptionSetService.getName(
                                     optionSets[prStDes[effect.dataElement.id].dataElement.optionSet.id].options, processedValue)
                         }

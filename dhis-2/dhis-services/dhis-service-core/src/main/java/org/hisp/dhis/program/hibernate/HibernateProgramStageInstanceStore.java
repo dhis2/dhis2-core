@@ -147,10 +147,12 @@ public class HibernateProgramStageInstanceStore
             "where :notificationTemplate in elements(ps.notificationTemplates) " +
             "and psi.dueDate is not null " +
             "and psi.executionDate is null " +
+            "and psi.status != :skippedEventStatus " +
             "and cast(:targetDate as date) = psi.dueDate";
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
+            .setString( "skippedEventStatus", EventStatus.SKIPPED.name() )
             .setDate( "targetDate", targetDate ).list();
     }
 
