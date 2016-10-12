@@ -136,9 +136,7 @@
                 </div>
                 <div class="ticket-tools-input">
                     <select name="assignee" id="message-assignee" class="message-select" onchange="updateAssignee('${conversation.uid}')">
-                        #if(!$conversation.getAssignee())
-                            <option value="null" selected>$i18n.getString( "none" )</option>
-                        #end
+                        <option value="none" #if(!$conversation.getAssignee()) selected #end>$i18n.getString( "none" )</option>
                         #foreach($user in $feedbackRecipientGroupUsers)
                             <option value="${user.getUid()}" #if($conversation.getAssignee().getUid() == $user.getUid()) selected #end>${user.getName()}</option>
                         #end

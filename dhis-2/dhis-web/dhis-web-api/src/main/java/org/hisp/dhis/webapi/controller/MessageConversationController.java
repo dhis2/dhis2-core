@@ -383,9 +383,9 @@ public class MessageConversationController
 
     @RequestMapping( value = "/{uid}/assign", method = RequestMethod.POST, produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode setMessageStatus(
+    public @ResponseBody RootNode setUserAssigned(
         @PathVariable String uid,
-        @RequestParam( required = true ) String userId,
+        @RequestParam( required = false ) String userId,
         HttpServletResponse response )
     {
         RootNode responseNode = new RootNode( "response" );
@@ -409,6 +409,7 @@ public class MessageConversationController
         }
 
         User userToAssign;
+
         if ( (userToAssign = userService.getUser( userId )) == null )
         {
             response.setStatus( HttpServletResponse.SC_NOT_FOUND );
@@ -426,6 +427,43 @@ public class MessageConversationController
         messageConversation.setAssignee( userToAssign );
         messageService.updateMessageConversation( messageConversation );
         responseNode.addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned to ticket" ) );
+        response.setStatus( HttpServletResponse.SC_OK );
+
+        return responseNode;
+    }
+    //--------------------------------------------------------------------------
+    // Remove assigned user
+    //--------------------------------------------------------------------------
+
+    @RequestMapping( value = "/{uid}/assign", method = RequestMethod.DELETE, produces = {
+        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+    public @ResponseBody RootNode removeUserAssigned(
+        @PathVariable String uid,
+        HttpServletResponse response )
+    {
+        RootNode responseNode = new RootNode( "response" );
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( !canModifyUserConversation( user, user ) &&
+            (messageService.hasAccessToManageFeedbackMessages( user )) )
+        {
+            throw new UpdateAccessDeniedException( "Not authorized to modify this object." );
+        }
+
+        org.hisp.dhis.message.MessageConversation messageConversation = messageService
+            .getMessageConversation( uid );
+
+        if ( messageConversation == null )
+        {
+            response.setStatus( HttpServletResponse.SC_NOT_FOUND );
+            responseNode.addChild( new SimpleNode( "message", "No MessageConversation found for the given ID." ) );
+            return responseNode;
+        }
+
+        messageConversation.setAssignee( null );
+        messageService.updateMessageConversation( messageConversation );
+        responseNode.addChild( new SimpleNode( "message", "Message is no longer assigned to user" ) );
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;

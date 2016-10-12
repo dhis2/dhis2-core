@@ -151,13 +151,24 @@ function updateAssignee(id) {
 
 function toggleAssignee( id, assignee) {
 
-    $.ajax({
-        url: "../api/messageConversations/"+id+"/assign",
-        type: "POST",
-        data: {userId: assignee}
-    }).then(function() {
-        $("#savedMessage").show().delay( 2400 ).fadeOut();
-    });
+    if( assignee === "none" )
+    {
+        $.ajax({
+            url: "../api/messageConversations/"+id+"/assign",
+            type: "DELETE"
+        }).then(function() {
+            $("#savedMessage").show().delay( 2400).fadeOut();
+        })
+    } else
+    {
+        $.ajax({
+            url: "../api/messageConversations/"+id+"/assign",
+            type: "POST",
+            data: {userId: assignee}
+        }).then(function() {
+            $("#savedMessage").show().delay( 2400 ).fadeOut();
+        });
+    }
 
 }
 
