@@ -88,7 +88,7 @@ public class DataElementOperandController
             else if ( ds != null )
             {
                 DataSet dataSet = manager.get( DataSet.class, ds );
-                dataElementOperands = dataElementCategoryService.getOperands( dataSet );
+                dataElementOperands = dataElementCategoryService.getOperands( dataSet, totals );
             }
             else
             {
