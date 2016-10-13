@@ -108,7 +108,7 @@ public class ContextUtils
 
         if ( CacheStrategy.RESPECT_SYSTEM_SETTING.equals( cacheStrategy ) )
         {
-            String strategy = trimToNull( ( (CacheStrategy) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY ) ).name() );
+            String strategy = trimToNull( (String) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY ) );
 
             cacheStrategy = strategy != null ? CacheStrategy.valueOf( strategy ) : CacheStrategy.NO_CACHE;
         }
