@@ -95,7 +95,8 @@ public class SmsController
 
         if ( commands != null && !commands.isEmpty() )
         {
-        	response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+            
             renderService.toJson( response.getOutputStream(), commands );
         }
     }
@@ -112,7 +113,9 @@ public class SmsController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "No SMS command found" ) );
         }
+        
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        
         renderService.toJson( response.getOutputStream(), command );
     }
 
