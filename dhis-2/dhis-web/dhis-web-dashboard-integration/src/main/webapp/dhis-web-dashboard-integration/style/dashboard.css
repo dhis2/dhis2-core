@@ -581,8 +581,40 @@ div#selectionTree
   margin-right: 4px;
   background-color: #eee;
   border: solid 1px #aaa;
-
 }
+
+.message-container {
+  float: left;
+  width: 700px;
+}
+
+.ticket-tools {
+  float: left;
+  width: 200px;
+  margin: 45px 0 0 45px;
+  padding: 10px;
+  border: solid 1px #cccccc;
+}
+
+.ticket-tools-segment {
+  margin-bottom: 5px;
+}
+
+.ticket-tools-label {
+  clear: both;
+  padding: 5px;
+  font-weight: bold;
+}
+
+.ticket-tools-input {
+  clear: both;
+  margin-top: 2px;
+}
+
+.ticket-tools-input select, .ticket-tools-input input {
+  width: 100%;
+}
+
 
 /*----------------------------------------------------------------------------*/
 /* Interpretation                                                             */

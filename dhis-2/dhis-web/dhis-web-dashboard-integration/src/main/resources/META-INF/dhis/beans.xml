@@ -40,6 +40,7 @@
     scope="prototype">
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
   </bean>
 
   <bean id="org.hisp.dhis.dashboard.message.action.UnreadMessageAction" class="org.hisp.dhis.dashboard.message.action.UnreadMessageAction"
