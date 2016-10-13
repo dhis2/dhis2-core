@@ -147,12 +147,12 @@ $( document ).ready( function() {
     if(getParameterByName("showAssignedToMe") == "true")
     {
         showAssignedToMeBtn.attr("href", "message.action");
-        showAssignedToMeBtn.html( "$i18n.getString( 'Show all messages' )" );
+        showAssignedToMeBtn.html( "$i18n.getString( 'all_messages' )" );
     }
     else
     {
         showAssignedToMeBtn.attr("href", "message.action?showAssignedToMe=true");
-        showAssignedToMeBtn.html( "$i18n.getString( 'Show assigned to me' )" );
+        showAssignedToMeBtn.html( "$i18n.getString( 'assigned_to_me' )" );
     }
 });
 </script>

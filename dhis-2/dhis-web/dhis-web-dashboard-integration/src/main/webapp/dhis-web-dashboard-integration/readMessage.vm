@@ -33,7 +33,6 @@
                     'remove' )</a></li>
                 <li><a class="greyButtonLink" href="message.action?currentPage=${keyCurrentPage}">$i18n.getString( "back" )</a></li>
                 <li class="scrollButton"><a class="greyButtonLink" href="javascript:scrollToBottom()">$i18n.getString( "scroll_down" )</a></li>
-                <li><span style="padding-left: 10px; display:none;" id="savedMessage" class="tipText">$i18n.getString( "changes_saved" )</span></li>
             </ul>
         </div>
 
@@ -142,6 +141,9 @@
                         #end
                     </select>
                 </div>
+            </div>
+            <div class="ticket-tools-segment">
+                <span style="padding-left: 10px; display:none;" id="savedMessage" class="tipText">$i18n.getString( "changes_saved" )</span>
             </div>
         </div>
     #end
