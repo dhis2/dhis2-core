@@ -99,6 +99,7 @@ public class ContextUtils
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy,
         String filename, boolean attachment )
     {
+        CacheControl cacheControl;
 
         if ( contentType != null )
         {
@@ -107,46 +108,44 @@ public class ContextUtils
 
         if ( CacheStrategy.RESPECT_SYSTEM_SETTING.equals( cacheStrategy ) )
         {
-            String strategy = trimToNull( (String) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY ) );
+            String strategy = trimToNull( ( (CacheStrategy) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY ) ).name() );
 
             cacheStrategy = strategy != null ? CacheStrategy.valueOf( strategy ) : CacheStrategy.NO_CACHE;
         }
 
-        CacheControl cacheControl = null;
-
-        switch ( cacheStrategy )
+        if ( CacheStrategy.CACHE_15_MINUTES.equals( cacheStrategy ) )
         {
-        case NO_CACHE:
-            cacheControl = CacheControl.noStore();
-            break;
-        case CACHE_15_MINUTES:
             cacheControl = CacheControl.maxAge( 15, TimeUnit.MINUTES );
-            break;
-        case CACHE_1_HOUR:
+        }
+        else if ( CacheStrategy.CACHE_1_HOUR.equals( cacheStrategy ) )
+        {
             cacheControl = CacheControl.maxAge( 1, TimeUnit.HOURS );
-            break;
-        case CACHE_6AM_TOMORROW:
+        }
+        else if ( CacheStrategy.CACHE_6AM_TOMORROW.equals( cacheStrategy ) )
+        {
             cacheControl = CacheControl.maxAge( getSecondsUntilTomorrow( 6 ), TimeUnit.SECONDS );
-            break;
-        case CACHE_TWO_WEEKS:
+        }
+        else if ( CacheStrategy.CACHE_TWO_WEEKS.equals( cacheStrategy ) )
+        {
             cacheControl = CacheControl.maxAge( 14, TimeUnit.DAYS );
-            break;
-        case RESPECT_SYSTEM_SETTING:
-            break;
-        default:
-            cacheControl = CacheControl.noStore();
+        }
+        else
+        {
+            cacheControl = CacheControl.noCache();
         }
 
-        if(cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE)
+
+        if ( cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE )
         {
-            switch ( (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY ) )
+            Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY );
+
+            if (cacheability.equals( Cacheability.PUBLIC ))
             {
-            case PUBLIC:
                 cacheControl.cachePublic();
-                break;
-            case PRIVATE:
+            }
+            else if ( cacheability.equals( Cacheability.PRIVATE ) )
+            {
                 cacheControl.cachePrivate();
-                break;
             }
         }
 

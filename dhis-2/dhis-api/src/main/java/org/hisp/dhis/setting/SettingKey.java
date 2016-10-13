@@ -78,7 +78,7 @@ public enum SettingKey
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
     SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
-    CACHEABILITY( "keyCacheability", "public", Cacheability.class),
+    CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
