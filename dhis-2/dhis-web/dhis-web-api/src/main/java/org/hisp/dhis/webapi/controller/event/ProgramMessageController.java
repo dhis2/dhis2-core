@@ -40,6 +40,7 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -118,6 +119,8 @@ public class ProgramMessageController
         }
 
         BatchResponseStatus status = programMessageService.sendMessages( batch.getProgramMessages() );
+        
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         renderService.toJson( response.getOutputStream(), status );
     }
