@@ -183,20 +183,21 @@ public class DefaultDataValueSetService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
+        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, 
+        Integer limit, IdSchemes outputIdSchemes )
     {
         DataExportParams params = new DataExportParams();
 
         if ( dataSets != null )
         {
             params.getDataSets().addAll( identifiableObjectManager.getObjects(
-                DataSet.class, idSchemes.getIdScheme().getIdentifiableProperty(), dataSets ) );
+                DataSet.class, IdentifiableProperty.UID, dataSets ) );
         }
 
         if ( dataElementGroups != null )
         {
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
-                DataElementGroup.class, idSchemes.getIdScheme().getIdentifiableProperty(), dataElementGroups ) );
+                DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
         }
 
         if ( periods != null && !periods.isEmpty() )
@@ -212,7 +213,7 @@ public class DefaultDataValueSetService
         if ( organisationUnits != null )
         {
             params.getOrganisationUnits().addAll( identifiableObjectManager.getObjects(
-                OrganisationUnit.class, idSchemes.getOrgUnitIdScheme().getIdentifiableProperty(), organisationUnits ) );
+                OrganisationUnit.class, IdentifiableProperty.UID, organisationUnits ) );
         }
 
         params.setIncludeChildren( includeChildren );
@@ -220,7 +221,7 @@ public class DefaultDataValueSetService
         params.setLastUpdated( lastUpdated );
         params.setLastUpdatedDuration( lastUpdatedDuration );
         params.setLimit( limit );
-        params.setIdSchemes( idSchemes );
+        params.setOutputIdSchemes( outputIdSchemes );
 
         return params;
     }
