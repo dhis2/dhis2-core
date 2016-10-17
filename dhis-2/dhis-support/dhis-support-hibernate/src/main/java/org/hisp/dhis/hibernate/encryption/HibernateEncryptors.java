@@ -34,31 +34,22 @@ import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import java.util.Map;
 
 /**
+ * Singleton container for all named Hibernate Encryptors.
+ * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType}
+ * depends on this singleton to access the appropriate encryptors.
+ *
  * @author Halvdan Hoem Grelland
  */
 public enum HibernateEncryptors
 {
     INSTANCE;
-//
-//    private static AtomicReference<HibernateEncryptors> INSTANCE = new AtomicReference<>();
 
     public static HibernateEncryptors getInstance()
     {
         return INSTANCE;
-//        return INSTANCE.get();
     }
 
     private Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
-
-//    public HibernateEncryptors()
-//    {
-//        final HibernateEncryptors previous = INSTANCE.getAndSet( this );
-//
-//        if ( previous != null )
-//        {
-//            throw new IllegalStateException( "Second instance created for singleton class " + HibernateEncryptors.class );
-//        }
-//    }
 
     public void setNamedEncryptors( Map<String, PBEStringEncryptor> encryptors )
     {
