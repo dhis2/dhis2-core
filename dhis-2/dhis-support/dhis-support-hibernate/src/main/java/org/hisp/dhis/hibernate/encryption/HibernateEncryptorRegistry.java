@@ -28,36 +28,54 @@ package org.hisp.dhis.hibernate.encryption;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Maps;
+import com.google.common.collect.Maps;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
 import java.util.Map;
 
 /**
- * Singleton container for all named Hibernate Encryptors.
+ * Singleton registry for all (named) Hibernate Encryptors.
  * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType}
- * depends on this singleton to access the appropriate encryptors.
+ * depends on this singleton to access the appropriate encryptor(s).
  *
  * @author Halvdan Hoem Grelland
  */
-public enum HibernateEncryptors
+public final class HibernateEncryptorRegistry
 {
-    INSTANCE;
+    private static final HibernateEncryptorRegistry INSTANCE = new HibernateEncryptorRegistry();
 
-    public static HibernateEncryptors getInstance()
+    private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
+
+    private HibernateEncryptorRegistry() {} // Private constructor
+
+    /**
+     * Returns the (singleton) instance of the registry.
+     *
+     * @return this registry.
+     */
+    public static HibernateEncryptorRegistry getInstance()
     {
         return INSTANCE;
     }
 
-    private Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
-
-    public void setNamedEncryptors( Map<String, PBEStringEncryptor> encryptors )
+    /**
+     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by name.
+     *
+     * @param encryptors a map of names and encryptors.
+     */
+    public synchronized void setEncryptors( Map<String, PBEStringEncryptor> encryptors )
     {
-        this.encryptors.putAll( encryptors );
+        INSTANCE.encryptors.putAll( encryptors );
     }
 
-    public PBEStringEncryptor getNamedEncryptor( String name )
+    /**
+     * Get encryptor from registry by name.
+     *
+     * @param name the name of the encryptor.
+     * @return an instance of {@link PBEStringEncryptor} or null.
+     */
+    public PBEStringEncryptor getEncryptor( String name )
     {
-        return encryptors.get( name );
+        return INSTANCE.encryptors.get( name );
     }
 }

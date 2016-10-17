@@ -32,9 +32,8 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
-import org.hisp.dhis.hibernate.encryption.HibernateEncryptors;
+import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
-import org.jasypt.exceptions.EncryptionInitializationException;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -44,12 +43,23 @@ import java.sql.Types;
 import java.util.Properties;
 
 /**
+ * Hibernate {@link UserType} implementation which employs a {@link PBEStringEncryptor} to
+ * perform transparent encryption/decryption of properties.
+ *
+ * The employed encryptor is resolved from the {@link HibernateEncryptorRegistry}, which must be
+ * set up with a named encryptor. The encryptor is resolved through the 'encryptor' parameter,
+ * which looks up the given name in the registry.
+ *
+ * If no 'encryptor' parameter is given, or the given name does not resolve to a
+ * {@link PBEStringEncryptor}, an {@link IllegalArgumentException} is thrown at initialization.
+ *
+ *
  * @author Halvdan Hoem Grelland
  */
 public class EncryptedStringUserType
     implements UserType, ParameterizedType
 {
-    public static final String PARAMETER_NAMED_ENCRYPTOR = "namedEncryptor";
+    public static final String PARAMETER_ENCRYPTOR = "encryptor";
 
     private static final int[] sqlTypes = new int[] { Types.VARCHAR };
 
@@ -144,11 +154,11 @@ public class EncryptedStringUserType
     @Override
     public void setParameterValues( Properties parameters )
     {
-        this.encryptorName = parameters.getProperty( PARAMETER_NAMED_ENCRYPTOR );
+        this.encryptorName = parameters.getProperty( PARAMETER_ENCRYPTOR );
 
         if ( encryptorName == null )
         {
-            throw new EncryptionInitializationException( "Required parameter 'namedEncryptor' is not configured" );
+            throw new IllegalArgumentException( "Required parameter 'encryptor' is not configured" );
         }
     }
 
@@ -158,7 +168,7 @@ public class EncryptedStringUserType
     {
         if ( encryptor == null )
         {
-            encryptor = HibernateEncryptors.getInstance().getNamedEncryptor( encryptorName );
+            encryptor = HibernateEncryptorRegistry.getInstance().getEncryptor( encryptorName );
         }
     }
 }
