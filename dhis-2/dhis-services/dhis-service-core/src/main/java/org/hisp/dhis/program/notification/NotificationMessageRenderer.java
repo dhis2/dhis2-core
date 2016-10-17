@@ -237,7 +237,7 @@ public class NotificationMessageRenderer
 
         return tei.getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeUids.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), NotificationMessageRenderer::plainOrConfidential ) );
+            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), NotificationMessageRenderer::value ) );
     }
 
     private static String replaceExpressions( String input, Map<String, String> variableMap, Map<String, String> teiAttributeValueMap )
@@ -277,11 +277,22 @@ public class NotificationMessageRenderer
         return String.valueOf( Days.daysBetween( new DateTime( psi.getDueDate() ), DateTime.now() ).getDays() );
     }
 
-    private static String plainOrConfidential( TrackedEntityAttributeValue av )
+    private static String value( TrackedEntityAttributeValue av )
     {
-        String plainValue = av.getPlainValue();
+        String value = av.getPlainValue();
 
-        return plainValue != null ? plainValue : CONFIDENTIAL_VALUE_REPLACEMENT;
+        if ( value == null )
+        {
+            return CONFIDENTIAL_VALUE_REPLACEMENT;
+        }
+
+        // If the AV has an OptionSet -> substitute value with the name of the Option
+        if ( av.getAttribute().hasOptionSet() )
+        {
+            value = av.getAttribute().getOptionSet().getOptionByCode( value ).getName();
+        }
+
+        return value != null ? value : MISSING_VALUE_REPLACEMENT;
     }
 
     // Simple limiter. No space wasted on ellipsis etc.
