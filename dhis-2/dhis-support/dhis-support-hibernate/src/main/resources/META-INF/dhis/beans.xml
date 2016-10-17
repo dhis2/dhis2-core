@@ -131,15 +131,15 @@
 
   <!-- Used only for SystemSettings (due to bug with JCE policy restrictions in Jasypt) -->
 
-  <bean id="fixedSaltGenerator" class="org.jasypt.salt.StringFixedSaltGenerator">
-    <constructor-arg type="java.lang.String" value="H7g0oLkEw3wf52fs52g3hbG" />
-  </bean>
-
   <bean id="tripleDesStringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
     <property name="algorithm" value="PBEWithSHA1AndDESede" />
     <property name="password" ref="encryptionPassword" />
-    <property name="saltGenerator" ref="fixedSaltGenerator" />
     <property name="poolSize" value="4" />
+    <property name="saltGenerator">
+      <bean class="org.jasypt.salt.StringFixedSaltGenerator">
+        <constructor-arg type="java.lang.String" value="H7g0oLkEw3wf52fs52g3hbG" />
+      </bean>
+    </property>
   </bean>
 
   <!-- AES string encryptor, requires BouncyCastle and JCE extended policy (due to issue mentioned above) -->
