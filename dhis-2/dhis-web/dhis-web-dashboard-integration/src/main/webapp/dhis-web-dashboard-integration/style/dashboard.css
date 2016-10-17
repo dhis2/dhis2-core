@@ -206,9 +206,9 @@
 #searchDiv
 {
   position: absolute;
-  left: 330px;
+  left: 270px;
   height: 22px;
-  width: 486px;
+  width: 546px;
   border: 1px solid #aaa;
   padding: 5px 6px 0 6px;
   box-shadow: #ccc 0 1px 2px 0 inset;
@@ -244,8 +244,8 @@
 {
   position: absolute;
   margin-top: 29px;
-  left: 330px;
-  width: 498px;
+  left: 270px;
+  width: 558px;
   max-height: 518px;
   overflow-y: auto;
   border-right: 1px solid #bbb;
