@@ -34,9 +34,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.io.InputStream;
 import java.util.List;
@@ -57,6 +59,7 @@ public class MenuController
     @Autowired
     private RenderService renderService;
 
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     @SuppressWarnings( "unchecked" )
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
     public void saveMenuOrder( InputStream input )
