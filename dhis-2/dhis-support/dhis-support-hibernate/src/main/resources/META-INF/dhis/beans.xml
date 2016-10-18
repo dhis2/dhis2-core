@@ -144,14 +144,16 @@
 
   <!-- AES string encryptor, requires BouncyCastle and JCE extended policy (due to issue mentioned above) -->
 
-  <bean id="org.jasypt.salt.RandomSaltGenerator" class="org.jasypt.salt.RandomSaltGenerator" />
+
 
   <!-- Encryptors -->
 
   <bean id="aes128StringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
     <property name="algorithm" value="PBEWITHSHA256AND128BITAES-CBC-BC" />
     <property name="password" ref="encryptionPassword" />
-    <property name="saltGenerator" ref="org.jasypt.salt.RandomSaltGenerator" />
+    <property name="saltGenerator">
+      <bean class="org.jasypt.salt.RandomSaltGenerator" />
+    </property>
     <property name="poolSize" value="4" />
   </bean>
 
