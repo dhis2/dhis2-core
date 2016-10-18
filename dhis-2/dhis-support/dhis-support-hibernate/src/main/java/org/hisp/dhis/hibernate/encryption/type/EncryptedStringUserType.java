@@ -54,6 +54,9 @@ import java.util.Properties;
  * {@link PBEStringEncryptor} in the {@link HibernateEncryptorRegistry}, an
  * {@link IllegalArgumentException} is thrown at initialization.
  *
+ * This class implements a similar pattern to the encrypted types provided by the
+ * org.jasypt.hibernate4 package, but serves to avoid this dependency (which breaks on Hibernate > 5.1.x).
+ *
  * @author Halvdan Hoem Grelland
  */
 public class EncryptedStringUserType
@@ -158,7 +161,8 @@ public class EncryptedStringUserType
 
         if ( encryptorName == null )
         {
-            throw new IllegalArgumentException( "Required parameter 'encryptor' is not configured" );
+            throw new IllegalArgumentException(
+                String.format( "Required parameter '%s' is not configured", PARAMETER_ENCRYPTOR ) );
         }
     }
 
