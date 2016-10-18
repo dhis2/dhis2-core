@@ -118,7 +118,7 @@
 
   <!-- Encryption -->
 
-  <!-- Bouncy Castle Crypto APIs -->
+  <!-- Bouncy Castle JCE SecurityProvider -->
 
   <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
     <property name="staticMethod" value="java.security.Security.addProvider" />
@@ -131,31 +131,36 @@
 
   <!-- Used only for SystemSettings (due to bug with JCE policy restrictions in Jasypt) -->
 
-  <bean id="stringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
+  <bean id="tripleDesStringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
     <property name="algorithm" value="PBEWithSHA1AndDESede" />
     <property name="password" ref="encryptionPassword" />
-    <property name="saltGenerator" ref="fixedSaltGenerator" />
     <property name="poolSize" value="4" />
-  </bean>
-
-  <bean id="fixedSaltGenerator" class="org.jasypt.salt.StringFixedSaltGenerator">
-    <constructor-arg type="java.lang.String" value="H7g0oLkEw3wf52fs52g3hbG" />
+    <property name="saltGenerator">
+      <bean class="org.jasypt.salt.StringFixedSaltGenerator">
+        <constructor-arg type="java.lang.String" value="H7g0oLkEw3wf52fs52g3hbG" />
+      </bean>
+    </property>
   </bean>
 
   <!-- AES string encryptor, requires BouncyCastle and JCE extended policy (due to issue mentioned above) -->
 
-  <bean id="hibernateStrongStringEncryptor" class="org.jasypt.hibernate4.encryptor.HibernatePBEStringEncryptor">
-    <property name="registeredName" value="strongStringEncryptor" />
-    <property name="encryptor" ref="strongStringEncryptor" />
-  </bean>
+  <!-- Encryptors -->
 
-  <bean id="strongStringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
+  <bean id="aes128StringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
     <property name="algorithm" value="PBEWITHSHA256AND128BITAES-CBC-BC" />
     <property name="password" ref="encryptionPassword" />
-    <property name="saltGenerator" ref="org.jasypt.salt.RandomSaltGenerator" />
     <property name="poolSize" value="4" />
+    <property name="saltGenerator">
+      <bean class="org.jasypt.salt.RandomSaltGenerator" />
+    </property>
   </bean>
 
-  <bean id="org.jasypt.salt.RandomSaltGenerator" class="org.jasypt.salt.RandomSaltGenerator" />
+  <bean id="hibernateEncryptors" class="org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry">
+    <property name="encryptors">
+      <map>
+        <entry key="aes128StringEncryptor" value-ref="aes128StringEncryptor" />
+      </map>
+    </property>
+  </bean>
 
 </beans>
