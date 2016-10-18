@@ -151,10 +151,10 @@
   <bean id="aes128StringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
     <property name="algorithm" value="PBEWITHSHA256AND128BITAES-CBC-BC" />
     <property name="password" ref="encryptionPassword" />
+    <property name="poolSize" value="4" />
     <property name="saltGenerator">
       <bean class="org.jasypt.salt.RandomSaltGenerator" />
     </property>
-    <property name="poolSize" value="4" />
   </bean>
 
   <bean id="hibernateEncryptors" class="org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry">
