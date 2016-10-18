@@ -604,7 +604,7 @@ public class DataElement
 
     @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
     public DataElementCategoryCombo getDataElementCategoryCombo()
     {
         return dataElementCategoryCombo;
