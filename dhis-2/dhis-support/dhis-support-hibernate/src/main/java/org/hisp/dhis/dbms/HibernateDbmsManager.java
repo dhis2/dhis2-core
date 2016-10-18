@@ -117,7 +117,33 @@ public class HibernateDbmsManager
         emptyTable( "chart_categoryoptiongroups" );
         emptyTable( "chart_categorydimensions" );
         emptyTable( "chart" );
+        
+        emptyTable( "eventreport_attributedimensions" );
+        emptyTable( "eventreport_dataelementdimensions" );
+        emptyTable( "eventreport_itemorgunitgroups" );
+        emptyTable( "eventreport_organisationunits" );
+        emptyTable( "eventreport_orgunitgroups" );
+        emptyTable( "eventreport_orgunitlevels" );
+        emptyTable( "eventreport_periods" );
+        emptyTable( "eventreport_programindicatordimensions" );
+        emptyTable( "eventreport_columns" );
+        emptyTable( "eventreport_rows" );
+        emptyTable( "eventreport_filters" );
+        emptyTable( "eventreport" );
 
+        emptyTable( "eventchart_attributedimensions" );
+        emptyTable( "eventchart_dataelementdimensions" );
+        emptyTable( "eventchart_itemorgunitgroups" );
+        emptyTable( "eventchart_organisationunits" );
+        emptyTable( "eventchart_orgunitgroups" );
+        emptyTable( "eventchart_orgunitlevels" );
+        emptyTable( "eventchart_periods" );
+        emptyTable( "eventchart_programindicatordimensions" );
+        emptyTable( "eventchart_columns" );
+        emptyTable( "eventchart_rows" );
+        emptyTable( "eventchart_filters" );
+        emptyTable( "eventchart" );
+        
         emptyTable( "categoryoptiongroupusergroupaccesses" );
         emptyTable( "categoryoptiongroupsetusergroupaccesses" );
         emptyTable( "dataelementcategoryoptionusergroupaccesses" );
