@@ -44,15 +44,15 @@ import java.util.Properties;
 
 /**
  * Hibernate {@link UserType} implementation which employs a {@link PBEStringEncryptor} to
- * perform transparent encryption/decryption of properties.
+ * perform transparent encryption/decryption of {@link String} properties.
  *
  * The employed encryptor is resolved from the {@link HibernateEncryptorRegistry}, which must be
  * set up with a named encryptor. The encryptor is resolved through the 'encryptor' parameter,
  * which looks up the given name in the registry.
  *
  * If no 'encryptor' parameter is given, or the given name does not resolve to a
- * {@link PBEStringEncryptor}, an {@link IllegalArgumentException} is thrown at initialization.
- *
+ * {@link PBEStringEncryptor} in the {@link HibernateEncryptorRegistry}, an
+ * {@link IllegalArgumentException} is thrown at initialization.
  *
  * @author Halvdan Hoem Grelland
  */
