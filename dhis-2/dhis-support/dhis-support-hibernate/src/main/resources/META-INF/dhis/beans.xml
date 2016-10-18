@@ -144,8 +144,6 @@
 
   <!-- AES string encryptor, requires BouncyCastle and JCE extended policy (due to issue mentioned above) -->
 
-
-
   <!-- Encryptors -->
 
   <bean id="aes128StringEncryptor" class="org.jasypt.encryption.pbe.PooledPBEStringEncryptor">
