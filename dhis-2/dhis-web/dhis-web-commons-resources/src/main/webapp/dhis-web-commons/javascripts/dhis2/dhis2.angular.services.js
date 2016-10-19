@@ -1515,7 +1515,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 //Handling here, but planning refactor in registration so it will always be .valueType
                                 variables = pushVariable(variables, 
                                     programVariable.displayName, 
-                                    programVariable.useCodeForOptionSet ? attribute.optionSetCode : attribute.value, 
+                                    programVariable.useCodeForOptionSet ? (angular.isDefined(attribute.optionSetCode) ? attribute.optionSetCode : attribute.value) : attribute.value,
                                     null, 
                                     attribute.type ? attribute.type : attribute.valueType, valueFound, 
                                     'A', 
