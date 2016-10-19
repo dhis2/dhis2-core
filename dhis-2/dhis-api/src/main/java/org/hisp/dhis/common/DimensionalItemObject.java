@@ -31,6 +31,8 @@ package org.hisp.dhis.common;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
 
+import java.util.List;
+
 /**
 * @author Lars Helge Overland
 */
@@ -51,6 +53,11 @@ public interface DimensionalItemObject
      * Gets the legend set.
      */
     LegendSet getLegendSet();
+
+    /**
+     * Gets the legend sets.
+     */
+    List<LegendSet> getLegendSets();
 
     /**
      * Indicates whether this dimension has a legend set.
