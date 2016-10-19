@@ -72,6 +72,13 @@
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_dataelement_legendset" />
+
+    <list name="legendSets" table="dataelementlegendsets">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataelement_legendsetid" ></many-to-many>
+    </list>
     
     <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
 

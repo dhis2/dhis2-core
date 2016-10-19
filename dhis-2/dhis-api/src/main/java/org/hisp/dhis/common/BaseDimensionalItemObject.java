@@ -175,11 +175,13 @@ public class BaseDimensionalItemObject
 
             if ( mergeMode.isReplace() )
             {
+                legendSets = object.getLegendSets();
                 legendSet = object.getLegendSet();
                 aggregationType = object.getAggregationType();
             }
             else if ( mergeMode.isMerge() )
             {
+                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
                 legendSet = object.getLegendSet() == null ? legendSet : object.getLegendSet();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
             }
