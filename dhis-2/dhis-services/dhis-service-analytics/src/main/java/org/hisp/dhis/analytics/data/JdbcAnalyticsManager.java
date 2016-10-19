@@ -28,50 +28,13 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_BOOL;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT;
-import static org.hisp.dhis.analytics.AggregationType.COUNT;
-import static org.hisp.dhis.analytics.AggregationType.MAX;
-import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.STDDEV;
-import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
-import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.analytics.DataType.TEXT;
-import static org.hisp.dhis.analytics.MeasureFilter.EQ;
-import static org.hisp.dhis.analytics.MeasureFilter.GE;
-import static org.hisp.dhis.analytics.MeasureFilter.GT;
-import static org.hisp.dhis.analytics.MeasureFilter.LE;
-import static org.hisp.dhis.analytics.MeasureFilter.LT;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.commons.util.TextUtils.trimEnd;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-
-import javax.annotation.Resource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -87,6 +50,20 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.Assert;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.concurrent.Future;
+
+import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.DataType.TEXT;
+import static org.hisp.dhis.analytics.MeasureFilter.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
@@ -136,6 +113,9 @@ public class JdbcAnalyticsManager
             }
 
             sql += getGroupByClause( params );
+
+            // Needs to use "having" to utilize aggregate functions, and needs to come after group by.
+            sql += getPreAggregationMeasureCriteria( params );
 
             log.debug( sql );
 
@@ -420,6 +400,52 @@ public class JdbcAnalyticsManager
         if ( params.isAggregation() )
         {
             sql = "group by " + getCommaDelimitedQuotedColumns( params.getDimensions() );
+        }
+
+        return sql;
+    }
+
+    private String getPreAggregationMeasureCriteria( DataQueryParams params )
+    {
+        SqlHelper sqlHelper = new SqlHelper(  );
+        String sql = "";
+
+        // ---------------------------------------------------------------------
+        // Pre Aggregate Measure Criteria
+        // ---------------------------------------------------------------------
+
+        if( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
+        {
+
+            for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
+            {
+                Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
+
+                if ( EQ.equals( filter ) )
+                {
+                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " = " + criterion + " ";
+                }
+
+                if ( GT.equals( filter ) )
+                {
+                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " > " + criterion + " ";
+                }
+
+                if ( GE.equals( filter ) )
+                {
+                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " >= " + criterion + " ";
+                }
+
+                if ( LT.equals( filter ) )
+                {
+                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " < " + criterion + " ";
+                }
+
+                if ( LE.equals( filter ) )
+                {
+                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " <= " + criterion + " ";
+                }
+            }
         }
 
         return sql;
