@@ -46,9 +46,6 @@
     <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
       column="trackedentityid" foreign-key="fk_trackedentityattribute_trackedentityid" />
 
-    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
-      foreign-key="fk_trackedentityattribute_legendset" />
-
     <list name="legendSets" table="trackedentityattributelegendsets">
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />

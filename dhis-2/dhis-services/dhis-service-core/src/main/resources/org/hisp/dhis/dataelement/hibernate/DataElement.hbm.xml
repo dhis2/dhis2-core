@@ -70,9 +70,6 @@
     <many-to-one name="commentOptionSet" class="org.hisp.dhis.option.OptionSet" column="commentoptionsetid"
       foreign-key="fk_dataelement_commentoptionsetid" />
 
-    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
-      foreign-key="fk_dataelement_legendset" />
-
     <list name="legendSets" table="dataelementlegendsets">
       <cache usage="read-write" />
       <key column="dataelementid" />

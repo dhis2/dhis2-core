@@ -49,11 +49,6 @@ public class BaseDimensionalItemObject
     private DimensionItemType dimensionItemType;
 
     /**
-     * The legend set for this dimension.
-     */
-    protected LegendSet legendSet;
-
-    /**
      * The legend sets for this dimension.
      */
     protected List<LegendSet> legendSets;
@@ -85,7 +80,7 @@ public class BaseDimensionalItemObject
     @Override
     public boolean hasLegendSet()
     {
-        return getLegendSet() != null;
+        return !legendSets.isEmpty();
     }
 
     @Override
@@ -117,20 +112,6 @@ public class BaseDimensionalItemObject
     public void setDimensionItemType( DimensionItemType dimensionItemType )
     {
         this.dimensionItemType = dimensionItemType;
-    }
-
-    @Override
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public LegendSet getLegendSet()
-    {
-        return legendSet;
-    }
-
-    public void setLegendSet( LegendSet legendSet )
-    {
-        this.legendSet = legendSet;
     }
 
     @Override
@@ -176,13 +157,11 @@ public class BaseDimensionalItemObject
             if ( mergeMode.isReplace() )
             {
                 legendSets = object.getLegendSets();
-                legendSet = object.getLegendSet();
                 aggregationType = object.getAggregationType();
             }
             else if ( mergeMode.isMerge() )
             {
                 legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
-                legendSet = object.getLegendSet() == null ? legendSet : object.getLegendSet();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
             }
         }

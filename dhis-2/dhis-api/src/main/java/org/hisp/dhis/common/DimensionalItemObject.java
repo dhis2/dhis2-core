@@ -50,11 +50,6 @@ public interface DimensionalItemObject
     DimensionItemType getDimensionItemType();
 
     /**
-     * Gets the legend set.
-     */
-    LegendSet getLegendSet();
-
-    /**
      * Gets the legend sets.
      */
     List<LegendSet> getLegendSets();

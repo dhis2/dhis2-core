@@ -41,6 +41,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
 
+import java.util.List;
+
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 /**
@@ -122,9 +124,9 @@ public class ProgramDataElement
     }
 
     @Override
-    public LegendSet getLegendSet()
+    public List<LegendSet> getLegendSets()
     {
-        return dataElement.getLegendSet();
+        return dataElement.getLegendSets();
     }
 
     @Override
