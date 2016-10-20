@@ -42,7 +42,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -552,50 +551,6 @@ public class JdbcAnalyticsManager
         }
 
         return map;
-    }
-
-    /**
-     * Checks if the measure criteria specified for the given query are satisfied
-     * for the given value.
-     */
-    private boolean measureCriteriaSatisfied( DataQueryParams params, Double value )
-    {
-        if ( value == null )
-        {
-            return false;
-        }
-
-        for ( MeasureFilter filter : params.getMeasureCriteria().keySet() )
-        {
-            Double criterion = params.getMeasureCriteria().get( filter );
-
-            if ( EQ.equals( filter ) && !MathUtils.isEqual( value, criterion ) )
-            {
-                return false;
-            }
-
-            if ( GT.equals( filter ) && Double.compare( value, criterion ) <= 0 )
-            {
-                return false;
-            }
-
-            if ( GE.equals( filter ) && Double.compare( value, criterion ) < 0 )
-            {
-                return false;
-            }
-
-            if ( LT.equals( filter ) && Double.compare( value, criterion ) >= 0 )
-            {
-                return false;
-            }
-
-            if ( LE.equals( filter ) && Double.compare( value, criterion ) > 0 )
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
