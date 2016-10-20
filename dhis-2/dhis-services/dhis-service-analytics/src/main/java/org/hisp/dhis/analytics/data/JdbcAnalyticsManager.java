@@ -115,7 +115,10 @@ public class JdbcAnalyticsManager
             sql += getGroupByClause( params );
 
             // Needs to use "having" to utilize aggregate functions, and needs to come after group by.
-            sql += getPreAggregationMeasureCriteria( params );
+            if( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
+            {
+                sql += getMeasureCriteriaSql( params );
+            }
 
             log.debug( sql );
 
@@ -301,7 +304,7 @@ public class JdbcAnalyticsManager
     {
         SqlHelper sqlHelper = new SqlHelper();        
 
-        String sql = "from " + partition + " ";
+        String sql = "from " + getPartition( params, partition ) + " ";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -391,6 +394,62 @@ public class JdbcAnalyticsManager
     }
 
     /**
+     * Generates a subquery if preAggregationMeasureCriteria is given
+     * returns the partition of not.
+     */
+    private String getPartition( DataQueryParams params, String partition )
+    {
+
+        if(params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty())
+        {
+            SqlHelper sqlHelper = new SqlHelper();
+            String sql = "";
+
+            sql += "(select * from " + partition + " ";
+
+            for( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
+            {
+                Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
+
+                if ( EQ.equals( filter ) )
+                {
+                    sql += sqlHelper.whereAnd() + " value = " + criterion + " ";
+                }
+
+                if ( GT.equals( filter ) )
+                {
+                    sql += sqlHelper.whereAnd() + " value > " + criterion + " ";
+                }
+
+                if ( GE.equals( filter ) )
+                {
+                    sql += sqlHelper.whereAnd() + " value >= " + criterion + " ";
+                }
+
+                if ( LT.equals( filter ) )
+                {
+                    sql += sqlHelper.whereAnd() + " value < " + criterion + " ";
+                }
+
+                if ( LE.equals( filter ) )
+                {
+                    sql += sqlHelper.whereAnd() + " value <= " + criterion + " ";
+                }
+
+            }
+
+            sql += ") as " + partition;
+
+            return sql;
+
+        }
+        else
+        {
+            return partition;
+        }
+    }
+
+    /**
      * Generates the group by clause of the query SQL.
      */
     private String getGroupByClause( DataQueryParams params )
@@ -405,46 +464,41 @@ public class JdbcAnalyticsManager
         return sql;
     }
 
-    private String getPreAggregationMeasureCriteria( DataQueryParams params )
+    /**
+     * Returns a HAVING clause restricting the result based on the measure criteria
+     */
+    private String getMeasureCriteriaSql( DataQueryParams params )
     {
         SqlHelper sqlHelper = new SqlHelper(  );
-        String sql = "";
+        String sql = " ";
 
-        // ---------------------------------------------------------------------
-        // Pre Aggregate Measure Criteria
-        // ---------------------------------------------------------------------
-
-        if( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
+        for ( MeasureFilter filter : params.getMeasureCriteria().keySet() )
         {
+            Double criterion = params.getMeasureCriteria().get( filter );
 
-            for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
+            if ( EQ.equals( filter ) )
             {
-                Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
+                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " = " + criterion + " ";
+            }
 
-                if ( EQ.equals( filter ) )
-                {
-                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " = " + criterion + " ";
-                }
+            if ( GT.equals( filter ) )
+            {
+                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " > " + criterion + " ";
+            }
 
-                if ( GT.equals( filter ) )
-                {
-                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " > " + criterion + " ";
-                }
+            if ( GE.equals( filter ) )
+            {
+                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " >= " + criterion + " ";
+            }
 
-                if ( GE.equals( filter ) )
-                {
-                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " >= " + criterion + " ";
-                }
+            if ( LT.equals( filter ) )
+            {
+                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " < " + criterion + " ";
+            }
 
-                if ( LT.equals( filter ) )
-                {
-                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " < " + criterion + " ";
-                }
-
-                if ( LE.equals( filter ) )
-                {
-                    sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " <= " + criterion + " ";
-                }
+            if ( LE.equals( filter ) )
+            {
+                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " <= " + criterion + " ";
             }
         }
 
@@ -492,14 +546,6 @@ public class JdbcAnalyticsManager
             else // NUMERIC
             {
                 Double value = rowSet.getDouble( VALUE_ID );
-
-                if ( value != null && Double.class.equals( value.getClass() ) )
-                {
-                    if ( !measureCriteriaSatisfied( params, value ) )
-                    {
-                        continue;
-                    }
-                }
 
                 map.put( key.toString(), value );
             }
