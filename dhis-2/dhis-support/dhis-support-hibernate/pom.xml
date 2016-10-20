@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-support</artifactId>
-    <version>2.25-SNAPSHOT</version>
+    <version>2.26-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-support-hibernate</artifactId>
@@ -54,10 +54,6 @@
     <dependency>
 	  <groupId>org.jasypt</groupId>
 	  <artifactId>jasypt</artifactId>
-    </dependency>
-    <dependency>
-	  <groupId>org.jasypt</groupId>
-	  <artifactId>jasypt-hibernate4</artifactId>
     </dependency>
     
     <!-- Database connectors -->

@@ -77,6 +77,8 @@ public class MessageConversation
 
     private MessageConversationStatus status;
 
+    private User assignee;
+
     // -------------------------------------------------------------------------
     // Transient fields
     // -------------------------------------------------------------------------
@@ -551,5 +553,17 @@ public class MessageConversation
     public void setStatus( MessageConversationStatus messageConversationStatus )
     {
         this.status = messageConversationStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getAssignee()
+    {
+        return assignee;
+    }
+
+    public void setAssignee( User assignee )
+    {
+        this.assignee = assignee;
     }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.dashboard.message.action;
  */
 
 import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationStatus;
@@ -37,6 +38,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +63,13 @@ public class ReadMessageAction
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
+    }
+
+    private ConfigurationService configurationService;
+
+    public void setConfigurationService( ConfigurationService configurationService )
+    {
+        this.configurationService = configurationService;
     }
 
     // -------------------------------------------------------------------------
@@ -99,6 +108,13 @@ public class ReadMessageAction
         return showTicketTools;
     }
 
+    private Set<User> feedbackRecipientGroupUsers;
+
+    public Set<User> getFeedbackRecipientGroupUsers()
+    {
+        return feedbackRecipientGroupUsers;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -114,12 +130,14 @@ public class ReadMessageAction
 
         User user = currentUserService.getCurrentUser();
         conversation = messageService.getMessageConversation( id );
-        showTicketTools =messageService.hasAccessToManageFeedbackMessages( user ) && conversation.getStatus() !=
-                MessageConversationStatus.NONE;
+        showTicketTools = messageService.hasAccessToManageFeedbackMessages( user ) && conversation.getStatus() !=
+            MessageConversationStatus.NONE;
 
         if ( showTicketTools )
         {
             messages = conversation.getMessages();
+            feedbackRecipientGroupUsers = configurationService.getConfiguration().getFeedbackRecipients().getMembers();
+
         }
         else
         {

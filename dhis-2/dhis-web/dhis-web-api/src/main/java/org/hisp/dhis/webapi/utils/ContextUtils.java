@@ -28,24 +28,12 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
@@ -55,6 +43,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
@@ -100,6 +99,8 @@ public class ContextUtils
     public void configureResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy,
         String filename, boolean attachment )
     {
+        CacheControl cacheControl;
+
         if ( contentType != null )
         {
             response.setContentType( contentType );
@@ -112,26 +113,43 @@ public class ContextUtils
             cacheStrategy = strategy != null ? CacheStrategy.valueOf( strategy ) : CacheStrategy.NO_CACHE;
         }
 
-        if ( cacheStrategy == null || CacheStrategy.NO_CACHE.equals( cacheStrategy ) )
+        if ( CacheStrategy.CACHE_15_MINUTES.equals( cacheStrategy ) )
         {
-            response.setHeader( HEADER_CACHE_CONTROL, CacheControl.noStore().getHeaderValue() );
-        }
-        else if ( cacheStrategy.equals( CacheStrategy.CACHE_15_MINUTES ) )
-        {
-            response.setHeader( HEADER_CACHE_CONTROL, CacheControl.maxAge( 15, TimeUnit.MINUTES ).cachePublic().getHeaderValue() );
+            cacheControl = CacheControl.maxAge( 15, TimeUnit.MINUTES );
         }
         else if ( CacheStrategy.CACHE_1_HOUR.equals( cacheStrategy ) )
         {
-            response.setHeader( HEADER_CACHE_CONTROL, CacheControl.maxAge( 1, TimeUnit.HOURS ).cachePublic().getHeaderValue() );
+            cacheControl = CacheControl.maxAge( 1, TimeUnit.HOURS );
         }
         else if ( CacheStrategy.CACHE_6AM_TOMORROW.equals( cacheStrategy ) )
         {
-            response.setHeader( HEADER_CACHE_CONTROL, CacheControl.maxAge( getSecondsUntilTomorrow( 6 ), TimeUnit.SECONDS ).cachePublic().getHeaderValue() );
+            cacheControl = CacheControl.maxAge( getSecondsUntilTomorrow( 6 ), TimeUnit.SECONDS );
         }
         else if ( CacheStrategy.CACHE_TWO_WEEKS.equals( cacheStrategy ) )
         {
-            response.setHeader( HEADER_CACHE_CONTROL, CacheControl.maxAge( 14, TimeUnit.DAYS ).cachePublic().getHeaderValue() );
+            cacheControl = CacheControl.maxAge( 14, TimeUnit.DAYS );
         }
+        else
+        {
+            cacheControl = CacheControl.noCache();
+        }
+
+
+        if ( cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE )
+        {
+            Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY );
+
+            if (cacheability.equals( Cacheability.PUBLIC ))
+            {
+                cacheControl.cachePublic();
+            }
+            else if ( cacheability.equals( Cacheability.PRIVATE ) )
+            {
+                cacheControl.cachePrivate();
+            }
+        }
+
+        response.setHeader( HEADER_CACHE_CONTROL, cacheControl.getHeaderValue() );
 
         if ( filename != null )
         {

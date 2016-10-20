@@ -54,7 +54,6 @@ jQuery( document ).ready( function() {
 
 <div id="dashboardMenu" class="horizontalMenu">
     <ul>
-        <li><a class="greyButtonLink" href="profile.action?id=${currentUser.uid}">$i18n.getString( "profile" )</a></li>
         <li><a class="greyButtonLink" href="message.action">$i18n.getString( "messages" )</a></li>
         <li><a class="greyButtonLink" href="interpretation.action">$i18n.getString( "interpretations" )</a></li>
     </ul>

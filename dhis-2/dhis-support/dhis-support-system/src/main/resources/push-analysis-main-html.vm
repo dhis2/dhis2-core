@@ -3,7 +3,7 @@
 #end
 
 #macro( link $url $label )
-<a href="$url" style="font-size: 12px; text-decoration: none; color: #4c9ce4;font-family: Arial, sans-serif">$label</a>
+<a href="$url" style="font-size: 12px; text-decoration: none; color: #4c9ce4;font-family: Arial, sans-serif" target="_blank">$label</a>
 #end
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -16,7 +16,7 @@
     <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
 </head>
 
-<body style="background-color: rgb(249, 249, 249);font-family: Arial, sans-serif">
+<body style="background-color: rgb(246, 246, 246);font-family: Arial, sans-serif">
 <table style="width: 100%;">
     <tr>
         <td></td>
@@ -47,16 +47,18 @@
 
                                         #if( $dashboardItem.getType() == "REPORT_TABLE" )
                                             $itemHtml.get( $dashboardItem.getUid() )
-                                            <br />
-                                            #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Pivot Table app" )
+                                            <div style="padding-top: 10px">
+                                                #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Pivot Table app" )
+                                            </div>
                                         #else
                                             #img( $itemHtml.get( $dashboardItem.getUid() ) )
-                                            <br />
-                                            #if( $dashboardItem.getType() == "MAP" )
-                                                #link ( $itemLink.get( $dashboardItem.getUid() ), "View in GIS app" )
-                                            #else
-                                                #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Visualizer app" )
-                                            #end
+                                            <div style="padding-top: 10px">
+                                                #if( $dashboardItem.getType() == "MAP" )
+                                                    #link ( $itemLink.get( $dashboardItem.getUid() ), "View in GIS app" )
+                                                #else
+                                                    #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Visualizer app" )
+                                                #end
+                                            </div>
                                         #end
 
                                     </td>

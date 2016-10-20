@@ -140,8 +140,35 @@ function togglePriority( id, priority) {
         type: "POST",
         data: {"messageConversationPriority": priority}
     }).then(function() {
-        $("#savedMessage").show().delay( 2400).fadeOut();
+        $("#savedMessage").show().delay( 2400 ).fadeOut();
     });
+
+}
+
+function updateAssignee(id) {
+    toggleAssignee(id, $("#message-assignee").val());
+}
+
+function toggleAssignee( id, assignee) {
+
+    if( assignee === "none" )
+    {
+        $.ajax({
+            url: "../api/messageConversations/"+id+"/assign",
+            type: "DELETE"
+        }).then(function() {
+            $("#savedMessage").show().delay( 2400).fadeOut();
+        })
+    } else
+    {
+        $.ajax({
+            url: "../api/messageConversations/"+id+"/assign",
+            type: "POST",
+            data: {userId: assignee}
+        }).then(function() {
+            $("#savedMessage").show().delay( 2400 ).fadeOut();
+        });
+    }
 
 }
 
@@ -163,7 +190,7 @@ function toggleStatus( id, status) {
         type: "POST",
         data: {"messageConversationStatus": status}
     }).then(function() {
-        $("#savedMessage").show().delay( 2400).fadeOut();
+        $("#savedMessage").show().delay( 2400 ).fadeOut();
     });
 
 }

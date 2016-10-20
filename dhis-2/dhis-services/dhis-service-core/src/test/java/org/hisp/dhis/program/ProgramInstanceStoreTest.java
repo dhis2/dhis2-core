@@ -30,25 +30,27 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.message.DeliveryChannel;
-import org.hisp.dhis.program.notification.NotificationRecipient;
-import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -74,8 +76,8 @@ public class ProgramInstanceStoreTest
     @Autowired
     private ProgramStageService programStageService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
+    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private Date incidentDate;
 
@@ -216,33 +218,74 @@ public class ProgramInstanceStoreTest
         assertTrue( programInstances.contains( programInstanceA ) );
     }
 
-    private void setUpNotifications()
-    {
-        ProgramNotificationTemplate template = new ProgramNotificationTemplate(
-            "template A",
-            "Subject",
-            "Message",
-            NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE,
-            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
-            Sets.newHashSet( DeliveryChannel.SMS, DeliveryChannel.EMAIL ),
-            -2,
-            null
-        );
-
-        idObjectManager.save( template );
-        programA.setNotificationTemplates( Sets.newHashSet( template ) );
-
-        programService.updateProgram( programA );
-
-        programInstanceStore.update( programInstanceA );
-    }
-
     @Test
     public void testGetWithScheduledNotifications()
     {
-        programInstanceStore.save( programInstanceA );
-        setUpNotifications();
+        ProgramNotificationTemplate
+            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE ),
+            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE ),
+            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE );
 
-        // TODO Do test here
+        programNotificationStore.save( a1 );
+        programNotificationStore.save( a2 );
+        programNotificationStore.save( a3 );
+
+        // TEI
+
+        TrackedEntityInstance teiX = createTrackedEntityInstance( 'X', organisationUnitA );
+        TrackedEntityInstance teiY = createTrackedEntityInstance( 'Y', organisationUnitA );
+
+        entityInstanceService.addTrackedEntityInstance( teiX );
+        entityInstanceService.addTrackedEntityInstance( teiY );
+
+        // Program
+
+        programA.setNotificationTemplates( Sets.newHashSet( a1, a2, a3 ) );
+        programService.updateProgram( programA );
+
+        // Dates
+
+        Calendar cal = Calendar.getInstance();
+        PeriodType.clearTimeOfDay( cal );
+
+        Date today = cal.getTime();
+
+        cal.add( Calendar.DATE, 1 );
+        Date tomorrow = cal.getTime();
+
+        cal.add( Calendar.DATE, -2 );
+        Date yesterday = cal.getTime();
+
+        cal.add( Calendar.DATE, -6);
+        Date aWeekAgo = cal.getTime();
+
+        // Enrollments
+
+        ProgramInstance enrollmentA = new ProgramInstance( today, tomorrow, teiX, programA );
+        programInstanceStore.save( enrollmentA );
+
+        ProgramInstance enrollmentB = new ProgramInstance( aWeekAgo, yesterday, teiY, programA );
+        programInstanceStore.save( enrollmentB );
+
+        // Queries
+
+        List<ProgramInstance> results;
+
+        // A
+
+        results = programInstanceStore.getWithScheduledNotifications( a1, today );
+        assertEquals( 1, results.size() );
+        assertEquals( enrollmentA, results.get( 0 ) );
+
+        results = programInstanceStore.getWithScheduledNotifications( a2, today );
+        assertEquals( 1, results.size() );
+        assertEquals( enrollmentB, results.get( 0 ) );
+
+        results = programInstanceStore.getWithScheduledNotifications( a3, today );
+        assertEquals( 1, results.size() );
+        assertEquals( enrollmentB, results.get( 0 ) );
+
+        results = programInstanceStore.getWithScheduledNotifications( a3, yesterday );
+        assertEquals( 0, results.size() );
     }
 }

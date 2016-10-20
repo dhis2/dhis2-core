@@ -37,7 +37,12 @@ import org.hisp.dhis.common.DxfNamespaces;
 @JacksonXmlRootElement( localName = "eventStatus", namespace = DxfNamespaces.DXF_2_0 )
 public enum EventStatus
 {
-    ACTIVE( 0 ), COMPLETED( 1 ), VISITED( 2 ), SCHEDULE( 3 ), OVERDUE( 4 ), SKIPPED( 5 );
+    ACTIVE( 0 ),
+    COMPLETED( 1 ),
+    VISITED( 2 ),
+    SCHEDULE( 3 ),
+    OVERDUE( 4 ),
+    SKIPPED( 5 );
 
     private final int value;
 

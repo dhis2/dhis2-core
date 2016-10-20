@@ -8,7 +8,8 @@ var d2Controllers = angular.module('d2Controllers', [])
     function($scope, 
             $modalInstance,
             hiddenGridColumns,
-            gridColumns){
+            gridColumns,
+            saveGridColumns){
     
     $scope.gridColumns = gridColumns;
     $scope.hiddenGridColumns = hiddenGridColumns;
@@ -24,7 +25,8 @@ var d2Controllers = angular.module('d2Controllers', [])
         }
         else{
             $scope.hiddenGridColumns++;            
-        }      
+        }
+        saveGridColumns($scope.gridColumns);
     };    
 })
 

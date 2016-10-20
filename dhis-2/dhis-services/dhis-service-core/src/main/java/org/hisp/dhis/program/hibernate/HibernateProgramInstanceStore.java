@@ -30,9 +30,9 @@ package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.type.StringType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -49,7 +49,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -64,7 +63,7 @@ public class HibernateProgramInstanceStore
     implements ProgramInstanceStore
 {
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
-        Sets.union(
+        Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramInstance(),
             NotificationTrigger.getAllScheduledTriggers()
         );
@@ -204,28 +203,27 @@ public class HibernateProgramInstanceStore
             return Lists.newArrayList();
         }
 
-        String hql = "select pi from ProgramInstance as pi " +
-            "inner join pi.program.notificationTemplates as templates " +
-            "where templates.notificationTrigger in (:triggers) " +
-            "and templates.relativeScheduledDays is not null " +
-            "and :notificationTemplate in elements(templates) ";
-
         String dateProperty = toDateProperty( template.getNotificationTrigger() );
 
-        if ( dateProperty != null )
+        if ( dateProperty == null )
         {
-            hql += "and pi." + dateProperty + " is not null ";
-            hql += "and ( day(cast(:notificationDate as date)) - day(cast(pi." + dateProperty + " as date)) ) " +
-                "= templates.relativeScheduledDays";
+            return Lists.newArrayList();
         }
 
-        Set<String> triggerNames = SCHEDULED_PROGRAM_INSTANCE_TRIGGERS
-            .stream().map( Enum::name ).collect( Collectors.toSet() );
+        Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
+
+        String hql =
+            "select distinct pi from ProgramInstance as pi " +
+            "inner join pi.program as p " +
+            "where :notificationTemplate in elements(p.notificationTemplates) " +
+            "and pi." + dateProperty + " is not null " +
+            "and pi.status = :activeEnrollmentStatus " +
+            "and cast(:targetDate as date) = pi." + dateProperty;
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
-            .setParameterList( "triggers", triggerNames, StringType.INSTANCE )
-            .setDate( "notificationDate", notificationDate ).list();
+            .setString( "activeEnrollmentStatus", ProgramStatus.ACTIVE.name() )
+            .setDate( "targetDate", targetDate ).list();
     }
 
     private String toDateProperty( NotificationTrigger trigger )

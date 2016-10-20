@@ -22,8 +22,8 @@
 
         <property name="plainValue" column="value" access="property" length="50000"/>
 
-        <property name="encryptedValue" column="encryptedvalue" access="property" type="AESEncryptedString"
-                  length="50000"/>
+        <property name="encryptedValue" column="encryptedvalue" access="property" type="Aes128EncryptedString"
+          length="50000" />
 
     </class>
 </hibernate-mapping>

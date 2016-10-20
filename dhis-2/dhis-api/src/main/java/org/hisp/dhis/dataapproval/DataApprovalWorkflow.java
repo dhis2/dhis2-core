@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
@@ -72,6 +73,11 @@ public class DataApprovalWorkflow
     private PeriodType periodType;
 
     /**
+     * The category combination for approving data with this workflow.
+     */
+    private DataElementCategoryCombo categoryCombo;
+
+    /**
      * The data approval levels used in this workflow.
      */
     private Set<DataApprovalLevel> levels = new HashSet<>();
@@ -98,6 +104,15 @@ public class DataApprovalWorkflow
     {
         this.name = name;
         this.periodType = periodType;
+        this.levels = levels;
+    }
+
+    public DataApprovalWorkflow( String name, PeriodType periodType,
+        DataElementCategoryCombo categoryCombo, Set<DataApprovalLevel> levels )
+    {
+        this.name = name;
+        this.periodType = periodType;
+        this.categoryCombo = categoryCombo;
         this.levels = levels;
     }
 
@@ -139,6 +154,19 @@ public class DataApprovalWorkflow
     public void setPeriodType( PeriodType periodType )
     {
         this.periodType = periodType;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataElementCategoryCombo getCategoryCombo()
+    {
+        return categoryCombo;
+    }
+
+    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    {
+        this.categoryCombo = categoryCombo;
     }
 
     @JsonProperty( "dataApprovalLevels" )

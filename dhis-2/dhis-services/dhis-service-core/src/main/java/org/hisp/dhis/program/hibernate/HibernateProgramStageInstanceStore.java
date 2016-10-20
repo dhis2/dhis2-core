@@ -30,11 +30,11 @@ package org.hisp.dhis.program.hibernate;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.type.StringType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
@@ -49,7 +49,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -59,7 +58,7 @@ public class HibernateProgramStageInstanceStore
     implements ProgramStageInstanceStore
 {
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
-        Sets.union(
+        Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramStageInstance(),
             NotificationTrigger.getAllScheduledTriggers()
         );
@@ -135,24 +134,26 @@ public class HibernateProgramStageInstanceStore
             return Lists.newArrayList();
         }
 
+        if ( template.getRelativeScheduledDays() == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
+
         String hql =
-            "select psi from ProgramStageInstance as psi " +
+            "select distinct psi from ProgramStageInstance as psi " +
             "inner join psi.programStage as ps " +
-            "inner join ps.notificationTemplates as templates " +
-            "where templates.notificationTrigger in (:triggers) " +
-            "and templates.relativeScheduledDays is not null " + // ?
-            "and :notificationTemplate in elements(templates) " +
+            "where :notificationTemplate in elements(ps.notificationTemplates) " +
             "and psi.dueDate is not null " +
             "and psi.executionDate is null " +
-            "and ( day(cast(:notificationDate as date)) - day(cast(psi.dueDate as date)) ) = templates.relativeScheduledDays";
-
-        Set<String> triggerNames = SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS
-            .stream().map( Enum::name ).collect( Collectors.toSet() );
+            "and psi.status != :skippedEventStatus " +
+            "and cast(:targetDate as date) = psi.dueDate";
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
-            .setParameterList( "triggers", triggerNames, StringType.INSTANCE )
-            .setDate( "notificationDate", notificationDate ).list();
+            .setString( "skippedEventStatus", EventStatus.SKIPPED.name() )
+            .setDate( "targetDate", targetDate ).list();
     }
 
     // -------------------------------------------------------------------------
