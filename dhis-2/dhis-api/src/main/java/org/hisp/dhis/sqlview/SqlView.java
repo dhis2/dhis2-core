@@ -224,6 +224,14 @@ public class SqlView
     }
 
     /**
+     * Indicates whether this SQl view is a view / materialized view.
+     */
+    public boolean isView()
+    {
+        return SqlViewType.QUERY.equals( type ) || isMaterializedView();
+    }
+
+    /**
      * Indicates whether this SQL view is a materalized view.
      */
     public boolean isMaterializedView()
