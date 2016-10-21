@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.amplecode.staxwax.factory.XMLFactory;
@@ -183,8 +184,8 @@ public class DefaultDataValueSetService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, 
-        Integer limit, IdSchemes outputIdSchemes )
+        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups, boolean includeDeleted, Date lastUpdated,
+        String lastUpdatedDuration, Integer limit, IdSchemes outputIdSchemes )
     {
         DataExportParams params = new DataExportParams();
 
@@ -206,8 +207,9 @@ public class DefaultDataValueSetService
         }
         else if ( startDate != null && endDate != null )
         {
-            params.setStartDate( startDate );
-            params.setEndDate( endDate );
+            params
+                .setStartDate( startDate )
+                .setEndDate( endDate );
         }
 
         if ( organisationUnits != null )
@@ -216,14 +218,19 @@ public class DefaultDataValueSetService
                 OrganisationUnit.class, IdentifiableProperty.UID, organisationUnits ) );
         }
 
-        params.setIncludeChildren( includeChildren );
-        params.setIncludeDeleted( includeDeleted );
-        params.setLastUpdated( lastUpdated );
-        params.setLastUpdatedDuration( lastUpdatedDuration );
-        params.setLimit( limit );
-        params.setOutputIdSchemes( outputIdSchemes );
+        if ( organisationUnitGroups != null )
+        {
+            params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
+                OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
+        }
 
-        return params;
+        return params
+            .setIncludeChildren( includeChildren )
+            .setIncludeDeleted( includeDeleted )
+            .setLastUpdated( lastUpdated )
+            .setLastUpdatedDuration( lastUpdatedDuration )
+            .setLimit( limit )
+            .setOutputIdSchemes( outputIdSchemes );
     }
 
     @Override
@@ -261,9 +268,19 @@ public class DefaultDataValueSetService
             violation = "Duration is not valid: " + params.getLastUpdatedDuration();
         }
 
-        if ( params.getOrganisationUnits().isEmpty() )
+        if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
         {
-            violation = "At least one valid organisation unit must be specified";
+            violation = "At least one valid organisation unit or organisation unit group must be specified";
+        }
+
+        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        {
+            violation = "Children cannot be included for organisation unit groups";
+        }
+
+        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        {
+            violation = "At least one valid organisation unit must be specified when children is included";
         }
 
         if ( params.hasLimit() && params.getLimit() < 0 )
