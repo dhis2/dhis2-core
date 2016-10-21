@@ -34,11 +34,14 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.io.Closeable;
+
 /**
  * @author Halvdan Hoem Grelland
  */
 @JacksonXmlRootElement( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistration
+    implements Closeable
 {
     //--------------------------------------------------------------------------
     // Properties
@@ -78,6 +81,8 @@ public class CompleteDataSetRegistration
             .add( "storedBy", storedBy )
             .toString();
     }
+
+    public void close() {}
 
     //--------------------------------------------------------------------------
     // Getters and setters
@@ -154,6 +159,4 @@ public class CompleteDataSetRegistration
     {
         this.storedBy = storedBy;
     }
-
-    public void close() {}
 }
