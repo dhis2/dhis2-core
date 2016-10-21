@@ -69,11 +69,26 @@
           <webAppConfig>
             <contextPath>/</contextPath>
           </webAppConfig>
+          <scanIntervalSeconds>0</scanIntervalSeconds>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.zeroturnaround</groupId>
+        <artifactId>jrebel-maven-plugin</artifactId>
+        <version>1.1.6</version>
+        <executions>
+          <execution>
+            <id>generate-rebel-xml</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
