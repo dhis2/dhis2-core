@@ -79,72 +79,74 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public String getDataSet()
     {
-        return super.getDataSet();
+        return dataSet = dataSet == null ? reader.getAttributeValue( "dataSet" ) : dataSet;
     }
 
     @Override
     public void setDataSet( String dataSet )
     {
-        super.setDataSet( dataSet );
+        writer.writeAttribute( "dataSet", dataSet );
     }
 
     @Override
     public String getPeriod()
     {
-        return super.getPeriod();
+        return period = period == null ? reader.getAttributeValue( "period" ) : period;
     }
 
     @Override
     public void setPeriod( String period )
     {
-        super.setPeriod( period );
+        writer.writeAttribute( "period", period );
     }
 
     @Override
     public String getOrganisationUnit()
     {
-        return super.getOrganisationUnit();
+        return organisationUnit = organisationUnit == null ?
+            reader.getAttributeValue( "organisationUnit") : organisationUnit;
     }
 
     @Override
     public void setOrganisationUnit( String organisationUnit )
     {
-        super.setOrganisationUnit( organisationUnit );
+        writer.writeAttribute( "organisationUnit", organisationUnit );
     }
 
     @Override
     public String getAttributeOptionCombo()
     {
-        return super.getAttributeOptionCombo();
+        return attributeOptionCombo = attributeOptionCombo == null ?
+            reader.getAttributeValue( "attributeOptionCombo" ) : attributeOptionCombo;
     }
 
     @Override
     public void setAttributeOptionCombo( String attributeOptionCombo )
     {
-        super.setAttributeOptionCombo( attributeOptionCombo );
+        writer.writeAttribute( "attributeOptionCombo", attributeOptionCombo );
     }
 
     @Override
     public String getDate()
     {
-        return super.getDate();
+        return date = date == null ? reader.getAttributeValue( "date" ) : date;
     }
 
     @Override
     public void setDate( String date )
     {
-        super.setDate( date );
+        writer.writeAttribute( "date", date );
     }
 
     @Override
     public String getStoredBy()
     {
-        return super.getStoredBy();
+        return storedBy = storedBy == null ? reader.getAttributeValue( "storedBy" ) : storedBy;
     }
 
     @Override
     public void setStoredBy( String storedBy )
     {
-        super.setStoredBy( storedBy );
+        writer.writeAttribute( "storedBy", storedBy );
     }
 }
