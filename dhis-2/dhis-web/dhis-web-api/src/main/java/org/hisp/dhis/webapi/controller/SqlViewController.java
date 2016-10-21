@@ -212,6 +212,11 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view not found" ) );
         }
 
+        if ( sqlView.isQuery() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "SQL view is a query, no view to create" ) );
+        }
+
         String result = sqlViewService.createViewTable( sqlView );
 
         if ( result != null )
