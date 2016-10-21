@@ -95,6 +95,7 @@ public class CompleteDataSetRegistration
             .toString();
     }
 
+    @Override
     public void close() {}
 
     //--------------------------------------------------------------------------
