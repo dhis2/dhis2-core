@@ -28,9 +28,116 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonGenerator;
+
+import java.io.IOException;
+
 /**
  * @author Halvdan Hoem Grelland
  */
-public class StreamingCompleteDataSetRegistration
+public class StreamingJsonCompleteDataSetRegistration
+    extends CompleteDataSetRegistration
 {
+    private JsonGenerator generator;
+
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
+    public StreamingJsonCompleteDataSetRegistration( JsonGenerator generator )
+    {
+        this.generator = generator;
+
+        try
+        {
+            generator.writeStartObject();
+        }
+        catch ( IOException e )
+        {
+            // Intentionally ignored
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void close()
+    {
+        if ( generator == null )
+        {
+            return;
+        }
+
+        try
+        {
+            generator.writeEndObject();
+        }
+        catch ( IOException e )
+        {
+            // Intentionally ignored
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Setter overrides
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void setDataSet( String dataSet )
+    {
+        writeObjectField( "dataSet", dataSet );
+    }
+
+    @Override
+    public void setPeriod( String period )
+    {
+        writeObjectField( "period", period );
+    }
+
+    @Override
+    public void setOrganisationUnit( String organisationUnit )
+    {
+        writeObjectField( "organisationUnit", organisationUnit );
+    }
+
+    @Override
+    public void setAttributeOptionCombo( String attributeOptionCombo )
+    {
+        writeObjectField( "attributeOptionCombo", attributeOptionCombo );
+    }
+
+    @Override
+    public void setDate( String date )
+    {
+        writeObjectField( "date", date );
+    }
+
+    @Override
+    public void setStoredBy( String storedBy )
+    {
+        writeObjectField( "storedBy", storedBy );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private void writeObjectField( String fieldName, String value )
+    {
+        if ( value == null )
+        {
+            return;
+        }
+
+        try
+        {
+            generator.writeObjectField( fieldName, value );
+        }
+        catch ( IOException e )
+        {
+            // Intentionally ignored
+        }
+    }
 }
