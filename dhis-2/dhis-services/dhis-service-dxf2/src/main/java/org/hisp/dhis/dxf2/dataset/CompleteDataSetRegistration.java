@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import java.io.Closeable;
@@ -68,6 +69,18 @@ public class CompleteDataSetRegistration
     //--------------------------------------------------------------------------
     // Logic
     //--------------------------------------------------------------------------
+
+    public boolean hasDate()
+    {
+        String date = getDate();
+        return StringUtils.isEmpty( date );
+    }
+
+    public boolean hasStoredBy()
+    {
+        String storedBy = getStoredBy();
+        return StringUtils.isEmpty( storedBy );
+    }
 
     @Override
     public String toString()
