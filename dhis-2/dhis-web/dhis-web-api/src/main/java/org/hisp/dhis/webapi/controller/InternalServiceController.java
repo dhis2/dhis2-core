@@ -28,53 +28,49 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.io.InputStream;
-import java.util.List;
-
+/**
+ * @author Lars Helge Overland
+ */
 @Controller
-@RequestMapping( value = MenuController.RESOURCE_PATH )
+@RequestMapping( value = InternalServiceController.RESOURCE_PATH )
 @ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
-public class MenuController
+public class InternalServiceController
 {
-    public static final String RESOURCE_PATH = "/menu";
+    public static final String RESOURCE_PATH = "/internalServices";
+    
+    @Autowired
+    private DhisConfigurationProvider config;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     @Autowired
     private CurrentUserService currentUserService;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private RenderService renderService;
-
+    @RequestMapping( value = "/emptyDatabase", method = RequestMethod.POST )
+    @PreAuthorize( "hasRole('ALL')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    @SuppressWarnings( "unchecked" )
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    public void saveMenuOrder( InputStream input )
-        throws Exception
+    public void emptyDatabase()
     {
-        List<String> apps = renderService.fromJson( input, List.class );
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( apps != null && !apps.isEmpty() && user != null )
+        boolean hasAllAuth = currentUserService.getCurrentUser().isAuthorized( UserAuthorityGroup.AUTHORITY_ALL );
+        
+        if ( config.isEnabled( ConfigurationKey.INTERNAL_SERVICE_API ) && hasAllAuth )
         {
-            user.getApps().clear();
-            user.getApps().addAll( apps );
-
-            userService.updateUser( user );
+            dbmsManager.emptyDatabase();
         }
     }
 }

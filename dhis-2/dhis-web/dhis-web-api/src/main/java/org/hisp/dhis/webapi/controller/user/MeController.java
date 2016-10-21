@@ -32,6 +32,8 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.interpretation.InterpretationService;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
@@ -47,6 +49,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.webapi.webdomain.user.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -88,6 +91,12 @@ public class MeController
 
     @Autowired
     private PasswordManager passwordManager;
+
+    @Autowired
+    private MessageService messageService;
+
+    @Autowired
+    private InterpretationService interpretationService;
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public @ResponseBody RootNode getCurrentUser() throws Exception
@@ -186,6 +195,23 @@ public class MeController
         throws WebMessageException
     {
         return verifyPasswordInternal( body.get( "password" ), getCurrentUserOrThrow() );
+    }
+
+    @RequestMapping( value = "/dashboard" )
+    public @ResponseBody Dashboard getDashboard( HttpServletResponse response ) throws Exception
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        Dashboard dashboard = new Dashboard();
+        dashboard.setUnreadMessageConversation( messageService.getUnreadMessageConversationCount() );
+        dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
+
+        return dashboard;
     }
 
     //------------------------------------------------------------------------------------------------

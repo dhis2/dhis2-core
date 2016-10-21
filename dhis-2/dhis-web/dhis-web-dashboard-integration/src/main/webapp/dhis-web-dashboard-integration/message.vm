@@ -38,6 +38,9 @@
                 </ul>
             </div>
         </li>
+        <li>
+            <a class="greyButtonLink" href="message.action?showAssignedToMe=true" id="showAssignedToMe">$i18n.getString( "assigned_to_me" )</a>
+        </li>
         #end
     </ul>
 </div>
@@ -137,6 +140,19 @@ $( document ).ready( function() {
             break;
         default:
             break;
+    }
+
+    var showAssignedToMeBtn = $( "#showAssignedToMe" );
+
+    if(getParameterByName("showAssignedToMe") == "true")
+    {
+        showAssignedToMeBtn.attr("href", "message.action");
+        showAssignedToMeBtn.html( "$i18n.getString( 'all_messages' )" );
+    }
+    else
+    {
+        showAssignedToMeBtn.attr("href", "message.action?showAssignedToMe=true");
+        showAssignedToMeBtn.html( "$i18n.getString( 'assigned_to_me' )" );
     }
 });
 </script>

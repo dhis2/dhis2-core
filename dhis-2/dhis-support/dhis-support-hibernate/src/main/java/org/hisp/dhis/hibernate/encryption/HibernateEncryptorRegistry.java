@@ -1,7 +1,7 @@
-package org.hisp.dhis.external.conf;
+package org.hisp.dhis.hibernate.encryption;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2015, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,69 +28,54 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.time.LocalDateTime;
+import com.google.common.collect.Maps;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 /**
-* @author Lars Helge Overland
-*/
-public class GoogleAccessToken
+ * Singleton registry for all (named) Hibernate Encryptors.
+ * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType}
+ * depends on this singleton to access the appropriate encryptor(s).
+ *
+ * @author Halvdan Hoem Grelland
+ */
+public final class HibernateEncryptorRegistry
 {
-    private String accessToken;
-    
-    private String clientId;
+    private static final HibernateEncryptorRegistry INSTANCE = new HibernateEncryptorRegistry();
 
-    private long expiresInSeconds;
-    
-    private LocalDateTime expiresOn;
-    
-    public GoogleAccessToken()
+    private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
+
+    private HibernateEncryptorRegistry() {} // Private constructor
+
+    /**
+     * Returns the (singleton) instance of the registry.
+     *
+     * @return this registry.
+     */
+    public static HibernateEncryptorRegistry getInstance()
     {
+        return INSTANCE;
     }
 
-    @JsonProperty( value = "access_token" )
-    public String getAccessToken()
+    /**
+     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by name.
+     *
+     * @param encryptors a map of names and encryptors.
+     */
+    public synchronized void setEncryptors( Map<String, PBEStringEncryptor> encryptors )
     {
-        return accessToken;
+        INSTANCE.encryptors.putAll( encryptors );
     }
 
-    public void setAccessToken( String accessToken )
+    /**
+     * Get encryptor from registry by name.
+     *
+     * @param name the name of the encryptor.
+     * @return an instance of {@link PBEStringEncryptor} or null.
+     */
+    public PBEStringEncryptor getEncryptor( String name )
     {
-        this.accessToken = accessToken;
-    }
-
-    @JsonProperty( value = "client_id" )
-    public String getClientId()
-    {
-        return clientId;
-    }
-
-    public void setClientId( String clientId )
-    {
-        this.clientId = clientId;
-    }
-    
-    @JsonProperty( value = "expires_in" )
-    public long getExpiresInSeconds()
-    {
-        return expiresInSeconds;
-    }
-
-    public void setExpiresInSeconds( long expiresInSeconds )
-    {
-        this.expiresInSeconds = expiresInSeconds;
-    }
-
-    @JsonIgnore
-    public LocalDateTime getExpiresOn()
-    {
-        return expiresOn;
-    }
-
-    public void setExpiresOn( LocalDateTime expiresOn )
-    {
-        this.expiresOn = expiresOn;
+        return INSTANCE.encryptors.get( name );
     }
 }

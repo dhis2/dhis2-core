@@ -36,7 +36,7 @@ import static org.hisp.dhis.commons.util.TextUtils.valueOf;
 /**
  * @author Lars Helge Overland
  */
-public class StreamingDataValue
+public class StreamingXmlDataValue
     extends DataValue
 {
     private static final String FIELD_DATAVALUE = "dataValue";
@@ -60,14 +60,14 @@ public class StreamingDataValue
     // Constructors
     //--------------------------------------------------------------------------
 
-    public StreamingDataValue( XMLWriter writer )
+    public StreamingXmlDataValue( XMLWriter writer )
     {
         this.writer = writer;
 
         this.writer.openElement( FIELD_DATAVALUE );
     }
 
-    public StreamingDataValue( XMLReader reader )
+    public StreamingXmlDataValue( XMLReader reader )
     {
         this.reader = reader;
     }

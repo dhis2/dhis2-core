@@ -22,7 +22,7 @@
         <property name="plainValue" column="value" access="property" length="50000"/>
 
         <property name="encryptedValue" length="50000" column="encryptedvalue" access="property"
-                  type="AESEncryptedString"/>
+          type="Aes128EncryptedString" />
 
         <property name="created" type="timestamp"/>
 

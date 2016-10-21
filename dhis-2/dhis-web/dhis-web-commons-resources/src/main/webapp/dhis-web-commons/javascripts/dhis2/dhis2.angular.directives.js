@@ -710,7 +710,7 @@ var d2Directives = angular.module('d2Directives', [])
             d2LngSaved: '=',
             d2CoordinateFormat: '='
         },
-        controller: function($scope, $modal){            
+        controller: function($scope, $modal, $filter, DHIS2COORDINATESIZE){            
             $scope.coordinateObject = angular.copy( $scope.d2Object );                        
             if( $scope.d2CoordinateFormat === 'TEXT' ){        
                 if( $scope.d2Object[$scope.id] && $scope.d2Object[$scope.id] !== ''){                    
@@ -752,9 +752,18 @@ var d2Directives = angular.module('d2Directives', [])
                 });
                 
                 modalInstance.result.then(function (location) {                    
-                    if(angular.isObject(location)){                        
+                    if(angular.isObject(location)){
+                    	
+                    	if( dhis2.validation.isNumber( location.lat ) ){
+                    		location.lat = parseFloat( $filter('number')(location.lat, DHIS2COORDINATESIZE) );
+                    	}
+                    	
+                    	if( dhis2.validation.isNumber( location.lng ) ){
+                    		location.lng = parseFloat( $filter('number')(location.lng, DHIS2COORDINATESIZE) );
+                    	}
+                    	
                         $scope.coordinateObject.coordinate.latitude = location.lat;
-                        $scope.coordinateObject.coordinate.longitude = location.lng;
+                        $scope.coordinateObject.coordinate.longitude = location.lng;                        
 
                         if( $scope.d2CoordinateFormat === 'TEXT' ){                        
                             $scope.d2Object[$scope.id] = location.lng + ',' + location.lat;
@@ -806,7 +815,16 @@ var d2Directives = angular.module('d2Directives', [])
                     }                    
                 };
                 
-                if( angular.isDefined( $scope.d2CallbackFunction ) ){                    
+                if( angular.isDefined( $scope.d2CallbackFunction ) ){
+                	
+                	if( dhis2.validation.isNumber( $scope.coordinateObject.coordinate.latitude ) ){
+                		$scope.coordinateObject.coordinate.latitude = parseFloat( $filter('number')($scope.coordinateObject.coordinate.latitude, DHIS2COORDINATESIZE) );
+                	}
+                	
+                	if( dhis2.validation.isNumber( $scope.coordinateObject.coordinate.longitude ) ){
+                		$scope.coordinateObject.coordinate.longitude = parseFloat( $filter('number')($scope.coordinateObject.coordinate.longitude, DHIS2COORDINATESIZE) );
+                	}
+                	
                     if( $scope.d2CoordinateFormat === 'TEXT' ){                    
                         $scope.d2Object[$scope.id] = $scope.coordinateObject.coordinate.longitude + ',' + $scope.coordinateObject.coordinate.latitude;                        
                         saveCoordinate( 'TEXT',  $scope.prStDe);

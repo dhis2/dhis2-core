@@ -73,7 +73,7 @@ public class DataExportParams
 
     private Integer limit;
 
-    private IdSchemes idSchemes;
+    private IdSchemes outputIdSchemes;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -167,7 +167,7 @@ public class DataExportParams
             add( "children", includeChildren ).
             add( "org unit groups", organisationUnitGroups ).
             add( "deleted", includeDeleted ).
-            add( "id schemes", idSchemes ).toString();
+            add( "output id schemes", outputIdSchemes ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -306,14 +306,14 @@ public class DataExportParams
         return this;
     }
 
-    public IdSchemes getIdSchemes()
+    public IdSchemes getOutputIdSchemes()
     {
-        return idSchemes;
+        return outputIdSchemes;
     }
 
-    public DataExportParams setIdSchemes( IdSchemes idSchemes )
+    public DataExportParams setOutputIdSchemes( IdSchemes outputIdSchemes )
     {
-        this.idSchemes = idSchemes;
+        this.outputIdSchemes = outputIdSchemes;
         return this;
     }
 }

@@ -185,7 +185,7 @@ public class SpringDataValueSetStore
 
     private String getDataValueSql( DataExportParams params )
     {
-        IdSchemes idSchemes = params.getIdSchemes() != null ? params.getIdSchemes() : new IdSchemes();
+        IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
         String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();

@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 import org.amplecode.staxwax.reader.XMLReader;
 import org.amplecode.staxwax.writer.XMLWriter;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
-import org.hisp.dhis.dxf2.datavalue.StreamingDataValue;
+import org.hisp.dhis.dxf2.datavalue.StreamingXmlDataValue;
 
 /**
  * @author Lars Helge Overland
@@ -139,7 +139,7 @@ public class StreamingXmlDataValueSet
     @Override
     public DataValue getNextDataValue()
     {
-        return new StreamingDataValue( reader );
+        return new StreamingXmlDataValue( reader );
     }
 
     //--------------------------------------------------------------------------
@@ -191,7 +191,7 @@ public class StreamingXmlDataValueSet
     @Override
     public DataValue getDataValueInstance()
     {
-        return new StreamingDataValue( writer );
+        return new StreamingXmlDataValue( writer );
     }
 
     @Override
