@@ -28,82 +28,66 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonGenerator;
-
-import java.io.IOException;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-public class StreamingJsonCompleteDataSetRegistration
-    extends StreamingCompleteDataSetRegistration
+public abstract class StreamingCompleteDataSetRegistration
+    extends CompleteDataSetRegistration
 {
-    private JsonGenerator generator;
+    protected static final String FIELD_DATASET = "dataSet";
+    protected static final String FIELD_PERIOD = "period";
+    protected static final String FIELD_ORGUNIT = "organisationUnit";
+    protected static final String FIELD_ATTR_OPTION_COMBO = "attributeOptionCombo";
+    protected static final String FIELD_DATE = "date";
+    protected static final String FIELD_STORED_BY = "storedBy";
 
     // -------------------------------------------------------------------------
-    // Constructors
+    // Common logic
     // -------------------------------------------------------------------------
 
-    public StreamingJsonCompleteDataSetRegistration( JsonGenerator generator )
-    {
-        this.generator = generator;
-        open();
-    }
+    protected abstract void open();
+
+    public abstract void close();
+
+    protected abstract void writeField( String fieldName, String value );
 
     // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void open()
-    {
-        try
-        {
-            generator.writeStartObject();
-        }
-        catch ( IOException e )
-        {
-            // Intentionally ignored
-        }
-    }
-
-    @Override
-    public void close()
-    {
-        if ( generator == null )
-        {
-            return;
-        }
-
-        try
-        {
-            generator.writeEndObject();
-        }
-        catch ( IOException e )
-        {
-            // Intentionally ignored
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
+    // Setters
     // -------------------------------------------------------------------------
 
     @Override
-    protected void writeField( String fieldName, String value )
+    public void setDataSet( String dataSet )
     {
-        if ( value == null )
-        {
-            return;
-        }
+        writeField( FIELD_DATASET, dataSet );
+    }
 
-        try
-        {
-            generator.writeObjectField( fieldName, value );
-        }
-        catch ( IOException e )
-        {
-            // Intentionally ignored
-        }
+    @Override
+    public void setPeriod( String period )
+    {
+        writeField( FIELD_PERIOD, period );
+    }
+
+    @Override
+    public void setOrganisationUnit( String organisationUnit )
+    {
+        writeField( FIELD_ORGUNIT, organisationUnit );
+    }
+
+    @Override
+    public void setAttributeOptionCombo( String attributeOptionCombo )
+    {
+        writeField( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo );
+    }
+
+    @Override
+    public void setDate( String date )
+    {
+        writeField( FIELD_DATE, date );
+    }
+
+    @Override
+    public void setStoredBy( String storedBy )
+    {
+        writeField( FIELD_STORED_BY, storedBy );
     }
 }

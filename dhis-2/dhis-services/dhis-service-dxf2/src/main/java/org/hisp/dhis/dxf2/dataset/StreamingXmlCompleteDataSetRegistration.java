@@ -35,7 +35,7 @@ import org.amplecode.staxwax.writer.XMLWriter;
  * @author Halvdan Hoem Grelland
  */
 public class StreamingXmlCompleteDataSetRegistration
-    extends CompleteDataSetRegistration
+    extends StreamingCompleteDataSetRegistration
 {
     private XMLWriter writer;
 
@@ -48,8 +48,7 @@ public class StreamingXmlCompleteDataSetRegistration
     public StreamingXmlCompleteDataSetRegistration( XMLWriter writer )
     {
         this.writer = writer;
-
-        this.writer.openElement( "dataSet" );
+        open();
     }
 
     public StreamingXmlCompleteDataSetRegistration( XMLReader reader )
@@ -62,6 +61,12 @@ public class StreamingXmlCompleteDataSetRegistration
     //--------------------------------------------------------------------------
 
     @Override
+    protected void open()
+    {
+        writer.openElement( FIELD_DATASET );
+    }
+
+    @Override
     public void close()
     {
         if ( writer == null )
@@ -70,6 +75,12 @@ public class StreamingXmlCompleteDataSetRegistration
         }
 
         writer.closeElement();
+    }
+
+    @Override
+    protected void writeField( String fieldName, String value )
+    {
+        writeField( fieldName, value );
     }
 
     //--------------------------------------------------------------------------
@@ -85,7 +96,7 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public void setDataSet( String dataSet )
     {
-        writer.writeAttribute( "dataSet", dataSet );
+        writeField( "dataSet", dataSet );
     }
 
     @Override
@@ -97,7 +108,7 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public void setPeriod( String period )
     {
-        writer.writeAttribute( "period", period );
+        writeField( "period", period );
     }
 
     @Override
@@ -110,7 +121,7 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public void setOrganisationUnit( String organisationUnit )
     {
-        writer.writeAttribute( "organisationUnit", organisationUnit );
+        writeField( "organisationUnit", organisationUnit );
     }
 
     @Override
@@ -123,7 +134,7 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public void setAttributeOptionCombo( String attributeOptionCombo )
     {
-        writer.writeAttribute( "attributeOptionCombo", attributeOptionCombo );
+        writeField( "attributeOptionCombo", attributeOptionCombo );
     }
 
     @Override
@@ -135,7 +146,7 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public void setDate( String date )
     {
-        writer.writeAttribute( "date", date );
+        writeField( "date", date );
     }
 
     @Override
@@ -147,6 +158,6 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public void setStoredBy( String storedBy )
     {
-        writer.writeAttribute( "storedBy", storedBy );
+        writeField( "storedBy", storedBy );
     }
 }
