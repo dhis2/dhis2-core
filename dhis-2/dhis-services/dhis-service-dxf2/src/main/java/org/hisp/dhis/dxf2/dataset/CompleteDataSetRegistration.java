@@ -61,7 +61,9 @@ public class CompleteDataSetRegistration
     // Constructors
     //--------------------------------------------------------------------------
 
-    public CompleteDataSetRegistration() {}
+    public CompleteDataSetRegistration()
+    {
+    }
 
     //--------------------------------------------------------------------------
     // Logic

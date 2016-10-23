@@ -28,9 +28,54 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Halvdan Hoem Grelland
  */
+@JacksonXmlRootElement( localName = "completeDataSetRegistrations", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistrations
 {
+    private List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
+
+    //--------------------------------------------------------------------------
+    // Constructors
+    //--------------------------------------------------------------------------
+
+    public CompleteDataSetRegistrations()
+    {
+    }
+
+    //--------------------------------------------------------------------------
+    // Getters and setters
+    //--------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "completeDataSetRegistrations", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
+    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations()
+    {
+        return completeDataSetRegistrations;
+    }
+
+    public void setCompleteDataSetRegistrations( List<CompleteDataSetRegistration> completeDataSetRegistrations )
+    {
+        this.completeDataSetRegistrations = completeDataSetRegistrations;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "completeDataSetRegistrations", completeDataSetRegistrations )
+            .toString();
+    }
 }
