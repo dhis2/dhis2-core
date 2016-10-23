@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.dataset;
+package org.hisp.dhis.dxf2.dataset.streaming;
 
 /*
  * Copyright (c) 2004-2015, University of Oslo
@@ -27,6 +27,8 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 
 /**
  * @author Halvdan Hoem Grelland
