@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.dataset.streaming;
+package org.hisp.dhis.dxf2.dataset;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
