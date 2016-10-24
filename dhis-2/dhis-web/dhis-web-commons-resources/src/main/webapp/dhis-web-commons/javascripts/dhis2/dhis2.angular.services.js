@@ -2683,7 +2683,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     else if(effect.action === "SHOWWARNING"){
                         warningMessages.push(effect.content + (effect.data ? effect.data : ""));
                     }
-                    else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
+                    else if (effect.action === "ASSIGN" && effect.dataElement) {
                         var processedValue = $filter('trimquotes')(effect.data);
 
                         if(prStDes[effect.dataElement.id] 
