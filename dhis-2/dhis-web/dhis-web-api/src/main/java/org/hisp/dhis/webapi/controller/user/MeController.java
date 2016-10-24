@@ -34,6 +34,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
@@ -54,7 +55,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -98,8 +103,11 @@ public class MeController
     @Autowired
     private InterpretationService interpretationService;
 
+    @Autowired
+    private NodeService nodeService;
+
     @RequestMapping( value = "", method = RequestMethod.GET )
-    public @ResponseBody RootNode getCurrentUser() throws Exception
+    public void getCurrentUser( HttpServletResponse response ) throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -117,11 +125,12 @@ public class MeController
 
         CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
 
-        return NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody RootNode updateCurrentUserJson( HttpServletRequest request ) throws Exception
+    public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -144,43 +153,28 @@ public class MeController
 
         CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
 
-        return NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );
     }
 
-    @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
-    public @ResponseBody RootNode updateCurrentUserXml( HttpServletRequest request ) throws Exception
-    {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser == null )
-        {
-            throw new NotAuthenticatedException();
-        }
-
-        User user = renderService.fromXml( request.getInputStream(), User.class );
-        merge( currentUser, user );
-        updatePassword( currentUser, user );
-        manager.update( currentUser );
-
-        if ( fields.isEmpty() )
-        {
-            fields.add( ":all" );
-        }
-
-        CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
-
-        return NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
-    }
-
-    @RequestMapping( value = "/authorization", produces = { "application/json", "text/*" } )
-    public void getAuthorization( HttpServletResponse response ) throws IOException
+    @RequestMapping( value = { "/authorization", "/authorities" } )
+    public void getAuthorities( HttpServletResponse response ) throws IOException
     {
         User currentUser = currentUserService.getCurrentUser();
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
+    }
+
+    @RequestMapping( value = { "/authorization/{authority}", "/authorities/{authority}" } )
+    public void haveAuthority( HttpServletResponse response, @PathVariable String authority ) throws IOException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        boolean hasAuthority = currentUser != null && currentUser.getUserCredentials().isAuthorized( authority );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        renderService.toJson( response.getOutputStream(), hasAuthority );
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
@@ -208,7 +202,7 @@ public class MeController
         }
 
         Dashboard dashboard = new Dashboard();
-        dashboard.setUnreadMessageConversation( messageService.getUnreadMessageConversationCount() );
+        dashboard.setUnreadMessageConversations( messageService.getUnreadMessageConversationCount() );
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
         return dashboard;
