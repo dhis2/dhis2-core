@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.dataset.streaming.StreamingCompleteDataSetRegistration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,7 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "completeDataSetRegistrations", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistrations
 {
-    private List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
+    private List<StreamingCompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -61,12 +62,12 @@ public class CompleteDataSetRegistrations
     @JsonProperty
     @JacksonXmlProperty( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlElementWrapper( localName = "completeDataSetRegistrations", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations()
+    public List<StreamingCompleteDataSetRegistration> getCompleteDataSetRegistrations()
     {
         return completeDataSetRegistrations;
     }
 
-    public void setCompleteDataSetRegistrations( List<CompleteDataSetRegistration> completeDataSetRegistrations )
+    public void setCompleteDataSetRegistrations( List<StreamingCompleteDataSetRegistration> completeDataSetRegistrations )
     {
         this.completeDataSetRegistrations = completeDataSetRegistrations;
     }

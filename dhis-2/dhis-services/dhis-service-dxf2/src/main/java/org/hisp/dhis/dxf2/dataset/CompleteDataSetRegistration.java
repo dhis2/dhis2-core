@@ -42,6 +42,22 @@ import org.hisp.dhis.common.DxfNamespaces;
 public class CompleteDataSetRegistration
 {
     //--------------------------------------------------------------------------
+    // Field names
+    //--------------------------------------------------------------------------
+
+    protected static final String FIELD_DATASET = "dataSet";
+
+    protected static final String FIELD_PERIOD = "period";
+
+    protected static final String FIELD_ORGUNIT = "organisationUnit";
+
+    protected static final String FIELD_ATTR_OPTION_COMBO = "attributeOptionCombo";
+
+    protected static final String FIELD_DATE = "date";
+
+    protected static final String FIELD_STORED_BY = "storedBy";
+
+    //--------------------------------------------------------------------------
     // Properties
     //--------------------------------------------------------------------------
 
@@ -92,6 +108,22 @@ public class CompleteDataSetRegistration
             .add( "date", date )
             .add( "storedBy", storedBy )
             .toString();
+    }
+
+    //--------------------------------------------------------------------------
+    // Streaming logic stubs
+    //--------------------------------------------------------------------------
+
+    protected void open()
+    {
+    }
+
+    protected void close()
+    {
+    }
+
+    protected void writeField( String fieldName, String value )
+    {
     }
 
     //--------------------------------------------------------------------------

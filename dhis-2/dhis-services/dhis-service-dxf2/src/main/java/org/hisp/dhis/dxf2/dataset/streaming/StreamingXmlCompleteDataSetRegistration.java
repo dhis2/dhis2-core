@@ -30,12 +30,13 @@ package org.hisp.dhis.dxf2.dataset.streaming;
 
 import org.amplecode.staxwax.reader.XMLReader;
 import org.amplecode.staxwax.writer.XMLWriter;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 public class StreamingXmlCompleteDataSetRegistration
-    extends StreamingCompleteDataSetRegistration
+    extends CompleteDataSetRegistration
 {
     private XMLWriter writer;
 
@@ -80,7 +81,7 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     protected void writeField( String fieldName, String value )
     {
-        writeField( fieldName, value );
+        writer.writeAttribute( fieldName, value );
     }
 
     //--------------------------------------------------------------------------

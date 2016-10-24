@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  */
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 
 import java.io.IOException;
 
@@ -36,7 +37,7 @@ import java.io.IOException;
  * @author Halvdan Hoem Grelland
  */
 public class StreamingJsonCompleteDataSetRegistration
-    extends StreamingCompleteDataSetRegistration
+    extends CompleteDataSetRegistration
 {
     private JsonGenerator generator;
 
@@ -47,7 +48,6 @@ public class StreamingJsonCompleteDataSetRegistration
     public StreamingJsonCompleteDataSetRegistration( JsonGenerator generator )
     {
         this.generator = generator;
-        open();
     }
 
     // -------------------------------------------------------------------------
@@ -55,7 +55,7 @@ public class StreamingJsonCompleteDataSetRegistration
     // -------------------------------------------------------------------------
 
     @Override
-    public void open()
+    protected void open()
     {
         try
         {
@@ -68,7 +68,7 @@ public class StreamingJsonCompleteDataSetRegistration
     }
 
     @Override
-    public void close()
+    protected void close()
     {
         if ( generator == null )
         {
