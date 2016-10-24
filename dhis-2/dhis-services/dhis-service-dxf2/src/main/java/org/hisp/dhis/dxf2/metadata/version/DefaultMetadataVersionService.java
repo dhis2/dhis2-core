@@ -191,7 +191,7 @@ public class DefaultMetadataVersionService
      * 3. Creating the actual MetadataVersion entry.
      */
     @Override
-    public boolean saveVersion( VersionType versionType )
+    public synchronized boolean saveVersion( VersionType versionType )
     {
         MetadataVersion currentVersion = getCurrentVersion();
         String versionName = MetadataVersionNameGenerator.getNextVersionName( currentVersion );

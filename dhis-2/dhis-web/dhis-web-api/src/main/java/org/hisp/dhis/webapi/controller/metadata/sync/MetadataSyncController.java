@@ -65,7 +65,7 @@ public class MetadataSyncController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( method = RequestMethod.GET )
-    public @ResponseBody MetadataSyncSummary metadataSync() throws MetadataSyncException, BadRequestException
+    public synchronized @ResponseBody MetadataSyncSummary metadataSync() throws MetadataSyncException, BadRequestException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary;
