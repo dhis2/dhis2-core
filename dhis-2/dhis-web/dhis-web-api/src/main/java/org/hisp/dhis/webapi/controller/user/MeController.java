@@ -202,7 +202,7 @@ public class MeController
         }
 
         Dashboard dashboard = new Dashboard();
-        dashboard.setUnreadMessageConversation( messageService.getUnreadMessageConversationCount() );
+        dashboard.setUnreadMessageConversations( messageService.getUnreadMessageConversationCount() );
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
         return dashboard;

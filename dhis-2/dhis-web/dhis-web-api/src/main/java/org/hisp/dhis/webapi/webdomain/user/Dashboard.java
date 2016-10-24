@@ -50,12 +50,12 @@ public class Dashboard
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getUnreadMessageConversation()
+    public long getUnreadMessageConversations()
     {
         return unreadMessageConversation;
     }
 
-    public void setUnreadMessageConversation( long unreadMessageConversation )
+    public void setUnreadMessageConversations( long unreadMessageConversation )
     {
         this.unreadMessageConversation = unreadMessageConversation;
     }
