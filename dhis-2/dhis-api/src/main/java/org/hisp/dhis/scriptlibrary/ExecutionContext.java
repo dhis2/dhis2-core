@@ -33,6 +33,9 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationContext;
 
@@ -40,6 +43,7 @@ import org.springframework.context.ApplicationContext;
 public class ExecutionContext implements ExecutionContextInterface
 {
 
+    protected static final Log log = LogFactory.getLog ( ExecutionContext.class );
     protected ApplicationContext applicationContext;
     protected Reader in;
     protected Writer out;
@@ -62,10 +66,14 @@ public class ExecutionContext implements ExecutionContextInterface
 
     public String toString()
     {
-        return "ExecutionContext for "  + getAppKey() + ":" + getScriptName() + " for user " + user.toString();
+        return "ExecutionContext for appKey " + getAppKey()
+                + "\nfor script name " + getScriptName()
+                + "\nfor user " + user.toString()
+                ;
     }
     public String getAppKey()
     {
+        log.debug("Getting appKey" + appKey);
         return appKey;
     }
     public String getScriptName()
@@ -100,6 +108,7 @@ public class ExecutionContext implements ExecutionContextInterface
     }
     public void setAppKey ( String appKey )
     {
+        log.debug("Setting appKey to =(" + appKey + ")");
         this.appKey = appKey;
     }
     public void setScriptName ( String scriptName )

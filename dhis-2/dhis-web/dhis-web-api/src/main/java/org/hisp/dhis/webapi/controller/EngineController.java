@@ -83,18 +83,18 @@ abstract public class  EngineController
     {
         try
         {
-            log.info ( "Setting script context" );
+            log.info ( "Setting script context appKey:" + appKey );
             execContext.setAppKey ( appKey );
             execContext.setUser ( currentUserService.getCurrentUser() );
 
             log.info ( "Setting application context" );
             execContext.setApplicationContext ( applicationContext );
 
-            log.info ( "Setting http context" );
+            log.info ( "Setting http stream context" );
             execContext.setOut ( new OutputStreamWriter ( httpResponse.getOutputStream() ) );
             execContext.setIn ( new InputStreamReader ( httpRequest.getInputStream() ) );
 
-            log.info ( "Setting http stream context" );
+            log.info ( "Setting http request/response context" );
             execContext.setHttpServletRequest ( httpRequest );
             execContext.setHttpServletResponse ( httpResponse );
 

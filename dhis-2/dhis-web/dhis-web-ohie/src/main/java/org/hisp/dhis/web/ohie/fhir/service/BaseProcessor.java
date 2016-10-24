@@ -34,30 +34,21 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.DataFormatException;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.parser.StrictErrorHandler;
-import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collector;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.script.ScriptException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
-import org.hisp.dhis.scriptlibrary.ScriptLibrary;
-import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
+
 
 /**
  * @author Carl Leitner <litlfred@gmail.com>
  */
 abstract public class BaseProcessor
 {
+    public Map<String, String> operationsInput = new HashMap<String, String>();
+    public Map<String, String>  operationsOutput = new HashMap<String, String>();
     protected FhirContext fctx;
     protected IParser xmlParser;
     protected IParser jsonParser;
@@ -72,7 +63,6 @@ abstract public class BaseProcessor
     }
 
     abstract protected void setFhirContext();
-
 
 
 
@@ -136,15 +126,6 @@ abstract public class BaseProcessor
         Object o = xmlParser.parseBundle ( r );
         return ( Bundle ) o;
     }
-    public Bundle bundleFromJSON ( JsonObject o ) throws DataFormatException
-    {
-        if ( o == null )
-        {
-            throw new DataFormatException ( "No JSON to process as bundle" );
-        }
-
-        return bundleFromJSON ( o.toString() );
-    }
     public Bundle bundleFromJSON ( String r ) throws DataFormatException
     {
         if ( r == null )
@@ -205,15 +186,6 @@ abstract public class BaseProcessor
 
         Object o = jsonParser.parseResource ( r );
         return ( IResource ) o;
-    }
-    public IResource resourceFromJSON ( JsonObject o ) throws DataFormatException
-    {
-        if ( o == null )
-        {
-            throw new DataFormatException ( "No JSON to process as resource" );
-        }
-
-        return resourceFromJSON ( o.toString() );
     }
 
 }

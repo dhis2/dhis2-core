@@ -36,38 +36,38 @@ import org.springframework.stereotype.Service;
  * @author Carl Leitner <litlfred@gmail.com>
  */
 @Service
-public class DSTU2Processor extends BaseProcessor
+public class STU3Processor extends BaseProcessor
 {
     public static final String MIME_FHIR_JSON = "application/json+fhir";
     public static final String MIME_FHIR_XML = "application/xml+json";
     public static final String[] operations =
-    {
-        "read", "vread", "base", "update", "delete", "history", "create", "search", "conformance", "batch", "transaction"
-    };
+            {
+                    "read", "vread", "base", "update", "delete", "history", "create", "search", "conformance", "batch", "transaction"
+            };
     public static final String[] resources =
-    {
-        "AllergyIntolerance", "Appointment", "AppointmentResponse", "AuditEvent", "Basic", "Binary",
-        "BodySite", "Bundle", "CarePlan", "Claim", "ClaimResponse", "ClinicalImpression", "Communication",
-        "CommunicationRequest", "Composition", "ConceptMap", "Condition (aka Problem)", "Conformance", "Contract",
-        "DetectedIssue", "Coverage", "DataElement", "Device", "DeviceComponent", "DeviceMetric", "DeviceUseRequest",
-        "DeviceUseStatement", "DiagnosticOrder", "DiagnosticReport", "DocumentManifest", "DocumentReference", "EligibilityRequest",
-        "EligibilityResponse", "Encounter", "EnrollmentRequest", "EnrollmentResponse", "EpisodeOfCare", "ExplanationOfBenefit",
-        "FamilyMemberHistory", "Flag", "Goal", "Group", "HealthcareService", "ImagingObjectSelection", "ImagingStudy",
-        "Immunization", "ImmunizationRecommendation", "ImplementationGuide", "List", "Location", "Media", "Medication",
-        "MedicationAdministration", "MedicationDispense", "MedicationOrder", "MedicationStatement", "MessageHeader",
-        "NamingSystem", "NutritionOrder", "Observation", "OperationDefinition", "OperationOutcome", "Order", "OrderResponse",
-        "Organization", "Parameters", "Patient", "PaymentNotice", "PaymentReconciliation", "Person", "Practitioner",
-        "Procedure", "ProcessRequest", "ProcessResponse", "ProcedureRequest", "Provenance", "Questionnaire",
-        "QuestionnaireResponse", "ReferralRequest", "RelatedPerson", "RiskAssessment", "Schedule", "SearchParameter",
-        "Slot", "Specimen", "StructureDefinition", "Subscription", "Substance", "SupplyRequest", "SupplyDelivery", "TestScript",
-        "ValueSet", "VisionPrescription"
-    };
+            {
+                    "AllergyIntolerance", "Appointment", "AppointmentResponse", "AuditEvent", "Basic", "Binary",
+                    "BodySite", "Bundle", "CarePlan", "Claim", "ClaimResponse", "ClinicalImpression", "Communication",
+                    "CommunicationRequest", "Composition", "ConceptMap", "Condition (aka Problem)", "Conformance", "Contract",
+                    "DetectedIssue", "Coverage", "DataElement", "Device", "DeviceComponent", "DeviceMetric", "DeviceUseRequest",
+                    "DeviceUseStatement", "DiagnosticOrder", "DiagnosticReport", "DocumentManifest", "DocumentReference", "EligibilityRequest",
+                    "EligibilityResponse", "Encounter", "EnrollmentRequest", "EnrollmentResponse", "EpisodeOfCare", "ExplanationOfBenefit",
+                    "FamilyMemberHistory", "Flag", "Goal", "Group", "HealthcareService", "ImagingObjectSelection", "ImagingStudy",
+                    "Immunization", "ImmunizationRecommendation", "ImplementationGuide", "List", "Location", "Media", "Medication",
+                    "MedicationAdministration", "MedicationDispense", "MedicationOrder", "MedicationStatement", "MessageHeader",
+                    "NamingSystem", "NutritionOrder", "Observation", "OperationDefinition", "OperationOutcome", "Order", "OrderResponse",
+                    "Organization", "Parameters", "Patient", "PaymentNotice", "PaymentReconciliation", "Person", "Practitioner",
+                    "Procedure", "ProcessRequest", "ProcessResponse", "ProcedureRequest", "Provenance", "Questionnaire",
+                    "QuestionnaireResponse", "ReferralRequest", "RelatedPerson", "RiskAssessment", "Schedule", "SearchParameter",
+                    "Slot", "Specimen", "StructureDefinition", "Subscription", "Substance", "SupplyRequest", "SupplyDelivery", "TestScript",
+                    "ValueSet", "VisionPrescription"
+            };
 
     protected void setFhirContext() {
-        fctx = FhirContext.forDstu2();
+        fctx = FhirContext.forDstu3();
     };
 
-    public DSTU2Processor()
+    public STU3Processor()
     {
         super();
         operationsInput.put ( "create", "resource" ); //not the best way to do this
@@ -80,8 +80,6 @@ public class DSTU2Processor extends BaseProcessor
         operationsOutput.put ( "update", "resource" );
 
     }
-
-
 
 
 

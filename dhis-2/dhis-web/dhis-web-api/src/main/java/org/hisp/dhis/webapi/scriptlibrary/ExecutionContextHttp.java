@@ -57,15 +57,18 @@ public class ExecutionContextHttp extends ExecutionContext implements ExecutionC
      */
     public HttpServletResponse getHttpServletResponse()
     {
+
         return  httpResponse ;
     }
     public HttpServletRequest getHttpServletRequest()
     {
+
         return httpRequest;
     }
 
     public void setHttpServletResponse ( HttpServletResponse httpResponse )
     {
+
         this.httpResponse = httpResponse;
     }
     public void setHttpServletRequest ( HttpServletRequest httpRequest )
@@ -77,7 +80,8 @@ public class ExecutionContextHttp extends ExecutionContext implements ExecutionC
 
     public String toString()
     {
-        return super.toString() +   "\n\thttpRequest=" + httpRequest.toString() +   "\n\thttpResponse=" + httpResponse.toString() + "\n";
+        return super.toString() +   "\n\thttpRequest=" + httpRequest.toString() +
+                "\n\thttpResponse=" + httpResponse.toString() + "\n";
     }
 
 }

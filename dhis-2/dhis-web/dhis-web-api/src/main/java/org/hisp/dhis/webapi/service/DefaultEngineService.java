@@ -263,12 +263,19 @@ public class DefaultEngineService implements EngineServiceInterface {
 		App app = null;
 		if (execContext instanceof ExecutionContextHttpInterface) {
 			HttpServletRequest hsr = ( (ExecutionContextHttpInterface) execContext).getHttpServletRequest();
+			if (hsr ==  null) {
+				throw new ScriptExecutionException("Empty HTTP Servlet Request");
+			}
 			contextPath = ContextUtils.getContextPath(hsr);
 			app = appManager.getApp(appKey, contextPath);
 		}
-		if ( appKey == null || app == null )
+		if ( appKey == null )
 		{
-			throw new ScriptNotFoundException ( "Script execution - No app associated to script" );
+			throw new ScriptNotFoundException ( "Script execution - No app key specified for script  " + scriptName );
+		}
+		if (  app == null )
+		{
+			throw new ScriptNotFoundException ( "Script execution - No app associated to script " + scriptName + " for appKey " + appKey);
 		}
 		log.info("Attempting to retrieve " + execContext.getScriptName() + " for app " + execContext.getAppKey());
 		ScriptLibrary sl = appManager.getScriptLibrary(app);
@@ -282,6 +289,7 @@ public class DefaultEngineService implements EngineServiceInterface {
 
 		if (  !appManager.isAccessible ( app, user ) )
 		{
+			log.info("WARNING: App check for user access is disabled!");
 			//HELP:  This should not be commented out.  Not sure what the above expression evaluates  to false
 			//throw new ScriptAccessException ( "Script execution - permission denied on user" );
 		}

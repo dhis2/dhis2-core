@@ -33,19 +33,19 @@ import ca.uhn.fhir.model.api.Bundle;
 import ca.uhn.fhir.model.api.IResource;
 import java.io.Reader;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
-import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.scriptlibrary.*;
+import org.hisp.dhis.web.ohie.fhir.service.BaseProcessor;
 import org.hisp.dhis.webapi.controller.EngineController;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttp;
 import org.hisp.dhis.webapi.scriptlibrary.HttpException;
@@ -58,21 +58,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.hisp.dhis.web.ohie.fhir.service.DSTU2Processor;
-
+import org.hisp.dhis.web.ohie.fhir.service.STU3Processor;
 
 /**
 * @author Carl Leitner <litlfred@gmail.com>
  */
 @Controller
 @ComponentScan ( basePackages = {"org.hisp.dhis.webapi.service"} )
-@RequestMapping (  value =  EngineControllerDSTU2.RESOURCE_PATH  + "/{app}" )
-public class EngineControllerDSTU2 extends EngineController
+@RequestMapping (  value =  EngineControllerFHIR.RESOURCE_PATH  + "/{app}" )
+public class EngineControllerFHIR extends EngineController
 {
 
     @Autowired
     AppManager appManager;
 
-    public static final String RESOURCE_PATH = "/fhir/dstu2";
+    public static final String RESOURCE_PATH = "/fhir";
 
     protected static final Log log = LogFactory.getLog ( DefaultDataValueService.class );
 
@@ -184,69 +184,79 @@ public class EngineControllerDSTU2 extends EngineController
     }
 
 
-    protected DSTU2Processor fhirProcessor  = new DSTU2Processor();
+    protected Map<String, BaseProcessor> fhirProcessors = new HashMap<String,BaseProcessor>();
+
+    public void setFhirProcessors(HashMap<String,BaseProcessor> fhirProcessors) {
+        this.fhirProcessors = fhirProcessors;
+    }
+
+   public EngineControllerFHIR() {
+        fhirProcessors.put("dstu2",new DSTU2Processor());
+        fhirProcessors.put("stu2",new STU3Processor());
+   }
 
     @RequestMapping (
-        value =  "/{resource}/{id}",
+        value =  "/{fhirVersion}/{resource}/{id}",
         method = RequestMethod.GET
     )
     public void operationRead ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                @PathVariable ( "app" ) String app,
+                                @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion,
                                 @PathVariable ( "id" ) String id  , @PathVariable ( "resource" ) String resource )
     {
         log.info ( "Received read request for " + resource + " on id [" + id + "]" );
-        doOperation ( httpRequest, httpResponse, app, resource, "read", id );
+        doOperation ( httpRequest, httpResponse, app, fhirVersion,  resource, "read", id );
     }
 
     @RequestMapping (
-        value =  "/{resource}/{id}/{extended}",
+        value =  "/{fhirVersion}/{resource}/{id}/{extended}",
         method = RequestMethod.GET
     )
     public void operationExtended ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                    @PathVariable ( "app" ) String app, @PathVariable ( "extended" ) String extOp,
+                                    @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion, @PathVariable ( "extended" ) String extOp,
                                     @PathVariable ( "id" ) String id  , @PathVariable ( "resource" ) String resource )
     {
         log.info ( "Received extended operation request [" + extOp + "] for " + resource + " on id [" + id + "]" );
-        doOperation ( httpRequest, httpResponse, app, resource, extOp, id );
+        doOperation ( httpRequest, httpResponse, app, fhirVersion, resource, extOp, id );
     }
 
     @RequestMapping (
-        value =  "/{resource}",
+        value =  "/{fhirVersion}/{resource}",
         method = RequestMethod.GET
     )
     public void operationSearch ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                  @PathVariable ( "app" ) String app, @PathVariable ( "resource" ) String resource )
+                                  @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion, @PathVariable ( "resource" ) String resource )
     {
-        doOperation ( httpRequest, httpResponse, app, resource, "search" );
+        doOperation ( httpRequest, httpResponse, app, fhirVersion, resource, "search" );
     }
 
     @RequestMapping (
-        value =  "/{resource}",
+        value =  "/{fhirVersion}/{resource}",
         method = RequestMethod.POST
     )
     public void operationCreate ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                  @PathVariable ( "app" ) String app, @PathVariable ( "resource" ) String resource )
+                                  @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion, @PathVariable ( "resource" ) String resource )
     {
-        doOperation ( httpRequest, httpResponse, app, resource, "create" );
+        doOperation ( httpRequest, httpResponse, app ,fhirVersion, resource, "create" );
     }
 
     @RequestMapping (
+        value =  "/{fhirVersion}",
         method = RequestMethod.POST
     )
     public void operationBatch ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                 @PathVariable ( "app" ) String app )
+                                 @PathVariable ( "app" ) String app , @PathVariable ("fhirVersion") String fhirVersion)
     {
-        doOperation ( httpRequest, httpResponse, app, null, "batch" );
+        doOperation ( httpRequest, httpResponse, app, fhirVersion, null, "batch" );
     }
 
-    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String app, String resource, String operation )
+    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String app, String fhirVersion, String resource, String operation )
     {
-        doOperation ( httpRequest, httpResponse, app, resource, operation, null );
+        doOperation ( httpRequest, httpResponse, app, fhirVersion, resource, operation, null );
     }
 
 
 
-    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey, String resource, String operation, String id )
+    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey,  String fhirVersion, String resource, String operation, String id )
     {
         log.info ( "Attempting " + operation + " on " + resource + " in " + appKey );
         String contextPath =  ContextUtils.getContextPath ( httpRequest );
@@ -255,7 +265,7 @@ public class EngineControllerDSTU2 extends EngineController
         try
         {
 
-            info =  appManager.retrieveManifestInfo ( appKey, ( "script-library/bindings" + RESOURCE_PATH ).split ( "/" ) );
+            info =  appManager.retrieveManifestInfo ( appKey, ( "script-library/bindings" + RESOURCE_PATH + "/" + fhirVersion ).split ( "/" ) );
 
             if ( info == null || ! info.isArray())
             {
@@ -351,9 +361,9 @@ public class EngineControllerDSTU2 extends EngineController
 
             try
             {
-                ExecutionContextFHIR execContext = getExecutionContext ( script, httpRequest, httpResponse, appKey, resource, operation, id );
+                ExecutionContextFHIR execContext = getExecutionContext ( script, httpRequest, httpResponse, appKey, fhirVersion, resource, operation, id );
                 Object result =  engineService.eval(execContext);
-                processOperationResult ( execContext);
+                processOperationResult ( execContext, fhirVersion);
             }
 
             catch ( HttpException he )
@@ -388,15 +398,18 @@ public class EngineControllerDSTU2 extends EngineController
         sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, "Operation " + operation + " not found on resource " + resource );
     }
 
-    protected void processOperationResult ( ExecutionContextFHIR execContext )
-    throws HttpException
+    protected void processOperationResult ( ExecutionContextFHIR execContext , String fhirVersion)
+    throws HttpException, ScriptException
     {
         Object response = execContext.getResponse();
         log.info ( "Processing result" );
         log.info ( "retrieved script context" );
         HttpServletResponse httpResponse = execContext.getHttpServletResponse();
         log.info ( "retrieved script http response" );
-
+        BaseProcessor fhirProcessor =  fhirProcessors.get(fhirVersion);
+        if (fhirProcessor == null) {
+            throw new ScriptExecutionException("No processor for FHIR version: " + fhirVersion);
+        }
         if ( execContext.getErrorCode() >= 400 )
         {
             throw new HttpException ( execContext.getErrorMessage(), execContext.getErrorCode() );
@@ -457,7 +470,7 @@ public class EngineControllerDSTU2 extends EngineController
             {
             case "resource":
                 log.info ( "post processing json response - resource" );
-                IResource r = fhirProcessor.resourceFromJSON ( json );
+                IResource r =fhirProcessor.resourceFromJSON ( json );
                 log.info ( "post processing json response - created resource" );
 
                 if ( execContext.getIsXml() )
@@ -519,12 +532,15 @@ public class EngineControllerDSTU2 extends EngineController
 
 
     protected ExecutionContextFHIR getExecutionContext ( String script, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-            String appKey, String resource, String operation, String id )
+            String appKey, String fhirVersion, String resource, String operation, String id )
+            throws ScriptException
     {
         ExecutionContextFHIR execContext = new ExecutionContextFHIR();
         execContext.setScriptName(script);
         log.info("Setting execution context to script " + script + " for app " + appKey);
         initExecutionContext ( execContext, appKey,  httpRequest, httpResponse );
+
+
         String contentType = httpRequest.getContentType();
         String format = httpRequest.getParameter ( "_format" );
         execContext.setIsXml (  ( contentType == "application/xml" )
@@ -535,6 +551,10 @@ public class EngineControllerDSTU2 extends EngineController
         String inputType;
         execContext.setOperation ( operation );
 
+        BaseProcessor fhirProcessor = fhirProcessors.get(fhirVersion);
+        if (fhirProcessor == null) {
+            throw new ScriptExecutionException("No processor for FHIR Version: " + fhirVersion );
+        }
         if ( operation != null )
         {
             inputType = fhirProcessor.operationsInput.get ( operation );

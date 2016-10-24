@@ -41,8 +41,10 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.HandlerMapping;
 
 
 /**
@@ -54,43 +56,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 )
 public class EngineControllerAction  extends EngineController
 {
-    public static final String PATH = "/ssa";
+    public static final String PATH = "ssa";
 
     @Autowired
     protected AppManager appManager;
 
 
-    public class ExecutionContextAction extends ExecutionContextHttp
-    {
-        protected String requestRemainder = null;
-        public String getRequestRemainder()
-        {
-            return requestRemainder;
-        }
-        public void setRequestRemainder ( String rr )
-        {
-            requestRemainder = rr;
-        }
-        public String toString()
-        {
-            return super.toString() +   "\n\trequestRemainder=" + requestRemainder + "\n";
-        }
-    }
-
-
-
-
 
     @RequestMapping (
-        value =   { "/{app}" + PATH + "/{script}", "/{app}" + PATH + "/{script}/*" , "/{app}" + PATH + "/{script}/**/*"}
+        value =   {
+                "/{app}/" + PATH + "/{script:.+}",
+	    }
     )
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                             @PathVariable ( "app" ) String appKey, @PathVariable ( "script" ) String script )
+                             @PathVariable ( "app" ) String appKey, 
+			     @PathVariable ( "script" ) String script )
     {
         try
         {
-            log.info ( "Received request to run  " + script + " in app " + appKey );
-            String contextPath =  ContextUtils.getContextPath ( httpRequest );
+            //http://stackoverflow.com/questions/25382620/get-only-wildcard-part-of-requestmapping
+
+            log.info ( "Received request to run  " + script + " in app " + appKey  )  ;
 
             script = PATH + "/" + script; //only do scripts under ssa directory.
 
@@ -134,11 +120,10 @@ public class EngineControllerAction  extends EngineController
     {
         String ext = FilenameUtils.getExtension ( script );
 
-        ExecutionContextAction execContextAction = new ExecutionContextAction();
-        execContextAction.setRequestRemainder(ContextUtils.getContextPath ( httpRequest ));
-        execContextAction.setScriptName(script);
-        initExecutionContext ( execContextAction, appKey,  httpRequest, httpResponse );
-        return execContextAction;
+        ExecutionContextHttp execContext = new ExecutionContextHttp();
+        execContext.setScriptName(script);
+        initExecutionContext ( execContext, appKey,  httpRequest, httpResponse );
+        return execContext;
     }
 
 }
