@@ -71,6 +71,9 @@ public class AnalyticsTableTask
     @Resource( name = "org.hisp.dhis.analytics.EventAnalyticsTableService" )
     private AnalyticsTableService eventAnalyticsTableService;
 
+    @Resource( name = "org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" )
+    private AnalyticsTableService enrollmentAnalyticsTableService;
+    
     @Autowired
     private Notifier notifier;
 
@@ -154,6 +157,9 @@ public class AnalyticsTableTask
             {
                 notifier.notify( taskId, "Updating event analytics table" );
                 eventAnalyticsTableService.update( lastYears, taskId );
+                
+                notifier.notify( taskId, "Updating enrollment analytics table" );
+                enrollmentAnalyticsTableService.update( lastYears, taskId );
             }
 
             clock.logTime( "Analytics tables updated" );
