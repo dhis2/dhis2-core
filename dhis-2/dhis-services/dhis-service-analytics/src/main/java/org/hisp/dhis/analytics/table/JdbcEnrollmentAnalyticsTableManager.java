@@ -94,8 +94,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         return tables;
     }
     
-
-    
     @Override
     public String getTableName()
     {
