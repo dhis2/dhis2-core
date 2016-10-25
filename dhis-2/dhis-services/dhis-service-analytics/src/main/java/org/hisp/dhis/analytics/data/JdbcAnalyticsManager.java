@@ -28,50 +28,14 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_BOOL;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
-import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT;
-import static org.hisp.dhis.analytics.AggregationType.COUNT;
-import static org.hisp.dhis.analytics.AggregationType.MAX;
-import static org.hisp.dhis.analytics.AggregationType.MIN;
-import static org.hisp.dhis.analytics.AggregationType.STDDEV;
-import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
-import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.analytics.DataType.TEXT;
-import static org.hisp.dhis.analytics.MeasureFilter.EQ;
-import static org.hisp.dhis.analytics.MeasureFilter.GE;
-import static org.hisp.dhis.analytics.MeasureFilter.GT;
-import static org.hisp.dhis.analytics.MeasureFilter.LE;
-import static org.hisp.dhis.analytics.MeasureFilter.LT;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.commons.util.TextUtils.trimEnd;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-
-import javax.annotation.Resource;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -79,7 +43,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -87,6 +50,19 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.util.Assert;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.concurrent.Future;
+
+import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.DataType.TEXT;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
@@ -103,6 +79,14 @@ public class JdbcAnalyticsManager
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
+
+    private static final Map<MeasureFilter, String> operatorToSql = ImmutableMap.<MeasureFilter, String>builder()
+        .put( MeasureFilter.EQ, "=" )
+        .put( MeasureFilter.GT, ">" )
+        .put( MeasureFilter.GE, ">=" )
+        .put( MeasureFilter.LT, "<" )
+        .put( MeasureFilter.LE, "<=" )
+        .build();
     
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
@@ -136,6 +120,12 @@ public class JdbcAnalyticsManager
             }
 
             sql += getGroupByClause( params );
+
+            // Needs to use "having" to utilize aggregate functions, and needs to come after group by.
+            if( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
+            {
+                sql += getMeasureCriteriaSql( params );
+            }
 
             log.debug( sql );
 
@@ -321,7 +311,7 @@ public class JdbcAnalyticsManager
     {
         SqlHelper sqlHelper = new SqlHelper();        
 
-        String sql = "from " + partition + " ";
+        String sql = "from " + getPartition( params, partition ) + " ";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -411,6 +401,39 @@ public class JdbcAnalyticsManager
     }
 
     /**
+     * Generates a subquery if preAggregationMeasureCriteria is given
+     * returns the partition of not.
+     */
+    private String getPartition( DataQueryParams params, String partition )
+    {
+
+        if(params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty())
+        {
+            SqlHelper sqlHelper = new SqlHelper();
+            String sql = "";
+
+            sql += "(select * from " + partition + " ";
+
+            for( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
+            {
+                Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
+
+                sql += sqlHelper.whereAnd() + " value " + operatorToSql.get( filter ) + " " + criterion + " ";
+
+            }
+
+            sql += ") as " + partition;
+
+            return sql;
+
+        }
+        else
+        {
+            return partition;
+        }
+    }
+
+    /**
      * Generates the group by clause of the query SQL.
      */
     private String getGroupByClause( DataQueryParams params )
@@ -426,6 +449,24 @@ public class JdbcAnalyticsManager
     }
 
     /**
+     * Returns a HAVING clause restricting the result based on the measure criteria
+     */
+    private String getMeasureCriteriaSql( DataQueryParams params )
+    {
+        SqlHelper sqlHelper = new SqlHelper(  );
+        String sql = " ";
+
+        for ( MeasureFilter filter : params.getMeasureCriteria().keySet() )
+        {
+            Double criterion = params.getMeasureCriteria().get( filter );
+
+            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + operatorToSql.get( filter ) + " " + criterion + " ";
+        }
+
+        return sql;
+    }
+
+    /**
      * Retrieves data from the database based on the given query and SQL and puts
      * into a value key and value mapping.
      */
@@ -434,6 +475,8 @@ public class JdbcAnalyticsManager
         Map<String, Object> map = new HashMap<>();
 
         log.debug( "Analytics SQL: " + sql );
+
+        System.out.println( "Query: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -467,63 +510,11 @@ public class JdbcAnalyticsManager
             {
                 Double value = rowSet.getDouble( VALUE_ID );
 
-                if ( value != null && Double.class.equals( value.getClass() ) )
-                {
-                    if ( !measureCriteriaSatisfied( params, value ) )
-                    {
-                        continue;
-                    }
-                }
-
                 map.put( key.toString(), value );
             }
         }
 
         return map;
-    }
-
-    /**
-     * Checks if the measure criteria specified for the given query are satisfied
-     * for the given value.
-     */
-    private boolean measureCriteriaSatisfied( DataQueryParams params, Double value )
-    {
-        if ( value == null )
-        {
-            return false;
-        }
-
-        for ( MeasureFilter filter : params.getMeasureCriteria().keySet() )
-        {
-            Double criterion = params.getMeasureCriteria().get( filter );
-
-            if ( EQ.equals( filter ) && !MathUtils.isEqual( value, criterion ) )
-            {
-                return false;
-            }
-
-            if ( GT.equals( filter ) && Double.compare( value, criterion ) <= 0 )
-            {
-                return false;
-            }
-
-            if ( GE.equals( filter ) && Double.compare( value, criterion ) < 0 )
-            {
-                return false;
-            }
-
-            if ( LT.equals( filter ) && Double.compare( value, criterion ) >= 0 )
-            {
-                return false;
-            }
-
-            if ( LE.equals( filter ) && Double.compare( value, criterion ) > 0 )
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
