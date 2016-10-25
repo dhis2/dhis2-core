@@ -29,11 +29,10 @@ package org.hisp.dhis.webapi.controller.user;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.interpretation.InterpretationService;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -45,6 +44,8 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
@@ -63,9 +64,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,6 +103,12 @@ public class MeController
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private UserSettingService userSettingService;
+
+    private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
+        UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public void getCurrentUser( HttpServletResponse response ) throws Exception
@@ -174,10 +185,49 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        boolean hasAuthority = currentUser != null && currentUser.getUserCredentials().isAuthorized( authority );
+        boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), hasAuthority );
+    }
+
+    @RequestMapping( value = "/settings" )
+    public void getSettings( HttpServletResponse response ) throws IOException, NotAuthenticatedException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
+            currentUser, USER_SETTING_NAMES, true );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        renderService.toJson( response.getOutputStream(), userSettings );
+    }
+
+    @RequestMapping( value = "/settings/{key}" )
+    public void getSetting( HttpServletResponse response, @PathVariable String key ) throws IOException, WebMessageException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        Optional<UserSettingKey> keyEnum = UserSettingKey.getByName( key );
+
+        if ( !keyEnum.isPresent() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+        }
+
+        Serializable value = userSettingService.getUserSetting( keyEnum.get(), currentUser );
+
+        if ( value == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "User setting not found for key: " + key ) );
+        }
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        renderService.toJson( response.getOutputStream(), value );
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
