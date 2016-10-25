@@ -28,16 +28,26 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -70,15 +80,6 @@ public class SpringCompleteDataSetRegistrationStore
     // Supportive methods
     //--------------------------------------------------------------------------
 
-    private String createQuery( ExportParams params )
-    {
-        IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
-
-
-
-        return "";
-    }
-
     private void write( String query, ExportParams params, final CompleteDataSetRegistrations items )
     {
         final Calendar calendar = PeriodType.getCalendar();
@@ -99,6 +100,138 @@ public class SpringCompleteDataSetRegistrationStore
         } );
     }
 
+    private static String createQuery( ExportParams params )
+    {
+        IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
+
+        ImmutableMap.Builder<String, String> namedParamsBuilder = ImmutableMap.<String, String>builder()
+            .put( "dsScheme", idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase() )
+            .put( "ouScheme", idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase() )
+            .put( "aocScheme", idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
+
+        String sql = // language=SQL
+            "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pestart, pt.name AS ptname, " +
+                "ou.${ouScheme} AS ouid, aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+                "FROM completedatasetregistration cdsr " +
+                "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
+                "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
+                "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
+                "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
+
+        sql += createOrgUnitGroupJoin( params );
+        sql += createDataSetClause( params, namedParamsBuilder );
+        sql += createOrgUnitClause( params, namedParamsBuilder );
+        sql += createPeriodClause( params, namedParamsBuilder );
+        sql += createLimitClause( params, namedParamsBuilder );
+
+        sql = injectNamedParams( sql, namedParamsBuilder.build() );
+
+        log.info( "Get CompleteDataSetRegistrations SQL: " + sql );
+
+        return sql;
+    }
+
+    private static String createOrgUnitGroupJoin( ExportParams params )
+    {
+        if ( params.hasOrganisationUnitGroups() )
+        {
+            // language=SQL
+            return " LEFT JOIN orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
+        }
+
+        return "";
+    }
+
+    private static String createDataSetClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
+    {
+        namedParamsBuilder.put( "dataSets", commaDelimitedIds( params.getDataSets() ) );
+        return " WHERE cdsr.datasetid in ($dataSets) ";
+    }
+
+    private static String createOrgUnitClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
+    {
+        if ( params.isIncludeChildren() )
+        {
+            String clause = " AND ( ";
+
+            clause += params.getOrganisationUnits().stream()
+                .map( OrganisationUnit::getPath )
+                .collect( Collectors.joining( " ", "ou.path LIKE '", "%' OR " ) );
+
+            return TextUtils.removeLastOr( clause ) + " ) ";
+        }
+        else
+        {
+            String clause = " AND ( ";
+
+            if ( params.hasOrganisationUnits() )
+            {
+                namedParamsBuilder.put( "orgUnits", commaDelimitedIds( params.getOrganisationUnits() ) );
+                clause += " cdsr.sourceid IN ( ${orgUnits} ) ";
+
+                if ( params.hasOrganisationUnitGroups() )
+                {
+                    clause += " OR ";
+                }
+            }
+
+            if ( params.hasOrganisationUnitGroups() )
+            {
+                namedParamsBuilder.put( "orgUnitGroups", commaDelimitedIds( params.getOrganisationUnitGroups() ) );
+                clause += " ougm.orgunitgroupid in ( ${orgUnitGroups} )";
+            }
+
+            return clause + " ) ";
+        }
+    }
+
+    private static String createPeriodClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
+    {
+        if ( params.hasStartEndDate() )
+        {
+            namedParamsBuilder
+                .put( "startDate", DateUtils.getMediumDateString( params.getStartDate() ) )
+                .put( "endDate", DateUtils.getMediumDateString( params.getEndDate() ) );
+
+            // language=SQL
+            return " AND ( pe.startdate >= '${startDate}' AND pe.enddate <= '${endDate}' ) ";
+        }
+
+        else if ( params.hasPeriods() )
+        {
+            namedParamsBuilder
+                .put( "periods", commaDelimitedIds( params.getPeriods() ) );
+
+            // language=SQL
+            return " AND dv.periodid in ( ${periods} ) ";
+        }
+
+        return "";
+    }
+
+    private static String createLimitClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
+    {
+        if ( params.hasLimit() )
+        {
+            namedParamsBuilder.put( "limit", params.getLimit().toString() );
+
+            // language=SQL
+            return " LIMIT ${limit} ";
+        }
+
+        return "";
+    }
+
+    private static String commaDelimitedIds( Collection<? extends IdentifiableObject> idObjects )
+    {
+        return TextUtils.getCommaDelimitedString( IdentifiableObjectUtils.getIdentifiers( idObjects ) );
+    }
+
+    private static String injectNamedParams( String sql, Map<String, String> valueMap )
+    {
+        return new StrSubstitutor( valueMap, "${", "}" ).replace( sql );
+    }
+
     private static String toIsoDate( String periodName, Date start, final Calendar calendar )
     {
         return PeriodType.getPeriodTypeByName( periodName ).createPeriod( start, calendar ).getIsoDate();
@@ -106,11 +239,11 @@ public class SpringCompleteDataSetRegistrationStore
 
     private enum Param {
         PERIOD_TYPE( "ptname" ),
-        DATA_SET( "ds" ),
-        ORG_UNIT( "orgunit" ),
-        ATTR_OPT_COMBO( "aoc" ),
-        DATE( "date" ),
-        STORED_BY( "storedBy"),
+        DATA_SET( "dsid" ),
+        ORG_UNIT( "ouid" ),
+        ATTR_OPT_COMBO( "aocid" ),
+        DATE( "created" ),
+        STORED_BY( "storedby"),
         PERIOD_START( "pe_start" ),
         PERIOD_END( "pe_end" );
 
