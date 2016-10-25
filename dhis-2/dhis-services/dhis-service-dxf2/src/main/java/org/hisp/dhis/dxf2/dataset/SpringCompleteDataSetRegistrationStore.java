@@ -73,7 +73,6 @@ public class SpringCompleteDataSetRegistrationStore
     @Override
     public void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream )
     {
-
     }
 
     //--------------------------------------------------------------------------
