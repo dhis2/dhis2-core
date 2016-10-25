@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -58,7 +59,6 @@ import static org.hisp.dhis.analytics.AggregationType.*;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.DataType.TEXT;
-import static org.hisp.dhis.analytics.MeasureFilter.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
@@ -79,6 +79,14 @@ public class JdbcAnalyticsManager
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
+
+    private static final Map<MeasureFilter, String> operatorToSql = ImmutableMap.<MeasureFilter, String>builder()
+        .put( MeasureFilter.EQ, "=" )
+        .put( MeasureFilter.GT, ">" )
+        .put( MeasureFilter.GE, ">=" )
+        .put( MeasureFilter.LT, "<" )
+        .put( MeasureFilter.LE, "<=" )
+        .build();
     
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
@@ -410,30 +418,7 @@ public class JdbcAnalyticsManager
             {
                 Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
 
-                if ( EQ.equals( filter ) )
-                {
-                    sql += sqlHelper.whereAnd() + " value = " + criterion + " ";
-                }
-
-                if ( GT.equals( filter ) )
-                {
-                    sql += sqlHelper.whereAnd() + " value > " + criterion + " ";
-                }
-
-                if ( GE.equals( filter ) )
-                {
-                    sql += sqlHelper.whereAnd() + " value >= " + criterion + " ";
-                }
-
-                if ( LT.equals( filter ) )
-                {
-                    sql += sqlHelper.whereAnd() + " value < " + criterion + " ";
-                }
-
-                if ( LE.equals( filter ) )
-                {
-                    sql += sqlHelper.whereAnd() + " value <= " + criterion + " ";
-                }
+                sql += sqlHelper.whereAnd() + " value " + operatorToSql.get( filter ) + " " + criterion + " ";
 
             }
 
@@ -475,30 +460,7 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            if ( EQ.equals( filter ) )
-            {
-                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " = " + criterion + " ";
-            }
-
-            if ( GT.equals( filter ) )
-            {
-                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " > " + criterion + " ";
-            }
-
-            if ( GE.equals( filter ) )
-            {
-                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " >= " + criterion + " ";
-            }
-
-            if ( LT.equals( filter ) )
-            {
-                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " < " + criterion + " ";
-            }
-
-            if ( LE.equals( filter ) )
-            {
-                sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " <= " + criterion + " ";
-            }
+            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + operatorToSql.get( filter ) + " " + criterion + " ";
         }
 
         return sql;
@@ -513,6 +475,8 @@ public class JdbcAnalyticsManager
         Map<String, Object> map = new HashMap<>();
 
         log.debug( "Analytics SQL: " + sql );
+
+        System.out.println( "Query: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
