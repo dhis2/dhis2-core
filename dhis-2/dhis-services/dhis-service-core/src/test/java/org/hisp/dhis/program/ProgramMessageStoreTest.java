@@ -40,11 +40,13 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,15 +62,21 @@ public class ProgramMessageStoreTest
 
     private OrganisationUnit ouB;
 
-    private ProgramStageInstance psiA;
+    private Program programA;
+
+    private ProgramInstance programInstanceA;
 
     private TrackedEntityInstance teiA;
+
+    private TrackedEntityInstance entityInstanceA;
 
     private ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
 
     private Set<DeliveryChannel> channels = new HashSet<>();
 
     private ProgramMessageQueryParams params;
+
+    private ProgramStageInstance programStageInstanceA;
 
     private ProgramMessage pmsgA;
 
@@ -94,6 +102,10 @@ public class ProgramMessageStoreTest
 
     private String subject = "subjectText";
 
+    private Date incidentDate;
+
+    private Date enrollmentDate;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -102,10 +114,25 @@ public class ProgramMessageStoreTest
     private ProgramMessageStore programMessageStore;
 
     @Autowired
+    private ProgramInstanceStore programInstanceStore;
+
+    @Autowired
     private OrganisationUnitService orgUnitService;
 
     @Autowired
     private TrackedEntityInstanceService teiService;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
+    private TrackedEntityInstanceService entityInstanceService;
+
+    @Autowired
+    private ProgramStageInstanceStore programStageInstanceStore;
 
     // -------------------------------------------------------------------------
     // Prerequisite
@@ -119,6 +146,40 @@ public class ProgramMessageStoreTest
 
         orgUnitService.addOrganisationUnit( ouA );
         orgUnitService.addOrganisationUnit( ouB );
+
+        programA = createProgram( 'A', new HashSet<>(), ouA );
+        programService.addProgram( programA );
+
+        ProgramStage stageA = new ProgramStage( "StageA", programA );
+        stageA.setSortOrder( 1 );
+        programStageService.saveProgramStage( stageA );
+
+        Set<ProgramStage> programStages = new HashSet<>();
+        programStages.add( stageA );
+        programA.setProgramStages( programStages );
+        programService.updateProgram( programA );
+
+        entityInstanceA = createTrackedEntityInstance( 'A', ouA );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+
+        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', ouA );
+        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+
+        DateTime testDate1 = DateTime.now();
+        testDate1.withTimeAtStartOfDay();
+        testDate1 = testDate1.minusDays( 70 );
+        incidentDate = testDate1.toDate();
+
+        DateTime testDate2 = DateTime.now();
+        testDate2.withTimeAtStartOfDay();
+        enrollmentDate = testDate2.toDate();
+
+        programInstanceA = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programA );
+        programInstanceA.setUid( "UID-A" );
+
+        programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
+        programStageInstanceA.setDueDate( enrollmentDate );
+        programStageInstanceA.setUid( "UID-A" );
 
         Set<OrganisationUnit> ouSet = new HashSet<>();
         ouSet.add( ouA );
@@ -187,9 +248,6 @@ public class ProgramMessageStoreTest
 
         params = new ProgramMessageQueryParams();
         params.setOrganisationUnit( ouUids );
-        params.setProgramStageInstance( psiA );
-        params.setMessageStatus( messageStatus );
-
     }
 
     // -------------------------------------------------------------------------
@@ -240,15 +298,84 @@ public class ProgramMessageStoreTest
     }
 
     @Test
-    public void testGetProgramMessagesByParams()
+    public void testGetProgramMessageByProgramInstance()
+    {
+        programInstanceStore.save( programInstanceA );
+
+        pmsgA.setProgramInstance( programInstanceA );
+        pmsgB.setProgramInstance( programInstanceA );
+
+        programMessageStore.save( pmsgA );
+        programMessageStore.save( pmsgB );
+
+        params.setProgramInstance( programInstanceA );
+
+        List<ProgramMessage> programMessages = programMessageStore.getProgramMessages( params );
+
+        assertNotNull( programMessages );
+        assertTrue( equals( programMessages, pmsgA, pmsgB ) );
+        assertTrue( channels.equals( programMessages.get( 0 ).getDeliveryChannels() ) );
+        assertTrue( programInstanceA.equals( programMessages.get( 0 ).getProgramInstance() ) );
+    }
+
+    @Test
+    public void testGetProgramMessageByProgramStageInstance()
+    {
+        programInstanceStore.save( programInstanceA );
+
+        programStageInstanceStore.save( programStageInstanceA );
+
+        pmsgA.setProgramStageInstance( programStageInstanceA );
+        pmsgB.setProgramStageInstance( programStageInstanceA );
+
+        programMessageStore.save( pmsgA );
+        programMessageStore.save( pmsgB );
+
+        params.setProgramStageInstance( programStageInstanceA );
+
+        List<ProgramMessage> programMessages = programMessageStore.getProgramMessages( params );
+
+        assertNotNull( programMessages );
+        assertTrue( equals( programMessages, pmsgA, pmsgB ) );
+        assertTrue( channels.equals( programMessages.get( 0 ).getDeliveryChannels() ) );
+        assertTrue( programStageInstanceA.equals( programMessages.get( 0 ).getProgramStageInstance() ) );
+    }
+
+    @Test
+    public void testGetProgramMessageByMessageStatus()
     {
         programMessageStore.save( pmsgA );
         programMessageStore.save( pmsgB );
 
-        List<ProgramMessage> list = programMessageStore.getProgramMessages( params );
+        params.setMessageStatus( messageStatus );
 
-        assertNotNull( list );
-        assertTrue( equals( list, pmsgA, pmsgB ) );
-        assertTrue( channels.equals( list.get( 0 ).getDeliveryChannels() ) );
+        List<ProgramMessage> programMessages = programMessageStore.getProgramMessages( params );
+
+        assertNotNull( programMessages );
+        assertTrue( equals( programMessages, pmsgA, pmsgB ) );
+        assertTrue( channels.equals( programMessages.get( 0 ).getDeliveryChannels() ) );
+        assertTrue( messageStatus.equals( programMessages.get( 0 ).getMessageStatus() ) );
+    }
+
+    @Test
+    public void testGetProgramMessageByMultipleParameters()
+    {
+        programInstanceStore.save( programInstanceA );
+
+        pmsgA.setProgramInstance( programInstanceA );
+        pmsgB.setProgramInstance( programInstanceA );
+
+        programMessageStore.save( pmsgA );
+        programMessageStore.save( pmsgB );
+
+        params.setProgramInstance( programInstanceA );
+        params.setMessageStatus( messageStatus );
+
+        List<ProgramMessage> programMessages = programMessageStore.getProgramMessages( params );
+
+        assertNotNull( programMessages );
+        assertTrue( equals( programMessages, pmsgA, pmsgB ) );
+        assertTrue( channels.equals( programMessages.get( 0 ).getDeliveryChannels() ) );
+        assertTrue( programInstanceA.equals( programMessages.get( 0 ).getProgramInstance() ) );
     }
 }

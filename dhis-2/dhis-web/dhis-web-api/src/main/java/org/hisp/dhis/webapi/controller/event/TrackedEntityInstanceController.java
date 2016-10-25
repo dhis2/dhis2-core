@@ -81,15 +81,16 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *         <p>
- *         <p>
- *         The following statements are added not to cause api break.
- *         They need to be remove say in 2.26 or so once users are aware of the changes.
- *         programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
- *         programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
+ * <p>
+ * The following statements are added not to cause api break.
+ * They need to be remove say in 2.26 or so once users are aware of the changes.
+ * 
+ * programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
+ * programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
  */
 @Controller
 @RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
@@ -139,6 +140,7 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Date programIncidentStartDate,
         @RequestParam( required = false ) Date programIncidentEndDate,
         @RequestParam( required = false ) String trackedEntity,
+        @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
@@ -159,13 +161,24 @@ public class TrackedEntityInstanceController
 
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
 
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        List<TrackedEntityInstance> trackedEntityInstances;
+
         TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntity,
             eventStatus, eventStartDate, eventEndDate, skipMeta, page, pageSize, totalPages, skipPaging );
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( params );
+        if ( trackedEntityInstance == null )
+        {
+            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( params );
+        }
+        else
+        {
+            Set<String> trackedEntityInstanceIds = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
 
-        RootNode rootNode = NodeUtils.createMetadata();
+            trackedEntityInstances = trackedEntityInstanceIds != null ? trackedEntityInstanceIds.stream().map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id ) ).collect( Collectors.toList()) : null;
+        }
 
         if ( params.isPaging() && params.isTotalPages() )
         {
@@ -467,13 +480,13 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_ADD')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_INSTANCE_DELETE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteTrackedEntityInstance( @PathVariable String id ) throws WebMessageException
     {
         if ( !instanceService.trackedEntityInstanceExists( id ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Tracked entity instance not found for ID " + id ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Tracked entity instance not found: " + id ) );
         }
 
         trackedEntityInstanceService.deleteTrackedEntityInstance( id );

@@ -38,7 +38,6 @@ import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -203,8 +202,8 @@ public class FormUtilsImpl
     public Map<String, String> getDataValueMap( OrganisationUnit organisationUnit, DataSet dataSet, Period period )
     {
         Map<String, String> dataValueMap = new HashMap<>();
-        List<DataValue> values = new ArrayList<>( dataValueService.getDataValues( organisationUnit, period,
-            dataSet.getDataElements() ) );
+        List<DataValue> values = new ArrayList<>( dataValueService.getDataValues( dataSet.getDataElements(), 
+            Sets.newHashSet( period ), Sets.newHashSet( organisationUnit ) ) );
 
         for ( DataValue dataValue : values )
         {
@@ -236,7 +235,7 @@ public class FormUtilsImpl
         Validate.notNull( user );
 
         List<OrganisationUnit> organisationUnits = new ArrayList<>( user.getOrganisationUnits() );
-        Collections.sort( organisationUnits, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( organisationUnits );
 
         return organisationUnitWithDataSetsFilter( organisationUnits );
     }

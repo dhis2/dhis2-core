@@ -28,23 +28,29 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -69,6 +75,9 @@ public class ProgramInstanceStoreTest
 
     @Autowired
     private ProgramStageService programStageService;
+
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
+    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private Date incidentDate;
 
@@ -110,20 +119,6 @@ public class ProgramInstanceStoreTest
         orgunitIds.add( idB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-
-        TrackedEntityInstanceReminder reminderA = createTrackedEntityInstanceReminder( 'A', 0,
-            "Test program message template", TrackedEntityInstanceReminder.ENROLLEMENT_DATE_TO_COMPARE,
-            TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE, null, TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        TrackedEntityInstanceReminder reminderB = createTrackedEntityInstanceReminder( 'B', 0,
-            "Test program message template", TrackedEntityInstanceReminder.ENROLLEMENT_DATE_TO_COMPARE,
-            TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE, TrackedEntityInstanceReminder.SEND_WHEN_TO_C0MPLETED_EVENT,
-            TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
-        reminders.add( reminderA );
-        reminders.add( reminderB );
-        programA.setInstanceReminders( reminders );
 
         programService.addProgram( programA );
 
@@ -207,25 +202,6 @@ public class ProgramInstanceStoreTest
     }
 
     @Test
-    public void testGetProgramInstancesByProgramList()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceC );
-        programInstanceStore.save( programInstanceD );
-
-        List<Program> programs = new ArrayList<>();
-        programs.add( programA );
-        programs.add( programB );
-
-        List<ProgramInstance> programInstances = programInstanceStore.get( programs );
-        assertEquals( 3, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceB ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
-
-    @Test
     public void testGetProgramInstancesByEntityInstanceProgramStatus()
     {
         programInstanceStore.save( programInstanceA );
@@ -243,65 +219,73 @@ public class ProgramInstanceStoreTest
     }
 
     @Test
-    public void testGetProgramInstancesByOuProgram()
+    public void testGetWithScheduledNotifications()
     {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceC );
-        programInstanceStore.save( programInstanceD );
+        ProgramNotificationTemplate
+            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE ),
+            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE ),
+            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE );
 
-        List<ProgramInstance> programInstances = programInstanceStore.get( programA, organisationUnitA, 0, 10 );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-    }
+        programNotificationStore.save( a1 );
+        programNotificationStore.save( a2 );
+        programNotificationStore.save( a3 );
 
-    @Test
-    public void testGetProgramInstancesByOuListProgramPeriod()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
+        // TEI
 
-        List<ProgramInstance> programInstances = programInstanceStore.get( programA, orgunitIds, incidentDate,
-            enrollmentDate, null, null );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
+        TrackedEntityInstance teiX = createTrackedEntityInstance( 'X', organisationUnitA );
+        TrackedEntityInstance teiY = createTrackedEntityInstance( 'Y', organisationUnitA );
 
-    @Test
-    public void testCountProgramInstancesByOuListProgramPeriod()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
+        entityInstanceService.addTrackedEntityInstance( teiX );
+        entityInstanceService.addTrackedEntityInstance( teiY );
 
-        int count = programInstanceStore.count( programA, orgunitIds, incidentDate, enrollmentDate );
-        assertEquals( 2, count );
-    }
+        // Program
 
-    @Test
-    public void testGetProgramInstancesByOuListProgramStatusPeriod()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
+        programA.setNotificationTemplates( Sets.newHashSet( a1, a2, a3 ) );
+        programService.updateProgram( programA );
 
-        List<ProgramInstance> programInstances = programInstanceStore.getByStatus( ProgramStatus.ACTIVE, programA,
-            orgunitIds, incidentDate, enrollmentDate );
+        // Dates
 
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-    }
+        Calendar cal = Calendar.getInstance();
+        PeriodType.clearTimeOfDay( cal );
 
-    @Test
-    public void testCountProgramInstancesByStatus()
-    {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
+        Date today = cal.getTime();
 
-        int count = programInstanceStore.countByStatus( ProgramStatus.ACTIVE, programA, orgunitIds, incidentDate, enrollmentDate );
-        assertEquals( 2, count );
+        cal.add( Calendar.DATE, 1 );
+        Date tomorrow = cal.getTime();
+
+        cal.add( Calendar.DATE, -2 );
+        Date yesterday = cal.getTime();
+
+        cal.add( Calendar.DATE, -6);
+        Date aWeekAgo = cal.getTime();
+
+        // Enrollments
+
+        ProgramInstance enrollmentA = new ProgramInstance( today, tomorrow, teiX, programA );
+        programInstanceStore.save( enrollmentA );
+
+        ProgramInstance enrollmentB = new ProgramInstance( aWeekAgo, yesterday, teiY, programA );
+        programInstanceStore.save( enrollmentB );
+
+        // Queries
+
+        List<ProgramInstance> results;
+
+        // A
+
+        results = programInstanceStore.getWithScheduledNotifications( a1, today );
+        assertEquals( 1, results.size() );
+        assertEquals( enrollmentA, results.get( 0 ) );
+
+        results = programInstanceStore.getWithScheduledNotifications( a2, today );
+        assertEquals( 1, results.size() );
+        assertEquals( enrollmentB, results.get( 0 ) );
+
+        results = programInstanceStore.getWithScheduledNotifications( a3, today );
+        assertEquals( 1, results.size() );
+        assertEquals( enrollmentB, results.get( 0 ) );
+
+        results = programInstanceStore.getWithScheduledNotifications( a3, yesterday );
+        assertEquals( 0, results.size() );
     }
 }

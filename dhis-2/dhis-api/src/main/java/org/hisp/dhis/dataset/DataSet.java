@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
@@ -65,7 +66,9 @@ import org.hisp.dhis.user.UserGroup;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * This class is used for defining the standardized DataSets. A DataSet consists
@@ -88,7 +91,7 @@ public class DataSet
     /**
      * All DataElements associated with this DataSet.
      */
-    private Set<DataElement> dataElements = new HashSet<>();
+    private Set<DataSetElement> dataSetElements = new HashSet<>();
 
     /**
      * Indicators associated with this data set. Indicators are used for view
@@ -287,30 +290,73 @@ public class DataSet
         sources.addAll( updates );
     }
 
-    public void addDataElement( DataElement dataElement )
+    public boolean addDataSetElement( DataSetElement element )
     {
-        dataElements.add( dataElement );
-        dataElement.getDataSets().add( this );
+        element.getDataElement().getDataSetElements().add( element );
+        return dataSetElements.add( element );
+    }
+    
+    /**
+     * Adds a data set element using this data set, the given data element and
+     * no category combo.
+     * 
+     * @param dataElement the data element.
+     */
+    public boolean addDataSetElement( DataElement dataElement )
+    {
+        DataSetElement element = new DataSetElement( this, dataElement, null );      
+        dataElement.getDataSetElements().add( element );
+        return dataSetElements.add( element );
     }
 
-    public boolean removeDataElement( DataElement dataElement )
+    /**
+     * Adds a data set element using this data set, the given data element and
+     * the given category combo.
+     * 
+     * @param dataElement the data element.
+     * @param categoryCombo the category combination.
+     */
+    public boolean addDataSetElement( DataElement dataElement, DataElementCategoryCombo categoryCombo )
     {
-        dataElements.remove( dataElement );
-        return dataElement.getDataSets().remove( dataElement );
+        DataSetElement element = new DataSetElement( this, dataElement, categoryCombo );
+        dataElement.getDataSetElements().add( element );
+        return dataSetElements.add( element );
     }
-
-    public void updateDataElements( Set<DataElement> updates )
+        
+    public boolean removeDataSetElement( DataSetElement element )
     {
-        Set<DataElement> toRemove = Sets.difference( dataElements, updates );
-        Set<DataElement> toAdd = Sets.difference( updates, dataElements );
-
-        toRemove.stream().forEach( d -> d.getDataSets().remove( this ) );
-        toAdd.stream().forEach( d -> d.getDataSets().add( this ) );
-
-        dataElements.clear();
-        dataElements.addAll( updates );
+        dataSetElements.remove( element );
+        return element.getDataElement().getDataSetElements().remove( element );
     }
-
+    
+    public void removeDataSetElement( DataElement dataElement )
+    {
+        Iterator<DataSetElement> elements = dataSetElements.iterator();
+        
+        while ( elements.hasNext() )
+        {
+            DataSetElement element = elements.next();
+            
+            DataSetElement other = new DataSetElement( this, dataElement );
+            
+            if ( element.objectEquals( other ) )
+            {
+                elements.remove();
+                element.getDataElement().getDataSetElements().remove( element );
+            }
+        }
+    }
+    
+    public void removeAllDataSetElements()
+    {
+        for ( DataSetElement element : dataSetElements )
+        {
+            element.getDataElement().getDataSetElements().remove( element );
+        }
+        
+        dataSetElements.clear();
+    }
+    
     public void addIndicator( Indicator indicator )
     {
         indicators.add( indicator );
@@ -368,7 +414,17 @@ public class DataSet
 
         return FormType.DEFAULT;
     }
-
+    
+    /**
+     * Note that this method returns an immutable set and can not be used to
+     * modify the model. Returns an immutable set of data sets associated with 
+     * this data element.
+     */
+    public Set<DataElement> getDataElements()
+    {
+        return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
+    }
+    
     public Set<DataElement> getDataElementsInSections()
     {
         Set<DataElement> dataElements = new HashSet<>();
@@ -385,12 +441,9 @@ public class DataSet
     {
         Set<DataElementCategoryOptionCombo> optionCombos = new HashSet<>();
 
-        for ( DataElement element : dataElements )
+        for ( DataSetElement element : dataSetElements )
         {
-            if ( element.hasCategoryCombo() )
-            {
-                optionCombos.addAll( element.getCategoryCombo().getOptionCombos() );
-            }
+            optionCombos.addAll( element.getResolvedCategoryCombo().getOptionCombos() );
         }
 
         return optionCombos;
@@ -499,16 +552,16 @@ public class DataSet
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElement> getDataElements()
+    @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataSetElement> getDataSetElements()
     {
-        return dataElements;
+        return dataSetElements;
     }
 
-    public void setDataElements( Set<DataElement> dataElements )
+    public void setDataSetElements( Set<DataSetElement> dataSetElements )
     {
-        this.dataElements = dataElements;
+        this.dataSetElements = dataSetElements;
     }
 
     @JsonProperty
@@ -619,7 +672,7 @@ public class DataSet
     }
 
     @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getStartDate()
     {
@@ -632,7 +685,7 @@ public class DataSet
     }
 
     @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getEndDate()
     {
@@ -807,10 +860,13 @@ public class DataSet
             mobile = dataSet.isMobile();
             validCompleteOnly = dataSet.isValidCompleteOnly();
             version = dataSet.getVersion();
+            timelyDays = dataSet.getTimelyDays();
+            notifyCompletingUser = dataSet.isNotifyCompletingUser();
 
             if ( mergeMode.isReplace() )
             {
                 periodType = dataSet.getPeriodType();
+                categoryCombo = dataSet.getCategoryCombo();
                 dataEntryForm = dataSet.getDataEntryForm();
                 notificationRecipients = dataSet.getNotificationRecipients();
                 startDate = dataSet.getStartDate();
@@ -819,14 +875,15 @@ public class DataSet
             else if ( mergeMode.isMerge() )
             {
                 periodType = dataSet.getPeriodType() == null ? periodType : dataSet.getPeriodType();
+                categoryCombo = dataSet.getCategoryCombo() == null ? categoryCombo : dataSet.getCategoryCombo();
                 dataEntryForm = dataSet.getDataEntryForm() == null ? dataEntryForm : dataSet.getDataEntryForm();
                 notificationRecipients = dataSet.getNotificationRecipients() == null ? notificationRecipients : dataSet.getNotificationRecipients();
                 startDate = dataSet.getStartDate() == null ? startDate : dataSet.getStartDate();
                 endDate = dataSet.getEndDate() == null ? endDate : dataSet.getEndDate();
             }
 
-            dataElements.clear();
-            dataSet.getDataElements().forEach( this::addDataElement );
+            removeAllDataSetElements();
+            dataSet.getDataSetElements().forEach( this::addDataSetElement );
 
             indicators.clear();
             dataSet.getIndicators().forEach( this::addIndicator );

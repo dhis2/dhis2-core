@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -81,7 +80,7 @@ public class GetDataApprovalOptionsAction
 
         FilterUtils.filter( dataSets, new DataSetApproveDataFilter() );
         
-        Collections.sort( dataSets, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( dataSets );
         
         return SUCCESS;
     }

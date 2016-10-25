@@ -1,5 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
+import org.hisp.dhis.message.MessageService;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -40,6 +42,9 @@ public class DataSynchronizationTask
 {
     @Autowired
     private SynchronizationManager synchronizationManager;
+    
+    @Autowired
+    private MessageService messageService;
 
     @Autowired
     private Notifier notifier;
@@ -74,6 +79,8 @@ public class DataSynchronizationTask
         catch ( RuntimeException ex )
         {
             notifier.notify( taskId, "Event synch failed: " + ex.getMessage() );
+            
+            messageService.sendSystemErrorNotification( "Event synch failed", ex );
         }
 
         notifier.notify( taskId, "Data/Event synch successful" );

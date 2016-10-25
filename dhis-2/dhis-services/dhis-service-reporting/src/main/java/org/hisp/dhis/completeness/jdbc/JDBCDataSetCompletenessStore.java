@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.amplecode.quick.StatementManager;
+import org.hisp.quick.StatementManager;
 import org.hisp.dhis.completeness.DataSetCompletenessStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -132,15 +132,14 @@ public class JDBCDataSetCompletenessStore
             "SELECT COUNT(completed) FROM ( " +
                 "SELECT sourceid, COUNT(sourceid) AS sources " +
                 "FROM datavalue dv " +
-                "JOIN dataelementoperand deo " +
-                "ON dv.dataelementid=deo.dataelementid AND dv.categoryoptioncomboid=deo.categoryoptioncomboid " +
-                "JOIN datasetoperands dso " +
-                "ON deo.dataelementoperandid=dso.dataelementoperandid " +
-                "JOIN period pe " +
-                "ON dv.periodid=pe.periodid " +
+                "JOIN dataelementoperand deo ON dv.dataelementid=deo.dataelementid AND dv.categoryoptioncomboid=deo.categoryoptioncomboid " +
+                "JOIN datasetoperands dso ON deo.dataelementoperandid=dso.dataelementoperandid " +
+                "JOIN period pe ON dv.periodid=pe.periodid " +
                 "WHERE dv.periodid IN ( " + getCommaDelimitedString( periods ) + " ) " + deadlineCriteria +
                 "AND sourceid IN ( " + getCommaDelimitedString( children ) + " ) " +
-                "AND datasetid = " + dataSet.getId() + " GROUP BY sourceid) AS completed " +
+                "AND datasetid = " + dataSet.getId() + " " +
+                "AND dv.deleted is false " +
+                "GROUP BY sourceid) AS completed " +
             "WHERE completed.sources = " + compulsoryElements;
         
         return statementManager.getHolder().queryForInteger( sql );

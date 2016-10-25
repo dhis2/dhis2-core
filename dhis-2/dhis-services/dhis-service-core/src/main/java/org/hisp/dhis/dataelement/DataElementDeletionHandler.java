@@ -30,8 +30,11 @@ package org.hisp.dhis.dataelement;
 
 import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
+import java.util.Iterator;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -70,14 +73,14 @@ public class DataElementDeletionHandler
     @Override
     public void deleteDataElementCategoryCombo( DataElementCategoryCombo categoryCombo )
     {
-        DataElementCategoryCombo default_ = categoryService
+        DataElementCategoryCombo defaultCategoryCombo = categoryService
             .getDataElementCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
 
         for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
-            if ( dataElement.getCategoryCombo().equals( categoryCombo ) )
+            if ( dataElement != null && dataElement.getDataElementCategoryCombo().equals( categoryCombo ) )
             {
-                dataElement.setCategoryCombo( default_ );
+                dataElement.setDataElementCategoryCombo( defaultCategoryCombo );
 
                 idObjectManager.updateNoAcl( dataElement );
             }
@@ -87,10 +90,15 @@ public class DataElementDeletionHandler
     @Override
     public void deleteDataSet( DataSet dataSet )
     {
-        for ( DataElement element : dataSet.getDataElements() )
+        Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
+        
+        while ( elements.hasNext() )
         {
-            element.getDataSets().remove( dataSet );
-            idObjectManager.updateNoAcl( element );
+            DataSetElement element = elements.next();
+            elements.remove();
+            
+            dataSet.removeDataSetElement( element );
+            idObjectManager.updateNoAcl( element.getDataElement() );
         }
     }
 

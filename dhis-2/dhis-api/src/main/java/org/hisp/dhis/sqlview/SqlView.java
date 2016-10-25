@@ -189,7 +189,7 @@ public class SqlView
 
     public static String getProtectedTablesRegex()
     {
-        StringBuffer regex = new StringBuffer( "^.*?(\"|'|`|\\s|^)(" );
+        StringBuffer regex = new StringBuffer( "^(.*\\W)?(" );
 
         for ( String table : PROTECTED_TABLES )
         {
@@ -198,15 +198,22 @@ public class SqlView
 
         regex.delete( regex.length() - 1, regex.length() );
 
-        return regex.append( ")(\"|'|`|\\s|$).*$" ).toString();
+        return regex.append( ")(\\W.*)?$" ).toString();
     }
 
-
-    public static final String[] getIllegalKeyWords()
+    public static String getIllegalKeywordsRegex()
     {
-        return ILLEGAL_KEYWORDS.toArray( new String[ILLEGAL_KEYWORDS.size()] );
-    }
+        StringBuffer regex = new StringBuffer( "^(.*\\W)?(" );
 
+        for ( String word : ILLEGAL_KEYWORDS )
+        {
+            regex.append( word ).append( REGEX_SEP );
+        }
+
+        regex.delete( regex.length() - 1, regex.length() );
+
+        return regex.append( ")(\\W.*)?$" ).toString();
+    }
 
     /**
      * Indicates whether this SQL view is a query.
@@ -214,6 +221,14 @@ public class SqlView
     public boolean isQuery()
     {
         return SqlViewType.QUERY.equals( type );
+    }
+
+    /**
+     * Indicates whether this SQl view is a view / materialized view.
+     */
+    public boolean isView()
+    {
+        return SqlViewType.QUERY.equals( type ) || isMaterializedView();
     }
 
     /**

@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramService;
@@ -42,7 +41,6 @@ import com.opensymphony.xwork2.Action;
 
 /**
  * @author Chau Thu Tran
- * @version $ UpdateProgramIndicatorAction Apr 16, 2013 3:24:51 PM $
  */
 public class GetProgramIndicatorListAction
     implements Action
@@ -87,7 +85,7 @@ public class GetProgramIndicatorListAction
 
         programIndicators = new ArrayList<>( program.getProgramIndicators() );
 
-        Collections.sort( programIndicators, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( programIndicators );
 
         return SUCCESS;
     }

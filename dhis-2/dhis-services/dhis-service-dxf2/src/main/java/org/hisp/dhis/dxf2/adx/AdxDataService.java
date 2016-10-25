@@ -72,7 +72,7 @@ public interface AdxDataService
     //--------------------------------------------------------------------------
 
     DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate, 
-        Set<String> organisationUnits, boolean includeChildren, Date lastUpdated, Integer limit,  IdSchemes idSchemes);
+        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, Integer limit,  IdSchemes outputIdSchemes );
     
     
     /**

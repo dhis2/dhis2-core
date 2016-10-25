@@ -45,11 +45,14 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.validation.ValidationCriteria;
 
@@ -90,10 +93,14 @@ public class Program
     private Set<UserAuthorityGroup> userRoles = new HashSet<>();
 
     private Set<ProgramIndicator> programIndicators = new HashSet<>();
+    
+    private Set<ProgramRule> programRules = new HashSet<>();
+    
+    private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
     private Boolean onlyEnrollOnce = false;
 
-    private Set<TrackedEntityInstanceReminder> instanceReminders = new HashSet<>();
+    private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
     private Boolean selectEnrollmentDatesInFuture = false;
 
@@ -141,6 +148,21 @@ public class Program
      * Property indicating whether program allows for capturing of coordinates
      */
     private Boolean captureCoordinates = false;
+    
+    /**
+     * How many days after period is over will this program block creation and modification of events
+     */
+    private int expiryDays;
+    
+    /**
+     * The PeriodType indicating the frequency that this program will use to decide on expiry
+     */
+    private PeriodType expiryPeriodType;
+    
+    /**
+     * How many days after an event is completed will this program block modification of the event
+     */
+    private int completeEventsExpiryDays;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -457,6 +479,34 @@ public class Program
     }
 
     @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramRule> getProgramRules()
+    {
+        return programRules;
+    }
+
+    public void setProgramRules( Set<ProgramRule> programRules )
+    {
+        this.programRules = programRules;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramRuleVariable> getProgramRuleVariables()
+    {
+        return programRuleVariables;
+    }
+
+    public void setProgramRuleVariables( Set<ProgramRuleVariable> programRuleVariables )
+    {
+        this.programRuleVariables = programRuleVariables;
+    }
+
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getOnlyEnrollOnce()
     {
@@ -468,18 +518,18 @@ public class Program
         this.onlyEnrollOnce = onlyEnrollOnce;
     }
 
-    @JsonProperty( "trackedEntityInstanceReminders" )
+    @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "trackedEntityInstanceReminders", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityInstanceReminder", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<TrackedEntityInstanceReminder> getInstanceReminders()
+    @JacksonXmlProperty( localName = "notificationTemplate", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramNotificationTemplate> getNotificationTemplates()
     {
-        return instanceReminders;
+        return notificationTemplates;
     }
 
-    public void setInstanceReminders( Set<TrackedEntityInstanceReminder> instanceReminders )
+    public void setNotificationTemplates( Set<ProgramNotificationTemplate> notificationTemplates )
     {
-        this.instanceReminders = instanceReminders;
+        this.notificationTemplates = notificationTemplates;
     }
 
     @JsonProperty
@@ -688,8 +738,38 @@ public class Program
     {
         this.captureCoordinates = captureCoordinates;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getExpiryDays() {
+		return expiryDays;
+	}
 
-    @Override
+	public void setExpiryDays(int expiryDays) {
+		this.expiryDays = expiryDays;
+	}
+	
+	@JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+	public PeriodType getExpiryPeriodType() {
+		return expiryPeriodType;
+	}
+
+	public void setExpiryPeriodType(PeriodType expiryPeriodType) {
+		this.expiryPeriodType = expiryPeriodType;
+	}
+
+	@JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+	public int getCompleteEventsExpiryDays() {
+		return completeEventsExpiryDays;
+	}
+
+	public void setCompleteEventsExpiryDays(int completeEventsExpiryDays) {
+		this.completeEventsExpiryDays = completeEventsExpiryDays;
+	}
+
+	@Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
         super.mergeWith( other, mergeMode );
@@ -699,6 +779,8 @@ public class Program
             Program program = (Program) other;
 
             version = program.getVersion();
+            expiryDays = program.getExpiryDays();            
+            completeEventsExpiryDays = program.getCompleteEventsExpiryDays();
 
             if ( mergeMode.isReplace() )
             {
@@ -719,6 +801,7 @@ public class Program
                 useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration();
                 categoryCombo = program.getCategoryCombo();
                 captureCoordinates = program.getCaptureCoordinates();
+                expiryPeriodType = program.getExpiryPeriodType();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -739,6 +822,7 @@ public class Program
                 useFirstStageDuringRegistration = program.getUseFirstStageDuringRegistration() == null ? useFirstStageDuringRegistration : program.getUseFirstStageDuringRegistration();
                 categoryCombo = program.getCategoryCombo() == null ? categoryCombo : program.getCategoryCombo();
                 captureCoordinates = program.getCaptureCoordinates() == null ? captureCoordinates : program.getCaptureCoordinates();
+                expiryPeriodType = program.getExpiryPeriodType() == null ? expiryPeriodType : program.getExpiryPeriodType();
             }
 
             organisationUnits.clear();
@@ -761,8 +845,8 @@ public class Program
             userRoles.clear();
             userRoles.addAll( program.getUserRoles() );
 
-            instanceReminders.clear();
-            instanceReminders.addAll( program.getInstanceReminders() );
+            notificationTemplates.clear();
+            notificationTemplates.addAll( program.getNotificationTemplates() );
         }
     }
 }

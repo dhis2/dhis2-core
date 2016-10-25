@@ -50,7 +50,7 @@ public class HibernateIndicatorStore
     @SuppressWarnings("unchecked")
     public List<Indicator> getIndicatorsWithGroupSets()
     {
-        final String hql = "from Indicator d where d.groupSets.size > 0";
+        final String hql = "from Indicator d where size(d.groupSets) > 0";
 
         return getQuery( hql ).setCacheable( true ).list();
     }
@@ -59,7 +59,7 @@ public class HibernateIndicatorStore
     @SuppressWarnings("unchecked")
     public List<Indicator> getIndicatorsWithoutGroups()
     {
-        final String hql = "from Indicator d where d.groups.size = 0";
+        final String hql = "from Indicator d where size(d.groups) = 0";
 
         return getQuery( hql ).setCacheable( true ).list();
     }
@@ -68,7 +68,7 @@ public class HibernateIndicatorStore
     @SuppressWarnings("unchecked")
     public List<Indicator> getIndicatorsWithDataSets()
     {
-        final String hql = "from Indicator d where d.dataSets.size > 0";
+        final String hql = "from Indicator d where size(d.dataSets) > 0";
 
         return getQuery( hql ).setCacheable( true ).list();
     }

@@ -97,6 +97,7 @@
             <option value="disabled">$i18n.getString( "disabled" )</option>
             <option value="enabled"#if( $metadataSyncStrategy && $metadataSyncStrategy == "enabled" ) selected="selected"#end>$i18n.getString( "enabled" )</option>
         </select>
+      <input id="submitSyncNow" type="button" style="width:140px" value="$i18n.getString( 'synchronize_now' )"/>
     </div>
 
     <div id="scheduler" class="setting settingIndent schedulerWrapper scheduling">
@@ -155,27 +156,26 @@
             </div>
         </div>
         <input type="text" id="metadataSyncCron" name="metadataSyncCron" class="scheduling" value="${metadataSyncCron}" hidden>
-
-        <div class="syncStartButton">
-            <input id="submitSyncSchedule" type="button" style="width:140px" value="$i18n.getString( 'Sync Now' )"/>
-        </div>
     </div>
 
-<!-- SMS -->
+<!-- Program notifications -->
 
-<div class="settingHeader">$i18n.getString( "sms_scheduler")</div>
+<div class="settingHeader">$i18n.getString( "program_notifications_scheduler" )</div>
 
-<div class="settingLabel settingIndent">$i18n.getString( "sms_scheduler_strategy" )</div>
+<div class="settingLabel settingIndent">$i18n.getString( "program_notifications_scheduling_strategy" )</div>
 
-<div class="settingLabel settingIndent tipText">$i18n.getString( "last_success" ): $!format.formatDateTime( $lastSmsSchedulerSuccess )</div>
-
+<div class="settingLabel settingIndent tipText">$i18n.getString( "last_success" ): $!format.formatDateTime( $!lastProgramNotificationSchedulerSuccess )</div>
 
 <div class="setting settingIndent">
-<select id="smsSchedulerStrategy" name="smsSchedulerStrategy" class="scheduling">
-    <option value="disabled">$i18n.getString( "disabled" )</option>
-    <option value="everyMidNight"#if ( $smsSchedulerStrategy && $smsSchedulerStrategy == "everyMidNight" ) selected="selected"#end>$i18n.getString( "all_daily" )</option>
-</select>
-<input type="button" style="width:140px" onclick="window.location.href='executeTask.action?taskKey=sendScheduledMessageTaskNow'" value="$i18n.getString( 'Run Now' )"/>
+    <select id="programNotificationSchedulerStrategy" name="programNotificationSchedulerStrategy" class="scheduling">
+        <option value="disabled">$i18n.getString( "disabled" )</option>
+        #set( $dailyStr = $i18n.getString( "daily") )
+        <option value="dailyFiveAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyFiveAM" ) selected="selected"#end>${dailyStr} 5:00</option>
+        <option value="dailySixAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySixAM" ) selected="selected"#end>${dailyStr} 6:00</option>
+        <option value="dailySevenAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailySevenAM" ) selected="selected"#end>${dailyStr} 7:00</option>
+        <option value="dailyEightAM"#if ( $programNotificationSchedulerStrategy && $programNotificationSchedulerStrategy == "dailyEightAM" ) selected="selected"#end>${dailyStr} 8:00</option>
+    </select>
+    <input type="button" style="width:140px" onclick="window.location.href='executeTask.action?taskKey=scheduledProgramNotificationsTask'" value="$i18n.getString( 'run_now' )"/>
 </div>
 
 <!-- Submit -->
@@ -192,4 +192,13 @@
 
 </form>
 
+<form id="metadataSyncNowForm" method="post" action="executeMetaDataSyncTask.action"></form>
+
+<input type="hidden" id="currentRunningTaskStatus" name="currentRunningTaskStatus" type="hidden"
+    #if ( ${currentRunningTaskStatus} == "task_already_running" )
+           value="$i18n.getString( "metadata_sync_in_progress" )"
+    #elseif ( ${currentRunningTaskStatus} == "task_started" )
+           value="$i18n.getString( "metadata_sync_has_started" )"
+    #end
+    >
 <span id="info">$i18n.getString( "scheduling_is" ) $!i18n.getString( $!status.key )</span>

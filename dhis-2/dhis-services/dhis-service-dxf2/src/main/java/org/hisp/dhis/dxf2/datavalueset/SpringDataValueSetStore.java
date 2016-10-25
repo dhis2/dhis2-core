@@ -35,6 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -120,7 +121,7 @@ public class SpringDataValueSetStore
         final String sql =
             "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
             "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
-            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup " +
+            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
             "join dataelement de on (dv.dataelementid=de.dataelementid) " +
             "join period pe on (dv.periodid=pe.periodid) " +
@@ -152,6 +153,7 @@ public class SpringDataValueSetStore
             {
                 DataValue dataValue = dataValueSet.getDataValueInstance();
                 PeriodType pt = PeriodType.getPeriodTypeByName( rs.getString( "ptname" ) );
+                boolean deleted = rs.getBoolean( "deleted" );
 
                 dataValue.setDataElement( rs.getString( "deid" ) );
                 dataValue.setPeriod( pt.createPeriod( rs.getDate( "pestart" ), calendar ).getIsoDate() );
@@ -164,6 +166,12 @@ public class SpringDataValueSetStore
                 dataValue.setLastUpdated( getLongGmtDateString( rs.getTimestamp( "lastupdated" ) ) );
                 dataValue.setComment( rs.getString( "comment" ) );
                 dataValue.setFollowup( rs.getBoolean( "followup" ) );
+
+                if ( deleted )
+                {
+                    dataValue.setDeleted( deleted );
+                }
+                
                 dataValue.close();
             }
         } );
@@ -177,24 +185,34 @@ public class SpringDataValueSetStore
 
     private String getDataValueSql( DataExportParams params )
     {
-        IdSchemes idSchemes = params.getIdSchemes() != null ? params.getIdSchemes() : new IdSchemes();
+        IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
         String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
         String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
+        String dataElements = getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) );
+        String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
+        String orgUnitGroups = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnitGroups() ) );
+
         String sql =
             "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
             "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
-            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup " +
+            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
-            "join dataelement de on (dv.dataelementid=de.dataelementid) " +
-            "join period pe on (dv.periodid=pe.periodid) " +
-            "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
-            "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
-            "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
-            "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
-            "where de.dataelementid in (" + getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) ) + ") ";
+            "inner join dataelement de on (dv.dataelementid=de.dataelementid) " +
+            "inner join period pe on (dv.periodid=pe.periodid) " +
+            "inner join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
+            "inner join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
+            "inner join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
+            "inner join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) ";
+
+        if ( params.hasOrganisationUnitGroups() )
+        {
+            sql += "left join orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
+        }
+
+        sql += "where de.dataelementid in (" + dataElements + ") ";
 
         if ( params.isIncludeChildren() )
         {
@@ -209,7 +227,29 @@ public class SpringDataValueSetStore
         }
         else
         {
-            sql += "and dv.sourceid in (" + getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) ) + ") ";
+            sql += "and (";
+
+            if ( params.hasOrganisationUnits() )
+            {
+                sql += "dv.sourceid in (" + orgUnits + ") ";
+            }
+
+            if ( params.hasOrganisationUnits() && params.hasOrganisationUnitGroups() )
+            {
+                sql += "or ";
+            }
+
+            if ( params.hasOrganisationUnitGroups() )
+            {
+                sql += "ougm.orgunitgroupid in (" + orgUnitGroups + ") ";
+            }
+
+            sql += ") ";
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            sql += "and dv.deleted is false ";
         }
 
         if ( params.hasStartEndDate() )

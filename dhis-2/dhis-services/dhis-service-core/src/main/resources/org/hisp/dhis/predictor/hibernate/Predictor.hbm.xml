@@ -18,10 +18,10 @@
     <property name="description" type="text" />
 
     <many-to-one name="generator" column="generatorexpressionid" class="org.hisp.dhis.expression.Expression"
-      cascade="none" foreign-key="fk_predictor_generatorexpressionid" />
+      cascade="all" foreign-key="fk_predictor_generatorexpressionid" not-null="true" />
 
     <many-to-one name="output" column="generatoroutput" class="org.hisp.dhis.dataelement.DataElement"
-		 foreign-key="fk_predictor_outputdataelementid" />
+		 foreign-key="fk_predictor_outputdataelementid" not-null="true" />
 
     <many-to-one name="sampleSkipTest" column="skiptestexpressionid" class="org.hisp.dhis.expression.Expression"
       cascade="all" foreign-key="fk_validationrule_skiptestexpressionid" />
@@ -35,16 +35,12 @@
         foreign-key="fk_predictororgunitlevels_orgunitlevelid" />
     </set>
 
-    <property name="sequentialSampleCount" column="sequentialsamplecount" />
+    <property name="sequentialSampleCount" column="sequentialsamplecount" not-null="true" />
 
-    <property name="annualSampleCount" column="annualsamplecount" />
+    <property name="annualSampleCount" column="annualsamplecount" not-null="true" />
 
     <property name="sequentialSkipCount" column="sequentialskipcount" />
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

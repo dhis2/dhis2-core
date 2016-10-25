@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.BatchHandlerFactory;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.ValueType;
@@ -105,7 +105,7 @@ public class MinMaxOutlierAnalysisService
 
         for ( DataElement dataElement : elements )
         {
-            categoryOptionCombos.addAll( dataElement.getCategoryCombo().getOptionCombos() );
+            categoryOptionCombos.addAll( dataElement.getCategoryOptionCombos() );
         }
 
         log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: " + parents.size() );
@@ -135,7 +135,7 @@ public class MinMaxOutlierAnalysisService
 
             if ( valueType.isNumeric() )
             {
-                Collection<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryCombo().getOptionCombos();
+                Collection<DataElementCategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
 
                 for ( DataElementCategoryOptionCombo categoryOptionCombo : categoryOptionCombos )
                 {

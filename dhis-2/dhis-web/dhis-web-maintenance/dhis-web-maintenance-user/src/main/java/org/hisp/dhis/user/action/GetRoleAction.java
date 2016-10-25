@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.program.Program;
@@ -161,21 +160,21 @@ public class GetRoleAction
 
         availableDataSets.removeAll( userAuthorityGroup.getDataSets() );
 
-        Collections.sort( availableDataSets, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( availableDataSets );
 
         roleDataSets = new ArrayList<>( userAuthorityGroup.getDataSets() );
 
-        Collections.sort( roleDataSets, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( roleDataSets );
         
         availablePrograms = new ArrayList<>( programService.getAllPrograms() );
 
         availablePrograms.removeAll( userAuthorityGroup.getPrograms() );
 
-        Collections.sort( availablePrograms, IdentifiableObjectNameComparator.INSTANCE );        
+        Collections.sort( availablePrograms );        
         
         rolePrograms = new ArrayList<>( userAuthorityGroup.getPrograms() );
 
-        Collections.sort( rolePrograms, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( rolePrograms );
 
         // ---------------------------------------------------------------------
         // Authorities

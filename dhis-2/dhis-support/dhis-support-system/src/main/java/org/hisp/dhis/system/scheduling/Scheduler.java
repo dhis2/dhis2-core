@@ -39,20 +39,34 @@ import java.util.concurrent.Callable;
  */
 public interface Scheduler
 {
-    String CRON_DAILY_0AM = "0 0 0 * * ?";
     String CRON_DAILY_11PM = "0 0 23 * * ?";
+    String CRON_DAILY_0AM = "0 0 0 * * ?";
     String CRON_DAILY_2AM = "0 0 2 * * ?";
+    String CRON_DAILY_5AM = "0 0 5 * * ?";
+    String CRON_DAILY_6AM = "0 0 6 * * ?";
+    String CRON_DAILY_7AM = "0 0 7 * * ?";
+    String CRON_DAILY_8AM = "0 0 8 * * ?";
+
     String CRON_EVERY_MIN = "0 0/1 * * * ?";
     String CRON_EVERY_15MIN = "0 0/15 * * * ?";
+
     String CRON_TEST = "0 * * * * ?";
-    String CRON_DAILY_8AM = "0 0 8 * * ?";
-    
+
     /**
      * Execute the given task immediately.
-     * 
+     *
      * @task the task to execute.
      */
     void executeTask( Runnable task );
+
+    /**
+     * Execute the given task immediately. The task can be referenced
+     * again through the given task key if the current task is not completed. A task cannot be scheduled if another
+     * task with the same key is already scheduled.
+     *
+     * @task the task to execute.
+     */
+    void executeTask( String taskKey, Runnable task );
 
     /**
      * Execute the given task immediately and return a ListenableFuture.
@@ -62,13 +76,13 @@ public interface Scheduler
      * @return a ListenableFuture representing the result of the task.
      */
     <T> ListenableFuture<T> executeTask( Callable<T> callable );
-    
+
     /**
      * Schedule the given task for future execution. The task can be referenced
      * later through the given task key. A task cannot be scheduled if another
      * task with the same key is already scheduled. The task must be unique for
      * the task but can have an arbitrary value.
-     * 
+     *
      * @param key the task key, cannot be null.
      * @param task the task to schedule.
      * @param cronExpr the cron expression to use for the task scheduling.
@@ -76,26 +90,45 @@ public interface Scheduler
      *         operation, false if not.
      */
     boolean scheduleTask( String key, Runnable task, String cronExpr );
-    
+
     /**
      * Deactivates scheduling of the task with the given key.
-     * 
+     *
      * @param key the task key.
      * @return true if the task was deactivated as a result of this operation,
      *         false if not.
      */
     boolean stopTask( String key );
-    
+
+    /**
+     * Stops and starts a task with the given key. If no key exists, still start a new task
+     * @param key the task key, cannot be null.
+     * @param task the task to schedule
+     * @param cronExpr the cronExpression to use for the task scheduling.
+     * @return true if the task was scheduled for execution as a result of this
+     *         operation, false if not.
+     */
+    boolean refreshTask( String key, Runnable task, String cronExpr );
+
     /**
      * Deactivates scheduling for all tasks.
      */
     void stopAllTasks();
-    
+
     /**
      * Gets the status for the task with the given key.
-     * 
+     *
      * @param key the task key.
      * @return the task status.
      */
     ScheduledTaskStatus getTaskStatus( String key );
+
+    /**
+     * Gets the status for the current task with the given key.
+     *
+     * @param key the task key.
+     * @return the task status.
+     */
+    ScheduledTaskStatus getCurrentTaskStatus( String key );
+
 }

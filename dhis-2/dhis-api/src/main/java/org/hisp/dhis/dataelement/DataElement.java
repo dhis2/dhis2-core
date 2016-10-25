@@ -33,7 +33,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -44,6 +45,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
 import org.hisp.dhis.dataset.comparator.DataSetFrequencyComparator;
 import org.hisp.dhis.option.OptionSet;
@@ -54,6 +56,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
@@ -109,9 +112,11 @@ public class DataElement
     private DataElementDomain domainType;
 
     /**
-     * A combination of categories to capture data.
+     * A combination of categories to capture data for this data element. Note
+     * that this category combination could be overridden by data set elements
+     * which this data element is part of, see {@link DataSetElement}.
      */
-    private DataElementCategoryCombo categoryCombo;
+    private DataElementCategoryCombo dataElementCategoryCombo;
 
     /**
      * URL for lookup of additional information on the web.
@@ -126,7 +131,7 @@ public class DataElement
     /**
      * The data sets which this data element is a member of.
      */
-    private Set<DataSet> dataSets = new HashSet<>();
+    private Set<DataSetElement> dataSetElements = new HashSet<>();
 
     /**
      * The lower organisation unit levels for aggregation.
@@ -171,7 +176,7 @@ public class DataElement
         groups.add( group );
         group.getMembers().add( this );
     }
-
+    
     public void removeDataElementGroup( DataElementGroup group )
     {
         groups.remove( group );
@@ -191,18 +196,69 @@ public class DataElement
         updates.forEach( this::addDataElementGroup );
     }
 
-    public void addDataSet( DataSet dataSet )
+    public boolean removeDataSetElement( DataSetElement element )
     {
-        dataSets.add( dataSet );
-        dataSet.getDataElements().add( this );
+        dataSetElements.remove( element );
+        return element.getDataSet().getDataSetElements().remove( element );
     }
 
-    public void removeDataSet( DataSet dataSet )
+    /**
+     * Returns the resolved category combinations by joining the category 
+     * combinations of the data set elements of which this data element is part
+     * of and the category combination linked directly with this data element.
+     * The returned set is immutable, will never be null and will contain at
+     * least one item.
+     */
+    public Set<DataElementCategoryCombo> getCategoryCombos()
     {
-        dataSets.remove( dataSet );
-        dataSet.getDataElements().remove( this );
+        return ImmutableSet.<DataElementCategoryCombo>builder()
+            .addAll( dataSetElements.stream()
+                .filter( DataSetElement::hasCategoryCombo )
+                .map( dse -> dse.getCategoryCombo() )
+                .collect( Collectors.toSet() ) )
+            .add( dataElementCategoryCombo ).build();
+    }
+    
+    /**
+     * Returns the category combination of the data set element matching the 
+     * given data set for this data element. If not present, returns the
+     * category combination for this data element.
+     */
+    public DataElementCategoryCombo getCategoryCombo( DataSet dataSet )
+    {
+        for ( DataSetElement element : dataSetElements )
+        {
+            if ( dataSet.typedEquals( element.getDataSet() ) && element.hasCategoryCombo() )
+            {
+                return element.getCategoryCombo();
+            }
+        }
+        
+        return dataElementCategoryCombo;
+    }
+    
+    /**
+     * Returns the category option combinations of the resolved category
+     * combinations of this data element. The returned set is immutable, will 
+     * never be null and will contain at least one item.
+     */
+    public Set<DataElementCategoryOptionCombo> getCategoryOptionCombos()
+    {
+        return ObjectUtils.getAll( getCategoryCombos(), DataElementCategoryCombo::getOptionCombos );
     }
 
+    /**
+     * Returns the sorted category option combinations of the resolved category
+     * combinations of this data element. The returned list is immutable, will 
+     * never be null and will contain at least one item.
+     */
+    public List<DataElementCategoryOptionCombo> getSortedCategoryOptionCombos()
+    {
+        List<DataElementCategoryOptionCombo> optionCombos = Lists.newArrayList();
+        getCategoryCombos().stream().forEach( cc -> optionCombos.addAll( cc.getSortedOptionCombos() ) );
+        return optionCombos;
+    }
+    
     /**
      * Indicates whether the value type of this data element is numeric.
      */
@@ -226,7 +282,7 @@ public class DataElement
      */
     public DataSet getDataSet()
     {
-        List<DataSet> list = new ArrayList<>( dataSets );
+        List<DataSet> list = new ArrayList<>( getDataSets() );
         Collections.sort( list, DataSetFrequencyComparator.INSTANCE );
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
@@ -238,20 +294,30 @@ public class DataElement
      */
     public DataSet getApprovalDataSet()
     {
-        List<DataSet> list = new ArrayList<>( dataSets );
+        List<DataSet> list = new ArrayList<>( getDataSets() );
         Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
     /**
-     * Returns the category combinations associated with the data sets of this
-     * data element.
+     * Note that this method returns an immutable set and can not be used to
+     * modify the model. Returns an immutable set of data sets associated with 
+     * this data element.
+     */
+    public Set<DataSet> getDataSets()
+    {
+        return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataSet() ).collect( Collectors.toSet() ) );
+    }
+    
+    /**
+     * Returns the attribute category combinations associated with the data sets 
+     * of this data element.
      */
     public Set<DataElementCategoryCombo> getDataSetCategoryCombos()
     {
         Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
 
-        for ( DataSet dataSet : dataSets )
+        for ( DataSet dataSet : getDataSets() )
         {
             categoryCombos.add( dataSet.getCategoryCombo() );
         }
@@ -260,14 +326,14 @@ public class DataElement
     }
 
     /**
-     * Returns the category options combinations associated with the data sets of this
-     * data element.
+     * Returns the attribute category options combinations associated with the 
+     * data sets of this data element.
      */
     public Set<DataElementCategoryOptionCombo> getDataSetCategoryOptionCombos()
     {
         Set<DataElementCategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
-        for ( DataSet dataSet : dataSets )
+        for ( DataSet dataSet : getDataSets() )
         {
             categoryOptionCombos.addAll( dataSet.getCategoryCombo().getOptionCombos() );
         }
@@ -294,7 +360,7 @@ public class DataElement
      */
     public Set<PeriodType> getPeriodTypes()
     {
-        return Sets.newHashSet( dataSets ).stream().map( DataSet::getPeriodType ).collect( Collectors.toSet() );
+        return getDataSets().stream().map( DataSet::getPeriodType ).collect( Collectors.toSet() );
     }
 
     /**
@@ -304,7 +370,7 @@ public class DataElement
      */
     public boolean isApproveData()
     {
-        for ( DataSet dataSet : dataSets )
+        for ( DataSet dataSet : getDataSets() )
         {
             if ( dataSet != null && dataSet.getWorkflow() != null )
             {
@@ -324,7 +390,7 @@ public class DataElement
     {
         int maxOpenPeriods = 0;
 
-        for ( DataSet dataSet : dataSets )
+        for ( DataSet dataSet : getDataSets() )
         {
             maxOpenPeriods = Math.max( maxOpenPeriods, dataSet.getOpenFuturePeriods() );
         }
@@ -378,7 +444,7 @@ public class DataElement
     {
         PeriodType periodType = null;
 
-        for ( DataSet dataSet : dataSets )
+        for ( DataSet dataSet : getDataSets() )
         {
             if ( periodType != null && !periodType.equals( dataSet.getPeriodType() ) )
             {
@@ -397,37 +463,6 @@ public class DataElement
     public boolean hasAggregationLevels()
     {
         return aggregationLevels != null && aggregationLevels.size() > 0;
-    }
-
-    public boolean hasCategoryCombo()
-    {
-        return categoryCombo != null;
-    }
-
-    /**
-     * Tests whether the DataElement is associated with a
-     * DataElementCategoryCombo with more than one DataElementCategory, or any
-     * DataElementCategory with more than one DataElementCategoryOption.
-     */
-    public boolean isMultiDimensional()
-    {
-        if ( categoryCombo != null )
-        {
-            if ( categoryCombo.getCategories().size() > 1 )
-            {
-                return true;
-            }
-
-            for ( DataElementCategory category : categoryCombo.getCategories() )
-            {
-                if ( category.getCategoryOptions().size() > 1 )
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -459,7 +494,7 @@ public class DataElement
     {
         int expiryDays = Integer.MAX_VALUE;
 
-        for ( DataSet dataSet : dataSets )
+        for ( DataSet dataSet : getDataSets() )
         {
             if ( dataSet.getExpiryDays() != NO_EXPIRY && dataSet.getExpiryDays() < expiryDays )
             {
@@ -516,7 +551,7 @@ public class DataElement
     // -------------------------------------------------------------------------
     // Helper getters
     // -------------------------------------------------------------------------
-
+        
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOptionSetValue()
@@ -567,17 +602,17 @@ public class DataElement
         this.domainType = domainType;
     }
 
-    @JsonProperty
+    @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
+    public DataElementCategoryCombo getDataElementCategoryCombo()
     {
-        return categoryCombo;
+        return dataElementCategoryCombo;
     }
 
-    public void setCategoryCombo( DataElementCategoryCombo categoryCombo )
+    public void setDataElementCategoryCombo( DataElementCategoryCombo dataElementCategoryCombo )
     {
-        this.categoryCombo = categoryCombo;
+        this.dataElementCategoryCombo = dataElementCategoryCombo;
     }
 
     @JsonProperty
@@ -609,16 +644,16 @@ public class DataElement
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataSet> getDataSets()
+    @JacksonXmlElementWrapper( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataSetElement> getDataSetElements()
     {
-        return dataSets;
+        return dataSetElements;
     }
 
-    public void setDataSets( Set<DataSet> dataSets )
+    public void setDataSetElements( Set<DataSetElement> dataSetElements )
     {
-        this.dataSets = dataSets;
+        this.dataSetElements = dataSetElements;
     }
 
     @JsonProperty
@@ -686,7 +721,7 @@ public class DataElement
                 domainType = dataElement.getDomainType();
                 aggregationType = dataElement.getAggregationType();
                 valueType = dataElement.getValueType();
-                categoryCombo = dataElement.getCategoryCombo();
+                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo();
                 url = dataElement.getUrl();
                 optionSet = dataElement.getOptionSet();
                 commentOptionSet = dataElement.getCommentOptionSet();
@@ -697,14 +732,14 @@ public class DataElement
                 domainType = dataElement.getDomainType() == null ? domainType : dataElement.getDomainType();
                 aggregationType = dataElement.getAggregationType() == null ? aggregationType : dataElement.getAggregationType();
                 valueType = dataElement.getValueType() == null ? valueType : dataElement.getValueType();
-                categoryCombo = dataElement.getCategoryCombo() == null ? categoryCombo : dataElement.getCategoryCombo();
+                dataElementCategoryCombo = dataElement.getDataElementCategoryCombo() == null ? dataElementCategoryCombo : dataElement.getDataElementCategoryCombo();
                 url = dataElement.getUrl() == null ? url : dataElement.getUrl();
                 optionSet = dataElement.getOptionSet() == null ? optionSet : dataElement.getOptionSet();
                 commentOptionSet = dataElement.getCommentOptionSet() == null ? commentOptionSet : dataElement.getCommentOptionSet();
             }
 
             groups.clear();
-            dataSets.clear();
+            dataSetElements.clear();
 
             aggregationLevels.clear();
             aggregationLevels.addAll( dataElement.getAggregationLevels() );

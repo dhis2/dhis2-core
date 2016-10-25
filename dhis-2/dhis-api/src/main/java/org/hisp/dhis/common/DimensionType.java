@@ -46,5 +46,6 @@ public enum DimensionType
     DATA_ELEMENT_GROUP_SET,
     ORGANISATION_UNIT_GROUP_SET,
     CATEGORY,
-    STATIC
+    STATIC,
+    OPTION_GROUP_SET
 }

@@ -26,7 +26,7 @@
 
     <property name="repeatable" column="repeatable" not-null="true" />
 
-    <set name="programStageDataElements" order-by="sort_order" cascade="save-update">
+    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
       <key column="programstageid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement" />
     </set>
@@ -43,9 +43,9 @@
 
     <property name="executionDateLabel" column="executiondatelabel" />
 
-    <set name="reminders" order-by="daysAllowedSendMessage" cascade="all">
-      <key column="programStageid" />
-      <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
+    <set name="notificationTemplates" cascade="all">
+      <key column="programstageid" />
+      <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
 
     <property name="autoGenerateEvent" />
@@ -69,7 +69,7 @@
     <property name="reportDateToUse" />
 
     <property name="preGenerateUID" />
-    
+
     <property name="hideDueDate" />
 
     <property name="sortOrder" column="sort_order" />
@@ -89,17 +89,9 @@
     <set name="translations" table="programstagetranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="programstageid" foreign-key="fk_objecttranslation_programstageid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

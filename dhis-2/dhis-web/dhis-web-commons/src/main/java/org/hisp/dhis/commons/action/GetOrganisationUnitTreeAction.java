@@ -29,7 +29,6 @@ package org.hisp.dhis.commons.action;
  */
 
 import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -250,7 +249,7 @@ public class GetOrganisationUnitTreeAction
             realRoot = true;
         }
 
-        Collections.sort( rootOrganisationUnits, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( rootOrganisationUnits );
 
         return SUCCESS;
     }

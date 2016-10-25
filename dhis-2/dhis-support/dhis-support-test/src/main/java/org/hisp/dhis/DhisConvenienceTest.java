@@ -84,6 +84,9 @@ import org.hisp.dhis.program.message.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
+import org.hisp.dhis.program.notification.NotificationRecipient;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -97,14 +100,12 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.validation.RuleType;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -410,11 +411,11 @@ public abstract class DhisConvenienceTest
 
         if ( categoryCombo != null )
         {
-            dataElement.setCategoryCombo( categoryCombo );
+            dataElement.setDataElementCategoryCombo( categoryCombo );
         }
         else if ( categoryService != null )
         {
-            dataElement.setCategoryCombo( categoryService.getDefaultDataElementCategoryCombo() );
+            dataElement.setDataElementCategoryCombo( categoryService.getDefaultDataElementCategoryCombo() );
         }
 
         return dataElement;
@@ -542,16 +543,16 @@ public abstract class DhisConvenienceTest
 
         return categoryOptionCombo;
     }
-    
+
     public static DataElementCategoryOptionCombo createCategoryOptionCombo( char uniqueCharacter )
     {
         DataElementCategoryOptionCombo coc = new DataElementCategoryOptionCombo();
         coc.setAutoFields();
-        
+
         coc.setUid( BASE_COC_UID + uniqueCharacter );
         coc.setName( "CategoryOptionCombo" + uniqueCharacter );
         coc.setName( "CategoryOptionComboCode" + uniqueCharacter );
-        
+
         return coc;
     }
 
@@ -998,13 +999,17 @@ public abstract class DhisConvenienceTest
      * @param dataElement          The data element.
      * @param period               The period.
      * @param source               The source.
-     * @param value                The value.
-     * @param lastupdated          The date.value.
      * @param categoryOptionCombo  The category option combo.
      * @param attributeOptionCombo The attribute option combo.
+     * @param value                The value.
+     * @param comment              The comment.
+     * @param storedBy             The stored by.
+     * @param created              The created date.
+     * @param lastupdated          The last updated date.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        String value, Date lastupdated, DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
+        DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo, 
+        String value, String comment, String storedBy, Date created, Date lastupdated )
     {
         DataValue dataValue = new DataValue();
 
@@ -1054,70 +1059,6 @@ public abstract class DhisConvenienceTest
         Expression rightSide, PeriodType periodType )
     {
         return createValidationRule( Character.toString( uniqueCharacter ), operator, leftSide, rightSide, periodType );
-    }
-
-    /**
-     * Creates a ValidationRule of RULE_TYPE_MONITORING
-     *
-     * @param uniqueCharacter       A unique character to identify the object.
-     * @param operator              The operator.
-     * @param leftSide              The left side expression.
-     * @param rightSide             The right side expression.
-     * @param skipTest              The skiptest expression
-     * @param periodType            The period-type.
-     * @param organisationUnitLevel The unit level of organisations to be
-     *                              evaluated by this rule.
-     * @param sequentialSampleCount How many sequential past periods to sample.
-     * @param annualSampleCount     How many years of past periods to sample.
-     * @param sequentialSkipCount   How many periods in the current year to skip
-     */
-    public static ValidationRule createMonitoringRule( String uniqueCharacter, Operator operator,
-        Expression leftSide, Expression rightSide, Expression skipTest,
-        PeriodType periodType, int organisationUnitLevel, int sequentialSampleCount,
-        int annualSampleCount, int sequentialSkipCount )
-    {
-        ValidationRule validationRule = new ValidationRule();
-        validationRule.setAutoFields();
-
-        validationRule.setName( "MonitoringRule" + uniqueCharacter );
-        validationRule.setDescription( "Description" + uniqueCharacter );
-        validationRule.setRuleType( RuleType.SURVEILLANCE );
-        validationRule.setOperator( operator );
-        validationRule.setLeftSide( leftSide );
-        validationRule.setRightSide( rightSide );
-        validationRule.setSampleSkipTest( skipTest );
-        validationRule.setPeriodType( periodType );
-        validationRule.setOrganisationUnitLevel( organisationUnitLevel );
-        validationRule.setSequentialSampleCount( sequentialSampleCount );
-        validationRule.setAnnualSampleCount( annualSampleCount );
-        validationRule.setSequentialSkipCount( sequentialSkipCount );
-
-        return validationRule;
-    }
-
-    /**
-     * Creates a ValidationRule of RULE_TYPE_MONITORING
-     *
-     * @param uniqueCharacter       A unique character to identify the object.
-     * @param operator              The operator.
-     * @param leftSide              The left side expression.
-     * @param rightSide             The right side expression.
-     * @param periodType            The period-type.
-     * @param organisationUnitLevel The unit level of organisations to be
-     *                              evaluated by this rule.
-     * @param sequentialSampleCount How many sequential past periods to sample.
-     * @param annualSampleCount     How many years of past periods to sample.
-     */
-    public static ValidationRule createMonitoringRule( String uniqueCharacter,
-        Operator operator, Expression leftSide, Expression rightSide,
-        PeriodType periodType, int organisationUnitLevel,
-        int sequentialSampleCount, int annualSampleCount )
-    {
-        return createMonitoringRule( uniqueCharacter, operator,
-            leftSide, rightSide, null,
-            periodType, organisationUnitLevel,
-            sequentialSampleCount,
-            annualSampleCount, 0 );
     }
 
     /**
@@ -1635,21 +1576,6 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @return TrackedEntityInstanceReminder
-     */
-    public static TrackedEntityInstanceReminder createTrackedEntityInstanceReminder( char uniqueCharacter, 
-        Integer daysAllowedSendMessage, String templateMessage, String dateToCompare,
-        Integer sendTo, Integer whenToSend, Integer messageType )
-    {
-        TrackedEntityInstanceReminder reminder = new TrackedEntityInstanceReminder( "Reminder" + uniqueCharacter, daysAllowedSendMessage,
-            templateMessage, dateToCompare, sendTo, whenToSend, messageType );
-        reminder.setAutoFields();
-        
-        return reminder;
-    }
-
-    /**
-     * @param uniqueCharacter A unique character to identify the object.
      * @param sql             A query statement to retreive record/data from database.
      * @return a sqlView instance
      */
@@ -1681,6 +1607,21 @@ public abstract class DhisConvenienceTest
         constant.setValue( value );
 
         return constant;
+    }
+
+    protected static ProgramNotificationTemplate createProgramNotificationTemplate(
+        String name, int days, NotificationTrigger trigger )
+    {
+        return new ProgramNotificationTemplate(
+            name,
+            "Subject",
+            "Message",
+            trigger,
+            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            Sets.newHashSet(),
+            days,
+            null
+        );
     }
 
     // -------------------------------------------------------------------------

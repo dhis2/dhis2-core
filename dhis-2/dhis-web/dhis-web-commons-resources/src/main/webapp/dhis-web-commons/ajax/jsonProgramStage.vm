@@ -15,14 +15,6 @@
 	"openAfterEnrollment": "$!programStage.openAfterEnrollment",
 	"preGenerateUID": "$!programStage.preGenerateUID",
 	"reportDateToUse": "$!programStage.reportDateToUse",
-	"reminders":[
-	#foreach($reminder in $programStage.reminders)
-	  {
-		"daysAllowedSendMessage": "$!reminder.daysAllowedSendMessage",
-		"templateMessage": "$!encoder.jsonEncode( ${reminder.templateMessage} )"
-	  }#if( $velocityCount < $programStage.reminders.size() ),#end
-	#end 
-	],
 	"repeatable": "$!programStage.repeatable",
 	"autoGenerateEvent": "$!programStage.autoGenerateEvent",
 	"validCompleteOnly": "$!programStage.validCompleteOnly",

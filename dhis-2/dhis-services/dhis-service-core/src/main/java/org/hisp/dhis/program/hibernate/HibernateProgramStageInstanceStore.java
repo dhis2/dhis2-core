@@ -28,31 +28,27 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.SchedulingProgramObject;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
@@ -61,12 +57,11 @@ public class HibernateProgramStageInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
 {
-    @Autowired
-    private TrackedEntityInstanceReminderService reminderService;
-
-    // -------------------------------------------------------------------------
-    // Implemented methods
-    // -------------------------------------------------------------------------
+    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
+        Sets.intersection(
+            NotificationTrigger.getAllApplicableToProgramStageInstance(),
+            NotificationTrigger.getAllScheduledTriggers()
+        );
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -100,96 +95,7 @@ public class HibernateProgramStageInstanceStore
         return criteria.list();
     }
 
-    @Override
-    public Collection<SchedulingProgramObject> getSendMessageEvents()
-    {
-        String sql = " ( " + sendMessageToTrackedEntityInstanceSql() + " ) ";
 
-        sql += " UNION ( " + sendMessageToHealthWorkerSql() + " ) ";
-
-        sql += " UNION ( " + sendMessageToOrgunitRegisteredSql() + " ) ";
-
-        sql += " UNION ( " + sendMessageToUsersSql() + " ) ";
-
-        sql += " UNION ( " + sendMessageToUserGroupsSql() + " ) ";
-        
-        SqlRowSet rs = jdbcTemplate.queryForRowSet( sql );
-
-        Collection<SchedulingProgramObject> schedulingProgramObjects = new HashSet<>();
-
-        while ( rs.next() )
-        {
-            String message = rs.getString( "templatemessage" );
-
-            List<String> attributeUids = reminderService.getAttributeUids( message );
-            int programstageinstanceid = rs.getInt( "programstageinstanceid" );
-            SqlRowSet attributeValueRow = jdbcTemplate
-                .queryForRowSet( "select tea.uid ,teav.value from trackedentityattributevalue teav "
-                    + " INNER JOIN trackedentityattribute tea on tea.trackedentityattributeid=teav.trackedentityattributeid "
-                    + " INNER JOIN programinstance ps on teav.trackedentityinstanceid=ps.trackedentityinstanceid "
-                    + " INNER JOIN programstageinstance psi on ps.programinstanceid=psi.programinstanceid "
-                    + " where tea.uid in ( " + TextUtils.getQuotedCommaDelimitedString( attributeUids ) + ")  "
-                    + " and psi.programstageinstanceid=" + programstageinstanceid );
-
-            while ( attributeValueRow.next() )
-            {
-                String uid = attributeValueRow.getString( "uid" );
-                String value = attributeValueRow.getString( "value" );
-                String key = "\\{(" + TrackedEntityInstanceReminder.ATTRIBUTE + ")=(" + uid + ")\\}";
-                message = message.replaceAll( key, value );
-            }
-
-            String organisationunitName = rs.getString( "orgunitName" );
-            String programName = rs.getString( "programName" );
-            String programStageName = rs.getString( "programStageName" );
-            String daysSinceDueDate = rs.getString( "days_since_due_date" );
-            String dueDate = rs.getString( "duedate" ).split( " " )[0];
-
-            message = message.replace( TrackedEntityInstanceReminder.TEMPLATE_MESSSAGE_PROGRAM_NAME, programName );
-            message = message.replace( TrackedEntityInstanceReminder.TEMPLATE_MESSSAGE_PROGAM_STAGE_NAME, programStageName );
-            message = message.replace( TrackedEntityInstanceReminder.TEMPLATE_MESSSAGE_DUE_DATE, dueDate );
-            message = message.replace( TrackedEntityInstanceReminder.TEMPLATE_MESSSAGE_ORGUNIT_NAME, organisationunitName );
-            message = message.replace( TrackedEntityInstanceReminder.TEMPLATE_MESSSAGE_DAYS_SINCE_DUE_DATE, daysSinceDueDate );
-
-            SchedulingProgramObject schedulingProgramObject = new SchedulingProgramObject();
-            schedulingProgramObject.setProgramStageInstanceId( programstageinstanceid );
-            schedulingProgramObject.setPhoneNumber( rs.getString( "PHONE_NUMBER" ) );
-            schedulingProgramObject.setMessage( message );
-
-            schedulingProgramObjects.add( schedulingProgramObject );
-        }
-
-        return schedulingProgramObjects;
-    }
-
-    @Override
-    public int getOverDueCount( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate )
-    {
-        Calendar yesterday = Calendar.getInstance();
-        yesterday.add( Calendar.DATE, -1 );
-        PeriodType.clearTimeOfDay( yesterday );
-        Date now = yesterday.getTime();
-
-        if ( endDate.before( now ) )
-        {
-            now = endDate;
-        }
-
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "programInstance", "programInstance" );
-        criteria.createAlias( "programInstance.entityInstance", "entityInstance" );
-        criteria.createAlias( "entityInstance.organisationUnit", "regOrgunit" );
-        criteria.add( Restrictions.eq( "programStage", programStage ) );
-        criteria.add( Restrictions.isNull( "programInstance.endDate" ) );
-        criteria.add( Restrictions.isNull( "executionDate" ) );
-        criteria.add( Restrictions.between( "dueDate", startDate, now ) );
-        criteria.add( Restrictions.in( "regOrgunit.id", orgunitIds ) );
-        criteria.setProjection( Projections.rowCount() ).uniqueResult();
-
-        Number rs = (Number) criteria.setProjection( Projections.rowCount() ).uniqueResult();
-
-        return rs != null ? rs.intValue() : 0;
-    }
 
     @Override
     public int count( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate,
@@ -217,6 +123,37 @@ public class HibernateProgramStageInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    @Override
+    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
+    {
+        if ( notificationDate == null || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+        {
+            return Lists.newArrayList();
+        }
+
+        if ( template.getRelativeScheduledDays() == null )
+        {
+            return Lists.newArrayList();
+        }
+
+        Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
+
+        String hql =
+            "select distinct psi from ProgramStageInstance as psi " +
+            "inner join psi.programStage as ps " +
+            "where :notificationTemplate in elements(ps.notificationTemplates) " +
+            "and psi.dueDate is not null " +
+            "and psi.executionDate is null " +
+            "and psi.status != :skippedEventStatus " +
+            "and cast(:targetDate as date) = psi.dueDate";
+
+        return getQuery( hql )
+            .setEntity( "notificationTemplate", template )
+            .setString( "skippedEventStatus", EventStatus.SKIPPED.name() )
+            .setDate( "targetDate", targetDate ).list();
     }
 
     // -------------------------------------------------------------------------
@@ -267,162 +204,5 @@ public class HibernateProgramStageInstanceStore
         }
 
         return criteria;
-    }
-
-    //TODO this must be re-written
-
-    private String sendMessageToTrackedEntityInstanceSql()
-    {
-        return "select psi.programstageinstanceid, pav.value as PHONE_NUMBER, prm.templatemessage, org.name as orgunitName "
-            + ",pg.name as programName, ps.name as programStageName, psi.duedate,(DATE(now()) - DATE(psi.duedate) ) as days_since_due_date "
-            + "from trackedentityinstance p INNER JOIN programinstance pi "
-            + "     ON p.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + " INNER JOIN programstageinstance psi  "
-            + "     ON psi.programinstanceid=pi.programinstanceid "
-            + " INNER JOIN program pg  "
-            + "     ON pg.programid=pi.programid "
-            + " INNER JOIN programstage ps  "
-            + "     ON ps.programstageid=psi.programstageid "
-            + " INNER JOIN organisationunit org  "
-            + "     ON org.organisationunitid = p.organisationunitid "
-            + " INNER JOIN trackedentityinstancereminder prm  "
-            + "     ON prm.programstageid = ps.programstageid "
-            + " INNER JOIN trackedentityattributevalue pav "
-            + "     ON pav.trackedentityinstanceid=p.trackedentityinstanceid "
-            + " INNER JOIN trackedentityattribute pa "
-            + "     ON pa.trackedentityattributeid=pav.trackedentityattributeid "
-            + "WHERE pi.status='"
-            + EventStatus.ACTIVE.name()
-            + "'     and prm.templatemessage is not NULL and prm.templatemessage != '' "
-            + "     and pg.type='" + ProgramType.WITH_REGISTRATION.name() + "' and prm.daysallowedsendmessage is not null  "
-            + "     and psi.executiondate is null and pa.valuetype='PHONE_NUMBER' "
-            + "     and (  DATE(now()) - DATE(psi.duedate) ) = prm.daysallowedsendmessage "
-            + "     and prm.whentosend is null and prm.sendto = " + TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE;
-    }
-
-    private String sendMessageToHealthWorkerSql()
-    {
-        return "SELECT psi.programstageinstanceid, uif.phonenumber, prm.templatemessage, org.name as orgunitName, "
-            + "pg.name as programName, ps.name as programStageName, psi.duedate, "
-            + "         (DATE(now()) - DATE(psi.duedate) ) as days_since_due_date "
-            + " FROM trackedentityinstance p INNER JOIN programinstance pi "
-            + "          ON p.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "           INNER JOIN programstageinstance psi  "
-            + "                ON psi.programinstanceid=pi.programinstanceid "
-            + "             INNER JOIN program pg  "
-            + "               ON pg.programid=pi.programid "
-            + "           INNER JOIN programstage ps  "
-            + "               ON ps.programstageid=psi.programstageid "
-            + "           INNER JOIN organisationunit org  "
-            + "               ON org.organisationunitid = p.organisationunitid "
-            + "           INNER JOIN trackedentityinstancereminder prm  "
-            + "               ON prm.programstageid = ps.programstageid "
-            + "           INNER JOIN trackedentityattributevalue pav "
-            + "               ON pav.trackedentityinstanceid=p.trackedentityinstanceid "
-            + "           INNER JOIN trackedentityattribute pa "
-            + "               ON pa.trackedentityattributeid=pav.trackedentityattributeid "
-            + "           INNER JOIN userinfo uif "
-            + "               ON pav.value=concat(uif.userinfoid ,'') "
-            + " WHERE pi.status='"
-            + EventStatus.ACTIVE.name()
-            + "' and pa.valueType='users' and uif.phonenumber is not NULL and uif.phonenumber != '' "
-            + "               and prm.templatemessage is not NULL and prm.templatemessage != '' "
-            + "               and pg.type='" + ProgramType.WITH_REGISTRATION.name() + "' and prm.daysallowedsendmessage is not null "
-            + "               and psi.executiondate is null "
-            + "               and (  DATE(now()) - DATE(psi.duedate) ) = prm.daysallowedsendmessage "
-            + "               and prm.whentosend is null and prm.sendto = " + TrackedEntityInstanceReminder.SEND_TO_ATTRIBUTE_TYPE_USERS;
-    }
-
-    private String sendMessageToOrgunitRegisteredSql()
-    {
-        return "select psi.programstageinstanceid, ou.phonenumber, prm.templatemessage, org.name as orgunitName, "
-            + "pg.name as programName, ps.name as programStageName, psi.duedate,"
-            + "(DATE(now()) - DATE(psi.duedate) ) as days_since_due_date "
-            + "            from trackedentityinstance p INNER JOIN programinstance pi "
-            + "               ON p.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "           INNER JOIN programstageinstance psi "
-            + "               ON psi.programinstanceid=pi.programinstanceid "
-            + "           INNER JOIN program pg "
-            + "               ON pg.programid=pi.programid "
-            + "           INNER JOIN programstage ps "
-            + "               ON ps.programstageid=psi.programstageid "
-            + "           INNER JOIN organisationunit org "
-            + "               ON org.organisationunitid = p.organisationunitid "
-            + "           INNER JOIN trackedentityinstancereminder prm "
-            + "               ON prm.programstageid = ps.programstageid "
-            + "           INNER JOIN organisationunit ou "
-            + "               ON ou.organisationunitid=p.organisationunitid "
-            + "WHERE pi.status= '"
-            + EventStatus.ACTIVE.name()
-            + "'               and ou.phonenumber is not NULL and ou.phonenumber != '' "
-            + "               and prm.templatemessage is not NULL and prm.templatemessage != '' "
-            + "               and pg.type='" + ProgramType.WITH_REGISTRATION.name() + "' and prm.daysallowedsendmessage is not null "
-            + "               and psi.executiondate is null "
-            + "               and (  DATE(now()) - DATE(psi.duedate) ) = prm.daysallowedsendmessage "
-            + "               and prm.whentosend is null and prm.sendto = "
-            + +TrackedEntityInstanceReminder.SEND_TO_REGISTERED_ORGUNIT;
-    }
-
-    private String sendMessageToUsersSql()
-    {
-        return "select psi.programstageinstanceid, uif.phonenumber,prm.templatemessage, org.name as orgunitName ,"
-            + " pg.name as programName, ps.name as programStageName, psi.duedate, "
-            + "(DATE(now()) - DATE(psi.duedate) ) as days_since_due_date "
-            + "  from trackedentityinstance p INNER JOIN programinstance pi "
-            + "       ON p.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "   INNER JOIN programstageinstance psi "
-            + "       ON psi.programinstanceid=pi.programinstanceid "
-            + "   INNER JOIN program pg "
-            + "       ON pg.programid=pi.programid "
-            + "   INNER JOIN programstage ps "
-            + "       ON ps.programstageid=psi.programstageid "
-            + "   INNER JOIN trackedentityinstancereminder prm "
-            + "       ON prm.programstageid = ps.programstageid "
-            + "   INNER JOIN organisationunit org "
-            + "       ON org.organisationunitid = p.organisationunitid "
-            + "   INNER JOIN usermembership ums "
-            + "       ON ums.organisationunitid = p.organisationunitid "
-            + "   INNER JOIN userinfo uif "
-            + "       ON uif.userinfoid = ums.userinfoid "
-            + "  WHERE pi.status= '"
-            + EventStatus.ACTIVE.name()
-            + "'       and uif.phonenumber is not NULL and uif.phonenumber != '' "
-            + "       and prm.templatemessage is not NULL and prm.templatemessage != '' "
-            + "       and pg.type='" + ProgramType.WITH_REGISTRATION.name() + "' and prm.daysallowedsendmessage is not null "
-            + "       and psi.executiondate is null "
-            + "       and (  DATE(now()) - DATE(psi.duedate) ) = prm.daysallowedsendmessage "
-            + "       and prm.whentosend is null and prm.sendto = "
-            + TrackedEntityInstanceReminder.SEND_TO_ALL_USERS_AT_REGISTERED_ORGUNIT;
-    }
-
-    private String sendMessageToUserGroupsSql()
-    {
-        return "select psi.programstageinstanceid, uif.phonenumber,prm.templatemessage, org.name as orgunitName ,"
-            + " pg.name as programName, ps.name as programStageName, psi.duedate, "
-            + "(DATE(now()) - DATE(psi.duedate) ) as days_since_due_date "
-            + "  from trackedentityinstance p INNER JOIN programinstance pi "
-            + "       ON p.trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "   INNER JOIN programstageinstance psi "
-            + "       ON psi.programinstanceid=pi.programinstanceid "
-            + "   INNER JOIN program pg "
-            + "       ON pg.programid=pi.programid "
-            + "   INNER JOIN programstage ps "
-            + "       ON ps.programstageid=psi.programstageid "
-            + "   INNER JOIN trackedentityinstancereminder prm "
-            + "       ON prm.programstageid = ps.programstageid "
-            + "   INNER JOIN organisationunit org "
-            + "       ON org.organisationunitid = p.organisationunitid "
-            + "   INNER JOIN usergroupmembers ugm "
-            + "       ON ugm.usergroupid = prm.usergroupid "
-            + "   INNER JOIN userinfo uif "
-            + "       ON uif.userinfoid = ugm.userid "
-            + "  WHERE pi.status= '"
-            + EventStatus.ACTIVE.name()
-            + "'       and uif.phonenumber is not NULL and uif.phonenumber != '' "
-            + "       and prm.templatemessage is not NULL and prm.templatemessage != '' "
-            + "       and pg.type='" + ProgramType.WITH_REGISTRATION.name() + "' and prm.daysallowedsendmessage is not null "
-            + "       and psi.executiondate is not null "
-            + "       and (  DATE(now()) - DATE(psi.duedate) ) = prm.daysallowedsendmessage "
-            + "       and prm.whentosend is null " + "       and prm.sendto = " + TrackedEntityInstanceReminder.SEND_TO_USER_GROUP;
     }
 }

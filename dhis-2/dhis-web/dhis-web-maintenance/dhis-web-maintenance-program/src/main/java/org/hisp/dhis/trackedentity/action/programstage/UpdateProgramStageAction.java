@@ -29,7 +29,6 @@ package org.hisp.dhis.trackedentity.action.programstage;
  */
 
 import com.opensymphony.xwork2.Action;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,9 +41,6 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -81,13 +77,6 @@ public class UpdateProgramStageAction
     public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
     {
         this.programStageDataElementService = programStageDataElementService;
-    }
-
-    private UserGroupService userGroupService;
-
-    public void setUserGroupService( UserGroupService userGroupService )
-    {
-        this.userGroupService = userGroupService;
     }
 
     private PeriodService periodService;
@@ -184,27 +173,6 @@ public class UpdateProgramStageAction
         this.excecutionDateLabel = excecutionDateLabel;
     }
 
-    private List<Integer> daysAllowedSendMessages = new ArrayList<>();
-
-    public void setDaysAllowedSendMessages( List<Integer> daysAllowedSendMessages )
-    {
-        this.daysAllowedSendMessages = daysAllowedSendMessages;
-    }
-
-    private List<String> templateMessages = new ArrayList<>();
-
-    public void setTemplateMessages( List<String> templateMessages )
-    {
-        this.templateMessages = templateMessages;
-    }
-
-    private List<Integer> sendTo = new ArrayList<>();
-
-    public void setSendTo( List<Integer> sendTo )
-    {
-        this.sendTo = sendTo;
-    }
-
     private Boolean autoGenerateEvent;
 
     public void setAutoGenerateEvent( Boolean autoGenerateEvent )
@@ -245,27 +213,6 @@ public class UpdateProgramStageAction
     public void setAllowFutureDates( List<Boolean> allowFutureDates )
     {
         this.allowFutureDates = allowFutureDates;
-    }
-
-    private List<Integer> whenToSend = new ArrayList<>();
-
-    public void setWhenToSend( List<Integer> whenToSend )
-    {
-        this.whenToSend = whenToSend;
-    }
-
-    private List<Integer> messageType = new ArrayList<>();
-
-    public void setMessageType( List<Integer> messageType )
-    {
-        this.messageType = messageType;
-    }
-
-    private List<Integer> userGroup = new ArrayList<>();
-
-    public void setUserGroup( List<Integer> userGroup )
-    {
-        this.userGroup = userGroup;
     }
 
     private Boolean relatedEntityInstance;
@@ -410,35 +357,6 @@ public class UpdateProgramStageAction
 
         programStage.setValidCompleteOnly( validCompleteOnly );
         programStage.setCaptureCoordinates( captureCoordinates );
-
-        // SMS Reminder
-
-        programStage.getReminders().clear();
-
-        Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
-        for ( int i = 0; i < this.daysAllowedSendMessages.size(); i++ )
-        {
-            TrackedEntityInstanceReminder reminder = new TrackedEntityInstanceReminder( "", daysAllowedSendMessages.get( i ),
-                templateMessages.get( i ) );
-            reminder.setName( programStage.getProgram().getName() + "-" + name + "-" + i );
-            reminder.setDateToCompare( TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE );
-            reminder.setSendTo( sendTo.get( i ) );
-            reminder.setWhenToSend( whenToSend.get( i ) );
-            reminder.setMessageType( messageType.get( i ) );
-            if ( reminder.getSendTo() == TrackedEntityInstanceReminder.SEND_TO_USER_GROUP )
-            {
-                UserGroup selectedUserGroup = userGroupService.getUserGroup( userGroup.get( i ) );
-                reminder.setUserGroup( selectedUserGroup );
-            }
-            else
-            {
-                reminder.setUserGroup( null );
-            }
-
-            reminders.add( reminder );
-        }
-
-        programStage.setReminders( reminders );
 
         if ( jsonAttributeValues != null )
         {

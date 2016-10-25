@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +37,7 @@ import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -43,9 +45,12 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
+import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
@@ -133,6 +138,32 @@ public class DefaultMetadataImportService implements MetadataImportService
                 .addTaskSummary( bundle.getTaskId(), report );
         }
 
+        Lists.newArrayList( report.getTypeReportMap().keySet() ).forEach( typeReportKey ->
+        {
+            if ( report.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
+            {
+                report.getTypeReportMap().remove( typeReportKey );
+                return;
+            }
+
+            TypeReport typeReport = report.getTypeReportMap().get( typeReportKey );
+
+            if ( ImportReportMode.ERRORS == params.getImportReportMode() )
+            {
+                Lists.newArrayList( typeReport.getObjectReportMap().keySet() ).forEach( objectReportKey ->
+                {
+                    if ( typeReport.getObjectReportMap().get( objectReportKey ).getErrorReportsByCode().isEmpty() )
+                    {
+                        typeReport.getObjectReportMap().remove( objectReportKey );
+                    }
+                } );
+            }
+
+            if ( ImportReportMode.DEBUG != params.getImportReportMode() )
+            {
+                typeReport.getObjectReports().forEach( objectReport -> objectReport.setDisplayName( null ) );
+            }
+        } );
 
         return report;
     }
@@ -141,6 +172,12 @@ public class DefaultMetadataImportService implements MetadataImportService
     public MetadataImportParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         MetadataImportParams params = new MetadataImportParams();
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
+
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
@@ -150,6 +187,14 @@ public class DefaultMetadataImportService implements MetadataImportService
         params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL ) );
         params.setMergeMode( getEnumWithDefault( MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
+        params.setImportReportMode( getEnumWithDefault( ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS ) );
+
+        if ( getBooleanWithDefault( parameters, "async", false ) )
+        {
+            TaskId taskId = new TaskId( TaskCategory.METADATA_IMPORT, params.getUser() );
+            notifier.clear( taskId );
+            params.setTaskId( taskId );
+        }
 
         return params;
     }

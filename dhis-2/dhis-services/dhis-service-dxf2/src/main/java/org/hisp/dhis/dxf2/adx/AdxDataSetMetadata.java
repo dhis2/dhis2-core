@@ -31,11 +31,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.apache.xerces.util.XMLChar;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 
 /**
  * @author bobj
@@ -55,9 +55,9 @@ public class AdxDataSetMetadata
 
         catCombos.add( dataSet.getCategoryCombo() );
         
-        for ( DataElement dataElement : dataSet.getDataElements() )
+        for ( DataSetElement element : dataSet.getDataSetElements() )
         {
-            catCombos.add( dataElement.getCategoryCombo() );
+            catCombos.add( element.getResolvedCategoryCombo() );
         }
 
         for ( DataElementCategoryCombo categoryCombo : catCombos )

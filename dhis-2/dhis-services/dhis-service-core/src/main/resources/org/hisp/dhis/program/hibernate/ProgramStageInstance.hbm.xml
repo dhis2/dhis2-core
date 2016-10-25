@@ -31,16 +31,8 @@
 
     <property name="executionDate" column="executiondate" type="timestamp" index="programstageinstance_executiondate" />
 
-    <many-to-one name="organisationUnit"
-      class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
-
-    <list name="outboundSms" table="programstageinstance_outboundsms">
-      <key column="programstageinstanceid" />
-      <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.sms.outbound.OutboundSms"
-        column="outboundsmsid" />
-    </list>
 
     <list name="messageConversations" table="programstageinstance_messageconversation">
       <key column="programstageinstanceid" />
@@ -58,11 +50,12 @@
     <property name="completedBy" />
 
     <property name="completedDate" />
-
-    <list name="comments" table="programstageinstancecomments" cascade="all">
-      <key column="programstageinstanceid" />
+ 
+    <list name="comments" table="programstageinstancecomments" cascade="all,delete-orphan">
+      <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid"/>
       <list-index column="sort_order" base="1" />
-      <many-to-many column="trackedentitycommentid" unique="true" class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
+      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid" 
+      	unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid"/>
     </list>
 
   </class>

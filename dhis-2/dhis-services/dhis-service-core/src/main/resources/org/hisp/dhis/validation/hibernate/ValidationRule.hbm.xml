@@ -29,14 +29,6 @@
       </type>
     </property>
 
-    <property name="ruleType" length="50">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.validation.RuleType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
     <property name="operator" column="operator" type="org.hisp.dhis.expression.OperatorUserType" not-null="true" />
 
     <many-to-one name="leftSide" column="leftexpressionid" class="org.hisp.dhis.expression.Expression"
@@ -45,40 +37,21 @@
     <many-to-one name="rightSide" column="rightexpressionid" class="org.hisp.dhis.expression.Expression"
       cascade="all" foreign-key="fk_validationrule_rightexpressionid" />
 
-    <many-to-one name="sampleSkipTest" column="skiptestexpressionid" class="org.hisp.dhis.expression.Expression"
-      cascade="all" foreign-key="fk_validationrule_skiptestexpressionid" />
-
     <set name="groups" table="validationrulegroupmembers" inverse="true">
       <key column="validationruleid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRuleGroup" column="validationgroupid" />
     </set>
 
-    <property name="organisationUnitLevel" column="organisationunitlevel" />
-
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />
-
-    <property name="sequentialSampleCount" column="sequentialsamplecount" />
-
-    <property name="annualSampleCount" column="annualsamplecount" />
-
-    <property name="sequentialSkipCount" column="sequentialskipcount" />
 
     <!-- Object Translation -->
     <set name="translations" table="validationruletranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="validationruleid" foreign-key="fk_objecttranslation_validationruleid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

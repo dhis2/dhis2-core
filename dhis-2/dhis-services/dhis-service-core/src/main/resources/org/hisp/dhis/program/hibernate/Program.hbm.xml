@@ -59,6 +59,13 @@
     <property name="useFirstStageDuringRegistration" />
     
     <property name="captureCoordinates" />
+    
+    <property name="expiryDays" />
+    
+    <property name="completeEventsExpiryDays" />
+      
+    <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
+      foreign-key="fk_program_expiryperiodtypeid" />
 
     <list name="programAttributes" cascade="all">
       <key column="programid" />
@@ -78,10 +85,20 @@
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
     </set>
-
-    <set name="instanceReminders" order-by="daysAllowedSendMessage" cascade="all">
+    
+    <set name="programRules" inverse="true">
       <key column="programid" />
-      <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder" />
+      <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
+    </set>
+    
+    <set name="programRuleVariables" inverse="true">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
+    </set>
+
+    <set name="notificationTemplates" cascade="all">
+      <key column="programid" />
+      <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate" />
     </set>
 
     <property name="selectEnrollmentDatesInFuture" />
@@ -124,11 +141,7 @@
     <set name="translations" table="programtranslations" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="programid" foreign-key="fk_objecttranslation_programid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
+      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->
@@ -146,9 +159,5 @@
     </set>
 
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

@@ -55,6 +55,11 @@ public class ObjectReport
      */
     private String uid;
 
+    /**
+     * Name to be used if ImportReportMode is DEBUG
+     */
+    private String displayName;
+
     private Map<ErrorCode, List<ErrorReport>> errorReportsByCode = new HashMap<>();
 
     public ObjectReport( Class<?> klass, Integer index )
@@ -70,11 +75,20 @@ public class ObjectReport
         this.uid = uid;
     }
 
+    public ObjectReport( Class<?> klass, Integer index, String uid, String displayName )
+    {
+        this.klass = klass;
+        this.index = index;
+        this.uid = uid;
+        this.displayName = displayName;
+    }
+
     public ObjectReport( ObjectReport objectReport )
     {
         this.klass = objectReport.getKlass();
         this.index = objectReport.getIndex();
         this.uid = objectReport.getUid();
+        this.displayName = objectReport.getDisplayName();
     }
 
     //-----------------------------------------------------------------------------------
@@ -124,6 +138,18 @@ public class ObjectReport
     public String getUid()
     {
         return uid;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonProperty

@@ -28,26 +28,6 @@
 		</td>
 	</tr>
 	<tr>
-		<td><label for="ruleType">$i18n.getString( "rule_type" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
-		<td>
-			<select type="text" id="ruleType" name="ruleType" onchange="changeRuleType()">
-				<option value="VALIDATION" selected="selected">$i18n.getString( "validation" )</option>
-				<option value="SURVEILLANCE">$i18n.getString( "surveillance" )</option>
-			</select>
-		</td>
-	</tr>
-	<tr id="organisationUnitLevelTR" style="display:none">
-		<td><label for="organisationUnitLevel">$i18n.getString( "organisation_unit_level" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
-		<td>
-			<select type="text" id="organisationUnitLevel" name="organisationUnitLevel">
-				<option value="">[ $encoder.htmlEncode( $i18n.getString( "select_level" ) ) ]</option>
-				#foreach( $level in $organisationUnitLevels )
-				<option value="${level.level}">${level.level} $encoder.htmlEncode( $!level.name )</option>
-			    #end
-			</select>
-		</td>
-	</tr>
-	<tr>
 		<td><label for="periodType">$i18n.getString( "period_type" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
 		<td>
 			<select type="text" id="periodTypeName" name="periodTypeName">
@@ -57,19 +37,6 @@
 			</select>
 			<img title="$i18n.getString('clear_expression')" onclick='setNullExpression();' src='../images/edit-clear.png' style='width: 20px;cursor:pointer' />
 		</td>
-	</tr>
-	<tr id="sequentialSampleCountTR" style="display:none">
-		<td><label for="sequentialSampleCount">$i18n.getString( "sequential_sample_count" )</label></td>
-		<td><input type="text" id="sequentialSampleCount" name="sequentialSampleCount"></td>
-	</tr>
-	</tr>
-	<tr id="annualSampleCountTR" style="display:none">
-		<td><label for="annualSampleCount">$i18n.getString( "annual_sample_count" )</label></td>
-		<td><input type="text" id="annualSampleCount" name="annualSampleCount"></td>
-	</tr>
-	<tr id="sequentialSkipCountTR" style="display:none">
-		<td><label for="sequentialSkipCount">$i18n.getString( "sequential_skip_count" )</label></td>
-		<td><input type="text" id="sequentialSkipCount" name="sequentialSkipCount"></td>
 	</tr>
 	<tr>
 		<td><label for="operatorId">$i18n.getString( "operator" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>

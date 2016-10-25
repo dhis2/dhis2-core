@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Collection;
@@ -74,13 +75,6 @@ public interface ProgramStageInstanceStore
     List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
-     * Retrieve scheduled list of entityInstances registered
-     *
-     * @return A SchedulingProgramObject list
-     */
-    Collection<SchedulingProgramObject> getSendMessageEvents();
-
-    /**
      * Get the number of events by completed status
      *
      * @param programStage Program
@@ -92,17 +86,6 @@ public interface ProgramStageInstanceStore
      * @return A number
      */
     int count( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate, Boolean completed );
-
-    /**
-     * Get the number of over due events of a program stage in a certain period
-     *
-     * @param programStage ProgramStage
-     * @param orgunitIds   The ids of orgunits where the events happened
-     * @param startDate    Optional date the instance should be on or after.
-     * @param endDate      Optional date the instance should be on or before.
-     * @return A number
-     */
-    int getOverDueCount( ProgramStage programStage, Collection<Integer> orgunitIds, Date startDate, Date endDate );
 
     /**
      * Get the number of ProgramStageInstances updates since the given Date.
@@ -119,4 +102,13 @@ public interface ProgramStageInstanceStore
      * @return true/false depending on result
      */
     boolean exists( String uid );
+
+    /**
+     * Get all ProgramStageInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
+     *
+     * @param template the template.
+     * @param notificationDate the Date for which the notification is scheduled.
+     * @return a list of ProgramStageInstance.
+     */
+    List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 }

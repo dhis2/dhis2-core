@@ -1,12 +1,4 @@
 <script>
-	var program_stage_SMS_reminder_form ="<select type='text' id='userGroup$index' name='userGroup$index' class='userGroup'>";
-	#foreach( $group in $userGroups )
-		program_stage_SMS_reminder_form += "<option value='$group.id'>$i18n.getString($group.name)</option>";
-	#end
-	program_stage_SMS_reminder_form +="</select>";
-</script>
-
-<script>
   $(document).ready(function() {
     validation2('addProgramStageForm', function( form ) {
       form.submit();
@@ -23,29 +15,11 @@
         var displayInReports = jQuery("#displayInReports");
         displayInReports.empty();
 
-        var daysAllowedSendMessages = jQuery("#daysAllowedSendMessages");
-        daysAllowedSendMessages.empty();
-
         var allowFutureDates = jQuery("#allowFutureDates");
         allowFutureDates.empty();
 
-        var templateMessages = jQuery("#templateMessages");
-        templateMessages.empty();
-
         var allowProvidedElsewhere = jQuery("#allowProvidedElsewhere");
         allowProvidedElsewhere.empty();
-
-        var sendTo = jQuery("#sendTo");
-        sendTo.empty();
-
-        var whenToSend = jQuery("#whenToSend");
-        whenToSend.empty();
-
-        var userGroup = jQuery("#userGroup");
-        userGroup.empty();
-
-        var messageType = jQuery("#messageType");
-        messageType.empty();
 
         jQuery("#selectedList").find("tr").each(function( i, item ) {
 
@@ -66,25 +40,6 @@
           var allowFutureDate = jQuery(item).find("input[name='allowFutureDate']:first");
           checked = allowFutureDate.attr('checked') ? true : false;
           allowFutureDates.append("<option value='" + checked + "' selected='true'>" + checked + "</option>");
-        });
-        jQuery(".daysAllowedSendMessage").each(function( i, item ) {
-          var days = (jQuery(item).attr('realvalue') == undefined) ? 0 : jQuery(item).attr('realvalue');
-          daysAllowedSendMessages.append("<option value='" + days + "' selected='true'>" + days + "</option>");
-        });
-        jQuery(".templateMessage").each(function( i, item ) {
-          templateMessages.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
-        });
-        jQuery(".sendTo").each(function( i, item ) {
-          sendTo.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
-        });
-        jQuery(".whenToSend").each(function( i, item ) {
-          whenToSend.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
-        });
-        jQuery(".messageType").each(function( i, item ) {
-          messageType.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
-        });
-        jQuery(".userGroup").each(function( i, item ) {
-          userGroup.append("<option value='" + item.value + "' selected='true'>" + item.value + "</option>");
         });
       },
       'rules': getValidationRules("programStage")
@@ -324,22 +279,19 @@
 	<input type="button" value="$i18n.getString( 'cancel' )" onclick="window.location.href='programStage.action?id=$program.id'" style="width:10em"/>
 </p>
 
-</form> 	
+</form>
 
 <script type="text/javascript">    
     var i18n_invalid_min_max_days = '$encoder.jsEscape( $i18n.getString( "invalid_min_max_days" ) , "'")';
     var i18n_value_must_positive = '$encoder.jsEscape( $i18n.getString( "value_must_positive" ) , "'")';
     var i18n_value_must_integer = '$encoder.jsEscape( $i18n.getString( "value_must_integer" ) , "'")';
-    var i18n_compulsory_checkbox_title = '$encoder.jsEscape( $i18n.getString( "compulsory_checkbox_title" ) , "'")';   	
-	var i18n_reminder = '$encoder.jsEscape( $i18n.getString( "reminder" ) , "'")';   
-	var i18n_remove_reminder = '$encoder.jsEscape( $i18n.getString( "remove_reminder" ) , "'")';   
+    var i18n_compulsory_checkbox_title = '$encoder.jsEscape( $i18n.getString( "compulsory_checkbox_title" ) , "'")';
 	var i18n_params = '$encoder.jsEscape( $i18n.getString( "params" ) , "'")';   
 	var i18n_program_name = '$encoder.jsEscape( $i18n.getString( "program_name" ) , "'")';   
 	var i18n_program_stage_name = '$encoder.jsEscape( $i18n.getString( "program_stage_name" ) , "'")';   
 	var i18n_due_date = '$encoder.jsEscape( $i18n.getString( "due_date" ) , "'")';   
 	var i18n_orgunit_name = '$encoder.jsEscape( $i18n.getString( "orgunit_name" ) , "'")';   
-	var i18n_days_since_due_date = '$encoder.jsEscape( $i18n.getString( "days_since_due_date" ) , "'")';   
-	var i18n_message = '$encoder.jsEscape( $i18n.getString( "message" ) , "'")';   
+	var i18n_days_since_due_date = '$encoder.jsEscape( $i18n.getString( "days_since_due_date" ) , "'")';
 	var i18n_name_exists = '$encoder.jsEscape( $i18n.getString( "name_exists" ) , "'")'; 
 	var i18n_recipients = '$encoder.jsEscape( $i18n.getString( "recipients" ) , "'")'; 
 	var i18n_tracked_entity_sms_only = '$encoder.jsEscape( $i18n.getString( "tracked_entity_sms_only" ) , "'")'; 
@@ -351,13 +303,6 @@
 	var i18n_complete_event = '$encoder.jsEscape( $i18n.getString( "complete_event" ) , "'")';
 	var i18n_user_group = '$encoder.jsEscape( $i18n.getString( "user_group" ) , "'")';
 	var i18n_characters_without_params = '$encoder.jsEscape( $i18n.getString( "characters_without_params" ) , "'")';
-	var i18n_send_message = '$encoder.jsEscape( $i18n.getString( "send_message" ) , "'")';
-	var i18n_days = '$encoder.jsEscape( $i18n.getString( "days" ) , "'")';
-	var i18n_before = '$encoder.jsEscape( $i18n.getString( "before" ) , "'")';
-	var i18n_after = '$encoder.jsEscape( $i18n.getString( "after" ) , "'")';
-	var i18n_scheduled_date = '$encoder.jsEscape( $i18n.getString( "scheduled_date" ) , "'")';
-	var i18n_message_type = '$encoder.jsEscape( $i18n.getString( "message_type" ) , "'")';
-	var i18n_direct_sms = '$encoder.jsEscape( $i18n.getString( "direct_sms" ) , "'")';
 	var i18n_message = '$encoder.jsEscape( $i18n.getString( "message" ) , "'")';
 	var i18n_both = '$encoder.jsEscape( $i18n.getString( "both" ) , "'")';
 	

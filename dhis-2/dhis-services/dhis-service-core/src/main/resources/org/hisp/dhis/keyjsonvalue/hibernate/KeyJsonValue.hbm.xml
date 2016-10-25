@@ -16,12 +16,12 @@
 
         <property name="namespace" column="namespace" type="string" length="255" not-null="true" unique-key="keyjsonvalue_unique_key_in_namespace"/>
 
-        <property name="key" column="namespacekey" type="string" length="255" unique-key="keyjsonvalue_unique_key_in_namespace" /> <!-- set not-null -->
+        <property name="key" column="namespacekey" type="string" length="255" not-null="true" unique-key="keyjsonvalue_unique_key_in_namespace" />
 
         <property name="plainValue" column="value" type="text" access="property"/>
 
-        <property name="encryptedValue" column="encrypted_value" type="AESEncryptedString" access="property"/>
-        
+        <property name="encryptedValue" column="encrypted_value" type="Aes128EncryptedString" access="property" />
+
         <property name="encrypted" column="encrypted" type="boolean" />
 
     </class>

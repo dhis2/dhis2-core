@@ -306,7 +306,7 @@ public class DefaultAttributeService
             }
         }
 
-        mandatoryAttributes.stream().forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att.getUid() ) ) );
+        mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att.getUid() ) ) );
 
         return errorReports;
     }

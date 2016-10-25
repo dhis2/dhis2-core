@@ -1,5 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
+import java.io.IOException;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -30,12 +32,22 @@ package org.hisp.dhis.pushanalysis;
 
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.user.User;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 
 /**
  * @author Stian Sandvold
  */
 public interface PushAnalysisService
 {
+
+    /**
+     * Handles populating the scheduler with Push Analysis when ContextRefreshedEvent is broadcast
+     * @param event
+     */
+    @EventListener
+    void handleContextRefresh( ContextRefreshedEvent event);
+
     /**
      * Returns a PushAnalysis with the given UID
      * @param uid uid of the PushAnalysis
@@ -50,10 +62,10 @@ public interface PushAnalysisService
      * @param user User to base data on
      * @param taskId TaskId to track process
      * @return String containing a HTML report
-     * @throws
+     * @throws IOException if the upload of report content failed.
      */
     String generateHtmlReport( PushAnalysis pushAnalysis, User user, TaskId taskId )
-        throws Exception;
+        throws IOException;
 
     /**
      * Used to Generate and send reports to all UserGroups assigned to the PushAnalysis,
@@ -64,8 +76,8 @@ public interface PushAnalysisService
     void runPushAnalysis( int id, TaskId taskId );
 
     /**
-     * Runs all PushAnalysis in the database. Skips disabled PushAnalysis.
-     * @param taskId to track process
+     * Refreshes the scheduling of pushAnalysis if pushAnalysis is eligible to be scheduled
+     * @param pushAnalysis
      */
-    void runAllPushAnalysis( TaskId taskId );
+    boolean refreshPushAnalysisScheduling( PushAnalysis pushAnalysis );
 }

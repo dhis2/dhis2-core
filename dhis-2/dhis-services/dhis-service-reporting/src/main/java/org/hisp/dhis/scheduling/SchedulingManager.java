@@ -45,10 +45,9 @@ public interface SchedulingManager
     String TASK_ANALYTICS_LAST_3_YEARS = "analyticsLast3YearsTask";
     String TASK_MONITORING_LAST_DAY = "monitoringLastDayTask";
     String TASK_DATA_SYNCH = "dataSynchTask";
-    String TASK_META_DATA_SYNC = "metadataSyncTask";
-    String TASK_SMS_SCHEDULER = "smsSchedulerTask";
-    String TASK_SEND_SCHEDULED_SMS = "sendScheduledMessageTask";
+    String TASK_META_DATA_SYNC = "metaDataSyncTask";
     String TASK_SEND_SCHEDULED_SMS_NOW = "sendScheduledMessageTaskNow";
+    String TASK_SCHEDULED_PROGRAM_NOTIFICATIONS = "scheduledProgramNotificationsTask";
     
     /**
      * Schedules all tasks.
@@ -59,7 +58,7 @@ public interface SchedulingManager
      * Execute the Task.
      */
     void executeTask(String taskKey);
-    
+
     /**
      * Schedules the given tasks. The task map will replace the currently scheduled
      * tasks.
@@ -74,13 +73,21 @@ public interface SchedulingManager
      * Stops all tasks.
      */
     void stopTasks();
-    
+
+    /**
+     * Resolve the cron expression mapped for the given task key, or null if none.
+     *
+     * @param taskKey the key of the task, not null.
+     * @return the cron for the task or null.
+     */
+    String getCronForTask( final String taskKey );
+
     /**
      * Gets a mapping of cron expressions and list of task keys for all scheduled
      * tasks.
      */
     ListMap<String, String> getCronKeyMap();
-    
+
     /**
      * Gets all keys currently scheduled for any task.
      */
@@ -89,5 +96,11 @@ public interface SchedulingManager
     /**
      * Gets the task status.
      */
-    ScheduledTaskStatus getTaskStatus();   
+    ScheduledTaskStatus getTaskStatus();
+
+    /**
+     *
+     * Returns the status of the currently executing task.
+     */
+    boolean isTaskInProgress(String taskKey);
 }

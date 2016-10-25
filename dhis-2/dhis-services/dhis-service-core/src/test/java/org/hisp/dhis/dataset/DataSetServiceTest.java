@@ -40,9 +40,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -66,9 +65,10 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
+ * TODO Test delete with data set elements
+ * 
  * @author Lars Helge Overland
  */
 public class DataSetServiceTest
@@ -77,14 +77,17 @@ public class DataSetServiceTest
     private PeriodType periodType;
 
     private Period period;
-    
+
+    private DataElement dataElementA;
+    private DataElement dataElementB;
+
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
     private OrganisationUnit unitC;
     private OrganisationUnit unitD;
     private OrganisationUnit unitE;
     private OrganisationUnit unitF;
-
+    
     private DataElementCategoryOptionCombo attributeOptionCombo;
 
     private CurrentUserService mockCurrentUserService;
@@ -118,24 +121,32 @@ public class DataSetServiceTest
 
     @Autowired
     private DataApprovalLevelService levelService;
-
-    @Resource( name = "jdbcTemplate" )
-    private JdbcTemplate jdbcTemplate;
-
+    
+    private GenericIdentifiableObjectStore<DataSetElement> dataSetElementStore;
+    
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public void setUpTest()
         throws Exception
     {
         userService = _userService;
+        
+        dataSetElementStore = (GenericIdentifiableObjectStore<DataSetElement>) getBean( "org.hisp.dhis.dataset.DataSetElementStore" );
 
         periodType = new MonthlyPeriodType();
 
         period = createPeriod( periodType, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodService.addPeriod( period );
+
+        dataElementA = createDataElement( 'A' );
+        dataElementB = createDataElement( 'B' );
+        
+        dataElementService.addDataElement( dataElementA );
+        dataElementService.addDataElement( dataElementB );
         
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
@@ -214,6 +225,9 @@ public class DataSetServiceTest
     {
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
+        
+        dataSetA.addDataSetElement( dataElementA );
+        dataSetA.addDataSetElement( dataElementB );
 
         int idA = dataSetService.addDataSet( dataSetA );
         int idB = dataSetService.addDataSet( dataSetB );
@@ -233,6 +247,9 @@ public class DataSetServiceTest
     {
         DataSet dataSet = createDataSet( 'A', periodType );
 
+        dataSet.addDataSetElement( dataElementA );
+        dataSet.addDataSetElement( dataElementB );
+        
         int id = dataSetService.addDataSet( dataSet );
 
         dataSet = dataSetService.getDataSet( id );
@@ -254,6 +271,9 @@ public class DataSetServiceTest
         DataSet dataSetA = createDataSet( 'A', periodType );
         DataSet dataSetB = createDataSet( 'B', periodType );
 
+        dataSetA.addDataSetElement( dataElementA );
+        dataSetA.addDataSetElement( dataElementB );
+
         int idA = dataSetService.addDataSet( dataSetA );
         int idB = dataSetService.addDataSet( dataSetB );
 
@@ -271,6 +291,68 @@ public class DataSetServiceTest
         assertNull( dataSetService.getDataSet( idB ) );
     }
 
+    @Test
+    public void testUpdateRemoveDataSetElements()
+    {
+        DataSet dataSet = createDataSet( 'A', periodType );
+
+        dataSet.addDataSetElement( dataElementA );
+        dataSet.addDataSetElement( dataElementB );
+
+        dataSetService.addDataSet( dataSet );
+
+        List<DataSetElement> dataSetElements = dataSetElementStore.getAll();
+        
+        assertEquals( 2, dataSet.getDataSetElements().size() );
+        assertEquals( 2, dataSetElements.size() );
+
+        // Remove data element A
+        
+        dataSet.removeDataSetElement( dataElementA );
+        
+        dataSetService.updateDataSet( dataSet );
+        
+        dataSetElements = dataSetElementStore.getAll();
+
+        assertEquals( 1, dataSet.getDataSetElements().size() );
+        assertEquals( 1, dataSetElements.size() );
+
+        // Remove data element B
+        
+        dataSet.removeDataSetElement( dataElementB );
+
+        dataSetService.updateDataSet( dataSet );
+        
+        dataSetElements = dataSetElementStore.getAll();
+
+        assertEquals( 0, dataSet.getDataSetElements().size() );
+        assertEquals( 0, dataSetElements.size() );
+    }
+
+    @Test
+    public void testDeleteRemoveDataSetElements()
+    {
+        DataSet dataSet = createDataSet( 'A', periodType );
+
+        dataSet.addDataSetElement( dataElementA );
+        dataSet.addDataSetElement( dataElementB );
+
+        int ds = dataSetService.addDataSet( dataSet );
+
+        List<DataSetElement> dataSetElements = dataSetElementStore.getAll();
+        
+        assertEquals( dataSet, dataSetService.getDataSet( ds ) );
+        assertEquals( 2, dataSet.getDataSetElements().size() );
+        assertEquals( 2, dataSetElements.size() );
+        
+        dataSetService.deleteDataSet( dataSet );
+        
+        dataSetElements = dataSetElementStore.getAll();
+        
+        assertNull( dataSetService.getDataSet( ds ) );
+        assertEquals( 0, dataSetElements.size() );
+    }
+    
     @Test
     public void testGetDataSetByName()
     {
@@ -388,15 +470,9 @@ public class DataSetServiceTest
         dataSetB.setExpiryDays( 10 );
         dataSetB.setTimelyDays( 15 );
 
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementA.getDataSets().add( dataSetA );
-        dataElementA.getDataSets().add( dataSetB );
-        dataSetA.getDataElements().add( dataElementA );
-        dataSetB.getDataElements().add( dataElementA );
+        dataSetA.addDataSetElement( dataElementA );
+        dataSetB.addDataSetElement( dataElementA );
 
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
 

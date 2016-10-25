@@ -136,7 +136,7 @@ public class IndicatorGroup
     @JsonProperty( "indicatorGroupSet" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
     public IndicatorGroupSet getGroupSet()
     {
         return groupSet;

@@ -130,6 +130,12 @@ public class StreamingCsvDataValue
     {
         return followup = followup == null ? valueOf( getValue( 9 ) ) : followup;
     }
+    
+    @Override
+    public Boolean getDeleted()
+    {
+        return deleted = deleted == null ? valueOf( getValue( 10 ) ) : deleted;
+    }
 
     //--------------------------------------------------------------------------
     // Setters
@@ -194,6 +200,12 @@ public class StreamingCsvDataValue
     {
         values.add( valueOf( followup ) );
     }
+    
+    @Override
+    public void setDeleted( Boolean deleted )
+    {
+        values.add( valueOf( deleted ) );
+    }
 
     @Override
     public void close()
@@ -215,7 +227,7 @@ public class StreamingCsvDataValue
         String[] headers = {
             "dataelement", "period", "orgunit",
             "categoryoptioncombo", "attributeoptioncombo", "value", 
-            "storedby", "lastupdated", "comment", "followup" };
+            "storedby", "lastupdated", "comment", "followup", "deleted" };
 
         return headers;
     }

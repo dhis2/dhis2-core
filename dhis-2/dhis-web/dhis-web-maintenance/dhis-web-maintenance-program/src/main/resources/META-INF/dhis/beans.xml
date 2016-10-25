@@ -3,160 +3,6 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd">
 
-  <!-- RelationshipType -->
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.relationship.GetRelationshipTypeListAction"
-    class="org.hisp.dhis.trackedentity.action.relationship.GetRelationshipTypeListAction"
-    scope="prototype">
-    <property name="relationshipTypeService"
-      ref="org.hisp.dhis.relationship.RelationshipTypeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.relationship.GetRelationshipTypeAction"
-    class="org.hisp.dhis.trackedentity.action.relationship.GetRelationshipTypeAction"
-    scope="prototype">
-    <property name="relationshipTypeService"
-      ref="org.hisp.dhis.relationship.RelationshipTypeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.relationship.AddRelationshipTypeAction"
-    class="org.hisp.dhis.trackedentity.action.relationship.AddRelationshipTypeAction"
-    scope="prototype">
-    <property name="relationshipTypeService"
-      ref="org.hisp.dhis.relationship.RelationshipTypeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.relationship.RemoveRelationshipTypeAction"
-    class="org.hisp.dhis.trackedentity.action.relationship.RemoveRelationshipTypeAction"
-    scope="prototype">
-    <property name="relationshipTypeService"
-      ref="org.hisp.dhis.relationship.RelationshipTypeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.relationship.UpdateRelationshipTypeAction"
-    class="org.hisp.dhis.trackedentity.action.relationship.UpdateRelationshipTypeAction"
-    scope="prototype">
-    <property name="relationshipTypeService"
-      ref="org.hisp.dhis.relationship.RelationshipTypeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.relationship.ValidateRelationshipTypeAction"
-    class="org.hisp.dhis.trackedentity.action.relationship.ValidateRelationshipTypeAction"
-    scope="prototype">
-    <property name="relationshipTypeService"
-      ref="org.hisp.dhis.relationship.RelationshipTypeService" />
-  </bean>
-
-  <!-- TrackedEntityAttribute -->
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributeListAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributeListAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributeAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributeAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.AddAttributeAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.AddAttributeAction"
-    scope="prototype">
-    <property name="trackedEntityAttributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.RemoveAttributeAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.RemoveAttributeAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.UpdateAttributeAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.UpdateAttributeAction"
-    scope="prototype">
-    <property name="trackedEntityAttributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.ValidateAttributeAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ValidateAttributeAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetOptionalAttributesWithoutGroupAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetOptionalAttributesWithoutGroupAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributesWithoutGroupAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.GetAttributesWithoutGroupAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAddUpdateAttributeAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAddUpdateAttributeAction"
-    scope="prototype">
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAttributeVisitScheduleFormAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAttributeVisitScheduleFormAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.SaveAttributeVisitScheduleAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.SaveAttributeVisitScheduleAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAttributeInListNoProgramAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.ShowAttributeInListNoProgramAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattribute.SaveAttributeInListNoProgramAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattribute.SaveAttributeInListNoProgramAction"
-    scope="prototype">
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
   <!-- Program -->
 
   <bean id="org.hisp.dhis.trackedentity.action.program.AddProgramAction"
@@ -254,7 +100,6 @@
     <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
     <property name="programStageDataElementService"
       ref="org.hisp.dhis.program.ProgramStageDataElementService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
@@ -282,7 +127,6 @@
     <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="programStageDataElementService"
       ref="org.hisp.dhis.program.ProgramStageDataElementService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
@@ -527,70 +371,6 @@
     scope="prototype">
     <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
   </bean>
-
-  <!-- Attribute Group -->
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.AddAttributeGroupAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.AddAttributeGroupAction"
-    scope="prototype">
-    <property name="attributeGroupService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService" />
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupAction"
-    scope="prototype">
-    <property name="attributeGroupService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService" />
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupListAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.GetAttributeGroupListAction"
-    scope="prototype">
-    <property name="attributeGroupService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.RemoveAttributeGroupAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.RemoveAttributeGroupAction"
-    scope="prototype">
-    <property name="attributeGroupService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.SaveAttributeGroupSortOrderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.SaveAttributeGroupSortOrderAction"
-    scope="prototype">
-    <property name="attributeGroupService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.UpdateAttributeGroupAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.UpdateAttributeGroupAction"
-    scope="prototype">
-    <property name="attributeGroupService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService" />
-    <property name="attributeService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.ValidateAttributeGroupAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityattributegroup.ValidateAttributeGroupAction"
-    scope="prototype">
-    <property name="attributeGroupService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroupService" />
-  </bean>
   
   <!-- Validation - ValidationCriteria -->
 
@@ -772,151 +552,36 @@
     </property>
   </bean>
 
-  <!-- Program reminder -->
+  <!-- Program notifications -->
 
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.AddProgramReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.AddProgramReminderAction"
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramNotificationAction"
     scope="prototype">
     <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.UpdateProgramReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.UpdateProgramReminderAction"
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramNotificationAction"
     scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="reminderService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
+    <property name="manager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.RemoveProgramReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.RemoveProgramReminderAction"
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramStageNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowAddProgramStageNotificationAction"
     scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="reminderService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetInstanceReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetInstanceReminderAction"
-    scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
-    <property name="reminderService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
+    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ValidateProgramReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ValidateProgramReminderAction"
+  <bean id="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramStageNotificationAction"
+    class="org.hisp.dhis.trackedentity.action.notification.ShowUpdateProgramStageNotificationAction"
     scope="prototype">
-    <property name="reminderService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ShowAddProgramReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ShowAddProgramReminderAction"
-    scope="prototype">
-    <property name="programService" ref="org.hisp.dhis.program.ProgramService" />
+    <property name="manager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
-  <!-- ProgramStage reminder -->
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.AddProgramStageReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.AddProgramStageReminderAction"
-    scope="prototype">
-    <property name="programStageService"
-      ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.UpdateProgramStageReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.UpdateProgramStageReminderAction"
-    scope="prototype">
-    <property name="programStageService"
-      ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="reminderService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.RemoveProgramStageReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.RemoveProgramStageReminderAction"
-    scope="prototype">
-    <property name="programStageService"
-      ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="reminderService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetProgramStageReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.GetProgramStageReminderAction"
-    scope="prototype">
-    <property name="programStageService"
-      ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="reminderService"
-      ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ShowAddProgramStageReminderAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentityinstancereminder.ShowAddProgramStageReminderAction"
-    scope="prototype">
-    <property name="programStageService"
-      ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
-  </bean>
-
-  <!-- TrackedEntity -->
-
-  <bean id="org.hisp.dhis.trackedentity.action.trackedentity.ShowAddUpdateTrackedEntityAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentity.ShowAddUpdateTrackedEntityAction" scope="prototype" />
-
-  <bean id="org.hisp.dhis.trackedentity.action.trackedentity.AddTrackedEntityAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentity.AddTrackedEntityAction" scope="prototype" />
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentity.GetTrackedEntityAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentity.GetTrackedEntityAction"
-    scope="prototype">
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentity.GetTrackedEntityListAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentity.GetTrackedEntityListAction"
-    scope="prototype">
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentity.RemoveTrackedEntityAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentity.RemoveTrackedEntityAction"
-    scope="prototype">
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentity.UpdateTrackedEntityAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentity.UpdateTrackedEntityAction"
-    scope="prototype">
-  </bean>
-
-  <bean
-    id="org.hisp.dhis.trackedentity.action.trackedentity.ValidateTrackedEntityAction"
-    class="org.hisp.dhis.trackedentity.action.trackedentity.ValidateTrackedEntityAction"
-    scope="prototype">
-  </bean>
-  
   <!-- Program Rule -->
   
   <bean

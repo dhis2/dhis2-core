@@ -252,7 +252,7 @@ public class DefaultProgramMessageService
 
         if ( params.hasProgramInstance() )
         {
-            programInstance = params.getProgramInstrance();
+            programInstance = params.getProgramInstance();
         }
 
         if ( params.hasProgramStageInstance() )

@@ -38,26 +38,6 @@
 		</td>
 	</tr>
 	<tr>
-		<td><label for="ruleType">$i18n.getString( "rule_type" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
-		<td>
-			<select type="text" id="ruleType" name="ruleType" onchange="changeRuleType()" disabled="disabled">
-				<option value="VALIDATION" #if( $validationRule.ruleType == 'VALIDATION' ) selected #end>$encoder.htmlEncode( $i18n.getString( "validation" ) )</option>
-				<option value="SURVEILLANCE" #if( $validationRule.ruleType == 'SURVEILLANCE' ) selected #end>$encoder.htmlEncode( $i18n.getString( "surveillance" ) )</option>
-			</select>
-			<img title="$i18n.getString( 'clear_expression' )" onclick="clearRuleExpression()" src="../images/edit-clear.png" style="width: 20px; cursor:pointer;" />
-		</td>
-	</tr>
-	<tr id="organisationUnitLevelTR" #if( $!validationRule.ruleType != 'SURVEILLANCE' ) style="display:none;" #end>
-		<td><label for="organisationUnitLevel">$i18n.getString( "organisation_unit_level" )<em title="$i18n.getString( "required" )" class="required">*</em></label></td>
-		<td>
-			<select type="text" id="organisationUnitLevel" name="organisationUnitLevel">
-				#foreach( $level in $organisationUnitLevels )
-				<option value="${level.level}"#if( $validationRule.organisationUnitLevel == "${level.level}" ) selected="selected"#end>${level.level} $!encoder.htmlEncode( $level.name )</option>
-			    #end
-			</select>
-		</td>
-	</tr>
-	<tr>
 		<td><label for="periodType">$i18n.getString( "period_type" )</label></td>
 		<td><select type="text" id="periodTypeName" name="periodTypeName" disabled="disabled">
 				#foreach ( $periodType in $periodTypes )
@@ -66,18 +46,6 @@
 			</select>
 			<img title="$i18n.getString( 'clear_expression' )" onclick="clearRuleExpression()" src="../images/edit-clear.png" style="width: 20px; cursor:pointer;" />
 		</td>
-	</tr>
-	<tr id="sequentialSampleCountTR">
-		<td><label for="sequentialSampleCount">$i18n.getString( "sequential_sample_count" )</label></td>
-		<td><input type="text" id="sequentialSampleCount" name="sequentialSampleCount" value="$!validationRule.sequentialSampleCount"></td>
-	</tr>
-	<tr id="annualSampleCountTR">
-		<td><label for="annualSampleCount">$i18n.getString( "annual_sample_count" )</label></td>
-		<td><input type="text" id="annualSampleCount" name="annualSampleCount" value="$!validationRule.annualSampleCount"></td>
-	</tr>
-	<tr id="sequentialSkipCountTR">
-		<td><label for="sequentialSkipCount">$i18n.getString( "sequential_skip_count" )</label></td>
-		<td><input type="text" id="sequentialSkipCount" name="sequentialSkipCount" value="$!validationRule.sequentialSkipCount"></td>
 	</tr>
 	<tr>
 		<td><label for="operatorId">$i18n.getString( "operator" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>

@@ -40,6 +40,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.omg.PortableServer.CurrentPackage.NoContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -66,6 +66,7 @@ import java.util.zip.GZIPOutputStream;
  * @author aamerm
  */
 @Controller
+@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
 public class MetadataVersionController
     extends CrudControllerAdvice
 {
@@ -91,18 +92,27 @@ public class MetadataVersionController
             {
                 throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
             }
+
             if ( StringUtils.isNotEmpty( versionName ) )
             {
                 versionToReturn = versionService.getVersionByName( versionName );
+
+                if ( versionToReturn == null )
+                {
+                    throw new MetadataVersionException( "No metadata version with name " + versionName + " exists. Please check again later." );
+                }
+
             }
+
             else
             {
                 versionToReturn = versionService.getCurrentVersion();
-            }
+                
+                if ( versionToReturn == null )
+                {
+                    throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
+                }
 
-            if ( versionToReturn == null )
-            {
-                throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
             }
 
             return versionToReturn;
@@ -198,12 +208,6 @@ public class MetadataVersionController
             }
 
             List<MetadataVersion> allVersions = versionService.getAllVersions();
-
-            if ( allVersions.isEmpty() )
-            {
-                throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
-            }
-
             return versionService.getMetadataVersionsAsNode( allVersions );
 
         }

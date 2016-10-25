@@ -34,10 +34,8 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.period.MonthlyPeriodType;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +57,10 @@ public class DataElementStoreTest
     private DataElementStore dataElementStore;
 
     @Autowired
-    private DataSetService dataSetService;
-
-    @Autowired
     private AttributeService attributeService;
+    
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     // -------------------------------------------------------------------------
     // Tests
@@ -322,6 +320,36 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.get( idA ).getAggregationLevels().size() );
         assertEquals( aggregationLevels, dataElementStore.get( idA ).getAggregationLevels() );
     }
+    
+
+    @Test
+    public void testGetDataElementsWithoutGroups()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+        DataElement dataElementD = createDataElement( 'D' );
+        DataElement dataElementE = createDataElement( 'E' );
+
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
+        dataElementStore.save( dataElementD );
+        dataElementStore.save( dataElementE );
+        
+        DataElementGroup dgA = createDataElementGroup( 'A' );
+        dgA.addDataElement( dataElementA );
+        dgA.addDataElement( dataElementD );
+        
+        idObjectManager.save( dgA );
+        
+        List<DataElement> dataElements = dataElementStore.getDataElementsWithoutGroups();
+        
+        assertEquals( 3, dataElements.size() );
+        assertTrue( dataElements.contains( dataElementB ) );
+        assertTrue( dataElements.contains( dataElementC ) );
+        assertTrue( dataElements.contains( dataElementE ) );
+    }
 
     @Test
     public void testGetDataElementsByAggregationLevel()
@@ -375,49 +403,6 @@ public class DataElementStoreTest
         List<DataElement> dataElements = dataElementStore.getDataElementsByZeroIsSignificant( true );
 
         assertTrue( equals( dataElements, dataElementA, dataElementB ) );
-    }
-
-    @Test
-    public void testGetDataElements()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-        DataElement dataElementE = createDataElement( 'E' );
-        DataElement dataElementF = createDataElement( 'F' );
-
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-        dataElementStore.save( dataElementD );
-        dataElementStore.save( dataElementE );
-        dataElementStore.save( dataElementF );
-
-        DataSet dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
-        DataSet dataSetB = createDataSet( 'B', new MonthlyPeriodType() );
-
-        dataSetA.getDataElements().add( dataElementA );
-        dataSetA.getDataElements().add( dataElementC );
-        dataSetA.getDataElements().add( dataElementF );
-        dataSetB.getDataElements().add( dataElementD );
-        dataSetB.getDataElements().add( dataElementF );
-
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-
-        List<DataSet> dataSets = new ArrayList<>();
-        dataSets.add( dataSetA );
-        dataSets.add( dataSetB );
-
-        List<DataElement> dataElements = dataElementStore.getDataElementsByDataSets( dataSets );
-
-        assertNotNull( dataElements );
-        assertEquals( 4, dataElements.size() );
-        assertTrue( dataElements.contains( dataElementA ) );
-        assertTrue( dataElements.contains( dataElementC ) );
-        assertTrue( dataElements.contains( dataElementD ) );
-        assertTrue( dataElements.contains( dataElementF ) );
     }
 
     @Ignore // Fails with expected:<null> but was:<{"class":"class org.hisp.dhis.dataelement.DataElement"

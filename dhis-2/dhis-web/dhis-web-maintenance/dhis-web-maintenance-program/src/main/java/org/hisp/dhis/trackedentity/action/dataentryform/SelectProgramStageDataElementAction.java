@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -99,8 +98,8 @@ public class SelectProgramStageDataElementAction
 
             if ( program != null )
             {
-
                 programStages = new ArrayList<>( program.getProgramStages() );
+                
                 for ( ProgramStage ps : programStages )
                 {
                     if ( ps.equals( programStage ) )
@@ -110,7 +109,7 @@ public class SelectProgramStageDataElementAction
                     }
                 }
 
-                Collections.sort( programStages, IdentifiableObjectNameComparator.INSTANCE );
+                Collections.sort( programStages );
             }
         }
         

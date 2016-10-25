@@ -34,6 +34,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -73,10 +74,16 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     {
         return dashboardService.countReportDashboardItems( report ) == 0 ? null : ERROR;
     }
-
+    
     @Override
     public String allowDeleteDocument( Document document )
     {
         return dashboardService.countDocumentDashboardItems( document ) == 0 ? null : ERROR;
+    }
+    
+    @Override
+    public String allowDeleteUser( User user )
+    {
+        return dashboardService.countUserDashboardItems( user ) == 0 ? null : ERROR;
     }
 }

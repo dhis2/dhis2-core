@@ -73,6 +73,7 @@ import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -91,6 +92,7 @@ import org.hisp.dhis.user.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
@@ -133,8 +135,6 @@ public class DataQueryParams
         DATA_X_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID );
     public static final List<DimensionType> COMPLETENESS_DIMENSION_TYPES = ImmutableList.of( 
         DATA_X, PERIOD, ORGANISATION_UNIT, ORGANISATION_UNIT_GROUP_SET, CATEGORY_OPTION_GROUP_SET, CATEGORY );
-    private static final List<DimensionType> COMPLETENESS_TARGET_DIMENSION_TYPES = ImmutableList.of( 
-        DATA_X, PERIOD, ORGANISATION_UNIT, ORGANISATION_UNIT_GROUP_SET, CATEGORY );
     
     private static final DimensionItem[] DIM_OPT_ARR = new DimensionItem[0];
     private static final DimensionItem[][] DIM_OPT_2D_ARR = new DimensionItem[0][];
@@ -153,11 +153,17 @@ public class DataQueryParams
      * The aggregation type.
      */
     protected AggregationType aggregationType;
-    
+
     /**
      * The measure criteria, which is measure filters and corresponding values.
      */
     protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
+
+    /**
+     * The pre aggregate measure criteria, different to measure criteria, as it is handled in the query itself and not
+     * after the query returns.
+     */
+    protected Map<MeasureFilter, Double> preAggregateMeasureCriteria = new HashMap<>();
     
     /**
      * Indicates if the meta data part of the query response should be omitted.
@@ -377,6 +383,7 @@ public class DataQueryParams
         params.filters = DimensionalObjectUtils.getCopies( this.filters );
         params.aggregationType = this.aggregationType;
         params.measureCriteria = this.measureCriteria;
+        params.preAggregateMeasureCriteria = this.preAggregateMeasureCriteria;
         params.skipMeta = this.skipMeta;
         params.skipData = this.skipData;
         params.skipHeaders = this.skipHeaders;
@@ -480,7 +487,7 @@ public class DataQueryParams
         
         for ( int i = 0; i < dimensions.size(); i++ )
         {
-            if ( COMPLETENESS_TARGET_DIMENSION_TYPES.contains( dimensions.get( i ).getDimensionType() ) )
+            if ( COMPLETENESS_DIMENSION_TYPES.contains( dimensions.get( i ).getDimensionType() ) )
             {
                 indexes.add( i );
             }
@@ -498,7 +505,7 @@ public class DataQueryParams
         
         for ( int i = 0; i < filters.size(); i++ )
         {
-            if ( COMPLETENESS_TARGET_DIMENSION_TYPES.contains( filters.get( i ).getDimensionType() ) )
+            if ( COMPLETENESS_DIMENSION_TYPES.contains( filters.get( i ).getDimensionType() ) )
             {
                 indexes.add( i );
             }
@@ -852,7 +859,12 @@ public class DataQueryParams
             
             if ( !des.isEmpty() )
             {
-                Set<DataElementCategoryCombo> categoryCombos = des.stream().map( d -> ((DataElement) d).getCategoryCombo() ).collect( Collectors.toSet() );
+                Set<DataElementCategoryCombo> categoryCombos = Sets.newHashSet();
+                
+                for ( DimensionalItemObject de : des )
+                {
+                    categoryCombos.addAll( ((DataElement) de).getCategoryCombos() );
+                }
                 
                 for ( DataElementCategoryCombo cc : categoryCombos )
                 {
@@ -1407,7 +1419,7 @@ public class DataQueryParams
         
         return countMap;
     }
-    
+
     /**
      * Retrieves the measure criteria from the given string. Criteria are separated
      * by the option separator, while the criterion filter and value are separated
@@ -1419,15 +1431,15 @@ public class DataQueryParams
         {
             return null;
         }
-        
+
         Map<MeasureFilter, Double> map = new HashMap<>();
-        
+
         String[] criteria = param.split( DimensionalObject.OPTION_SEP );
-        
+
         for ( String c : criteria )
         {
             String[] criterion = c.split( DimensionalObject.DIMENSION_NAME_SEP );
-            
+
             if ( criterion != null && criterion.length == 2 && MathUtils.isNumeric( criterion[1] ) )
             {
                 MeasureFilter filter = MeasureFilter.valueOf( criterion[0] );
@@ -1435,9 +1447,10 @@ public class DataQueryParams
                 map.put( filter, value );
             }
         }
-        
+
         return map;
     }
+
 
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
@@ -1533,6 +1546,11 @@ public class DataQueryParams
     public Map<MeasureFilter, Double> getMeasureCriteria()
     {
         return measureCriteria;
+    }
+
+    public Map<MeasureFilter, Double> getPreAggregateMeasureCriteria()
+    {
+        return preAggregateMeasureCriteria;
     }
 
     public boolean isSkipMeta()
@@ -2029,10 +2047,16 @@ public class DataQueryParams
             this.params.setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, periods );
             return this;
         }
-        
+
         public Builder withMeasureCriteria( Map<MeasureFilter, Double> measureCriteria )
         {
             this.params.measureCriteria = measureCriteria;
+            return this;
+        }
+
+        public Builder withPreAggregationMeasureCriteria( Map<MeasureFilter, Double> preAggregationMeasureCriteria )
+        {
+            this.params.preAggregateMeasureCriteria = preAggregationMeasureCriteria;
             return this;
         }
         

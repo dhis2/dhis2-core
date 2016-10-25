@@ -31,7 +31,6 @@ package org.hisp.dhis.trackedentity.action.programstage;
 import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
@@ -156,7 +155,7 @@ public class ShowAddProgramStageAction
         userGroups = userGroupService.getAllUserGroups();
 
         constants = constantService.getAllConstants();
-        Collections.sort( constants, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( constants );
 
         attributes = attributeService.getAttributes( ProgramStage.class );
 

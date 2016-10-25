@@ -43,10 +43,6 @@ public class HibernateProgramValidationStore
     extends HibernateIdentifiableObjectStore<ProgramValidation>
     implements ProgramValidationStore
 {
-    // -------------------------------------------------------------------------
-    // Implemented methods
-    // -------------------------------------------------------------------------
-
     @Override
     @SuppressWarnings( "unchecked" )
     public List<ProgramValidation> get( Program program )

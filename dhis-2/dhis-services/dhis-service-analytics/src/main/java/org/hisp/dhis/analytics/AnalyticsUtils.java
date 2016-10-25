@@ -37,10 +37,8 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +56,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -125,7 +122,10 @@ public class AnalyticsUtils
             sql += "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel" + level + " = " + ou.getId() + ")) or ";            
         }
 
-        sql = TextUtils.removeLastOr( sql ) + ") limit 100000;";
+        sql = TextUtils.removeLastOr( sql ) + ") ";
+        sql += 
+            "and dv.deleted is false " +
+            "limit 100000";
         
         return sql;
     }
@@ -425,21 +425,11 @@ public class AnalyticsUtils
 
         if ( des != null && !des.isEmpty() )
         {
-            Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
-
             for ( DimensionalItemObject de : des )
             {
                 DataElement dataElement = (DataElement) de;
-
-                if ( dataElement.hasCategoryCombo() )
-                {
-                    categoryCombos.add( dataElement.getCategoryCombo() );
-                }
-            }
-
-            for ( DataElementCategoryCombo cc : categoryCombos )
-            {
-                for ( DataElementCategoryOptionCombo coc : cc.getOptionCombos() )
+                
+                for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                 {
                     metaData.put( coc.getUid(), coc.getName() );
                 }

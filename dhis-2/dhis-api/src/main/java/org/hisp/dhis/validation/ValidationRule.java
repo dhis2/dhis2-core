@@ -74,11 +74,6 @@ public class ValidationRule
     private Importance importance = Importance.MEDIUM;
 
     /**
-     * Whether this is a VALIDATION or MONITORING type rule.
-     */
-    private RuleType ruleType = RuleType.VALIDATION;
-
-    /**
      * The comparison operator to compare left and right expressions in the
      * rule.
      */
@@ -100,43 +95,9 @@ public class ValidationRule
     private Expression rightSide;
 
     /**
-     * When non-empty, this is a boolean valued expression which
-     * indicates when this rule should be skipped
-     */
-    private Expression sampleSkipTest;
-
-    /**
      * The set of ValidationRuleGroups to which this ValidationRule belongs.
      */
     private Set<ValidationRuleGroup> groups = new HashSet<>();
-
-    /**
-     * The organisation unit level at which this rule is evaluated
-     * (Monitoring-type rules only).
-     */
-    private Integer organisationUnitLevel;
-
-    /**
-     * The number of sequential periods from which to collect samples
-     * to average (Monitoring-type rules only). Sequential periods are those
-     * immediately preceding (or immediately following in previous years) the
-     * selected period.
-     */
-    private Integer sequentialSampleCount;
-
-    /**
-     * The number of annual periods from which to collect samples to
-     * average (Monitoring-type rules only). Annual periods are from previous
-     * years. Samples collected from previous years can also include sequential
-     * periods adjacent to the equivalent period in previous years.
-     */
-    private Integer annualSampleCount;
-
-    /**
-     * The number of immediate sequential periods to skip (in the current year)
-     * when collecting samples for aggregate functions
-     */
-    private Integer sequentialSkipCount;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -155,7 +116,6 @@ public class ValidationRule
         this.operator = operator;
         this.leftSide = leftSide;
         this.rightSide = rightSide;
-        this.sampleSkipTest = null;
     }
 
     public ValidationRule( String name, String description, Operator operator, Expression leftSide,
@@ -166,7 +126,6 @@ public class ValidationRule
         this.operator = operator;
         this.leftSide = leftSide;
         this.rightSide = rightSide;
-        this.sampleSkipTest = skipTest;
     }
 
     // -------------------------------------------------------------------------
@@ -182,7 +141,6 @@ public class ValidationRule
     {
         this.leftSide = null;
         this.rightSide = null;
-        this.sampleSkipTest = null;
     }
 
     /**
@@ -231,53 +189,8 @@ public class ValidationRule
             new HashSet<>( leftSide.getDataElementsInExpression() );
 
         currentDataElements.addAll( rightSide.getDataElementsInExpression() );
-        if ( sampleSkipTest != null )
-        {
-            currentDataElements.addAll( sampleSkipTest.getDataElementsInExpression() );
-        }
 
         return currentDataElements;
-    }
-
-    /**
-     * Gets the data elements to compare against for past periods. For
-     * validation-type rules this returns null. For monitoring-type rules this
-     * is just the right side elements.
-     *
-     * @return the data elements to evaluate for past periods.
-     */
-    public Set<DataElement> getPastDataElements()
-    {
-        HashSet<DataElement> past = new HashSet<DataElement>();
-        Set<DataElement> elts = leftSide.getSampleElementsInExpression();
-
-        if ( elts != null )
-        {
-            past.addAll( elts );
-        }
-
-        elts = rightSide.getSampleElementsInExpression();
-
-        if ( elts != null )
-        {
-            past.addAll( elts );
-        }
-
-        if ( sampleSkipTest == null )
-        {
-            elts = null;
-        }
-        else
-        {
-            elts = sampleSkipTest.getSampleElementsInExpression();
-        }
-
-        if ( elts != null )
-        {
-            past.addAll( elts );
-        }
-
-        return past;
     }
 
     /**
@@ -360,31 +273,6 @@ public class ValidationRule
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 1, max = 999 )
-    public Integer getOrganisationUnitLevel()
-    {
-        return organisationUnitLevel;
-    }
-
-    public void setOrganisationUnitLevel( Integer organisationUnitLevel )
-    {
-        this.organisationUnitLevel = organisationUnitLevel;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RuleType getRuleType()
-    {
-        return ruleType;
-    }
-
-    public void setRuleType( RuleType ruleType )
-    {
-        this.ruleType = ruleType;
-    }
-
-    @JsonProperty
     @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
     @JsonDeserialize( using = JacksonPeriodTypeDeserializer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -397,43 +285,6 @@ public class ValidationRule
     public void setPeriodType( PeriodType periodType )
     {
         this.periodType = periodType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getSequentialSampleCount()
-    {
-        return sequentialSampleCount;
-    }
-
-    public void setSequentialSampleCount( Integer sequentialSampleCount )
-    {
-        this.sequentialSampleCount = sequentialSampleCount;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 0, max = 10 )
-    public Integer getAnnualSampleCount()
-    {
-        return annualSampleCount;
-    }
-
-    public void setAnnualSampleCount( Integer annualSampleCount )
-    {
-        this.annualSampleCount = annualSampleCount;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getSequentialSkipCount()
-    {
-        return sequentialSkipCount;
-    }
-
-    public void setSequentialSkipCount( Integer sequentialSkipCount )
-    {
-        this.sequentialSkipCount = sequentialSkipCount;
     }
 
     @JsonProperty
@@ -458,18 +309,6 @@ public class ValidationRule
     public void setLeftSide( Expression leftSide )
     {
         this.leftSide = leftSide;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Expression getSampleSkipTest()
-    {
-        return sampleSkipTest;
-    }
-
-    public void setSampleSkipTest( Expression sampleSkipTest )
-    {
-        this.sampleSkipTest = sampleSkipTest;
     }
 
     @JsonProperty

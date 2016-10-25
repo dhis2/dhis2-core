@@ -71,7 +71,8 @@ public class ImportReportWebMessageResponse
 
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 ) public List<TypeReport> getTypeReports()
+    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TypeReport> getTypeReports()
     {
         return importReport.getTypeReports();
     }

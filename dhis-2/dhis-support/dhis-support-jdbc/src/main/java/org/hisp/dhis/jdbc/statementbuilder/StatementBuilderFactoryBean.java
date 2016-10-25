@@ -28,7 +28,7 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.amplecode.quick.StatementDialect;
+import org.hisp.quick.StatementDialect;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.springframework.beans.factory.FactoryBean;
 

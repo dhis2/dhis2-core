@@ -87,71 +87,121 @@ public class HibernateDbmsManager
         emptyTable( "datavalueaudit" );
         emptyTable( "datavalue" );
         emptyTable( "completedatasetregistration" );
+        
+        emptyTable( "pushanalysisrecipientusergroups" );
+        emptyTable( "pushanalysis" );
+        
+        emptyTable( "dashboarditem_users" );
+        emptyTable( "dashboarditem_resources" );
+        emptyTable( "dashboarditem_reports" );
+        emptyTable( "dashboard_items" );
+        emptyTable( "dashboarditem" );
+        emptyTable( "dashboardusergroupaccesses" );
+        emptyTable( "dashboard" );
 
+        emptyTable( "delete from interpretation_comments" );
+        emptyTable( "delete from interpretationcommenttranslations" );
+        emptyTable( "delete from interpretationcomment" );
+        emptyTable( "delete from interpretationtranslations" );
+        emptyTable( "delete from interpretationusergroupaccesses" );
+        emptyTable( "delete from interpretation" );
+        
+        emptyTable( "delete from reportusergroupaccesses" );
+        emptyTable( "delete from report" );
+        
         emptyTable( "reporttable_categorydimensions" );
         emptyTable( "reporttable_categoryoptiongroups" );
-        emptyTable( "reporttable_dataelements" );
-        emptyTable( "reporttable_datasets" );
-        emptyTable( "reporttable_indicators" );
-        emptyTable( "reporttable_periods" );
+        emptyTable( "reporttable_columns" );
+        emptyTable( "reporttable_datadimensionitems" );
+        emptyTable( "reporttable_dataelementgroups" );
+        emptyTable( "reporttable_filters" );
         emptyTable( "reporttable_itemorgunitgroups" );
         emptyTable( "reporttable_organisationunits" );
-        emptyTable( "reporttable_dataelementgroups" );
         emptyTable( "reporttable_orgunitgroups" );
-        emptyTable( "reporttable_columns" );
+        emptyTable( "reporttable_orgunitlevels" );
+        emptyTable( "reporttable_periods" );
         emptyTable( "reporttable_rows" );
-        emptyTable( "reporttable_filters" );
+        emptyTable( "reporttableusergroupaccesses" );
+        emptyTable( "reporttabletranslations" );
         emptyTable( "reporttable" );
-        
-        emptyTable( "chart_periods" );
-        emptyTable( "chart_orgunitlevels" );
-        emptyTable( "chart_orgunitgroups" );
-        emptyTable( "chart_organisationunits" );
-        emptyTable( "chart_itemorgunitgroups" );
-        emptyTable( "chart_indicators" );
-        emptyTable( "chart_filters" );
-        emptyTable( "chart_datasets" );
-        emptyTable( "chart_dataelements" );
-        emptyTable( "chart_dataelementoperands" );
-        emptyTable( "chart_dataelementgroups" );
-        emptyTable( "chart_categoryoptiongroups" );
+
         emptyTable( "chart_categorydimensions" );
+        emptyTable( "chart_categoryoptiongroups" );
+        emptyTable( "chart_datadimensionitems" );
+        emptyTable( "chart_dataelementgroups" );
+        emptyTable( "chart_filters" );
+        emptyTable( "chart_itemorgunitgroups" );
+        emptyTable( "chart_organisationunits" );
+        emptyTable( "chart_orgunitgroups" );
+        emptyTable( "chart_orgunitlevels" );
+        emptyTable( "chart_periods" );
+        emptyTable( "chartusergroupaccesses" );
+        emptyTable( "charttranslations" );
         emptyTable( "chart" );
+        
+        emptyTable( "eventreport_attributedimensions" );
+        emptyTable( "eventreport_columns" );
+        emptyTable( "eventreport_dataelementdimensions" );
+        emptyTable( "eventreport_filters" );
+        emptyTable( "eventreport_itemorgunitgroups" );
+        emptyTable( "eventreport_organisationunits" );
+        emptyTable( "eventreport_orgunitgroups" );
+        emptyTable( "eventreport_orgunitlevels" );
+        emptyTable( "eventreport_periods" );
+        emptyTable( "eventreport_programindicatordimensions" );
+        emptyTable( "eventreport_rows" );
+        emptyTable( "eventreportusergroupaccesses" );
+        emptyTable( "eventreporttranslations" );
+        emptyTable( "eventreport" );
 
-        emptyTable( "categoryoptiongroupusergroupaccesses" );
-        emptyTable( "categoryoptiongroupsetusergroupaccesses" );
-        emptyTable( "dataelementcategoryoptionusergroupaccesses" );
-        emptyTable( "usergroupusergroupaccesses" );
-        emptyTable( "usergroupaccess" );
-
+        emptyTable( "eventchart_attributedimensions" );
+        emptyTable( "eventchart_columns" );
+        emptyTable( "eventchart_dataelementdimensions" );
+        emptyTable( "eventchart_filters" );
+        emptyTable( "eventchart_itemorgunitgroups" );
+        emptyTable( "eventchart_organisationunits" );
+        emptyTable( "eventchart_orgunitgroups" );
+        emptyTable( "eventchart_orgunitlevels" );
+        emptyTable( "eventchart_periods" );
+        emptyTable( "eventchart_programindicatordimensions" );
+        emptyTable( "eventchart_rows" );
+        emptyTable( "eventchartusergroupaccesses" );
+        emptyTable( "eventcharttranslations" );
+        emptyTable( "eventchart" );
+        
         emptyTable( "users_catdimensionconstraints" );
         emptyTable( "userrolemembers" );
         emptyTable( "userroledataset" );
         emptyTable( "userroleauthorities" );
-        emptyTable( "usergroupmembers" );
-        emptyTable( "usergroup" );
         emptyTable( "userdatavieworgunits" );
         emptyTable( "usermembership" );
         emptyTable( "userrole" );
 
         emptyTable( "orgunitgroupsetmembers" );
         emptyTable( "orgunitgroupset" );
+        emptyTable( "orgunitgroupsetusergroupaccesses" );
+        
         emptyTable( "orgunitgroupmembers" );
         emptyTable( "orgunitgroup" );
+        emptyTable( "orgunitgroupusergroupaccesses" );
 
         emptyTable( "validationrulegroupusergroupstoalert" );
         emptyTable( "validationrulegroupmembers" );
         emptyTable( "validationrulegroup" );
+        emptyTable( "validationrulegroupusergroupaccesses" );
+        
         emptyTable( "validationrule" );
+        emptyTable( "validationruleusergroupaccesses" );
 
         emptyTable( "dataapproval" );
 
         emptyTable( "lockexception" );
 
         emptyTable( "datasetsource" );
-        emptyTable( "datasetmembers" );
+        emptyTable( "datasetelement" );
         emptyTable( "datasetindicators" );
         emptyTable( "datasetoperands" );
+        emptyTable( "datasetusergroupaccesses" );
         emptyTable( "dataset" );
 
         emptyTable( "dataapprovalworkflowlevels" );
@@ -164,6 +214,7 @@ public class HibernateDbmsManager
         emptyTable( "programstage_dataelements" );
         emptyTable( "programstage" );
         emptyTable( "program_organisationunits" );
+        emptyTable( "programusergroupaccesses" );
         emptyTable( "program" );
         emptyTable( "trackedentityinstance" );
 
@@ -172,23 +223,26 @@ public class HibernateDbmsManager
         emptyTable( "expressionsampleelement" );
         emptyTable( "expressionoptioncombo" );
         emptyTable( "calculateddataelement" );
+        
         emptyTable( "dataelementgroupsetmembers" );
+        emptyTable( "dataelementgroupsetusergroupaccesses" );
         emptyTable( "dataelementgroupset" );
+        
         emptyTable( "dataelementgroupmembers" );
+        emptyTable( "dataelementgroupusergroupaccesses" );
         emptyTable( "dataelementgroup" );
+        
         emptyTable( "dataelementaggregationlevels" );
         emptyTable( "dataelementoperand" );
+        emptyTable( "dataelementusergroupaccesses" );
         emptyTable( "dataelement" );
+        
         emptyTable( "categoryoptioncombos_categoryoptions" );
         emptyTable( "categorycombos_optioncombos" );
         emptyTable( "categorycombos_categories" );
         emptyTable( "categories_categoryoptions" );
 
-        emptyTable( "categoryoption_organisationunits" );
-        emptyTable( "orgunitgroupsetmembers" );
-        emptyTable( "orgunitgroupmembers" );
-        emptyTable( "orgunitgroupset" );
-        emptyTable( "orgunitgroup" );
+        emptyTable( "categoryoption_organisationunits" );        
         emptyTable( "organisationunit" );
         
         emptyTable( "version" );
@@ -196,16 +250,25 @@ public class HibernateDbmsManager
         emptyTable( "period" );
 
         emptyTable( "indicatorgroupsetmembers" );
+        emptyTable( "indicatorgroupsetusergroupaccesses" );
         emptyTable( "indicatorgroupset" );
+        
         emptyTable( "indicatorgroupmembers" );
+        emptyTable( "indicatorgroupusergroupaccesses" );
         emptyTable( "indicatorgroup" );
+        
         emptyTable( "indicator" );
         emptyTable( "indicatortype" );
 
         emptyTable( "categoryoptiongroupsetmembers" );
+        emptyTable( "categoryoptiongroupsetusergroupaccesses" );
         emptyTable( "categoryoptiongroupset" );
+        
         emptyTable( "categoryoptiongroupmembers" );
+        emptyTable( "categoryoptiongroupusergroupaccesses" );
         emptyTable( "categoryoptiongroup" );
+
+        emptyTable( "dataelementcategoryoptionusergroupaccesses" );
 
         emptyTable( "expression" );
         emptyTable( "categoryoptioncombo" );
@@ -218,17 +281,14 @@ public class HibernateDbmsManager
 
         emptyTable( "systemsetting" );
 
+        emptyTable( "usergroupusergroupaccesses" );
+        emptyTable( "usergroupaccess" );
+        emptyTable( "usergroupmembers" );
+        emptyTable( "usergroup" );
+
         emptyTable( "users" );
         emptyTable( "userinfo" );
 
-        dropTable( "aggregateddatavalue" );
-        dropTable( "aggregatedindicatorvalue" );
-        dropTable( "aggregateddatasetcompleteness" );
-
-        dropTable( "aggregatedorgunitdatavalue" );
-        dropTable( "aggregatedorgunitindicatorvalue" );
-        dropTable( "aggregatedorgunitdatasetcompleteness" );
-        
         dropTable( "_categoryoptioncomboname" );
         dropTable( "_categoryoptiongroupsetstructure" );
         dropTable( "_categorystructure" );
@@ -260,7 +320,7 @@ public class HibernateDbmsManager
     {
         try
         {
-            jdbcTemplate.update( "DELETE FROM " + table );
+            jdbcTemplate.update( "delete from " + table );
         }
         catch ( BadSqlGrammarException ex )
         {
@@ -289,7 +349,7 @@ public class HibernateDbmsManager
     {
         try
         {
-            jdbcTemplate.execute( "DROP TABLE " + table );
+            jdbcTemplate.execute( "drop table " + table );
         }
         catch ( BadSqlGrammarException ex )
         {

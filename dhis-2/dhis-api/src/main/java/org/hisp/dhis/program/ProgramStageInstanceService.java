@@ -28,14 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -128,21 +128,14 @@ public interface ProgramStageInstanceService
     long getProgramStageInstanceCount( int days );
 
     /**
-     * Retrieve scheduled list of entityInstances registered.
-     *
-     * @return A list of SchedulingProgramObject.
-     */
-    Collection<SchedulingProgramObject> getSendMessageEvents();
-
-    /**
      * Complete an event. Besides, program template messages will be sent if it was
      * defined for sending upon completion.
      *
      * @param programStageInstance the ProgramStageInstance.
-     * @param sendNotifications whether to send messages and notifications or not.
+     * @param skipNotifications whether to send prgram stage notifications or not.
      * @param format the I18nFormat for the notification messages.
      */
-    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean sendNotifications, I18nFormat format );
+    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
 
     /**
      * Creates a ProgramStageInstance. Will create a ProgramInstance in case

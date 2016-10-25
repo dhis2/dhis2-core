@@ -29,12 +29,12 @@ package org.hisp.dhis.startup;
  */
 
 import com.google.common.collect.Lists;
-import org.amplecode.quick.StatementHolder;
-import org.amplecode.quick.StatementManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
+import org.hisp.quick.StatementHolder;
+import org.hisp.quick.StatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +59,7 @@ public class TableAlteror
 
     @Autowired
     private StatementManager statementManager;
-
+    
     @Autowired
     private StatementBuilder statementBuilder;
 
@@ -642,6 +642,8 @@ public class TableAlteror
 
         executeSql( "UPDATE userroleauthorities SET authority='F_PROGRAM_INDICATOR_PUBLIC_ADD' WHERE authority='F_ADD_PROGRAM_INDICATOR'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority='F_LEGEND_SET_PUBLIC_ADD' WHERE authority='F_LEGEND_SET_ADD'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );
@@ -925,10 +927,19 @@ public class TableAlteror
         executeSql( "update eventchart set regressiontype = 'LINEAR' where regression is true" );
         executeSql( "alter table eventchart alter column regressiontype set not null" );
         executeSql( "alter table eventchart drop column regression" );
+
+        executeSql( "alter table validationrule drop column ruletype" );
+        executeSql( "alter table validationrule drop column skiptestexpressionid" );
+        executeSql( "alter table validationrule drop column organisationunitlevel" );
+        executeSql( "alter table validationrule drop column sequentialsamplecount" );
+        executeSql( "alter table validationrule drop column annualsamplecount" );
+        executeSql( "alter table validationrule drop column sequentialskipcount" );
         
         updateEnums();
 
-        oauth2();
+        upgradeDataValueSoftDelete();
+        
+        initOauth2();
 
         upgradeDataValuesWithAttributeOptionCombo();
         upgradeCompleteDataSetRegistrationsWithAttributeOptionCombo();
@@ -952,11 +963,27 @@ public class TableAlteror
         upgradeDataDimensionItemsToReportingRateMetric();
 
         updateObjectTranslation();
+        upgradeDataSetElements();
+
+        removeOutdatedTranslationProperties();
 
         log.info( "Tables updated" );
     }
+    
+    private void removeOutdatedTranslationProperties()
+    {
+        executeSql( "delete from indicatortranslations where objecttranslationid in (select objecttranslationid from objecttranslation where property in ('numeratorDescription', 'denominatorDescription'))" );
+        executeSql( "delete from objecttranslation where property in ('numeratorDescription', 'denominatorDescription')" );
+    }
+    
+    private void upgradeDataValueSoftDelete()
+    {
+        executeSql( "update datavalue set deleted = false where deleted is null" );
+        executeSql( "alter table datavalue alter column deleted set not null" );
+        executeSql( "create index in_datavalue_deleted on datavalue(deleted)" );
+    }
 
-    public void oauth2()
+    private void initOauth2()
     {
         // OAuth2
         executeSql( "CREATE TABLE oauth_code (" +
@@ -1047,6 +1074,30 @@ public class TableAlteror
         executeSql( "update dataentryform set style='NONE' where style='none'" );
     }
 
+    private void upgradeDataSetElements()
+    {
+        String autoIncr = statementBuilder.getAutoIncrementValue();
+        String uid = statementBuilder.getUid();
+        
+        String insertSql = 
+            "insert into datasetelement(datasetelementid,uid,datasetid,dataelementid,created,lastupdated) " +
+            "select " + autoIncr + "  as datasetelementid, " +
+            uid + " as uid, " +
+            "dsm.datasetid as datasetid, " +
+            "dsm.dataelementid as dataelementid, " +
+            "now() as created, " +
+            "now() as lastupdated " +
+            "from datasetmembers dsm; " +
+            "drop table datasetmembers; ";        
+        
+        executeSql( insertSql );
+        
+        executeSql( "alter table datasetelement alter column uid set not null" );
+        executeSql( "alter table datasetelement alter column created set not null" );
+        executeSql( "alter table datasetelement alter column lastupdated set not null" );
+        executeSql( "alter table datasetelement alter column datasetid drop not null" );
+    }
+    
     private void upgradeAggregationType( String table )
     {
         executeSql( "update " + table + " set aggregationtype='SUM' where aggregationtype='sum'" );
@@ -1516,7 +1567,6 @@ public class TableAlteror
         addTranslationTable( listTables, "TrackedEntityAttribute", "trackedentityattributetranslations", "trackedentityattribute", "trackedentityattributeid" );
         addTranslationTable( listTables, "TrackedEntityAttributeGroup", "trackedentityattributegrouptranslations", "trackedentityattributegroup", "trackedentityattributegroupid" );
         addTranslationTable( listTables, "TrackedEntityInstance", "trackedentityinstancetranslations", "trackedentityinstance", "trackedentityinstanceid" );
-        addTranslationTable( listTables, "TrackedEntityInstanceReminder", "trackedentityinstanceremindertranslations", "trackedentityinstancereminder", "trackedentityinstancereminderid" );
         addTranslationTable( listTables, "User", "userinfotranslations", "userinfo", "userinfoid" );
         addTranslationTable( listTables, "UserAuthorityGroup", "userroletranslations", "userrole", "userroleid" );
         addTranslationTable( listTables, "UserCredentials", "usertranslations", "users", "userid" );

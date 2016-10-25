@@ -60,7 +60,7 @@ public class ImportOptions
 
     private boolean sharing;
 
-    private boolean sendNotifications;
+    private boolean skipNotifications;
 
     private boolean datasetAllowsPeriods;
 
@@ -163,9 +163,9 @@ public class ImportOptions
         return sharing;
     }
 
-    public boolean isSendNotifications()
+    public boolean isSkipNotifications()
     {
-        return sendNotifications;
+        return skipNotifications;
     }
 
     public boolean isStrictPeriods()
@@ -310,9 +310,9 @@ public class ImportOptions
         return this;
     }
 
-    public ImportOptions setSendNotifications( boolean sendNotifications )
+    public ImportOptions setSkipNotifications( boolean skipNotifications )
     {
-        this.sendNotifications = sendNotifications;
+        this.skipNotifications = skipNotifications;
         return this;
     }
 
@@ -352,23 +352,25 @@ public class ImportOptions
         return this;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
-        return MoreObjects.toStringHelper( this.getClass() ).
-            add( "ID Schemes", idSchemes ).
-            add( "Dry run", dryRun ).
-            add( "Preheat cache", preheatCache ).
-            add( "Async", async ).
-            add( "Import strategy", importStrategy ).
-            add( "Skip existing check", skipExistingCheck ).
-            add( "Sharing", sharing ).
-            add( "Strict periods", strictPeriods ).
-            add( "Strict category option combos", strictCategoryOptionCombos ).
-            add( "Strict attr option combos", strictAttributeOptionCombos ).
-            add( "Strict org units", strictCategoryOptionCombos ).
-            add( "Require category option combo", requireCategoryOptionCombo ).
-            add( "Require attribute option combo", requireAttributeOptionCombo ).
-            toString();
+        return MoreObjects.toStringHelper( this )
+            .add( "idSchemes", idSchemes )
+            .add( "dryRun", dryRun )
+            .add( "preheatCache", preheatCache )
+            .add( "async", async )
+            .add( "importStrategy", importStrategy )
+            .add( "mergeMode", mergeMode )
+            .add( "skipExistingCheck", skipExistingCheck )
+            .add( "sharing", sharing )
+            .add( "skipNotifications", skipNotifications )
+            .add( "datasetAllowsPeriods", datasetAllowsPeriods )
+            .add( "strictPeriods", strictPeriods )
+            .add( "strictCategoryOptionCombos", strictCategoryOptionCombos )
+            .add( "strictAttributeOptionCombos", strictAttributeOptionCombos )
+            .add( "strictOrganisationUnits", strictOrganisationUnits )
+            .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
+            .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
+            .toString();
     }
 }

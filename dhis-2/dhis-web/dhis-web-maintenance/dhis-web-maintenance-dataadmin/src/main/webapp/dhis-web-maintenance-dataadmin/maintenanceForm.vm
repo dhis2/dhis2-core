@@ -13,7 +13,12 @@
 
 <p>
 	<input type="checkbox" id="zeroValues"/>
-	<label for="zeroValues">$i18n.getString( "clear_zero_values" )</label>
+	<label for="zeroValues">$i18n.getString( "remove_zero_data_values" )</label>
+</p>
+
+<p>
+	<input type="checkbox" id="softDeletedValues"/>
+	<label for="softDeletedValues">$i18n.getString( "remove_soft_deleted_data_values" )</label>
 </p>
 
 <p>

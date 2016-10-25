@@ -28,11 +28,7 @@ package org.hisp.dhis.light.dataentry.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -46,7 +42,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -224,7 +223,7 @@ public class GetPeriodsAction
             CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dataSet,
                 period, organisationUnit, optionCombo );
 
-            periodCompletedMap.put( period, registration != null ? true : false );
+            periodCompletedMap.put( period, registration != null );
         }
 
         return SUCCESS;

@@ -28,19 +28,22 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -49,7 +52,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_DUE_DATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
@@ -62,9 +68,6 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private ProgramStageDataElementStore programStageDataElementStore;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -80,14 +83,16 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
+    
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
+    private GenericIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
 
     private OrganisationUnit organisationUnitA;
 
     private OrganisationUnit organisationUnitB;
-
-    private int orgunitAId;
-
-    private int orgunitBId;
 
     private ProgramStage stageA;
 
@@ -137,48 +142,26 @@ public class ProgramStageInstanceStoreTest
     public void setUpTest()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
-        orgunitAId = organisationUnitService.addOrganisationUnit( organisationUnitA );
-
         organisationUnitB = createOrganisationUnit( 'B' );
-        orgunitBId = organisationUnitService.addOrganisationUnit( organisationUnitB );
-
+        
+        idObjectManager.save( organisationUnitA );
+        idObjectManager.save( organisationUnitB );
+        
         entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
         entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
-        /**
-         * Program A
-         */
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programService.addProgram( programA );
 
         stageA = new ProgramStage( "A", programA );
 
-        TrackedEntityInstanceReminder reminderA = createTrackedEntityInstanceReminder( 'A', 0, "Test program stage message template",
-            TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE, TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE, null,
-            TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        TrackedEntityInstanceReminder reminderB = createTrackedEntityInstanceReminder( 'B', 0, "Test program stage message template",
-            TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE, TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE,
-            TrackedEntityInstanceReminder.SEND_WHEN_TO_C0MPLETED_EVENT, TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
-        reminders.add( reminderA );
-        reminders.add( reminderB );
-        stageA.setReminders( reminders );
-
         programStageService.saveProgramStage( stageA );
 
         stageB = new ProgramStage( "B", programA );
-        TrackedEntityInstanceReminder reminderC = createTrackedEntityInstanceReminder( 'C', 0, "Test program stage message template",
-            TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE, TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE,
-            TrackedEntityInstanceReminder.SEND_WHEN_TO_C0MPLETED_EVENT, TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
 
-        reminders = new HashSet<>();
-        reminders.add( reminderC );
-        stageB.setReminders( reminders );
         programStageService.saveProgramStage( stageB );
 
         Set<ProgramStage> programStages = new HashSet<>();
@@ -320,24 +303,105 @@ public class ProgramStageInstanceStoreTest
     }
 
     @Test
-    public void testGetOverDueEventCount()
+    public void testGetWithScheduledNotifications()
     {
+
+        ProgramNotificationTemplate
+            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_DUE_DATE ),
+            a2 = createProgramNotificationTemplate( "a2", -2, SCHEDULED_DAYS_DUE_DATE ),
+            a3 = createProgramNotificationTemplate( "a3", 1, SCHEDULED_DAYS_DUE_DATE ),
+            b1 = createProgramNotificationTemplate( "b1", -1, SCHEDULED_DAYS_DUE_DATE ),
+            b2 = createProgramNotificationTemplate( "b2", -2, SCHEDULED_DAYS_DUE_DATE ),
+            b3 = createProgramNotificationTemplate( "b3", 1, SCHEDULED_DAYS_DUE_DATE ),
+            c1 = createProgramNotificationTemplate( "c1", -1, SCHEDULED_DAYS_DUE_DATE ),
+            c2 = createProgramNotificationTemplate( "c2", -2, SCHEDULED_DAYS_DUE_DATE ),
+            c3 = createProgramNotificationTemplate( "c3", 1, SCHEDULED_DAYS_DUE_DATE );
+
+        programNotificationStore.save( a1 );
+        programNotificationStore.save( a2 );
+        programNotificationStore.save( a3 );
+        programNotificationStore.save( b1 );
+        programNotificationStore.save( b2 );
+        programNotificationStore.save( b3 );
+        programNotificationStore.save( c1 );
+        programNotificationStore.save( c2 );
+        programNotificationStore.save( c3 );
+
+        // Stage
+
+        stageA.setNotificationTemplates( Sets.newHashSet( a1, a2, a3 ) );
+        programStageService.updateProgramStage( stageA );
+
+        stageB.setNotificationTemplates( Sets.newHashSet( b1, b2, b3 ) );
+        programStageService.updateProgramStage( stageB );
+
+        stageC.setNotificationTemplates( Sets.newHashSet( c1, c2, c3 ) );
+        programStageService.updateProgramStage( stageC );
+
+        // Dates
+
         Calendar cal = Calendar.getInstance();
         PeriodType.clearTimeOfDay( cal );
-        cal.add( Calendar.DATE, -1 );
-        Date date = cal.getTime();
 
-        programStageInstanceA.setDueDate( date );
-        programStageInstanceB.setDueDate( date );
+        Date today = cal.getTime();     // 2016-01-10 -> "today"
 
-        programStageInstanceStore.save( programStageInstanceA );
-        programStageInstanceStore.save( programStageInstanceB );
+        cal.add( Calendar.DATE, 1 );    // 2016-01-11
+        Date tomorrow = cal.getTime();
 
-        List<Integer> orgunitIds = new ArrayList<>();
-        orgunitIds.add( orgunitAId );
-        orgunitIds.add( orgunitBId );
+        cal.add( Calendar.DATE, -2 ); // 2016-01-09
+        Date yesterday = cal.getTime();
 
-        int count = programStageInstanceStore.getOverDueCount( stageA, orgunitIds, incidenDate, enrollmentDate );
-        assertEquals( 1, count );
+        // Events
+
+        ProgramStageInstance eventA = new ProgramStageInstance( programInstanceA, stageA );
+        eventA.setDueDate( tomorrow );
+        programStageInstanceStore.save( eventA );
+
+        ProgramStageInstance eventB = new ProgramStageInstance( programInstanceB, stageB );
+        eventB.setDueDate( today );
+        programStageInstanceStore.save( eventB );
+
+        ProgramStageInstance eventC = new ProgramStageInstance( programInstanceB, stageC );
+        eventC.setDueDate( yesterday );
+        programStageInstanceStore.save( eventC );
+
+        // Queries
+
+        List<ProgramStageInstance> results;
+
+        // A
+
+        results = programStageInstanceStore.getWithScheduledNotifications( a1, today );
+        assertEquals( 1, results.size() );
+        assertEquals( eventA, results.get( 0 ) );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( a2, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( a3, today );
+        assertEquals( 0, results.size() );
+
+        // B
+
+        results = programStageInstanceStore.getWithScheduledNotifications( b1, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( b2, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( b3, today );
+        assertEquals( 0, results.size() );
+
+        // C
+
+        results = programStageInstanceStore.getWithScheduledNotifications( c1, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( c2, today );
+        assertEquals( 0, results.size() );
+
+        results = programStageInstanceStore.getWithScheduledNotifications( c3, today );
+        assertEquals( 1, results.size() );
+        assertEquals( eventC, results.get( 0 ) );
     }
 }

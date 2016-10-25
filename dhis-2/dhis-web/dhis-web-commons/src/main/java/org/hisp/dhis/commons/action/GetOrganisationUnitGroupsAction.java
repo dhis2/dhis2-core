@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.paging.ActionPagingSupport;
@@ -104,7 +103,7 @@ public class GetOrganisationUnitGroupsAction
             organisationUnitGroups = IdentifiableObjectUtils.filterNameByKey( organisationUnitGroups, key, true );
         }
 
-        Collections.sort( organisationUnitGroups, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( organisationUnitGroups );
 
         if ( usePaging )
         {

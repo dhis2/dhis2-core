@@ -15,8 +15,8 @@
 }
 
 #dashboardMenu
-{  
-  position: absolute; 
+{
+  position: absolute;
   margin-top: 6px;
 }
 
@@ -79,7 +79,7 @@
 .currentDashboard
 {
   background-color: #f1f1f1;
-} 
+}
 
 .horizontalMenu ul
 {
@@ -96,10 +96,10 @@
 {
   background-color: #fff;
   border: 1px solid #ccc;
-  height: 333px;
-  width: 408px;
-  padding: 6px;
-  margin: 0 17px 17px 0;
+  height: 342px;
+  width: 417px;
+  padding: 4px;
+  margin: 0 8px 8px 0;
   border-radius: 3px;
   cursor: pointer;
   box-shadow: #ddd 0 1px 2px 0;
@@ -156,15 +156,17 @@
 
 .itemHeader
 {
-  margin: 0 0 5px 0;
-  padding: 0 0 3px 0;
+  margin: 0 0 4px 0;
+  padding: 1px 2px 3px 0;
   border-bottom: 1px solid #e0e0e0;
   cursor: move;
+  color: #3162C5;
 }
 
 .itemHeader a
 {
   margin-left: 5px;
+  margin-right: 5px;
 }
 
 .itemList
@@ -204,9 +206,9 @@
 #searchDiv
 {
   position: absolute;
-  left: 330px;
+  left: 270px;
   height: 22px;
-  width: 486px;
+  width: 546px;
   border: 1px solid #aaa;
   padding: 5px 6px 0 6px;
   box-shadow: #ccc 0 1px 2px 0 inset;
@@ -242,8 +244,8 @@
 {
   position: absolute;
   margin-top: 29px;
-  left: 330px;
-  width: 498px;
+  left: 270px;
+  width: 558px;
   max-height: 518px;
   overflow-y: auto;
   border-right: 1px solid #bbb;
@@ -257,7 +259,7 @@
 }
 
 #hitDiv li
-{ 
+{
   list-style-type: none;
 }
 
@@ -277,6 +279,13 @@
 {
   display: inline-block;
   padding: 9px 3% 7px 3%;
+}
+
+.fa-comments-o,
+.fa-thumbs-o-up
+{
+  margin-right: 3px;
+  margin-left: 3px;
 }
 
 .dragIcon
@@ -358,8 +367,8 @@
 
 #chartView
 {
-  display: none; 
-  padding: 0; 
+  display: none;
+  padding: 0;
   margin: 0;
 }
 
@@ -418,7 +427,7 @@ a.alert, .alert
 }
 
 .recipientsDiv
-{ 
+{
   width: 660px;
   padding-left: 40px;
 }
@@ -448,7 +457,7 @@ a.alert, .alert
 .messageBottomDiv
 {
   width: 700px;
-  border-top: 1px solid #cccccc; 
+  border-top: 1px solid #cccccc;
   margin-top: 20px;
   padding-top: 18px;
   margin-bottom: 50px;
@@ -497,7 +506,7 @@ a.alert, .alert
   margin-top: 15px;
 }
 
-div#selectionTree 
+div#selectionTree
 {
   height: 200px;
 }
@@ -572,8 +581,40 @@ div#selectionTree
   margin-right: 4px;
   background-color: #eee;
   border: solid 1px #aaa;
-
 }
+
+.message-container {
+  float: left;
+  width: 700px;
+}
+
+.ticket-tools {
+  float: left;
+  width: 200px;
+  margin: 45px 0 0 45px;
+  padding: 10px;
+  border: solid 1px #cccccc;
+}
+
+.ticket-tools-segment {
+  margin-bottom: 5px;
+}
+
+.ticket-tools-label {
+  clear: both;
+  padding: 5px;
+  font-weight: bold;
+}
+
+.ticket-tools-input {
+  clear: both;
+  margin-top: 2px;
+}
+
+.ticket-tools-input select, .ticket-tools-input input {
+  width: 100%;
+}
+
 
 /*----------------------------------------------------------------------------*/
 /* Interpretation                                                             */
@@ -708,9 +749,9 @@ div#selectionTree
 
 #userProfileLink
 {
-  position: relative; 
-  top: -3px; 
-  display: inline-block; 
+  position: relative;
+  top: -3px;
+  display: inline-block;
   margin-left: 200px;
 }
 
@@ -808,4 +849,52 @@ div#selectionTree
   top: 0;
   width: 960px;
 }
+}
+
+/*----------------------------------------------------------------------------*/
+/* Interpretation Popup style                                                                */
+/*----------------------------------------------------------------------------*/
+
+#interpretationPopup
+{
+  position: absolute;
+  padding: 6px;
+  top: 0;
+  left: 0;
+  display: none;
+  z-index: 1000000;
+  background-color: #fff;
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  box-shadow: #ddd 0 1px 2px 0;
+  width: 408px;
+}
+
+#interpretationPopup a{
+  color: #000;
+  text-decoration: none;
+}
+
+#interpretationContainer{
+  margin-bottom: 8px;
+}
+
+#interpretationContainer,
+#interpretationContainer div,
+#interpretationContainer label
+{
+  cursor:pointer !important;	
+}
+
+#interpretationContainer.div{
+  margin-bottom: 5px;
+}
+
+.likeComment{
+	background-color:#efefef;
+}	
+.interpretationUser{
+  margin-right:10px;
+  font-weight:bold;
+  color:#3162C5;
 }

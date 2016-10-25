@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 
@@ -43,7 +42,6 @@ import com.opensymphony.xwork2.Action;
  * Collects all data sets from the database to use in the outlier analysis form.
  * 
  * @author Jon Moen Drange
- * 
  */
 public class ViewAnalysisFormAction
     implements Action
@@ -91,7 +89,7 @@ public class ViewAnalysisFormAction
     {
         dataSets = new ArrayList<>( dataSetService.getAllDataSets() );
         
-        Collections.sort( dataSets, new IdentifiableObjectNameComparator() );
+        Collections.sort( dataSets );
         
         return SUCCESS;
     }

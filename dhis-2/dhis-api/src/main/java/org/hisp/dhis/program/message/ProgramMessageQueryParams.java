@@ -108,7 +108,7 @@ public class ProgramMessageQueryParams
     // Getters and Setters
     // -------------------------------------------------------------------------
 
-    public ProgramInstance getProgramInstrance()
+    public ProgramInstance getProgramInstance()
     {
         return programInstance;
     }

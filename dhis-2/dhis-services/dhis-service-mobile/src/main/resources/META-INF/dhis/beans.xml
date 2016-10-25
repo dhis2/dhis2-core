@@ -49,7 +49,6 @@
 		<property name="chartService" ref="org.hisp.dhis.chart.ChartService" />
 		<property name="trackedEntityService" ref="org.hisp.dhis.trackedentity.TrackedEntityService" />
 		<property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
-		<property name="reminderService" ref="org.hisp.dhis.trackedentity.TrackedEntityInstanceReminderService" />
 
 	</bean>
 

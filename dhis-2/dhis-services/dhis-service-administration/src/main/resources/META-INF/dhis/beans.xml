@@ -30,7 +30,6 @@
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
-    <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
@@ -42,10 +41,7 @@
   
   <!-- Maintenance -->
 
-  <bean id="org.hisp.dhis.maintenance.MaintenanceStore" class="org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-    <property name="statementBuilder" ref="statementBuilder" />
-  </bean>
+  <bean id="org.hisp.dhis.maintenance.MaintenanceStore" class="org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore" />
 
   <bean id="org.hisp.dhis.maintenance.MaintenanceService" class="org.hisp.dhis.maintenance.DefaultMaintenanceService">
     <property name="maintenanceStore" ref="org.hisp.dhis.maintenance.MaintenanceStore" />
@@ -70,38 +66,12 @@
   <bean id="resourceTableTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
 
   <bean id="resourceTable15MinTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
-  
-  <bean id="abstractScheduledMessageTask"
-		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask">
-		<property name="programStageInstanceService"
-			ref="org.hisp.dhis.program.ProgramStageInstanceService" />
-		<property name="outboundSmsService"
-			ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
+
+  <bean id="sendScheduledMessageTaskNow" class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask" scope="prototype">
+		<property name="outboundSmsService" ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
 		<property name="smsSender" ref="smsMessageSender" />
-		<property name="programInstanceService" ref="org.hisp.dhis.program.ProgramInstanceService" />
 		<property name="notifier" ref="notifier" />
-		<property name="jdbcTemplate" ref="jdbcTemplate" />
 	</bean>
 
-	<bean id="sendScheduledMessageTask"
-		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask"
-		parent="abstractScheduledMessageTask" scope="prototype">
-		<property name="sendingMessage" value="true" />
-		<property name="sendNow" value="false"/>
-	</bean>
-
-	<bean id="smsSchedulerTask"
-		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask"
-		parent="abstractScheduledMessageTask" scope="prototype">
-		<property name="sendingMessage" value="false" />
-		<property name="sendNow" value="false"/>
-	</bean>
-	
-	<bean id="sendScheduledMessageTaskNow"
-		class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask"
-		parent="abstractScheduledMessageTask" scope="prototype">
-		<property name="sendingMessage" value="false" />
-		<property name="sendNow" value="true"/>
-	</bean>
 
 </beans>

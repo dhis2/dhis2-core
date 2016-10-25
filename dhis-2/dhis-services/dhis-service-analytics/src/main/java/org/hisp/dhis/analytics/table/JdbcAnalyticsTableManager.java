@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -49,11 +48,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.scheduling.annotation.Async;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -86,7 +81,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public String validState()
     {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from datavalue limit 1" ).next();
+        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from datavalue dv where dv.deleted is false limit 1" ).next();
 
         if ( !hasData )
         {
@@ -181,7 +176,9 @@ public class JdbcAnalyticsTableManager
 
             populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
 
-            populateTable( table, "null", "dv.value", ValueType.TEXT_TYPES, null, approvalClause );
+            // Both TEXT_TYPES and DATE_TYPES are populated in the same way
+            populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+
         }
 
         return null;
@@ -246,7 +243,8 @@ public class JdbcAnalyticsTableManager
                 "and de.domaintype = 'AGGREGATE' " +
                 "and pe.startdate >= '" + start + "' " +
                 "and pe.startdate <= '" + end + "' " +
-                "and dv.value is not null ";
+                "and dv.value is not null " +
+                "and dv.deleted is false ";
 
         if ( whereClause != null )
         {

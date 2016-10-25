@@ -19,21 +19,6 @@
       <property name="endDate" not-null="true" type="date" column="enddate" />
     </properties>
 
-    <!-- Object Translation -->
-    <set name="translations" table="periodtranslations" cascade="delete-orphan">
-      <cache usage="read-write" />
-      <key column="periodid" foreign-key="fk_objecttranslation_periodid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
-    </set>
-
   </class>
-
-  <filter-def name="locale">
-    <filter-param name="locale" type="string" />
-  </filter-def>
 
 </hibernate-mapping>

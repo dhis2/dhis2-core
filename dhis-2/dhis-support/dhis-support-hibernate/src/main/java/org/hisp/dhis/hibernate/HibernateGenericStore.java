@@ -46,21 +46,18 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -68,7 +65,6 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Lars Helge Overland
@@ -159,15 +155,7 @@ public class HibernateGenericStore<T>
      */
     protected final Session getSession()
     {
-        Session session = sessionFactory.getCurrentSession();
-        Locale dbLocale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE, Locale.class );
-
-        if ( dbLocale != null )
-        {
-            session.enableFilter( "locale" ).setParameter( "locale", dbLocale.toString() );
-        }
-
-        return session;
+        return sessionFactory.getCurrentSession();
     }
 
     /**
@@ -390,7 +378,7 @@ public class HibernateGenericStore<T>
             }
         }
 
-        if ( !Interpretation.class.isAssignableFrom( clazz ) && user != null && aclService.isShareable( clazz ) )
+        if ( user != null && aclService.isShareable( clazz ) )
         {
             BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
 
@@ -449,7 +437,7 @@ public class HibernateGenericStore<T>
             }
         }
 
-        if ( !Interpretation.class.isAssignableFrom( clazz ) && !isUpdateAllowed( object, user ) )
+        if ( !isUpdateAllowed( object, user ) )
         {
             AuditLogUtil.infoWrapper( log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED );
             throw new UpdateAccessDeniedException( object.toString() );

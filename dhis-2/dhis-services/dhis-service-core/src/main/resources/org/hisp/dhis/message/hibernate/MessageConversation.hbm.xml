@@ -37,6 +37,9 @@
       </type>
     </property>
 
+    <many-to-one name="assignee" class="org.hisp.dhis.user.User" column="user_assigned"
+      foreign-key="fk_messageconversation_user_user_assigned" not-null="false" />
+
     <set name="userMessages" table="messageconversation_usermessages" cascade="all,delete-orphan">
       <key column="messageconversationid"
         foreign-key="fk_messageconversation_usermessages_messageconversationid" />

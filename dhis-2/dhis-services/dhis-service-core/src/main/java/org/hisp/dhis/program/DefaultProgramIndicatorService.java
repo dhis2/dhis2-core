@@ -638,19 +638,6 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public ProgramIndicatorGroup getProgramIndicatorGroup( int id, boolean i18nIndicators )
-    {
-        ProgramIndicatorGroup group = getProgramIndicatorGroup( id );
-
-        if ( i18nIndicators )
-        {
-            group.getMembers();
-        }
-
-        return group;
-    }
-
-    @Override
     public ProgramIndicatorGroup getProgramIndicatorGroup( String uid )
     {
         return programIndicatorGroupStore.getByUid( uid );

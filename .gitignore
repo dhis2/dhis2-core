@@ -17,6 +17,7 @@ nbactions.xml
 .project
 .mtj
 .idea
+.swp
 *.iml
 *.ipr
 *.ids

@@ -1,0 +1,143 @@
+
+<h3>$i18n.getString( "update_program_notification" )</h3>
+<h5>$encoder.htmlEncode( $template.displayName )</h5>
+
+<div class="inputForm">
+    <input type="hidden" id="templateUid" value="$template.uid">
+    <input type="hidden" id="ownerId" value="$program.id">
+    <input type="hidden" id="ownerUid" value="$program.uid">
+    <input type="hidden" id="ownerType" value="program">
+    <input type="hidden" id="isUpdate" value="true">
+
+    <table>
+        <thead>
+        <tr>
+            <th colspan="2" style="width: 590px;">$i18n.getString( "program_notification_details" )</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label>
+            </td>
+            <td>
+                <input type="text" id="name" name="name" value="$!template.name" />
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                <label for="notificationTrigger">$i18n.getString( "trigger_by" )</label>
+            </td>
+            <td>
+                #set( $trigger = $template.notificationTrigger.name() )
+                <select type="text" id="notificationTrigger" name="notificationTrigger">
+                    <option value="ENROLLMENT" #if ( $trigger == "ENROLLMENT" ) selected #end>$i18n.getString( "program_enrollment" )</option>
+                    <option value="COMPLETION" #if ( $trigger == "COMPLETION" ) selected #end>$i18n.getString( "program_completion" )</option>
+                    <option value="SCHEDULED_DAYS_INCIDENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_INCIDENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_incident_date" )</option>
+                    <option value="SCHEDULED_DAYS_ENROLLMENT_DATE" #if ( $trigger == "SCHEDULED_DAYS_ENROLLMENT_DATE" ) selected #end>$i18n.getString( "days_scheduled_enrollment_date" )</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="daysContainer" #if ( $template.notificationTrigger.isImmediate() ) style="display: none;" #end>
+            <td>
+                <label for="relativeScheduledDays">$i18n.getString( "send_notification" )</label>
+            </td>
+            <td>
+                #set( $days = $template.relativeScheduledDays )
+                #if ( !$days ) #set( $days = 0 ) #end
+                <input type="number" min="1" max="300" id="days" value="#absValue( $days )" style="width:60px;">
+                $i18n.getString( "days" )
+                <select id="daysModifier" name="daysModifier" style="width:100px;">
+                    <option value="-1" #if ( $days <= 0 ) selected #end>$i18n.getString( "before") </option>
+                    <option value="1" #if ( $days > 0 ) selected #end>$i18n.getString( "after" )</option>
+                </select>
+                $i18n.getString( "scheduled_date" )
+                <input type="hidden" id="relativeScheduledDays" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="notificationRecipient">$i18n.getString( "recipients" )</label>
+            </td>
+            <td>
+                #set( $rcpt = $template.notificationRecipient.name() )
+                <select type="text" id="notificationRecipient" name="notificationRecipient">
+                    <option value="TRACKED_ENTITY_INSTANCE" #if ( $rcpt == "TRACKED_ENTITY_INSTANCE" ) selected #end>$i18n.getString( "tracked_entity_instance" )</option>
+                    <option value="ORGANISATION_UNIT_CONTACT" #if ( $rcpt == "ORGANISATION_UNIT_CONTACT" ) selected #end>$i18n.getString( "orgunit_contact" )</option>
+                    <option value="USERS_AT_ORGANISATION_UNIT" #if ( $rcpt == "USERS_AT_ORGANISATION_UNIT" ) selected #end>$i18n.getString( "users_at_orgunit" )</option>
+                    <option value="USER_GROUP" #if ( $rcpt == "USER_GROUP" ) selected #end>$i18n.getString( "user_group" )</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="userGroupContainer" #if ( $rcpt != "USER_GROUP" ) style="display: none;" #end>
+            <td>
+                <label for="userGroup">$i18n.getString( "user_group" )</label>
+            </td>
+            <td>
+                #set( $ug = $template.recipientUserGroup )
+                <select type="text" id="userGroup" class="userGroup">
+                    <option value="">[$i18n.getString("please_select")]</option>
+                    #foreach( $group in $!userGroups )
+                        <option value="$group.uid" #if ( $ug && $ug.uid.equals( $group.uid ) ) selected #end>$i18n.getString( $group.displayName )</option>
+                    #end
+                </select>
+            </td>
+        </tr>
+        <tr id="deliveryChannelsContainer" #if ( !$template.notificationRecipient.isExternalRecipient() ) style="display: none;" #end>
+            <td><label for="deliveryChannelsForm">$i18n.getString( "message_type" )</label></td>
+            <td>
+                #set( $dc = $template.deliveryChannels )
+                <form id="deliveryChannelsForm">
+                    <label for="sms_cb">$i18n.getString( "sms" )</label>
+                    <input type="checkbox" #setIfEnumCollectionContains( "SMS" $dc "checked" ) id="sms_cb" name="deliveryChannels[]" value="SMS">
+
+                    <label for="email_cb">$i18n.getString( "email" )</label>
+                    <input type="checkbox" #setIfEnumCollectionContains( "EMAIL" $dc "checked" ) id="email_cb" name="deliveryChannels[]" value="EMAIL">
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>$i18n.getString( "params" )</td>
+            <td>
+                <select multiple size="4" id="params">
+                    <option value="V{program_name}">$i18n.getString( "program_name" )</option>
+                    <option value="V{org_unit_name}">$i18n.getString( "org_unit_name" )</option>
+                    <option value="V{current_date}">$i18n.getString( "current_date" )</option>
+                    #foreach( $attr in $attributes )
+                        <option value="A{$attr.uid}">$attr.displayName</option>
+                    #end
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="subjectTemplate">$i18n.getString( "subject_template" )</label>
+            </td>
+            <td>
+                <textarea id="subjectTemplate" name="subjectTemplate" style="height:2em;">$!template.subjectTemplate</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="messageTemplate">$i18n.getString( "message_template" )</label>
+            </td>
+            <td>
+                <textarea id="messageTemplate" maxlength="" name="messageTemplate">$!template.messageTemplate</textarea>
+            </td>
+        </tr>
+        </tbody>
+        <tbody>
+        <tr>
+            <td></td>
+            <td>
+                <button type="button" id="save" style="width: 10em;">$i18n.getString( 'save' )</button>
+                <button type="button" id="cancel" style="width: 10em;">$i18n.getString( 'cancel' )</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+</script>

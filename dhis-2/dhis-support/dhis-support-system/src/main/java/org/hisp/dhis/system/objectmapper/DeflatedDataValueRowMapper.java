@@ -31,7 +31,7 @@ package org.hisp.dhis.system.objectmapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.amplecode.quick.mapper.RowMapper;
+import org.hisp.quick.mapper.RowMapper;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 
 /**

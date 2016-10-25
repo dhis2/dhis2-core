@@ -73,6 +73,11 @@ public class MetadataSyncPreProcessor
     @Autowired
     private MetadataVersionDelegate metadataVersionDelegate;
 
+    public void setUp(MetadataRetryContext context)
+    {
+        systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
+    }
+
     public ImportSummary handleAggregateDataPush( MetadataRetryContext context )
     {
         log.debug( "Entering data push" );

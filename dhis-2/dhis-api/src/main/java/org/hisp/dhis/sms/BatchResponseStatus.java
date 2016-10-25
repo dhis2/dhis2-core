@@ -31,6 +31,7 @@ package org.hisp.dhis.sms;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import java.util.List;
@@ -59,5 +60,11 @@ public class BatchResponseStatus
     public List<MessageResponseSummary> getSummaries()
     {
         return summaries;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).add( "summaries", summaries ).toString();
     }
 }

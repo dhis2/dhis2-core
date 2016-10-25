@@ -510,26 +510,6 @@ var validationRules = {
             "rangelength" : [ 2,255 ]
         }
     },
-	"trackedEntityInstanceReminder" : {
-        "name" : {
-            "required" : true,
-            "rangelength" : [2,230]
-        },
-        "days" : {
-            "required": true,
-            "number" : true
-        },
-        "sendTo" : {
-            "required": true
-        },
-        "messageType" : {
-            "required": true,
-            "number" : true
-        },
-        "templateMessage" : {
-            "required": true
-        }
-    },
     "programIndicator" : {
         "name" : {
             "required" : true,

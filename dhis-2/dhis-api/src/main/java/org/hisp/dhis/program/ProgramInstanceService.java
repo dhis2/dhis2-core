@@ -33,7 +33,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -162,36 +161,6 @@ public interface ProgramInstanceService
     List<ProgramInstance> getProgramInstances( Program program );
 
     /**
-     * Retrieve program instances on program list
-     *
-     * @param programs Program list
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( Collection<Program> programs );
-
-    /**
-     * Retrieve program instances of whom registered in to a orgunit from
-     * program list
-     *
-     * @param programs         Program list
-     * @param organisationUnit Organisation Unit
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( Collection<Program> programs, OrganisationUnit organisationUnit );
-
-    /**
-     * Retrieve program instances of whom registered in to a orgunit from
-     * program list with a certain status
-     *
-     * @param programs         Program list
-     * @param organisationUnit Organisation Unit
-     * @param status           Status of program-instance, include STATUS_ACTIVE,
-     *                         STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( Collection<Program> programs, OrganisationUnit organisationUnit, ProgramStatus status );
-
-    /**
      * Retrieve program instances on a program by status
      *
      * @param program Program
@@ -200,35 +169,6 @@ public interface ProgramInstanceService
      * @return ProgramInstance list
      */
     List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status );
-
-    /**
-     * Retrieve program instances on a program list by status
-     *
-     * @param programs Program list
-     * @param status   Status of program-instance, include STATUS_ACTIVE,
-     *                 STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( Collection<Program> programs, ProgramStatus status );
-
-    /**
-     * Retrieve program instances on a TrackedEntityInstance by a status
-     *
-     * @param entityInstance TrackedEntityInstance
-     * @param status         Status of program-instance, include STATUS_ACTIVE,
-     *                       STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, ProgramStatus status );
-
-    /**
-     * Retrieve program instances on a TrackedEntityInstance by a program
-     *
-     * @param entityInstance TrackedEntityInstance
-     * @param program        Program
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program );
 
     /**
      * Retrieve program instances on a TrackedEntityInstance with a status by a program
@@ -240,82 +180,6 @@ public interface ProgramInstanceService
      * @return ProgramInstance list
      */
     List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
-
-    /**
-     * Retrieve program instances with active status on an orgunit by a program
-     * with result limited
-     *
-     * @param program          Program
-     * @param organisationUnit Organisation Unit
-     * @param min              First result
-     * @param max              Maximum results
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( Program program, OrganisationUnit organisationUnit, Integer min, Integer max );
-
-    /**
-     * Retrieve program instances with active status on an organisation unit by
-     * a program for a certain period with result limited
-     *
-     * @param program    Program
-     * @param orgunitIds Organisation Units
-     * @param startDate  The start date for retrieving on enrollment-date
-     * @param endDate    The end date for retrieving on enrollment-date
-     * @param min        First result
-     * @param max        Maximum results
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstances( Program program, Collection<Integer> orgunitIds, Date startDate,
-        Date endDate, Integer min, Integer max );
-
-    /**
-     * Get the number of program instances which are active status and
-     * registered in a certain organisation unit by a program for a certain period
-     *
-     * @param program    Program
-     * @param orgunitIds Organisation Units
-     * @param startDate  The start date for retrieving on enrollment-date
-     * @param endDate    The end date for retrieving on enrollment-date
-     * @return ProgramInstance list
-     */
-    int countProgramInstances( Program program, Collection<Integer> orgunitIds, Date startDate, Date endDate );
-
-    /**
-     * Retrieve program instances with a certain status on a program and an
-     * orgunit ids list for a period
-     *
-     * @param status     of program-instance, include STATUS_ACTIVE,
-     *                   STATUS_COMPLETED and STATUS_CANCELLED
-     * @param program    ProgramInstance
-     * @param orgunitIds A list of orgunit ids
-     * @param startDate  The start date for retrieving on enrollment-date
-     * @param endDate    The end date for retrieving on enrollment-date
-     * @return ProgramInstance list
-     */
-    List<ProgramInstance> getProgramInstancesByStatus( ProgramStatus status, Program program,
-        Collection<Integer> orgunitIds, Date startDate, Date endDate );
-
-    /**
-     * Get the number of program instances of a program which have a certain
-     * status and an orgunit ids list for a period
-     *
-     * @param status     of program-instance, include STATUS_ACTIVE,
-     *                   STATUS_COMPLETED and STATUS_CANCELLED
-     * @param program    ProgramInstance
-     * @param orgunitIds A list of orgunit ids
-     * @param startDate  The start date for retrieving on enrollment-date
-     * @param endDate    The end date for retrieving on enrollment-date
-     * @return A number
-     */
-    int countProgramInstancesByStatus( ProgramStatus status, Program program, Collection<Integer> orgunitIds, Date startDate,
-        Date endDate );
-
-    /**
-     * Retrieve scheduled list of entityInstances registered
-     *
-     * @return A SchedulingProgramObject list
-     */
-    Collection<SchedulingProgramObject> getScheduledMessages();
 
     /**
      * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.

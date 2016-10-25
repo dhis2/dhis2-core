@@ -1,10 +1,5 @@
 <script>
 	var i18n_characters_without_params = '$encoder.jsEscape( $i18n.getString( "characters_without_params" ) , "'")';
-	var program_stage_SMS_reminder_form ="<select type='text' id='userGroup$index' name='userGroup$index' class='userGroup'>";
-	#foreach( $group in $userGroups )
-		program_stage_SMS_reminder_form += "<option value='$group.id'>$i18n.getString($group.name)</option>";
-	#end
-	program_stage_SMS_reminder_form +="</select>";
 </script>
 
 <script>
@@ -25,14 +20,6 @@
 				}
 			}
 
-   			/*var customStandardInterval = byId('customStandardInterval').checked;
-   			if( customStandardInterval ){
-   				setFieldValue('periodTypeName','');
-   			}
-   			else{
-   				setFieldValue('standardInterval','');
-   			}*/
-
    			var selectedDataElementsValidator = jQuery( "#selectedDataElementsValidator" );
    			selectedDataElementsValidator.empty();
 
@@ -42,29 +29,11 @@
    			var displayInReports = jQuery( "#displayInReports" );
    			displayInReports.empty();
 
-   			var daysAllowedSendMessages = jQuery( "#daysAllowedSendMessages" );
-   			daysAllowedSendMessages.empty();
-
    			var allowFutureDates = jQuery( "#allowFutureDates" );
    			allowFutureDates.empty();
 
-   			var templateMessages = jQuery( "#templateMessages" );
-   			templateMessages.empty();
-
    			var allowProvidedElsewhere = jQuery( "#allowProvidedElsewhere" );
    			allowProvidedElsewhere.empty();
-
-   			var sendTo = jQuery( "#sendTo" );
-   			sendTo.empty();
-
-   			var whenToSend = jQuery( "#whenToSend" );
-   			whenToSend.empty();
-
-   			var userGroup = jQuery( "#userGroup" );
-   			userGroup.empty();
-
-   			var messageType = jQuery( "#messageType" );
-   			messageType.empty();
 
    			jQuery("#selectedList").find("tr").each( function( i, item ){
 
@@ -86,26 +55,6 @@
    				checked = allowFutureDate.attr('checked') ? true : false;
    				allowFutureDates.append( "<option value='" + checked + "' selected='true'>" + checked + "</option>" );
    			});
-
-   			jQuery(".daysAllowedSendMessage").each( function( i, item ){
-   				var days = (jQuery(item).attr('realvalue')==undefined) ? 0 : jQuery(item).attr('realvalue');
-   				daysAllowedSendMessages.append( "<option value='" + days + "' selected='true'>" + days + "</option>" );
-   			});
-   			jQuery(".templateMessage").each( function( i, item ){
-   				templateMessages.append( "<option value='" + item.value + "' selected='true'>" + item.value + "</option>" );
-   			});
-   			jQuery(".sendTo").each( function( i, item ){
-   				sendTo.append( "<option value='" + item.value + "' selected='true'>" + item.value + "</option>" );
-   			});
-   			jQuery(".whenToSend").each( function( i, item ){
-   				whenToSend.append( "<option value='" + item.value + "' selected='true'>" + item.value + "</option>" );
-   			});
-   			jQuery(".messageType").each( function( i, item ){
-   				messageType.append( "<option value='" + item.value + "' selected='true'>" + item.value + "</option>" );
-   			});
-   			jQuery(".userGroup").each( function( i, item ){
-   				userGroup.append( "<option value='" + item.value + "' selected='true'>" + item.value + "</option>" );
-   			});
    		},
    		'rules' : getValidationRules( "programStage" )
    	});
@@ -120,12 +69,6 @@
 <form id="updateProgramStageForm" name="updateProgramStageForm" action="updateProgramStage.action" method="post" class="inputForm">
 	<input type="hidden" id="id" name="id" value="$programStage.id"/>
 	<input type="hidden" id="programId" name="programId" value="$programStage.program.id"/>
-	<select id='daysAllowedSendMessages' name="daysAllowedSendMessages" multiple="multiple" class="hidden"></select>
-	<select id='templateMessages' name="templateMessages" multiple="multiple" class="hidden"></select>
-	<select id='sendTo' name="sendTo" multiple="multiple" class="hidden"></select>
-	<select id='whenToSend' name="whenToSend" multiple="multiple" class="hidden"></select>
-	<select id='messageType' name="messageType" multiple="multiple" class="hidden"></select>
-	<select id='userGroup' name="userGroup" multiple="multiple" class="hidden"></select>
 	
 	<table id="detailsList">
 		<thead>

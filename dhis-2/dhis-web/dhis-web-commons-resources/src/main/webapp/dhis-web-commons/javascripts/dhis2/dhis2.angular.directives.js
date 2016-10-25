@@ -328,7 +328,7 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
-.directive('d2FileInput', function(DHIS2EventService, DHIS2EventFactory, FileService, DialogService){
+.directive('d2FileInput', function($translate, DHIS2EventService, DHIS2EventFactory, FileService, NotificationService){
 
     return {
         restrict: "A",
@@ -367,11 +367,8 @@ var d2Directives = angular.module('d2Directives', [])
                         }
                     }
                     else{
-                        var dialogOptions = {
-                            headerText: 'error',
-                            bodyText: 'file_upload_failed'
-                        };
-                        DialogService.showDialog({}, dialogOptions);
+                        NotificationService.showNotifcationDialog($translate.instant("error"),
+                            $translate.instant("file_upload_failed"));
                     }
 
                 });
@@ -381,7 +378,7 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
-.directive('d2FileInputDelete', function($parse, $timeout, FileService, DialogService){
+.directive('d2FileInputDelete', function($parse, $timeout, $translate, FileService, NotificationService){
 
     return {
         restrict: "A",
@@ -399,17 +396,15 @@ var d2Directives = angular.module('d2Directives', [])
                         });
                     }
                     else{
-                        var dialogOptions = {
-                            headerText: 'error',
-                            bodyText: 'file_missing'
-                        };
-                        DialogService.showDialog({}, dialogOptions);
+                        NotificationService.showNotifcationDialog($translate.instant("error"),
+                            $translate.instant("file_missing"));
                     }
                 });
             }
         }
     };
 })
+
 .directive('d2Audit', function (CurrentSelection, MetaDataFactory ) {
     return {
         restrict: 'E',
@@ -463,6 +458,7 @@ var d2Directives = angular.module('d2Directives', [])
         }
     };
 })
+
 .directive('d2RadioButton', function (){
     return {
         restrict: 'E',
@@ -657,9 +653,9 @@ var d2Directives = angular.module('d2Directives', [])
             selectedOrgUnit: '=',
             id: '@',
             d2Object: '=',
-            d2Disabled: '@',
-            d2CallbackFunction: '&d2Function',
-            d2Required: '@'
+            d2Disabled: '=',
+            d2Required: '=',
+            d2CallbackFunction: '&d2Function'
         },
         controller: function($scope, $modal){
             
@@ -703,47 +699,144 @@ var d2Directives = angular.module('d2Directives', [])
         restrict: 'E',            
         templateUrl: "../dhis-web-commons/angular-forms/coordinate-input.html",
         scope: {
-            d2Object: '=',
-            d2Disabled: '@',
+            id: '@',            
+            d2Object: '=',            
             d2CallbackFunction: '&d2Function',
-            d2CallbackFunctionParam: '@d2FunctionParam',
-            d2Required: '@',
+            d2CallbackFunctionParamText: '=d2FunctionParamText',
+            d2CallbackFunctionParamCoordinate: '=d2FunctionParamCoordinate',
+            d2Disabled: '=',
+            d2Required: '=',
             d2LatSaved: '=',
-            d2LngSaved: '='
+            d2LngSaved: '=',
+            d2CoordinateFormat: '='
         },
-        controller: function($scope, $modal){
+        controller: function($scope, $modal, $filter, DHIS2COORDINATESIZE){            
+            $scope.coordinateObject = angular.copy( $scope.d2Object );                        
+            if( $scope.d2CoordinateFormat === 'TEXT' ){        
+                if( $scope.d2Object[$scope.id] && $scope.d2Object[$scope.id] !== ''){                    
+                    var coordinates = $scope.d2Object[$scope.id].split(",");
+                    $scope.coordinateObject.coordinate = {latitude: parseFloat(coordinates[1]), longitude: parseFloat(coordinates[0])};
+                }
+                else{
+                    $scope.coordinateObject.coordinate = {};
+                }
+            }            
+            if( !$scope.coordinateObject.coordinate ){
+                $scope.coordinateObject.coordinate = {};
+            }
             
-            $scope.showMap = function(){
+            $scope.showMap = function(){                
+                if( $scope.d2CoordinateFormat === 'TEXT' ){        
+                    if( $scope.d2Object[$scope.id] && $scope.d2Object[$scope.id] !== ''){                        
+                        var coordinates = $scope.d2Object[$scope.id].split(",");
+                        $scope.coordinateObject.coordinate = {latitude: parseFloat(coordinates[1]), longitude: parseFloat(coordinates[0])};
+                    }                    
+                    else{
+                        $scope.coordinateObject.coordinate = {};
+                    }
+                }
                 
+                if( !$scope.coordinateObject.coordinate ){
+                    $scope.coordinateObject.coordinate = {};
+                }
+                            
                 var modalInstance = $modal.open({
                     templateUrl: '../dhis-web-commons/angular-forms/map.html',
                     controller: 'MapController',
-                    windowClass: 'modal-full-window',
+                    windowClass: 'modal-map-window',
                     resolve: {
                         location: function () {
-                            return {lat: $scope.d2Object.coordinate.latitude, lng: $scope.d2Object.coordinate.longitude};
+                            return {lat: $scope.coordinateObject.coordinate.latitude, lng:  $scope.coordinateObject.coordinate.longitude};
                         }
                     }
                 });
                 
-                modalInstance.result.then(function (location) {
+                modalInstance.result.then(function (location) {                    
                     if(angular.isObject(location)){
-                        $scope.d2Object.coordinate.latitude = location.lat;
-                        $scope.d2Object.coordinate.longitude = location.lng;
-                        if( angular.isDefined( $scope.d2CallbackFunction ) ){
-                            $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParam} );
-                        }                        
+                    	
+                    	if( dhis2.validation.isNumber( location.lat ) ){
+                    		location.lat = parseFloat( $filter('number')(location.lat, DHIS2COORDINATESIZE) );
+                    	}
+                    	
+                    	if( dhis2.validation.isNumber( location.lng ) ){
+                    		location.lng = parseFloat( $filter('number')(location.lng, DHIS2COORDINATESIZE) );
+                    	}
+                    	
+                        $scope.coordinateObject.coordinate.latitude = location.lat;
+                        $scope.coordinateObject.coordinate.longitude = location.lng;                        
+
+                        if( $scope.d2CoordinateFormat === 'TEXT' ){                        
+                            $scope.d2Object[$scope.id] = location.lng + ',' + location.lat;
+                            if( angular.isDefined( $scope.d2CallbackFunction ) ){
+                                $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParamText} );
+                            }
+                        }
+                        else{
+                            $scope.d2Object.coordinate.latitude = location.lat;
+                            $scope.d2Object.coordinate.longitude = location.lng;
+                            if( angular.isDefined( $scope.d2CallbackFunction ) ){
+                                $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParamCoordinate} );
+                            }
+                        }                                                
                     }
                 }, function () {
                 });
             };
             
-            $scope.saveCoordinate = function( param ){
-                if( angular.isDefined( $scope.d2CallbackFunction ) ){
-                    $scope.d2CallbackFunction( {arg1: param} );
+            $scope.coordinateInteracted = function (field, form) {        
+                var status = false;
+                if (field) {
+                    if(angular.isDefined(form)){
+                        status = form.$submitted || field.$dirty;
+                    }
+                    else {
+                        status = $scope.coordinateForm.$submitted || field.$dirty;
+                    }            
                 }
+                return status;
             };
             
+            $scope.saveD2Coordinate = function(){
+                
+                var saveCoordinate = function( format, param ){
+                    if( !$scope.coordinateObject.coordinate.longitude && !$scope.coordinateObject.coordinate.latitude ){
+                        if( format === 'COORDINATE' ){
+                            $scope.d2Object.coordinate = {latitude: "", longitude: ""};
+                        }
+                        else{
+                            $scope.d2Object[$scope.id] = '';
+                        }
+                        $scope.d2CallbackFunction( {arg1: param} );                            
+                    }
+                    else{
+                        if( $scope.coordinateObject.coordinate.longitude && $scope.coordinateObject.coordinate.latitude ){
+                            $scope.d2CallbackFunction( {arg1: param} );
+                        }
+                    }                    
+                };
+                
+                if( angular.isDefined( $scope.d2CallbackFunction ) ){
+                	
+                	if( dhis2.validation.isNumber( $scope.coordinateObject.coordinate.latitude ) ){
+                		$scope.coordinateObject.coordinate.latitude = parseFloat( $filter('number')($scope.coordinateObject.coordinate.latitude, DHIS2COORDINATESIZE) );
+                	}
+                	
+                	if( dhis2.validation.isNumber( $scope.coordinateObject.coordinate.longitude ) ){
+                		$scope.coordinateObject.coordinate.longitude = parseFloat( $filter('number')($scope.coordinateObject.coordinate.longitude, DHIS2COORDINATESIZE) );
+                	}
+                	
+                    if( $scope.d2CoordinateFormat === 'TEXT' ){                    
+                        $scope.d2Object[$scope.id] = $scope.coordinateObject.coordinate.longitude + ',' + $scope.coordinateObject.coordinate.latitude;                        
+                        saveCoordinate( 'TEXT',  $scope.prStDe);
+                    }
+                    else{
+                        $scope.d2Object.coordinate.latitude = $scope.coordinateObject.coordinate.latitude;
+                        $scope.d2Object.coordinate.longitude = $scope.coordinateObject.coordinate.longitude;
+                        
+                        saveCoordinate( 'COORDINATE',  $scope.d2CallbackFunctionParam );                        
+                    }
+                }
+            };    
         },
         link: function (scope, element, attrs) {
             

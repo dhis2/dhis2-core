@@ -207,8 +207,8 @@ public class TrackedEntityInstanceStoreTest
 
         // Filter by attribute
 
-        params = new TrackedEntityInstanceQueryParams();
-        params.addFilter( new QueryItem( atA, QueryOperator.EQ, "Male", ValueType.TEXT, AggregationType.NONE, null ) );
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.EQ, "Male", ValueType.TEXT, AggregationType.NONE, null ) );
 
         teis = teiStore.getTrackedEntityInstances( params );
 
@@ -218,8 +218,8 @@ public class TrackedEntityInstanceStoreTest
 
         // Filter by attribute
 
-        params = new TrackedEntityInstanceQueryParams();
-        params.addFilter( new QueryItem( atA, QueryOperator.EQ, "Female", ValueType.TEXT, AggregationType.NONE, null ) );
+        params = new TrackedEntityInstanceQueryParams()
+            .addFilter( new QueryItem( atA, QueryOperator.EQ, "Female", ValueType.TEXT, AggregationType.NONE, null ) );
 
         teis = teiStore.getTrackedEntityInstances( params );
 
@@ -228,9 +228,9 @@ public class TrackedEntityInstanceStoreTest
 
         // Filter by selected org units
 
-        params = new TrackedEntityInstanceQueryParams();
-        params.addOrganisationUnit( ouB );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
+        params = new TrackedEntityInstanceQueryParams()
+            .addOrganisationUnit( ouB )
+            .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
 
         teis = teiStore.getTrackedEntityInstances( params );
 
@@ -240,9 +240,9 @@ public class TrackedEntityInstanceStoreTest
 
         // Filter by descendants org units
 
-        params = new TrackedEntityInstanceQueryParams();
-        params.addOrganisationUnit( ouB );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
+        params = new TrackedEntityInstanceQueryParams()
+            .addOrganisationUnit( ouB )
+            .setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
 
         teis = teiStore.getTrackedEntityInstances( params );
 
@@ -255,8 +255,8 @@ public class TrackedEntityInstanceStoreTest
 
         // Filter by program enrollment
 
-        params = new TrackedEntityInstanceQueryParams();
-        params.setProgram( prA );
+        params = new TrackedEntityInstanceQueryParams()
+            .setProgram( prA );
 
         teis = teiStore.getTrackedEntityInstances( params );
 

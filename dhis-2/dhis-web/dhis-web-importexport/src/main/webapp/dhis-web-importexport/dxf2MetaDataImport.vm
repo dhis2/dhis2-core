@@ -42,13 +42,6 @@
     </select></td>
 </tr>
 <tr>
-	<td>$i18n.getString( "atomic_mode" )</td>
-	<td><select id="atomicMode" name="atomicMode" style="width:210px">
-		<option value="NONE">$i18n.getString( "atomic_mode_none" )</option>
-		<option value="ALL">$i18n.getString( "atomic_mode_all" )</option>
-    </select></td>
-</tr>
-<tr>
 	<td>$i18n.getString( "strategy" )</td>
 	<td><select id="strategy" name="strategy" style="width:210px">
 		<option value="NEW_AND_UPDATES">$i18n.getString( "new_and_updates" )</option>
@@ -59,6 +52,13 @@
 <tr>
 	<td></td>
 	<td><a href="javascript:toggleOptions()">$i18n.getString( "more_options" )</a></td>
+</tr>
+<tr class="moreOptions" style="display:none">
+	<td>$i18n.getString( "reference_mode" )</td>
+	<td><select id="atomicMode" name="atomicMode" style="width:210px">
+		<option value="NONE">$i18n.getString( "reference_mode_allow" )</option>
+		<option value="ALL">$i18n.getString( "reference_mode_deny" )</option>
+    </select></td>
 </tr>
 <tr>
 	<td></td>

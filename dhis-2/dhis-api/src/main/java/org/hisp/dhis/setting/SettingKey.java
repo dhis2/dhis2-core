@@ -31,6 +31,7 @@ package org.hisp.dhis.setting;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
@@ -77,6 +78,7 @@ public enum SettingKey
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
     SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
+    CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),
@@ -88,7 +90,7 @@ public enum SettingKey
     OPENID_PROVIDER_LABEL( "keyOpenIdProviderLabel" ),
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
     HIDE_UNAPPROVED_DATA_IN_ANALYTICS( "keyHideUnapprovedDataInAnalytics", Boolean.FALSE, Boolean.class ),
-    ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 50000, Integer.class ),
+    ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
     CUSTOM_LOGIN_PAGE_LOGO( "keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class ),
     CUSTOM_TOP_MENU_LOGO( "keyCustomTopMenuLogo", Boolean.FALSE, Boolean.class ),
     ANALYTICS_MAINTENANCE_MODE( "keyAnalyticsMaintenanceMode", Boolean.FALSE, Boolean.class ),
@@ -100,7 +102,6 @@ public enum SettingKey
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_MONITORING( "keyLastSuccessfulMonitoring", Date.class ),
-    LAST_SUCCESSFUL_SMS_SCHEDULING( "lastSuccessfulSmsScheduling", Date.class ),
     LAST_SUCCESSFUL_DATA_STATISTIC( "lastSuccessfulDataStatistics", Date.class ),
     HELP_PAGE_LINK( "helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html", String.class ),
     ACCEPTANCE_REQUIRED_FOR_APPROVAL( "keyAcceptanceRequiredForApproval", Boolean.FALSE, Boolean.class ),
@@ -129,12 +130,14 @@ public enum SettingKey
     REMOTE_INSTANCE_PASSWORD( "keyRemoteInstancePassword", "", String.class, true ),
     MAPZEN_SEARCH_API_KEY( "keyMapzenSearchApiKey", "search-Se1CFzK", String.class ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
-    LAST_SUCCESSFUL_METADATA_SYNC("keyLastMetaDataSyncSuccess", Date.class),
-    METADATAVERSION_ENABLED("keyVersionEnabled",Boolean.FALSE, Boolean.class),
-    METADATA_FAILED_VERSION("keyMetadataFailedVersion", String.class),
-    METADATA_LAST_FAILED_TIME("keyMetadataLastFailedTime", Date.class  ),
+    LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
+    METADATAVERSION_ENABLED( "keyVersionEnabled",Boolean.FALSE, Boolean.class),
+    METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
+    METADATA_LAST_FAILED_TIME("keyMetadataLastFailedTime", Date.class ),
     METADATA_SYNC_CRON( "metaDataSyncCron",String.class ),
-    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class);
+    LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
+    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class),
+    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class);
 
     private final String name;
     

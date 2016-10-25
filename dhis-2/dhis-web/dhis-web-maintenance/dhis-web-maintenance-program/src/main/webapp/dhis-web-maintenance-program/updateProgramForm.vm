@@ -192,14 +192,26 @@
             </td>
 		</tr>
 		
-		<tr name='nonAnonymous'>
-            <td><label>$i18n.getString( "capture_coordinates" )</label></td>
-            <td>
-              <select id="captureCoordinates" name="captureCoordinates">
-                <option value="false">$i18n.getString( "no" )</option>
-                <option value="true"#if( $program.captureCoordinates == true ) selected="selected"#end>$i18n.getString( "yes" )</option>
-              </select>
-            </td>
+		<tr>
+            <td><label>$i18n.getString( "complete_events_expiry_days" )</label></td>
+            <td><input type="number" id="completeEventsExpiryDays" name="completeEventsExpiryDays"value="$!program.completeEventsExpiryDays"></td>
+		</tr>
+
+		<tr>
+            <td><label for="periodTypeName">$i18n.getString( "expiry_period_type" )</label></td>
+			<td>
+				<select id="periodTypeName" name="periodTypeName" onchange='periodTypeOnChange();'>
+					<option value="">[$i18n.getString("please_select")]</option>
+					#foreach( $periodType in $periodTypes )						  
+						  <option value="$periodType.name" #if($program.expiryPeriodType.name == "$periodType.name") selected #end>$i18n.getString( $periodType.name )</option>
+					#end
+				</select>
+			</td>
+		</tr>	
+		
+		<tr>
+            <td><label>$i18n.getString( "expiry_days" )</label></td>
+            <td><input type="number" id="expiryDays" name="expiryDays" value="$!program.expiryDays"></td>
 		</tr>
 		
 		<tr name='nonAnonymous'><td>&nbsp;</td></tr>
@@ -242,6 +254,16 @@
 			<td><label for="enrollmentDateLabel">$i18n.getString( "date_of_enrollment_description" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
 			<td><input type="text" id="enrollmentDateLabel" name="enrollmentDateLabel"  value="$!program.enrollmentDateLabel" class="{validate:{required:true,minlength:4}}" #if( $program.programType.value=="without_registration" ) disabled #end></td>
 			<td></td>
+		</tr>
+		
+		<tr name='nonAnonymous'>
+            <td><label>$i18n.getString( "capture_coordinates" )</label></td>
+            <td>
+              <select id="captureCoordinates" name="captureCoordinates">
+                <option value="false">$i18n.getString( "no" )</option>
+                <option value="true"#if( $program.captureCoordinates == true ) selected="selected"#end>$i18n.getString( "yes" )</option>
+              </select>
+            </td>
 		</tr>
 
 		<tr name='nonAnonymous'><td>&nbsp;</td></tr>

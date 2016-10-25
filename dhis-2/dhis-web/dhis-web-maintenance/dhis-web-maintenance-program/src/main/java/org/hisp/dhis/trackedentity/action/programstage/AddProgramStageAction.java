@@ -41,15 +41,10 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -88,13 +83,6 @@ public class AddProgramStageAction
     public void setProgramStageDataElementService( ProgramStageDataElementService programStageDataElementService )
     {
         this.programStageDataElementService = programStageDataElementService;
-    }
-
-    private UserGroupService userGroupService;
-
-    public void setUserGroupService( UserGroupService userGroupService )
-    {
-        this.userGroupService = userGroupService;
     }
 
     private PeriodService periodService;
@@ -186,41 +174,6 @@ public class AddProgramStageAction
         this.excecutionDateLabel = excecutionDateLabel;
     }
 
-    private List<Integer> daysAllowedSendMessages = new ArrayList<>();
-
-    public void setDaysAllowedSendMessages( List<Integer> daysAllowedSendMessages )
-    {
-        this.daysAllowedSendMessages = daysAllowedSendMessages;
-    }
-
-    private List<String> templateMessages = new ArrayList<>();
-
-    public void setTemplateMessages( List<String> templateMessages )
-    {
-        this.templateMessages = templateMessages;
-    }
-
-    private List<Integer> sendTo = new ArrayList<>();
-
-    public void setSendTo( List<Integer> sendTo )
-    {
-        this.sendTo = sendTo;
-    }
-
-    private List<Integer> whenToSend = new ArrayList<>();
-
-    public void setWhenToSend( List<Integer> whenToSend )
-    {
-        this.whenToSend = whenToSend;
-    }
-
-    private List<Integer> messageType = new ArrayList<>();
-
-    public void setMessageType( List<Integer> messageType )
-    {
-        this.messageType = messageType;
-    }
-
     private Boolean autoGenerateEvent;
 
     public void setAutoGenerateEvent( Boolean autoGenerateEvent )
@@ -261,13 +214,6 @@ public class AddProgramStageAction
     public void setAllowFutureDates( List<Boolean> allowFutureDates )
     {
         this.allowFutureDates = allowFutureDates;
-    }
-
-    private List<Integer> userGroup = new ArrayList<>();
-
-    public void setUserGroup( List<Integer> userGroup )
-    {
-        this.userGroup = userGroup;
     }
 
     private Boolean relatedEntityInstance;
@@ -415,33 +361,6 @@ public class AddProgramStageAction
         programStage.setSortOrder( program.getProgramStages().size() + 1 );
         programStage.setHideDueDate( hideDueDate );
 
-        // SMS Reminder
-
-        Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
-        for ( int i = 0; i < daysAllowedSendMessages.size(); i++ )
-        {
-            TrackedEntityInstanceReminder reminder = new TrackedEntityInstanceReminder( "",
-                daysAllowedSendMessages.get( i ), templateMessages.get( i ) );
-            reminder.setDateToCompare( TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE );
-            reminder.setName( program.getName() + "-" + name + "-" + i );
-            reminder.setSendTo( sendTo.get( i ) );
-            reminder.setWhenToSend( whenToSend.get( i ) );
-            reminder.setMessageType( messageType.get( i ) );
-
-            if ( sendTo.get( i ) == TrackedEntityInstanceReminder.SEND_TO_USER_GROUP )
-            {
-                UserGroup selectedUserGroup = userGroupService.getUserGroup( userGroup.get( i ) );
-                reminder.setUserGroup( selectedUserGroup );
-            }
-            else
-            {
-                reminder.setUserGroup( null );
-            }
-
-            reminders.add( reminder );
-        }
-
-        programStage.setReminders( reminders );
         program.getProgramStages().add( programStage );
 
         if ( jsonAttributeValues != null )

@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.struts2.StrutsStatics;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -467,7 +466,7 @@ public class SaveSectionFormAction
         {
             name = "Default";
             dataElements = new ArrayList<>( dataSet.getDataElements() );
-            Collections.sort( dataElements, new IdentifiableObjectNameComparator() );
+            Collections.sort( dataElements );
         }
 
         dataValues = formUtils.getDataValueMap( organisationUnit, dataSet, period );

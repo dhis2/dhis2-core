@@ -68,9 +68,19 @@ public final class SchemaUtils
                 org.hisp.dhis.schema.annotation.Property pAnnotation = AnnotationUtils.getAnnotation( property.getGetterMethod(), org.hisp.dhis.schema.annotation.Property.class );
                 property.setPropertyType( pAnnotation.value() );
 
-                if ( pAnnotation.required() != org.hisp.dhis.schema.annotation.Property.Required.DEFAULT )
+                if ( pAnnotation.required() != org.hisp.dhis.schema.annotation.Property.Value.DEFAULT )
                 {
-                    property.setRequired( pAnnotation.required() == org.hisp.dhis.schema.annotation.Property.Required.TRUE );
+                    property.setRequired( pAnnotation.required() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
+                }
+
+                if ( pAnnotation.persisted() != org.hisp.dhis.schema.annotation.Property.Value.DEFAULT )
+                {
+                    property.setPersisted( pAnnotation.persisted() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
+                }
+
+                if ( pAnnotation.owner() != org.hisp.dhis.schema.annotation.Property.Value.DEFAULT )
+                {
+                    property.setOwner( pAnnotation.owner() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
                 }
             }
 

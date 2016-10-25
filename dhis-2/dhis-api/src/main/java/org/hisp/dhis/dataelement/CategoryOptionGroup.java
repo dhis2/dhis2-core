@@ -74,21 +74,6 @@ public class CategoryOptionGroup
         this.name = name;
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public void addCategoryOption( DataElementCategoryOption categoryOption )
-    {
-        members.add( categoryOption );
-        categoryOption.getGroups().add( this );
-    }
-
-    public void removeCategoryOption( DataElementCategoryOption categoryOption )
-    {
-        members.remove( categoryOption );
-        categoryOption.getGroups().remove( this );
-    }
 
     // -------------------------------------------------------------------------
     // DimensionalItemObject
@@ -121,7 +106,7 @@ public class CategoryOptionGroup
     @JsonProperty( "categoryOptionGroupSet" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryOptionGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Required.FALSE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.FALSE )
     public CategoryOptionGroupSet getGroupSet()
     {
         return groupSet;
@@ -142,6 +127,22 @@ public class CategoryOptionGroup
     public void setDataDimensionType( DataDimensionType dataDimensionType )
     {
         this.dataDimensionType = dataDimensionType;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public void addCategoryOption( DataElementCategoryOption categoryOption )
+    {
+        members.add( categoryOption );
+        categoryOption.getGroups().add( this );
+    }
+
+    public void removeCategoryOption( DataElementCategoryOption categoryOption )
+    {
+        members.remove( categoryOption );
+        categoryOption.getGroups().remove( this );
     }
 
     @Override

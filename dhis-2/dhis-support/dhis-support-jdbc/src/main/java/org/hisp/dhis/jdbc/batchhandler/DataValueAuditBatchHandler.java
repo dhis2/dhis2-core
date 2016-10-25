@@ -28,9 +28,16 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.amplecode.quick.JdbcConfiguration;
-import org.amplecode.quick.batchhandler.AbstractBatchHandler;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.quick.JdbcConfiguration;
+import org.hisp.quick.batchhandler.AbstractBatchHandler;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+
+import static org.hisp.dhis.system.util.DateUtils.getLongDateString;
 
 /**
  * @author Lars Helge Overland
@@ -44,7 +51,7 @@ public class DataValueAuditBatchHandler
  
     public DataValueAuditBatchHandler( JdbcConfiguration config )
     {
-        super( config, false );
+        super( config );
     }
 
     // -------------------------------------------------------------------------
@@ -52,64 +59,88 @@ public class DataValueAuditBatchHandler
     // -------------------------------------------------------------------------
 
     @Override
-    protected void setTableName()
+    public String getTableName()
     {
-        statementBuilder.setTableName( "datavalueaudit" );
+        return "datavalueaudit";
     }
 
     @Override
-    protected void setAutoIncrementColumn()
+    public String getAutoIncrementColumn()
     {
-        statementBuilder.setAutoIncrementColumn( "datavalueauditid" );
+        return "datavalueauditid";
     }
 
     @Override
-    protected void setIdentifierColumns()
+    public boolean isInclusiveUniqueColumns()
     {
-        statementBuilder.setIdentifierColumn( "datavalueauditid" );
+        return true;
+    }
+    
+    @Override
+    public List<String> getIdentifierColumns()
+    {
+        return getStringList( "datavalueauditid" );
     }
 
     @Override
-    protected void setIdentifierValues( DataValueAudit dataValueAudit )
+    public List<Object> getIdentifierValues( DataValueAudit dataValueAudit )
     {        
-        statementBuilder.setIdentifierValue( dataValueAudit.getId() );
+        return getObjectList( dataValueAudit.getId() );
     }
 
     @Override
-    protected void setUniqueColumns()
+    public List<String> getUniqueColumns()
     {
+        return getStringList();
     }
     
     @Override
-    protected void setUniqueValues( DataValueAudit dataValueAudit )
+    public List<Object> getUniqueValues( DataValueAudit dataValueAudit )
     {
+        return getObjectList();
     }
     
     @Override
-    protected void setColumns()
+    public List<String> getColumns()
     {
-        statementBuilder.setColumn( "dataelementid" );
-        statementBuilder.setColumn( "periodid" );
-        statementBuilder.setColumn( "organisationunitid" );
-        statementBuilder.setColumn( "categoryoptioncomboid" );
-        statementBuilder.setColumn( "attributeoptioncomboid" );
-        statementBuilder.setColumn( "value" );
-        statementBuilder.setColumn( "modifiedby" );
-        statementBuilder.setColumn( "created" );
-        statementBuilder.setColumn( "audittype" );
+        return getStringList( 
+            "dataelementid", 
+            "periodid", 
+            "organisationunitid", 
+            "categoryoptioncomboid", 
+            "attributeoptioncomboid", 
+            "value", 
+            "modifiedby", 
+            "created", 
+            "audittype" );
     }
 
     @Override
-    protected void setValues( DataValueAudit dataValueAudit )
+    public List<Object> getValues( DataValueAudit dataValueAudit )
     {
-        statementBuilder.setValue( dataValueAudit.getDataElement().getId() );
-        statementBuilder.setValue( dataValueAudit.getPeriod().getId() );
-        statementBuilder.setValue( dataValueAudit.getOrganisationUnit().getId() );
-        statementBuilder.setValue( dataValueAudit.getCategoryOptionCombo().getId() );
-        statementBuilder.setValue( dataValueAudit.getAttributeOptionCombo().getId() );
-        statementBuilder.setValue( dataValueAudit.getValue() );
-        statementBuilder.setValue( dataValueAudit.getModifiedBy() );
-        statementBuilder.setValue( dataValueAudit.getCreated() );
-        statementBuilder.setValue( dataValueAudit.getAuditType() );
+        return getObjectList( 
+            dataValueAudit.getDataElement().getId(),
+            dataValueAudit.getPeriod().getId(),
+            dataValueAudit.getOrganisationUnit().getId(),
+            dataValueAudit.getCategoryOptionCombo().getId(),
+            dataValueAudit.getAttributeOptionCombo().getId(),
+            dataValueAudit.getValue(),
+            dataValueAudit.getModifiedBy(),
+            getLongDateString( dataValueAudit.getCreated() ),
+            dataValueAudit.getAuditType().toString() );
+    }
+
+    @Override
+    public DataValueAudit mapRow( ResultSet resultSet )
+        throws SQLException
+    {
+        DataValueAudit dva = new DataValueAudit();
+        
+        dva.setValue( resultSet.getString( "value" ) );
+        dva.setModifiedBy( resultSet.getString( "modifiedby" ) );
+        dva.setCreated( resultSet.getDate( "created" ) );
+        dva.setAuditType( AuditType.valueOf( resultSet.getString( "audittype" ) ) );
+        
+        return dva;
     }
 }

@@ -29,15 +29,8 @@ package org.hisp.dhis.system.util;
  */
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-
-import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.comparator.TranslationLocaleSpecificityComparator;
 
 /**
  * @author Oyvind Brucker
@@ -119,28 +112,5 @@ public class LocaleUtils
         }
         
         return locales;
-    }
-    
-    /**
-     * Filters the given list of translations in a way where only the most specific
-     * locales are kept for every base locale.
-     * 
-     * @param translations the list of translations.
-     * @return a list of translations.
-     */
-    public static List<Translation> getTranslationsHighestSpecifity( Collection<Translation> translations )
-    {
-        Map<String, Translation> translationMap = new HashMap<>();
-        
-        List<Translation> trans = new ArrayList<>( translations );
-        
-        Collections.sort( trans, TranslationLocaleSpecificityComparator.INSTANCE );
-        
-        for ( Translation tr : trans )
-        {
-            translationMap.put( tr.getClassIdPropKey(), tr );
-        }
-        
-        return new ArrayList<>( translationMap.values() );
     }
 }

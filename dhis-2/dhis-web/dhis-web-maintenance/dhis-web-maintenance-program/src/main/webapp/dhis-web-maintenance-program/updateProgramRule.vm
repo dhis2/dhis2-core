@@ -203,8 +203,8 @@
 											<select style='width:100%;'>                                                                                                
                                                                                             #if( $action.dataElement )
                                                                                                 <option class='actionDEs' value="$action.dataElement.uid">$!encoder.htmlEncode( $action.dataElement.displayName )</option>
-                                                                                            #elseif( $action.trackedEntityAttribute )
-                                                                                                <option class='actionDEs' value="$action.attribute.id">$!encoder.htmlEncode( $action.attribute.name )</option>
+                                                                                            #elseif( $action.attribute )
+                                                                                                <option class='actionDEs' value="$action.attribute.uid">$!encoder.htmlEncode( $action.attribute.name )</option>
                                                                                             #else
                                                                                                 <option class='actionDEs' value="">$i18n.getString('none')</option>
                                                                                             #end
@@ -261,10 +261,10 @@
 				</select>
 			</td>
 		</td>
-		<tr name="deSourceType">
+		<tr name="deProgramStage" style='display:none'>
 			<td>$i18n.getString('source_program_stage')</td>
 			<td>
-				<select type="" id="programStageId" disabled style="width:250px;" onchange="getDataElementsByStage();">
+				<select type="" id="programStageId" style="width:250px;" onchange="getDataElementsByStage();">
 					<option value="">[All]</option>
 					#foreach( $programStage in $program.programStages )
 						<option value="$programStage.uid">$programStage.displayName</option>

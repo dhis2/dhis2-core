@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +70,7 @@ public class GetCategoryOptionGroupsAction
         categoryOptionGroups = new ArrayList<>(
             dataElementCategoryService.getAllCategoryOptionGroups() );
 
-        Collections.sort( categoryOptionGroups, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( categoryOptionGroups );
 
         return SUCCESS;
     }

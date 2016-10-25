@@ -36,7 +36,6 @@ import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.Importance;
-import org.hisp.dhis.validation.RuleType;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 
@@ -110,13 +109,6 @@ public class AddValidationRuleAction
         this.importance = importance;
     }
 
-    private String ruleType;
-
-    public void setRuleType( String ruleType )
-    {
-        this.ruleType = ruleType;
-    }
-
     private String operator;
 
     public void setOperator( String operator )
@@ -180,39 +172,11 @@ public class AddValidationRuleAction
         this.rightSideMissingValueStrategy = rightSideMissingValueStrategy;
     }
 
-    private Integer organisationUnitLevel;
-
-    public void setOrganisationUnitLevel( Integer organisationUnitLevel )
-    {
-        this.organisationUnitLevel = organisationUnitLevel;
-    }
-
     private String periodTypeName;
 
     public void setPeriodTypeName( String periodTypeName )
     {
         this.periodTypeName = periodTypeName;
-    }
-
-    private Integer sequentialSampleCount;
-
-    public void setSequentialSampleCount( Integer sequentialSampleCount )
-    {
-        this.sequentialSampleCount = sequentialSampleCount;
-    }
-
-    private Integer annualSampleCount;
-
-    public void setAnnualSampleCount( Integer annualSampleCount )
-    {
-        this.annualSampleCount = annualSampleCount;
-    }
-
-    private Integer sequentialSkipCount;
-
-    public void setSequentialSkipCount( Integer sequentialSkipCount )
-    {
-        this.sequentialSkipCount = sequentialSkipCount;
     }
 
     // -------------------------------------------------------------------------
@@ -256,25 +220,13 @@ public class AddValidationRuleAction
         validationRule.setDescription( StringUtils.trimToNull( description ) );
         validationRule.setInstruction( StringUtils.trimToNull( instruction ) );
         validationRule.setImportance( Importance.valueOf( StringUtils.trimToNull( importance ) ) );
-        validationRule.setRuleType( RuleType.valueOf( StringUtils.trimToNull( ruleType ) ) );
         validationRule.setOperator( Operator.valueOf( operator ) );
         validationRule.setLeftSide( leftSide );
         validationRule.setRightSide( rightSide );
-        
-        if ( skipTest != null )
-        {
-            validationRule.setSampleSkipTest( skipTest );
-        }
-        
-        validationRule.setOrganisationUnitLevel( organisationUnitLevel );
 
         PeriodType periodType = periodService.getPeriodTypeByName( periodTypeName );
         validationRule.setPeriodType( periodType );
 
-        validationRule.setSequentialSampleCount( sequentialSampleCount );
-        validationRule.setAnnualSampleCount( annualSampleCount );
-        validationRule.setSequentialSkipCount( sequentialSkipCount );
-        
         validationRuleService.saveValidationRule( validationRule );
 
         return SUCCESS;

@@ -62,4 +62,16 @@ public class SetMap<T, V>
         set = set == null ? new HashSet<>() : set;
         return super.put( key, set );
     }
+
+    public Set<V> putValues( T key, Iterable<V> values )
+    {
+        Set<V> set = this.get( key );
+        set = set == null ? new HashSet<>() : set;
+        for (V value: values )
+        {
+            set.add( value );
+        }
+
+        return super.put( key, set );
+    }
 }

@@ -292,11 +292,7 @@ public class EditSMSCommandForm
     public Set<DataElement> getDataSetElements()
     {
         DataSet d = dataSetService.getDataSet( selectedDataSetID );
-        if ( d != null )
-        {
-            return d.getDataElements();
-        }
-        return null;
+        return d != null ? d.getDataElements() : null;
     }
 
     public SMSCommand getSMSCommand()

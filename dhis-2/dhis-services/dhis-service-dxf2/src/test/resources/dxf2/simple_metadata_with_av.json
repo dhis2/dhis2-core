@@ -339,6 +339,26 @@
       ]
     }
   ],
+  "dataSetElements": [
+    {
+      "id": "WTOZ7gqbASV",
+      "dataElement": {
+        "id": "SG4HuKlNEFH"
+      },
+      "dataSet": {
+        "id": "DSaKQTwN4qg"
+      }
+    },
+    {
+      "id": "rSChycu6mOY",
+      "dataElement": {
+        "id": "CCwk5Yx440o"
+      },
+      "dataSet": {
+        "id": "DSaKQTwN4qg"
+      }
+    }
+  ],
   "dataSets": [
     {
       "created": "2016-02-17T06:16:40.204+0000",
@@ -356,14 +376,6 @@
         "id": "ueKaFVdR8Fz"
       },
       "userGroupAccesses": [ ],
-      "dataElements": [
-        {
-          "id": "CCwk5Yx440o"
-        },
-        {
-          "id": "SG4HuKlNEFH"
-        }
-      ],
       "openFuturePeriods": 0,
       "noValueRequiresComment": false,
       "shortName": "DataSetShortA",

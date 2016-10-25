@@ -129,45 +129,22 @@ public class Section
         return getCategoryCombo() != null;
     }
 
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DataElementCategoryCombo getCategoryCombo()
     {
-        return dataElements != null && !dataElements.isEmpty() ? dataElements.get( 0 ).getCategoryCombo() : null;
-    }
-
-    public boolean hasMultiDimensionalDataElement()
-    {
-        for ( DataElement element : dataElements )
+        for ( DataElement dataElement : dataElements )
         {
-            if ( element.isMultiDimensional() )
+            DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo( dataSet );
+            
+            if ( categoryCombo != null )
             {
-                return true;
+                return categoryCombo;
             }
         }
-
-        return false;
-    }
-
-    public boolean categorComboIsInvalid()
-    {
-        if ( dataElements != null && dataElements.size() > 0 )
-        {
-            DataElementCategoryCombo categoryCombo = null;
-
-            for ( DataElement element : dataElements )
-            {
-                if ( element != null )
-                {
-                    if ( categoryCombo != null && !categoryCombo.equals( element.getCategoryCombo() ) )
-                    {
-                        return true;
-                    }
-
-                    categoryCombo = element.getCategoryCombo();
-                }
-            }
-        }
-
-        return false;
+        
+        return null;
     }
 
     public boolean hasDataElements()

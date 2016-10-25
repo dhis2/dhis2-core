@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.dataset.DataSetElement" table="datasetelement">
+
+    <id name="id" column="datasetelementid">
+      <generator class="native" />
+    </id>
+
+    <!-- Identifiable properties, set to not-null in 2.27 -->
+    <property name="uid" column="uid" unique="true" length="11" not-null="false" />
+
+    <property name="code" column="code" not-null="false" unique="true" length="50" />
+
+    <property name="created" type="timestamp" not-null="false" />
+
+    <property name="lastUpdated" type="timestamp" not-null="false" />
+
+    <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
+      foreign-key="fk_datasetelement_datasetid" unique-key="datasetelement_unique_key" not-null="false" />
+
+    <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
+      foreign-key="fk_datasetelement_dataelementid" unique-key="datasetelement_unique_key" not-null="true" />
+
+    <many-to-one name="categoryCombo" class="org.hisp.dhis.dataelement.DataElementCategoryCombo" column="categorycomboid"
+      foreign-key="fk_datasetelement_categorycomboid" />
+
+  </class>
+
+</hibernate-mapping>

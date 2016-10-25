@@ -62,10 +62,12 @@ public class ImportReport
     // Utility Methods
     //-----------------------------------------------------------------------------------
 
-    public void addTypeReport( TypeReport typeReport )
+    public TypeReport addTypeReport( TypeReport typeReport )
     {
         if ( !typeReportMap.containsKey( typeReport.getKlass() ) ) typeReportMap.put( typeReport.getKlass(), new TypeReport( typeReport.getKlass() ) );
         typeReportMap.get( typeReport.getKlass() ).merge( typeReport );
+
+        return typeReport;
     }
 
     public void addTypeReports( List<TypeReport> typeReports )

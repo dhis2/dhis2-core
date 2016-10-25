@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.paging.ActionPagingSupport;
@@ -102,7 +101,7 @@ public class GetConstantsAction
                 paging.getPageSize() ) );
         }
 
-        Collections.sort( constants, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( constants );
 
         return SUCCESS;
     }

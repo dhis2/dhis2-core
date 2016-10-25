@@ -29,12 +29,14 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.amplecode.quick.BatchHandler;
-import org.amplecode.quick.BatchHandlerFactory;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -57,6 +59,7 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -67,6 +70,7 @@ import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
@@ -108,6 +112,8 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
+ * Note that a mock BatchHandler factory is being injected.
+ * 
  * @author Lars Helge Overland
  */
 public class DefaultDataValueSetService
@@ -178,20 +184,21 @@ public class DefaultDataValueSetService
 
     @Override
     public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes idSchemes )
+        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups, boolean includeDeleted, Date lastUpdated,
+        String lastUpdatedDuration, Integer limit, IdSchemes outputIdSchemes )
     {
         DataExportParams params = new DataExportParams();
 
         if ( dataSets != null )
         {
             params.getDataSets().addAll( identifiableObjectManager.getObjects(
-                DataSet.class, idSchemes.getIdScheme().getIdentifiableProperty(), dataSets ) );
+                DataSet.class, IdentifiableProperty.UID, dataSets ) );
         }
 
         if ( dataElementGroups != null )
         {
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
-                DataElementGroup.class, idSchemes.getIdScheme().getIdentifiableProperty(), dataElementGroups ) );
+                DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
         }
 
         if ( periods != null && !periods.isEmpty() )
@@ -200,23 +207,30 @@ public class DefaultDataValueSetService
         }
         else if ( startDate != null && endDate != null )
         {
-            params.setStartDate( startDate );
-            params.setEndDate( endDate );
+            params
+                .setStartDate( startDate )
+                .setEndDate( endDate );
         }
 
         if ( organisationUnits != null )
         {
             params.getOrganisationUnits().addAll( identifiableObjectManager.getObjects(
-                OrganisationUnit.class, idSchemes.getOrgUnitIdScheme().getIdentifiableProperty(), organisationUnits ) );
+                OrganisationUnit.class, IdentifiableProperty.UID, organisationUnits ) );
         }
 
-        params.setIncludeChildren( includeChildren );
-        params.setLastUpdated( lastUpdated );
-        params.setLastUpdatedDuration( lastUpdatedDuration );
-        params.setLimit( limit );
-        params.setIdSchemes( idSchemes );
+        if ( organisationUnitGroups != null )
+        {
+            params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
+                OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
+        }
 
-        return params;
+        return params
+            .setIncludeChildren( includeChildren )
+            .setIncludeDeleted( includeDeleted )
+            .setLastUpdated( lastUpdated )
+            .setLastUpdatedDuration( lastUpdatedDuration )
+            .setLimit( limit )
+            .setOutputIdSchemes( outputIdSchemes );
     }
 
     @Override
@@ -254,9 +268,19 @@ public class DefaultDataValueSetService
             violation = "Duration is not valid: " + params.getLastUpdatedDuration();
         }
 
-        if ( params.getOrganisationUnits().isEmpty() )
+        if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
         {
-            violation = "At least one valid organisation unit must be specified";
+            violation = "At least one valid organisation unit or organisation unit group must be specified";
+        }
+
+        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        {
+            violation = "Children cannot be included for organisation unit groups";
+        }
+
+        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        {
+            violation = "At least one valid organisation unit must be specified when children is included";
         }
 
         if ( params.hasLimit() && params.getLimit() < 0 )
@@ -389,7 +413,7 @@ public class DefaultDataValueSetService
         CollectionNode collectionNode = new CollectionNode( "dataValues" );
         collectionNode.setWrapping( false );
 
-        for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getCategoryCombo().getSortedOptionCombos() )
+        for ( DataElementCategoryOptionCombo categoryOptionCombo : dataElement.getSortedCategoryOptionCombos() )
         {
             ComplexNode complexNode = collectionNode.addChild( new ComplexNode( "dataValue" ) );
 
@@ -720,7 +744,8 @@ public class DefaultDataValueSetService
         final String currentUser = currentUserService.getCurrentUsername();
         final Set<OrganisationUnit> currentOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
 
-        BatchHandler<DataValue> batchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
+        BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
+        BatchHandler<DataValueAudit> auditBatchHandler = batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
 
         int importCount = 0;
         int updateCount = 0;
@@ -882,7 +907,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
-                () -> dataElement.getCategoryCombo().getOptionCombos() ).contains( categoryOptionCombo ) )
+                () -> dataElement.getCategoryOptionCombos() ).contains( categoryOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( categoryOptionCombo.getUid(),
                     "Category option combo: " + categoryOptionCombo.getUid() + " must be part of category combo of data element: " + dataElement.getUid() ) );
@@ -1014,55 +1039,96 @@ public class DefaultDataValueSetService
             internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
-
+            internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
+            
             // -----------------------------------------------------------------
             // Save, update or delete data value
             // -----------------------------------------------------------------
 
-            if ( !skipExistingCheck && batchHandler.objectExists( internalValue ) )
+            DataValue existingValue = !skipExistingCheck ? dataValueBatchHandler.findObject( internalValue ) : null;
+
+            // -----------------------------------------------------------------
+            // Check soft deleted data values on update and import
+            // -----------------------------------------------------------------
+
+            if ( !skipExistingCheck && existingValue != null && !existingValue.isDeleted() )
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
+                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
+                    
+                    if ( internalValue.isNullValue() || internalValue.isDeleted() )
+                    {
+                        internalValue.setDeleted( true );
+                        
+                        auditValue.setAuditType( AuditType.DELETE );
+                        
+                        deleteCount++;
+                    }
+                    else
+                    {
+                        updateCount++;
+                    }
+                    
                     if ( !dryRun )
                     {
-                        if ( !internalValue.isNullValue() )
-                        {
-                            batchHandler.updateObject( internalValue );
-                        }
-                        else
-                        {
-                            batchHandler.deleteObject( internalValue );
-                        }
-                    }
-
-                    updateCount++;
+                        dataValueBatchHandler.updateObject( internalValue );
+                    
+                        auditBatchHandler.addObject( auditValue );
+                    }                    
                 }
                 else if ( strategy.isDelete() )
-                {
+                {                    
+                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+                    
+                    internalValue.setDeleted( true );
+                    
+                    deleteCount++;
+                    
                     if ( !dryRun )
                     {
-                        batchHandler.deleteObject( internalValue );
+                        dataValueBatchHandler.updateObject( internalValue );
+                    
+                        auditBatchHandler.addObject( auditValue );
                     }
-
-                    deleteCount++;
                 }
             }
             else
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isCreate() )
                 {
-                    if ( !dryRun && !internalValue.isNullValue() )
+                    if ( !internalValue.isNullValue() ) // Ignore null values
                     {
-                        if ( batchHandler.addObject( internalValue ) )
+                        if ( existingValue != null && existingValue.isDeleted() )
                         {
                             importCount++;
+                            
+                            if ( !dryRun )
+                            {
+                                dataValueBatchHandler.updateObject( internalValue );
+                            }
+                        }
+                        else 
+                        {
+                            boolean added = false;
+                            
+                            if ( !dryRun )
+                            {
+                                added = dataValueBatchHandler.addObject( internalValue );
+                            }
+                            
+                            if ( dryRun || added )
+                            {
+                                importCount++;
+                            }
                         }
                     }
                 }
             }
         }
 
-        batchHandler.flush();
+        dataValueBatchHandler.flush();
+        auditBatchHandler.flush();
 
         int ignores = totalCount - importCount - updateCount - deleteCount;
 

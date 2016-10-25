@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-support</artifactId>
-    <version>2.25-SNAPSHOT</version>
+    <version>2.26-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-support-test</artifactId>
@@ -60,7 +60,7 @@
       <artifactId>hibernate-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.amplecode</groupId>
+      <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
     </dependency>
   </dependencies>

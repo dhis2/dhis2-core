@@ -31,6 +31,7 @@ package org.hisp.dhis.configuration;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,6 +89,9 @@ public class DefaultConfigurationService
     public boolean isUserInFeedbackRecipientUserGroup( User user )
     {
         user = ( user == null ? currentUserService.getCurrentUser() : user );
-        return getConfiguration().getFeedbackRecipients().getMembers().contains( user );
+
+        UserGroup feedbackRecipients = getConfiguration().getFeedbackRecipients();
+
+        return feedbackRecipients != null && feedbackRecipients.getMembers().contains( user );
     }
 }

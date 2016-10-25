@@ -13,21 +13,10 @@
     </id>
 
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-      foreign-key="fk_dataelementoperand_dataelement" unique-key="dataelement_operand_unique_key" />
+      foreign-key="fk_dataelementoperand_dataelement" />
 
     <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
-      column="categoryoptioncomboid" foreign-key="fk_dataelementoperand_dataelementcategoryoptioncombo" unique-key="dataelement_operand_unique_key" />
-
-    <!-- Object Translation -->
-    <set name="translations" table="dataelementoperandtranslations" cascade="delete-orphan">
-      <cache usage="read-write" />
-      <key column="dataelementoperandid" foreign-key="fk_objecttranslation_dataelementoperandid" />
-
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation">
-        <column name="objecttranslationid" unique="true" />
-        <filter name="locale" condition="locale = :locale" />
-      </many-to-many>
-    </set>
+      column="categoryoptioncomboid" foreign-key="fk_dataelementoperand_dataelementcategoryoptioncombo" />
 
   </class>
 

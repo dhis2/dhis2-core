@@ -112,14 +112,14 @@ public class HibernateOrganisationUnitStore
     @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
-        return getQuery( "from OrganisationUnit o where o.groups.size = 0" ).list();
+        return getQuery( "from OrganisationUnit o where size(o.groups) = 0" ).list();
     }
 
     @Override
     @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getOrganisationUnitsWithCategoryOptions()
     {
-        return getQuery( "from OrganisationUnit o where o.categoryOptions.size > 0" ).list();
+        return getQuery( "from OrganisationUnit o where size(o.categoryOptions) > 0" ).list();
     }
 
     @Override

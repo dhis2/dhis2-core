@@ -52,13 +52,6 @@
       <one-to-many class="org.hisp.dhis.program.ProgramStageInstance" />
     </set>
 
-    <list name="outboundSms" table="programinstance_outboundsms">
-      <key column="programinstanceid" />
-      <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.sms.outbound.OutboundSms"
-        column="outboundsmsid" />
-    </list>
-
     <list name="messageConversations" table="programinstance_messageconversation">
       <key column="programinstanceid" />
       <list-index column="sort_order" base="1" />
@@ -66,14 +59,15 @@
         column="messageconversationid" />
     </list>
 
-    <list name="comments" table="programinstancecomments" cascade="all" lazy="false">
-      <key column="programinstanceid" />
+    <list name="comments" table="programinstancecomments" cascade="all,delete-orphan">
+      <key column="programinstanceid" foreign-key="fk_programinstancecomments_programinstanceid"/>
       <list-index column="sort_order" base="1" />
-      <many-to-many column="trackedentitycommentid" unique="true" class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" />
+      <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid" 
+      	unique="true" foreign-key="fk_programinstancecomments_trackedentitycommentid"/>
     </list>
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
-      foreign-key="fk_programinstance_organisationunitid" not-null="false" lazy="false" />
+      foreign-key="fk_programinstance_organisationunitid" />
 
   </class>
 

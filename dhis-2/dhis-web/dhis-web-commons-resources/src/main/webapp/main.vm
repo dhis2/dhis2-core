@@ -36,14 +36,17 @@
     <script type="text/javascript">
       var dateFormat = 'yy-mm-dd';
     </script>
-
-    <script type="text/javascript" src="../dhis-web-commons/javascripts/es5-shim.min.js?_rev=$!{buildRevision}"></script>
-    <script type="text/javascript" src="../dhis-web-commons/javascripts/es5-sham.min.js?_rev=$!{buildRevision}"></script>
-
+    
     <script type="text/javascript" src="../dhis-web-commons/javascripts/ext/ext-all.js"></script>
 
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/jquery.min.js?_rev=$!{buildRevision}"></script>
+    <!-- Menu dependencies -->
+    <script type="text/javascript" src="../dhis-web-core-resource/react-15/react-15.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-core-resource/rxjs/4.1.0/rx.lite.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-core-resource/lodash/4.15.0/lodash.min.js"></script>
+    <script type="text/javascript" src="../dhis-web-core-resource/lodash-functional/lodash-functional.js"></script>
     <!-- Menu script is up here due to perceived loading time increase -->
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/babel-polyfill.js?_rev=$!{buildRevision}"></script>
     <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/header-bar.js?_rev=$!{buildRevision}"></script>
     <script>
         // Needs to be wrapped in jQuery to be sure the DOM is parsed as the script is not at the bottom.

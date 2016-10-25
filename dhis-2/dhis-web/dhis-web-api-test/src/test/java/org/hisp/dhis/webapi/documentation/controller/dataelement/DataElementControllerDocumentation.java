@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.documentation.controller.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.schema.Property;
@@ -44,11 +43,10 @@ import org.springframework.restdocs.payload.FieldDescriptor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -58,67 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DataElementControllerDocumentation
     extends AbstractWebApiTest<DataElement>
 {
-    @Test
-    @Override
-    public void testGetAll() throws Exception
-    {
-        manager.save( createDataElement( 'A' ) );
-        manager.save( createDataElement( 'B' ) );
-        manager.save( createDataElement( 'C' ) );
-        manager.save( createDataElement( 'D' ) );
 
-        MockHttpSession session = getSession( "ALL" );
-
-        List<FieldDescriptor> fieldDescriptors = new ArrayList<>();
-        fieldDescriptors.addAll( ResponseDocumentation.pager() );
-        fieldDescriptors.add( fieldWithPath( "dataElements" ).description( "Data elements" ) );
-
-        mvc.perform( get( "/dataElements" ).session( session ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
-            .andExpect( jsonPath( "$.dataElements" ).isArray() )
-            .andExpect( jsonPath( "$.dataElements.length()" ).value( 4 ) )
-            .andDo( documentPrettyPrint( "data-elements/all",
-                responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) )
-            ) );
-    }
-
-    @Test
-    @Override
-    public void testGetByIdOk() throws Exception
-    {
-        manager.save( createDataElement( 'A' ) );
-        MockHttpSession session = getSession( "ALL" );
-
-        List<FieldDescriptor> fieldDescriptors = new ArrayList<>();
-        fieldDescriptors.addAll( ResponseDocumentation.identifiableObject() );
-        fieldDescriptors.addAll( ResponseDocumentation.nameableObject() );
-        fieldDescriptors.addAll( Lists.newArrayList(
-            fieldWithPath( "displayFormName" ).description( "Property" ),
-            fieldWithPath( "aggregationType" ).description( "Property" ),
-            fieldWithPath( "domainType" ).description( "Property" ),
-            fieldWithPath( "valueType" ).description( "Property" ),
-            fieldWithPath( "dimensionItem" ).description( "Property" ),
-            fieldWithPath( "zeroIsSignificant" ).description( "Property" ),
-            fieldWithPath( "optionSetValue" ).description( "Property" ),
-            fieldWithPath( "dimensionItemType" ).description( "Property" ),
-            fieldWithPath( "categoryCombo" ).description( "Property" ),
-            fieldWithPath( "dataElementGroups" ).description( "Property" ),
-            fieldWithPath( "dataSets" ).description( "Property" ),
-            fieldWithPath( "aggregationLevels" ).description( "Property" )
-        ) );
-
-        mvc.perform( get( "/dataElements/{id}", "deabcdefghA" ).session( session ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
-            .andExpect( jsonPath( "$.name" ).value( "DataElementA" ) )
-            .andExpect( jsonPath( "$.shortName" ).value( "DataElementShortA" ) )
-            .andExpect( jsonPath( "$.code" ).value( "DataElementCodeA" ) )
-            .andExpect( jsonPath( "$.description" ).value( "DataElementDescriptionA" ) )
-            .andDo( documentPrettyPrint( "data-elements/id",
-                responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) )
-            ) );
-    }
 
     @Test
     public void testGetById404() throws Exception
@@ -129,76 +67,6 @@ public class DataElementControllerDocumentation
             .andExpect( status().isNotFound() );
     }
 
-    //-------------------------------------------------------------------------------------
-    // DELETE
-    //-------------------------------------------------------------------------------------
-
-    @Test
-    @Override
-    public void testDeleteByIdOk() throws Exception
-    {
-        manager.save( createDataElement( 'A' ) );
-        MockHttpSession session = getSession( "ALL" );
-
-        mvc.perform( delete( "/dataElements/{id}", "deabcdefghA" ).session( session ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().is( deleteStatus ) )
-            .andDo( documentPrettyPrint( "data-elements/delete" ) );
-    }
-
-    @Test
-    @Override
-    public void testDeleteById404() throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-
-        mvc.perform( delete( "/dataElements/{id}", "deabcdefghA" ).session( session ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isNotFound() );
-    }
-
-    @Test
-    @Override
-    public void testCreate() throws Exception
-    {
-        MockHttpSession session = getSession( "F_DATAELEMENT_PUBLIC_ADD" );
-
-        DataElement de = createDataElement( 'A' );
-
-
-        Set<FieldDescriptor> fieldDescriptors = TestUtils.getFieldDescriptors( schema );
-
-        mvc.perform( post( "/dataElements" )
-            .session( session )
-            .contentType( TestUtils.APPLICATION_JSON_UTF8 )
-            .content( TestUtils.convertObjectToJsonBytes( de ) ) )
-            .andExpect( status().is( createdStatus ) )
-            .andDo( documentPrettyPrint( "data-elements/create",
-                requestFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) )
-            );
-
-        de = manager.getByName( DataElement.class, "DataElementA" );
-
-        assertNotNull( de );
-    }
-
-    @Test
-    @Override
-    public void testUpdate() throws Exception
-    {
-        MockHttpSession session = getSession( "F_DATAELEMENT_PUBLIC_ADD" );
-
-        DataElement de = createDataElement( 'A' );
-        manager.save( de );
-
-        de.setDisplayName( "updatedA" );
-
-        mvc.perform( put( "/dataElements/" + de.getUid() )
-            .session( session )
-            .contentType( TestUtils.APPLICATION_JSON_UTF8 )
-            .content( TestUtils.convertObjectToJsonBytes( de ) ) )
-            .andExpect( status().isOk() )
-            .andDo( documentPrettyPrint( "data-elements/update" ) );
-
-    }
 
     @Test
     public void testCreateValidation() throws Exception

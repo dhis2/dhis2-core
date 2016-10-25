@@ -1,6 +1,34 @@
 {
+  "dataSetElements": [
+    {
+      "id": "WTOZ7gqbASV",
+      "dataElement": {
+        "id": "nHwIqKAudKN"
+      },
+      "dataSet": {
+        "id": "em8Bg4LCr5k"
+      }
+    },
+    {
+      "id": "rSChycu6mOY",
+      "dataElement": {
+        "id": "VolAzjFe5zP"
+      },
+      "dataSet": {
+        "id": "em8Bg4LCr5k"
+      }
+    }
+  ],
   "dataSets": [
     {
+      "dataSetElements": [
+        {
+          "id": "WTOZ7gqbASV"
+        },
+        {
+          "id": "rSChycu6mOY"
+        }
+      ],
       "version": 5,
       "name": "Updated Data Set",
       "user": {
@@ -22,14 +50,6 @@
         }
       ],
       "timelyDays": 15,
-      "dataElements": [
-        {
-          "id": "nHwIqKAudKN"
-        },
-        {
-          "id": "VolAzjFe5zP"
-        }
-      ],
       "indicators": [ ],
       "noValueRequiresComment": false,
       "notifyCompletingUser": false,

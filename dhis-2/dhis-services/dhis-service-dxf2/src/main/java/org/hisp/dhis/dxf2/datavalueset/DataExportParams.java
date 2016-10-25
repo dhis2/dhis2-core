@@ -37,6 +37,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 
 import java.util.Date;
@@ -62,13 +63,17 @@ public class DataExportParams
 
     private boolean includeChildren;
 
+    private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
+    
+    private boolean includeDeleted;
+
     private Date lastUpdated;
     
     private String lastUpdatedDuration;
 
     private Integer limit;
 
-    private IdSchemes idSchemes;
+    private IdSchemes outputIdSchemes;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -107,9 +112,19 @@ public class DataExportParams
         return startDate != null && endDate != null;
     }
 
+    public boolean hasOrganisationUnits()
+    {
+        return organisationUnits != null && !organisationUnits.isEmpty();
+    }
+
     public OrganisationUnit getFirstOrganisationUnit()
     {
         return organisationUnits != null && !organisationUnits.isEmpty() ? organisationUnits.iterator().next() : null;
+    }
+
+    public boolean hasOrganisationUnitGroups()
+    {
+        return organisationUnitGroups != null && !organisationUnitGroups.isEmpty();
     }
 
     public boolean hasPeriods()
@@ -150,7 +165,9 @@ public class DataExportParams
             add( "periods", periods ).
             add( "org units", organisationUnits ).
             add( "children", includeChildren ).
-            add( "id schemes", idSchemes ).toString();
+            add( "org unit groups", organisationUnitGroups ).
+            add( "deleted", includeDeleted ).
+            add( "output id schemes", outputIdSchemes ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -162,9 +179,10 @@ public class DataExportParams
         return dataSets;
     }
 
-    public void setDataSets( Set<DataSet> dataSets )
+    public DataExportParams setDataSets( Set<DataSet> dataSets )
     {
         this.dataSets = dataSets;
+        return this;
     }
 
     public Set<DataElementGroup> getDataElementGroups()
@@ -172,9 +190,10 @@ public class DataExportParams
         return dataElementGroups;
     }
 
-    public void setDataElementGroups( Set<DataElementGroup> dataElementGroups )
+    public DataExportParams setDataElementGroups( Set<DataElementGroup> dataElementGroups )
     {
         this.dataElementGroups = dataElementGroups;
+        return this;
     }
 
     public Set<Period> getPeriods()
@@ -182,9 +201,10 @@ public class DataExportParams
         return periods;
     }
 
-    public void setPeriods( Set<Period> periods )
+    public DataExportParams setPeriods( Set<Period> periods )
     {
         this.periods = periods;
+        return this;
     }
 
     public Date getStartDate()
@@ -192,9 +212,10 @@ public class DataExportParams
         return startDate;
     }
 
-    public void setStartDate( Date startDate )
+    public DataExportParams setStartDate( Date startDate )
     {
         this.startDate = startDate;
+        return this;
     }
 
     public Date getEndDate()
@@ -202,9 +223,10 @@ public class DataExportParams
         return endDate;
     }
 
-    public void setEndDate( Date endDate )
+    public DataExportParams setEndDate( Date endDate )
     {
         this.endDate = endDate;
+        return this;
     }
 
     public Set<OrganisationUnit> getOrganisationUnits()
@@ -212,9 +234,10 @@ public class DataExportParams
         return organisationUnits;
     }
 
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    public DataExportParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
+        return this;
     }
 
     public boolean isIncludeChildren()
@@ -222,9 +245,32 @@ public class DataExportParams
         return includeChildren;
     }
 
-    public void setIncludeChildren( boolean includeChildren )
+    public DataExportParams setIncludeChildren( boolean includeChildren )
     {
         this.includeChildren = includeChildren;
+        return this;
+    }
+
+    public Set<OrganisationUnitGroup> getOrganisationUnitGroups()
+    {
+        return organisationUnitGroups;
+    }
+
+    public DataExportParams setOrganisationUnitGroups( Set<OrganisationUnitGroup> organisationUnitGroups )
+    {
+        this.organisationUnitGroups = organisationUnitGroups;
+        return this;
+    }
+
+    public boolean isIncludeDeleted()
+    {
+        return includeDeleted;
+    }
+
+    public DataExportParams setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
+        return this;
     }
 
     public Date getLastUpdated()
@@ -232,9 +278,10 @@ public class DataExportParams
         return lastUpdated;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public DataExportParams setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+        return this;
     }
 
     public String getLastUpdatedDuration()
@@ -242,9 +289,10 @@ public class DataExportParams
         return lastUpdatedDuration;
     }
 
-    public void setLastUpdatedDuration( String lastUpdatedDuration )
+    public DataExportParams setLastUpdatedDuration( String lastUpdatedDuration )
     {
         this.lastUpdatedDuration = lastUpdatedDuration;
+        return this;
     }
 
     public Integer getLimit()
@@ -252,18 +300,20 @@ public class DataExportParams
         return limit;
     }
 
-    public void setLimit( Integer limit )
+    public DataExportParams setLimit( Integer limit )
     {
         this.limit = limit;
+        return this;
     }
 
-    public IdSchemes getIdSchemes()
+    public IdSchemes getOutputIdSchemes()
     {
-        return idSchemes;
+        return outputIdSchemes;
     }
 
-    public void setIdSchemes( IdSchemes idSchemes )
+    public DataExportParams setOutputIdSchemes( IdSchemes outputIdSchemes )
     {
-        this.idSchemes = idSchemes;
+        this.outputIdSchemes = outputIdSchemes;
+        return this;
     }
 }

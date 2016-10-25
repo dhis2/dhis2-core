@@ -59,10 +59,8 @@ public class HibernateProgramMessageStore
     @SuppressWarnings( "unchecked" )
     public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
     {
-        String hql = getHqlQuery( params );
+        Query query = getHqlQuery( params );
 
-        Query query = getQuery( hql );
-        
         if ( params.hasPaging() )
         {
             query.setFirstResult( params.getPage() );
@@ -95,7 +93,7 @@ public class HibernateProgramMessageStore
     // Supportive Methods
     // -------------------------------------------------------------------------
 
-    private String getHqlQuery( ProgramMessageQueryParams params )
+    private Query getHqlQuery( ProgramMessageQueryParams params )
     {
         SqlHelper helper = new SqlHelper( true );
 
@@ -103,23 +101,49 @@ public class HibernateProgramMessageStore
 
         if ( params.hasProgramInstance() )
         {
-            hql += helper.whereAnd() + "pm.programInstance=" + params.getProgramInstrance().getId();
+            hql += helper.whereAnd() + "pm.programInstance = :programInstance";
         }
 
         if ( params.hasProgramStageInstance() )
         {
-            hql += helper.whereAnd() + "pm.programStageInstance=" + params.getProgramStageInstance().getId();
+            hql += helper.whereAnd() + "pm.programStageInstance = :programStageInstance";
         }
 
         hql += params.getMessageStatus() != null
-            ? helper.whereAnd() + "pm.messageStatus='" + params.getMessageStatus() + "'" : "";
+            ? helper.whereAnd() + "pm.messageStatus = :messageStatus" : ""; 
 
-        hql += params.getAfterDate() != null ? helper.whereAnd() + "pm.processeddate > '" + params.getAfterDate() + "'"
-            : "";
+        hql += params.getAfterDate() != null ? helper.whereAnd() + "pm.processeddate > :processeddate" : "" ;
 
         hql += params.getBeforeDate() != null
-            ? helper.whereAnd() + "pm.processeddate < '" + params.getBeforeDate() + "'" : "";
+            ? helper.whereAnd() + "pm.processeddate < :processeddate" : ""; 
 
-        return hql;
+        Query query = sessionFactory.getCurrentSession().createQuery( hql );
+        
+        if ( params.hasProgramInstance() )
+        {
+            query.setInteger( "programInstance", params.getProgramInstance().getId() );
+        }
+
+        if ( params.hasProgramStageInstance() )
+        {
+            query.setInteger( "programStageInstance", params.getProgramStageInstance().getId() );
+        }
+        
+        if ( params.getMessageStatus() != null)
+        {
+            query.setParameter( "messageStatus", params.getMessageStatus() );
+        }
+
+        if ( params.getAfterDate() != null )
+        {
+            query.setTime( "processeddate", params.getAfterDate() );
+        }
+        
+        if ( params.getBeforeDate() != null )
+        {
+            query.setTime( "processeddate", params.getBeforeDate() );
+        }
+        
+        return query;
     }
 }

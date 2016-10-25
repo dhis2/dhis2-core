@@ -54,11 +54,6 @@ public interface ResourceTableService
     void generateCategoryOptionComboNames();
     
     /**
-     * Generates a resource table for all category options.
-     */
-    void generateCategoryOptionGroupSetTable();
-    
-    /**
      * Generates a resource table for all data elements.
      */
     void generateDataElementGroupSetTable();

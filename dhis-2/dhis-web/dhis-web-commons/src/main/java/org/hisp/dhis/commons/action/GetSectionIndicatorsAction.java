@@ -1,16 +1,5 @@
 package org.hisp.dhis.commons.action;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.hisp.dhis.common.comparator.IdentifiableObjectNameComparator;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.paging.ActionPagingSupport;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -38,6 +27,16 @@ import org.hisp.dhis.paging.ActionPagingSupport;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.Section;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.paging.ActionPagingSupport;
 
 public class GetSectionIndicatorsAction
     extends ActionPagingSupport<Indicator>
@@ -93,7 +92,7 @@ public class GetSectionIndicatorsAction
             indicators.removeAll( section.getIndicators() );
         }
         
-        Collections.sort( indicators, IdentifiableObjectNameComparator.INSTANCE );
+        Collections.sort( indicators );
         
         return SUCCESS;
     }

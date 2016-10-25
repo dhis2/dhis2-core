@@ -34,6 +34,7 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
@@ -254,5 +255,27 @@ public class AclServiceTest
         eventReport.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, eventReport ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicLegendSet()
+    {
+        User user = createAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
+
+        assertFalse( aclService.canCreatePublic( user, LegendSet.class ) );
+        assertTrue( aclService.canCreatePrivate( user, LegendSet.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateLegendSet()
+    {
+        User user = createAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
+
+        LegendSet legendSet = new LegendSet();
+        legendSet.setAutoFields();
+        legendSet.setUser( user );
+        legendSet.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, legendSet ) );
     }
 }

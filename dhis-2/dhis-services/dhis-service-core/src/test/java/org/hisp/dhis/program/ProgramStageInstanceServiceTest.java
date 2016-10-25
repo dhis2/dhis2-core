@@ -39,7 +39,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceReminder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -53,7 +52,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
@@ -179,32 +181,11 @@ public class ProgramStageInstanceServiceTest
         stageA.setProgram( programA );
         stageA.setSortOrder( 1 );
 
-        TrackedEntityInstanceReminder reminderA = createTrackedEntityInstanceReminder( 'A', 0,
-            "Test program stage message template", TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE,
-            TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE, null, TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        TrackedEntityInstanceReminder reminderB = createTrackedEntityInstanceReminder( 'B', 0,
-            "Test program stage message template", TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE,
-            TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE, TrackedEntityInstanceReminder.SEND_WHEN_TO_C0MPLETED_EVENT,
-            TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
-
-        Set<TrackedEntityInstanceReminder> reminders = new HashSet<>();
-        reminders.add( reminderA );
-        reminders.add( reminderB );
-        stageA.setReminders( reminders );
-
         programStageService.saveProgramStage( stageA );
 
         stageB = new ProgramStage( "B", programA );
         stageB.setSortOrder( 2 );
-        TrackedEntityInstanceReminder reminderC = createTrackedEntityInstanceReminder( 'C', 0,
-            "Test program stage message template", TrackedEntityInstanceReminder.DUE_DATE_TO_COMPARE,
-            TrackedEntityInstanceReminder.SEND_TO_TRACKED_ENTITY_INSTANCE, TrackedEntityInstanceReminder.SEND_WHEN_TO_C0MPLETED_EVENT,
-            TrackedEntityInstanceReminder.MESSAGE_TYPE_BOTH );
 
-        reminders = new HashSet<>();
-        reminders.add( reminderC );
-        stageB.setReminders( reminders );
         programStageService.saveProgramStage( stageB );
 
         Set<ProgramStage> programStages = new HashSet<>();
@@ -429,7 +410,7 @@ public class ProgramStageInstanceServiceTest
     {
         int idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
-        programStageInstanceService.completeProgramStageInstance( programStageInstanceA, false, mockFormat );
+        programStageInstanceService.completeProgramStageInstance( programStageInstanceA, true, mockFormat );
 
         assertEquals( true, programStageInstanceService.getProgramStageInstance( idA ).isCompleted() );
     }

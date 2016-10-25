@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -43,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -51,6 +53,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.node.NodeUtils;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.option.Option;
@@ -70,6 +73,8 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
@@ -79,10 +84,8 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -109,6 +112,9 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
+
+    @Autowired
+    private SystemService systemService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -168,7 +174,14 @@ public class DefaultMetadataExportService implements MetadataExportService
     public RootNode getMetadataAsNode( MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
+
+        SystemInfo systemInfo = systemService.getSystemInfo();
+
+        ComplexNode system = rootNode.addChild( new ComplexNode( "system" ) );
+        system.addChild( new SimpleNode( "id", systemInfo.getSystemId() ) );
+        system.addChild( new SimpleNode( "rev", systemInfo.getRevision() ) );
+        system.addChild( new SimpleNode( "version", systemInfo.getVersion() ) );
+        system.addChild( new SimpleNode( "date", systemInfo.getServerDate() ) );
 
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = getMetadata( params );
 
@@ -293,9 +306,9 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies( IdentifiableObject object )
+    public SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> getMetadataWithDependencies( IdentifiableObject object )
     {
-        Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata = new HashMap<>();
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
 
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
@@ -309,7 +322,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
 
-        Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata = getMetadataWithDependencies( object );
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = getMetadataWithDependencies( object );
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
@@ -323,12 +336,11 @@ public class DefaultMetadataExportService implements MetadataExportService
     // Utility Methods
     //-----------------------------------------------------------------------------------
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleDataSet( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataSet dataSet )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSet dataSet )
     {
-        if ( !metadata.containsKey( DataSet.class ) ) metadata.put( DataSet.class, new HashSet<>() );
-        metadata.get( DataSet.class ).add( dataSet );
+        metadata.putValue( DataSet.class, dataSet );
 
-        dataSet.getDataElements().forEach( dataElement -> handleDataElement( metadata, dataElement ) );
+        dataSet.getDataSetElements().forEach( dataSetElement -> handleDataSetElement( metadata, dataSetElement ) );
         dataSet.getSections().forEach( section -> handleSection( metadata, section ) );
         dataSet.getIndicators().forEach( indicator -> handleIndicator( metadata, indicator ) );
 
@@ -341,7 +353,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleDataElementOperand( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataElementOperand dataElementOperand )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataElementOperand( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementOperand dataElementOperand )
     {
         if ( dataElementOperand == null ) return metadata;
 
@@ -352,11 +364,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleCategoryOptionCombo( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataElementCategoryOptionCombo categoryOptionCombo )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOptionCombo( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategoryOptionCombo categoryOptionCombo )
     {
         if ( categoryOptionCombo == null ) return metadata;
-        if ( !metadata.containsKey( DataElementCategoryOptionCombo.class ) ) metadata.put( DataElementCategoryOptionCombo.class, new HashSet<>() );
-        metadata.get( DataElementCategoryOptionCombo.class ).add( categoryOptionCombo );
+        metadata.putValue( DataElementCategoryOptionCombo.class, categoryOptionCombo );
 
         handleCategoryCombo( metadata, categoryOptionCombo.getCategoryCombo() );
         categoryOptionCombo.getCategoryOptions().forEach( categoryOption -> handleCategoryOption( metadata, categoryOption ) );
@@ -364,104 +375,105 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleCategoryCombo( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataElementCategoryCombo categoryCombo )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryCombo( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategoryCombo categoryCombo )
     {
         if ( categoryCombo == null ) return metadata;
-        if ( !metadata.containsKey( DataElementCategoryCombo.class ) ) metadata.put( DataElementCategoryCombo.class, new HashSet<>() );
-        metadata.get( DataElementCategoryCombo.class ).add( categoryCombo );
+        metadata.putValue( DataElementCategoryCombo.class, categoryCombo );
 
         categoryCombo.getCategories().forEach( category -> handleCategory( metadata, category ) );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleCategory( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataElementCategory category )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategory( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategory category )
     {
         if ( category == null ) return metadata;
-        if ( !metadata.containsKey( DataElementCategory.class ) ) metadata.put( DataElementCategory.class, new HashSet<>() );
-        metadata.get( DataElementCategory.class ).add( category );
+        metadata.putValue( DataElementCategory.class, category );
 
         category.getCategoryOptions().forEach( categoryOption -> handleCategoryOption( metadata, categoryOption ) );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleCategoryOption( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataElementCategoryOption categoryOption )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleCategoryOption( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElementCategoryOption categoryOption )
     {
         if ( categoryOption == null ) return metadata;
-        if ( !metadata.containsKey( DataElementCategoryOption.class ) ) metadata.put( DataElementCategoryOption.class, new HashSet<>() );
-        metadata.get( DataElementCategoryOption.class ).add( categoryOption );
+        metadata.putValue( DataElementCategoryOption.class, categoryOption );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleLegendSet( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, LegendSet legendSet )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleLegendSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, LegendSet legendSet )
     {
         if ( legendSet == null ) return metadata;
-        if ( !metadata.containsKey( LegendSet.class ) ) metadata.put( LegendSet.class, new HashSet<>() );
-        metadata.get( LegendSet.class ).add( legendSet );
+        metadata.putValue( LegendSet.class, legendSet );
 
         legendSet.getLegends().forEach( legend -> handleLegend( metadata, legend ) );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleLegend( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, Legend legend )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleLegend( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Legend legend )
     {
         if ( legend == null ) return metadata;
-        if ( !metadata.containsKey( Legend.class ) ) metadata.put( Legend.class, new HashSet<>() );
-        metadata.get( Legend.class ).add( legend );
+        metadata.putValue( Legend.class, legend );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleDataEntryForm( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataEntryForm dataEntryForm )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataEntryForm( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataEntryForm dataEntryForm )
     {
         if ( dataEntryForm == null ) return metadata;
-        if ( !metadata.containsKey( DataEntryForm.class ) ) metadata.put( DataEntryForm.class, new HashSet<>() );
-        metadata.get( DataEntryForm.class ).add( dataEntryForm );
+        metadata.putValue( DataEntryForm.class, dataEntryForm );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleDataElement( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, DataElement dataElement )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSetElement( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSetElement dataSetElement )
+    {
+        if ( dataSetElement == null ) return metadata;
+        metadata.putValue( DataSetElement.class, dataSetElement );
+
+        handleDataElement( metadata, dataSetElement.getDataElement() );
+        handleCategoryCombo( metadata, dataSetElement.getCategoryCombo() );
+
+        return metadata;
+    }
+
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataElement( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataElement dataElement )
     {
         if ( dataElement == null ) return metadata;
-        if ( !metadata.containsKey( DataElement.class ) ) metadata.put( DataElement.class, new HashSet<>() );
-        metadata.get( DataElement.class ).add( dataElement );
+        metadata.putValue( DataElement.class, dataElement );
 
-        handleCategoryCombo( metadata, dataElement.getCategoryCombo() );
+        handleCategoryCombo( metadata, dataElement.getDataElementCategoryCombo() );
         handleOptionSet( metadata, dataElement.getOptionSet() );
         handleOptionSet( metadata, dataElement.getCommentOptionSet() );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleOptionSet( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, OptionSet optionSet )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleOptionSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, OptionSet optionSet )
     {
         if ( optionSet == null ) return metadata;
-        if ( !metadata.containsKey( OptionSet.class ) ) metadata.put( OptionSet.class, new HashSet<>() );
-        metadata.get( OptionSet.class ).add( optionSet );
+        metadata.putValue( OptionSet.class, optionSet );
 
         optionSet.getOptions().forEach( o -> handleOption( metadata, o ) );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleOption( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, Option option )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleOption( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Option option )
     {
         if ( option == null ) return metadata;
-        if ( !metadata.containsKey( Option.class ) ) metadata.put( Option.class, new HashSet<>() );
-        metadata.get( Option.class ).add( option );
+        metadata.putValue( Option.class, option );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleSection( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, Section section )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleSection( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Section section )
     {
         if ( section == null ) return metadata;
-        if ( !metadata.containsKey( Section.class ) ) metadata.put( Section.class, new HashSet<>() );
-        metadata.get( Section.class ).add( section );
+        metadata.putValue( Section.class, section );
 
         section.getGreyedFields().forEach( dataElementOperand -> handleDataElementOperand( metadata, dataElementOperand ) );
         section.getIndicators().forEach( indicator -> handleIndicator( metadata, indicator ) );
@@ -470,31 +482,28 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleIndicator( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, Indicator indicator )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleIndicator( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Indicator indicator )
     {
         if ( indicator == null ) return metadata;
-        if ( !metadata.containsKey( Indicator.class ) ) metadata.put( Indicator.class, new HashSet<>() );
-        metadata.get( Indicator.class ).add( indicator );
+        metadata.putValue( Indicator.class, indicator );
 
         handleIndicatorType( metadata, indicator.getIndicatorType() );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleIndicatorType( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, IndicatorType indicatorType )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleIndicatorType( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, IndicatorType indicatorType )
     {
         if ( indicatorType == null ) return metadata;
-        if ( !metadata.containsKey( IndicatorType.class ) ) metadata.put( IndicatorType.class, new HashSet<>() );
-        metadata.get( IndicatorType.class ).add( indicatorType );
+        metadata.putValue( IndicatorType.class, indicatorType );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgram( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, Program program )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgram( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Program program )
     {
         if ( program == null ) return metadata;
-        if ( !metadata.containsKey( Program.class ) ) metadata.put( Program.class, new HashSet<>() );
-        metadata.get( Program.class ).add( program );
+        metadata.putValue( Program.class, program );
 
         handleCategoryCombo( metadata, program.getCategoryCombo() );
         handleDataEntryForm( metadata, program.getDataEntryForm() );
@@ -513,11 +522,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramRuleVariable( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramRuleVariable programRuleVariable )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramRuleVariable( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramRuleVariable programRuleVariable )
     {
         if ( programRuleVariable == null ) return metadata;
-        if ( !metadata.containsKey( ProgramRuleVariable.class ) ) metadata.put( ProgramRuleVariable.class, new HashSet<>() );
-        metadata.get( ProgramRuleVariable.class ).add( programRuleVariable );
+        metadata.putValue( ProgramRuleVariable.class, programRuleVariable );
 
         handleTrackedEntityAttribute( metadata, programRuleVariable.getAttribute() );
         handleDataElement( metadata, programRuleVariable.getDataElement() );
@@ -526,33 +534,30 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleTrackedEntityAttribute( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, TrackedEntityAttribute trackedEntityAttribute )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleTrackedEntityAttribute( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, TrackedEntityAttribute trackedEntityAttribute )
     {
         if ( trackedEntityAttribute == null ) return metadata;
-        if ( !metadata.containsKey( TrackedEntityAttribute.class ) ) metadata.put( TrackedEntityAttribute.class, new HashSet<>() );
-        metadata.get( TrackedEntityAttribute.class ).add( trackedEntityAttribute );
+        metadata.putValue( TrackedEntityAttribute.class, trackedEntityAttribute );
 
         handleOptionSet( metadata, trackedEntityAttribute.getOptionSet() );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramRule( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramRule programRule )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramRule( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramRule programRule )
     {
         if ( programRule == null ) return metadata;
-        if ( !metadata.containsKey( ProgramRule.class ) ) metadata.put( ProgramRule.class, new HashSet<>() );
-        metadata.get( ProgramRule.class ).add( programRule );
+        metadata.putValue( ProgramRule.class, programRule );
 
         programRule.getProgramRuleActions().forEach( programRuleAction -> handleProgramRuleAction( metadata, programRuleAction ) );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramRuleAction( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramRuleAction programRuleAction )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramRuleAction( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramRuleAction programRuleAction )
     {
         if ( programRuleAction == null ) return metadata;
-        if ( !metadata.containsKey( ProgramRuleAction.class ) ) metadata.put( ProgramRuleAction.class, new HashSet<>() );
-        metadata.get( ProgramRuleAction.class ).add( programRuleAction );
+        metadata.putValue( ProgramRuleAction.class, programRuleAction );
 
         handleDataElement( metadata, programRuleAction.getDataElement() );
         handleTrackedEntityAttribute( metadata, programRuleAction.getAttribute() );
@@ -563,22 +568,20 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramTrackedEntityAttribute( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramTrackedEntityAttribute programTrackedEntityAttribute )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramTrackedEntityAttribute( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramTrackedEntityAttribute programTrackedEntityAttribute )
     {
         if ( programTrackedEntityAttribute == null ) return metadata;
-        if ( !metadata.containsKey( ProgramTrackedEntityAttribute.class ) ) metadata.put( ProgramTrackedEntityAttribute.class, new HashSet<>() );
-        metadata.get( ProgramTrackedEntityAttribute.class ).add( programTrackedEntityAttribute );
+        metadata.putValue( ProgramTrackedEntityAttribute.class, programTrackedEntityAttribute );
 
         handleTrackedEntityAttribute( metadata, programTrackedEntityAttribute.getAttribute() );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramStage( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramStage programStage )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramStage( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramStage programStage )
     {
         if ( programStage == null ) return metadata;
-        if ( !metadata.containsKey( ProgramStage.class ) ) metadata.put( ProgramStage.class, new HashSet<>() );
-        metadata.get( ProgramStage.class ).add( programStage );
+        metadata.putValue( ProgramStage.class, programStage );
 
         programStage.getProgramStageDataElements().forEach( programStageDataElement -> handleProgramStageDataElement( metadata, programStageDataElement ) );
         programStage.getProgramStageSections().forEach( programStageSection -> handleProgramStageSection( metadata, programStageSection ) );
@@ -587,11 +590,10 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramStageSection( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramStageSection programStageSection )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramStageSection( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramStageSection programStageSection )
     {
         if ( programStageSection == null ) return metadata;
-        if ( !metadata.containsKey( ProgramStageSection.class ) ) metadata.put( ProgramStageSection.class, new HashSet<>() );
-        metadata.get( ProgramStageSection.class ).add( programStageSection );
+        metadata.putValue( ProgramStageSection.class, programStageSection );
 
         programStageSection.getProgramStageDataElements().forEach( programStageDataElement -> handleProgramStageDataElement( metadata, programStageDataElement ) );
         programStageSection.getProgramIndicators().forEach( programIndicator -> handleProgramIndicator( metadata, programIndicator ) );
@@ -599,31 +601,28 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramIndicator( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramIndicator programIndicator )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramIndicator( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramIndicator programIndicator )
     {
         if ( programIndicator == null ) return metadata;
-        if ( !metadata.containsKey( ProgramIndicator.class ) ) metadata.put( ProgramIndicator.class, new HashSet<>() );
-        metadata.get( ProgramIndicator.class ).add( programIndicator );
+        metadata.putValue( ProgramIndicator.class, programIndicator );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleProgramStageDataElement( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, ProgramStageDataElement programStageDataElement )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleProgramStageDataElement( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, ProgramStageDataElement programStageDataElement )
     {
         if ( programStageDataElement == null ) return metadata;
-        if ( !metadata.containsKey( ProgramStageDataElement.class ) ) metadata.put( ProgramStageDataElement.class, new HashSet<>() );
-        metadata.get( ProgramStageDataElement.class ).add( programStageDataElement );
+        metadata.putValue( ProgramStageDataElement.class, programStageDataElement );
 
         handleDataElement( metadata, programStageDataElement.getDataElement() );
 
         return metadata;
     }
 
-    private Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> handleTrackedEntity( Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> metadata, TrackedEntity trackedEntity )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleTrackedEntity( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, TrackedEntity trackedEntity )
     {
         if ( trackedEntity == null ) return metadata;
-        if ( !metadata.containsKey( TrackedEntity.class ) ) metadata.put( TrackedEntity.class, new HashSet<>() );
-        metadata.get( TrackedEntity.class ).add( trackedEntity );
+        metadata.putValue( TrackedEntity.class, trackedEntity );
 
         return metadata;
     }
