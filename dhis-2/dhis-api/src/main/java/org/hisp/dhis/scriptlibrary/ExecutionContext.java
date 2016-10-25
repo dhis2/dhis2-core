@@ -133,4 +133,21 @@ public class ExecutionContext implements ExecutionContextInterface
         this.error = error;
     }
 
+    public void logInfo(Object o) {
+        log.info(o);
+    }
+
+    public void logDebug(Object o) {
+        log.debug(o);
+    }
+
+    public void logError(Object o) {
+        log.error(o);
+    }
+
+    public void logFatal(Object o) {
+        log.fatal(o);
+    }
+
+
 }

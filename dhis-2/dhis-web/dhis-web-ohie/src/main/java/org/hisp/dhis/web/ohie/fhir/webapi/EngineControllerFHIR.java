@@ -30,7 +30,6 @@ package org.hisp.dhis.web.ohie.fhir.webapi;
  */
 
 import ca.uhn.fhir.model.api.Bundle;
-import ca.uhn.fhir.model.api.IResource;
 import java.io.Reader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -50,6 +49,7 @@ import org.hisp.dhis.webapi.controller.EngineController;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttp;
 import org.hisp.dhis.webapi.scriptlibrary.HttpException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -192,7 +192,7 @@ public class EngineControllerFHIR extends EngineController
 
    public EngineControllerFHIR() {
         fhirProcessors.put("dstu2",new DSTU2Processor());
-        fhirProcessors.put("stu2",new STU3Processor());
+        fhirProcessors.put("stu3",new STU3Processor());
    }
 
     @RequestMapping (
@@ -470,7 +470,7 @@ public class EngineControllerFHIR extends EngineController
             {
             case "resource":
                 log.info ( "post processing json response - resource" );
-                IResource r =fhirProcessor.resourceFromJSON ( json );
+                IBaseResource r =fhirProcessor.resourceFromJSON ( json );
                 log.info ( "post processing json response - created resource" );
 
                 if ( execContext.getIsXml() )
@@ -579,7 +579,7 @@ public class EngineControllerFHIR extends EngineController
                 switch ( inputType )
                 {
                 case "resource":
-                    IResource res;
+                    IBaseResource res;
 
                     if ( execContext.getIsXml() )
                     {

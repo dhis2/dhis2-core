@@ -40,6 +40,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 
 
 /**
@@ -66,7 +67,7 @@ abstract public class BaseProcessor
 
 
 
-    public String resourceToJSON ( IResource r ) throws DataFormatException
+    public String resourceToJSON ( IBaseResource r ) throws DataFormatException
     {
         if ( r == null )
         {
@@ -85,7 +86,7 @@ abstract public class BaseProcessor
         return jsonParser.encodeBundleToString ( b );
     }
 
-    public String resourceToXML ( IResource r ) throws DataFormatException
+    public String resourceToXML ( IBaseResource r ) throws DataFormatException
     {
         if ( r == null )
         {
@@ -147,7 +148,7 @@ abstract public class BaseProcessor
         return ( Bundle ) o;
     }
 
-    public IResource resourceFromXML ( String r ) throws DataFormatException
+    public IBaseResource resourceFromXML ( String r ) throws DataFormatException
     {
         if ( r == null )
         {
@@ -155,9 +156,9 @@ abstract public class BaseProcessor
         }
 
         Object o = xmlParser.parseResource ( r );
-        return ( IResource ) o;
+        return ( IBaseResource ) o;
     }
-    public IResource resourceFromXML ( Reader r ) throws DataFormatException
+    public IBaseResource resourceFromXML ( Reader r ) throws DataFormatException
     {
         if ( r == null )
         {
@@ -165,9 +166,9 @@ abstract public class BaseProcessor
         }
 
         Object o = xmlParser.parseResource ( r );
-        return ( IResource ) o;
+        return ( IBaseResource ) o;
     }
-    public IResource resourceFromJSON ( String r ) throws DataFormatException
+    public IBaseResource resourceFromJSON ( String r ) throws DataFormatException
     {
         if ( r == null )
         {
@@ -175,9 +176,9 @@ abstract public class BaseProcessor
         }
 
         Object o = jsonParser.parseResource ( r );
-        return ( IResource ) o;
+        return ( IBaseResource ) o;
     }
-    public IResource resourceFromJSON ( Reader r ) throws DataFormatException
+    public IBaseResource resourceFromJSON (Reader r ) throws DataFormatException
     {
         if ( r == null )
         {
@@ -185,7 +186,7 @@ abstract public class BaseProcessor
         }
 
         Object o = jsonParser.parseResource ( r );
-        return ( IResource ) o;
+        return ( IBaseResource ) o;
     }
 
 }

@@ -210,33 +210,49 @@ public class DefaultAppManager
 
     public JsonNode retrieveManifestInfo (String appKey, String[] path )
     {
+        log.info("Retrieve manifest info for " + appKey + "\nPath=" + String.join("/",path));
         try
         {
             JsonNode node;
             if (manifests.containsKey(appKey)) {
+                log.info("Using exist manifest");
                 node = manifests.get(appKey);
             } else {
                 log.info("Loading " + MANIFEST_FILENAME + " for " + appKey);
                 Resource manifest = findResource(appKey, MANIFEST_FILENAME);
+                log.info("Found manifest: " + manifest.getURI());
                 JsonParser jParser = jsonFactory.createParser(manifest.getInputStream());
+                log.info("Parsed manifest");
                 ObjectMapper mapper = new ObjectMapper();
+                log.info("Created object mapper");
                 node = mapper.readTree(jParser);
+                log.info("Reading tree");
                 manifests.put(appKey,node);
+                log.info("Adding to manifests cache");
             }
 
             for ( int i = 0; i < path.length ; i++ ) //walk the binding path
             {
+                log.info("Processing path component (" + path[i] + ")");
                 if (node.isArray()) {
                     int num = Integer.parseInt ( path[i] );
+                    if (! node.has(num)) {
+                        throw new Exception("path component " + path[i] + " not found");
+                    }
                     node = node.get( num );
                 } else if (node.isObject()) {
+                    if (! node.has(path[i])) {
+                        throw new Exception("path component " + path[i] + " not found");
+                    }
                     node = node.get(path[i]);
                 } else if (i != path.length - 1) {
+                    log.info("Path component not found (" + path[i] + ")");
                     return null; //we are not in the correct path
                 }
 
 
             }
+            log.info("walked full path");
             return node;
         }
 

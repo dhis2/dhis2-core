@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 import javax.script.ScriptEngine;
 import javax.script.ScriptContext;
 
+import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -149,7 +150,8 @@ public class EngineSE extends Engine
 
     private static JsonFactory jsonFactory = new JsonFactory();
 
-    private static void addObject(Object o, JsonGenerator gen)
+
+    private static void addMember( Object o, JsonGenerator gen)
             throws IOException
     {
         if (o == null) {
@@ -157,11 +159,11 @@ public class EngineSE extends Engine
         } else if (o instanceof JSObject) {
             generateJsonString((JSObject) o, gen);
         } else if (o instanceof Boolean) {
-            gen.writeBoolean((Boolean) o);
+            gen.writeBoolean( (Boolean) o);
         } else if (o instanceof Double) {
-            gen.writeNumber((Double) o);
+            gen.writeNumber( (Double) o);
         } else if (o instanceof Float) {
-            gen.writeNumber((Float) o);
+            gen.writeNumber( (Float) o);
         } else if (o instanceof Integer) {
             gen.writeNumber((Integer) o);
         } else if (o instanceof Long) {
@@ -169,11 +171,9 @@ public class EngineSE extends Engine
         } else if (o instanceof Short) {
             gen.writeNumber((Short) o);
         } else if (o instanceof BigDecimal) {
-            gen.writeNumber( (BigDecimal) o);
-        } else if (o instanceof BigInteger) {
-            gen.writeNumber( (BigInteger) o);
+            gen.writeNumber((BigDecimal) o);
         } else {
-            gen.writeRawValue(o.toString());
+            gen.writeString(o.toString());
         }
     }
     private static void generateJsonString(JSObject obj, JsonGenerator gen)
@@ -185,7 +185,7 @@ public class EngineSE extends Engine
             if (len instanceof Number) {
                 int n = ((Number) len).intValue();
                 for (int i = 0; i < n; i++) {
-                    addObject(obj.getSlot(i),gen);
+                    addMember(obj.getSlot(i),gen);
                 }
             }
             gen.writeEndArray();
@@ -199,7 +199,8 @@ public class EngineSE extends Engine
                 members = obj.keySet();
             }
             for (String key : members) {
-                addObject(obj.getMember(key),gen);
+                gen.writeFieldName(key);
+                addMember(obj.getMember(key),gen);
             }
             gen.writeEndObject();
         }
