@@ -36,6 +36,7 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
@@ -130,7 +131,16 @@ public class MeController
         CollectionNode collectionNode = fieldFilterService.filter( User.class, Collections.singletonList( currentUser ), fields );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json", response.getOutputStream() );
+
+        RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
+
+        rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
+            NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( currentUser, USER_SETTING_NAMES, true ) ) );
+
+        rootNode.addChild( new CollectionNode( "authorities" ) ).addChildren(
+            NodeUtils.createSimples( currentUser.getUserCredentials().getAllAuthorities() ) );
+
+        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
