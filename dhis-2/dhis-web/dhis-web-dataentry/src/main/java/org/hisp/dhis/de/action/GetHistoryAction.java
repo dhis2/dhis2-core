@@ -270,8 +270,8 @@ public class GetHistoryAction
             storedBy = credentials != null ? credentials.getName() : dataValue.getStoredBy();
         }
 
-        dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, organisationUnit, period, HISTORY_LENGTH );
-
+        dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo, organisationUnit, period, HISTORY_LENGTH );
+        
         historyInvalid = dataElementHistory == null;
 
         minMaxInvalid = !dataElement.getValueType().isNumeric();

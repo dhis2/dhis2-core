@@ -305,8 +305,8 @@ public class DefaultChartService
     }
 
     @Override
-    public JFreeChart getJFreeChartHistory( DataElement dataElement,
-        DataElementCategoryOptionCombo categoryOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
+    public JFreeChart getJFreeChartHistory( DataElement dataElement, DataElementCategoryOptionCombo categoryOptionCombo,
+        DataElementCategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
         int historyLength, I18nFormat format )
     {
         lastPeriod = periodService.reloadPeriod( lastPeriod );
@@ -336,7 +336,7 @@ public class DefaultChartService
             period.setName( format.formatPeriod( period ) );
 
             DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit,
-                categoryOptionCombo );
+                categoryOptionCombo, attributeOptionCombo );
 
             double value = 0;
 
