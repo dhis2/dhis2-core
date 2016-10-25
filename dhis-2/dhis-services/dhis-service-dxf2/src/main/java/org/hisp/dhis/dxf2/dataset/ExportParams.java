@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,6 +58,10 @@ public class ExportParams
     private Date startDate;
 
     private Date endDate;
+
+    private Date created;
+
+    private String createdDuration;
 
     private Integer limit;
 
@@ -97,6 +102,16 @@ public class ExportParams
     public boolean hasLimit()
     {
         return limit != null;
+    }
+
+    public boolean hasCreated()
+    {
+        return created != null;
+    }
+
+    public boolean hasCreatedDuration()
+    {
+        return StringUtils.isNotBlank( createdDuration );
     }
 
     @Override
@@ -192,6 +207,28 @@ public class ExportParams
     public ExportParams setEndDate( Date endDate )
     {
         this.endDate = endDate;
+        return this;
+    }
+
+    public Date getCreated()
+    {
+        return created;
+    }
+
+    public ExportParams setCreated( Date created )
+    {
+        this.created = created;
+        return this;
+    }
+
+    public String getCreatedDuration()
+    {
+        return createdDuration;
+    }
+
+    public ExportParams setCreatedDuration( String createdDuration )
+    {
+        this.createdDuration = createdDuration;
         return this;
     }
 

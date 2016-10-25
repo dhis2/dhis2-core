@@ -83,8 +83,7 @@ public class SpringCompleteDataSetRegistrationStore
     {
         final Calendar calendar = PeriodType.getCalendar();
 
-        jdbcTemplate.query( query, rs ->
-        {
+        jdbcTemplate.query( query, rs -> {
             CompleteDataSetRegistration cdsr = new CompleteDataSetRegistration();
             cdsr.open();
 
@@ -121,6 +120,7 @@ public class SpringCompleteDataSetRegistrationStore
         sql += createDataSetClause( params, namedParamsBuilder );
         sql += createOrgUnitClause( params, namedParamsBuilder );
         sql += createPeriodClause( params, namedParamsBuilder );
+        sql += createCreatedClause( params, namedParamsBuilder );
         sql += createLimitClause( params, namedParamsBuilder );
 
         sql = injectNamedParams( sql, namedParamsBuilder.build() );
@@ -206,6 +206,27 @@ public class SpringCompleteDataSetRegistrationStore
         }
 
         return "";
+    }
+
+    private static String createCreatedClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
+    {
+        if ( params.hasCreated() )
+        {
+            namedParamsBuilder.put( "created", DateUtils.getLongGmtDateString( params.getCreated() ) );
+
+            return " AND cdsr.date >= '${created}' ";
+        }
+        else if ( params.hasCreatedDuration() )
+        {
+            namedParamsBuilder.put( "createdDuration",
+                DateUtils.getLongGmtDateString( DateUtils.nowMinusDuration( params.getCreatedDuration() ) ) );
+
+            return " AND cdsr.date >= '${createdDuration}' ";
+        }
+        else
+        {
+            return "";
+        }
     }
 
     private static String createLimitClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
