@@ -166,7 +166,12 @@ public class MeController
 
         User user = renderService.fromJson( request.getInputStream(), User.class );
         merge( currentUser, user );
-        updatePassword( currentUser, user );
+
+        if ( user.getUserCredentials() != null )
+        {
+            updatePassword( currentUser, user.getUserCredentials().getPassword() );
+        }
+
         manager.update( currentUser );
 
         if ( fields.isEmpty() )
@@ -228,9 +233,15 @@ public class MeController
     }
 
     @RequestMapping( value = "/settings/{key}" )
-    public void getSetting( HttpServletResponse response, @PathVariable String key ) throws IOException, WebMessageException
+    public void getSetting( HttpServletResponse response, @PathVariable String key ) throws IOException, WebMessageException, NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
         Optional<UserSettingKey> keyEnum = UserSettingKey.getByName( key );
 
         if ( !keyEnum.isPresent() )
@@ -247,6 +258,28 @@ public class MeController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), value );
+    }
+
+    @RequestMapping( value = "/password", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = "text/*" )
+    public @ResponseBody RootNode changePassword( @RequestBody String password, HttpServletResponse response )
+        throws WebMessageException, NotAuthenticatedException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        if ( !ValidationUtils.passwordIsValid( password ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" ) );
+        }
+
+        updatePassword( currentUser, password );
+        manager.update( currentUser );
+
+        return null;
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
@@ -334,13 +367,13 @@ public class MeController
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
     }
 
-    private void updatePassword( User currentUser, User user ) throws WebMessageException
+    private void updatePassword( User currentUser, String password ) throws WebMessageException
     {
-        if ( user.getUserCredentials() != null && !StringUtils.isEmpty( user.getUserCredentials().getPassword() ) )
+        if ( !StringUtils.isEmpty( password ) )
         {
-            if ( ValidationUtils.passwordIsValid( user.getUserCredentials().getPassword() ) )
+            if ( ValidationUtils.passwordIsValid( password ) )
             {
-                userService.encodeAndSetPassword( currentUser.getUserCredentials(), user.getUserCredentials().getPassword() );
+                userService.encodeAndSetPassword( currentUser.getUserCredentials(), password );
             }
             else
             {
