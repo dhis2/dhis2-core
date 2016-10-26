@@ -51,6 +51,7 @@ public interface DataQueryService
      * @param filterParams the filter URL parameters.
      * @param aggregationType the aggregation type.
      * @param measureCriteria the measure criteria.
+     * @param preAggregationMeasureCriteria the pre aggregation measure criteria
      * @param skipMeta whether to skip the meta data part of the response.
      * @param skipData whether to skip the data part of the response.
      * @param skipRounding whether to skip rounding and provide full precision
@@ -75,9 +76,9 @@ public interface DataQueryService
      * @return a data query parameter object created based on the given URL info.
      */
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
-        boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit,
-        boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
-        String approvalLevel, Date relativePeriodDate, String userOrgUnit );
+        String preAggregationMeasureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
+        boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty,
+        IdentifiableProperty outputIdScheme, IdScheme inputIdScheme, String approvalLevel, Date relativePeriodDate, String userOrgUnit );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.

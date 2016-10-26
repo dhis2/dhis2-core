@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,27 +28,38 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Lars Helge Overland
  */
-public class NotificationMessage
+public class JacksonUtils
 {
-    private String subject = "";
-    private String message = "";
+    private final static ObjectMapper jsonMapper = new ObjectMapper();
 
-    public NotificationMessage( String subject, String message )
+    static
     {
-        this.subject = subject;
-        this.message = message;
+        jsonMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
+        jsonMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false );
+        jsonMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        jsonMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 
-    public String getSubject()
+    public static <T> T fromJson( byte[] src, Class<T> clazz )
     {
-        return subject;
-    }
-
-    public String getMessage()
-    {
-        return message;
+        try
+        {
+            return jsonMapper.readValue( src, clazz );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
     }
 }
