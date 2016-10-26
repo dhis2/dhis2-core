@@ -589,9 +589,9 @@ Ext.onReady( function() {
                     layout.programStage = config.programStage;
 
                     // dates
-                    if (config.startDate && config.endDate) {
-                        layout.startDate = config.startDate;
-                        layout.endDate = config.endDate;
+                    if (Ext.isString(config.startDate) && Ext.isString(config.endDate)) {
+                        layout.startDate = config.startDate.substring(0, 10);
+                        layout.endDate = config.endDate.substring(0, 10);
                     }
 
 					// options
@@ -1007,7 +1007,7 @@ Ext.onReady( function() {
 				return number;
 			};
 
-			support.prototype.number.prettyPrint = function(number, separator) {                
+			support.prototype.number.prettyPrint = function(number, separator) {
 				separator = separator || conf.finals.style.space;
 
 				if (separator === conf.finals.style.none) {

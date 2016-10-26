@@ -7239,7 +7239,12 @@ Ext.onReady( function() {
                         ns.alert(r);
 					},
 					success: function(r) {
-						var config = Ext.decode(r.responseText);
+						var config = api.layout.Layout(Ext.decode(r.responseText));
+
+                        if (!config) {
+                            console.log("web.report.loadReport", "Invalid config");
+                            return;
+                        }
 
 						// sync
 						config.showRowTotals = config.rowTotals;
