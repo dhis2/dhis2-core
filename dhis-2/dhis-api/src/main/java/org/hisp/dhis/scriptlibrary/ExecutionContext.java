@@ -66,9 +66,9 @@ public class ExecutionContext implements ExecutionContextInterface
 
     public String toString()
     {
-        return "ExecutionContext for appKey " + getAppKey()
-                + "\nfor script name " + getScriptName()
-                + "\nfor user " + user.toString()
+        return "ExecutionContext for:\n\tappKey=" + getAppKey()
+                + "\n\tfor script name=" + getScriptName()
+                + "\n\tfor user " + user.toString()
                 ;
     }
     public String getAppKey()

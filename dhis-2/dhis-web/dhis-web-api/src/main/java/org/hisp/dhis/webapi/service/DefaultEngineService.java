@@ -31,7 +31,9 @@ package org.hisp.dhis.webapi.service;
 
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -42,6 +44,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.basex.BaseXServer;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -81,46 +84,53 @@ public class DefaultEngineService implements EngineServiceInterface {
 	@Autowired
 	protected SessionFactory sessionFactory;
 
-    protected Map<String,EngineInterface> scriptEngines = new HashMap<String,EngineInterface>();
-
-	public void setEngines(Map<String, String> map) {
-		engines = map;
-	}
+    protected HashMap<String,EngineInterface> scriptEngines = new HashMap<String,EngineInterface>();
+	protected HashMap<String,Long> lastCachedTimes = new HashMap<String,Long>();
 
 	public EngineInterface getEngine(App app, ScriptLibrary sl, String scriptName)
 			throws ScriptException
 	{
-		String scriptKey = sl.getName() + ":" + scriptName;
-		if (false)
-//
-//      SHOULD UNCOMMENT THIS LINE AND REPLACE ABOVE LINE TO CACHE ENGINES WHEN IN DEPLOYMENT MODE.  SHOULD REALLY BE A RUN-TIME/ADMIN USER CONTROLLED OPTION
-//	if (scriptEngines.containsKey(scriptKey))   
+		String appKey = app.getKey();
+		User user = currentUserService.getCurrentUser();
+
+		//not sure of the implications of the caching trade-offs at scale...
+		//probably needs some cache tuning parameters
+		String scriptEngineKey = sl.getName() + ":" + scriptName + ":" + user.getId();
+		Long lastModifiedTime = appManager.getLastModified( appKey);
+		Long lastCachedTime = lastCachedTimes.get(scriptEngineKey);
+		log.info("Checking for scriptEngine at key: " + scriptEngineKey);
+		log.info("LCT=" + lastCachedTime);
+		log.info("LMT=" + lastModifiedTime);
+
+
+		EngineInterface engine = scriptEngines.get(scriptEngineKey);
+		if ( (lastCachedTime != null)
+			 && (lastModifiedTime != null)
+		     && (lastCachedTime.longValue() > 0)
+			 && (lastModifiedTime.equals(lastCachedTime) )
+			 &&  ( engine != null))
 		{
-			//we really should check here if the engine is "stale" meaning for example it was generated before the last
-			//time the manifest.webapp was changed or one of the dependecies changed
-			//perhaps add:
-			//   public boolean lastModified(String scriptname)
-			//which gets the max modified time of a manifestwebapp, a script, and its dependenceis
-			return scriptEngines.get(scriptKey);
-		} else {
-			String ext = FilenameUtils.getExtension(scriptName);
-			EngineInterface engine = null;
-			log.info("Creating engine on script type:" + ext);
-			if (ext.equals("xsl") || ext.equals("xslt")) {
-				log.info("Creating XSLT engine on script type");
-				engine =  getEngineXSLT(app, scriptName);
-			} else if (ext.equals("xq")) {
-				log.info("Creating XQuery engine on script type");
-				engine =  getEngineXQuery(app, scriptName);
-			} else {
-				log.info("Creating SE engine on script type");
-				engine = getEngineSE(app, scriptName);
-			}
-			//if we make it here we are all good and we should put it into our script execution cache
-			log.info("registering script engine with key: " + scriptKey + "\n");
-			scriptEngines.put(scriptKey,  engine);
+			log.info("reusing script engine with key: " + scriptEngineKey + "\n");
 			return engine;
 		}
+
+		String ext = FilenameUtils.getExtension(scriptName);
+		log.info("Creating engine on script type:" + ext);
+		if (ext.equals("xsl") || ext.equals("xslt")) {
+			log.info("Creating XSLT engine on script type");
+			engine = getEngineXSLT(app, scriptName);
+		} else if (ext.equals("xq")) {
+			log.info("Creating XQuery engine on script type");
+			engine = getEngineXQuery(app, scriptName);
+		} else {
+			log.info("Creating SE engine on script type");
+			engine = getEngineSE(app, scriptName);
+		}
+		//if we make it here we are all good and we should put it into our script execution cache
+		log.info("registering NEW script engine with key: " + scriptEngineKey + "\n");
+		scriptEngines.put(scriptEngineKey, engine);
+		lastCachedTimes.put(scriptEngineKey, (Long) appManager.getLastModified(appKey));
+		return engine;
 	}
 
 	protected EngineInterface getEngineXSLT(App app, String scriptName)
@@ -138,12 +148,22 @@ public class DefaultEngineService implements EngineServiceInterface {
 		return xsltEngine;
 	}
 
+	protected BaseXServer basex = null;
+
 	protected EngineInterface getEngineXQuery(App app, String scriptName)
 			throws ScriptException
 	{
+		if (basex == null) {
+			try {
+				basex = new BaseXServer();
+			} catch (Exception e) {
+				log.info("Could not start basex server");
+			}
+		}
 		EngineXQuery xqueryEngine;
 		xqueryEngine = new EngineXQuery();
 		log.info("Retrieving dependencies for " + scriptName);
+
 		ExecutionContext depContext = new ExecutionContext();
 		depContext.setApplicationContext(applicationContext);
 		depContext.setUser(currentUserService.getCurrentUser());
@@ -152,6 +172,7 @@ public class DefaultEngineService implements EngineServiceInterface {
 		loadDependencies(xqueryEngine, depContext);
 		return xqueryEngine;
 	}
+
 
 	protected EngineInterface getEngineSE(App app, String scriptName)
 			throws ScriptException
@@ -319,6 +340,10 @@ public class DefaultEngineService implements EngineServiceInterface {
 	}
 
 
+
+	// this is not working/not called... i can't seem to have the hibernate session lock on the thread correctly.
+	// this is needed to respect timeouts set via setMaxTime()
+	// :-(
 	@Transactional
 	protected Object executeThreaded (  EngineInterface engine, ExecutionContextInterface execContext )
 			throws ScriptException

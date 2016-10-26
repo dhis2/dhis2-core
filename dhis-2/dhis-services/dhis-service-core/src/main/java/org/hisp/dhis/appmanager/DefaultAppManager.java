@@ -207,6 +207,14 @@ public class DefaultAppManager
         }
     }
 
+    public long getLastModified(String appKey) {
+        try {
+            Resource resource = findResource(appKey, MANIFEST_FILENAME);
+            return  resource.lastModified();
+        } catch (Exception e) {
+            return -1;
+        }
+    }
 
     public JsonNode retrieveManifestInfo (String appKey, String[] path )
     {
@@ -265,7 +273,7 @@ public class DefaultAppManager
 
 
 
-    public Resource findResource (  String appName, String resourceName )
+    public Resource findResource (  String appKey, String resourceName )
             throws IOException
     {
         ResourceLoader resourceLoader = new DefaultResourceLoader();
@@ -273,8 +281,8 @@ public class DefaultAppManager
         try
         {
             locations = Lists.newArrayList (
-                    resourceLoader.getResource ( "file:" + getAppFolderPath() + "/" + appName   + "/" ),
-                    resourceLoader.getResource ( "classpath*:/apps/" + appName + "/" )
+                    resourceLoader.getResource ( "file:" + getAppFolderPath() + "/" + appKey   + "/" ),
+                    resourceLoader.getResource ( "classpath*:/apps/" + appKey + "/" )
             );
 
         }
@@ -284,7 +292,7 @@ public class DefaultAppManager
 
         }
 
-        log.info ( "Looking for resource [" + resourceName + "] in " + appName );
+        log.info ( "Looking for resource [" + resourceName + "] in " + appKey );
 
         for ( Resource location : locations )
         {
@@ -396,11 +404,11 @@ public class DefaultAppManager
     }
 
     @Override
-    public boolean exists ( String appName )
+    public boolean exists ( String appKey )
     {
         for ( App app : getApps ( null ) )
         {
-            if ( app.getName().equals ( appName ) || app.getFolderName().equals ( appName ) )
+            if ( app.getName().equals ( appKey ) || app.getFolderName().equals ( appKey ) )
             {
                 return true;
             }

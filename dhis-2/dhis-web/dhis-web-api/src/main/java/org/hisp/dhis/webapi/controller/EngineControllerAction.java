@@ -51,9 +51,6 @@ import org.springframework.web.servlet.HandlerMapping;
 * @author Carl Leitner <litlfred@gmail.com>
  */
 @Controller
-@RequestMapping (
-    value =  "/{app}"
-)
 public class EngineControllerAction  extends EngineController
 {
     public static final String PATH = "ssa";
@@ -65,25 +62,32 @@ public class EngineControllerAction  extends EngineController
 
     @RequestMapping (
         value =   {
-                "/{app}/" + PATH + "/{script:.+}",
+             //   "/{app}/" + PATH + "/**"
+               PATH + "/{app}/{script:.+}",
+               PATH + "/{app}/{script:.+}/**",
+               PATH + "/{app}/{script:.+}/**/*",
+            //    "/{app}/" + PATH + "/{root:.+}/**/{script:.+}"
 	    }
     )
     public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                             @PathVariable ( "app" ) String appKey, 
-			     @PathVariable ( "script" ) String script )
+                             @PathVariable ( "app" ) String appKey
+			                 //@PathVariable ( "script" ) String script
+    )
     {
+        String script = "";
         try
         {
-            //http://stackoverflow.com/questions/25382620/get-only-wildcard-part-of-requestmapping
 
-            log.info ( "Received request to run  " + script + " in app " + appKey  )  ;
+            String path = (String) httpRequest.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+            String root = "/" + appKey + "/" + PATH + "/";
+            script = PATH  +"/" + path.substring( root.length());
+            log.info ( "Received request to run script engine\nPath:" + path + "\nAppKey:" + appKey  + "\nScript:" + script )  ;
 
-            script = PATH + "/" + script; //only do scripts under ssa directory.
 
             //create and initialize the http execution context to send to the script
             ExecutionContextHttpInterface execContext = getExecutionContext ( httpRequest, httpResponse, appKey, script );
 
-            //instantiate an Engine and run the script against the contexxt
+            //instantiate an Engine and run the script against the context
             log.info ( "Running " + script + " in app " + appKey + " with context=" + execContext.toString() );
             Object result =  engineService.eval(execContext);  //we are not doing anything with the result
             execContext.getOut().flush();

@@ -103,6 +103,16 @@ public interface AppManager
      */
     List<App> getAccessibleApps ( String contextPath );
 
+
+    /*
+     * Retrieve sthe lastModified timestamp for the MANIFEST_FILE
+     *
+     * @param String appKey the app key
+     * @return long the last modified timestamp or -1 if there was an error
+     */
+    long getLastModified(String appKey);
+
+
     /**
      * Installs the app.
      *
