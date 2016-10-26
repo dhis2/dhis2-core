@@ -127,6 +127,11 @@ public class DefaultTrackedEntityInstanceReminderService
                     if ( attributeValue.getAttribute().getUid().equals( uid ) )
                     {
                         value = attributeValue.getValue();
+
+                        if (attributeValue.getAttribute().hasOptionSet())
+                        {
+                            value = attributeValue.getAttribute().getOptionSet().getOptionByCode( value ).getName();
+                        }
                     }
                 }
             }
