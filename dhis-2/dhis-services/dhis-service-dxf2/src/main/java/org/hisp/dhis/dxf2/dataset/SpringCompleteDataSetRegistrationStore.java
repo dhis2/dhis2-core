@@ -109,12 +109,12 @@ public class SpringCompleteDataSetRegistrationStore
 
         String sql = // language=SQL
             "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pestart, pt.name AS ptname, " +
-                "ou.${ouScheme} AS ouid, aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
-                "FROM completedatasetregistration cdsr " +
-                "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
-                "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
-                "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
-                "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
+            "ou.${ouScheme} AS ouid, aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+            "FROM completedatasetregistration cdsr " +
+            "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
+            "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
+            "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
+            "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
 
         sql += createOrgUnitGroupJoin( params );
         sql += createDataSetClause( params, namedParamsBuilder );
