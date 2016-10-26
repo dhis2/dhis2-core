@@ -61,6 +61,8 @@ public class CompleteDataSetRegistrations
 
     protected static final String FIELD_PERIOD = "period";
 
+    protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATIONS = "completeDataSetRegistrations";
+
     //--------------------------------------------------------------------------
     // Options
     //--------------------------------------------------------------------------
