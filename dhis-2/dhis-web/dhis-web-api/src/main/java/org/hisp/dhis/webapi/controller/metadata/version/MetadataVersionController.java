@@ -221,7 +221,7 @@ public class MetadataVersionController
     //Creates version in versioning table, exports the metadata and saves the snapshot in datastore
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/create", method = RequestMethod.POST, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public synchronized @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type", required = true ) VersionType versionType ) throws MetadataVersionException
+    public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type", required = true ) VersionType versionType ) throws MetadataVersionException
     {
         MetadataVersion versionToReturn = null;
         boolean enabled = isMetadataVersioningEnabled();
@@ -233,9 +233,12 @@ public class MetadataVersionController
                 throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
             }
 
-            versionService.saveVersion( versionType );
-            versionToReturn = versionService.getCurrentVersion();
-            return versionToReturn;
+            synchronized ( versionService )
+            {
+                versionService.saveVersion( versionType );
+                versionToReturn = versionService.getCurrentVersion();
+                return versionToReturn;
+            }
 
         }
         catch ( MetadataVersionServiceException ex )

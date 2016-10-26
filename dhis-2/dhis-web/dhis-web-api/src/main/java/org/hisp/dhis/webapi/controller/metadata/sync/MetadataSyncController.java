@@ -65,34 +65,36 @@ public class MetadataSyncController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( method = RequestMethod.GET )
-    public synchronized @ResponseBody MetadataSyncSummary metadataSync() throws MetadataSyncException, BadRequestException
+    public @ResponseBody MetadataSyncSummary metadataSync() throws MetadataSyncException, BadRequestException
     {
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary;
 
-        try
+        synchronized( metadataSyncService )
         {
-            syncParams = metadataSyncService.getParamsFromMap( contextService.getParameterValuesMap() );
-        }
-        catch ( RemoteServerUnavailableException exception )
-        {
-            throw new MetadataSyncException( exception.getMessage(), exception );
+            try
+            {
+                syncParams = metadataSyncService.getParamsFromMap( contextService.getParameterValuesMap() );
+            }
+            catch ( RemoteServerUnavailableException exception )
+            {
+                throw new MetadataSyncException( exception.getMessage(), exception );
 
-        }
-        catch ( MetadataSyncServiceException serviceException )
-        {
-            throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(), serviceException );
-        }
+            }
+            catch ( MetadataSyncServiceException serviceException )
+            {
+                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(), serviceException );
+            }
 
-        try
-        {
-            metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+            try
+            {
+                metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+            }
+            catch ( MetadataSyncServiceException serviceException )
+            {
+                throw new MetadataSyncException( "Exception occurred while doing metadata sync " + serviceException.getMessage() );
+            }
         }
-        catch ( MetadataSyncServiceException serviceException )
-        {
-            throw new MetadataSyncException( "Exception occurred while doing metadata sync " + serviceException.getMessage() );
-        }
-
         return metadataSyncSummary;
     }
 }

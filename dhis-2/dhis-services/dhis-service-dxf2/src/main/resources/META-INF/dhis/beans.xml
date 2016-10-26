@@ -72,11 +72,11 @@
 
   <bean id="org.hisp.dhis.dxf2.synch.SynchronizationManager" class="org.hisp.dhis.dxf2.synch.DefaultSynchronizationManager" />
 
-  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" scope="prototype" />
+  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService"/>
 
   <bean id="dataSynchTask" class="org.hisp.dhis.dxf2.synch.DataSynchronizationTask" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService" scope="prototype" />
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService"/>
 
   <bean id="metadataSyncTask" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask" scope="prototype" />
 
