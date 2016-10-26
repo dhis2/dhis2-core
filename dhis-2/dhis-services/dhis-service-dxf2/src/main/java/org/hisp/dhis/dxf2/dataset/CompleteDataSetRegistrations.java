@@ -47,6 +47,20 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "completeDataSetRegistrations", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistrations
 {
+    protected static final String FIELD_ID_SCHEME = "idScheme";
+
+    protected static final String FIELD_DATA_SET_ID_SCHEME = "dataSetIdScheme";
+
+    protected static final String FIELD_ORG_UNIT_ID_SCHEME = "orgUnitIdScheme";
+
+    protected static final String FIELD_ATTR_OPT_COMBO_ID_SCHEME = "attributeOptionComboIdScheme";
+
+    protected static final String FIELD_DRY_RUN = "dryRun";
+
+    protected static final String FIELD_IMPORT_STRATEGY = "importStrategy";
+
+    protected static final String FIELD_PERIOD = "period";
+
     //--------------------------------------------------------------------------
     // Options
     //--------------------------------------------------------------------------
@@ -115,11 +129,15 @@ public class CompleteDataSetRegistrations
         return new CompleteDataSetRegistration();
     }
 
-    public void open()
+    protected void open()
     {
     }
 
-    public void close()
+    protected void close()
+    {
+    }
+
+    protected void writeField( String fieldName, String value )
     {
     }
 
@@ -181,10 +199,9 @@ public class CompleteDataSetRegistrations
         return idScheme;
     }
 
-    public CompleteDataSetRegistrations setIdScheme( String idScheme )
+    public void setIdScheme( String idScheme )
     {
         this.idScheme = idScheme;
-        return this;
     }
 
     @JsonProperty
@@ -194,10 +211,9 @@ public class CompleteDataSetRegistrations
         return dataSetIdScheme;
     }
 
-    public CompleteDataSetRegistrations setDataSetIdScheme( String dataSetIdScheme )
+    public void setDataSetIdScheme( String dataSetIdScheme )
     {
         this.dataSetIdScheme = dataSetIdScheme;
-        return this;
     }
 
     @JsonProperty
@@ -207,10 +223,9 @@ public class CompleteDataSetRegistrations
         return orgUnitIdScheme;
     }
 
-    public CompleteDataSetRegistrations setOrgUnitIdScheme( String orgUnitIdScheme )
+    public void setOrgUnitIdScheme( String orgUnitIdScheme )
     {
         this.orgUnitIdScheme = orgUnitIdScheme;
-        return this;
     }
 
     @JsonProperty
@@ -220,10 +235,9 @@ public class CompleteDataSetRegistrations
         return attributeOptionComboIdScheme;
     }
 
-    public CompleteDataSetRegistrations setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
+    public void setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
     {
         this.attributeOptionComboIdScheme = attributeOptionComboIdScheme;
-        return this;
     }
 
     @JsonProperty
@@ -233,10 +247,9 @@ public class CompleteDataSetRegistrations
         return period;
     }
 
-    public CompleteDataSetRegistrations setPeriod( String period )
+    public void setPeriod( String period )
     {
         this.period = period;
-        return this;
     }
 
     @JsonProperty
@@ -246,10 +259,9 @@ public class CompleteDataSetRegistrations
         return dryRun;
     }
 
-    public CompleteDataSetRegistrations setDryRun( Boolean dryRun )
+    public void setDryRun( Boolean dryRun )
     {
         this.dryRun = dryRun;
-        return this;
     }
 
     @JsonProperty
@@ -259,9 +271,8 @@ public class CompleteDataSetRegistrations
         return strategy;
     }
 
-    public CompleteDataSetRegistrations setStrategy( String strategy )
+    public void setStrategy( String strategy )
     {
         this.strategy = strategy;
-        return this;
     }
 }

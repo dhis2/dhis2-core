@@ -52,6 +52,7 @@ public class StreamingJsonCompleteDataSetRegistrations
         try
         {
             jsonGenerator = DefaultRenderService.getJsonMapper().getFactory().createGenerator( out );
+            open();
         }
         catch ( IOException e )
         {
@@ -59,6 +60,7 @@ public class StreamingJsonCompleteDataSetRegistrations
         }
     }
 
+    @Override
     public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance()
     {
         if ( !startedArray.getAndSet( true ) )
@@ -76,5 +78,63 @@ public class StreamingJsonCompleteDataSetRegistrations
         return new StreamingJsonCompleteDataSetRegistration( jsonGenerator );
     }
 
-    close
+    @Override
+    protected void open()
+    {
+        try
+        {
+            jsonGenerator.writeStartObject();
+        }
+        catch ( IOException ignored )
+        {
+        }
+    }
+
+    @Override
+    protected void close()
+    {
+    }
+
+    @Override
+    protected void writeField( String fieldName, String value )
+    {
+        if ( value == null )
+        {
+            return;
+        }
+
+        try
+        {
+            jsonGenerator.writeObjectField( fieldName, value );
+        }
+        catch ( IOException ignored )
+        {
+        }
+    }
+
+
+
+    @Override
+    public void setDataSetIdScheme( String dataSetIdScheme )
+    {
+        writeField( FIELD_DATA_SET_ID_SCHEME, dataSetIdScheme );
+    }
+
+    @Override
+    public void setOrgUnitIdScheme( String orgUnitIdScheme )
+    {
+        writeField( FIELD_ORG_UNIT_ID_SCHEME, orgUnitIdScheme );
+    }
+
+    @Override
+    public void setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
+    {
+        writeField( FIELD_ATTR_OPT_COMBO_ID_SCHEME, attributeOptionComboIdScheme );
+    }
+
+    @Override
+    public void setPeriod( String period )
+    {
+        writeField( FIELD_PERIOD, period );
+    }
 }
