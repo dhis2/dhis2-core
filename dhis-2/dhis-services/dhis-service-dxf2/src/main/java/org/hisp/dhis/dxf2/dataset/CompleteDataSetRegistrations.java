@@ -33,10 +33,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.dataset.streaming.StreamingCompleteDataSetRegistration;
+import org.hisp.dhis.common.IdScheme;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -45,7 +47,29 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "completeDataSetRegistrations", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistrations
 {
-    private List<StreamingCompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
+    //--------------------------------------------------------------------------
+    // Options
+    //--------------------------------------------------------------------------
+
+    protected String idScheme;
+
+    protected String dataSetIdScheme;
+
+    protected String orgUnitIdScheme;
+
+    protected String attributeOptionComboIdScheme;
+
+    protected String period;
+
+    protected Boolean dryRun;
+
+    protected String strategy;
+
+    //--------------------------------------------------------------------------
+    // Properties
+    //--------------------------------------------------------------------------
+
+    protected List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -56,27 +80,188 @@ public class CompleteDataSetRegistrations
     }
 
     //--------------------------------------------------------------------------
+    // Logic
+    //--------------------------------------------------------------------------
+
+    private Iterator<CompleteDataSetRegistration> itemIterator;
+
+    private void refreshIterator()
+    {
+        itemIterator = completeDataSetRegistrations.iterator();
+    }
+
+    public boolean hasNextCompleteDataSetRegistration()
+    {
+        if ( itemIterator == null )
+        {
+            refreshIterator();
+        }
+
+        return itemIterator.hasNext();
+    }
+
+    public CompleteDataSetRegistration getNextCompleteDataSetRegistration()
+    {
+        if ( itemIterator == null )
+        {
+            refreshIterator();
+        }
+
+        return itemIterator.next();
+    }
+
+    public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance()
+    {
+        return new CompleteDataSetRegistration();
+    }
+
+    public void open()
+    {
+    }
+
+    public void close()
+    {
+    }
+
+    public IdScheme getIdSchemeProperty()
+    {
+        return IdScheme.from( getIdScheme() );
+    }
+
+    public IdScheme getDataSetIdSchemeProperty()
+    {
+        return IdScheme.from( StringUtils.defaultIfBlank( getDataSetIdScheme(), getIdScheme() ) );
+    }
+
+    public IdScheme getOrgUnitIdSchemeProperty()
+    {
+        return IdScheme.from( StringUtils.defaultIfBlank( getOrgUnitIdScheme(), getIdScheme() ) );
+    }
+
+    public IdScheme getAttributeOptionComboIdSchemeProperty()
+    {
+        return IdScheme.from( StringUtils.defaultIfBlank( getAttributeOptionComboIdScheme(), getIdScheme() ) );
+    }
+
+    @Override public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "completeDataSetRegistrations", completeDataSetRegistrations )
+            .add( "idScheme", idScheme )
+            .add( "dataSetIdScheme", dataSetIdScheme )
+            .add( "orgUnitIdScheme", orgUnitIdScheme )
+            .add( "attributeOptionComboIdScheme", attributeOptionComboIdScheme )
+            .add( "period", period )
+            .add( "dryRun", dryRun )
+            .add( "strategy", strategy )
+            .toString();
+    }
+
+    //--------------------------------------------------------------------------
     // Getters and setters
     //--------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlElementWrapper( localName = "completeDataSetRegistrations", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    public List<StreamingCompleteDataSetRegistration> getCompleteDataSetRegistrations()
+    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations()
     {
         return completeDataSetRegistrations;
     }
 
-    public void setCompleteDataSetRegistrations( List<StreamingCompleteDataSetRegistration> completeDataSetRegistrations )
+    public void setCompleteDataSetRegistrations( List<CompleteDataSetRegistration> completeDataSetRegistrations )
     {
         this.completeDataSetRegistrations = completeDataSetRegistrations;
     }
 
-    @Override
-    public String toString()
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getIdScheme()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "completeDataSetRegistrations", completeDataSetRegistrations )
-            .toString();
+        return idScheme;
+    }
+
+    public CompleteDataSetRegistrations setIdScheme( String idScheme )
+    {
+        this.idScheme = idScheme;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getDataSetIdScheme()
+    {
+        return dataSetIdScheme;
+    }
+
+    public CompleteDataSetRegistrations setDataSetIdScheme( String dataSetIdScheme )
+    {
+        this.dataSetIdScheme = dataSetIdScheme;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getOrgUnitIdScheme()
+    {
+        return orgUnitIdScheme;
+    }
+
+    public CompleteDataSetRegistrations setOrgUnitIdScheme( String orgUnitIdScheme )
+    {
+        this.orgUnitIdScheme = orgUnitIdScheme;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getAttributeOptionComboIdScheme()
+    {
+        return attributeOptionComboIdScheme;
+    }
+
+    public CompleteDataSetRegistrations setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
+    {
+        this.attributeOptionComboIdScheme = attributeOptionComboIdScheme;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getPeriod()
+    {
+        return period;
+    }
+
+    public CompleteDataSetRegistrations setPeriod( String period )
+    {
+        this.period = period;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Boolean getDryRun()
+    {
+        return dryRun;
+    }
+
+    public CompleteDataSetRegistrations setDryRun( Boolean dryRun )
+    {
+        this.dryRun = dryRun;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getStrategy()
+    {
+        return strategy;
+    }
+
+    public CompleteDataSetRegistrations setStrategy( String strategy )
+    {
+        this.strategy = strategy;
+        return this;
     }
 }

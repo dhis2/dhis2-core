@@ -155,7 +155,7 @@ public class SpringCompleteDataSetRegistrationStore
 
             clause += params.getOrganisationUnits().stream()
                 .map( OrganisationUnit::getPath )
-                .collect( Collectors.joining( " ", "ou.path LIKE '", "%' OR " ) );
+                .collect( Collectors.joining( " ", "ou.path LIKE '", "%' OR" ) );
 
             return TextUtils.removeLastOr( clause ) + " ) ";
         }
