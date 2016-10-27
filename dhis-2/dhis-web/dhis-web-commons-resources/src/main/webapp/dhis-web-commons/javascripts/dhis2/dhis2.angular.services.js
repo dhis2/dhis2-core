@@ -2767,6 +2767,22 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 }
             }
             return eventList;
+        },
+        getEventExpiryStatus : function (event, program, selectedOrgUnit) {
+            var completedDate, today, daysAfterCompletion;
+
+            if ((event.orgUnit !== selectedOrgUnit) || ( program.completeEventsExpiryDays === 0) ||
+                !event.status) {
+                return false;
+            }
+
+            completedDate = moment(event.completedDate,'YYYY-MM-DD');
+            today = moment(DateUtils.getToday(),'YYYY-MM-DD');
+            daysAfterCompletion = today.diff(completedDate, 'days');
+            if (daysAfterCompletion < program.completeEventsExpiryDays) {
+                return false;
+            }
+            return true;
         }
     };
 })
