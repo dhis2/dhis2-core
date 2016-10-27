@@ -7,6 +7,7 @@ Ext.onReady( function() {
 		SharingWindow,
 		InterpretationWindow,
         AboutWindow,
+        LayerWidgetEvent,
 
 		extendCore,
 		createViewport,
@@ -3664,7 +3665,7 @@ Ext.onReady( function() {
 		// stores
 		var programStore,
 			stagesByProgramStore,
-            //dataElementsByStageStore,
+            dataElementsByStageStore,
             organisationUnitGroupStore,
             periodTypeStore,
             fixedPeriodAvailableStore,
@@ -3690,11 +3691,11 @@ Ext.onReady( function() {
             dataElementSelected,
             addUxFromDataElement,
             selectDataElements,
+            programStagePanel,
             data,
 
             periodMode,
             onPeriodModeSelect,
-            getDateLink,
             onDateFieldRender,
 			startDate,
 			endDate,
@@ -3755,11 +3756,7 @@ Ext.onReady( function() {
             toolWidth = 36,
             accBaseWidth = baseWidth - 2,
 
-            conf = ns.core.conf,
-            rp = conf.period.relativePeriods,
-
-            namePropertyUrl = ns.core.init.namePropertyUrl,
-            nameProperty = ns.core.init.userAccount.settings.keyAnalysisDisplayProperty;
+            namePropertyUrl = ns.core.init.namePropertyUrl;
 
 		// stores
 
@@ -3984,7 +3981,7 @@ Ext.onReady( function() {
 			editable: false,
 			valueField: 'id',
 			displayField: 'name',
-			fieldLabel: 'Program',
+			fieldLabel: NS.i18n.program,
 			labelAlign: 'top',
 			labelCls: 'ns-form-item-label-top',
 			labelSeparator: '',
@@ -4092,7 +4089,7 @@ Ext.onReady( function() {
 			editable: false,
 			valueField: 'id',
 			displayField: 'name',
-			fieldLabel: 'Stage',
+            fieldLabel: NS.i18n.stage,
 			labelAlign: 'top',
 			labelCls: 'ns-form-item-label-top',
 			labelSeparator: '',
@@ -4327,7 +4324,7 @@ Ext.onReady( function() {
             tbar: [
 				{
 					xtype: 'label',
-                    text: 'Selected data items',
+                    text: NS.i18n.selected_data_items,
                     style: 'padding-left:6px; color:#333',
 					cls: 'ns-toolbar-multiselect-left-label'
 				},
@@ -4597,7 +4594,7 @@ Ext.onReady( function() {
         });
 
         data = Ext.create('Ext.panel.Panel', {
-            title: '<div class="ns-panel-title-data">Data</div>',
+            title: '<div class="ns-panel-title-data">' + NS.i18n.data + '</div>',
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             items: [
@@ -4671,22 +4668,6 @@ Ext.onReady( function() {
                 ns.app.aggregateLayoutWindow.addDimension({id: dimConf.period.dimensionName, name: dimConf.period.name}, ns.app.aggregateLayoutWindow.colStore);
                 ns.app.aggregateLayoutWindow.removeDimension(dimConf.startEndDate.value);
             }
-        };
-
-        getDateLink = function(text, fn, style) {
-            return Ext.create('Ext.form.Label', {
-                text: text,
-                style: 'padding-left: 5px; width: 100%; ' + style || '',
-                cls: 'ns-label-date',
-                updateValue: fn,
-                listeners: {
-                    render: function(cmp) {
-                        cmp.getEl().on('click', function() {
-                            cmp.updateValue();
-                        });
-                    }
-                }
-            });
         };
 
         onDateFieldRender = function(c) {
@@ -5259,7 +5240,7 @@ Ext.onReady( function() {
         });
 
 		period = Ext.create('Ext.panel.Panel', {
-            title: '<div class="ns-panel-title-period">Periods</div>',
+            title: '<div class="ns-panel-title-period">' + NS.i18n.periods + '</div>',
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             width: accBaseWidth,
@@ -7111,29 +7092,22 @@ Ext.onReady( function() {
             pie,
             radar,
             chartType,
-            getDimensionStore,
-            colStore,
-            rowStore,
-            filterStore,
-            series,
-            category,
-            filter,
-            layout,
 
 			accordion,
+            update,
 			westRegion,
             layoutButton,
             optionsButton,
             favoriteButton,
-            getParamString,
-            openTableLayoutTab,
             downloadButton,
-            interpretationItem,
-            pluginItem,
+            favoriteUrlItem,
+            apiUrlItem,
             shareButton,
             aboutButton,
+            defaultButton,
             centerRegion,
             getLayoutWindow,
+            getOptionsWindow,
             viewport;
 
 		ns.app.stores = ns.app.stores || {};
@@ -7374,7 +7348,7 @@ Ext.onReady( function() {
 		});
 
 		layoutButton = Ext.create('Ext.button.Button', {
-			text: 'Layout',
+			text: NS.i18n.layout,
 			menu: {},
 			handler: function() {
                 getLayoutWindow().show();
@@ -7418,31 +7392,8 @@ Ext.onReady( function() {
 			}
 		});
 
-		openTableLayoutTab = function(type, isNewTab) {
-			if (ns.core.init.contextPath && ns.app.paramString) {
-				var colDimNames = Ext.clone(ns.app.xLayout.columnDimensionNames),
-					colObjNames = ns.app.xLayout.columnObjectNames,
-					rowDimNames = Ext.clone(ns.app.xLayout.rowDimensionNames),
-					rowObjNames = ns.app.xLayout.rowObjectNames,
-					dc = ns.core.conf.finals.dimension.operand.objectName,
-					co = ns.core.conf.finals.dimension.category.dimensionName,
-					columnNames = Ext.Array.clean([].concat(colDimNames, (Ext.Array.contains(colObjNames, dc) ? co : []))),
-					rowNames = Ext.Array.clean([].concat(rowDimNames, (Ext.Array.contains(rowObjNames, dc) ? co : []))),
-					url = '';
-
-				url += ns.core.init.contextPath + '/api/analytics.' + type + getParamString();
-				url += '&tableLayout=true';
-				url += '&columns=' + columnNames.join(';');
-				url += '&rows=' + rowNames.join(';');
-				url += ns.app.layout.hideEmptyRows ? '&hideEmptyRows=true' : '';
-				url += ns.app.layout.hideNaData ? '&hideNaData=true' : '';
-
-				window.open(url, isNewTab ? '_blank' : '_top');
-			}
-		};
-
 		downloadButton = Ext.create('Ext.button.Button', {
-			text: 'Download',
+			text: NS.i18n.download,
 			disabled: true,
 			menu: {
 				cls: 'ns-menu',
