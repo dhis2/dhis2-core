@@ -2723,7 +2723,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for dealing with events */
-.service('DHIS2EventService', function(){
+.service('DHIS2EventService', function(DateUtils){
     return {
         //for simplicity of grid display, events were changed from
         //event.datavalues = [{dataElement: dataElement, value: value}] to
