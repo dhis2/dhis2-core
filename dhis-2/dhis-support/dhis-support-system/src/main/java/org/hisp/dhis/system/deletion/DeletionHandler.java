@@ -37,7 +37,15 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.CategoryOptionGroup;
+import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
@@ -56,10 +64,13 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -67,7 +78,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElement;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorGroup;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramValidation;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -86,7 +106,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
@@ -504,6 +528,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteExternalMapLayer( ExternalMapLayer externalMapLayer )
+    {
+    }
+
+    public String allowDeleteExternalMapLayer( ExternalMapLayer externalMapLayer )
+    {
+        return null;
+    }
+
     public void deleteMapView( MapView mapView )
     {
     }
@@ -530,7 +563,7 @@ public abstract class DeletionHandler
     {
         return null;
     }
-    
+
     public void deleteTrackedEntityComment( TrackedEntityComment entityComment )
     {
     }
@@ -734,6 +767,24 @@ public abstract class DeletionHandler
     }
 
     public void deleteOptionSet( OptionSet optionSet )
+    {
+    }
+
+    public String allowDeleteOptionGroupSet( OptionGroupSet optionGroupSet )
+    {
+        return null;
+    }
+
+    public void deleteOptionGroupSet( OptionGroupSet optionGroupSet )
+    {
+    }
+
+    public String allowDeleteOptionGroup( OptionGroup optionGroup )
+    {
+        return null;
+    }
+
+    public void deleteOptionGroup( OptionGroup optionGroup )
     {
     }
 
