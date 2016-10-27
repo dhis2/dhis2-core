@@ -35,6 +35,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.util.DateUtils;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -130,6 +131,59 @@ public class ExportParams
             .add( "limit", limit )
             .add( "outputIdSchemes", outputIdSchemes )
             .toString();
+    }
+
+    public static void validate( ExportParams params )
+    {
+        if ( params == null )
+        {
+            throw new IllegalArgumentException( "ExportParams must be non-null" );
+        }
+
+        if ( params.getDataSets().isEmpty() )
+        {
+            error.accept( "At least one data set must be specified" );
+        }
+
+        if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
+        {
+            error.accept( "At least one valid period, start/end dates, created or created duration must be specified" );
+        }
+
+        if ( params.hasPeriods() && params.hasStartEndDate() )
+        {
+            error.accept( "Both periods and start/end date cannot be specified" );
+        }
+
+        if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
+        {
+            error.accept( "Start date must be before end date" );
+        }
+
+        if ( params.hasCreatedDuration() && DateUtils.getDuration( params.getCreatedDuration() ) == null )
+        {
+            error.accept( "Duration is not valid: " + params.getCreatedDuration() );
+        }
+
+        if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
+        {
+            error.accept( "At least one valid organisation unit or organisation unit group must be specified" );
+        }
+
+        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        {
+            error.accept( "Children cannot be included for organisation unit groups" );
+        }
+
+        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        {
+            error.accept( "At least one organisation unit must be specified when children are included" );
+        }
+
+        if ( params.hasLimit() && params.getLimit() < 0 )
+        {
+            error.accept( "Limit cannot be less than zero: " + params.getLimit() );
+        }
     }
 
     // -------------------------------------------------------------------------
