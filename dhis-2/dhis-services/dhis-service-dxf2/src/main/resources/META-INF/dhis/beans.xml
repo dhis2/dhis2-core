@@ -52,6 +52,12 @@
   <bean id="org.hisp.dhis.dxf2.datavalueset.DataValueSetStore"
     class="org.hisp.dhis.dxf2.datavalueset.SpringDataValueSetStore" />
 
+  <bean id="org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationService"
+    class="org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationService" />
+
+  <bean id="org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationStore"
+    class="org.hisp.dhis.dxf2.dataset.SpringCompleteDataSetRegistrationStore" />
+
   <bean id="org.hisp.dhis.dxf2.events.event.EventStore" class="org.hisp.dhis.dxf2.events.event.JdbcEventStore" />
 
   <bean id="org.hisp.dhis.dxf2.events.event.EventService" class="org.hisp.dhis.dxf2.events.event.JacksonEventService" scope="prototype">

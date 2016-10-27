@@ -33,7 +33,7 @@ import java.io.OutputStream;
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface CompleteDataSetRegistrationsStore
+public interface CompleteDataSetRegistrationStore
 {
     void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
