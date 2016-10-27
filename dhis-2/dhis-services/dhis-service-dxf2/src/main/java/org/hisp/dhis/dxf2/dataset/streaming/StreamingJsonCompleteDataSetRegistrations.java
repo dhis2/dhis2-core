@@ -78,6 +78,10 @@ public class StreamingJsonCompleteDataSetRegistrations
         return new StreamingJsonCompleteDataSetRegistration( jsonGenerator );
     }
 
+    //--------------------------------------------------------------------------
+    // Logic
+    //--------------------------------------------------------------------------
+
     @Override
     protected void open()
     {
@@ -112,7 +116,9 @@ public class StreamingJsonCompleteDataSetRegistrations
         }
     }
 
-
+    //--------------------------------------------------------------------------
+    // Setters
+    //--------------------------------------------------------------------------
 
     @Override
     public void setDataSetIdScheme( String dataSetIdScheme )
