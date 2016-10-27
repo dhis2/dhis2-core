@@ -44,7 +44,7 @@ import java.util.function.Consumer;
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface CompleteDataSetRegistrationsService
+public interface CompleteDataSetRegistrationService
 {
     ExportParams getFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
         Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes );

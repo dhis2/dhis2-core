@@ -42,8 +42,8 @@ import java.util.Set;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class DefaultCompleteDataSetRegistrationsService
-    implements CompleteDataSetRegistrationsService
+public class DefaultCompleteDataSetRegistrationService
+    implements CompleteDataSetRegistrationService
 {
     @Override
     public ExportParams getFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods, Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes )
