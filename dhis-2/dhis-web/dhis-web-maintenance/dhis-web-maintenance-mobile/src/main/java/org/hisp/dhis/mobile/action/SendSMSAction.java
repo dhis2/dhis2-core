@@ -29,7 +29,6 @@ package org.hisp.dhis.mobile.action;
  */
 
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.sms.SmsServiceException;
 
 import com.opensymphony.xwork2.Action;
 
@@ -99,7 +98,7 @@ public class SendSMSAction
                 smsSender.sendMessage( null, msg, recipient );
                 this.message = "Sent message to " + recipient;
             }
-            catch ( SmsServiceException e )
+            catch ( Exception e )
             {
                 this.message = e.getMessage();
             }
