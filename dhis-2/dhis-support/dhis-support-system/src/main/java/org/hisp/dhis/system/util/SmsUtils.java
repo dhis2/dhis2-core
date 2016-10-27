@@ -93,22 +93,6 @@ public class SmsUtils
         return orgUnits;
     }
 
-    public static ProgramMessage createProgramMessage( String subject, String text, String footer, User sender,
-        Set<User> users, boolean forceSend, Set<DeliveryChannel> channels )
-    {
-        ProgramMessageRecipients recipients = new ProgramMessageRecipients();
-        recipients.setPhoneNumbers( SmsUtils.getRecipientsPhoneNumber( users ) );
-
-        ProgramMessage message = new ProgramMessage();
-
-        message.setText( text );
-        message.setSubject( subject );
-        message.setDeliveryChannels( channels );
-        message.setRecipients( recipients );
-
-        return message;
-    }
-
     public static Date lookForDate( String message )
     {
         if ( !message.contains( " " ) )
@@ -216,61 +200,6 @@ public class SmsUtils
         }
     }
 
-    public static ProgramMessage createProgramMessage( String text, String recipient, String subject,
-        Set<DeliveryChannel> channels, boolean storeCopy )
-    {
-        ProgramMessage programMessage = new ProgramMessage();
-        programMessage.setText( text );
-        programMessage.setSubject( subject );
-        programMessage.setDeliveryChannels( channels );
-        programMessage.setRecipients( getRecipients( recipient, channels ) );
-        programMessage.setStoreCopy( storeCopy );
-
-        return programMessage;
-    }
-
-    public static ProgramMessageRecipients getRecipients( Set<User> users, Set<DeliveryChannel> channels )
-    {
-        ProgramMessageRecipients to = new ProgramMessageRecipients();
-
-        if ( channels.contains( DeliveryChannel.SMS ) )
-        {
-            to.setPhoneNumbers( getRecipientsPhoneNumber( users ) );
-        }
-
-        if ( channels.contains( DeliveryChannel.EMAIL ) )
-        {
-            to.setEmailAddresses( getRecipientsEmail( users ) );
-        }
-
-        return to;
-    }
-
-    public static String createMessage( String subject, String text, User sender )
-    {
-        String name = "DHIS";
-
-        if ( sender != null )
-        {
-            name = sender.getUsername();
-        }
-
-        if ( subject == null || subject.isEmpty() )
-        {
-            subject = "";
-        }
-        else
-        {
-            subject = " - " + subject;
-        }
-
-        text = name + subject + ": " + text;
-
-        int length = text.length(); // Simplistic cut off 160 characters
-
-        return (length > 160) ? text.substring( 0, 157 ) + "..." : text;
-    }
-
     public static Set<String> getRecipientsPhoneNumber( Collection<User> users )
     {
         Set<String> recipients = new HashSet<>();
@@ -340,25 +269,5 @@ public class SmsUtils
         }
 
         return orgUnit;
-    }
-
-    public static ProgramMessageRecipients getRecipients( String recipient, Set<DeliveryChannel> channels )
-    {
-        ProgramMessageRecipients to = new ProgramMessageRecipients();
-
-        Set<String> recipientsList = new HashSet<>();
-        recipientsList.add( recipient );
-
-        if ( channels.contains( DeliveryChannel.SMS ) )
-        {
-            to.setPhoneNumbers( recipientsList );
-        }
-
-        if ( channels.contains( DeliveryChannel.EMAIL ) )
-        {
-            to.setEmailAddresses( recipientsList );
-        }
-
-        return to;
     }
 }
