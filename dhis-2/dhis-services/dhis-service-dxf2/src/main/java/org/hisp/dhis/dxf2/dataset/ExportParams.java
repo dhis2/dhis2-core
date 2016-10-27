@@ -49,7 +49,7 @@ public class ExportParams
 
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>(  );
+    private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
     private boolean includeChildren = false;
 

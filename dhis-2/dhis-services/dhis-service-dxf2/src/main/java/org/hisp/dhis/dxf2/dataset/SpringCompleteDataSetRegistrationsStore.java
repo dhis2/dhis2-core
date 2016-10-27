@@ -52,10 +52,10 @@ import java.util.stream.Collectors;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class SpringCompleteDataSetRegistrationStore
-    implements CompleteDataSetRegistrationStore
+public class SpringCompleteDataSetRegistrationsStore
+    implements CompleteDataSetRegistrationsStore
 {
-    private static final Log log = LogFactory.getLog( SpringCompleteDataSetRegistrationStore.class );
+    private static final Log log = LogFactory.getLog( SpringCompleteDataSetRegistrationsStore.class );
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
