@@ -121,9 +121,12 @@ public class ExportParams
             .add( "dataSets", dataSets )
             .add( "organisationUnits", organisationUnits )
             .add( "organisationUnitGroups", organisationUnitGroups )
+            .add( "includeChildren", includeChildren )
             .add( "periods", periods )
             .add( "startDate", startDate )
             .add( "endDate", endDate )
+            .add( "created", created )
+            .add( "createdDuration", createdDuration )
             .add( "limit", limit )
             .add( "outputIdSchemes", outputIdSchemes )
             .toString();
