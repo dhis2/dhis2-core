@@ -41,7 +41,7 @@ import java.io.IOException;
  */
 public class EmptyStringToNullStdDeserializer extends StdScalarDeserializer<String>
 {
-    protected EmptyStringToNullStdDeserializer()
+    public EmptyStringToNullStdDeserializer()
     {
         super( String.class );
     }

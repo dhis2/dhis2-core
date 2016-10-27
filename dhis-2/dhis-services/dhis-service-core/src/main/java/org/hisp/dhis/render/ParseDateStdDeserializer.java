@@ -42,7 +42,7 @@ import java.util.Date;
  */
 public class ParseDateStdDeserializer extends StdScalarDeserializer<Date>
 {
-    protected ParseDateStdDeserializer()
+    public ParseDateStdDeserializer()
     {
         super( Date.class );
     }
