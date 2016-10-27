@@ -58,7 +58,8 @@ public enum ConfigurationKey
     META_DATA_SYNC_RETRY( "metadata.sync.retry", "3" ),
     META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC( "metadata.sync.retry.time.frequency.millisec", "30000" ),
     CLUSTER_INSTANCE_HOSTNAME( "cluster.instance0.hostname" ),
-    CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001" );
+    CLUSTER_INSTANCE_CACHE_PORT( "cluster.instance0.cache.port", "4001" ),
+    SERVER_SIDE_APPS( "off");
 
     private final String key;
     

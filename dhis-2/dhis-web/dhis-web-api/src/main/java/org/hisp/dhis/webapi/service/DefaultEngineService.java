@@ -51,6 +51,8 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scriptlibrary.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -87,12 +89,20 @@ public class DefaultEngineService implements EngineServiceInterface {
     protected HashMap<String,EngineInterface> scriptEngines = new HashMap<String,EngineInterface>();
 	protected HashMap<String,Long> lastCachedTimes = new HashMap<String,Long>();
 
+
+	@Autowired
+	DhisConfigurationProvider dhisConf;
+
 	public EngineInterface getEngine(App app, ScriptLibrary sl, String scriptName)
 			throws ScriptException
 	{
+
 		String appKey = app.getKey();
 		User user = currentUserService.getCurrentUser();
-
+		if ( ! (dhisConf.isEnabled(ConfigurationKey.SERVER_SIDE_APPS))) {
+			log.info("Server Side Apps are disabled");
+			return null;
+		}
 		//not sure of the implications of the caching trade-offs at scale...
 		//probably needs some cache tuning parameters
 		String scriptEngineKey = sl.getName() + ":" + scriptName + ":" + user.getId();
