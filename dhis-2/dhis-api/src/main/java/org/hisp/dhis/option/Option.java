@@ -32,8 +32,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -45,6 +49,7 @@ public class Option
     extends BaseIdentifiableObject
 {
     private OptionSet optionSet;
+    private Integer sortOrder;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -62,6 +67,14 @@ public class Option
         this.code = code;
     }
 
+    public Option( String name, String code,Integer sortOrder )
+    {
+        this();
+        this.name = name;
+        this.code = code;
+        this.sortOrder = sortOrder;
+    }
+    
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
@@ -104,5 +117,38 @@ public class Option
     {
         this.optionSet = optionSet;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getSortOrder()
+    {
+        return sortOrder;
+    }
 
+    public void setSortOrder( Integer sortOrder )
+    {
+        this.sortOrder = sortOrder;
+    }
+    
+    @Override
+    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    {
+        super.mergeWith( other, mergeMode );
+
+        if ( other.getClass().isInstance( this ) )
+        {
+            Option programStageDataElement = (Option) other;
+
+            if ( mergeMode.isReplace() )
+            {
+            	optionSet = programStageDataElement.getOptionSet();
+                sortOrder = programStageDataElement.getSortOrder();
+            }
+            else if ( mergeMode.isMerge() )
+            {
+                optionSet = programStageDataElement.getOptionSet() == null ? optionSet : programStageDataElement.getOptionSet();
+                sortOrder = programStageDataElement.getSortOrder() == null ? sortOrder : programStageDataElement.getSortOrder();
+            }
+        }
+    }
 }
