@@ -41,7 +41,7 @@ import java.util.Date;
  */
 public class WriteDateStdSerializer extends StdSerializer<Date>
 {
-    public WriteDateStdSerializer()
+    protected WriteDateStdSerializer()
     {
         super( Date.class );
     }

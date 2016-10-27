@@ -61,8 +61,8 @@
       <name>Sonatype OSS</name>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
       <releases>
-		<enabled>false</enabled>
-	  </releases>
+        <enabled>false</enabled>
+      </releases>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
@@ -457,7 +457,7 @@
       <dependency>
         <groupId>org.springframework.hateoas</groupId>
         <artifactId>spring-hateoas</artifactId>
-        <version>0.19.0.RELEASE</version>
+        <version>0.21.0.RELEASE</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.retry</groupId>
@@ -1086,11 +1086,11 @@
     <hibernate.version>5.1.0.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
     <jclouds.version>1.9.1</jclouds.version>
+    <!-- Keep in sync with Hibernate -->
     <javassist.version>3.20.0-GA</javassist.version>
     <!-- unit test dependencies-->
-    <powermock.version>1.6.4</powermock.version>
-    <!-- Keep in sync with Hibernate -->
-    <jackson.version>2.6.6</jackson.version>
+    <powermock.version>1.6.5</powermock.version>
+    <jackson.version>2.6.7</jackson.version>
     <slf4j.version>1.7.21</slf4j.version>
     <geotools.version>14.3</geotools.version>
     <jasperreports.version>6.1.0</jasperreports.version>

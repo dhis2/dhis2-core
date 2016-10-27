@@ -30,7 +30,7 @@ package org.hisp.dhis.render;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
 import org.springframework.util.StringUtils;
 
@@ -39,9 +39,9 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EmptyStringToNullStdDeserializer extends StdDeserializer<String>
+public class EmptyStringToNullStdDeserializer extends StdScalarDeserializer<String>
 {
-    public EmptyStringToNullStdDeserializer()
+    protected EmptyStringToNullStdDeserializer()
     {
         super( String.class );
     }
