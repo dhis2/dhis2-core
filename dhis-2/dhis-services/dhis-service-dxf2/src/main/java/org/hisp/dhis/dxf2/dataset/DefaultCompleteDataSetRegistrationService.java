@@ -46,6 +46,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
@@ -82,6 +84,9 @@ public class DefaultCompleteDataSetRegistrationService
 
     @Autowired
     private I18nManager i18nManager;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -270,24 +275,66 @@ public class DefaultCompleteDataSetRegistrationService
 
         I18n i18n = i18nManager.getI18n();
 
+        // ---------------------------------------------------------------------
+        // Set up import configuration
+        // ---------------------------------------------------------------------
+
         importOptions = importOptions != null ? importOptions : ImportOptions.getDefaultImportOptions();
 
         log.info( "Import options: " + importOptions );
 
-        IdScheme dsScheme = IdScheme.from( cdsr.getIdSchemeProperty() );
-        IdScheme ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
-        IdScheme aocScheme = IdScheme.from( cdsr.getAttributeOptionComboIdSchemeProperty() );
+        ImportConfig cfg = new ImportConfig( cdsr, importOptions );
 
-        log.info(
-            String.format( "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s", dsScheme, ouScheme, aocScheme )
-        );
+        // TODO Finish
 
-        ImportStrategy strategy = cdsr.getStrategy() != null ?
-            ImportStrategy.valueOf( cdsr.getStrategy() ) : importOptions.getImportStrategy();
+        // ---------------------------------------------------------------------
+        // Create meta-data maps
+        // ---------------------------------------------------------------------
 
-        boolean dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : importOptions.isDryRun();
+        // ---------------------------------------------------------------------
+        // Get meta-data maps
+        // ---------------------------------------------------------------------
 
-        boolean skipExistingCheck = importOptions.isSkipExistingCheck();
-        boolean strictPeriod = importOptions.isStrictPeriods() || // TODO Finish
+        // ---------------------------------------------------------------------
+        // Get outer meta-data
+        // ---------------------------------------------------------------------
+
+        // ---------------------------------------------------------------------
+        // Validation
+        // ---------------------------------------------------------------------
+
+        // ---------------------------------------------------------------------
+        // Complete data set registrations
+        // ---------------------------------------------------------------------
+
+    }
+
+    private class ImportConfig
+    {
+        IdScheme dsScheme, ouScheme, aocScheme;
+        ImportStrategy strategy;
+        boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits, requireAttrOptionCombos;
+
+        ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
+        {
+            dsScheme = IdScheme.from( cdsr.getIdSchemeProperty() );
+            ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
+            aocScheme = IdScheme.from( cdsr.getAttributeOptionComboIdSchemeProperty() );
+
+            log.info(
+                String.format( "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s", dsScheme, ouScheme, aocScheme )
+            );
+
+            strategy = cdsr.getStrategy() != null ?
+                ImportStrategy.valueOf( cdsr.getStrategy() ) : options.getImportStrategy();
+
+            dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
+
+            skipExistingCheck = options.isSkipExistingCheck();
+            strictPeriods = options.isStrictPeriods() || options.isStrictPeriods() ||
+                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+
+            // TODO Finish this
+        }
     }
 }
