@@ -77,8 +77,6 @@ public class CompleteDataSetRegistrations
 
     protected String attributeOptionComboIdScheme;
 
-    protected String period;
-
     protected Boolean dryRun;
 
     protected String strategy;
@@ -173,7 +171,6 @@ public class CompleteDataSetRegistrations
             .add( "dataSetIdScheme", dataSetIdScheme )
             .add( "orgUnitIdScheme", orgUnitIdScheme )
             .add( "attributeOptionComboIdScheme", attributeOptionComboIdScheme )
-            .add( "period", period )
             .add( "dryRun", dryRun )
             .add( "strategy", strategy )
             .toString();
@@ -242,18 +239,6 @@ public class CompleteDataSetRegistrations
     public void setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
     {
         this.attributeOptionComboIdScheme = attributeOptionComboIdScheme;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getPeriod()
-    {
-        return period;
-    }
-
-    public void setPeriod( String period )
-    {
-        this.period = period;
     }
 
     @JsonProperty

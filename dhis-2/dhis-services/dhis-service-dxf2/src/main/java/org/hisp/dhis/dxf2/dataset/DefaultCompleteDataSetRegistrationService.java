@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdScheme;
@@ -35,22 +36,34 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.dataset.*;
+import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
+import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
+import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
@@ -65,6 +78,8 @@ public class DefaultCompleteDataSetRegistrationService
     implements CompleteDataSetRegistrationService
 {
     private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationService.class );
+
+    private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen from dxf2 DefaultDataValueSetService
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -86,7 +101,19 @@ public class DefaultCompleteDataSetRegistrationService
     private I18nManager i18nManager;
 
     @Autowired
+    private BatchHandlerFactory batchHandlerFactory;
+
+    @Autowired
     private SystemSettingManager systemSettingManager;
+
+    @Autowired
+    private DataElementCategoryService categoryService;
+
+    @Autowired
+    private PeriodService periodService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -234,7 +261,8 @@ public class DefaultCompleteDataSetRegistrationService
     @Override
     public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, TaskId taskId )
     {
-
+        // TODO
+        return null;
     }
 
     @Override
@@ -252,6 +280,7 @@ public class DefaultCompleteDataSetRegistrationService
     @Override
     public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, TaskId taskId )
     {
+        // TODO
         return null;
     }
 
@@ -266,7 +295,7 @@ public class DefaultCompleteDataSetRegistrationService
         throw new IllegalQueryException( message );
     }
 
-    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, TaskId id, CompleteDataSetRegistrations cdsr )
+    private ImportSummary saveCompleteDataSetRegistrations( ImportOptions importOptions, TaskId id, CompleteDataSetRegistrations completeRegistrations )
     {
         Clock clock = new Clock( log ).startClock().logTime( "Starting complete data set registration import, options: " + importOptions );
         notifier.clear( id ).notify( id, "Process started" );
@@ -283,17 +312,19 @@ public class DefaultCompleteDataSetRegistrationService
 
         log.info( "Import options: " + importOptions );
 
-        ImportConfig cfg = new ImportConfig( cdsr, importOptions );
-
-        // TODO Finish
+        ImportConfig cfg = new ImportConfig( completeRegistrations, importOptions );
 
         // ---------------------------------------------------------------------
-        // Create meta-data maps
+        // Set up meta-data
         // ---------------------------------------------------------------------
 
-        // ---------------------------------------------------------------------
-        // Get meta-data maps
-        // ---------------------------------------------------------------------
+        MetaDataCaches caches = new MetaDataCaches();
+        MetaDataCallables metaDataCallables = new MetaDataCallables( cfg, completeRegistrations );
+
+        if ( importOptions.isPreheatCacheDefaultFalse() )
+        {
+            caches.preheat( idObjManager, cfg );
+        }
 
         // ---------------------------------------------------------------------
         // Get outer meta-data
@@ -303,10 +334,119 @@ public class DefaultCompleteDataSetRegistrationService
         // Validation
         // ---------------------------------------------------------------------
 
+        // TODO clock.logTime( "Validated out meta-data" ); etc etc.
+
         // ---------------------------------------------------------------------
-        // Complete data set registrations
+        // Do import
         // ---------------------------------------------------------------------
 
+        notifier.notify( id, "Importing complete data set registrations" );
+
+        doImport( completeRegistrations, cfg, importOptions, id, metaDataCallables, caches );
+
+    }
+
+    private void doImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig cfg, ImportOptions options, TaskId id,
+        MetaDataCallables mdCallables, MetaDataCaches mdCaches )
+    {
+        final String currentUser = currentUserService.getCurrentUsername();
+        final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
+
+        BatchHandler<CompleteDataSetRegistration> completeRegistrationsBatchHandler =
+            batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ).init();
+
+        int importCount = 0, updateCount = 0, deleteCount = 0, totalCount = 0;
+
+        Date now = new Date();
+
+        while( completeRegistrations.hasNextCompleteDataSetRegistration() )
+        {
+            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cr = completeRegistrations.getNextCompleteDataSetRegistration();
+            totalCount++;
+
+            // ---------------------------------------------------------------------
+            // Init meta-data properties against meta-data cache
+            // ---------------------------------------------------------------------
+
+            DataSet dataSet = null;
+            Period period = null;
+            OrganisationUnit orgUnit = null;
+            DataElementCategoryOptionCombo attrOptCombo = null;
+
+            initMetaDataProperties( cr, dataSet, period, orgUnit, attrOptCombo, mdCallables, mdCaches );
+
+            // ---------------------------------------------------------------------
+            // Cache heating
+            // ---------------------------------------------------------------------
+
+        }
+    }
+
+    private void heatCaches( MetaDataCaches caches, ImportConfig config )
+    {
+        if ( caches.dataSets.isCacheLoaded() && exceedsThreshold( caches.dataSets ) )
+        {
+            caches.dataSets.load( idObjManager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
+        }
+    }
+
+    private static void initMetaDataProperties( org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, DataSet dataSet, Period period,
+        OrganisationUnit orgUnit, DataElementCategoryOptionCombo attrOptcombo, MetaDataCallables callables, MetaDataCaches cache )
+    {
+        String
+            ds = ttn( cdsr.getDataSet() ),
+            pe = ttn( cdsr.getPeriod() ),
+            ou = ttn( cdsr.getOrganisationUnit() ),
+            aoc = ttn( cdsr.getAttributeOptionCombo() );
+
+        dataSet = cache.dataSets.get( ds , callables.dataSetCallable.setId( ds ) );
+        period = cache.periods.get( pe, callables.periodCallable.setId( pe ) );
+        orgUnit = cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) );
+        attrOptcombo = cache.attrOptionCombos.get( aoc, callables.optionComboCallable.setId( aoc ) );
+    }
+
+    private static boolean exceedsThreshold( CachingMap cachingMap )
+    {
+        return cachingMap.getCacheMissCount() > CACHE_MISS_THRESHOLD;
+    }
+
+    /**
+     * Trim-to-null shorthand
+     */
+    private static String ttn( String str )
+    {
+        return StringUtils.trimToNull( str );
+    }
+
+    private class MetaDataCallables
+    {
+        final IdentifiableObjectCallable<DataSet> dataSetCallable;
+        final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
+        final IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallable;
+        final IdentifiableObjectCallable<Period> periodCallable;
+
+        MetaDataCallables( ImportConfig config, CompleteDataSetRegistrations cdsr )
+        {
+            dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.dsScheme, null );
+            orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.ouScheme, null );
+            optionComboCallable = new CategoryOptionComboAclCallable( categoryService, config.aocScheme, null );
+            periodCallable = new PeriodCallable( periodService, null, null );
+        }
+    }
+
+    private class MetaDataCaches
+    {
+        CachingMap<String, DataSet> dataSets = new CachingMap<>();
+        CachingMap<String, OrganisationUnit> orgUnits = new CachingMap<>();
+        CachingMap<String, Period> periods = new CachingMap<>();
+        CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
+
+        void preheat( IdentifiableObjectManager manager, final ImportConfig config )
+        {
+            dataSets.load( manager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
+            orgUnits.load( manager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.ouScheme ) );
+            attrOptionCombos.load( manager.getAll( DataElementCategoryOptionCombo.class ), oc -> oc.getPropertyValue( config.aocScheme ) );
+        }
     }
 
     private class ImportConfig
@@ -331,10 +471,15 @@ public class DefaultCompleteDataSetRegistrationService
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
 
             skipExistingCheck = options.isSkipExistingCheck();
-            strictPeriods = options.isStrictPeriods() || options.isStrictPeriods() ||
-                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+            strictPeriods = options.isStrictPeriods() || get( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+            strictAttrOptionCombos = options.isStrictAttributeOptionCombos() || get( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
+            strictOrgUnits = options.isStrictOrganisationUnits() || get( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+            requireAttrOptionCombos = options.isRequireAttributeOptionCombo() || get( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+        }
 
-            // TODO Finish this
+        private boolean get( SettingKey key )
+        {
+            return (Boolean) systemSettingManager.getSystemSetting( key );
         }
     }
 }
