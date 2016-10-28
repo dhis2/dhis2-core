@@ -1081,7 +1081,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring.version>4.2.5.RELEASE</spring.version>
     <spring.security.version>3.2.9.RELEASE</spring.security.version>
-    <spring.security.oauth2.version>2.0.11.RELEASE</spring.security.oauth2.version>
+    <spring.security.oauth2.version>2.0.5.RELEASE</spring.security.oauth2.version>
     <struts.version>2.3.24.1</struts.version>
     <hibernate.version>5.1.0.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
