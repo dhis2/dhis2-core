@@ -42,6 +42,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -52,6 +53,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -342,12 +344,12 @@ public class DefaultCompleteDataSetRegistrationService
 
         notifier.notify( id, "Importing complete data set registrations" );
 
-        doImport( completeRegistrations, cfg, importOptions, id, metaDataCallables, caches );
+        doImport( completeRegistrations, cfg, importOptions, importSummary, id, metaDataCallables, caches );
 
     }
 
-    private void doImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig cfg, ImportOptions options, TaskId id,
-        MetaDataCallables mdCallables, MetaDataCaches mdCaches )
+    private void doImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config, ImportOptions options,
+        ImportSummary summary, TaskId id, MetaDataCallables mdCallables, MetaDataCaches mdCaches )
     {
         final String currentUser = currentUserService.getCurrentUsername();
         final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
@@ -359,50 +361,148 @@ public class DefaultCompleteDataSetRegistrationService
 
         Date now = new Date();
 
-        while( completeRegistrations.hasNextCompleteDataSetRegistration() )
+        DataElementCategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+
+        while ( completeRegistrations.hasNextCompleteDataSetRegistration() )
         {
-            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cr = completeRegistrations.getNextCompleteDataSetRegistration();
+            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr = completeRegistrations.getNextCompleteDataSetRegistration();
             totalCount++;
 
             // ---------------------------------------------------------------------
             // Init meta-data properties against meta-data cache
             // ---------------------------------------------------------------------
 
-            DataSet dataSet = null;
-            Period period = null;
-            OrganisationUnit orgUnit = null;
-            DataElementCategoryOptionCombo attrOptCombo = null;
+            MetaDataProperties mdProps = initMetaDataProperties( cdsr, mdCallables, mdCaches );
 
-            initMetaDataProperties( cr, dataSet, period, orgUnit, attrOptCombo, mdCallables, mdCaches );
+            heatCaches( mdCaches, config );
 
             // ---------------------------------------------------------------------
-            // Cache heating
+            // Meta-data validation
             // ---------------------------------------------------------------------
+
+            boolean metaDataPropsIsValid = mdProps.isValid( summary, cdsr );
+
+            if ( !metaDataPropsIsValid )
+            {
+                continue;
+            }
+
+            boolean inUserHierarchy =
+                mdCaches.orgUnitInHierarchyMap.get( mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant( userOrgUnits ) );
+
+            if ( !inUserHierarchy )
+            {
+                summary.getConflicts().add(
+                    new ImportConflict( mdProps.orgUnit.getUid(), "Organisation unit is not in hierarchy of user: " + currentUser ) );
+                continue;
+            }
+
+            // -----------------------------------------------------------------
+            // Constraints validation
+            // -----------------------------------------------------------------
+
+            if ( mdProps.attrOptCombo == null )
+            {
+                if ( config.requireAttrOptionCombos )
+                {
+                    summary.getConflicts().add(
+                        new ImportConflict( "Attribute option combo", "Attribute option combo is required but is not specified" ) );
+                    continue;
+                }
+                else
+                {
+                    mdProps.attrOptCombo = fallbackCategoryOptionCombo;
+                }
+            }
+
+            if ( config.strictPeriods && !hasMatchingPeriodTypes( mdProps, mdCaches, summary ) )
+            {
+                continue;
+            }
+
+            // TODO Consider validating attrOptCombos and data set assignment (like below)
+//
+//            if ( strictAttrOptionCombos && !dataElementAttrOptionComboMap.get( dataElement.getUid(),
+//                () -> dataElement.getDataSetCategoryOptionCombos() ).contains( attrOptionCombo ) )
+//            {
+//                summary.getConflicts().add( new ImportConflict( attrOptionCombo.getUid(),
+//                    "Attribute option combo: " + attrOptionCombo.getUid() + " must be part of category combo of data sets of data element: " + dataElement.getUid() ) );
+//                continue;
+//            }
+//
+//            if ( strictOrgUnits && BooleanUtils.isFalse( dataElementOrgUnitMap.get( dataElement.getUid() + orgUnit.getUid(),
+//                () -> orgUnit.hasDataElement( dataElement ) ) ) )
+//            {
+//                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
+//                    "Data element: " + dataElement.getUid() + " must be assigned through data sets to organisation unit: " + orgUnit.getUid() ) );
+//                continue;
+//            }
+
+            // TODO More to do here...
 
         }
+    }
+
+    private static boolean hasMatchingPeriodTypes( MetaDataProperties props, MetaDataCaches mdCaches, ImportSummary summary )
+    {
+        if ( !props.dataSet.getPeriodType().equals( props.period.getPeriodType() ) )
+        {
+            summary.getConflicts().add(
+                new ImportConflict( props.period.getUid(), String.format( "Period type of period: %s is not equal to the period type of data set: %s",
+                    props.period.getIsoDate(), props.dataSet.getPeriodType() ) ) );
+
+            return false;
+        }
+
+        return true;
     }
 
     private void heatCaches( MetaDataCaches caches, ImportConfig config )
     {
-        if ( caches.dataSets.isCacheLoaded() && exceedsThreshold( caches.dataSets ) )
+        if ( !caches.dataSets.isCacheLoaded() && exceedsThreshold( caches.dataSets ) )
         {
             caches.dataSets.load( idObjManager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
+
+            log.info( "Data set cache heated after cache miss threshold reached" );
+        }
+
+        if ( !caches.orgUnits.isCacheLoaded() && exceedsThreshold( caches.orgUnits ) )
+        {
+            caches.orgUnits.load( idObjManager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.ouScheme ) );
+
+            log.info( "Org unit cache heated after cache miss threshold reached" );
+        }
+
+        // TODO Consider need for checking/re-heating attrOptCombo and period caches
+
+        if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
+        {
+            caches.attrOptionCombos.load( idObjManager.getAll( DataElementCategoryOptionCombo.class ), aoc -> aoc.getPropertyValue( config.aocScheme ) );
+
+            log.info( "Attribute option combo cache heated after cache miss threshold reached" );
+        }
+
+        if ( !caches.periods.isCacheLoaded() && exceedsThreshold( caches.periods ) )
+        {
+            caches.periods.load( idObjManager.getAll( Period.class ), pe -> pe.getPropertyValue( null ) );
         }
     }
 
-    private static void initMetaDataProperties( org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, DataSet dataSet, Period period,
-        OrganisationUnit orgUnit, DataElementCategoryOptionCombo attrOptcombo, MetaDataCallables callables, MetaDataCaches cache )
+    private static MetaDataProperties initMetaDataProperties(
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
     {
         String
-            ds = ttn( cdsr.getDataSet() ),
-            pe = ttn( cdsr.getPeriod() ),
-            ou = ttn( cdsr.getOrganisationUnit() ),
-            aoc = ttn( cdsr.getAttributeOptionCombo() );
+            ds = StringUtils.trimToNull( cdsr.getDataSet() ),
+            pe = StringUtils.trimToNull( cdsr.getPeriod() ),
+            ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
+            aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
 
-        dataSet = cache.dataSets.get( ds , callables.dataSetCallable.setId( ds ) );
-        period = cache.periods.get( pe, callables.periodCallable.setId( pe ) );
-        orgUnit = cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) );
-        attrOptcombo = cache.attrOptionCombos.get( aoc, callables.optionComboCallable.setId( aoc ) );
+        return new MetaDataProperties(
+            cache.dataSets.get( ds , callables.dataSetCallable.setId( ds ) ),
+            cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
+            cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),
+            cache.attrOptionCombos.get( aoc, callables.optionComboCallable.setId( aoc ) )
+        );
     }
 
     private static boolean exceedsThreshold( CachingMap cachingMap )
@@ -410,12 +510,51 @@ public class DefaultCompleteDataSetRegistrationService
         return cachingMap.getCacheMissCount() > CACHE_MISS_THRESHOLD;
     }
 
-    /**
-     * Trim-to-null shorthand
-     */
-    private static String ttn( String str )
+    private static class MetaDataProperties
     {
-        return StringUtils.trimToNull( str );
+        final DataSet dataSet;
+        final Period period;
+        final OrganisationUnit orgUnit;
+        DataElementCategoryOptionCombo attrOptCombo;
+
+        public MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attrOptCombo )
+        {
+            this.dataSet = dataSet;
+            this.period = period;
+            this.orgUnit = orgUnit;
+            this.attrOptCombo = attrOptCombo;
+        }
+
+        public boolean isValid( ImportSummary importSummary, org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr )
+        {
+            if ( dataSet == null )
+            {
+                importSummary.getConflicts().add( new ImportConflict( cdsr.getDataSet(), "Data set not found or not accessible" ) );
+                return false;
+            }
+
+            if ( period == null )
+            {
+                importSummary.getConflicts().add( new ImportConflict( cdsr.getPeriod(), "Period not valid" ) );
+                return false;
+            }
+
+            if ( orgUnit == null )
+            {
+                importSummary.getConflicts().add(
+                    new ImportConflict( cdsr.getOrganisationUnit(), "Organisation unit not found or not accessible" ) );
+                return false;
+            }
+
+            if ( attrOptCombo == null && StringUtils.trimToNull( cdsr.getAttributeOptionCombo() ) != null )
+            {
+                importSummary.getConflicts().add(
+                    new ImportConflict( cdsr.getAttributeOptionCombo(), "Attribute option combo not found or not accessible" ) );
+                return false;
+            }
+
+            return true;
+        }
     }
 
     private class MetaDataCallables
@@ -440,6 +579,7 @@ public class DefaultCompleteDataSetRegistrationService
         CachingMap<String, OrganisationUnit> orgUnits = new CachingMap<>();
         CachingMap<String, Period> periods = new CachingMap<>();
         CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
+        CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
 
         void preheat( IdentifiableObjectManager manager, final ImportConfig config )
         {
