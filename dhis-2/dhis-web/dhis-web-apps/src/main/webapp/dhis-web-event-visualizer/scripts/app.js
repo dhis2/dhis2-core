@@ -2109,10 +2109,10 @@ Ext.onReady( function() {
 
     AggregateOptionsWindow = function() {
 		var showValues,
-            showTrendLine,
             hideEmptyRows,
             hideNaData,
             completedOnly,
+            regressionType,
 			targetLineValue,
 			targetLineTitle,
 			baseLineValue,
@@ -2150,11 +2150,6 @@ Ext.onReady( function() {
 			checked: true
 		});
 
-		showTrendLine = Ext.create('Ext.form.field.Checkbox', {
-			boxLabel: NS.i18n.trend_line,
-			style: 'margin-bottom:' + checkboxBottomMargin + 'px'
-		});
-
 		hideEmptyRows = Ext.create('Ext.form.field.Checkbox', {
 			boxLabel: NS.i18n.hide_empty_category_items,
 			style: 'margin-bottom:' + checkboxBottomMargin + 'px'
@@ -2169,6 +2164,26 @@ Ext.onReady( function() {
 			boxLabel: NS.i18n.include_only_completed_events_only,
 			style: 'margin-bottom:' + checkboxBottomMargin + 'px',
 		});
+
+        regressionType = Ext.create('Ext.form.field.ComboBox', {
+            cls: 'ns-combo',
+            style: 'margin-top:' + separatorTopMargin + 'px; margin-bottom:' + comboBottomMargin + 'px',
+            width: cmpWidth,
+            labelWidth: 125,
+            fieldLabel: NS.i18n.trend_line,
+            labelStyle: 'color:#333',
+            queryMode: 'local',
+            valueField: 'id',
+            editable: false,
+            value: 'NONE',
+            store: Ext.create('Ext.data.Store', {
+                fields: ['id', 'text'],
+                data: [
+                    {id: 'NONE', text: NS.i18n.none},
+                    {id: 'LINEAR', text: NS.i18n.linear}
+                ]
+            })
+        });
 
 		targetLineValue = Ext.create('Ext.form.field.Number', {
 			width: numberWidth,
@@ -2347,15 +2362,14 @@ Ext.onReady( function() {
 			style: 'margin-left:14px',
 			items: [
 				showValues,
-				showTrendLine,
 				hideEmptyRows,
                 hideNaData,
                 completedOnly,
+                regressionType,
 				{
 					xtype: 'container',
 					layout: 'column',
 					bodyStyle: 'border:0 none',
-                    style: 'margin-top:' + (separatorTopMargin + 1) + 'px',
 					items: [
 						{
 							bodyStyle: 'border:0 none; padding-top:3px; margin-right:5px; color:#333',
@@ -2430,10 +2444,10 @@ Ext.onReady( function() {
 			getOptions: function() {
 				return {
 					showValues: showValues.getValue(),
-					showTrendLine: showTrendLine.getValue(),
                     hideEmptyRows: hideEmptyRows.getValue(),
                     hideNaData: hideNaData.getValue(),
 					completedOnly: completedOnly.getValue(),
+                    regressionType: regressionType.getValue(),
 					targetLineValue: targetLineValue.getValue(),
 					targetLineTitle: targetLineTitle.getValue(),
 					baseLineValue: baseLineValue.getValue(),
@@ -2453,10 +2467,17 @@ Ext.onReady( function() {
 			},
 			setOptions: function(layout) {
 				showValues.setValue(Ext.isBoolean(layout.showValues) ? layout.showValues : false);
-				showTrendLine.setValue(Ext.isBoolean(layout.showTrendLine) ? layout.showTrendLine : false);
 				hideEmptyRows.setValue(Ext.isBoolean(layout.hideEmptyRows) ? layout.hideEmptyRows : false);
 				hideNaData.setValue(Ext.isBoolean(layout.hideNaData) ? layout.hideNaData : false);
                 completedOnly.setValue(Ext.isBoolean(layout.completedOnly) ? layout.completedOnly : false);
+
+				// regression type
+				if (Ext.isString(layout.regressionType)) {
+                    regressionType.setValue(layout.regressionType);
+				}
+				else {
+                    regressionType.reset();
+				}
 
 				// target line
 				if (Ext.isNumber(layout.targetLineValue)) {
@@ -2605,10 +2626,10 @@ Ext.onReady( function() {
 
 					// cmp
 					w.showValues = showValues;
-					w.showTrendLine = showTrendLine;
                     w.hideEmptyRows = hideEmptyRows;
                     w.hideNaData = hideNaData;
                     w.completedOnly = completedOnly;
+                    w.regressionType = regressionType;
 					w.targetLineValue = targetLineValue;
 					w.targetLineTitle = targetLineTitle;
 					w.baseLineValue = baseLineValue;
@@ -2696,9 +2717,6 @@ Ext.onReady( function() {
                 
 				favorite.showData = favorite.showValues;
 				delete favorite.showValues;
-
-				favorite.regression = favorite.showTrendLine;
-				delete favorite.showTrendLine;
 
 				favorite.targetLineLabel = favorite.targetLineTitle;
 				delete favorite.targetLineTitle;
