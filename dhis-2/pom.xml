@@ -795,7 +795,7 @@
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>5.1.38</version>
+        <version>6.0.5</version>
       </dependency>
       <dependency>
         <groupId>org.postgresql</groupId>
@@ -1094,7 +1094,7 @@
     <jackson.version>2.6.6</jackson.version>
     <slf4j.version>1.7.21</slf4j.version>
     <geotools.version>14.3</geotools.version>
-    <jasperreports.version>6.1.0</jasperreports.version>
+    <jasperreports.version>6.3.1</jasperreports.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
   </properties>
 </project>
