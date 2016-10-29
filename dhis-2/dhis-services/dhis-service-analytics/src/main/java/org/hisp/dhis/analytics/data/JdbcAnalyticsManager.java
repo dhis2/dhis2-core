@@ -80,7 +80,7 @@ public class JdbcAnalyticsManager
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
 
-    private static final Map<MeasureFilter, String> operatorToSql = ImmutableMap.<MeasureFilter, String>builder()
+    private static final Map<MeasureFilter, String> OPERATOR_SQL_MAP = ImmutableMap.<MeasureFilter, String>builder()
         .put( MeasureFilter.EQ, "=" )
         .put( MeasureFilter.GT, ">" )
         .put( MeasureFilter.GE, ">=" )
@@ -121,8 +121,9 @@ public class JdbcAnalyticsManager
 
             sql += getGroupByClause( params );
 
-            // Needs to use "having" to utilize aggregate functions, and needs to come after group by.
-            if( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
+            // Needs to use "having" to utilize aggregate functions, and needs to come after group by
+
+            if ( params.isDataType( DataType.NUMERIC ) && !params.getMeasureCriteria().isEmpty() )
             {
                 sql += getMeasureCriteriaSql( params );
             }
@@ -406,26 +407,25 @@ public class JdbcAnalyticsManager
      */
     private String getPartition( DataQueryParams params, String partition )
     {
-
-        if(params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty())
+        if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
         {
             SqlHelper sqlHelper = new SqlHelper();
+
             String sql = "";
 
             sql += "(select * from " + partition + " ";
 
-            for( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
+            for ( MeasureFilter filter : params.getPreAggregateMeasureCriteria().keySet() )
             {
                 Double criterion = params.getPreAggregateMeasureCriteria().get( filter );
 
-                sql += sqlHelper.whereAnd() + " value " + operatorToSql.get( filter ) + " " + criterion + " ";
+                sql += sqlHelper.whereAnd() + " value " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
 
             }
 
             sql += ") as " + partition;
 
             return sql;
-
         }
         else
         {
@@ -460,7 +460,7 @@ public class JdbcAnalyticsManager
         {
             Double criterion = params.getMeasureCriteria().get( filter );
 
-            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + operatorToSql.get( filter ) + " " + criterion + " ";
+            sql += sqlHelper.havingAnd() + " " + getNumericValueColumn( params ) + " " + OPERATOR_SQL_MAP.get( filter ) + " " + criterion + " ";
         }
 
         return sql;
@@ -475,8 +475,6 @@ public class JdbcAnalyticsManager
         Map<String, Object> map = new HashMap<>();
 
         log.debug( "Analytics SQL: " + sql );
-
-        System.out.println( "Query: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
