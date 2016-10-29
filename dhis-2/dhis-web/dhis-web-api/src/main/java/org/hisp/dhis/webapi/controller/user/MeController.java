@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { Version.V24, Version.V25 } )
+@ApiVersion( { Version.V24, Version.V25, Version.V26 } )
 public class MeController
 {
     @Autowired
