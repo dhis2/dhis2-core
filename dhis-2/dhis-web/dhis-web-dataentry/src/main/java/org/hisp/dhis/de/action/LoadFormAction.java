@@ -384,11 +384,6 @@ public class LoadFormAction
 
             Collections.sort( organisationUnitChildren );
 
-            if ( organisationUnit.getDataSets().contains( dsOriginal ) )
-            {
-                organisationUnits.add( organisationUnit );
-            }
-
             organisationUnits.addAll( organisationUnitChildren );
 
             getSectionForm( dataElements, dataSet );
