@@ -694,7 +694,7 @@ dhis2.de.loadForm = function()
 	                loadDataValues();
                     var table = $( '.sectionTable' );
                     table.floatThead({
-                        position: 'auto',
+                        position: 'absolute',
                         top: 44,
                         zIndex: 9
                     });
@@ -785,15 +785,15 @@ dhis2.de.enableSectionFilter = function()
 
 dhis2.de.filterOnSection = function()
 {
-    var $filterDataSetSection = $( '#filterDataSetSection' );
+    var $filterDataSetSection = $( '#filterDataSetSection' );    
     var value = $filterDataSetSection.val();
-
+    
     if ( value == 'all' )
     {
         $( '.formSection' ).show();
     }
     else
-    {
+    {        
         $( '.formSection' ).hide();
         $( $( '.formSection' )[value] ).show();
     }
@@ -801,8 +801,8 @@ dhis2.de.filterOnSection = function()
 
 dhis2.de.filterInSection = function( $this )
 {
-    var $tbody = $this.closest('tbody').find("#sectionTable tbody");
-    var thisTable = $tbody.parent().get(0);
+    var $tbody = $this.closest('.sectionTable').find("tbody");    
+    var thisTable = $tbody.parent().get(0);           
     var $trTarget = $tbody.find( 'tr');
 
     if ( $this.val() == '' )
@@ -2973,10 +2973,10 @@ dhis2.de.setOptionNameInField = function( fieldId, value )
 		if ( obj && obj.optionSet && obj.optionSet.options ) {			
 			$.each( obj.optionSet.options, function( inx, option ) {
 				if ( option && option.code == value.val ) {
-          option.id = option.code;
-          option.text = option.name;
-          $( fieldId ).select2("val", option.text );
-					return false;
+			          option.id = option.code;
+			          option.text = option.name;
+			          $( fieldId ).val( option.id ).change();
+			          return false;
 				}
 			} );
 		}		

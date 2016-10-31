@@ -50,8 +50,10 @@
     <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/header-bar.js?_rev=$!{buildRevision}"></script>
     <script>
         // Needs to be wrapped in jQuery to be sure the DOM is parsed as the script is not at the bottom.
-        jQuery(function () {
-            Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), undefined, { noLoadingIndicator: true });
+        jQuery(function () {        	
+        	if( Dhis2HeaderBar ){
+        		Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), undefined, { noLoadingIndicator: true });
+        	}            
         });
     </script>
     <!-- // End menu -->

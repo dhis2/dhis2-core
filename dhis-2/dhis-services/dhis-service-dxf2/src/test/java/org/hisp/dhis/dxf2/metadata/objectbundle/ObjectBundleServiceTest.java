@@ -839,7 +839,7 @@ public class ObjectBundleServiceTest
 
         Section section = manager.get( Section.class, "C50M0WxaI7y" );
         assertNotNull( section.getDataSet() );
-        assertNotNull( section.getCategoryCombo() );
+        assertEquals( 1, section.getCategoryCombos().size() );
         assertEquals( 1, section.getGreyedFields().size() );
 
         DataElementCategoryCombo categoryCombo = manager.get( DataElementCategoryCombo.class, "faV8QvLgIwB" );
@@ -874,14 +874,14 @@ public class ObjectBundleServiceTest
 
         Section section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );
-        assertNotNull( section1.getCategoryCombo() );
+        assertEquals( 1, section1.getCategoryCombos().size() );
         assertTrue( section1.getGreyedFields().isEmpty() );
         assertEquals( 1, section1.getDataElements().size() );
         assertNotNull( section1.getDataSet() );
 
         Section section2 = manager.get( Section.class, "C50M0WxaI7y" );
         assertNotNull( section2.getDataSet() );
-        assertNotNull( section2.getCategoryCombo() );
+        assertEquals( 1, section2.getCategoryCombos().size() );        
         assertEquals( 1, section2.getGreyedFields().size() );
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
@@ -923,14 +923,14 @@ public class ObjectBundleServiceTest
 
         section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );
-        assertNotNull( section1.getCategoryCombo() );
+        assertEquals( 1, section1.getCategoryCombos().size() );
         assertEquals( 1, section1.getGreyedFields().size() );
         assertEquals( 1, section1.getDataElements().size() );
         assertNotNull( section1.getDataSet() );
 
         section2 = manager.get( Section.class, "C50M0WxaI7y" );
         assertNotNull( section2.getDataSet() );
-        assertNotNull( section2.getCategoryCombo() );
+        assertEquals( 1, section2.getCategoryCombos().size() );
         assertTrue( section2.getGreyedFields().isEmpty() );
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
