@@ -482,7 +482,7 @@ public class DataSetServiceTest
 
         assertFalse( dataSetService.isLocked( dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 1 ) ) );
         assertFalse( dataSetService.isLocked( dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 5 ) ) );
-        assertTrue( dataSetService.isLocked( dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ) );
+        assertFalse( dataSetService.isLocked( dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 15 ) ) );
         assertTrue( dataSetService.isLocked( dataElementA, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
         assertFalse( dataSetService.isLocked( dataElementB, period, unitA, attributeOptionCombo, getDate( 2000, 4, 25 ) ) );
 
