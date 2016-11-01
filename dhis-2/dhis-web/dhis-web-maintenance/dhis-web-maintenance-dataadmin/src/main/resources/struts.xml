@@ -308,7 +308,7 @@
       <param name="requiredAuthorities">F_SCHEDULING_ADMIN</param>
     </action>
 
-    <action name="executeMetaDataSyncTask" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
+    <action name="executeMetadataSyncTask" class="org.hisp.dhis.dataadmin.action.scheduling.ScheduleTasksAction">
       <result name="success" type="velocity">/main.vm</result>
       <param name="page">/dhis-web-maintenance-dataadmin/viewScheduledTasks.vm</param>
       <param name="menu">/dhis-web-maintenance-dataadmin/menu.vm</param>
