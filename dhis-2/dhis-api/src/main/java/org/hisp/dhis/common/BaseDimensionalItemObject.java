@@ -80,7 +80,7 @@ public class BaseDimensionalItemObject
     @Override
     public boolean hasLegendSet()
     {
-        return !legendSets.isEmpty();
+        return legendSets != null && !legendSets.isEmpty();
     }
 
     @Override
