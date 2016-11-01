@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.hibernate.encryption;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,27 +28,54 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Maps;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+
+import java.util.Map;
+
 /**
+ * Singleton registry for all (named) Hibernate Encryptors.
+ * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType}
+ * depends on this singleton to access the appropriate encryptor(s).
+ *
  * @author Halvdan Hoem Grelland
  */
-public class NotificationMessage
+public final class HibernateEncryptorRegistry
 {
-    private String subject = "";
-    private String message = "";
+    private static final HibernateEncryptorRegistry INSTANCE = new HibernateEncryptorRegistry();
 
-    public NotificationMessage( String subject, String message )
+    private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
+
+    private HibernateEncryptorRegistry() {} // Private constructor
+
+    /**
+     * Returns the (singleton) instance of the registry.
+     *
+     * @return this registry.
+     */
+    public static HibernateEncryptorRegistry getInstance()
     {
-        this.subject = subject;
-        this.message = message;
+        return INSTANCE;
     }
 
-    public String getSubject()
+    /**
+     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by name.
+     *
+     * @param encryptors a map of names and encryptors.
+     */
+    public synchronized void setEncryptors( Map<String, PBEStringEncryptor> encryptors )
     {
-        return subject;
+        INSTANCE.encryptors.putAll( encryptors );
     }
 
-    public String getMessage()
+    /**
+     * Get encryptor from registry by name.
+     *
+     * @param name the name of the encryptor.
+     * @return an instance of {@link PBEStringEncryptor} or null.
+     */
+    public PBEStringEncryptor getEncryptor( String name )
     {
-        return message;
+        return INSTANCE.encryptors.get( name );
     }
 }

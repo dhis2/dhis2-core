@@ -290,7 +290,7 @@ public class TrackedEntityAttributeValue
 
     /**
      * Property which temporarily stores the attribute value. The
-     * {@link getEncryptedValue} and {@link getPlainValue} methods handle the
+     * {@link #getEncryptedValue} and {@link #getPlainValue} methods handle the
      * value when requested.
      *
      * @param value the value to be stored.

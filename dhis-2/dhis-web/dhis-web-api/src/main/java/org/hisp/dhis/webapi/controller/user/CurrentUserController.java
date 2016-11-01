@@ -289,7 +289,7 @@ public class CurrentUserController
         }
 
         Dashboard dashboard = new Dashboard();
-        dashboard.setUnreadMessageConversation( messageService.getUnreadMessageConversationCount() );
+        dashboard.setUnreadMessageConversations( messageService.getUnreadMessageConversationCount() );
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );

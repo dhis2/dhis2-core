@@ -4,7 +4,7 @@
         $.mobile.loading( 'show' );
 
         $.ajax({
-            url: '$contextPath/api/currentUser/inbox',
+            url: '$contextPath/api/23/me/inbox',
             dataType: 'json'
         }).success(function(data) {
             if( data['messageConversations'] !== undefined ) {
