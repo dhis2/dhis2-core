@@ -16,13 +16,31 @@
     </action>
     
      <!-- Sending SMS Action -->
-     
-    <action name="sendSMS"
-      class="org.hisp.dhis.mobile.action.incoming.ProcessingSendQuickSMSAction">
+
+    <action name="showSendingSMSForm"
+            class="org.hisp.dhis.mobile.outgoing.ShowSendSMSFormAction">
+      <result name="success" type="velocity">/main.vm</result>
+      <param name="page">/dhis-web-maintenance-mobile/sendSMSPage.vm</param>
+      <param name="menu">/dhis-web-maintenance-mobile/menu.vm</param>
+      <param name="javascripts">
+        ../dhis-web-commons/oust/oust.js,
+        ../dhis-web-maintenance-mobile/javascript/sendSMS.js
+      </param>
+      <param name="stylesheets">../dhis-web-sms/css/patient.css</param>
+      <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+
+    <action name="sendSMSMessage"
+            class="org.hisp.dhis.mobile.outgoing.ProcessingSendSMSAction">
       <result name="success" type="velocity-json">../dhis-web-commons/ajax/jsonResponseSuccess.vm</result>
       <result name="error" type="velocity-json">../dhis-web-commons/ajax/jsonResponseError.vm</result>
       <param name="onExceptionReturn">plainTextError</param>
       <param name="requiredAuthorities">F_MOBILE_SENDSMS</param>
+    </action>
+    <action name="searchAllFacilities" class="org.hisp.dhis.mobile.action.NoAction">
+      <result name="success" type="velocity-json">/dhis-web-commons/ajax/jsonResponseSuccess.vm
+      </result>
+      <param name="requiredAuthorities">F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS</param>
     </action>
 
     <!-- Sent SMS -->

@@ -5,5 +5,6 @@
     #introListImgItem( "showSentPage.action" "view_sent_sms" "mobile" )
     #introListImgItem( "showReceivingPage.action" "show_receive_sms_form" "mobile" )
     #introListImgItem( "SMSCommands.action" "sms_command_form" "mobile" )
+    #introListImgItem( "showSendingSMSForm.action" "send_sms" "mobile" )
     #introListImgItem( "showJ2meClientUpdatePage.action" "j2me_client_update" "configuration" )
 </ul>

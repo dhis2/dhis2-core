@@ -27,7 +27,6 @@
     <module>dhis-web-dashboard-integration</module>
     <module>dhis-web-light</module>
     <module>dhis-web-mobile</module>
-    <module>dhis-web-sms</module>
     <module>dhis-web-apps</module>
     <module>dhis-web-portal</module>
   </modules>
