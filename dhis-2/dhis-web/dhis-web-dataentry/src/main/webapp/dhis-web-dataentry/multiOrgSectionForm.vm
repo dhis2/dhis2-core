@@ -1,3 +1,7 @@
+<script type="text/javascript">
+var organisationUnitList = JSON.parse( '$organisationUnits' );
+</script>
+
 #set( $marker = 0 )
 #set( $tabIndex = 1 )
 #set( $hasAccess = $auth.hasAccess( "dhis-web-dataentry", "saveValue" ) )
