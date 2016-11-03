@@ -282,8 +282,6 @@ public class ProcessingSendSMSAction
             return ERROR;
         }
 
-        Set<String> recipients = recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() );
-
         OutboundSms sms = new OutboundSms();
         sms.setMessage( text );
         sms.setRecipients( recipientsList.stream().map( item -> item.getPhoneNumber() ).collect( Collectors.toSet() ) );
