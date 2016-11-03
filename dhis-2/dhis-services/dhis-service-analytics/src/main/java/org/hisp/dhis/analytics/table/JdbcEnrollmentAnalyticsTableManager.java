@@ -144,8 +144,8 @@ public class JdbcEnrollmentAnalyticsTableManager
                 break taskLoop;
             }
 
-            final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-            final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
+            final String start = DateUtils.getMediumDateString( DateUtils.getMinimumDate() );
+            final String end = DateUtils.getMediumDateString( DateUtils.getMaximumDate() );
             final String tableName = table.getTempTableName();
             //Changed to evaluate programinstance enrollmentdate
             final String piIncidentDate = statementBuilder.getCastToDate( "psi.executiondate" );
@@ -284,7 +284,7 @@ public class JdbcEnrollmentAnalyticsTableManager
                                 dataClause + " and itedv.dataelementid = " + dataElement.getId() + " and ipsi.programinstanceid = pi.programinstanceid " +
                                 "group by itedv.dataelementid) " + 
                             "as trackedentitydatavaluesgrouped " + 
-                            "and tedv.programstageinstanceid = trackedentitydatavaluesgrouped.dataelementprograminstancearray[2]" +
+                            "and tedv.programstageinstanceid = trackedentitydatavaluesgrouped.dataelementprograminstancearray[2] " +
                             "on tedv.dataelementid = trackedentitydatavaluesgrouped.dataelementid " +
                             "and tedv.programinstanceid = pi.programinstanceid) as " + quote( dataElement.getUid() );
               
