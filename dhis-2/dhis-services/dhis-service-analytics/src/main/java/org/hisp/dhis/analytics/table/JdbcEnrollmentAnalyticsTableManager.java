@@ -148,7 +148,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             final String end = DateUtils.getMediumDateString( DateUtils.getMaximumDate() );
             final String tableName = table.getTempTableName();
             //Changed to evaluate programinstance enrollmentdate
-            final String piIncidentDate = statementBuilder.getCastToDate( "psi.executiondate" );
+            final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
 
             String sql = "insert into " + table.getTempTableName() + " (";
 
@@ -170,14 +170,14 @@ public class JdbcEnrollmentAnalyticsTableManager
 
             sql = removeLast( sql, 1 ) + " ";
 
-            sql += "from programstageinstance programinstance pi" +
+            sql += "from programinstance pi " +
                 "inner join program pr on pi.programid=pr.programid " +
                 "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
                 "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
                 "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
                 "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
                 //"left join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "left join _dateperiodstructure dps on " + piIncidentDate + "=dps.dateperiod " +
+                "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
                 "where pi.incidentdate >= '" + start + "' " + 
                 "and pi.incidentdate <= '" + end + "' " +
                 "and pr.programid=" + table.getProgram().getId() + " " + 
@@ -274,19 +274,18 @@ public class JdbcEnrollmentAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             //Only this has been changed so far:
-            String sql = "(select " + select + " from trackedentitydatavalue tedv" + 
+            String sql = "(select " + select + " from trackedentitydatavalue tedv " + 
                             "inner join( " + 
                                 "select itedv.dataelementid, MAX(ARRAY[EXTRACT(EPOCH from ipsi.executiondate),itedv.programstageinstanceid,itedv.dataelementid]) " + 
                                 "as dataelementprograminstancearray " + 
                                 "from trackedentitydatavalue itedv " +
-                                "join programstageinstance ipsi on ipsi.programstageinstanceid = itedv.programstageinstanceid " + 
+                                "join programstageinstance ipsi on ipsi.programstageinstanceid=itedv.programstageinstanceid " + 
                                 "and ipsi.executiondate is not null " +
-                                dataClause + " and itedv.dataelementid = " + dataElement.getId() + " and ipsi.programinstanceid = pi.programinstanceid " +
+                                dataClause + " and itedv.dataelementid = " + dataElement.getId() + " and ipsi.programinstanceid=pi.programinstanceid " +
                                 "group by itedv.dataelementid) " + 
                             "as trackedentitydatavaluesgrouped " + 
-                            "and tedv.programstageinstanceid = trackedentitydatavaluesgrouped.dataelementprograminstancearray[2] " +
-                            "on tedv.dataelementid = trackedentitydatavaluesgrouped.dataelementid " +
-                            "and tedv.programinstanceid = pi.programinstanceid) as " + quote( dataElement.getUid() );
+                            "on tedv.programstageinstanceid = trackedentitydatavaluesgrouped.dataelementprograminstancearray[2] " +
+                            "and tedv.dataelementid=trackedentitydatavaluesgrouped.dataelementid) as " + quote( dataElement.getUid() );
               
             //TODO: Remove - kept for quickreference dusing debug
             //String old = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " + 
@@ -339,7 +338,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         //PSI not a column in enrollment analytics:
         //AnalyticsTableColumn psi = new AnalyticsTableColumn( quote( "psi" ), "character(11) not null", "psi.uid" );
         AnalyticsTableColumn pi = new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" );
-        AnalyticsTableColumn ps = new AnalyticsTableColumn( quote( "ps" ), "character(11) not null", "ps.uid" );
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
         //PSI columns npt present in enrollment analytics
@@ -354,7 +352,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
         //columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, es, longitude, latitude, ou, oun, ouc ) );
-        columns.addAll( Lists.newArrayList( pi, ps, erd, id, ou, oun, ouc ) );
+        columns.addAll( Lists.newArrayList( pi, erd, id, ou, oun, ouc ) );
 
         /* Not available in enrollment analytics
         if ( databaseInfo.isSpatialSupport() )
