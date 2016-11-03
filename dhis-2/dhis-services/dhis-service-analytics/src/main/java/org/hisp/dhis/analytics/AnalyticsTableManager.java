@@ -127,6 +127,12 @@ public interface AnalyticsTableManager
     void dropTable( String tableName );
     
     /**
+     * Boolean indicating whether or not the table manager uses aggregation levels.
+     * @return true if the table manager uses aggregation levels.
+     */
+    boolean useAggregationLevels();
+    
+    /**
      * Applies aggregation level logic to the analytics table by setting the
      * organisation unit level column values to null for the levels above the
      * given aggregation level.

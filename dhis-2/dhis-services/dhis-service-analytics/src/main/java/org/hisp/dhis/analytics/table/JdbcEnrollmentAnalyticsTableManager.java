@@ -198,21 +198,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
-        Collection<String> dataElements, int aggregationLevel )
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
     {
         //dbl not needed when lat and lon is not present
@@ -371,6 +356,28 @@ public class JdbcEnrollmentAnalyticsTableManager
     
     // ***************************************************************************************
     //UNCHANGED HELPERS COPIED FORM EVENT ANALYTICS BELOW HERE - can be moved into central codes.
+    
+    /**
+     * Individual records do not use aggregation levels.
+     */
+    @Override
+    public boolean useAggregationLevels()
+    {
+        return false;
+    }
+    
+    @Override
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
+        Collection<String> dataElements, int aggregationLevel )
+    {
+        return null; // Not relevant
+    }
+
+    @Override
+    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    {
+        return null; // Not relevant
+    }
     
     @Override
     public String validState()
