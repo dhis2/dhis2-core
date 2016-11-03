@@ -217,7 +217,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     return;
                 }
                 var calendarSetting = CalendarService.getSetting();
-		if (moment(dateValue, calendarSetting.momentFormat).format(calendarSetting.momentFormat) === dateValue) {
+		        if (moment(dateValue, calendarSetting.momentFormat).format(calendarSetting.momentFormat) === dateValue) {
                     return dateValue;
                 }
                 dateValue = moment(dateValue, 'YYYY-MM-DD')._d;
