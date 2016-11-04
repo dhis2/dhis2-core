@@ -936,6 +936,11 @@ body,
 	padding: 4px 0 0;
 }
 
+    /* IE11 title fix */
+.ns-accordion .x-component.x-panel-header-text-container.x-box-item.x-component-default {
+    width: 100% !important;
+}
+
 
 /*----------------------------------------------------------------------------
  * DV Textarea
