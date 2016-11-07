@@ -29,13 +29,11 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -77,6 +75,7 @@ import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -93,6 +92,8 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
@@ -113,7 +114,7 @@ import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DefaultDataValueSetService
@@ -165,6 +166,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     protected InputUtils inputUtils;
+
+    @Autowired
+    private CalendarService calendarService;
 
     // Set methods for test purposes
 
@@ -597,6 +601,7 @@ public class DefaultDataValueSetService
         notifier.clear( id ).notify( id, "Process started" );
 
         ImportSummary summary = new ImportSummary();
+        boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
 
         I18n i18n = i18nManager.getI18n();
 
@@ -986,7 +991,7 @@ public class DefaultDataValueSetService
 
                 Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), () -> dataElement.getLatestOpenFuturePeriod() );
 
-                if ( period.isAfter( latestFuturePeriod ) )
+                if ( period.isAfter( latestFuturePeriod ) && isIso8601 )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Period: " +
                         period.getIsoDate() + " is after latest open future period: " + latestFuturePeriod.getIsoDate() + " for data element: " + dataElement.getUid() ) );
@@ -1040,7 +1045,7 @@ public class DefaultDataValueSetService
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
-            
+
             // -----------------------------------------------------------------
             // Save, update or delete data value
             // -----------------------------------------------------------------
@@ -1056,39 +1061,39 @@ public class DefaultDataValueSetService
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
                     DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
-                    
+
                     if ( internalValue.isNullValue() || internalValue.isDeleted() )
                     {
                         internalValue.setDeleted( true );
-                        
+
                         auditValue.setAuditType( AuditType.DELETE );
-                        
+
                         deleteCount++;
                     }
                     else
                     {
                         updateCount++;
                     }
-                    
+
                     if ( !dryRun )
                     {
                         dataValueBatchHandler.updateObject( internalValue );
-                    
+
                         auditBatchHandler.addObject( auditValue );
-                    }                    
+                    }
                 }
                 else if ( strategy.isDelete() )
-                {                    
+                {
                     DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
-                    
+
                     internalValue.setDeleted( true );
-                    
+
                     deleteCount++;
-                    
+
                     if ( !dryRun )
                     {
                         dataValueBatchHandler.updateObject( internalValue );
-                    
+
                         auditBatchHandler.addObject( auditValue );
                     }
                 }
@@ -1102,21 +1107,21 @@ public class DefaultDataValueSetService
                         if ( existingValue != null && existingValue.isDeleted() )
                         {
                             importCount++;
-                            
+
                             if ( !dryRun )
                             {
                                 dataValueBatchHandler.updateObject( internalValue );
                             }
                         }
-                        else 
+                        else
                         {
                             boolean added = false;
-                            
+
                             if ( !dryRun )
                             {
                                 added = dataValueBatchHandler.addObject( internalValue );
                             }
-                            
+
                             if ( dryRun || added )
                             {
                                 importCount++;

@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -123,6 +124,9 @@ public class DataValueController
 
     @Autowired
     private I18nManager i18nManager;
+
+    @Autowired
+    private CalendarService calendarService;
 
     // ---------------------------------------------------------------------
     // POST
@@ -620,7 +624,7 @@ public class DataValueController
     {
         Period latestFuturePeriod = dataElement.getLatestOpenFuturePeriod();
 
-        if ( period.isAfter( latestFuturePeriod ) )
+        if ( period.isAfter( latestFuturePeriod ) && calendarService.getSystemCalendar().isIso8601() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Period: " +
                 period.getIsoDate() + " is after latest open future period: " + latestFuturePeriod.getIsoDate() + " for data element: " + dataElement.getUid() ) );
