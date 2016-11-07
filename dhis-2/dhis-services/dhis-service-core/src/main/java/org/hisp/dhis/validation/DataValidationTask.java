@@ -58,6 +58,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.system.util.MathUtils.*;
 
 /**
@@ -164,68 +165,66 @@ public class DataValidationTask
                                         period, window, n_years, skip,
                                         periodTypeX, periodTypes, lastUpdatedMap, sourceDataElements );
 
-                                if ( !leftSideValues.isEmpty()
-                                    || Operator.compulsory_pair.equals( rule.getOperator() )
-                                    || Operator.exclusive_pair.equals( rule.getOperator() ) )
+                                Map<Integer, Double> rightSideValues = getRuleExpressionValueMap
+                                    ( rule.getRightSide(), rule.getSampleSkipTest(),
+                                        currentValueMap, incompleteValuesMap, sourceX.getSource(),
+                                        period, window, n_years, skip, periodTypeX, periodTypes, lastUpdatedMap,
+                                        sourceDataElements );
+
+                                Set<Integer> attributeOptionCombos = new HashSet<Integer>();
+                                attributeOptionCombos.addAll( leftSideValues.keySet() );
+                                attributeOptionCombos.addAll( rightSideValues.keySet() );
+
+                                for ( int optionCombo : attributeOptionCombos )
                                 {
-                                    Map<Integer, Double> rightSideValues = getRuleExpressionValueMap
-                                        ( rule.getRightSide(), rule.getSampleSkipTest(),
-                                            currentValueMap, incompleteValuesMap, sourceX.getSource(),
-                                            period, window, n_years, skip, periodTypeX, periodTypes, lastUpdatedMap,
-                                            sourceDataElements );
+                                    Double leftSide = leftSideValues.get( optionCombo );
+                                    Double rightSide = rightSideValues.get( optionCombo );
+                                    boolean violation = false;
 
-                                    if ( !rightSideValues.isEmpty()
-                                        || Operator.compulsory_pair.equals( rule.getOperator() )
-                                        || Operator.compulsory_pair.equals( rule.getOperator() ) )
+                                    if ( Operator.compulsory_pair.equals( rule.getOperator() ) )
                                     {
-                                        Set<Integer> attributeOptionCombos = leftSideValues.keySet();
-
-                                        if ( Operator.compulsory_pair.equals( rule.getOperator() ) ||
-                                            Operator.exclusive_pair.equals( rule.getOperator() ) )
+                                        violation = (leftSide != null && rightSide == null)
+                                            || (leftSide == null && rightSide != null);
+                                    }
+                                    else if ( Operator.exclusive_pair.equals( rule.getOperator() ) )
+                                    {
+                                        violation = (leftSide != null && rightSide != null);
+                                    }
+                                    else
+                                    {
+                                        if ( leftSide == null && rule.getLeftSide().getMissingValueStrategy() == NEVER_SKIP )
                                         {
-                                            attributeOptionCombos = new HashSet<>( attributeOptionCombos );
-                                            attributeOptionCombos.addAll( rightSideValues.keySet() );
+                                            leftSide = 0.0;
                                         }
 
-                                        for ( int optionCombo : attributeOptionCombos )
+                                        if ( rightSide == null && rule.getRightSide().getMissingValueStrategy() == NEVER_SKIP )
                                         {
-                                            Double leftSide = leftSideValues.get( optionCombo );
-                                            Double rightSide = rightSideValues.get( optionCombo );
-                                            boolean violation = false;
+                                            rightSide = 0.0;
+                                        }
 
-                                            if ( Operator.compulsory_pair.equals( rule.getOperator() ) )
-                                            {
-                                                violation = (leftSide != null && rightSide == null)
-                                                    || (leftSide == null && rightSide != null);
-                                            }
-                                            else if ( Operator.exclusive_pair.equals( rule.getOperator() ) )
-                                            {
-                                                violation = (leftSide != null && rightSide != null);
-                                            }
-                                            else if ( leftSide != null && rightSide != null )
-                                            {
-                                                violation = !expressionIsTrue( leftSide, rule.getOperator(),
-                                                    rightSide );
-                                            }
-
-                                            if ( violation )
-                                            {
-                                                context.getValidationResults()
-                                                    .add( new ValidationResult( period, sourceX.getSource(),
-                                                        categoryService.getDataElementCategoryOptionCombo( optionCombo ),
-                                                        rule, roundSignificant( zeroIfNull( leftSide ) ),
-                                                        roundSignificant( zeroIfNull( rightSide ) ) ) );
-                                            }
-
-                                            log.debug( "Evaluated " + rule.getName() + ", combo id " + optionCombo
-                                                + ": " + (violation ? "violation" : "OK") + " "
-                                                + (leftSide == null ? "(null)" : leftSide.toString()) + " "
-                                                + rule.getOperator() + " "
-                                                + (rightSide == null ? "(null)" : rightSide.toString()) + " ("
-                                                + context.getValidationResults().size() + " results)" );
-
+                                        if ( leftSide != null && rightSide != null )
+                                        {
+                                            violation = !expressionIsTrue( leftSide, rule.getOperator(),
+                                                rightSide );
                                         }
                                     }
+
+                                    if ( violation )
+                                    {
+                                        context.getValidationResults()
+                                            .add( new ValidationResult( period, sourceX.getSource(),
+                                                categoryService.getDataElementCategoryOptionCombo( optionCombo ),
+                                                rule, roundSignificant( zeroIfNull( leftSide ) ),
+                                                roundSignificant( zeroIfNull( rightSide ) ) ) );
+                                    }
+
+                                    log.debug( "Evaluated " + rule.getName() + ", combo id " + optionCombo
+                                        + ": " + (violation ? "violation" : "OK") + " "
+                                        + (leftSide == null ? "(null)" : leftSide.toString()) + " "
+                                        + rule.getOperator() + " "
+                                        + (rightSide == null ? "(null)" : rightSide.toString()) + " ("
+                                        + context.getValidationResults().size() + " results)" );
+
                                 }
                             }
                         }
