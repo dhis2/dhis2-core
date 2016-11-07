@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
 
 @JacksonXmlRootElement( localName = "outboundsms" )
 public class OutboundSms
@@ -47,7 +48,7 @@ public class OutboundSms
 
     private String sender;
 
-    private Set<String> recipients;
+    private Set<String> recipients = Sets.newHashSet();
 
     private Date date;
 

@@ -261,6 +261,7 @@ public class TableAlteror
         executeSql( "ALTER TABLE programruleaction ALTER content TYPE text" );
         executeSql( "ALTER TABLE programruleaction ALTER data TYPE text" );
         executeSql( "ALTER TABLE trackedentitycomment ALTER commenttext TYPE text" );
+        executeSql( "ALTER TABLE incomingsms ALTER COLUMN text TYPE text" );
 
         executeSql( "ALTER TABLE minmaxdataelement RENAME minvalue TO minimumvalue" );
         executeSql( "ALTER TABLE minmaxdataelement RENAME maxvalue TO maximumvalue" );
