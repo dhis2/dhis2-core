@@ -34,6 +34,10 @@ import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -87,6 +91,16 @@ public final class NodeUtils
         pagerNode.addChild( new SimpleNode( "prevPage", pager.getPrevPage() ) );
 
         return pagerNode;
+    }
+
+    public static Iterable<? extends Node> createSimples( Collection<?> collection )
+    {
+        return collection.stream().map( o -> new SimpleNode( "", o ) ).collect( Collectors.toList() );
+    }
+
+    public static Iterable<? extends Node> createSimples( Map<String, ?> map )
+    {
+        return map.keySet().stream().map( k -> new SimpleNode( k, map.get( k ) ) ).collect( Collectors.toList() );
     }
 
     private NodeUtils()

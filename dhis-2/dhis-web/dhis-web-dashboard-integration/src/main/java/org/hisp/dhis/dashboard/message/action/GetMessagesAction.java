@@ -35,6 +35,7 @@ import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.user.CurrentUserService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -85,6 +86,13 @@ public class GetMessagesAction
         this.ticketStatus = messageConversationStatus;
     }
 
+    private String showAssignedToMe;
+
+    public void setShowAssignedToMe( String showAssignedToMe )
+    {
+        this.showAssignedToMe = showAssignedToMe;
+    }
+
     // -------------------------------------------------------------------------
     // Output
     // -------------------------------------------------------------------------
@@ -116,6 +124,14 @@ public class GetMessagesAction
 
         conversations = messageService
             .getMessageConversations( ticketStatus, followUp, unread, paging.getStartPos(), paging.getPageSize() );
+
+        if ( showAssignedToMe != null && showAssignedToMe.equals( "true" ) )
+        {
+            conversations = conversations.stream().filter(
+                messageConversation -> messageConversation.getAssignee() == currentUserService.getCurrentUser() )
+                .collect(
+                    Collectors.toList() );
+        }
 
         return SUCCESS;
     }

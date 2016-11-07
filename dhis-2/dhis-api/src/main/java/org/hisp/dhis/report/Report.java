@@ -224,14 +224,20 @@ public class Report
 
             if ( mergeMode.isReplace() )
             {
+                type = report.getType();
                 designContent = report.getDesignContent();
                 reportTable = report.getReportTable();
+                relatives = report.getRelatives();
+                reportParams = report.getReportParams();
                 cacheStrategy = report.getCacheStrategy();
             }
             else if ( mergeMode.isMerge() )
             {
+                type = report.getType() == null ? type : report.getType();
                 designContent = report.getDesignContent() == null ? designContent : report.getDesignContent();
                 reportTable = report.getReportTable() == null ? reportTable : report.getReportTable();
+                relatives = report.getRelatives() == null ? relatives : report.getRelatives();
+                reportParams = report.getReportParams() == null ? reportParams : report.getReportParams();
                 cacheStrategy = report.getCacheStrategy() == null ? cacheStrategy : report.getCacheStrategy();
             }
         }

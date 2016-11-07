@@ -6,8 +6,10 @@
 <hibernate-mapping>
 
   <!-- AES-128 encrypted string type -->
-  
-  <typedef class="org.jasypt.hibernate4.type.EncryptedStringType" name="AESEncryptedString">
-    <param name="encryptorRegisteredName">strongStringEncryptor</param>
+
+  <typedef class="org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType" name="Aes128EncryptedString">
+    <!-- Must be registered in the org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry bean -->
+    <param name="encryptor">aes128StringEncryptor</param>
   </typedef>
+
 </hibernate-mapping>

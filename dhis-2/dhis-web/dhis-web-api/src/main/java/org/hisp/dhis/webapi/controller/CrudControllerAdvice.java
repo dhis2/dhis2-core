@@ -43,7 +43,6 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.sms.SmsServiceNotEnabledException;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
@@ -100,7 +99,7 @@ public class CrudControllerAdvice
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );
     }
 
-    @ExceptionHandler( { DataApprovalException.class, SmsServiceNotEnabledException.class, AdxException.class, IllegalStateException.class } )
+    @ExceptionHandler( { DataApprovalException.class, AdxException.class, IllegalStateException.class } )
     public void dataApprovalExceptionHandler( Exception ex, HttpServletResponse response, HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.conflict( ex.getMessage() ), response, request );

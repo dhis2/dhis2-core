@@ -244,7 +244,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { Version.V24, Version.V25 } )
+    @ApiVersion( exclude = { Version.V24, Version.V25, Version.V26 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";

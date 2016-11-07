@@ -19,7 +19,8 @@
     <property name="name" column="name" not-null="true" length="230" />
     <property name="created" type="timestamp" not-null="true" />
     <property name="lastUpdated" type="timestamp" not-null="true"/>
-
+    <property name="sortOrder" column="sort_order" />
+    
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
 
     <!-- Dynamic attribute values -->

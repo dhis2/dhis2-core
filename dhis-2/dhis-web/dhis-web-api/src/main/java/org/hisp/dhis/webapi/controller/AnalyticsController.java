@@ -86,6 +86,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -106,7 +107,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -119,6 +120,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -139,7 +141,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -153,6 +155,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -173,7 +176,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -187,6 +190,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -207,7 +211,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -221,6 +225,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -241,7 +246,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.csv", true );
@@ -255,6 +260,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -275,7 +281,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.xls", true );
@@ -289,6 +295,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -310,7 +317,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null,
             true, false, false, false, false, false, false, false, false, null, null, null, null, null, null );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "data.jrxml", false );
@@ -325,6 +332,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -345,7 +353,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE, "debug.sql", false );
@@ -362,6 +370,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -382,7 +391,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -395,6 +404,7 @@ public class AnalyticsController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) AggregationType aggregationType,
         @RequestParam( required = false ) String measureCriteria,
+        @RequestParam( required = false ) String preAggregationMeasureCriteria,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean skipRounding,
@@ -415,7 +425,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, aggregationType, measureCriteria, preAggregationMeasureCriteria, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta,
             ignoreLimit, hideEmptyRows, showHierarchy, includeNumDen, displayProperty, outputIdScheme, inputIdScheme, approvalLevel, relativePeriodDate, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );

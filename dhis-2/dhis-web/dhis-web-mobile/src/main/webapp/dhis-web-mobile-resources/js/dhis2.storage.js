@@ -37,7 +37,7 @@ dhis2.storage.FormManager = function ( args ) {
 
 dhis2.storage.FormManager.prototype.getMetaData = function () {
     return $.ajax({
-        url         : '../api/currentUser/assignedDataSets?optionSets=true',
+        url         : '../api/23/me/assignedDataSets?optionSets=true',
         dataType    : 'json',
         cache       : false
     }).success(function ( data ) {

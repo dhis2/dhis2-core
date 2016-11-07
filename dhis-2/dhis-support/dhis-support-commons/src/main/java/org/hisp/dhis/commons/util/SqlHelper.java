@@ -41,6 +41,8 @@ public class SqlHelper
 
     private boolean includeSpaces = false;
 
+    private boolean havingInvoked = false;
+
     public SqlHelper()
     {
     }
@@ -61,6 +63,18 @@ public class SqlHelper
         String str = invoked ? "and" : "where";
 
         invoked = true;
+
+        return includeSpaces ? " " + str + " " : str;
+    }
+
+    /**
+     *
+     */
+    public String havingAnd()
+    {
+        String str = havingInvoked ? "and" : "having";
+
+        havingInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }

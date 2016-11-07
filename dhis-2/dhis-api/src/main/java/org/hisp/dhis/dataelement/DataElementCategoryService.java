@@ -525,8 +525,10 @@ public interface DataElementCategoryService
      * Returns generated Operands for the given data set. Totals are included.
      * 
      * @param dataSet the data set.
+     * @param includeTotals whether to include DataElement totals.
+     * @return the Operands for the given DataSet.
      */
-    List<DataElementOperand> getOperands( DataSet dataSet );
+    List<DataElementOperand> getOperands( DataSet dataSet, boolean includeTotals );
 
     // -------------------------------------------------------------------------
     // CategoryOptionGroup

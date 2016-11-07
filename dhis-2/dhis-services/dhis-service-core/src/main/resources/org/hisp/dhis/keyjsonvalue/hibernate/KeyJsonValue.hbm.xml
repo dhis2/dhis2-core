@@ -20,8 +20,8 @@
 
         <property name="plainValue" column="value" type="text" access="property"/>
 
-        <property name="encryptedValue" column="encrypted_value" type="AESEncryptedString" access="property"/>
-        
+        <property name="encryptedValue" column="encrypted_value" type="Aes128EncryptedString" access="property" />
+
         <property name="encrypted" column="encrypted" type="boolean" />
 
     </class>

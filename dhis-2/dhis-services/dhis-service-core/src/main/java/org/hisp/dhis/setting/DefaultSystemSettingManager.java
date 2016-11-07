@@ -96,7 +96,7 @@ public class DefaultSystemSettingManager
     @Autowired
     private TransactionTemplate transactionTemplate;
 
-    @Resource( name = "stringEncryptor" )
+    @Resource( name = "tripleDesStringEncryptor" )
     private PBEStringEncryptor pbeStringEncryptor;
 
     // -------------------------------------------------------------------------
@@ -177,7 +177,7 @@ public class DefaultSystemSettingManager
 
     /**
      * No transaction for this method, transaction is initiated in
-     * {@link getSystemSettingOptional} on cache miss.
+     * {@link #getSystemSettingOptional} on cache miss.
      */
     @Override
     public Serializable getSystemSetting( SettingKey setting )
@@ -190,7 +190,7 @@ public class DefaultSystemSettingManager
 
     /**
      * No transaction for this method, transaction is initiated in
-     * {@link getSystemSettingOptional}.
+     * {@link #getSystemSettingOptional}.
      */
     @Override
     public Serializable getSystemSetting( SettingKey setting, Serializable defaultValue )

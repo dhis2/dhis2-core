@@ -1,0 +1,84 @@
+<script type="text/javascript">
+	jQuery(document).ready( function() {
+		validation( "sendSMSForm", function( form ) { sendSMSMessage( form ); } );
+		selectionTreeSelection.setListenerFunction( selectedOrganisationUnitSendSMS );
+		var target = '${sendTo}';
+		jQuery( "#sendTarget > option" ).each( function( i, item )
+		{
+			if ( item.value == target )
+			{
+				item.selected = true;
+			}
+		} );
+		toggleSMSGUI( target );
+	});
+	
+	var i18n_no_recipient = '$encoder.jsEscape( $i18n.getString( "no_recipient" ) , "'")';
+	var i18n_person_list_empty = '$encoder.jsEscape( $i18n.getString( "person_list_empty" ) , "'")';
+	var i18n_please_verify_phone = '$encoder.jsEscape( $i18n.getString( "please_verify_phone" ) , "'")';
+	var i18n_please_select_user_group = '$encoder.jsEscape( $i18n.getString( "please_select_user_group" ) , "'")';
+	var i18n_please_select_orgunit = '$encoder.jsEscape( $i18n.getString( "please_select_orgunit" ) , "'")';
+</script>
+
+<style type="text/css">
+    .statusBar{
+        color: white;
+        padding: 5px 5px;
+        margin: -16px 0 20px -20px;
+        font-weight: bold;
+        background-color: #8FABC7;
+    }
+</style>
+
+<h3>$i18n.getString( "send_sms" )</h3>
+#if ( $!gatewayMap && $!gatewayMap.size() > 0 )
+<form id="sendSMSForm" name="sendSMSForm" action="sendSMSMessage.action" >
+	<table id="detailsList">
+		<col width="100px"/>
+		<tbody>	
+			<tr>
+				<td>$i18n.getString( "send_sms_to_target" )</td>
+				<td>
+					<select id="sendTarget" name="sendTarget" onchange="javascript:toggleSMSGUI( this.value );">
+						<option value="phone">$i18n.getString( "raw_phone_number" )</option>
+						<option value="userGroup">$i18n.getString( "user_group" )</option>
+						<option value="user">$i18n.getString( "assigned_user_number" )</option>
+						<option value="unit">$i18n.getString( "org_unit_phone_number" )</option>
+					</select>
+				</td>
+			</tr>
+			<tr id="trUserGroup" style="display:none">
+				<td>$i18n.getString( "user_group" )</td>
+				<td>
+					<select id="userGroup" name="userGroup">
+					#foreach( $group in $userGroups )
+						<option value="$group.id">$!encoder.htmlEncode( $group.name )</option>
+					#end
+					</select>
+				</td>
+			</tr>
+			<tr id="trRawPhone">
+				<td>$i18n.getString( "phone_number" )</td>
+				<td><input type="text" id="recipient" name="recipient" /></td>
+			</tr>
+			
+			<tr id="orgunitType" style="display:none">
+			
+			<td colspan="2">
+				#organisationUnitSelectionTree( true, true, false )
+			</tr>
+			
+			<tr><th colspan="2">$i18n.getString( "message" ) ($i18n.getString( "do_not_send_patient_confidential_messages_using_sms" ))</th></tr>
+			<tr><td colspan="2"><textarea id="text" name="text" rows="5" style="width:544px;" class="{validate:{required:true}}"></textarea></td></tr>
+			<tr>
+				<td><input type="submit" class='large-button' name="send" value="$i18n.getString( 'send' )"/>				
+			</tr>
+		</tbody>
+	</table>
+</form>
+</div>
+
+#parse( "dhis-web-commons/loader/loader.vm" )
+#else
+<p>No Sms service available</p>
+#end

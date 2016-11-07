@@ -195,9 +195,9 @@ public class LoadFormAction
         return orderedCategoryCombos;
     }
 
-    private Map<Integer, Integer> sectionCombos = new HashMap<>();
+    private Map<Integer, Collection<Integer>> sectionCombos = new HashMap<>();
 
-    public Map<Integer, Integer> getSectionCombos()
+    public Map<Integer, Collection<Integer>> getSectionCombos()
     {
         return sectionCombos;
     }
@@ -214,6 +214,13 @@ public class LoadFormAction
     public DataSet getDataSet()
     {
         return dataSet;
+    }
+    
+    private Map<String, Collection<DataElement>> sectionCategoryComboDataElements = new HashMap<>();
+
+    public Map<String, Collection<DataElement>> getSectionCategoryComboDataElements()
+    {
+        return sectionCategoryComboDataElements;
     }
 
     // -------------------------------------------------------------------------
@@ -377,11 +384,6 @@ public class LoadFormAction
 
             Collections.sort( organisationUnitChildren );
 
-            if ( organisationUnit.getDataSets().contains( dsOriginal ) )
-            {
-                organisationUnits.add( organisationUnit );
-            }
-
             organisationUnits.addAll( organisationUnitChildren );
 
             getSectionForm( dataElements, dataSet );
@@ -406,13 +408,18 @@ public class LoadFormAction
 
         for ( Section section : sections )
         {
-            DataElementCategoryCombo sectionCategoryCombo = section.getCategoryCombo();
-
-            if ( sectionCategoryCombo != null )
+            Set<Integer> categoryComboIds = new HashSet<>();
+            
+            for( DataElementCategoryCombo categoryCombo : section.getCategoryCombos() )
             {
-                orderedCategoryCombos.add( sectionCategoryCombo );
-
-                sectionCombos.put( section.getId(), sectionCategoryCombo.getId() );
+                categoryComboIds.add( categoryCombo.getId() );
+                
+                sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId() , section.getDataElementsByCategoryCombo( categoryCombo ) );
+            }
+            
+            if( !categoryComboIds.isEmpty() )
+            {
+                sectionCombos.put( section.getId(), categoryComboIds );
             }
 
             for ( DataElementOperand operand : section.getGreyedFields() )

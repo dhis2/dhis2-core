@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.25-SNAPSHOT</version>
+    <version>2.26-SNAPSHOT</version>
   </parent>
   <artifactId>dhis-web</artifactId>
   <packaging>pom</packaging>
@@ -27,7 +27,6 @@
     <module>dhis-web-dashboard-integration</module>
     <module>dhis-web-light</module>
     <module>dhis-web-mobile</module>
-    <module>dhis-web-sms</module>
     <module>dhis-web-apps</module>
     <module>dhis-web-portal</module>
   </modules>
@@ -38,6 +37,31 @@
       <properties>
         <useWarCompression>false</useWarCompression>
       </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-maven-plugin</artifactId>
+            <configuration>
+              <scanIntervalSeconds>0</scanIntervalSeconds>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.zeroturnaround</groupId>
+            <artifactId>jrebel-maven-plugin</artifactId>
+            <version>1.1.6</version>
+            <executions>
+              <execution>
+                <id>generate-rebel-xml</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
@@ -58,7 +82,7 @@
       <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
-        <version>9.3.8.v20160314</version>
+        <version>9.3.13.v20161014</version>
         <configuration>
           <systemProperties>
             <systemProperty>
@@ -73,7 +97,7 @@
       </plugin>
     </plugins>
   </build>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

@@ -738,13 +738,13 @@ public class DefaultDataElementCategoryService
     }
 
     @Override
-    public List<DataElementOperand> getOperands( DataSet dataSet )
+    public List<DataElementOperand> getOperands( DataSet dataSet, boolean includeTotals )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
                 
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {            
-            operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo(), true ) );
+            operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo(), includeTotals ) );
         }
         
         return operands;

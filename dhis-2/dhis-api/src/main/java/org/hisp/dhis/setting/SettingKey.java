@@ -31,6 +31,7 @@ package org.hisp.dhis.setting;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.ListMap;
+import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
@@ -77,6 +78,7 @@ public enum SettingKey
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
     SMS_CONFIG( "keySmsConfigurations", SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
+    CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
     MULTI_ORGANISATION_UNIT_FORMS( "multiOrganisationUnitForms", Boolean.FALSE, Boolean.class ),
     CONFIGURATION( "keyConfig", Configuration.class ),

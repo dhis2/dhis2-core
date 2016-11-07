@@ -121,6 +121,7 @@ import java.util.zip.GZIPOutputStream;
 public class EventController
 {
     public static final String RESOURCE_PATH = "/events";
+
     private static final String META_DATA_KEY_DE = "de";
 
     //--------------------------------------------------------------------------
