@@ -400,6 +400,8 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( categoryOption == null ) return metadata;
         metadata.putValue( DataElementCategoryOption.class, categoryOption );
 
+        categoryOption.getCategoryOptionCombos().forEach( categoryOptionCombo -> handleCategoryOptionCombo( metadata, categoryOptionCombo ) );
+
         return metadata;
     }
 
