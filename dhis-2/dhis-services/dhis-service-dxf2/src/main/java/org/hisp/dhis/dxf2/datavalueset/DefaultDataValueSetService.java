@@ -35,6 +35,7 @@ import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -147,6 +148,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     protected InputUtils inputUtils;
+
+    @Autowired
+    private CalendarService calendarService;
 
     // Set methods for test purposes
 
@@ -544,6 +548,7 @@ public class DefaultDataValueSetService
         notifier.clear( id ).notify( id, "Process started" );
 
         ImportSummary summary = new ImportSummary();
+        boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
 
         I18n i18n = i18nManager.getI18n();
 
@@ -635,7 +640,7 @@ public class DefaultDataValueSetService
 
         if ( dataValueSet.getAttributeOptionCombo() != null )
         {
-            outerAttrOptionCombo =  optionComboMap.get( trimToNull( dataValueSet.getAttributeOptionCombo() ), optionComboCallable.setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) ) ;
+            outerAttrOptionCombo = optionComboMap.get( trimToNull( dataValueSet.getAttributeOptionCombo() ), optionComboCallable.setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
         }
         else if ( dataValueSet.getAttributeCategoryOptions() != null )
         {
@@ -780,7 +785,7 @@ public class DefaultDataValueSetService
 
             Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), () -> dataElement.getLatestOpenFuturePeriod() );
 
-            if ( period.isAfter( latestFuturePeriod ) )
+            if ( period.isAfter( latestFuturePeriod ) && isIso8601 )
             {
                 summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Period: " +
                     period.getIsoDate() + " is after latest open future period: " + latestFuturePeriod.getIsoDate() + " for data element: " + dataElement.getUid() ) );
