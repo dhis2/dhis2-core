@@ -117,8 +117,6 @@ public class DefaultAnalyticsService
     private static final int PERCENT = 100;
     private static final int MAX_QUERIES = 8;
 
-    //TODO completeness on time
-
     @Autowired
     private AnalyticsManager analyticsManager;
 
