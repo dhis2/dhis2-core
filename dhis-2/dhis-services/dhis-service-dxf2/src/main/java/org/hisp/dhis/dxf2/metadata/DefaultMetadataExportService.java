@@ -349,6 +349,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleCategoryCombo( metadata, dataSet.getCategoryCombo() );
 
         dataSet.getCompulsoryDataElementOperands().forEach( dataElementOperand -> handleDataElementOperand( metadata, dataElementOperand ) );
+        dataSet.getDataElementOptionCombos().forEach( dataElementOptionCombo -> handleCategoryOptionCombo( metadata, dataElementOptionCombo ) );
 
         return metadata;
     }
@@ -399,8 +400,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         if ( categoryOption == null ) return metadata;
         metadata.putValue( DataElementCategoryOption.class, categoryOption );
-
-        categoryOption.getCategoryOptionCombos().forEach( categoryOptionCombo -> handleCategoryOptionCombo( metadata, categoryOptionCombo ) );
 
         return metadata;
     }
