@@ -115,7 +115,8 @@ public class DefaultSystemService
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
 
-        setSystemMetadataVersionInfo(info);
+        setSystemMetadataVersionInfo( info );
+
         return info;
     }
 

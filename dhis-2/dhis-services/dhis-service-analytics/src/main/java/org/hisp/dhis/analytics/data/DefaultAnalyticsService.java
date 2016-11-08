@@ -117,8 +117,6 @@ public class DefaultAnalyticsService
     private static final int PERCENT = 100;
     private static final int MAX_QUERIES = 8;
 
-    //TODO completeness on time
-
     @Autowired
     private AnalyticsManager analyticsManager;
 
@@ -520,9 +518,10 @@ public class DefaultAnalyticsService
      * Adds reporting rates to the given grid based on the given data query
      * parameters and reporting rate metric.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
-     * @param metic  the reporting rate metric.
+     * @param dataSourceParams the data query parameters.
+     * @param grid the grid.
+     * @param metric the reporting rate metric.
+     * @param includeNumDen whether to include numerator and denominator.
      */
     private void addReportingRates( DataQueryParams dataSourceParams, Grid grid, ReportingRateMetric metric, boolean includeNumDen )
     {
@@ -949,7 +948,7 @@ public class DefaultAnalyticsService
      *
      * @param params        the data query parameters.
      * @param tableName     the table name to use for the query.
-     * @param queryPlanners the list of additional query groupers to use for
+     * @param queryGroupers the list of additional query groupers to use for
      *                      query planning, use empty list for none.
      * @return a mapping between a dimension key and aggregated values.
      */
