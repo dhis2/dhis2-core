@@ -53,7 +53,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -556,6 +555,10 @@ public class DefaultCompleteDataSetRegistrationService
             return true;
         }
     }
+
+    // -----------------------------------------------------------------
+    // Internal classes
+    // -----------------------------------------------------------------
 
     private class MetaDataCallables
     {
