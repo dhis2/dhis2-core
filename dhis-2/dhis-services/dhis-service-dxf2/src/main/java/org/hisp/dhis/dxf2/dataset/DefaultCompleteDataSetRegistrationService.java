@@ -334,6 +334,8 @@ public class DefaultCompleteDataSetRegistrationService
         // Get outer meta-data
         // ---------------------------------------------------------------------
 
+        // TODO ?
+
         // ---------------------------------------------------------------------
         // Validation
         // ---------------------------------------------------------------------
@@ -341,12 +343,12 @@ public class DefaultCompleteDataSetRegistrationService
         // TODO clock.logTime( "Validated out meta-data" ); etc etc.
 
         // ---------------------------------------------------------------------
-        // Do import
+        // Perform import
         // ---------------------------------------------------------------------
 
         notifier.notify( id, "Importing complete data set registrations" );
 
-        int totalCount = doImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
+        int totalCount = batchImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
         notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addTaskSummary( id, importSummary );
 
@@ -360,7 +362,10 @@ public class DefaultCompleteDataSetRegistrationService
         return importSummary;
     }
 
-    private int doImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
+    /**
+     * @return total number of processed CompleteDataSetRegistration objects
+     */
+    private int batchImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
         ImportSummary summary, MetaDataCallables mdCallables, MetaDataCaches mdCaches )
     {
         final String currentUser = currentUserService.getCurrentUsername();
