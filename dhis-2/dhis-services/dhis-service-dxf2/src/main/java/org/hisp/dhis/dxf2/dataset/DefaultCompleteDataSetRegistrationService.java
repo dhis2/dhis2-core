@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.dataset;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -43,6 +44,8 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -59,9 +62,11 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.callable.PeriodCallable;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -303,8 +308,6 @@ public class DefaultCompleteDataSetRegistrationService
 
         ImportSummary importSummary = new ImportSummary();
 
-        I18n i18n = i18nManager.getI18n();
-
         // ---------------------------------------------------------------------
         // Set up import configuration
         // ---------------------------------------------------------------------
@@ -343,17 +346,28 @@ public class DefaultCompleteDataSetRegistrationService
 
         notifier.notify( id, "Importing complete data set registrations" );
 
-        doImport( completeRegistrations, cfg, importOptions, importSummary, id, metaDataCallables, caches );
+        int totalCount = doImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
+        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addTaskSummary( id, importSummary );
+
+        ImportCount count = importSummary.getImportCount();
+
+        clock.logTime( String.format( "Complete data set registration import done, total: %d, imported: %d, updated: %d, deleted: %d",
+            totalCount, count.getImported(), count.getUpdated(), count.getDeleted() ) );
+
+        completeRegistrations.close();
+
+        return importSummary;
     }
 
-    private void doImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config, ImportOptions options,
-        ImportSummary summary, TaskId id, MetaDataCallables mdCallables, MetaDataCaches mdCaches )
+    private int doImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
+        ImportSummary summary, MetaDataCallables mdCallables, MetaDataCaches mdCaches )
     {
         final String currentUser = currentUserService.getCurrentUsername();
         final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
+        final I18n i18n = i18nManager.getI18n();
 
-        BatchHandler<CompleteDataSetRegistration> completeRegistrationsBatchHandler =
+        BatchHandler<CompleteDataSetRegistration> batchHandler =
             batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ).init();
 
         int importCount = 0, updateCount = 0, deleteCount = 0, totalCount = 0;
@@ -437,9 +451,173 @@ public class DefaultCompleteDataSetRegistrationService
 //                continue;
 //            }
 
-            // TODO More to do here...
+            String storedBy = cdsr.getStoredBy();
 
+            if ( !validateStoredBy( storedBy, summary, i18n ) )
+            {
+                continue;
+            }
+
+            cdsr.setStoredBy( StringUtils.isBlank( storedBy ) ? currentUser : storedBy );
+
+            if ( !validateAttrOptCombo( mdProps, mdCaches, summary ) )
+            {
+                continue;
+            }
+
+            // TODO Check if Period is within range of data set?
+
+            // -----------------------------------------------------------------
+            // Create complete data set registration
+            // -----------------------------------------------------------------
+
+            CompleteDataSetRegistration internalCdsr = createCompleteDataSetRegistration( cdsr, mdProps, now );
+
+            CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null : batchHandler.findObject( internalCdsr );
+
+            ImportStrategy strategy = config.strategy;
+
+            boolean isDryRun = config.dryRun;
+
+            if ( !config.skipExistingCheck && existingCdsr != null )
+            {
+                // CDSR already exists
+
+                if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
+                {
+                    // Update existing CDSR
+
+                    updateCount++;
+
+                    if ( !isDryRun )
+                    {
+                        batchHandler.updateObject( internalCdsr );
+                    }
+                }
+                else if ( strategy.isDelete() )
+                {
+                    // TODO Does 'delete' even make sense for CDSR?
+                    // Replace existing CDSR
+
+                    deleteCount++;
+
+                    if ( !isDryRun )
+                    {
+                        batchHandler.deleteObject( internalCdsr );
+                    }
+                }
+            }
+            else
+            {
+                // CDSR does not already exist
+
+                if ( strategy.isCreateAndUpdate() || strategy.isCreate() )
+                {
+                    if ( existingCdsr != null )
+                    {
+                        // Already exists -> update
+
+                        importCount++;
+
+                        if ( !isDryRun )
+                        {
+                            batchHandler.updateObject( internalCdsr );
+                        }
+                    }
+                    else
+                    {
+                        // Does not exist -> add new CDSR
+
+                        boolean added = false;
+
+                        if ( !isDryRun )
+                        {
+                            added = batchHandler.addObject( internalCdsr );
+                        }
+
+                        if ( isDryRun || added )
+                        {
+                            importCount++;
+                        }
+                    }
+                }
+            }
         }
+
+        batchHandler.flush();
+
+        finalizeSummary( summary, totalCount, importCount, updateCount, deleteCount );
+
+        return totalCount;
+    }
+
+    private static void finalizeSummary( ImportSummary summary, int totalCount, int importCount, int updateCount, int deleteCount )
+    {
+        int ignores = totalCount - importCount - updateCount - deleteCount;
+
+        summary.setImportCount( new ImportCount( importCount, updateCount, ignores, deleteCount ) );
+        summary.setStatus( ImportStatus.SUCCESS );
+        summary.setDescription( "Import process completed successfully" );
+    }
+
+    private static CompleteDataSetRegistration createCompleteDataSetRegistration(
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now )
+    {
+        return new CompleteDataSetRegistration(
+            mdProps.dataSet,
+            mdProps.period,
+            mdProps.orgUnit,
+            mdProps.attrOptCombo,
+            cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now,
+            cdsr.getStoredBy()
+        );
+    }
+
+    private static boolean validateAttrOptCombo( MetaDataProperties mdProps, MetaDataCaches mdCaches, ImportSummary summary )
+    {
+        final DataElementCategoryOptionCombo aoc = mdProps.attrOptCombo;
+        final Period pe = mdProps.period;
+
+        DateRange range = aoc.getDateRange();
+
+        if ( ( range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0 ) ||
+            ( range.getEndDate() != null && range.getEndDate().compareTo( pe.getEndDate() ) < 0 ) )
+        {
+            summary.getConflicts().add( new ImportConflict( mdProps.orgUnit.getUid(),
+                String.format( "Period: %s is not within range of attribute option combo: %s", pe.getIsoDate(), aoc.getUid() ) ) );
+            return false;
+        }
+
+        final String aocOrgUnitKey = aoc.getUid() + mdProps.orgUnit.getUid();
+
+        if ( !mdCaches.attrOptComboOrgUnitMap.get( aocOrgUnitKey, () -> {
+                Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
+                return aocOrgUnits == null || mdProps.orgUnit.isDescendant( aocOrgUnits );
+            }
+        ) )
+        {
+            summary.getConflicts().add( new ImportConflict( mdProps.orgUnit.getUid(),
+                String.format( "Organisation unit: %s is not valid for attribute option combo %s", mdProps.orgUnit.getUid(), aoc.getUid() )
+            ) );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private static boolean validateStoredBy( String storedBy, ImportSummary importSummary, I18n i18n )
+    {
+        String result = ValidationUtils.storedByIsValid( storedBy );
+
+        if ( result == null )
+        {
+            return true;
+        }
+
+        importSummary.getConflicts().add( new ImportConflict( storedBy, i18n.getString( result ) ) );
+
+        return false;
     }
 
     private static boolean hasMatchingPeriodTypes( MetaDataProperties props, MetaDataCaches mdCaches, ImportSummary summary )
@@ -561,7 +739,6 @@ public class DefaultCompleteDataSetRegistrationService
         }
     }
 
-
     private class MetaDataCallables
     {
         final IdentifiableObjectCallable<DataSet> dataSetCallable;
@@ -585,6 +762,7 @@ public class DefaultCompleteDataSetRegistrationService
         CachingMap<String, Period> periods = new CachingMap<>();
         CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
         CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
+        CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
 
         void preheat( IdentifiableObjectManager manager, final ImportConfig config )
         {
@@ -594,7 +772,7 @@ public class DefaultCompleteDataSetRegistrationService
         }
     }
 
-    private class ImportConfig
+    private static class ImportConfig
     {
         IdScheme dsScheme, ouScheme, aocScheme;
         ImportStrategy strategy;
