@@ -313,7 +313,7 @@ public class DefaultCompleteDataSetRegistrationService
 
         log.info( "Import options: " + importOptions );
 
-        ImportConfig cfg = new ImportConfig( completeRegistrations, importOptions );
+        ImportConfig cfg = new ImportConfig( completeRegistrations, importOptions, systemSettingManager );
 
         // ---------------------------------------------------------------------
         // Set up meta-data
@@ -509,6 +509,11 @@ public class DefaultCompleteDataSetRegistrationService
         return cachingMap.getCacheMissCount() > CACHE_MISS_THRESHOLD;
     }
 
+    // -----------------------------------------------------------------
+    // Internal classes
+    // -----------------------------------------------------------------
+
+
     private static class MetaDataProperties
     {
         final DataSet dataSet;
@@ -556,9 +561,6 @@ public class DefaultCompleteDataSetRegistrationService
         }
     }
 
-    // -----------------------------------------------------------------
-    // Internal classes
-    // -----------------------------------------------------------------
 
     private class MetaDataCallables
     {
@@ -576,7 +578,7 @@ public class DefaultCompleteDataSetRegistrationService
         }
     }
 
-    private class MetaDataCaches
+    private static class MetaDataCaches
     {
         CachingMap<String, DataSet> dataSets = new CachingMap<>();
         CachingMap<String, OrganisationUnit> orgUnits = new CachingMap<>();
@@ -598,7 +600,7 @@ public class DefaultCompleteDataSetRegistrationService
         ImportStrategy strategy;
         boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits, requireAttrOptionCombos;
 
-        ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
+        ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options, SystemSettingManager manager )
         {
             dsScheme = IdScheme.from( cdsr.getIdSchemeProperty() );
             ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
@@ -614,15 +616,13 @@ public class DefaultCompleteDataSetRegistrationService
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
 
             skipExistingCheck = options.isSkipExistingCheck();
-            strictPeriods = options.isStrictPeriods() || get( SettingKey.DATA_IMPORT_STRICT_PERIODS );
-            strictAttrOptionCombos = options.isStrictAttributeOptionCombos() || get( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
-            strictOrgUnits = options.isStrictOrganisationUnits() || get( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
-            requireAttrOptionCombos = options.isRequireAttributeOptionCombo() || get( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
-        }
-
-        private boolean get( SettingKey key )
-        {
-            return (Boolean) systemSettingManager.getSystemSetting( key );
+            strictPeriods = options.isStrictPeriods() || (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+            strictAttrOptionCombos = options.isStrictAttributeOptionCombos() ||
+                (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
+            strictOrgUnits = options.isStrictOrganisationUnits() ||
+                (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+            requireAttrOptionCombos = options.isRequireAttributeOptionCombo() ||
+                (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
         }
     }
 }
