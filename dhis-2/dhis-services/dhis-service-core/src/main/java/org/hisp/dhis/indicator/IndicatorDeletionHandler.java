@@ -28,8 +28,6 @@ package org.hisp.dhis.indicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -37,6 +35,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -112,10 +112,14 @@ public class IndicatorDeletionHandler
     {
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            if ( legendSet.equals( indicator.getLegendSet() ) )
+            for ( LegendSet ls : indicator.getLegendSets() )
             {
-                indicator.setLegendSet( null );
-                indicatorService.updateIndicator( indicator );
+                if( legendSet.equals( ls ) )
+                {
+                    indicator.getLegendSets().remove( ls );
+                    indicatorService.updateIndicator( indicator );
+                }
+
             }
         }
     }

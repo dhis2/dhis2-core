@@ -28,15 +28,15 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Class which encapsulates a query parameter and value. Operator and filter
@@ -168,7 +168,7 @@ public class QueryItem
 
         for ( TrackedEntityAttribute attribute : attributes )
         {
-            queryItems.add( new QueryItem( attribute, attribute.getLegendSet(), attribute.getValueType(), attribute.getAggregationType(), attribute.hasOptionSet() ? attribute.getOptionSet() : null ) );
+            queryItems.add( new QueryItem( attribute, attribute.getLegendSets().get(0), attribute.getValueType(), attribute.getAggregationType(), attribute.hasOptionSet() ? attribute.getOptionSet() : null ) );
         }
 
         return queryItems;

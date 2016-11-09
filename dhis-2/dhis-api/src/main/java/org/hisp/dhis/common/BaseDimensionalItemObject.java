@@ -34,6 +34,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Lars Helge Overland
  */
@@ -47,9 +50,9 @@ public class BaseDimensionalItemObject
     private DimensionItemType dimensionItemType;
 
     /**
-     * The legend set for this dimension.
+     * The legend sets for this dimension.
      */
-    protected LegendSet legendSet;
+    protected List<LegendSet> legendSets = new ArrayList<>(  );
 
     /**
      * The aggregation type for this dimension.
@@ -78,7 +81,7 @@ public class BaseDimensionalItemObject
     @Override
     public boolean hasLegendSet()
     {
-        return getLegendSet() != null;
+        return legendSets != null && !legendSets.isEmpty();
     }
 
     @Override
@@ -116,14 +119,23 @@ public class BaseDimensionalItemObject
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public LegendSet getLegendSet()
+    public List<LegendSet> getLegendSets()
     {
-        return legendSet;
+        return this.legendSets;
     }
 
-    public void setLegendSet( LegendSet legendSet )
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSet getLegendSet()
     {
-        this.legendSet = legendSet;
+        return legendSets.get(0);
+    }
+
+    public void setLegendSets( List<LegendSet> legendSets )
+    {
+        this.legendSets = legendSets;
     }
 
     @Override
@@ -154,12 +166,12 @@ public class BaseDimensionalItemObject
 
             if ( mergeMode.isReplace() )
             {
-                legendSet = object.getLegendSet();
+                legendSets = object.getLegendSets();
                 aggregationType = object.getAggregationType();
             }
             else if ( mergeMode.isMerge() )
             {
-                legendSet = object.getLegendSet() == null ? legendSet : object.getLegendSet();
+                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
             }
         }
