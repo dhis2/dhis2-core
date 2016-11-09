@@ -30,6 +30,7 @@ package org.hisp.dhis.sqlview.jdbc;
 
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
@@ -104,35 +105,17 @@ public class JdbcSqlViewStore
         try
         {
             jdbcTemplate.execute( sql );
+
+            return null;
         }
         catch ( BadSqlGrammarException ex )
         {
             return ex.getCause().getMessage();
         }
-
-        return null;
     }
 
     @Override
-    public void setUpDataSqlViewTable( Grid grid, String viewTableName, Map<String, String> criteria )
-    {
-        String sql = PREFIX_SELECT_QUERY + statementBuilder.columnQuote( viewTableName );
-
-        if ( criteria != null && !criteria.isEmpty() )
-        {
-            SqlHelper helper = new SqlHelper();
-
-            for ( String filter : criteria.keySet() )
-            {
-                sql += " " + helper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "'";
-            }
-        }
-
-        executeQuery( grid, sql );
-    }
-
-    @Override
-    public void executeQuery( Grid grid, String sql )
+    public void populateSqlViewGrid( Grid grid, String sql )
     {
         SqlRowSet rs = jdbcTemplate.queryForRowSet( sql );
 
