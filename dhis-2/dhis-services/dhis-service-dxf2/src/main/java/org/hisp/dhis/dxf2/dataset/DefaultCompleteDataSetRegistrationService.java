@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,13 +39,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.dataset.streaming.StreamingJsonCompleteDataSetRegistrations;
+import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -58,6 +60,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -74,7 +77,6 @@ import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
@@ -270,8 +272,18 @@ public class DefaultCompleteDataSetRegistrationService
     @Override
     public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, TaskId taskId )
     {
-        // TODO
-        return null;
+        try
+        {
+            in = StreamUtils.wrapAndCheckCompressionFormat( in );
+            CompleteDataSetRegistrations completeDataSetRegistrations =
+                new StreamingXmlCompleteDataSetRegistrations( XMLFactory.getXMLReader( in ) );
+
+            return saveCompleteDataSetRegistrations( importOptions, taskId, completeDataSetRegistrations );
+        }
+        catch ( Exception ex )
+        {
+            return handleImportError( taskId, ex );
+        }
     }
 
     @Override
@@ -292,18 +304,27 @@ public class DefaultCompleteDataSetRegistrationService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            // TODO Ref: line 510
-            CompleteDataSetRegistrations completeDataSetRegistrations = new StreamingJsonCompleteDataSetRegistrations(  )
+            CompleteDataSetRegistrations completeDataSetRegistrations =
+                DefaultRenderService.getJsonMapper().readValue( in, CompleteDataSetRegistrations.class );
+
+            return saveCompleteDataSetRegistrations( importOptions, taskId, completeDataSetRegistrations );
         }
-        catch ( IOException e )
+        catch ( Exception ex )
         {
-            e.printStackTrace();
+            return handleImportError( taskId, ex );
         }
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private ImportSummary handleImportError( TaskId taskId, Throwable ex )
+    {
+        log.error( DebugUtils.getStackTrace( ex ) );
+        notifier.notify( taskId, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
+        return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
+    }
 
     private void validationError( String message ) throws IllegalQueryException
     {
