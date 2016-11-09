@@ -43,11 +43,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 public interface SqlViewService
 {
     String ID = SqlViewService.class.getName();
-    
-    String VARIABLE_EXPRESSION = "\\$\\{(\\w+)\\}";
+
     String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
-    
-    Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION, Pattern.DOTALL );
+
     Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
     
     // -------------------------------------------------------------------------
@@ -99,17 +97,15 @@ public interface SqlViewService
     * @return a grid.
     */
     Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables );
-    
+
     /**
-     * Substitutes the given SQL query string with the given variables. SQL variables
-     * are on the format ${key}.
-     * 
-     * @param sql the SQL string.
-     * @param variables the variables.
-     * @return the substituted SQL.
+     * Returns an SQL where clause based on the given criteria.
+     *
+     * @param criteria the map of criteria and values.
+     * @return an SQL where clause.
      */
-    String substituteSql( String sql, Map<String, String> variables );
-    
+    String getCriteriaSqlClause( Map<String, String> criteria );
+
     /**
      * Validates the given SQL view. Checks include:
      * 
@@ -126,15 +122,7 @@ public interface SqlViewService
      */
     void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
         throws IllegalQueryException;
-    
-    /**
-     * Returns the variables contained in the given SQL.
-     * 
-     * @param sql the SQL query string.
-     * @return a set of variable keys.
-     */
-    Set<String> getVariables( String sql );
-    
+
     /**
      * Tests whether the given SQL view syntax is valid.
      * 
