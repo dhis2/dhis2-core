@@ -283,6 +283,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit DROP CONSTRAINT organisationunit_shortname_key" );
 
         executeSql( "ALTER TABLE section DROP CONSTRAINT section_name_key" );
+        executeSql( "UPDATE section SET showrowtotals = false WHERE showrowtotals IS NULL" );
+        executeSql( "UPDATE section SET showcolumntotals = false WHERE showcolumntotals IS NULL" );
         executeSql( "UPDATE dataelement SET aggregationtype='avg_sum_org_unit' where aggregationtype='average'" );
 
         // revert prepare aggregate*Value tables for offline diffs

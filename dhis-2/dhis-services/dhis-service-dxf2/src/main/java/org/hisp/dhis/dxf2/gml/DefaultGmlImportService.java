@@ -351,6 +351,11 @@ public class DefaultGmlImportService
 
         Throwable rootThrowable = ExceptionUtils.getRootCause( throwable );
 
+        if ( rootThrowable == null )
+        {
+            rootThrowable = throwable;
+        }
+
         if ( rootThrowable instanceof SAXParseException )
         {
             SAXParseException e = (SAXParseException) rootThrowable;

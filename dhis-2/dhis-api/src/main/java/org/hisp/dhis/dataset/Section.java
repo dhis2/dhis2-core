@@ -63,6 +63,10 @@ public class Section
     private Set<DataElementOperand> greyedFields = new HashSet<>();
 
     private int sortOrder;
+    
+    private boolean showRowTotals;
+    
+    private boolean showColumnTotals;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -256,6 +260,30 @@ public class Section
     public void setGreyedFields( Set<DataElementOperand> greyedFields )
     {
         this.greyedFields = greyedFields;
+    }        
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isShowRowTotals()
+    {
+        return showRowTotals;
+    }
+
+    public void setShowRowTotals( boolean showRowTotals )
+    {
+        this.showRowTotals = showRowTotals;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isShowColumnTotals()
+    {
+        return showColumnTotals;
+    }
+
+    public void setShowColumnTotals( boolean showColumnTotals )
+    {
+        this.showColumnTotals = showColumnTotals;
     }
 
     @Override
