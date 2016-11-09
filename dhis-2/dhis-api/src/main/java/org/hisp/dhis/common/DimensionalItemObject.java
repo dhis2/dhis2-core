@@ -55,6 +55,14 @@ public interface DimensionalItemObject
     List<LegendSet> getLegendSets();
 
     /**
+     * Gets the first legendSet in the legendSet list.
+     * Only exists to avoid breaking existing applications,
+     * should be removed when 2.25 is no longer supported.
+     */
+    @Deprecated
+    LegendSet getLegendSet();
+
+    /**
      * Indicates whether this dimension has a legend set.
      */
     boolean hasLegendSet();

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public class BaseDimensionalItemObject
     /**
      * The legend sets for this dimension.
      */
-    protected List<LegendSet> legendSets;
+    protected List<LegendSet> legendSets = new ArrayList<>(  );
 
     /**
      * The aggregation type for this dimension.
@@ -121,6 +122,15 @@ public class BaseDimensionalItemObject
     public List<LegendSet> getLegendSets()
     {
         return this.legendSets;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSet getLegendSet()
+    {
+        return legendSets.get(0);
     }
 
     public void setLegendSets( List<LegendSet> legendSets )
