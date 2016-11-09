@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -59,6 +60,8 @@ public class ProgramTrackedEntityAttribute
     private TrackedEntityAttribute attribute;
 
     private boolean displayInList;
+    
+    private Integer sortOrder;
 
     private Boolean mandatory;
 
@@ -85,6 +88,15 @@ public class ProgramTrackedEntityAttribute
         this( program, attribute );
         this.displayInList = displayInList;
         this.mandatory = mandatory;
+    }
+    
+    public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
+            Boolean mandatory, Integer sortOrder )
+    {
+        this( program, attribute );
+        this.displayInList = displayInList;
+        this.mandatory = mandatory;
+        this.sortOrder = sortOrder;
     }
 
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
@@ -234,6 +246,18 @@ public class ProgramTrackedEntityAttribute
     {
         this.allowFutureDate = allowFutureDate;
     }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getSortOrder()
+    {
+        return sortOrder;
+    }
+
+    public void setSortOrder( Integer sortOrder )
+    {
+        this.sortOrder = sortOrder;
+    }
 
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
@@ -248,6 +272,7 @@ public class ProgramTrackedEntityAttribute
             if ( mergeMode.isReplace() )
             {
                 program = programTrackedEntityAttribute.getProgram();
+                sortOrder = programTrackedEntityAttribute.getSortOrder();
                 attribute = programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
@@ -255,6 +280,7 @@ public class ProgramTrackedEntityAttribute
             else if ( mergeMode.isMerge() )
             {
                 program = programTrackedEntityAttribute.getProgram() == null ? program : programTrackedEntityAttribute.getProgram();
+                sortOrder = programTrackedEntityAttribute.getSortOrder() == null ? sortOrder : programTrackedEntityAttribute.getSortOrder();
                 attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();

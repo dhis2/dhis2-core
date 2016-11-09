@@ -137,6 +137,12 @@ public class RenderServiceTest
         Date y2013 = renderService.fromJson( "{\"d\": \"2013\"}", DeserializeTest.class ).getD();
         Date y201312 = renderService.fromJson( "{\"d\": \"2013-12\"}", DeserializeTest.class ).getD();
 
+        assertNotNull( y2011 );
+        assertNotNull( y201105 );
+        assertNotNull( y2012 );
+        assertNotNull( y2013 );
+        assertNotNull( y201312 );
+
         verifyCalendar( y2011, 2011, null );
         verifyCalendar( y201105, 2011, 4 );
         verifyCalendar( y2012, 2012, null );

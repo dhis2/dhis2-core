@@ -73,6 +73,7 @@ import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -152,11 +153,17 @@ public class DataQueryParams
      * The aggregation type.
      */
     protected AggregationType aggregationType;
-    
+
     /**
      * The measure criteria, which is measure filters and corresponding values.
      */
     protected Map<MeasureFilter, Double> measureCriteria = new HashMap<>();
+
+    /**
+     * The pre aggregate measure criteria, different to measure criteria, as it is handled in the query itself and not
+     * after the query returns.
+     */
+    protected Map<MeasureFilter, Double> preAggregateMeasureCriteria = new HashMap<>();
     
     /**
      * Indicates if the meta data part of the query response should be omitted.
@@ -376,6 +383,7 @@ public class DataQueryParams
         params.filters = DimensionalObjectUtils.getCopies( this.filters );
         params.aggregationType = this.aggregationType;
         params.measureCriteria = this.measureCriteria;
+        params.preAggregateMeasureCriteria = this.preAggregateMeasureCriteria;
         params.skipMeta = this.skipMeta;
         params.skipData = this.skipData;
         params.skipHeaders = this.skipHeaders;
@@ -1411,7 +1419,7 @@ public class DataQueryParams
         
         return countMap;
     }
-    
+
     /**
      * Retrieves the measure criteria from the given string. Criteria are separated
      * by the option separator, while the criterion filter and value are separated
@@ -1423,15 +1431,15 @@ public class DataQueryParams
         {
             return null;
         }
-        
+
         Map<MeasureFilter, Double> map = new HashMap<>();
-        
+
         String[] criteria = param.split( DimensionalObject.OPTION_SEP );
-        
+
         for ( String c : criteria )
         {
             String[] criterion = c.split( DimensionalObject.DIMENSION_NAME_SEP );
-            
+
             if ( criterion != null && criterion.length == 2 && MathUtils.isNumeric( criterion[1] ) )
             {
                 MeasureFilter filter = MeasureFilter.valueOf( criterion[0] );
@@ -1439,9 +1447,10 @@ public class DataQueryParams
                 map.put( filter, value );
             }
         }
-        
+
         return map;
     }
+
 
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
@@ -1537,6 +1546,11 @@ public class DataQueryParams
     public Map<MeasureFilter, Double> getMeasureCriteria()
     {
         return measureCriteria;
+    }
+
+    public Map<MeasureFilter, Double> getPreAggregateMeasureCriteria()
+    {
+        return preAggregateMeasureCriteria;
     }
 
     public boolean isSkipMeta()
@@ -2033,10 +2047,16 @@ public class DataQueryParams
             this.params.setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, periods );
             return this;
         }
-        
+
         public Builder withMeasureCriteria( Map<MeasureFilter, Double> measureCriteria )
         {
             this.params.measureCriteria = measureCriteria;
+            return this;
+        }
+
+        public Builder withPreAggregationMeasureCriteria( Map<MeasureFilter, Double> preAggregationMeasureCriteria )
+        {
+            this.params.preAggregateMeasureCriteria = preAggregationMeasureCriteria;
             return this;
         }
         

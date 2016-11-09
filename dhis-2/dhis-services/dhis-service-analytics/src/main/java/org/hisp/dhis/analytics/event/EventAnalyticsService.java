@@ -69,7 +69,7 @@ public interface EventAnalyticsService
      * @param params the event query parameters.
      * @return aggregated event data as a Grid object.
      */
-    Grid getAggregatedEventData( AnalyticalObject object );
+    Grid getAggregatedEventData( AnalyticalObject params );
 
     /**
      * Returns a list of events matching the given query.

@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.system.util;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,19 +28,38 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 /**
- * This exception type is used for signaling any problems during SMS handling.
+ * @author Lars Helge Overland
  */
-public class SmsServiceException
-    extends RuntimeException
+public class JacksonUtils
 {
-    public SmsServiceException( String message )
+    private final static ObjectMapper jsonMapper = new ObjectMapper();
+
+    static
     {
-        super( message );
+        jsonMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
+        jsonMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false );
+        jsonMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        jsonMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 
-    public SmsServiceException( String message, Exception cause )
+    public static <T> T fromJson( byte[] src, Class<T> clazz )
     {
-        super( message, cause );
+        try
+        {
+            return jsonMapper.readValue( src, clazz );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
     }
 }

@@ -104,6 +104,7 @@
 .sectionTable
 {
   border-collapse: collapse;
+  margin-bottom: 40px;
 }
 
 .sectionTable thead {
@@ -427,4 +428,9 @@ textarea:read-only
 
 .select2-chosen {
     padding-top: 6px;
+}
+
+.sectionContainer {
+    display: inline-block;
+    margin-bottom: 20px;
 }

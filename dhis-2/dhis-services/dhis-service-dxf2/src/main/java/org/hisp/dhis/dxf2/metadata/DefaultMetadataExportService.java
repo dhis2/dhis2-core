@@ -349,6 +349,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleCategoryCombo( metadata, dataSet.getCategoryCombo() );
 
         dataSet.getCompulsoryDataElementOperands().forEach( dataElementOperand -> handleDataElementOperand( metadata, dataElementOperand ) );
+        dataSet.getDataElementOptionCombos().forEach( dataElementOptionCombo -> handleCategoryOptionCombo( metadata, dataElementOptionCombo ) );
 
         return metadata;
     }

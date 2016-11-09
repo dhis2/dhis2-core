@@ -42,6 +42,6 @@ public interface HistoryRetriever
     String ID = HistoryRetriever.class.getName();
 
     DataElementHistory getHistory( DataElement dataElement, DataElementCategoryOptionCombo optionCombo, 
-        OrganisationUnit organisationUnit, Period lastPeriod, int historyLength );
+    		DataElementCategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod, int historyLength );
     
 }

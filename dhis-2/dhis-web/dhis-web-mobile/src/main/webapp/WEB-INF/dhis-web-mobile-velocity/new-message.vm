@@ -111,7 +111,7 @@
             $.mobile.loading( 'show' );
 
             $.ajax({
-                url  : '$contextPath/api/currentUser/recipients',
+                url  : '$contextPath/api/23/me/recipients',
                 type : 'get',
                 dataType: 'json',
                 data : {

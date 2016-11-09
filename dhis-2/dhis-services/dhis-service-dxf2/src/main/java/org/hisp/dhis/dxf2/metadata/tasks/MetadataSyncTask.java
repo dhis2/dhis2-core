@@ -111,7 +111,7 @@ public class MetadataSyncTask
         }
     }
 
-    public void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException
+    public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException
     {
         metadataSyncPreProcessor.setUp( context );
 
