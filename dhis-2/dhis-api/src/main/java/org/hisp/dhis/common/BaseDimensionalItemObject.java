@@ -29,7 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
@@ -117,8 +117,8 @@ public class BaseDimensionalItemObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "legendSets", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "legendSets", namespace = DxfNamespaces.DXF_2_0 )
     public List<LegendSet> getLegendSets()
     {
         return this.legendSets;
@@ -126,11 +126,10 @@ public class BaseDimensionalItemObject
 
     @Override
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public LegendSet getLegendSet()
     {
-        return legendSets.get(0);
+        return legendSets.isEmpty() ? null : legendSets.get(0);
     }
 
     public void setLegendSets( List<LegendSet> legendSets )
@@ -166,14 +165,16 @@ public class BaseDimensionalItemObject
 
             if ( mergeMode.isReplace() )
             {
-                legendSets = object.getLegendSets();
+//                legendSets = object.getLegendSets();
                 aggregationType = object.getAggregationType();
             }
             else if ( mergeMode.isMerge() )
             {
-                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
+//                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
             }
+
+            legendSets.clear();
         }
     }
 }
