@@ -31,6 +31,7 @@ package org.hisp.dhis.schema.validation;
 import org.apache.commons.validator.GenericValidator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -83,7 +84,7 @@ public class DefaultSchemaValidator implements SchemaValidator
 
             if ( value == null )
             {
-                if ( property.isRequired() )
+                if ( property.isRequired() && !Preheat.isDefaultClass( property.getKlass() ) )
                 {
                     errorReports.add( new ErrorReport( klass, ErrorCode.E4000, property.getName() ).setErrorKlass( property.getKlass() ) );
                 }
