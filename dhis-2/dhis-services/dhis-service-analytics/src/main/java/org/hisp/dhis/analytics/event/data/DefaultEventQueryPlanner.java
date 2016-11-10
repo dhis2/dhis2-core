@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import static org.hisp.dhis.analytics.AnalyticsTableManager.EVENT_ANALYTICS_TABLE_NAME;
+import static org.hisp.dhis.analytics.AnalyticsTableManager.ENROLLMENT_ANALYTICS_TABLE_NAME;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -193,8 +194,11 @@ public class DefaultEventQueryPlanner
         {
             Period queryPeriod = new Period();
             queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );            
-            params.setPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) );
+            queryPeriod.setEndDate( params.getEndDate() );    
+            
+            //TODO: Make proper parameterization here - just testing
+            //params.setPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) );
+            params.setPartitions( PartitionUtils.getPartitions( EVENT_ANALYTICS_TABLE_NAME, tableSuffix ) );
         }
                 
         //TODO periods, convert to start/end dates

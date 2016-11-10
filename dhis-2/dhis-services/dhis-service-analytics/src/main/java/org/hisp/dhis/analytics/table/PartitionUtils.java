@@ -102,6 +102,19 @@ public class PartitionUtils
 
         return partitions.prunePartitions( validPartitions );
     }
+    
+    public static Partitions getPartitions( String tablePrefix, String tableSuffix )
+    {
+        tablePrefix = StringUtils.trimToEmpty( tablePrefix );
+        tableSuffix = StringUtils.trimToEmpty( tableSuffix );
+
+        Partitions partitions = new Partitions();
+
+        String name = tablePrefix + SEP  + tableSuffix;
+        partitions.add( name.toLowerCase() );
+
+        return partitions;
+    }
 
     public static Partitions getPartitions( List<DimensionalItemObject> periods, 
         String tablePrefix, String tableSuffix, Set<String> validPartitions )
