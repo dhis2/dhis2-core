@@ -50,13 +50,8 @@
       <many-to-many class="org.hisp.dhis.dataset.DataSet" column="datasetid" />
     </set>
 
-    <list name="legendSets" table="indicatorlegendsets">
-      <cache usage="read-write" />
-      <key column="indicatorid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_indicator_legendsetid" ></many-to-many>
-    </list>
-
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_indicator_legendset" />
       
     <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
 

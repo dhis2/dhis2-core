@@ -29,13 +29,10 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -50,9 +47,9 @@ public class BaseDimensionalItemObject
     private DimensionItemType dimensionItemType;
 
     /**
-     * The legend sets for this dimension.
+     * The legend set for this dimension.
      */
-    protected List<LegendSet> legendSets = new ArrayList<>(  );
+    protected LegendSet legendSet;
 
     /**
      * The aggregation type for this dimension.
@@ -81,7 +78,7 @@ public class BaseDimensionalItemObject
     @Override
     public boolean hasLegendSet()
     {
-        return legendSets != null && !legendSets.isEmpty();
+        return getLegendSet() != null;
     }
 
     @Override
@@ -117,24 +114,16 @@ public class BaseDimensionalItemObject
 
     @Override
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "legendSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "legendSets", namespace = DxfNamespaces.DXF_2_0 )
-    public List<LegendSet> getLegendSets()
-    {
-        return this.legendSets;
-    }
-
-    @Override
-    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public LegendSet getLegendSet()
     {
-        return legendSets.isEmpty() ? null : legendSets.get(0);
+        return legendSet;
     }
 
-    public void setLegendSets( List<LegendSet> legendSets )
+    public void setLegendSet( LegendSet legendSet )
     {
-        this.legendSets = legendSets;
+        this.legendSet = legendSet;
     }
 
     @Override
@@ -165,16 +154,14 @@ public class BaseDimensionalItemObject
 
             if ( mergeMode.isReplace() )
             {
-//                legendSets = object.getLegendSets();
+                legendSet = object.getLegendSet();
                 aggregationType = object.getAggregationType();
             }
             else if ( mergeMode.isMerge() )
             {
-//                legendSets = object.getLegendSets() == null ? legendSets : object.getLegendSets();
+                legendSet = object.getLegendSet() == null ? legendSet : object.getLegendSet();
                 aggregationType = object.getAggregationType() == null ? aggregationType : object.getAggregationType();
             }
-
-            legendSets.clear();
         }
     }
 }

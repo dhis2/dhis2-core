@@ -46,12 +46,8 @@
     <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
       column="trackedentityid" foreign-key="fk_trackedentityattribute_trackedentityid" />
 
-    <list name="legendSets" table="trackedentityattributelegendsets">
-      <cache usage="read-write" />
-      <key column="trackedentityattributeid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_trackedentityattribute_legendsetid" ></many-to-many>
-    </list>
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_trackedentityattribute_legendset" />
 
     <property name="inherit" column="inherit" />
 

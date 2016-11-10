@@ -70,12 +70,8 @@
     <many-to-one name="commentOptionSet" class="org.hisp.dhis.option.OptionSet" column="commentoptionsetid"
       foreign-key="fk_dataelement_commentoptionsetid" />
 
-    <list name="legendSets" table="dataelementlegendsets">
-      <cache usage="read-write" />
-      <key column="dataelementid" />
-      <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataelement_legendsetid" ></many-to-many>
-    </list>
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+      foreign-key="fk_dataelement_legendset" />
     
     <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
 

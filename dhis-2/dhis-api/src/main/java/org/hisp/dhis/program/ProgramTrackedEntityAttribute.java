@@ -44,8 +44,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.List;
-
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 /**
@@ -170,9 +168,9 @@ public class ProgramTrackedEntityAttribute
     }
 
     @Override
-    public List<LegendSet> getLegendSets()
+    public LegendSet getLegendSet()
     {
-        return attribute != null ? attribute.getLegendSets() : null;
+        return attribute != null ? attribute.getLegendSet() : null;
     }
 
     @Override

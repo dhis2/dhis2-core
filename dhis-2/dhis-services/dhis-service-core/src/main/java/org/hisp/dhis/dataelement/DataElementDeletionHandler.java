@@ -28,6 +28,10 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+
+import java.util.Iterator;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
@@ -36,10 +40,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.util.Iterator;
-
-import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
@@ -117,14 +117,10 @@ public class DataElementDeletionHandler
     {
         for ( DataElement element : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
-            for ( LegendSet ls : element.getLegendSets() )
+            if ( legendSet.equals( element.getLegendSet() ) )
             {
-                if( legendSet.equals( ls ) )
-                {
-                    element.getLegendSets().remove( ls );
-                    idObjectManager.updateNoAcl( element );
-                }
-
+                element.setLegendSet( null );
+                idObjectManager.updateNoAcl( element );
             }
         }
     }

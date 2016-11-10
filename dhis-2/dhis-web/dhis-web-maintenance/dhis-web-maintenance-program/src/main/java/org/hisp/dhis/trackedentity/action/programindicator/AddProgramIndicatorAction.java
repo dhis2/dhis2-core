@@ -28,7 +28,6 @@ package org.hisp.dhis.trackedentity.action.programindicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeService;
@@ -190,7 +189,7 @@ public class AddProgramIndicatorAction
         indicator.setFilter( StringUtils.trimToNull( filter ) );
         indicator.setAggregationType( AggregationType.valueOf( aggregationType ) );
         indicator.setDecimals( decimals );
-        indicator.setLegendSets( ImmutableList.<LegendSet>builder().add( legendSet ).build() );
+        indicator.setLegendSet( legendSet );
         indicator.setDisplayInForm( displayInForm );
 
         if ( jsonAttributeValues != null )
