@@ -98,6 +98,41 @@ public class InitTableAlteror
         executeSql( "UPDATE messageconversation SET status = 'NONE' WHERE status IS NULL" );
 
         updateMessageConversationMessageCount();
+
+        updateLegendSetAssociationAndDeleteOldAssociation();
+    }
+
+    private void updateLegendSetAssociationAndDeleteOldAssociation()
+    {
+        // Transfer all existing references from dataelement to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO dataelementlegendsets (dataelementid, sort_order, legendsetid) SELECT dataelementid, 0, legendsetid FROM dataelement WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO datasetlegendsets (datasetid, sort_order, legendsetid) SELECT datasetid, 0, legendsetid FROM dataset WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO indicatorlegendsets (indicatorid, sort_order, legendsetid) SELECT indicatorid, 0, legendsetid FROM indicator WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO trackedentityattributelegendsets (trackedentityattributeid, sort_order, legendsetid) SELECT trackedentityattributeid, 0, legendsetid FROM trackedentityattribute WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
     }
 
     private void updateMessageConversationMessageCount() {
