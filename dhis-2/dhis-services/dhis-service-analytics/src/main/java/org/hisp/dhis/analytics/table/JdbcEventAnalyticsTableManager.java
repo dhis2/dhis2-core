@@ -345,6 +345,7 @@ public class JdbcEventAnalyticsTableManager
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", "psi.executiondate" );
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", "psi.duedate" );
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "psi.completeddate" );
+        AnalyticsTableColumn pes = new AnalyticsTableColumn( quote( "pistatus" ), "character(25)", "pi.status" );
         AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" );
         AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, "psi.longitude" );
         AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, "psi.latitude" );
@@ -352,7 +353,7 @@ public class JdbcEventAnalyticsTableManager
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
-        columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, es, longitude, latitude, ou, oun, ouc ) );
+        columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, pes, es, longitude, latitude, ou, oun, ouc ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {
