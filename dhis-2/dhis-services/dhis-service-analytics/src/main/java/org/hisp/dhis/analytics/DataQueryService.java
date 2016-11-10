@@ -75,9 +75,9 @@ public interface DataQueryService
      * @return a data query parameter object created based on the given URL info.
      */
     DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType, String measureCriteria,
-        boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit,
-        boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty, IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
-        String approvalLevel, Date relativePeriodDate, String userOrgUnit );
+        boolean skipMeta, boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta,
+        boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy, boolean includeNumDen, DisplayProperty displayProperty,
+        IdScheme outputIdScheme, IdScheme inputIdScheme, String approvalLevel, Date relativePeriodDate, String userOrgUnit );
 
     /**
      * Creates a data query parameter object from the given BaseAnalyticalObject.

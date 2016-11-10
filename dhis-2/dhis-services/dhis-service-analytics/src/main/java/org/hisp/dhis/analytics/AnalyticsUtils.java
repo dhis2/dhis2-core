@@ -246,7 +246,7 @@ public class AnalyticsUtils
 
     /**
      * Generates a mapping where the key represents the dimensional item identifiers
-     * concatenated by {@link DimensionalObject.DIMENSION_SEP} and the value is 
+     * concatenated by DimensionalObject.DIMENSION_SEP and the value is
      * the corresponding aggregated data value based on the given grid. Assumes 
      * that the value column is the last column in the grid. 
      *
@@ -415,7 +415,7 @@ public class AnalyticsUtils
      * for the given query.
      *
      * @param params the data query parameters.
-     * @param a mapping between identifiers and names.
+     * @returns a mapping between identifiers and names.
      */
     public static Map<String, String> getCocNameMap( DataQueryParams params )
     {

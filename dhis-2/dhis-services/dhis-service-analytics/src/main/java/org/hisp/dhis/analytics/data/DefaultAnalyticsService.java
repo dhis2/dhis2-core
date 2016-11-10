@@ -772,7 +772,7 @@ public class DefaultAnalyticsService
         {
             List<DimensionalItemObject> items = params.getAllDimensionItems();
 
-            Map<String, String> map = IdentifiableObjectUtils.getUidPropertyMap( items, params.getOutputIdScheme() );
+            Map<String, String> map = IdentifiableObjectUtils.getUidIdMap( items, params.getOutputIdScheme() );
 
             grid.substituteMetaData( map );
         }
