@@ -41,6 +41,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -60,6 +61,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
@@ -77,6 +79,7 @@ import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
@@ -348,7 +351,7 @@ public class DefaultCompleteDataSetRegistrationService
 
         log.info( "Import options: " + importOptions );
 
-        ImportConfig cfg = new ImportConfig( completeRegistrations, importOptions, systemSettingManager );
+        ImportConfig cfg = new ImportConfig( completeRegistrations, importOptions );
 
         // ---------------------------------------------------------------------
         // Set up meta-data
@@ -361,18 +364,6 @@ public class DefaultCompleteDataSetRegistrationService
         {
             caches.preheat( idObjManager, cfg );
         }
-
-        // ---------------------------------------------------------------------
-        // Get outer meta-data
-        // ---------------------------------------------------------------------
-
-        // TODO ?
-
-        // ---------------------------------------------------------------------
-        // Validation
-        // ---------------------------------------------------------------------
-
-        // TODO clock.logTime( "Validated out meta-data" ); etc etc.
 
         // ---------------------------------------------------------------------
         // Perform import
@@ -411,8 +402,6 @@ public class DefaultCompleteDataSetRegistrationService
 
         Date now = new Date();
 
-        DataElementCategoryOptionCombo fallbackCategoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
-
         while ( completeRegistrations.hasNextCompleteDataSetRegistration() )
         {
             org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr = completeRegistrations.getNextCompleteDataSetRegistration();
@@ -430,79 +419,38 @@ public class DefaultCompleteDataSetRegistrationService
             // Meta-data validation
             // ---------------------------------------------------------------------
 
-            boolean metaDataPropsIsValid = mdProps.isValid( summary, cdsr );
-
-            if ( !metaDataPropsIsValid )
+            try
             {
-                continue;
-            }
+                // Validate CDSR meta-data properties
 
-            boolean inUserHierarchy =
-                mdCaches.orgUnitInHierarchyMap.get( mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant( userOrgUnits ) );
+                mdProps.validate( cdsr, config );
+                validateOrgUnitInUserHierarchy( mdCaches, mdProps, userOrgUnits, currentUser );
 
-            if ( !inUserHierarchy )
-            {
-                summary.getConflicts().add(
-                    new ImportConflict( mdProps.orgUnit.getUid(), "Organisation unit is not in hierarchy of user: " + currentUser ) );
-                continue;
-            }
+                // Constraints validation
 
-            // -----------------------------------------------------------------
-            // Constraints validation
-            // -----------------------------------------------------------------
-
-            if ( mdProps.attrOptCombo == null )
-            {
-                if ( config.requireAttrOptionCombos )
+                if ( config.strictAttrOptionCombos )
                 {
-                    summary.getConflicts().add(
-                        new ImportConflict( "Attribute option combo", "Attribute option combo is required but is not specified" ) );
-                    continue;
+                    validateAocMatchesDataSetCoc( mdProps );
                 }
-                else
+
+                validateAttrOptCombo( mdProps, mdCaches, config );
+
+                if ( config.strictPeriods )
                 {
-                    mdProps.attrOptCombo = fallbackCategoryOptionCombo;
+                    validateHasMatchingPeriodTypes( mdProps );
                 }
-            }
 
-            if ( config.strictPeriods && !hasMatchingPeriodTypes( mdProps, mdCaches, summary ) )
+                String storedBy = cdsr.getStoredBy();
+                validateStoredBy( storedBy, i18n );
+                cdsr.setStoredBy( StringUtils.isBlank( storedBy ) ? currentUser : storedBy );
+
+                // TODO Check if Period is within range of data set?
+            }
+            catch ( ImportConflictException ic )
             {
+                summary.getConflicts().add( ic.getImportConflict() );
                 continue;
             }
-
-            // TODO Consider validating attrOptCombos and data set assignment (like below)
-//
-//            if ( strictAttrOptionCombos && !dataElementAttrOptionComboMap.get( dataElement.getUid(),
-//                () -> dataElement.getDataSetCategoryOptionCombos() ).contains( attrOptionCombo ) )
-//            {
-//                summary.getConflicts().add( new ImportConflict( attrOptionCombo.getUid(),
-//                    "Attribute option combo: " + attrOptionCombo.getUid() + " must be part of category combo of data sets of data element: " + dataElement.getUid() ) );
-//                continue;
-//            }
-//
-//            if ( strictOrgUnits && BooleanUtils.isFalse( dataElementOrgUnitMap.get( dataElement.getUid() + orgUnit.getUid(),
-//                () -> orgUnit.hasDataElement( dataElement ) ) ) )
-//            {
-//                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
-//                    "Data element: " + dataElement.getUid() + " must be assigned through data sets to organisation unit: " + orgUnit.getUid() ) );
-//                continue;
-//            }
-
-            String storedBy = cdsr.getStoredBy();
-
-            if ( !validateStoredBy( storedBy, summary, i18n ) )
-            {
-                continue;
-            }
-
-            cdsr.setStoredBy( StringUtils.isBlank( storedBy ) ? currentUser : storedBy );
-
-            if ( !validateAttrOptCombo( mdProps, mdCaches, summary ) )
-            {
-                continue;
-            }
-
-            // TODO Check if Period is within range of data set?
 
             // -----------------------------------------------------------------
             // Create complete data set registration
@@ -610,65 +558,107 @@ public class DefaultCompleteDataSetRegistrationService
         );
     }
 
-    private static boolean validateAttrOptCombo( MetaDataProperties mdProps, MetaDataCaches mdCaches, ImportSummary summary )
+    private static void validateOrgUnitInUserHierarchy(
+        MetaDataCaches mdCaches, MetaDataProperties mdProps, final Set<OrganisationUnit> userOrgUnits, String currentUsername )
+        throws ImportConflictException
     {
-        final DataElementCategoryOptionCombo aoc = mdProps.attrOptCombo;
+        boolean inUserHierarchy =
+            mdCaches.orgUnitInHierarchyMap.get( mdProps.orgUnit.getUid(), () -> mdProps.orgUnit.isDescendant( userOrgUnits ) );
+
+        if ( !inUserHierarchy )
+        {
+            throw new ImportConflictException(
+                new ImportConflict( mdProps.orgUnit.getUid(), "Organisation unit is not in hierarchy of user: " + currentUsername ) );
+        }
+    }
+
+    private void validateAttrOptCombo( MetaDataProperties mdProps, MetaDataCaches mdCaches, ImportConfig config )
+        throws ImportConflictException
+    {
         final Period pe = mdProps.period;
 
+        if ( mdProps.attrOptCombo == null )
+        {
+            if ( config.requireAttrOptionCombos )
+            {
+                throw new ImportConflictException(
+                    new ImportConflict( "Attribute option combo", "Attribute option combo is required but is not specified" ) );
+            }
+            else
+            {
+                mdProps.attrOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+            }
+        }
+
+        final DataElementCategoryOptionCombo aoc = mdProps.attrOptCombo;
         DateRange range = aoc.getDateRange();
 
         if ( ( range.getStartDate() != null && range.getStartDate().compareTo( pe.getStartDate() ) > 0 ) ||
             ( range.getEndDate() != null && range.getEndDate().compareTo( pe.getEndDate() ) < 0 ) )
         {
-            summary.getConflicts().add( new ImportConflict( mdProps.orgUnit.getUid(),
+            throw new ImportConflictException(
+                new ImportConflict( mdProps.orgUnit.getUid(),
                 String.format( "Period: %s is not within range of attribute option combo: %s", pe.getIsoDate(), aoc.getUid() ) ) );
-            return false;
         }
 
         final String aocOrgUnitKey = aoc.getUid() + mdProps.orgUnit.getUid();
 
-        if ( !mdCaches.attrOptComboOrgUnitMap.get( aocOrgUnitKey, () -> {
-                Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
-                return aocOrgUnits == null || mdProps.orgUnit.isDescendant( aocOrgUnits );
-            }
-        ) )
+        boolean isOrgUnitValidForAoc = mdCaches.attrOptComboOrgUnitMap.get( aocOrgUnitKey, () -> {
+            Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
+            return aocOrgUnits == null || mdProps.orgUnit.isDescendant( aocOrgUnits );
+        } );
+
+        if ( !isOrgUnitValidForAoc )
         {
-            summary.getConflicts().add( new ImportConflict( mdProps.orgUnit.getUid(),
+            throw new ImportConflictException(
+                new ImportConflict( mdProps.orgUnit.getUid(),
                 String.format( "Organisation unit: %s is not valid for attribute option combo %s", mdProps.orgUnit.getUid(), aoc.getUid() )
             ) );
-
-            return false;
         }
-
-        return true;
     }
 
-    private static boolean validateStoredBy( String storedBy, ImportSummary importSummary, I18n i18n )
+    private static void validateStoredBy( String storedBy, I18n i18n )
+        throws ImportConflictException
     {
         String result = ValidationUtils.storedByIsValid( storedBy );
 
         if ( result == null )
         {
-            return true;
+            return;
         }
 
-        importSummary.getConflicts().add( new ImportConflict( storedBy, i18n.getString( result ) ) );
-
-        return false;
+        throw new ImportConflictException( new ImportConflict( storedBy, i18n.getString( result ) ) );
     }
 
-    private static boolean hasMatchingPeriodTypes( MetaDataProperties props, MetaDataCaches mdCaches, ImportSummary summary )
+    private static void validateAocMatchesDataSetCoc( MetaDataProperties mdProps )
+        throws ImportConflictException
     {
-        if ( !props.dataSet.getPeriodType().equals( props.period.getPeriodType() ) )
+        // TODO MdCache?
+        DataElementCategoryCombo aocCoc = mdProps.attrOptCombo.getCategoryCombo();
+        DataElementCategoryCombo dsCoc = mdProps.dataSet.getCategoryCombo();
+
+        if ( !aocCoc.equals( dsCoc ) )
         {
-            summary.getConflicts().add(
-                new ImportConflict( props.period.getUid(), String.format( "Period type of period: %s is not equal to the period type of data set: %s",
-                    props.period.getIsoDate(), props.dataSet.getPeriodType() ) ) );
-
-            return false;
+            throw new ImportConflictException(
+                new ImportConflict( aocCoc.getUid(),
+                    String.format( "Attribute option combo: %s must have category combo: %s", aocCoc.getUid(), dsCoc.getUid() ) ) );
         }
+    }
 
-        return true;
+    private static void validateHasMatchingPeriodTypes( MetaDataProperties props )
+        throws ImportConflictException
+    {
+        // TODO MdCache?
+        PeriodType dsPeType = props.dataSet.getPeriodType();
+        PeriodType peType = props.period.getPeriodType();
+
+        if ( !dsPeType.equals( peType ) )
+        {
+            throw new ImportConflictException(
+                new ImportConflict( props.period.getUid(),
+                    String.format( "Period type of period: %s is not equal to the period type of data set: %s",
+                    props.period.getIsoDate(), props.dataSet.getPeriodType() ) ) );
+        }
     }
 
     private void heatCaches( MetaDataCaches caches, ImportConfig config )
@@ -728,7 +718,6 @@ public class DefaultCompleteDataSetRegistrationService
     // Internal classes
     // -----------------------------------------------------------------
 
-
     private static class MetaDataProperties
     {
         final DataSet dataSet;
@@ -736,7 +725,7 @@ public class DefaultCompleteDataSetRegistrationService
         final OrganisationUnit orgUnit;
         DataElementCategoryOptionCombo attrOptCombo;
 
-        public MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attrOptCombo )
+        MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit, DataElementCategoryOptionCombo attrOptCombo )
         {
             this.dataSet = dataSet;
             this.period = period;
@@ -744,35 +733,39 @@ public class DefaultCompleteDataSetRegistrationService
             this.attrOptCombo = attrOptCombo;
         }
 
-        public boolean isValid( ImportSummary importSummary, org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr )
+        void validate( org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, ImportConfig config )
+            throws ImportConflictException
         {
             if ( dataSet == null )
             {
-                importSummary.getConflicts().add( new ImportConflict( cdsr.getDataSet(), "Data set not found or not accessible" ) );
-                return false;
+                throw new ImportConflictException( new ImportConflict( cdsr.getDataSet(), "Data set not found or not accessible" ) );
             }
 
             if ( period == null )
             {
-                importSummary.getConflicts().add( new ImportConflict( cdsr.getPeriod(), "Period not valid" ) );
-                return false;
+                throw new ImportConflictException( new ImportConflict( cdsr.getPeriod(), "Period not valid" ) );
             }
 
             if ( orgUnit == null )
             {
-                importSummary.getConflicts().add(
+                throw new ImportConflictException(
                     new ImportConflict( cdsr.getOrganisationUnit(), "Organisation unit not found or not accessible" ) );
-                return false;
             }
 
-            if ( attrOptCombo == null && StringUtils.trimToNull( cdsr.getAttributeOptionCombo() ) != null )
+            // Ensure AOC is set is required, or is otherwise set to the default COC
+
+            if ( attrOptCombo == null )
             {
-                importSummary.getConflicts().add(
-                    new ImportConflict( cdsr.getAttributeOptionCombo(), "Attribute option combo not found or not accessible" ) );
-                return false;
+                if ( config.requireAttrOptionCombos )
+                {
+                    throw new ImportConflictException(
+                        new ImportConflict( "Attribute option combo", "Attribute option combo is required but is not specified" ) );
+                }
+                else
+                {
+                    attrOptCombo = config.fallbackCatOptCombo;
+                }
             }
-
-            return true;
         }
     }
 
@@ -800,6 +793,7 @@ public class DefaultCompleteDataSetRegistrationService
         CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
         CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
         CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
+        DataElementCategoryOptionCombo fallbackCategoryOptionCombo;
 
         void preheat( IdentifiableObjectManager manager, final ImportConfig config )
         {
@@ -809,13 +803,14 @@ public class DefaultCompleteDataSetRegistrationService
         }
     }
 
-    private static class ImportConfig
+    private class ImportConfig
     {
         IdScheme dsScheme, ouScheme, aocScheme;
         ImportStrategy strategy;
         boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits, requireAttrOptionCombos;
+        DataElementCategoryOptionCombo fallbackCatOptCombo;
 
-        ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options, SystemSettingManager manager )
+        ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
         {
             dsScheme = IdScheme.from( cdsr.getIdSchemeProperty() );
             ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
@@ -831,13 +826,35 @@ public class DefaultCompleteDataSetRegistrationService
             dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
 
             skipExistingCheck = options.isSkipExistingCheck();
-            strictPeriods = options.isStrictPeriods() || (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+
+            strictPeriods = options.isStrictPeriods() ||
+                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+
             strictAttrOptionCombos = options.isStrictAttributeOptionCombos() ||
-                (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
+                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
+
             strictOrgUnits = options.isStrictOrganisationUnits() ||
-                (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+
             requireAttrOptionCombos = options.isRequireAttributeOptionCombo() ||
-                (Boolean) manager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+                (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+
+            fallbackCatOptCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        }
+    }
+
+    private static class ImportConflictException extends RuntimeException
+    {
+        private final ImportConflict importConflict;
+
+        ImportConflictException( @Nonnull ImportConflict importConflict )
+        {
+            this.importConflict = importConflict;
+        }
+
+        ImportConflict getImportConflict()
+        {
+            return importConflict;
         }
     }
 }
