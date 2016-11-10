@@ -520,7 +520,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                     if ( ref == null && refObject != null && !Preheat.isDefaultClass( refObject.getClass() ) )
                     {
-                        if ( !("user".equals( p.getName() ) && User.class.isAssignableFrom( p.getKlass() )) )
+                        if ( !("user".equals( p.getName() ) && User.class.isAssignableFrom( p.getKlass() ) && skipSharing) )
                         {
                             preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
                                 identifier.getIdentifiersWithName( refObject ), identifier.getIdentifiersWithName( object ), p.getName() ) );
