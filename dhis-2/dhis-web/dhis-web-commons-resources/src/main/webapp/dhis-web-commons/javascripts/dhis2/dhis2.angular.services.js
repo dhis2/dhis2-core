@@ -156,7 +156,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for dealing with dates */
-.service('DateUtils', function ($filter, CalendarService) {
+.service('DateUtils', function ($filter, CalendarService, NotificationService, $translate) {
 
     return {
         getDate: function (dateValue) {
@@ -232,7 +232,31 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             dateAfterOffset = Date.parse(dateAfterOffset);
             dateAfterOffset = $filter('date')(dateAfterOffset, calendarSetting.keyDateFormat);
             return dateAfterOffset;
+        },
+        verifyExpiryDate: function(date, expiryPeriodType, expiryDays){
+            var eventPeriodEndDate, eventDate, eventPeriod;
+            var isValid = true;
+            var calendarSetting, dateFormat, generator, today;
+            if(!date || !expiryPeriodType || !expiryDays) {
+                return isValid;
+            }
+            calendarSetting = CalendarService.getSetting();
+            dateFormat = calendarSetting.momentFormat;
+            generator = new dhis2.period.PeriodGenerator($.calendars.instance(calendarSetting.keyCalendar), dateFormat);
+            today = moment();
+            eventDate = moment(date, dateFormat);
+            eventPeriod = generator.getPeriodForTheDate(eventDate.format("YYYY-MM-DD"), expiryPeriodType, true);
+            alert("date : "+date+" ,expiryPeriodType: "+expiryPeriodType+" ,expiryDays"+expiryDays+", dateFormat"+dateFormat+", evPerEdnDate: "+eventPeriod.endDate);
+            if (eventPeriod && eventPeriod.endDate) {
+                eventPeriodEndDate = moment(eventPeriod.endDate, "YYYY-MM-DD").add(expiryDays, "day");
+                if (today.isAfter(eventPeriodEndDate)) {
+                    NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("event_date_out_of_range"));
+                    isValid = false;
+                }
+            }
+            return isValid;
         }
+
     };
 })
 
@@ -402,6 +426,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-date-validator ' +
                                 ' max-date="' + 0 + '"' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
+                                ' ng-change="verifyExpiryDate()"'+
                                 ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id,true)"' +
                                 ' blur-or-change="saveDatavalue(prStDes.' + fieldId + ')"' +
                                 ' ng-required="{{true}}"></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
@@ -476,6 +501,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                             ' d2-date ' +
                                             ' d2-date-validator ' +
                                             ' max-date="' + maxDate + '"' +
+                                            ' ng-change="verifyExpiryDate()"'+
                                             ' blur-or-change="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + ' ></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
@@ -621,6 +647,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 this.getAttributesAsString(attributes) +
                                 ' d2-focus-next-on-enter' +
                                 ' ng-model="selectedTei.' + attId + '" ' +
+                                ' ng-change="verifyExpiryDate(\'selectedTei.\'+attId)"'+
                                 ' attribute-data="attributesById.' + attId + '" ' +
                                 ' selected-program-id="selectedProgram.id" ' +
                                 ' selected-tei-id="selectedTei.trackedEntityInstance" ' +
@@ -672,6 +699,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                         ' max-date=" ' + attMaxDate + ' " ' +
                                         ' d2-date' +
+                                        ' ng-change="verifyExpiryDate(\'selectedTei.'+attId+'\')"'+
                                         ' blur-or-change="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></span>' +
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -775,6 +803,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-focus-next-on-enter' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfEnrollment" ' +
+                                ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfEnrollment\')"'+
                                 ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
                                 ' d2-date' +
                                 ' max-date="' + enMaxDate + '"' +
@@ -790,6 +819,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-focus-next-on-enter' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfIncident" ' +
+                                ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfIncident\')"'+
                                 ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
                                 ' d2-date ' +
                                 ' max-date="' + inMaxDate + '">';
