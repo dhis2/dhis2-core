@@ -259,22 +259,16 @@ public class JdbcEnrollmentAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             //Only this has been changed so far:
-            String sql = "(select " + select + " from trackedentitydatavalue tedv " + 
-                            "inner join( " + 
-                                "select itedv.dataelementid, MAX(ARRAY[EXTRACT(EPOCH from ipsi.executiondate),itedv.programstageinstanceid,itedv.dataelementid]) " + 
-                                "as dataelementprograminstancearray " + 
-                                "from trackedentitydatavalue itedv " +
-                                "join programstageinstance ipsi on ipsi.programstageinstanceid=itedv.programstageinstanceid " + 
-                                "and ipsi.executiondate is not null " +
-                                dataClause + " and itedv.dataelementid = " + dataElement.getId() + " and ipsi.programinstanceid=pi.programinstanceid " +
-                                "group by itedv.dataelementid) " + 
-                            "as trackedentitydatavaluesgrouped " + 
-                            "on tedv.programstageinstanceid = trackedentitydatavaluesgrouped.dataelementprograminstancearray[2] " +
-                            "and tedv.dataelementid=trackedentitydatavaluesgrouped.dataelementid) as " + quote( dataElement.getUid() );
-              
-            //TODO: Remove - kept for quickreference dusing debug
-            //String old = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " + 
-            //    "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
+            String sql = "( SELECT " + select + " FROM trackedentitydatavalue tedv " + 
+                         "JOIN programstageinstance psi " + 
+                         "ON psi.programstageinstanceid = tedv.programstageinstanceid " + 
+                         "WHERE psi.executiondate is not null " + 
+                         "AND psi.programinstanceid = pi.programinstanceid " +
+                         dataClause + 
+                         " AND tedv.dataelementid = " + dataElement.getId() + " " +
+                         "ORDER BY psi.executiondate desc " +
+                         "LIMIT 1 ) as " + quote( dataElement.getUid() );
+
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
         }
