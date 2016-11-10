@@ -35,8 +35,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.legend.LegendSet;
 
-import java.util.List;
-
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 /**
@@ -105,9 +103,9 @@ public class ReportingRate
     }
 
     @Override
-    public List<LegendSet> getLegendSets()
+    public LegendSet getLegendSet()
     {
-        return dataSet.getLegendSets();
+        return dataSet.getLegendSet();
     }
     
     @Override

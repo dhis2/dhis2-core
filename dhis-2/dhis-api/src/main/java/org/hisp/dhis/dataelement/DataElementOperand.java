@@ -375,7 +375,7 @@ public class DataElementOperand
         this.optionComboId = categoryOptionCombo.getUid();
         this.operandId = dataElementId + SEPARATOR + optionComboId;
         this.operandName = getPrettyName( dataElement, categoryOptionCombo );
-        this.legendSets = dataElement.getLegendSets();
+        this.legendSet = dataElement.getLegendSet();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
         this.frequencyOrder = dataElement.getFrequencyOrder();
@@ -395,7 +395,7 @@ public class DataElementOperand
         this.dataElementId = dataElement.getUid();
         this.operandId = String.valueOf( dataElementId );
         this.operandName = getPrettyName( dataElement, null );
-        this.legendSets = dataElement.getLegendSets();
+        this.legendSet = dataElement.getLegendSet();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
         this.frequencyOrder = dataElement.getFrequencyOrder();
