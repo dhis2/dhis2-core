@@ -146,7 +146,7 @@ public class TrackedEntityAttribute
     @Override
     public boolean hasLegendSet()
     {
-        return legendSet != null;
+        return legendSets != null;
     }
 
     /**
