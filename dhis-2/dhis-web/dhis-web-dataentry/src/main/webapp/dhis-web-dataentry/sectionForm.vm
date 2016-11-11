@@ -51,20 +51,39 @@
                 #set( $optionsMap = $orderedOptionsMap.get( $categoryComboId ) )
                 #set( $colRepeat = $catColRepeat.get( $categoryComboId ) )
                 #set( $hasFilterInSection = false )
-                #set( $mark = 0 )
-
+                #set( $mark = 0 )                
+                
                 <thead>
+                    #set( $rowTotalRendered = false )
                     #foreach( $category in $categories )
                         #set( $categoryOptions = $optionsMap.get( $category.id ) )
-                        #set( $colCount = $colCount / $categoryOptions.size() )
-
-                        <tr colspan="$colCount">
+                        #set( $colCount = $colCount / $categoryOptions.size() )                        
+                        <tr>
                             <td>#if( $hasFilterInSection == false )<input type="text" class="sectionFilter" placeholder="$encoder.jsEscape( $i18n.getString( "filter_in_section" ) , "'")" onkeyup="dhis2.de.filterInSection($(this));">#set( $hasFilterInSection = true )#end</td>
                             #set( $cols = $colRepeat.get( $category.id ) )
                             #foreach( $col in $cols )
                                 #foreach( $categoryOption in $categoryOptions )
-                                    <th colspan="$colCount" scope="col"><span align="center">#if( $categoryOption.isDefault() )${i18n.getString( "value" )}#else ${encoder.htmlEncode( $categoryOption.displayName )}#end</span></th>
+                                    <th colspan="$colCount" scope="col">
+                                        <span align="center">
+                                            #if( $categoryOption.isDefault() )
+                                                ${i18n.getString( "value" )}
+                                            #else 
+                                                ${encoder.htmlEncode( $categoryOption.displayName )}
+                                            #end
+                                        </span>
+                                    </th>                               
+                                    #if($section.showRowTotals == "true" &&  $categoryOptions.size() == $colCount )
+                                        #set( $rowTotalRendered = true )
+                                        <th rowspan="$categories.size()">                                
+                                            Total
+                                        </th>
+                                    #end
                                 #end
+                            #end                                                        
+                            #if( $section.showRowTotals == "true" && $rowTotalRendered == "false" )
+                                <th>
+                                    Total
+                                </th>
                             #end
                         </tr>
                     #end
@@ -73,8 +92,9 @@
                 #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
                 #foreach( $optionCombo in $optionCombos )<span id="${optionCombo.uid}-optioncombo" class="hidden">${encoder.htmlEncode( $optionCombo.displayName )}</span>
                 #end
-                <tbody>
+                <tbody>                    
                     #foreach( $dataElement in $dataElements )
+                        #set( $cellCounter = 1 )
                         #if( $mark == 1 )
                             #set( $mark = 0 )
                         #else
@@ -142,9 +162,46 @@
                                       <td><input name="entryfield" class="entryfield" id="${dataEntryId}" type="text" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
                                     #end
                                 #end
-                                #set( $tabIndex = $tabIndex + 1 )
+                                #set( $tabIndex = $tabIndex + 1 )                                
+
+                                #if( $section.showRowTotals == "true" )                                    
+                                    #if( $cellCounter == $categoryOptions.size() ) 
+                                        #set( $cellCounter = 0 )
+                                        <td>                                
+                                            <input type="text">
+                                        </td>
+                                    #end
+                                #end
+                                #set( $cellCounter = $cellCounter + 1 )
                             #end
                         </tr>
+                    #end
+                    #if($section.showColumnTotals == "true" )
+                        #if( $mark == 1 )
+                            #set( $mark = 0 )
+                        #else
+                            #set( $mark = 1 )
+                        #end
+                        <tr>
+                            <td #if( $mark == 1 )class="alt bold"#else class="reg bold"#end>
+                                Total
+                            </td>
+                            #set( $cellCounter = 1 )
+                            #foreach( $optionCombo in $optionCombos )
+                                <td>                                
+                                    <input type="text">
+                                </td>
+                                #if( $section.showRowTotals == "true" )                                    
+                                    #if( $cellCounter == $categoryOptions.size() ) 
+                                        #set( $cellCounter = 0 )
+                                        <td>                                
+                                            <input type="text">
+                                        </td>
+                                    #end
+                                #end
+                                #set( $cellCounter = $cellCounter + 1 )
+                            #end
+                        </>
                     #end
                 </tbody>
             </table>

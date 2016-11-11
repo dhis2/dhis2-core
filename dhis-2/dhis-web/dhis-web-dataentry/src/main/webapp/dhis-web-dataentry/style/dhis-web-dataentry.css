@@ -434,3 +434,7 @@ textarea:read-only
     display: inline-block;
     margin-bottom: 20px;
 }
+
+.bold {
+    font-weight: bold;
+}
