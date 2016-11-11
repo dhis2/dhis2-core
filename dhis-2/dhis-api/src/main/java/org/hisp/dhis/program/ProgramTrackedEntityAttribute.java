@@ -43,6 +43,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 /**
@@ -61,6 +64,8 @@ public class ProgramTrackedEntityAttribute
     private Boolean mandatory;
 
     private Boolean allowFutureDate;
+
+    private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -105,6 +110,31 @@ public class ProgramTrackedEntityAttribute
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
+
+    public void addGroup( ProgramTrackedEntityAttributeGroup group )
+    {
+        groups.add( group );
+        group.getAttributes().add( this );
+    }
+
+    public void removeGroup( ProgramTrackedEntityAttributeGroup group )
+    {
+        groups.remove( group );
+        group.getAttributes().remove( this );
+    }
+
+    public void updateDataElementGroups( Set<ProgramTrackedEntityAttributeGroup> updates )
+    {
+        for ( ProgramTrackedEntityAttributeGroup group : new HashSet<>( groups ) )
+        {
+            if ( !updates.contains( group ) )
+            {
+                removeGroup( group );
+            }
+        }
+
+        updates.forEach( this::addGroup );
+    }
 
     @Override
     public boolean haveUniqueNames()
@@ -233,6 +263,19 @@ public class ProgramTrackedEntityAttribute
         this.allowFutureDate = allowFutureDate;
     }
 
+    @JsonProperty( "programTrackedEntityAttributeGroups" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "programTrackedEntityAttributeGroups", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramTrackedEntityAttributeGroup> getGroups()
+    {
+        return this.groups;
+    }
+
+    public void setGroups( Set<ProgramTrackedEntityAttributeGroup> groups )
+    {
+        this.groups = groups;
+    }
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -249,6 +292,7 @@ public class ProgramTrackedEntityAttribute
                 attribute = programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
+                groups = programTrackedEntityAttribute.getGroups();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -256,6 +300,7 @@ public class ProgramTrackedEntityAttribute
                 attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();
+                groups = programTrackedEntityAttribute.getGroups() == null ? groups : programTrackedEntityAttribute.getGroups();
             }
         }
     }

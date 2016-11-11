@@ -872,4 +872,12 @@ public abstract class DeletionHandler
     {
     }
 
+    public String allowDeleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup group )
+    {
+        return null;
+    }
+
+    public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup color )
+    {
+    }
 }

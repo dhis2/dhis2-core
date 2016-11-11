@@ -143,7 +143,8 @@ public class DefaultSchemaService
         add( new ProgramIndicatorGroupSchemaDescriptor() ).
         add( new ExternalFileResourceSchemaDescriptor() ).
         add( new OptionGroupSchemaDescriptor() ).
-        add( new OptionGroupSetSchemaDescriptor()).
+        add( new OptionGroupSetSchemaDescriptor() ).
+        add( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
