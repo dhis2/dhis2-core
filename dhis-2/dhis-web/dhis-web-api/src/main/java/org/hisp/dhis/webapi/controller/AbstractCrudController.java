@@ -43,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -182,6 +183,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected NodeService nodeService;
+
+    @Autowired
+    protected DbmsManager dbmsManager;
+
+    @Autowired
+    protected HibernateCacheManager cacheManager;
 
     //--------------------------------------------------------------------------
     // GET
@@ -424,7 +431,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             property.getSetterMethod().invoke( persistedObject, value );
         }
 
-        preheatService.refresh( persistedObject );
         manager.update( persistedObject );
 
         postPatchEntity( persistedObject );
@@ -970,7 +976,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             items.forEach( item ->
             {
                 if ( !collection.contains( item ) ) collection.add( item );
-                manager.refresh( item );
             } );
 
             manager.update( object );
@@ -996,9 +1001,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 {
                 }
             } );
-
-            manager.refresh( object );
         }
+
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1044,7 +1050,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             items.forEach( item ->
             {
                 if ( !collection.contains( item ) ) collection.remove( item );
-                manager.refresh( item );
             } );
 
             manager.update( object );
@@ -1070,9 +1075,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 {
                 }
             } );
-
-            manager.refresh( object );
         }
+
+        dbmsManager.clearSession();
+        cacheManager.clearCache();
     }
 
     @SuppressWarnings( "unchecked" )

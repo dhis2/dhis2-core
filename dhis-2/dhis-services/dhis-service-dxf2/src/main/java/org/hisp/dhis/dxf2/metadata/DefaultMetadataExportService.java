@@ -345,7 +345,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         dataSet.getIndicators().forEach( indicator -> handleIndicator( metadata, indicator ) );
 
         handleDataEntryForm( metadata, dataSet.getDataEntryForm() );
-        handleLegendSet( metadata, dataSet.getLegendSet() );
+        handleLegendSet( metadata, dataSet.getLegendSets() );
         handleCategoryCombo( metadata, dataSet.getCategoryCombo() );
 
         dataSet.getCompulsoryDataElementOperands().forEach( dataElementOperand -> handleDataElementOperand( metadata, dataElementOperand ) );
@@ -359,7 +359,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( dataElementOperand == null ) return metadata;
 
         handleCategoryOptionCombo( metadata, dataElementOperand.getCategoryOptionCombo() );
-        handleLegendSet( metadata, dataElementOperand.getLegendSet() );
+        handleLegendSet( metadata, dataElementOperand.getLegendSets() );
         handleDataElement( metadata, dataElementOperand.getDataElement() );
 
         return metadata;
@@ -404,12 +404,15 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleLegendSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, LegendSet legendSet )
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleLegendSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, List<LegendSet> legendSets )
     {
-        if ( legendSet == null ) return metadata;
-        metadata.putValue( LegendSet.class, legendSet );
+        if ( legendSets == null ) return metadata;
 
-        legendSet.getLegends().forEach( legend -> handleLegend( metadata, legend ) );
+        for ( LegendSet legendSet : legendSets )
+        {
+            metadata.putValue( LegendSet.class, legendSet );
+            legendSet.getLegends().forEach( legend -> handleLegend( metadata, legend ) );
+        }
 
         return metadata;
     }
