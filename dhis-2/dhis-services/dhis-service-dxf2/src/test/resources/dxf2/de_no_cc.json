@@ -1,0 +1,15 @@
+{
+  "dataElements": [
+    {
+      "userGroupAccesses": [ ],
+      "translations": [ ],
+      "aggregationType": "SUM",
+      "valueType": "NUMBER",
+      "shortName": "CCCC",
+      "domainType": "AGGREGATE",
+      "zeroIsSignificant": false,
+      "name": "CCCC",
+      "aggregationLevels": [ ]
+    }
+  ]
+}

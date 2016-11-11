@@ -839,7 +839,7 @@ public class ObjectBundleServiceTest
 
         Section section = manager.get( Section.class, "C50M0WxaI7y" );
         assertNotNull( section.getDataSet() );
-        assertNotNull( section.getCategoryCombo() );
+        assertEquals( 1, section.getCategoryCombos().size() );
         assertEquals( 1, section.getGreyedFields().size() );
 
         DataElementCategoryCombo categoryCombo = manager.get( DataElementCategoryCombo.class, "faV8QvLgIwB" );
@@ -874,14 +874,14 @@ public class ObjectBundleServiceTest
 
         Section section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );
-        assertNotNull( section1.getCategoryCombo() );
+        assertEquals( 1, section1.getCategoryCombos().size() );
         assertTrue( section1.getGreyedFields().isEmpty() );
         assertEquals( 1, section1.getDataElements().size() );
         assertNotNull( section1.getDataSet() );
 
         Section section2 = manager.get( Section.class, "C50M0WxaI7y" );
         assertNotNull( section2.getDataSet() );
-        assertNotNull( section2.getCategoryCombo() );
+        assertEquals( 1, section2.getCategoryCombos().size() );
         assertEquals( 1, section2.getGreyedFields().size() );
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
@@ -923,14 +923,14 @@ public class ObjectBundleServiceTest
 
         section1 = manager.get( Section.class, "JwcV2ZifEQf" );
         assertNotNull( section1.getDataSet() );
-        assertNotNull( section1.getCategoryCombo() );
+        assertEquals( 1, section1.getCategoryCombos().size() );
         assertEquals( 1, section1.getGreyedFields().size() );
         assertEquals( 1, section1.getDataElements().size() );
         assertNotNull( section1.getDataSet() );
 
         section2 = manager.get( Section.class, "C50M0WxaI7y" );
         assertNotNull( section2.getDataSet() );
-        assertNotNull( section2.getCategoryCombo() );
+        assertEquals( 1, section2.getCategoryCombos().size() );
         assertTrue( section2.getGreyedFields().isEmpty() );
         assertEquals( 1, section2.getDataElements().size() );
         assertNotNull( section2.getDataSet() );
@@ -1482,6 +1482,33 @@ public class ObjectBundleServiceTest
         assertNull( root.getParent() );
         assertEquals( 3, root.getChildren().size() );
         assertEquals( 1, root.getTranslations().size() );
+    }
+
+    @Test
+    public void testSetDefaultCategoryCombo() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/de_no_cc.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setAtomicMode( AtomicMode.ALL );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        List<DataElement> dataElements = manager.getAll( DataElement.class );
+        assertEquals( 1, dataElements.size() );
+
+        DataElement dataElement = dataElements.get( 0 );
+
+        assertEquals( "CCCC", dataElement.getName() );
+        assertEquals( "CCCC", dataElement.getShortName() );
+        assertNotNull( dataElement.getDataElementCategoryCombo() );
     }
 
     private void defaultSetup()

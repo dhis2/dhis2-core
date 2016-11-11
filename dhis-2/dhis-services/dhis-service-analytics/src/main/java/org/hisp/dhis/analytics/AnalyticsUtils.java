@@ -74,6 +74,8 @@ import com.google.common.collect.Maps;
  */
 public class AnalyticsUtils
 {
+    private static final int DECIMALS_NO_ROUNDING = 10;
+
     private static final String KEY_AGG_VALUE = "[aggregated]";
     
     public static String getDebugDataSql( DataQueryParams params )
@@ -158,8 +160,9 @@ public class AnalyticsUtils
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
      * returned unchanged. If the given number of decimals is specified, the
-     * value is rounded to the given decimals. Otherwise, default rounding is
-     * used.
+     * value is rounded to the given decimals. If skip rounding is specified
+     * in the given data query parameters, 10 decimals is used. Otherwise,
+     * default rounding is used.
      * 
      * @param params the query parameters.
      * @param decimals the number of decimals.
@@ -168,9 +171,13 @@ public class AnalyticsUtils
      */
     public static Double getRoundedValue( DataQueryParams params, Integer decimals, Double value )
     {
-        if ( value == null || params.isSkipRounding() )
+        if ( value == null )
         {
             return value;
+        }
+        else if ( params.isSkipRounding() )
+        {
+            return MathUtils.getRounded( value, DECIMALS_NO_ROUNDING );
         }
         else if ( decimals != null && decimals > 0 )
         {
@@ -185,17 +192,23 @@ public class AnalyticsUtils
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
      * returned unchanged. If the given number is null or not of class Double,
-     * the value is returned unchanged. Otherwise, default rounding is used.
-     *  
+     * the value is returned unchanged. If skip rounding is specified in the
+     * given data query parameters, 10 decimals is used. Otherwise, default
+     * rounding is used.
+     *
      * @param params the query parameters.
      * @param value the value.
      * @return a value.
      */
     public static Object getRoundedValueObject( DataQueryParams params, Object value )
     {
-        if ( value == null || params.isSkipRounding() || !Double.class.equals( value.getClass() ) )
+        if ( value == null || !Double.class.equals( value.getClass() ) )
         {
             return value;
+        }
+        else if ( params.isSkipRounding() )
+        {
+            return MathUtils.getRounded( (Double) value, DECIMALS_NO_ROUNDING );
         }
         
         return MathUtils.getRounded( (Double) value );
@@ -246,7 +259,7 @@ public class AnalyticsUtils
 
     /**
      * Generates a mapping where the key represents the dimensional item identifiers
-     * concatenated by {@link DimensionalObject.DIMENSION_SEP} and the value is 
+     * concatenated by DimensionalObject.DIMENSION_SEP and the value is
      * the corresponding aggregated data value based on the given grid. Assumes 
      * that the value column is the last column in the grid. 
      *
@@ -415,7 +428,7 @@ public class AnalyticsUtils
      * for the given query.
      *
      * @param params the data query parameters.
-     * @param a mapping between identifiers and names.
+     * @returns a mapping between identifiers and names.
      */
     public static Map<String, String> getCocNameMap( DataQueryParams params )
     {

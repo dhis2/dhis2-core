@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -42,6 +43,8 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import java.util.List;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -60,6 +63,8 @@ public class ProgramTrackedEntityAttribute
     private TrackedEntityAttribute attribute;
 
     private boolean displayInList;
+
+    private Integer sortOrder;
 
     private Boolean mandatory;
 
@@ -88,6 +93,15 @@ public class ProgramTrackedEntityAttribute
         this( program, attribute );
         this.displayInList = displayInList;
         this.mandatory = mandatory;
+    }
+
+    public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
+            Boolean mandatory, Integer sortOrder )
+    {
+        this( program, attribute );
+        this.displayInList = displayInList;
+        this.mandatory = mandatory;
+        this.sortOrder = sortOrder;
     }
 
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
@@ -123,7 +137,7 @@ public class ProgramTrackedEntityAttribute
         group.getAttributes().remove( this );
     }
 
-    public void updateDataElementGroups( Set<ProgramTrackedEntityAttributeGroup> updates )
+    public void updateProgramTrackedEntityAttributeGroups( Set<ProgramTrackedEntityAttributeGroup> updates )
     {
         for ( ProgramTrackedEntityAttributeGroup group : new HashSet<>( groups ) )
         {
@@ -186,9 +200,9 @@ public class ProgramTrackedEntityAttribute
     }
 
     @Override
-    public LegendSet getLegendSet()
+    public List<LegendSet> getLegendSets()
     {
-        return attribute != null ? attribute.getLegendSet() : null;
+        return attribute != null ? attribute.getLegendSets() : null;
     }
 
     @Override
@@ -263,6 +277,18 @@ public class ProgramTrackedEntityAttribute
         this.allowFutureDate = allowFutureDate;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getSortOrder()
+    {
+        return sortOrder;
+    }
+
+    public void setSortOrder( Integer sortOrder )
+    {
+        this.sortOrder = sortOrder;
+    }
+
     @JsonProperty( "programTrackedEntityAttributeGroups" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "programTrackedEntityAttributeGroups", namespace = DxfNamespaces.DXF_2_0 )
@@ -289,6 +315,7 @@ public class ProgramTrackedEntityAttribute
             if ( mergeMode.isReplace() )
             {
                 program = programTrackedEntityAttribute.getProgram();
+                sortOrder = programTrackedEntityAttribute.getSortOrder();
                 attribute = programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
@@ -297,6 +324,7 @@ public class ProgramTrackedEntityAttribute
             else if ( mergeMode.isMerge() )
             {
                 program = programTrackedEntityAttribute.getProgram() == null ? program : programTrackedEntityAttribute.getProgram();
+                sortOrder = programTrackedEntityAttribute.getSortOrder() == null ? sortOrder : programTrackedEntityAttribute.getSortOrder();
                 attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();

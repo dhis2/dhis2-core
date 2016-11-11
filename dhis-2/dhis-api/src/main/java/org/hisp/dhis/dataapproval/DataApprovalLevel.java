@@ -191,7 +191,7 @@ public class DataApprovalLevel
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE, persisted = Property.Value.TRUE, owner = Property.Value.TRUE )
+    @Property( value = PropertyType.REFERENCE, required = Property.Value.DEFAULT, persisted = Property.Value.TRUE, owner = Property.Value.TRUE )
     public CategoryOptionGroupSet getCategoryOptionGroupSet()
     {
         return categoryOptionGroupSet;

@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.sqlview;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,19 +28,59 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.Assert.*;
+
 /**
- * This exception type is used for signaling any problems during SMS handling.
+ * @author Lars Helge Overland
  */
-public class SmsServiceException
-    extends RuntimeException
+public class SqlViewUtilsTest
 {
-    public SmsServiceException( String message )
+    @Test
+    public void testGetVariables()
     {
-        super( message );
+        String sql = "select * from dataelement where name = '${de_name}' and aggregationType = '${de_aggregation_type}'";
+
+        Set<String> variables = SqlViewUtils.getVariables( sql );
+
+        assertEquals( 2, variables.size() );
+        assertTrue( variables.contains( "de_name" ) );
+        assertTrue( variables.contains( "de_aggregation_type" ) );
     }
 
-    public SmsServiceException( String message, Exception cause )
+    @Test
+    public void testSubsituteSql()
     {
-        super( message, cause );
+        Map<String, String> variables = new HashMap<>();
+        variables.put( "level", "4" );
+        variables.put( "id", "abc" );
+
+        String sql = "select * from datavalue where level=${level} and id='${id}'";
+
+        String expected = "select * from datavalue where level=4 and id='abc'";
+
+        String actual = SqlViewUtils.substituteSqlVariables( sql, variables );
+
+        assertEquals( expected, actual );
+    }
+
+    @Test
+    public void testSubsituteSqlMalicious()
+    {
+        Map<String, String> variables = new HashMap<>();
+        variables.put( "level", "; delete from datavalue;" );
+
+        String sql = "select * from datavalue where level=${level}";
+
+        String expected = "select * from datavalue where level=${level}";
+
+        String actual = SqlViewUtils.substituteSqlVariables( sql, variables );
+
+        assertEquals( expected, actual );
     }
 }

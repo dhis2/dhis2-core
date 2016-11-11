@@ -63,6 +63,10 @@ public class Section
     private Set<DataElementOperand> greyedFields = new HashSet<>();
 
     private int sortOrder;
+    
+    private boolean showRowTotals;
+    
+    private boolean showColumnTotals;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -126,30 +130,47 @@ public class Section
 
     public boolean hasCategoryCombo()
     {
-        return getCategoryCombo() != null;
+        return !getCategoryCombos().isEmpty();
     }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElementCategoryCombo getCategoryCombo()
+    public Set<DataElementCategoryCombo> getCategoryCombos()
     {
+    	Set<DataElementCategoryCombo> categoryCombos = new HashSet<>();
+    	
         for ( DataElement dataElement : dataElements )
         {
             DataElementCategoryCombo categoryCombo = dataElement.getCategoryCombo( dataSet );
             
             if ( categoryCombo != null )
             {
-                return categoryCombo;
+            	categoryCombos.add( categoryCombo ); 
             }
         }
         
-        return null;
+        return categoryCombos;
     }
 
     public boolean hasDataElements()
     {
         return dataElements != null && !dataElements.isEmpty();
+    }
+    
+    public List<DataElement> getDataElementsByCategoryCombo( DataElementCategoryCombo categoryCombo )
+    {
+        List<DataElement> dataElements = new ArrayList<>();
+        
+        for( DataElement dataElement : this.dataElements )
+        {
+            if( dataElement.getCategoryCombo( this.dataSet ).equals( categoryCombo ) )
+            {
+                dataElements.add( dataElement );
+            }
+        }
+        
+        return dataElements;        
     }
 
     @Override
@@ -239,6 +260,30 @@ public class Section
     public void setGreyedFields( Set<DataElementOperand> greyedFields )
     {
         this.greyedFields = greyedFields;
+    }        
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isShowRowTotals()
+    {
+        return showRowTotals;
+    }
+
+    public void setShowRowTotals( boolean showRowTotals )
+    {
+        this.showRowTotals = showRowTotals;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isShowColumnTotals()
+    {
+        return showColumnTotals;
+    }
+
+    public void setShowColumnTotals( boolean showColumnTotals )
+    {
+        this.showColumnTotals = showColumnTotals;
     }
 
     @Override

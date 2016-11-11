@@ -28,18 +28,8 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLast;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.calendar.Calendar;
@@ -49,6 +39,7 @@ import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
@@ -59,8 +50,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+
+import static org.hisp.dhis.commons.util.TextUtils.removeLast;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 /**
  * @author Lars Helge Overland
@@ -291,15 +286,23 @@ public class JdbcEventAnalyticsTableManager
 
         for ( DataElement dataElement : table.getProgram().getDataElementsWithLegendSet() )
         {
-            String column = quote( dataElement.getUid() + PartitionUtils.SEP + dataElement.getLegendSet().getUid() );
-            String select = getSelectClause( dataElement.getValueType() );
-            
-            String sql = "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
-                "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " and l.endvalue > " + select + " " +
-                "and lsl.legendsetid=" + dataElement.getLegendSet().getId() + " and dv.programstageinstanceid=psi.programstageinstanceid " + 
-                "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
-                
-            columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+
+            for ( LegendSet legendSet : dataElement.getLegendSets() )
+            {
+                String column = quote(
+                    dataElement.getUid() + PartitionUtils.SEP + legendSet.getUid() );
+                String select = getSelectClause( dataElement.getValueType() );
+
+                String sql =
+                    "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
+                        "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " and l.endvalue > " +
+                        select + " " +
+                        "and lsl.legendsetid=" + legendSet.getId() +
+                        " and dv.programstageinstanceid=psi.programstageinstanceid " +
+                        "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
+
+                columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+            }
         }
 
         for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributes() )
@@ -317,15 +320,21 @@ public class JdbcEventAnalyticsTableManager
         
         for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributesWithLegendSet() )
         {
-            String column = quote( attribute.getUid() + PartitionUtils.SEP + attribute.getLegendSet().getUid() );
-            String select = getSelectClause( attribute.getValueType() );
-            
-            String sql = "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
-                "inner join trackedentityattributevalue av on l.startvalue <= " + select + " and l.endvalue > " + select + " " +
-                "and lsl.legendsetid=" + attribute.getLegendSet().getId() + " and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
-            
-            columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+            for ( LegendSet legendSet : attribute.getLegendSets() )
+            {
+                String column = quote( attribute.getUid() + PartitionUtils.SEP + legendSet.getUid() );
+                String select = getSelectClause( attribute.getValueType() );
+
+                String sql =
+                    "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
+                        "inner join trackedentityattributevalue av on l.startvalue <= " + select +
+                        " and l.endvalue > " + select + " " +
+                        "and lsl.legendsetid=" + legendSet.getId() +
+                        " and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
+                        "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
+
+                columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+            }
         }
 
         AnalyticsTableColumn psi = new AnalyticsTableColumn( quote( "psi" ), "character(11) not null", "psi.uid" );

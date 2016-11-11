@@ -281,6 +281,8 @@ public class DefaultRenderService
 
         for ( ObjectMapper objectMapper : objectMappers )
         {
+            objectMapper.registerModule( module );
+
             objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
             objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
             objectMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
@@ -296,8 +298,6 @@ public class DefaultRenderService
             objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
             objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
             objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-            objectMapper.registerModule( module );
         }
 
         jsonMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );

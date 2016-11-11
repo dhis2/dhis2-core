@@ -132,7 +132,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 typeReport.merge( checkUniqueAttributes( klass, nonPersistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
                 typeReport.merge( checkUniqueAttributes( klass, persistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
 
-                TypeReport checkReferences = checkReferences( klass, allObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                TypeReport checkReferences = checkReferences( klass, allObjects, bundle.getPreheat(), bundle.getPreheatIdentifier(), bundle.isSkipSharing() );
 
                 if ( !checkReferences.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode() )
                 {
@@ -150,7 +150,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 typeReport.merge( checkMandatoryAttributes( klass, nonPersistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
                 typeReport.merge( checkUniqueAttributes( klass, nonPersistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
 
-                TypeReport checkReferences = checkReferences( klass, allObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                TypeReport checkReferences = checkReferences( klass, allObjects, bundle.getPreheat(), bundle.getPreheatIdentifier(), bundle.isSkipSharing() );
 
                 if ( !checkReferences.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode() )
                 {
@@ -168,7 +168,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 typeReport.merge( checkMandatoryAttributes( klass, persistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
                 typeReport.merge( checkUniqueAttributes( klass, persistedObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() ) );
 
-                TypeReport checkReferences = checkReferences( klass, allObjects, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                TypeReport checkReferences = checkReferences( klass, allObjects, bundle.getPreheat(), bundle.getPreheatIdentifier(), bundle.isSkipSharing() );
 
                 if ( !checkReferences.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode() )
                 {
@@ -470,7 +470,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         return klasses;
     }
 
-    private TypeReport checkReferences( Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, Preheat preheat, PreheatIdentifier identifier )
+    private TypeReport checkReferences( Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, Preheat preheat, PreheatIdentifier identifier, boolean skipSharing )
     {
         TypeReport typeReport = new TypeReport( klass );
 
@@ -482,7 +482,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         for ( int idx = 0; idx < objects.size(); idx++ )
         {
             IdentifiableObject object = objects.get( idx );
-            List<PreheatErrorReport> errorReports = checkReferences( klass, object, preheat, identifier );
+            List<PreheatErrorReport> errorReports = checkReferences( object, preheat, identifier, skipSharing );
 
             if ( errorReports.isEmpty() ) continue;
 
@@ -494,7 +494,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         return typeReport;
     }
 
-    private List<PreheatErrorReport> checkReferences( Class<? extends IdentifiableObject> klass, IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier )
+    private List<PreheatErrorReport> checkReferences( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier, boolean skipSharing )
     {
         List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
 
@@ -520,8 +520,11 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                     if ( ref == null && refObject != null && !Preheat.isDefaultClass( refObject.getClass() ) )
                     {
-                        preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
-                            identifier.getIdentifiersWithName( refObject ), identifier.getIdentifiersWithName( object ), p.getName() ) );
+                        if ( !("user".equals( p.getName() ) && User.class.isAssignableFrom( p.getKlass() ) && skipSharing) )
+                        {
+                            preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
+                                identifier.getIdentifiersWithName( refObject ), identifier.getIdentifiersWithName( object ), p.getName() ) );
+                        }
                     }
                 }
                 else
@@ -561,9 +564,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         if ( schema.havePersistedProperty( "userGroupAccesses" ) )
         {
             object.getUserGroupAccesses().stream()
-                .filter( userGroupAccess -> userGroupAccess.getUserGroup() != null && preheat.get( identifier, userGroupAccess.getUserGroup() ) == null )
-                .forEach( attributeValue -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
-                    identifier.getIdentifiersWithName( attributeValue.getUserGroup() ), identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
+                .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUserGroup() != null && preheat.get( identifier, userGroupAccess.getUserGroup() ) == null )
+                .forEach( userGroupAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
+                    identifier.getIdentifiersWithName( userGroupAccesses.getUserGroup() ), identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
         }
 
         return preheatErrorReports;

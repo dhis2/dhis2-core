@@ -156,7 +156,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for dealing with dates */
-.service('DateUtils', function ($filter, CalendarService) {
+.service('DateUtils', function ($filter, CalendarService, NotificationService, $translate) {
 
     return {
         getDate: function (dateValue) {
@@ -217,6 +217,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 return;
             }
             var calendarSetting = CalendarService.getSetting();
+            if (moment(dateValue, calendarSetting.momentFormat).format(calendarSetting.momentFormat) === dateValue) {
+                return dateValue;
+            }
             dateValue = moment(dateValue, 'YYYY-MM-DD')._d;
             return $filter('date')(dateValue, calendarSetting.keyDateFormat);
         },
@@ -229,7 +232,31 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             dateAfterOffset = Date.parse(dateAfterOffset);
             dateAfterOffset = $filter('date')(dateAfterOffset, calendarSetting.keyDateFormat);
             return dateAfterOffset;
+        },
+        verifyExpiryDate: function(date, expiryPeriodType, expiryDays){
+            var eventPeriodEndDate, eventDate, eventPeriod;
+            var isValid = true;
+            var calendarSetting, dateFormat, generator, today;
+            if(!date || !expiryPeriodType || !expiryDays) {
+                return isValid;
+            }
+            calendarSetting = CalendarService.getSetting();
+            dateFormat = calendarSetting.momentFormat;
+            generator = new dhis2.period.PeriodGenerator($.calendars.instance(calendarSetting.keyCalendar), dateFormat);
+            today = moment();
+            eventDate = moment(date, dateFormat);
+            eventPeriod = generator.getPeriodForTheDate(eventDate.format("YYYY-MM-DD"), expiryPeriodType, true);
+            alert("date : "+date+" ,expiryPeriodType: "+expiryPeriodType+" ,expiryDays"+expiryDays+", dateFormat"+dateFormat+", evPerEdnDate: "+eventPeriod.endDate);
+            if (eventPeriod && eventPeriod.endDate) {
+                eventPeriodEndDate = moment(eventPeriod.endDate, "YYYY-MM-DD").add(expiryDays, "day");
+                if (today.isAfter(eventPeriodEndDate)) {
+                    NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("event_date_out_of_range"));
+                    isValid = false;
+                }
+            }
+            return isValid;
         }
+
     };
 })
 
@@ -393,11 +420,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             newInputField = '<span class="hideInPrint"><input type="text" ' +
                                 this.getAttributesAsString(attributes) +
                                 ' ng-model="currentEvent.' + fieldId + '"' +
+                                ' ng-disabled="model.editingDisabled"' +
                                 ' input-field-id="' + fieldId + '"' +
                                 ' d2-date ' +
                                 ' d2-date-validator ' +
                                 ' max-date="' + 0 + '"' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
+                                ' ng-change="verifyExpiryDate()"'+
                                 ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id,true)"' +
                                 ' blur-or-change="saveDatavalue(prStDes.' + fieldId + ')"' +
                                 ' ng-required="{{true}}"></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
@@ -417,14 +446,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 var commonInputFieldProperty = this.getAttributesAsString(attributes) +
                                     ' ng-model="currentEvent.' + fieldId + '" ' +
                                     ' input-field-id="' + fieldId + '"' +
-                                    ' ng-disabled="isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed "'+
+                                    ' ng-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed "'+
                                     ' ng-required="{{prStDes.' + fieldId + '.compulsory}}" ';
 
                                 
                                 //check if dataelement has optionset
                                 if (prStDe.dataElement.optionSetValue) {
                                     var optionSetId = prStDe.dataElement.optionSet.id;
-                                    newInputField = '<span class="hideInPrint"><ui-select style="width: 100%;" theme="select2" ' + commonInputFieldProperty + ' on-select="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')" >' +
+                                    newInputField = '<span class="hideInPrint"><ui-select style="width: 100%;" theme="select2" ' + commonInputFieldProperty + ' ng-disabled="model.editingDisabled" on-select="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')" >' +
                                         '<ui-select-match ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)" allow-clear="true" placeholder="' + $translate.instant('select_or_search') + '">{{$select.selected.displayName || $select.selected}}</ui-select-match>' +
                                         '<ui-select-choices ' +
                                         ' repeat="option.displayName as option in optionSets.' + optionSetId + '.options | filter: $select.search | limitTo:maxOptionSize">' +
@@ -445,18 +474,18 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
                                             ' number-type="' + prStDe.dataElement.valueType + '" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
-                                            commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
+                                            commonInputFieldProperty + 'ng-disabled="model.editingDisabled"></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "BOOLEAN") {
                                     	newInputField = '<span class="hideInPrint"><d2-radio-button ' +
                                                                     ' dh-required="prStDes.' + fieldId + '.compulsory" ' +
-                                                                    ' dh-disabled="isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
+                                                                    ' dh-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
                                                                     ' dh-value="currentEvent.' + fieldId + '" ' +
                                                                     ' dh-name="foo" ' +
                                                                     ' dh-current-element="currentElement" ' +
                                                                     ' dh-event="currentEvent.event" ' +
                                                                     ' dh-id="prStDes.' + fieldId + '.dataElement.id" ' +
-                                                                    ' dh-click="saveDatavalue(prStDes.' + fieldId + ', currentEvent, value )" >' +
+                                                                    ' dh-click="saveDatavalue(prStDes.' + fieldId + ', currentEvent, value )">' +
                                                             ' </d2-radio-button></span> ' +
                                                             '<span class="not-for-screen">' +
                                                             	'<label class="radio-inline"><input type="radio" value="true" ng-model="currentEvent.' + fieldId +'">{{\'yes\' | translate}}</label>' +
@@ -468,26 +497,28 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         newInputField = '<span class="hideInPrint"><input type="text" ' +
                                             ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                            ' ng-disabled="model.editingDisabled"'+
                                             ' d2-date ' +
                                             ' d2-date-validator ' +
                                             ' max-date="' + maxDate + '"' +
+                                            ' ng-change="verifyExpiryDate()"'+
                                             ' blur-or-change="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + ' ></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "TRUE_ONLY") {
-                                        newInputField = '<span class="hideInPrint"><input type="checkbox" ' +
+                                        newInputField = '<span class="hideInPrint"><input type="checkbox" ng-disabled="model.editingDisabled"' +
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
                                             ' ng-change="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + ' ></span><span class="not-for-screen"><input type="checkbox" ng-checked={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "LONG_TEXT") {
-                                        newInputField = '<span class="hideInPrint"><textarea row="3" ' +
+                                        newInputField = '<span class="hideInPrint"><textarea ng-disabled="model.editingDisabled" row="3" ' +
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + '></textarea></span><span class="not-for-screen"><textarea row="3" value={{currentEvent.' + fieldId + '}}></textarea></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "FILE_RESOURCE") {
-                                        newInputField = '<span class="input-group hideInPrint">\n\
+                                        newInputField = '<span ng-disabled="model.editingDisabled" class="input-group hideInPrint">\n\
                                                         <span ng-if="currentEvent.' + fieldId + '">\n\
                                                             <a href ng-click="downloadFile(null, \'' + fieldId + '\', null)" title="fileNames[currentEvent.event][' + fieldId + ']" >{{fileNames[currentEvent.event][' + fieldId + '].length > 20 ? fileNames[currentEvent.event][' + fieldId + '].substring(0,20).concat(\'...\') : fileNames[currentEvent.event][' + fieldId + ']}}</a>\n\
                                                         </span>\n\
@@ -514,11 +545,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     '</span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "COORDINATE") {
-                                    	newInputField = '<span class="hideInPrint"><d2-map ' + 
+                                    	newInputField = '<span class="hideInPrint"><d2-map ' +
                                     							' id=" ' + fieldId + '" ' +
 						                                        ' d2-object="currentEvent" ' + 
 						                                        ' d2-coordinate-format="\'TEXT\'" ' + 
-						                                        ' d2-disabled="isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
+						                                        ' d2-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
 					                                            ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
 						                                        ' d2-function="saveDatavalue(arg1)" ' +						                                        
 						                                        ' d2-function-param-text="prStDes.' + fieldId + '" ' +
@@ -534,7 +565,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 					                                            ' id="{{prStDes.' + fieldId + '.dataElement.id}}" ' +
 					                                            ' d2-object="currentEvent" ' +
 					                                            ' d2-value="currentEvent.' + fieldId + '" ' +
-					                                            ' d2-disabled="isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
+					                                            ' d2-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
 					                                            ' d2-required="prStDes.' + fieldId + '.compulsory" ' +						                                            
 					                                            ' d2-function="saveDatavalue(prStDes.' + fieldId + ', currentEvent, value )" >' +
 					                                    ' </d2-org-unit-tree></span>' +
@@ -543,7 +574,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     	'</span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "TEXT") {
-                                        newInputField = '<span class="hideInPrint"><input type="text" ' +
+                                        newInputField = '<span class="hideInPrint"><input ng-disabled="model.editingDisabled" type="text" ' +
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
                                             ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
@@ -616,6 +647,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 this.getAttributesAsString(attributes) +
                                 ' d2-focus-next-on-enter' +
                                 ' ng-model="selectedTei.' + attId + '" ' +
+                                ' ng-change="verifyExpiryDate(\'selectedTei.\'+attId)"'+
                                 ' attribute-data="attributesById.' + attId + '" ' +
                                 ' selected-program-id="selectedProgram.id" ' +
                                 ' selected-tei-id="selectedTei.trackedEntityInstance" ' +
@@ -667,6 +699,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                         ' max-date=" ' + attMaxDate + ' " ' +
                                         ' d2-date' +
+                                        ' ng-change="verifyExpiryDate(\'selectedTei.'+attId+'\')"'+
                                         ' blur-or-change="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></span>' +
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -770,6 +803,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-focus-next-on-enter' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfEnrollment" ' +
+                                ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfEnrollment\')"'+
                                 ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
                                 ' d2-date' +
                                 ' max-date="' + enMaxDate + '"' +
@@ -785,6 +819,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-focus-next-on-enter' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfIncident" ' +
+                                ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfIncident\')"'+
                                 ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
                                 ' d2-date ' +
                                 ' max-date="' + inMaxDate + '">';
@@ -1390,10 +1425,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         return variables;
     };
     
-    var getDataElementValueOrCode = function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
+    var getDataElementValueOrCodeForValueInternal = function(useCodeForOptionSet, value, dataElementId, allDes, optionSets) {
         return useCodeForOptionSet && allDes && allDes[dataElementId].dataElement.optionSet ? 
-                                            OptionSetService.getCode(optionSets[allDes[dataElementId].dataElement.optionSet.id].options, event[dataElementId])
-                                            : event[dataElementId];
+                                            OptionSetService.getCode(optionSets[allDes[dataElementId].dataElement.optionSet.id].options, value)
+                                            : value;
     };
 
     return {
@@ -1401,7 +1436,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return processSingleValue(value,type);
         },
         getDataElementValueOrCode: function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
-            return getDataElementValueOrCode(useCodeForOptionSet, event, dataElementId, allDes, optionSets);
+            return getDataElementValueOrCodeForValueInternal(useCodeForOptionSet, event[dataElementId], dataElementId, allDes, optionSets);
+        },
+        getDataElementValueOrCodeForValue: function(useCodeForOptionSet, value, dataElementId, allDes, optionSets) {
+            return getDataElementValueOrCodeForValueInternal(useCodeForOptionSet, value, dataElementId, allDes, optionSets);
         },
         getVariables: function(allProgramRules, executingEvent, evs, allDes, selectedEntity, selectedEnrollment, optionSets) {
 
@@ -1436,7 +1474,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(event[dataElementId] !== null) {
                                 if(angular.isDefined(event[dataElementId])
                                         && event[dataElementId] !== ""){
-                                    var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
+                                    var value = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, event[dataElementId], dataElementId, allDes, optionSets);
                                             
                                     allValues.push(value);
                                     valueFound = true;
@@ -1456,7 +1494,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         if(angular.isDefined(event[dataElementId])
                             && event[dataElementId] !== null 
                             && event[dataElementId] !== ""){
-                            var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
+                            var value = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, event[dataElementId], dataElementId, allDes, optionSets);
                                     
                             allValues.push(value);
                             valueFound = true;
@@ -1468,7 +1506,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     if(angular.isDefined(executingEvent[dataElementId])
                         && executingEvent[dataElementId] !== null 
                         && executingEvent[dataElementId] !== ""){
-                        var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, executingEvent, dataElementId, allDes, optionSets);
+                        var value = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, executingEvent[dataElementId], dataElementId, allDes, optionSets);
                             
                         valueFound = true;
                         variables = pushVariable(variables, programVariable.displayName, value, null, allDes[dataElementId].dataElement.valueType, valueFound, '#', executingEvent.eventDate, programVariable.useCodeForOptionSet );
@@ -1487,7 +1525,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(!currentEventPassed && evs.all[i] !== executingEvent &&
                                 angular.isDefined(evs.all[i][dataElementId])
                                 && evs.all[i][dataElementId] !== "") {
-                                previousvalue = getDataElementValueOrCode(programVariable.useCodeForOptionSet, evs.all[i], dataElementId, allDes, optionSets);
+                                previousvalue = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, evs.all[i][dataElementId], dataElementId, allDes, optionSets);
                                 previousEventDate = evs.all[i].eventDate;
                                 allValues.push(value);
                                 valueFound = true;
@@ -2428,22 +2466,18 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             var variabletoassign = $rootScope.ruleeffects[ruleEffectKey][action.id].content ?
                                 $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("}","") : null;
 
-                            if(variabletoassign || !angular.isDefined(variablesHash[variabletoassign])){
+                            if(variabletoassign && !angular.isDefined(variablesHash[variabletoassign])){
                                 //If a variable is mentioned in the content of the rule, but does not exist in the variables hash, show a warning:
                                 $log.warn("Variable " + variabletoassign + " was not defined.");
                             }
 
-                            if(variablesHash[variabletoassign] &&
-                                variablesHash[variabletoassign].variableValue !== updatedValue){
-                                //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
-                                updatedEffectsExits = true;
-                                
+                            if(variablesHash[variabletoassign]){
                                 var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
                                 
                                 var valueType = determineValueType(updatedValue);
                                 
                                 if($rootScope.ruleeffects[ruleEffectKey][action.id].dataElement) {
-                                    updatedValue = VariableService.getDataElementValueOrCode(variablesHash[variabletoassign].useCodeForOptionSet, executingEvent, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
+                                    updatedValue = VariableService.getDataElementValueOrCodeForValue(variablesHash[variabletoassign].useCodeForOptionSet, updatedValue, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
                                 }
                                 updatedValue = VariableService.processValue(updatedValue, valueType);
 
@@ -2455,6 +2489,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     variablePrefix:'#',
                                     allValues:[updatedValue]
                                 };
+                                
+                                if(variablesHash[variabletoassign].variableValue !== updatedValue) {
+                                    //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
+                                    updatedEffectsExits = true;
+                                }
                             }
                         }
                     });
@@ -2723,7 +2762,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for dealing with events */
-.service('DHIS2EventService', function(){
+.service('DHIS2EventService', function(DateUtils){
     return {
         //for simplicity of grid display, events were changed from
         //event.datavalues = [{dataElement: dataElement, value: value}] to
@@ -2767,6 +2806,22 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 }
             }
             return eventList;
+        },
+        getEventExpiryStatus : function (event, program, selectedOrgUnit) {
+            var completedDate, today, daysAfterCompletion;
+
+            if ((event.orgUnit !== selectedOrgUnit) || ( program.completeEventsExpiryDays === 0) ||
+                !event.status) {
+                return false;
+            }
+
+            completedDate = moment(event.completedDate,'YYYY-MM-DD');
+            today = moment(DateUtils.getToday(),'YYYY-MM-DD');
+            daysAfterCompletion = today.diff(completedDate, 'days');
+            if (daysAfterCompletion < program.completeEventsExpiryDays) {
+                return false;
+            }
+            return true;
         }
     };
 })

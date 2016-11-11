@@ -233,9 +233,12 @@ public class MetadataVersionController
                 throw new MetadataVersionException( "Metadata versioning is not enabled for this instance." );
             }
 
-            versionService.saveVersion( versionType );
-            versionToReturn = versionService.getCurrentVersion();
-            return versionToReturn;
+            synchronized ( versionService )
+            {
+                versionService.saveVersion( versionType );
+                versionToReturn = versionService.getCurrentVersion();
+                return versionToReturn;
+            }
 
         }
         catch ( MetadataVersionServiceException ex )
