@@ -334,7 +334,8 @@ public interface Grid
     
     /**
      * Substitutes the grid header names and the grid values for meta type columns
-     * based on the given mapping.
+     * based on the given mapping. Values are left unchanged when there is not match
+     * in the given meta data map.
      * 
      * @param metaDataMap meta data map of keys and value substitutions.
      */
@@ -343,6 +344,8 @@ public interface Grid
     /**
      * Substitutes the grid values based on the given mapping. Substitutes values
      * per row based on the given source column index and target column index.
+     * Values are left unchanged when there is not match in the given meta data
+     * map.
      * 
      * @param sourceColumnIndex the index of the column to read values.
      * @param targetColumnIndex the index of the column to substitute values.
