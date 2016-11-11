@@ -166,18 +166,6 @@ public class StreamingXmlCompleteDataSetRegistrations
     }
 
     @Override
-    public String getPeriod()
-    {
-        return get( FIELD_PERIOD, super::getPeriod, super::setPeriod );
-    }
-
-    @Override
-    public void setPeriod( String period )
-    {
-        writeField( FIELD_PERIOD, period );
-    }
-
-    @Override
     public Boolean getDryRun()
     {
         return get( FIELD_DRY_RUN, super::getDryRun, v -> super.setDryRun( Boolean.parseBoolean( v ) ? Boolean.TRUE : null ) );

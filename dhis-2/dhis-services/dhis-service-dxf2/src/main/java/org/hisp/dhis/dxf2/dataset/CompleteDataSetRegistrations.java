@@ -59,8 +59,6 @@ public class CompleteDataSetRegistrations
 
     protected static final String FIELD_IMPORT_STRATEGY = "importStrategy";
 
-    protected static final String FIELD_PERIOD = "period";
-
     protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATION = "completeDataSetRegistration";
 
     protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATIONS = "completeDataSetRegistrations";

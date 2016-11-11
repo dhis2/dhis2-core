@@ -137,10 +137,4 @@ public class StreamingJsonCompleteDataSetRegistrations
     {
         writeField( FIELD_ATTR_OPT_COMBO_ID_SCHEME, attributeOptionComboIdScheme );
     }
-
-    @Override
-    public void setPeriod( String period )
-    {
-        writeField( FIELD_PERIOD, period );
-    }
 }
