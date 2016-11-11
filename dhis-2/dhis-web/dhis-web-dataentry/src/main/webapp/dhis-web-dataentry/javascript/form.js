@@ -816,16 +816,22 @@ dhis2.de.filterInSection = function( $this )
         $trTargetChildren.each( function( idx, item ) 
         {
             var text1 = $this.val().toUpperCase();
-            var text2 = $( item ).find( 'span' ).html().toUpperCase();
+            var text2 = $( item ).find( 'span' ).html();
+            
+            if( text2 && text2 != "")
+            {
+                text2 = text2.toUpperCase();
 
-            if ( text2.indexOf( text1 ) >= 0 )
-            {
-                $( item ).parent().show();
+                if ( text2.indexOf( text1 ) >= 0 )
+                {
+                    $( item ).parent().show();
+                }
+                else
+                {
+                    $( item ).parent().hide();
+                }
             }
-            else
-            {
-                $( item ).parent().hide();
-            }
+            
         } );
     }
 
