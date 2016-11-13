@@ -667,7 +667,7 @@ public class DefaultAnalyticsService
         if ( params.getDataDimensionAndFilterOptions().isEmpty() && !params.isSkipData() )
         {
             Map<String, Double> aggregatedDataMap = getAggregatedDataValueMap( DataQueryParams.newBuilder( params )
-                .withIncludeNumDen( false ).build() ); //TODO pass directly
+                .withIncludeNumDen( false ).build() );
 
             for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
             {
