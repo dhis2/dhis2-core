@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
@@ -115,6 +116,12 @@ public class ProgramDataElement
         return program.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dataElement.getUid();
     }
 
+    @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dataElement.getPropertyValue( idScheme );
+    }
+    
     @Override
     public DimensionItemType getDimensionItemType()
     {

@@ -72,7 +72,7 @@ public class BaseDimensionalItemObject
     }
 
     // -------------------------------------------------------------------------
-    // Logic
+    // DimensionalItemObject
     // -------------------------------------------------------------------------
 
     @Override
@@ -87,17 +87,23 @@ public class BaseDimensionalItemObject
         return getAggregationType() != null;
     }
 
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
-
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDimensionItem()
     {
-        return uid;
+        return getUid();
     }
+
+    @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        return getPropertyValue( idScheme );
+    }
+    
+    // -------------------------------------------------------------------------
+    // Get and set methods
+    // -------------------------------------------------------------------------
 
     @Override
     @JsonProperty

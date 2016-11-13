@@ -43,6 +43,14 @@ public interface DimensionalItemObject
     String getDimensionItem();
     
     /**
+     * Gets the dimension item identifier based on the given
+     * identifier scheme.
+     * 
+     * @param idScheme the identifier scheme.
+     */
+    String getDimensionItem( IdScheme idScheme );
+    
+    /**
      * Gets the dimension type of this dimension item.
      */
     DimensionItemType getDimensionItemType();
