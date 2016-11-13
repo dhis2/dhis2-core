@@ -640,7 +640,7 @@ public class DefaultAnalyticsService
      */
     private void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid )
     {
-        if ( (!params.getAllProgramDataElementsAndAttributes().isEmpty() || !params.getProgramIndicators().isEmpty()) && !params.isSkipData() )
+        if ( ( !params.getAllProgramDataElementsAndAttributes().isEmpty() || !params.getProgramIndicators().isEmpty() ) && !params.isSkipData() )
         {
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                 .retainDataDimensions( PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE, PROGRAM_INDICATOR ).build();
@@ -702,7 +702,7 @@ public class DefaultAnalyticsService
             // Names element
             // -----------------------------------------------------------------
 
-            Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+            Map<String, String> uidNameMap = AnalyticsUtils.getDimensionItemNameMap( params );
             Map<String, String> cocNameMap = AnalyticsUtils.getCocNameMap( params );
             uidNameMap.putAll( cocNameMap );
             uidNameMap.put( DATA_X_DIM_ID, DISPLAY_NAME_DATA_X );
@@ -755,7 +755,7 @@ public class DefaultAnalyticsService
 
             if ( params.isDimensionItemMeta() )
             {
-                metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getUidDimensionalItemMap( params ) );
+                metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getDimensionalItemObjectMap( params ) );
             }
 
             grid.setMetaData( metaData );

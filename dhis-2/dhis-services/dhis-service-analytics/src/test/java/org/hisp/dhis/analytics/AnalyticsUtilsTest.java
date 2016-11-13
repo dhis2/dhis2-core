@@ -153,7 +153,7 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testGetUidDimensionalItemMap()
+    public void testGetDimensionalItemObjectMap()
     {
         DataElement deA = createDataElement( 'A' );
         Indicator inA = createIndicator( 'A', null );
@@ -166,7 +166,7 @@ public class AnalyticsUtilsTest
             .withDisplayProperty( DisplayProperty.NAME )
             .build();
         
-        Map<String, DimensionalItemObject> map = AnalyticsUtils.getUidDimensionalItemMap( params );
+        Map<String, DimensionalItemObject> map = AnalyticsUtils.getDimensionalItemObjectMap( params );
         
         assertEquals( map.get( deA.getUid() ), deA );
         assertEquals( map.get( inA.getUid() ), inA );
@@ -174,7 +174,7 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testGetUidNameMap()
+    public void testGetDimensionItemNameMap()
     {
         DataElement deA = createDataElement( 'A' );
         Indicator inA = createIndicator( 'A', null );
@@ -192,7 +192,7 @@ public class AnalyticsUtilsTest
             .withDisplayProperty( DisplayProperty.NAME )
             .build();
         
-        Map<String, String> map = AnalyticsUtils.getUidNameMap( params );
+        Map<String, String> map = AnalyticsUtils.getDimensionItemNameMap( params );
         
         assertEquals( map.get( deA.getUid() ), deA.getDisplayName() );
         assertEquals( map.get( inA.getUid() ), inA.getDisplayName() );

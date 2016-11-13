@@ -364,7 +364,7 @@ public class AnalyticsUtils
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
-    public static Map<String, DimensionalItemObject> getUidDimensionalItemMap( DataQueryParams params )
+    public static Map<String, DimensionalItemObject> getDimensionalItemObjectMap( DataQueryParams params )
     {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
         
@@ -384,7 +384,7 @@ public class AnalyticsUtils
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
-    public static Map<String, String> getUidNameMap( DataQueryParams params )
+    public static Map<String, String> getDimensionItemNameMap( DataQueryParams params )
     {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
 
