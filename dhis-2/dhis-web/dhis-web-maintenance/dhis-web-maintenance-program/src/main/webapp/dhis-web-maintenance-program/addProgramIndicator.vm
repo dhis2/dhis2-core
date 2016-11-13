@@ -34,7 +34,7 @@ jQuery( document ).ready( function()
     </thead>
 	<tbody>
 		<tr>
-			<td style="width:140px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
+			<td style="width:150px"><label for="name">$i18n.getString( "name" ) <em title="$i18n.getString( "required" )" class="required">*</em></label></td>
 			<td><input type="text" id="name" name="name" ></td>
 		</tr>	
 		<tr>
@@ -94,6 +94,14 @@ jQuery( document ).ready( function()
 			<td><label for="displayInForm">$i18n.getString( "display_in_form" )</label></td>
 			<td><input type="checkbox" id="displayInForm" name="displayInForm" value="true"></td>
 		</tr>
+		<tr>
+            <td><label for="aggregateExportCategoryOptionCombo">$i18n.getString( "aggregate_export_category_option_combo" )</label></td>
+            <td><input type="text" id="aggregateExportCategoryOptionCombo" name="aggregateExportCategoryOptionCombo"></td>
+        </tr>
+        <tr>
+            <td><label for="aggregateExportAttributeOptionCombo">$i18n.getString( "aggregate_export_attribute_option_combo" )</label></td>
+            <td><input type="text" id="aggregateExportAttributeOptionCombo" name="aggregateExportAttributeOptionCombo"></td>
+        </tr>
 </table>
 
 <br>
