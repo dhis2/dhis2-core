@@ -155,7 +155,10 @@ public class UpdateProgramIndicatorAction
 
     private List<String> jsonAttributeValues;
 
-    public void setJsonAttributeValues( List<String> jsonAttributeValues ) { this.jsonAttributeValues = jsonAttributeValues; }
+    public void setJsonAttributeValues( List<String> jsonAttributeValues )
+    {
+        this.jsonAttributeValues = jsonAttributeValues;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -191,5 +194,4 @@ public class UpdateProgramIndicatorAction
 
         return SUCCESS;
     }
-
 }

@@ -165,7 +165,7 @@ public class AddProgramIndicatorAction
 
     public void setJsonAttributeValues( List<String> jsonAttributeValues )
     {
-            this.jsonAttributeValues = jsonAttributeValues;
+        this.jsonAttributeValues = jsonAttributeValues;
     }
     
     // -------------------------------------------------------------------------
