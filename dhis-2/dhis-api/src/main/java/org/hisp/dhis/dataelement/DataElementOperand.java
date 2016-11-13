@@ -39,6 +39,7 @@ import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
@@ -162,13 +163,26 @@ public class DataElementOperand
 
         if ( dataElement != null )
         {
-            item = dataElement.getUid() + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getUid()) : StringUtils.EMPTY);
+            item = dataElement.getUid() + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getUid() ) : StringUtils.EMPTY );
         }
         else if ( dataElementId != null )
         {
-            item = dataElementId + (optionComboId != null ? (SEPARATOR + optionComboId) : StringUtils.EMPTY);
+            item = dataElementId + ( optionComboId != null ? ( SEPARATOR + optionComboId ) : StringUtils.EMPTY );
         }
 
+        return item;
+    }
+
+    @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        String item = null;
+        
+        if ( dataElement != null )
+        {
+            item = dataElement.getPropertyValue( idScheme ) + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme ) ) : StringUtils.EMPTY );
+        }
+        
         return item;
     }
 

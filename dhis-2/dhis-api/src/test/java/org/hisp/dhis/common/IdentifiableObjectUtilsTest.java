@@ -31,8 +31,6 @@ package org.hisp.dhis.common;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
@@ -106,65 +104,6 @@ public class IdentifiableObjectUtilsTest
         assertEquals( 3, map.size() );
         assertEquals( "CodeA", map.get( "A123456789A" ) );
         assertEquals( "CodeB", map.get( "A123456789B" ) );
-        assertEquals( null, map.get( "A123456789C" ) );
-    }
-
-    @Test
-    public void testGetUidMapIsSchemeCode()
-    {
-        DataElement deA = new DataElement( "NameA" );
-        DataElement deB = new DataElement( "NameB" );
-        DataElement deC = new DataElement( "NameC" );
-
-        deA.setUid( "A123456789A" );
-        deB.setUid( "A123456789B" );
-        deC.setUid( "A123456789C" );
-        
-        deA.setCode( "CodeA" );
-        deB.setCode( "CodeB" );
-        deC.setCode( null );
-        
-        List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
-        
-        Map<String, String> map = IdentifiableObjectUtils.getUidIdMap( elements, IdScheme.CODE );
-
-        assertEquals( 3, map.size() );
-        assertEquals( "CodeA", map.get( "A123456789A" ) );
-        assertEquals( "CodeB", map.get( "A123456789B" ) );
-        assertEquals( null, map.get( "A123456789C" ) );
-    }
-
-    @Test
-    public void testGetUidMapIsSchemeAttribute()
-    {
-        DataElement deA = new DataElement( "DataElementA" );
-        DataElement deB = new DataElement( "DataElementB" );
-        DataElement deC = new DataElement( "DataElementC" );
-
-        deA.setUid( "A123456789A" );
-        deB.setUid( "A123456789B" );
-        deC.setUid( "A123456789C" );
-        
-        Attribute atA = new Attribute( "AttributeA", ValueType.INTEGER );
-        atA.setUid( "ATTR123456A" );
-        
-        AttributeValue avA = new AttributeValue( "AttributeValueA", atA );
-        AttributeValue avB = new AttributeValue( "AttributeValueB", atA );
-        
-        deA.getAttributeValues().add( avA );
-        deB.getAttributeValues().add( avB );
-        
-        List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
-        
-        String scheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
-        
-        IdScheme idScheme = IdScheme.from( scheme );
-        
-        Map<String, String> map = IdentifiableObjectUtils.getUidIdMap( elements, idScheme );
-
-        assertEquals( 3, map.size() );
-        assertEquals( "AttributeValueA", map.get( "A123456789A" ) );
-        assertEquals( "AttributeValueB", map.get( "A123456789B" ) );
         assertEquals( null, map.get( "A123456789C" ) );
     }
 }
