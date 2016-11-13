@@ -30,7 +30,6 @@ package org.hisp.dhis.sqlview;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.Grid;

@@ -871,7 +871,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
     public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
@@ -914,7 +913,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,

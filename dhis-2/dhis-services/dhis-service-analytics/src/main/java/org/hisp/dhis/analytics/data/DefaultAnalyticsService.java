@@ -748,7 +748,11 @@ public class DefaultAnalyticsService
             {
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
-            
+
+            // -----------------------------------------------------------------
+            // Dimension item meta data
+            // -----------------------------------------------------------------
+
             if ( params.isDimensionItemMeta() )
             {
                 metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getUidDimensionalItemMap( params ) );
