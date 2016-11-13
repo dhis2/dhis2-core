@@ -28,9 +28,6 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.commons.util.SqlHelper;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;

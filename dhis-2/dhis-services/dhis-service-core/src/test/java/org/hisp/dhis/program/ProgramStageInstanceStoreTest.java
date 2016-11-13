@@ -37,7 +37,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.NotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -138,12 +137,6 @@ public class ProgramStageInstanceStoreTest
     private TrackedEntityInstance entityInstanceB;
 
     private Program programA;
-
-    private ProgramNotificationTemplate psnX;
-
-    private ProgramNotificationTemplate psnY;
-
-    private ProgramNotificationTemplate psnZ;
 
     @Override
     public void setUpTest()
@@ -410,22 +403,5 @@ public class ProgramStageInstanceStoreTest
         results = programStageInstanceStore.getWithScheduledNotifications( c3, today );
         assertEquals( 1, results.size() );
         assertEquals( eventC, results.get( 0 ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private ProgramNotificationTemplate createProgramNotification( String name, int days ) {
-        return new ProgramNotificationTemplate(
-            name,
-            "Subject template",
-            "Message template",
-            SCHEDULED_DAYS_DUE_DATE,
-            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
-            Sets.newHashSet(),
-            days,
-            null
-         );
     }
 }

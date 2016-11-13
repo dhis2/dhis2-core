@@ -37,7 +37,6 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.GridUtils;
