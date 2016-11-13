@@ -146,6 +146,20 @@ public class UpdateProgramIndicatorAction
         this.displayInForm = displayInForm;
     }
 
+    private String aggregateExportCategoryOptionCombo;
+    
+    public void setAggregateExportCategoryOptionCombo( String aggregateExportCategoryOptionCombo )
+    {
+        this.aggregateExportCategoryOptionCombo = aggregateExportCategoryOptionCombo;
+    }
+
+    private String aggregateExportAttributeOptionCombo;
+
+    public void setAggregateExportAttributeOptionCombo( String aggregateExportAttributeOptionCombo )
+    {
+        this.aggregateExportAttributeOptionCombo = aggregateExportAttributeOptionCombo;
+    }
+
     private Integer programId;
 
     public Integer getProgramId()
@@ -179,6 +193,8 @@ public class UpdateProgramIndicatorAction
         indicator.setDecimals( decimals );
         indicator.setLegendSet( legendSet );
         indicator.setDisplayInForm( displayInForm );
+        indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
+        indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
 
         if ( jsonAttributeValues != null )
         {
