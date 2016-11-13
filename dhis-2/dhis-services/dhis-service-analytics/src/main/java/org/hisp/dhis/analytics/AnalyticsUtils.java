@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -51,6 +52,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObjectUtils;
@@ -358,21 +360,24 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and dimensional item object for the 
-     * given query.
+     * Returns a mapping between dimension item identifiers and dimensional
+     * item object for the given query. The output identifier scheme of the
+     * given query is taken into account for the dimension item map keys.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
     public static Map<String, DimensionalItemObject> getDimensionalItemObjectMap( DataQueryParams params )
     {
+        IdScheme idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID );
+        
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
         
         Map<String, DimensionalItemObject> map = new HashMap<>();
         
         for ( DimensionalObject dimension : dimensions )
         {
-            dimension.getItems().stream().forEach( i -> map.put( i.getDimensionItem(), i ) );
+            dimension.getItems().stream().forEach( i -> map.put( i.getDimensionItem( idScheme ), i ) );
         }
         
         return map;
