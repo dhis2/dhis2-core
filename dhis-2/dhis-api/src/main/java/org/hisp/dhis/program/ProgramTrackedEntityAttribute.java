@@ -161,7 +161,7 @@ public class ProgramTrackedEntityAttribute
     @Override
     public LegendSet getLegendSet()
     {
-        return attribute.getLegendSet();
+        return attribute != null ? attribute.getLegendSet() : null;
     }
 
     @Override
