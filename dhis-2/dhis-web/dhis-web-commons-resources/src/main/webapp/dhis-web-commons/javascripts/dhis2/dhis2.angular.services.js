@@ -286,7 +286,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 }
             }
             if(!isValid) {
-                NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("date_out_of_ou_period"));
+                setHeaderDelayMessage($translate.instant("date_out_of_ou_period"));
             }
             return isValid;
         }
