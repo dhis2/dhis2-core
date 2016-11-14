@@ -431,7 +431,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             property.getSetterMethod().invoke( persistedObject, value );
         }
 
-        preheatService.refresh( persistedObject );
         manager.update( persistedObject );
 
         postPatchEntity( persistedObject );
@@ -872,7 +871,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
     public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
@@ -915,7 +913,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
-    @SuppressWarnings( "unchecked" )
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
@@ -1050,10 +1047,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
             items.forEach( item ->
             {
-                if ( !collection.contains( item ) ) collection.remove( item );
+                if ( collection.contains( item ) ) collection.remove( item );
             } );
-
-            manager.update( object );
         }
         else
         {
@@ -1066,7 +1061,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 {
                     Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty.getGetterMethod().invoke( item );
 
-                    if ( !collection.contains( object ) )
+                    if ( collection.contains( object ) )
                     {
                         collection.remove( object );
                         manager.update( item );
@@ -1077,6 +1072,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 }
             } );
         }
+
+        manager.update( object );
 
         dbmsManager.clearSession();
         cacheManager.clearCache();

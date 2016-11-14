@@ -56,24 +56,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -234,12 +219,12 @@ public class DataQueryParams
     protected DisplayProperty displayProperty;
     
     /**
-     * The property to use as identifier in the query response.
+     * The scheme to use as identifier in the query response.
      */
-    protected IdentifiableProperty outputIdScheme;
+    protected IdScheme outputIdScheme;
 
     /**
-     * The output format, default is {@link OutputFormat.ANALYTICS}.
+     * The output format, default is OutputFormat.ANALYTICS.
      */
     protected OutputFormat outputFormat;
     
@@ -944,7 +929,7 @@ public class DataQueryParams
      */
     public boolean hasNonUidOutputIdScheme()
     {
-        return outputIdScheme != null && !IdentifiableProperty.UID.equals( outputIdScheme );
+        return outputIdScheme != null && !IdScheme.UID.equals( outputIdScheme );
     }
 
     /**
@@ -1360,8 +1345,6 @@ public class DataQueryParams
      * combinations is enabled.
      * 
      * @param aggregatedDataMap the aggregated data map.
-     * @param cocEnabled indicates whether the given aggregated data map includes
-     *        a category option combination dimension.
      * @return a mapping of permutation keys and mappings of data element operands
      *         and values.
      */
@@ -1613,7 +1596,7 @@ public class DataQueryParams
         return displayProperty;
     }
 
-    public IdentifiableProperty getOutputIdScheme()
+    public IdScheme getOutputIdScheme()
     {
         return outputIdScheme;
     }
@@ -1648,7 +1631,7 @@ public class DataQueryParams
         return programStage;
     }
 
-    public void setOutputIdScheme( IdentifiableProperty outputIdScheme )
+    public void setOutputIdScheme( IdScheme outputIdScheme )
     {
         this.outputIdScheme = outputIdScheme;
     }
@@ -2138,7 +2121,7 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder withOutputIdScheme( IdentifiableProperty outputIdScheme )
+        public Builder withOutputIdScheme( IdScheme outputIdScheme )
         {
             this.params.outputIdScheme = outputIdScheme;
             return this;
