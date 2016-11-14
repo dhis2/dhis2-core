@@ -140,8 +140,6 @@ public class DataSetDeletionHandler
     @Override
     public void deleteLegendSet( LegendSet legendSet )
     {
-        Collection<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
-
         for ( DataSet dataSet : idObjectManager.getAllNoAcl( DataSet.class ) )
         {
             for ( LegendSet ls : dataSet.getLegendSets() )

@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -153,7 +154,7 @@ public class AnalyticsUtilsTest
     }
     
     @Test
-    public void testGetUidDimensionalItemMap()
+    public void testGetDimensionalItemObjectMap()
     {
         DataElement deA = createDataElement( 'A' );
         Indicator inA = createIndicator( 'A', null );
@@ -166,15 +167,43 @@ public class AnalyticsUtilsTest
             .withDisplayProperty( DisplayProperty.NAME )
             .build();
         
-        Map<String, DimensionalItemObject> map = AnalyticsUtils.getUidDimensionalItemMap( params );
+        Map<String, DimensionalItemObject> map = AnalyticsUtils.getDimensionalItemObjectMap( params );
         
-        assertEquals( map.get( deA.getUid() ), deA );
-        assertEquals( map.get( inA.getUid() ), inA );
-        assertEquals( map.get( dsA.getUid() ), dsA );
+        assertEquals( map.get( deA.getDimensionItem() ), deA );
+        assertEquals( map.get( inA.getDimensionItem() ), inA );
+        assertEquals( map.get( dsA.getDimensionItem() ), dsA );
+    }
+
+    @Test
+    public void testGetDimensionalItemObjectMapIdScheme()
+    {
+        IdScheme idScheme = IdScheme.CODE;
+        
+        DataElement deA = createDataElement( 'A' );
+        Indicator inA = createIndicator( 'A', null );
+        DataSet dsA = createDataSet( 'A' );
+
+        DimensionalObject dx = new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( deA, inA, dsA ) );
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( dx )
+            .withDisplayProperty( DisplayProperty.NAME )
+            .withOutputIdScheme( IdScheme.CODE )
+            .build();
+        
+        Map<String, DimensionalItemObject> map = AnalyticsUtils.getDimensionalItemObjectMap( params );
+        
+        assertEquals( map.get( deA.getDimensionItem( idScheme ) ), deA );
+        assertEquals( map.get( inA.getDimensionItem( idScheme ) ), inA );
+        assertEquals( map.get( dsA.getDimensionItem( idScheme ) ), dsA );
+
+        assertEquals( map.get( "DataElementCodeA" ), deA );
+        assertEquals( map.get( "IndicatorCodeA" ), inA );
+        assertEquals( map.get( "DataSetCodeA" ), dsA );
     }
     
     @Test
-    public void testGetUidNameMap()
+    public void testGetDimensionItemNameMap()
     {
         DataElement deA = createDataElement( 'A' );
         Indicator inA = createIndicator( 'A', null );
@@ -192,13 +221,13 @@ public class AnalyticsUtilsTest
             .withDisplayProperty( DisplayProperty.NAME )
             .build();
         
-        Map<String, String> map = AnalyticsUtils.getUidNameMap( params );
+        Map<String, String> map = AnalyticsUtils.getDimensionItemNameMap( params );
         
-        assertEquals( map.get( deA.getUid() ), deA.getDisplayName() );
-        assertEquals( map.get( inA.getUid() ), inA.getDisplayName() );
-        assertEquals( map.get( dsA.getUid() ), dsA.getDisplayName() );
-        assertEquals( map.get( ouA.getUid() ), ouA.getDisplayName() );
-        assertEquals( map.get( ouB.getUid() ), ouB.getDisplayName() );
+        assertEquals( map.get( deA.getDimensionItem() ), deA.getDisplayName() );
+        assertEquals( map.get( inA.getDimensionItem() ), inA.getDisplayName() );
+        assertEquals( map.get( dsA.getDimensionItem() ), dsA.getDisplayName() );
+        assertEquals( map.get( ouA.getDimensionItem() ), ouA.getDisplayName() );
+        assertEquals( map.get( ouB.getDimensionItem() ), ouB.getDisplayName() );
     }
     
     @Test

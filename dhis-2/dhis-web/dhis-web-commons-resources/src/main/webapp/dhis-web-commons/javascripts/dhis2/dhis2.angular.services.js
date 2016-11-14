@@ -243,10 +243,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             calendarSetting = CalendarService.getSetting();
             dateFormat = calendarSetting.momentFormat;
             generator = new dhis2.period.PeriodGenerator($.calendars.instance(calendarSetting.keyCalendar), dateFormat);
-            today = moment();
+            today = moment(this.getToday(), dateFormat);
             eventDate = moment(date, dateFormat);
             eventPeriod = generator.getPeriodForTheDate(eventDate.format("YYYY-MM-DD"), expiryPeriodType, true);
-            alert("date : "+date+" ,expiryPeriodType: "+expiryPeriodType+" ,expiryDays"+expiryDays+", dateFormat"+dateFormat+", evPerEdnDate: "+eventPeriod.endDate);
             if (eventPeriod && eventPeriod.endDate) {
                 eventPeriodEndDate = moment(eventPeriod.endDate, "YYYY-MM-DD").add(expiryDays, "day");
                 if (today.isAfter(eventPeriodEndDate)) {
@@ -255,8 +254,42 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 }
             }
             return isValid;
+        },
+        verifyOrgUnitPeriodDate: function(date, periodStartDate, periodEndDate) {
+            var isValid = true;
+            var today, dateFormat, startDate, endDate, calendarSetting;
+            if(!date) {
+                return isValid
+            }
+            if (!periodStartDate && !periodEndDate) {
+                isValid = false;
+            } else {
+                calendarSetting = CalendarService.getSetting();
+                dateFormat = calendarSetting.momentFormat;
+                today = moment(this.getToday(), dateFormat);
+                if (!periodStartDate) {
+                    endDate = moment(periodEndDate, "YYYY-MM-DD");
+                    if (today.isAfter(endDate)) {
+                        isValid = false;
+                    }
+                } else if (!periodEndDate) {
+                    startDate = moment(periodStartDate, "YYYY-MM-DD");
+                    if (today.isBefore(startDate)) {
+                        isValid = false;
+                    }
+                } else {
+                    startDate = moment(periodStartDate, "YYYY-MM-DD");
+                    endDate = moment(periodEndDate, "YYYY-MM-DD");
+                    if (today.isBefore(startDate) || today.isAfter(endDate)) {
+                        isValid = false;
+                    }
+                }
+            }
+            if(!isValid) {
+                NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("date_out_of_ou_period"));
+            }
+            return isValid;
         }
-
     };
 })
 
@@ -647,7 +680,6 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 this.getAttributesAsString(attributes) +
                                 ' d2-focus-next-on-enter' +
                                 ' ng-model="selectedTei.' + attId + '" ' +
-                                ' ng-change="verifyExpiryDate(\'selectedTei.\'+attId)"'+
                                 ' attribute-data="attributesById.' + attId + '" ' +
                                 ' selected-program-id="selectedProgram.id" ' +
                                 ' selected-tei-id="selectedTei.trackedEntityInstance" ' +

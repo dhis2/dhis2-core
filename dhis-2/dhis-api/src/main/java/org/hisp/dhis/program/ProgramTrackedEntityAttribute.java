@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
@@ -109,16 +110,6 @@ public class ProgramTrackedEntityAttribute
     {
         this( program, attribute, displayInList, mandatory );
         this.allowFutureDate = allowFutureDate;
-    }
-
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
-
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.PROGRAM_ATTRIBUTE;
     }
 
     // -------------------------------------------------------------------------
@@ -197,6 +188,18 @@ public class ProgramTrackedEntityAttribute
     public String getDimensionItem()
     {
         return (program != null ? program.getUid() : "") + COMPOSITE_DIM_OBJECT_PLAIN_SEP + (attribute != null ? attribute.getUid() : "");
+    }
+
+    @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + attribute.getPropertyValue( idScheme );
+    }
+    
+    @Override
+    public DimensionItemType getDimensionItemType()
+    {
+        return DimensionItemType.PROGRAM_ATTRIBUTE;
     }
 
     @Override

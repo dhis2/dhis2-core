@@ -51,7 +51,6 @@
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_programindicator_legendsetid" ></many-to-many>
     </list>
 
-
     <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
 	
     <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
