@@ -50,6 +50,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -181,6 +182,13 @@ public class DataValueController
         if ( commentValid != null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Invalid comment: " + comment ) );
+        }
+
+        OptionSet optionSet = dataElement.getOptionSet();
+        
+        if ( optionSet != null && !optionSet.getOptionCodesAsSet().contains( value ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
         }
 
         // ---------------------------------------------------------------------
