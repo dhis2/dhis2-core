@@ -245,7 +245,7 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getEvents( EventQueryParams params )
     {
-        securityManager.decideAccess( params );
+        securityManager.decideAccessEventQuery( params );
         
         queryPlanner.validate( params );
 

@@ -351,6 +351,7 @@
     <property name="authorities">
       <set>
         <value>ALL</value>
+        <value>F_VIEW_EVENT_ANALYTICS</value>
         <value>F_DASHBOARD_PUBLIC_ADD</value>
         <value>F_METADATA_MANAGE</value>
         <value>F_CHART_PUBLIC_ADD</value>
