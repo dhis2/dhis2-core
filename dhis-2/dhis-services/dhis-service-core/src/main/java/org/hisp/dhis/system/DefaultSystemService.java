@@ -35,6 +35,8 @@ import java.util.Date;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -52,6 +54,8 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -60,6 +64,8 @@ import org.springframework.core.io.ClassPathResource;
 public class DefaultSystemService
     implements SystemService
 {
+    private static final Log log = LogFactory.getLog( DefaultSystemService.class );
+    
     @Autowired
     private LocationManager locationManager;
 
@@ -86,6 +92,14 @@ public class DefaultSystemService
      */
     private SystemInfo systemInfo = null;
 
+    @EventListener
+    public void initFixedInfo( ContextRefreshedEvent event )
+    {
+        systemInfo = getFixedSystemInfo();
+        
+        log.info( "Version: " + systemInfo.getVersion() + ", revision: " + systemInfo.getRevision() + ", build date: " + systemInfo.getBuildTime() );
+    }
+
     // -------------------------------------------------------------------------
     // SystemService implementation
     // -------------------------------------------------------------------------
@@ -93,15 +107,6 @@ public class DefaultSystemService
     @Override
     public SystemInfo getSystemInfo()
     {
-        if ( systemInfo == null )
-        {
-            systemInfo = getFixedSystemInfo();
-        }
-
-        // ---------------------------------------------------------------------
-        // Set volatile properties
-        // ---------------------------------------------------------------------
-
         Date lastAnalyticsTableSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
 
