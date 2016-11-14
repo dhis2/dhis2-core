@@ -438,3 +438,8 @@ textarea:read-only
 .bold {
     font-weight: bold;
 }
+
+.total-cell {
+    font-weight: bold;
+    text-align: right;
+}

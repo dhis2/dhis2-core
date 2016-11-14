@@ -840,6 +840,8 @@ dhis2.de.filterInSection = function( $this )
         if(table == thisTable) return;
         $(table).trigger( 'reflow' );
     });
+    
+    dhis2.de.populateColumnTotals();
 }
 
 //------------------------------------------------------------------------------
@@ -1827,7 +1829,7 @@ function insertDataValues( json )
                 $field.find( '.upload-fileinfo-size' ).text( size );
             }
             else 
-            {
+            {                
                 $( fieldId ).val( value.val );
             }
         }
@@ -1847,6 +1849,10 @@ function insertDataValues( json )
         dataValueMap[value.id] = value.val;
 
         dhis2.period.picker.updateDate(fieldId);
+        
+        dhis2.de.populateRowTotals();
+        dhis2.de.populateColumnTotals();
+        
     } );
 
     // Set min-max values and colorize violation fields
@@ -3305,11 +3311,77 @@ dhis2.de.getSelectedPeriod = function()
  */
 dhis2.de.lockForm = function()
 {
-	$( '#contentDiv input').attr( 'readonly', 'readonly' );
+    $( '#contentDiv input').attr( 'readonly', 'readonly' );
     $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
     $( '.sectionFilter').removeAttr( 'disabled' );
     $( '#completenessDiv' ).hide();
 }
+
+/*
+ * populate section row totals
+ */
+dhis2.de.populateRowTotals = function(){
+    
+    if( !dhis2.de.multiOrganisationUnit )
+    {
+        $("input[id^='row-']").each(function(i, el){
+            var ids = this.id.split('-');
+            if( ids.length > 2 )
+            {
+                var de = ids[1], total = new Number();
+                for( var i=2; i<ids.length; i++ )
+                {
+                    var val = $( '#' + de + "-" + ids[i] + "-val" ).val();
+                    if( dhis2.validation.isNumber( val ) )
+                    {                        
+                        total += new Number( val );
+                    }                    
+                }
+                $(this).val( total );
+            }            
+        });
+    }
+};
+
+/*
+ * populate section column totals
+ */
+dhis2.de.populateColumnTotals = function(){
+    
+    if( !dhis2.de.multiOrganisationUnit )
+    {
+        $("input[id^='col-']").each(function(i, el){            
+            
+            var $tbody = $(this).closest('.sectionTable').find("tbody");
+            var $trTarget = $tbody.find( 'tr');
+            
+            var ids = this.id.split('-');
+            
+            if( ids.length > 1 )
+            {
+                var total = new Number();
+                for( var i=1; i<ids.length; i++ )
+                {                    
+                    $trTarget.each( function( idx, item ) 
+                    {
+                        var inputs = $( item ).find( '.entryfield' );                        
+                        inputs.each( function(k, e){
+                            if( this.id.indexOf( ids[i] ) !== -1 && $(this).is(':visible') )
+                            {
+                                var val = $( this ).val();
+                                if( dhis2.validation.isNumber( val ) )
+                                {                        
+                                    total += new Number( val );
+                                }
+                            }
+                        });
+                    } );
+                }                
+                $(this).val( total );
+            }            
+        });
+    }
+};
 
 // -----------------------------------------------------------------------------
 // Various
