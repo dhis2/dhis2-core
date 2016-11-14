@@ -3001,8 +3001,25 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* Factory for fetching OrgUnit */
-.factory('OrgUnitFactory', function($http, DHIS2URL, $q, SessionStorageService) {
+.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, SessionStorageService) {
     var orgUnit, orgUnitPromise, rootOrgUnitPromise,orgUnitTreePromise;
+    var indexedDB = $window.indexedDB;
+    var db = null;
+    function openStore(){
+        var deferred = $q.defer();
+        var request = indexedDB.open("dhis2ou");
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            deferred.resolve();
+        };
+
+        request.onerror = function(){
+            deferred.reject();
+        };
+
+        return deferred.promise;
+    }
     return {
         getChildren: function(uid){
             if( orgUnit !== uid ){
@@ -3073,6 +3090,44 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 def.resolve(null);
             }
             return def.promise;
+        },
+        getOrgUnitFromStore: function(uid){
+            var deferred = $q.defer();
+            if (db === null) {
+                openStore().then(getOu, function () {
+                    deferred.reject("DB not opened");
+                });
+            }
+            else {
+                getOu();
+            }
+            function getOu() {
+                var tx = db.transaction(["ou"]);
+                var store = tx.objectStore("ou");
+                var query = store.get(uid);
+
+                query.onsuccess = function(e){
+                    if(e.target.result){
+                        deferred.resolve(e.target.result);
+                    }
+                    else{
+                        var t = db.transaction(["ouPartial"]);
+                        var s = t.objectStore("ouPartial");
+                        var q = s.get(uid);
+                        q.onsuccess = function(e){
+                            deferred.resolve(e.target.result);
+                        };
+                        query.onerror = function(e){
+                            deferred.reject();
+                        }
+
+                    }
+                };
+                query.onerror = function(e){
+                    deferred.reject();
+                }
+            }
+            return deferred.promise;
         }
     };
 });
