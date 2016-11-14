@@ -56,34 +56,37 @@ public class ProgramTrackedEntityAttributeGroupDocumentation
         MockHttpSession session = getSession( "ALL" );
 
         ProgramTrackedEntityAttribute attrA = createProgramTrackedEntityAttribute( 'A' );
+        manager.save( attrA );
 
         ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( 'A' );
         manager.save( group );
 
-        manager.save( attrA );
-
         mvc.perform( post( schema.getRelativeApiEndpoint() + "/" + group.getUid() + "/attributes/" + attrA.getUid() )
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
-            .andExpect( status().is( 204 ) ).andReturn();
+            .andExpect( status().isNoContent());
 
-        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", group.getUid() ).session( session ).accept( MediaType.APPLICATION_JSON ) )
+        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", group.getUid() )
+            .session( session ).accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
-            .andExpect( jsonPath( "$.attributes.length()" ).value( 1 ) ).andReturn();
+            .andExpect( jsonPath( "$.attributes.length()" ).value( 1 ) );
 
 
-        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/" + group.getUid() + "/attributes/" + attrA.getUid() )
+
+         mvc.perform( delete( schema.getRelativeApiEndpoint() + "/" + group.getUid() + "/attributes/" + attrA.getUid() )
             .session( session )
-            .contentType( TestUtils.APPLICATION_JSON_UTF8 )
-            .content( TestUtils.convertObjectToJsonBytes( group ) ) )
-            .andExpect( status().isNoContent() )
-            .andReturn();
+            .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
+            .andExpect( status().isNoContent() );
 
-        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", group.getUid() ).session( session ).accept( MediaType.APPLICATION_JSON ) )
+
+         mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", group.getUid() )
+            .session( session )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
-            .andExpect( jsonPath( "$.attributes.length()" ).value( 0 ) ).andReturn();
+            .andExpect( jsonPath( "$.attributes.length()" ).value( 1 ) );
+
 
     }
 }
