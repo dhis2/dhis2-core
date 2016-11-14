@@ -257,7 +257,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         },
         verifyOrgUnitPeriodDate: function(date, periodStartDate, periodEndDate) {
             var isValid = true;
-            var today, dateFormat, startDate, endDate, calendarSetting;
+            var dateFormat, startDate, endDate, eventDate, calendarSetting;
             if(!date) {
                 return isValid
             }
@@ -266,21 +266,21 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             } else {
                 calendarSetting = CalendarService.getSetting();
                 dateFormat = calendarSetting.momentFormat;
-                today = moment(this.getToday(), dateFormat);
+                eventDate = moment(date, dateFormat);
                 if (!periodStartDate) {
                     endDate = moment(periodEndDate, "YYYY-MM-DD");
-                    if (today.isAfter(endDate)) {
+                    if (eventDate.isAfter(endDate)) {
                         isValid = false;
                     }
                 } else if (!periodEndDate) {
                     startDate = moment(periodStartDate, "YYYY-MM-DD");
-                    if (today.isBefore(startDate)) {
+                    if (eventDate.isBefore(startDate)) {
                         isValid = false;
                     }
                 } else {
                     startDate = moment(periodStartDate, "YYYY-MM-DD");
                     endDate = moment(periodEndDate, "YYYY-MM-DD");
-                    if (today.isBefore(startDate) || today.isAfter(endDate)) {
+                    if (eventDate.isBefore(startDate) || eventDate.isAfter(endDate)) {
                         isValid = false;
                     }
                 }
