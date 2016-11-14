@@ -37,6 +37,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -60,6 +61,8 @@ public class DefaultAnalyticsSecurityManager
     implements AnalyticsSecurityManager
 {
     private static final Log log = LogFactory.getLog( DefaultAnalyticsSecurityManager.class );
+    
+    private static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
     
     @Autowired
     private DataApprovalLevelService approvalLevelService;
@@ -103,6 +106,19 @@ public class DefaultAnalyticsSecurityManager
             {
                 throw new IllegalQueryException( "User: " + user.getUsername() + " is not allowed to view org unit: " + queryOrgUnit.getUid() );
             }
+        }
+    }
+
+    @Override
+    public void decideAccessEventQuery( EventQueryParams params )
+    {
+        User user = currentUserService.getCurrentUser();
+        
+        decideAccess( params );
+        
+        if ( user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS ) )
+        {
+            throw new IllegalQueryException( "User: " + user.getUsername() + " is not allowed to view event analytics" );
         }
     }
 

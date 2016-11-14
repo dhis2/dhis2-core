@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics;
 
+import org.hisp.dhis.analytics.event.EventQueryParams;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -44,6 +46,16 @@ public interface AnalyticsSecurityManager
      *         to execute the given query.
      */
     void decideAccess( DataQueryParams params );
+    
+    /**
+     * Decides whether the current user has privileges to execute the given event
+     * query.
+     * 
+     * @param params the event data query parameters.
+     * @throws IllegalQueryException if the current user does not have privileges
+     *         to execute the given query.
+     */
+    void decideAccessEventQuery( EventQueryParams params );
     
     /**
      * Returns the current user. Looks for a current user to be specified for the
