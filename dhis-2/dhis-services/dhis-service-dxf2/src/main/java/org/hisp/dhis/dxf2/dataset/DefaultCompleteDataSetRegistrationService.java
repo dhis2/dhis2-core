@@ -82,7 +82,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -157,10 +159,9 @@ public class DefaultCompleteDataSetRegistrationService
 
         if ( periods != null && !periods.isEmpty() )
         {
-            params.getPeriods().addAll( idObjManager.getObjects( Period.class, IdentifiableProperty.UID, periods ) );
+            params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
         }
-
-        if ( startDate != null && endDate != null )
+        else if ( startDate != null && endDate != null )
         {
             params
                 .setStartDate( startDate )

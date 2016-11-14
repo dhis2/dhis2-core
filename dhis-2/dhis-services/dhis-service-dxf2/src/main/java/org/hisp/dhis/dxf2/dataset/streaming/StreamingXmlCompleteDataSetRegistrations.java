@@ -97,8 +97,6 @@ public class StreamingXmlCompleteDataSetRegistrations
             writer.closeElement();
             writer.closeDocument();
         }
-
-        // TODO Close reader?
     }
 
     @Override

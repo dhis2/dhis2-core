@@ -64,7 +64,7 @@ public class CompleteDataSetRegistrationControllerV2
     // GET
     // -------------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML)
+    @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
         @RequestParam( required = false ) Set<String> period,

@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  */
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import org.apache.commons.compress.utils.IOUtils;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
 import org.hisp.dhis.render.DefaultRenderService;
@@ -97,6 +98,27 @@ public class StreamingJsonCompleteDataSetRegistrations
     @Override
     protected void close()
     {
+        if ( jsonGenerator == null )
+        {
+            return;
+        }
+
+        try
+        {
+            if ( startedArray.get() )
+            {
+                jsonGenerator.writeEndArray();
+            }
+
+            jsonGenerator.writeEndObject();
+        }
+        catch ( IOException ignored )
+        {
+        }
+        finally
+        {
+            IOUtils.closeQuietly( jsonGenerator );
+        }
     }
 
     @Override

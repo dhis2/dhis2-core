@@ -29,6 +29,8 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import com.google.common.collect.ImmutableMap;
+import org.amplecode.staxwax.factory.XMLFactory;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +39,8 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dxf2.dataset.streaming.StreamingJsonCompleteDataSetRegistrations;
+import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.DateUtils;
@@ -47,6 +51,7 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
+
 import java.util.stream.Collectors;
 
 /**
@@ -67,24 +72,35 @@ public class SpringCompleteDataSetRegistrationStore
     @Override
     public void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream )
     {
+        CompleteDataSetRegistrations cdsr = new StreamingXmlCompleteDataSetRegistrations( XMLFactory.getXMLWriter( outputStream ) );
 
+        write( params, cdsr );
+
+        IOUtils.closeQuietly( outputStream );
     }
 
     @Override
     public void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream )
     {
+        CompleteDataSetRegistrations cdsr = new StreamingJsonCompleteDataSetRegistrations( outputStream );
+
+        write( params, cdsr );
+
+        IOUtils.closeQuietly( outputStream );
     }
 
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
 
-    private void write( String query, ExportParams params, final CompleteDataSetRegistrations items )
+    private void write( ExportParams params, final CompleteDataSetRegistrations items )
     {
+        String query = createQuery( params );
+
         final Calendar calendar = PeriodType.getCalendar();
 
         jdbcTemplate.query( query, rs -> {
-            CompleteDataSetRegistration cdsr = new CompleteDataSetRegistration();
+            CompleteDataSetRegistration cdsr = items.getCompleteDataSetRegistrationInstance();
             cdsr.open();
 
             cdsr.setPeriod( toIsoDate( rs.getString( Param.PERIOD_TYPE.name ), rs.getDate( Param.PERIOD_START.name ), calendar ) );
@@ -96,6 +112,8 @@ public class SpringCompleteDataSetRegistrationStore
 
             cdsr.close();
         } );
+
+        items.close();
     }
 
     private static String createQuery( ExportParams params )
@@ -108,13 +126,15 @@ public class SpringCompleteDataSetRegistrationStore
             .put( "aocScheme", idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
 
         String sql = // language=SQL
-            "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pestart, pt.name AS ptname, " +
-            "ou.${ouScheme} AS ouid, aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
+            "SELECT " +
+                "ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, aoc.${aocScheme} AS aocid, " +
+                "cdsr.storedby AS storedby, cdsr.date AS created " +
             "FROM completedatasetregistration cdsr " +
-            "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
-            "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
-            "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
-            "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
+                "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
+                "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
+                "INNER JOIN periodtype pt ON (pe.periodtypeid=pt.periodtypeid) " +
+                "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
+                "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
 
         sql += createOrgUnitGroupJoin( params );
         sql += createDataSetClause( params, namedParamsBuilder );
@@ -123,7 +143,7 @@ public class SpringCompleteDataSetRegistrationStore
         sql += createCreatedClause( params, namedParamsBuilder );
         sql += createLimitClause( params, namedParamsBuilder );
 
-        sql = injectNamedParams( sql, namedParamsBuilder.build() );
+        sql = new StrSubstitutor( namedParamsBuilder.build(), "${", "}" ).replace( sql );
 
         log.info( "Get CompleteDataSetRegistrations SQL: " + sql );
 
@@ -144,7 +164,7 @@ public class SpringCompleteDataSetRegistrationStore
     private static String createDataSetClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
     {
         namedParamsBuilder.put( "dataSets", commaDelimitedIds( params.getDataSets() ) );
-        return " WHERE cdsr.datasetid in ($dataSets) ";
+        return " WHERE cdsr.datasetid in (${dataSets}) ";
     }
 
     private static String createOrgUnitClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
@@ -245,11 +265,6 @@ public class SpringCompleteDataSetRegistrationStore
     private static String commaDelimitedIds( Collection<? extends IdentifiableObject> idObjects )
     {
         return TextUtils.getCommaDelimitedString( IdentifiableObjectUtils.getIdentifiers( idObjects ) );
-    }
-
-    private static String injectNamedParams( String sql, Map<String, String> valueMap )
-    {
-        return new StrSubstitutor( valueMap, "${", "}" ).replace( sql );
     }
 
     private static String toIsoDate( String periodName, Date start, final Calendar calendar )
