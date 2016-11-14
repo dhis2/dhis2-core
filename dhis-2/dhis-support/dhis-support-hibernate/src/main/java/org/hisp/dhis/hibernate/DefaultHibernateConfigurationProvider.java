@@ -190,7 +190,7 @@ public class DefaultHibernateConfigurationProvider
             setCacheReplicationConfigSystemProperties();
             
             log.info( "Clustering and cache replication enabled" );
-        }        
+        }
 
         // ---------------------------------------------------------------------
         // Disable second-level cache during testing
