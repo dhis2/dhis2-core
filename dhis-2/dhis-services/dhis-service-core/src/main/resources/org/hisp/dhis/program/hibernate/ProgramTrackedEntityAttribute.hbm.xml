@@ -27,10 +27,10 @@
 
     <property name="allowFutureDate" column="allowFutureDate" />
 
-    <set name="groups" table="programtrackedentityattributegroupmembers" inverse="true" >
+    <set name="groups" table="programtrackedentityattributegroupmembers" >
       <cache usage="read-write" />
       <key column="programtrackedentityattributeid" foreign-key="fk_programtrackedentityattributegroupmembers_attributeid" />
-      <many-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttribute"  foreign-key="fk_programtrackedentityattributegroupmembers_groupid" />
+      <many-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup"  column="programtrackedentityattributegroupid"   foreign-key="fk_programtrackedentityattributegroupmembers_groupid" />
     </set>
 
   </class>

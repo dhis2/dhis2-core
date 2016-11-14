@@ -49,7 +49,7 @@
 
     <property name="description" type="text" />
 
-    <set name="attributes" table="programtrackedentityattributegroupmembers">
+    <set name="attributes" table="programtrackedentityattributegroupmembers" inverse="true">
       <cache usage="read-write" />
       <key column="programtrackedentityattributegroupid" foreign-key="fk_programtrackedentityattributegroupmembers_groupid" />
       <many-to-many class="org.hisp.dhis.program.ProgramTrackedEntityAttribute" column="programtrackedentityattributeid" foreign-key="fk_programtrackedentityattributegroup_attributeid" />

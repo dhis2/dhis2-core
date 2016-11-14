@@ -61,17 +61,18 @@ public class ProgramTrackedEntityAttributeGroupDocumentation
         ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( 'A' );
         manager.save( group );
 
+        attrA.addGroup( group );
+
         mvc.perform( post( schema.getRelativeApiEndpoint() + "/" + group.getUid() + "/attributes/" + attrA.getUid() )
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
-            .andExpect( status().isNoContent());
+            .andExpect( status().isNoContent() );
 
         mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", group.getUid() )
             .session( session ).accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
             .andExpect( jsonPath( "$.attributes.length()" ).value( 1 ) );
-
 
 
          mvc.perform( delete( schema.getRelativeApiEndpoint() + "/" + group.getUid() + "/attributes/" + attrA.getUid() )
@@ -85,7 +86,7 @@ public class ProgramTrackedEntityAttributeGroupDocumentation
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
-            .andExpect( jsonPath( "$.attributes.length()" ).value( 1 ) );
+            .andExpect( jsonPath( "$.attributes.length()" ).value( 0 ) );
 
 
     }
