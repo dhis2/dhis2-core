@@ -99,8 +99,11 @@ public class SpringCompleteDataSetRegistrationStore
 
         final Calendar calendar = PeriodType.getCalendar();
 
+        items.open();
+
         jdbcTemplate.query( query, rs -> {
             CompleteDataSetRegistration cdsr = items.getCompleteDataSetRegistrationInstance();
+
             cdsr.open();
 
             cdsr.setPeriod( toIsoDate( rs.getString( Param.PERIOD_TYPE.name ), rs.getDate( Param.PERIOD_START.name ), calendar ) );

@@ -84,7 +84,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -431,7 +430,7 @@ public class DefaultCompleteDataSetRegistrationService
 
                 if ( config.strictAttrOptionCombos )
                 {
-                    validateAocMatchesDataSetCoc( mdProps );
+                    validateAocMatchesDataSetCc( mdProps );
                 }
 
                 validateAttrOptCombo( mdProps, mdCaches, config );
@@ -631,18 +630,18 @@ public class DefaultCompleteDataSetRegistrationService
         throw new ImportConflictException( new ImportConflict( storedBy, i18n.getString( result ) ) );
     }
 
-    private static void validateAocMatchesDataSetCoc( MetaDataProperties mdProps )
+    private static void validateAocMatchesDataSetCc( MetaDataProperties mdProps )
         throws ImportConflictException
     {
         // TODO MdCache?
-        DataElementCategoryCombo aocCoc = mdProps.attrOptCombo.getCategoryCombo();
-        DataElementCategoryCombo dsCoc = mdProps.dataSet.getCategoryCombo();
+        DataElementCategoryCombo aocCC = mdProps.attrOptCombo.getCategoryCombo();
+        DataElementCategoryCombo dsCc = mdProps.dataSet.getCategoryCombo();
 
-        if ( !aocCoc.equals( dsCoc ) )
+        if ( !aocCC.equals( dsCc ) )
         {
             throw new ImportConflictException(
-                new ImportConflict( aocCoc.getUid(),
-                    String.format( "Attribute option combo: %s must have category combo: %s", aocCoc.getUid(), dsCoc.getUid() ) ) );
+                new ImportConflict( aocCC.getUid(),
+                    String.format( "Attribute option combo: %s must have category combo: %s", aocCC.getUid(), dsCc.getUid() ) ) );
         }
     }
 

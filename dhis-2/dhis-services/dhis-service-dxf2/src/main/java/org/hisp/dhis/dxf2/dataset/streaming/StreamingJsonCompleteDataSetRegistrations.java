@@ -53,7 +53,6 @@ public class StreamingJsonCompleteDataSetRegistrations
         try
         {
             jsonGenerator = DefaultRenderService.getJsonMapper().getFactory().createGenerator( out );
-            open();
         }
         catch ( IOException e )
         {
@@ -68,7 +67,7 @@ public class StreamingJsonCompleteDataSetRegistrations
         {
             try
             {
-                jsonGenerator.writeArrayFieldStart( "completeDataSetRegistrations" );
+                jsonGenerator.writeArrayFieldStart( FIELD_COMPLETE_DATA_SET_REGISTRATIONS );
             }
             catch ( IOException ignored )
             {

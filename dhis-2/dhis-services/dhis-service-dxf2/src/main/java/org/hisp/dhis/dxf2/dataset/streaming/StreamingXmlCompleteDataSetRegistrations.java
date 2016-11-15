@@ -61,13 +61,11 @@ public class StreamingXmlCompleteDataSetRegistrations
     public StreamingXmlCompleteDataSetRegistrations( XMLWriter writer )
     {
         this.writer = writer;
-        open();
     }
 
     public StreamingXmlCompleteDataSetRegistrations( XMLReader reader )
     {
         this.reader = reader;
-        open();
     }
 
     //--------------------------------------------------------------------------

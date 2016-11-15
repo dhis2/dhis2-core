@@ -86,6 +86,46 @@ public class StreamingJsonCompleteDataSetRegistration
     }
 
     // -------------------------------------------------------------------------
+    // Setters
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void setDataSet( String dataSet )
+    {
+        writeField( FIELD_DATASET, dataSet );
+    }
+
+    @Override
+    public void setPeriod( String period )
+    {
+        writeField( FIELD_PERIOD, period );
+    }
+
+    @Override
+    public void setOrganisationUnit( String organisationUnit )
+    {
+        writeField( FIELD_ORGUNIT, organisationUnit );
+    }
+
+    @Override
+    public void setAttributeOptionCombo( String attributeOptionCombo )
+    {
+        writeField( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo );
+    }
+
+    @Override
+    public void setDate( String date )
+    {
+        writeField( FIELD_DATE, date );
+    }
+
+    @Override
+    public void setStoredBy( String storedBy )
+    {
+        writeField( FIELD_STORED_BY, storedBy );
+    }
+
+    // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 

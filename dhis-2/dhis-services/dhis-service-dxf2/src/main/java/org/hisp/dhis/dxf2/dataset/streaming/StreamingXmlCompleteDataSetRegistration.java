@@ -49,7 +49,7 @@ public class StreamingXmlCompleteDataSetRegistration
     public StreamingXmlCompleteDataSetRegistration( XMLWriter writer )
     {
         this.writer = writer;
-        open();
+//        open();
     }
 
     public StreamingXmlCompleteDataSetRegistration( XMLReader reader )
@@ -64,7 +64,8 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     protected void open()
     {
-        writer.openElement( FIELD_DATASET );
+        writer.openElement( "completeDataSetRegistration" );
+//        writer.openElement( FIELD_DATASET );
     }
 
     @Override
