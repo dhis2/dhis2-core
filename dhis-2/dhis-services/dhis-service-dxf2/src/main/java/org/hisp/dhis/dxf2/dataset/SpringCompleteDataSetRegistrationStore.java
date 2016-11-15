@@ -50,7 +50,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Map;
 
 import java.util.stream.Collectors;
 
@@ -61,6 +60,10 @@ public class SpringCompleteDataSetRegistrationStore
     implements CompleteDataSetRegistrationStore
 {
     private static final Log log = LogFactory.getLog( SpringCompleteDataSetRegistrationStore.class );
+
+    private static final String DATA_SET_SCHEME = "dsScheme";
+    private static final String ORG_UNIT_SCHEME = "ouScheme";
+    private static final String ATTR_OPT_COMBO_SCHEME = "dsScheme";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -124,20 +127,19 @@ public class SpringCompleteDataSetRegistrationStore
         IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
         ImmutableMap.Builder<String, String> namedParamsBuilder = ImmutableMap.<String, String>builder()
-            .put( "dsScheme", idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase() )
-            .put( "ouScheme", idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase() )
-            .put( "aocScheme", idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
+            .put( DATA_SET_SCHEME, idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase() )
+            .put( ORG_UNIT_SCHEME, idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase() )
+            .put( ATTR_OPT_COMBO_SCHEME, idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
 
         String sql = // language=SQL
-            "SELECT " +
-                "ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, aoc.${aocScheme} AS aocid, " +
-                "cdsr.storedby AS storedby, cdsr.date AS created " +
+            "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
+            "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
             "FROM completedatasetregistration cdsr " +
-                "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
-                "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
-                "INNER JOIN periodtype pt ON (pe.periodtypeid=pt.periodtypeid) " +
-                "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
-                "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
+            "INNER JOIN dataset ds ON (cdsr.datasetid=ds.datasetid) " +
+            "INNER JOIN period pe ON (cdsr.periodid=pe.periodid) " +
+            "INNER JOIN periodtype pt ON (pe.periodtypeid=pt.periodtypeid) " +
+            "INNER JOIN organisationunit ou ON (cdsr.sourceid=ou.organisationunitid) " +
+            "INNER JOIN categoryoptioncombo aoc ON (cdsr.attributeoptioncomboid = aoc.categoryoptioncomboid) ";
 
         sql += createOrgUnitGroupJoin( params );
         sql += createDataSetClause( params, namedParamsBuilder );
@@ -148,7 +150,7 @@ public class SpringCompleteDataSetRegistrationStore
 
         sql = new StrSubstitutor( namedParamsBuilder.build(), "${", "}" ).replace( sql );
 
-        log.info( "Get CompleteDataSetRegistrations SQL: " + sql );
+        log.debug( "CompleteDataSetRegistrations query: " + sql );
 
         return sql;
     }

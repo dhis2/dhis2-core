@@ -87,26 +87,19 @@ public class CompleteDataSetRegistration
 
     public boolean hasDate()
     {
-        String date = getDate();
-        return StringUtils.isEmpty( date );
-    }
-
-    public boolean hasStoredBy()
-    {
-        String storedBy = getStoredBy();
-        return StringUtils.isEmpty( storedBy );
+        return StringUtils.isNotBlank( getDate() );
     }
 
     @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "dataSet", dataSet )
-            .add( "period", period )
-            .add( "organisationUnit", organisationUnit )
-            .add( "attributeOptionCombo", attributeOptionCombo )
-            .add( "date", date )
-            .add( "storedBy", storedBy )
+            .add( FIELD_DATASET, dataSet )
+            .add( FIELD_PERIOD, period )
+            .add( FIELD_ORGUNIT, organisationUnit )
+            .add( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo )
+            .add( FIELD_DATE, date )
+            .add( FIELD_STORED_BY, storedBy )
             .toString();
     }
 

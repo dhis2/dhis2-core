@@ -358,7 +358,7 @@ public class DefaultCompleteDataSetRegistrationService
         // ---------------------------------------------------------------------
 
         MetaDataCaches caches = new MetaDataCaches();
-        MetaDataCallables metaDataCallables = new MetaDataCallables( cfg, completeRegistrations );
+        MetaDataCallables metaDataCallables = new MetaDataCallables( cfg );
 
         if ( importOptions.isPreheatCacheDefaultFalse() )
         {
@@ -776,7 +776,7 @@ public class DefaultCompleteDataSetRegistrationService
         final IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallable;
         final IdentifiableObjectCallable<Period> periodCallable;
 
-        MetaDataCallables( ImportConfig config, CompleteDataSetRegistrations cdsr )
+        MetaDataCallables( ImportConfig config )
         {
             dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.dsScheme, null );
             orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.ouScheme, null );
@@ -793,7 +793,6 @@ public class DefaultCompleteDataSetRegistrationService
         CachingMap<String, DataElementCategoryOptionCombo> attrOptionCombos = new CachingMap<>();
         CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
         CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
-        DataElementCategoryOptionCombo fallbackCategoryOptionCombo;
 
         void preheat( IdentifiableObjectManager manager, final ImportConfig config )
         {

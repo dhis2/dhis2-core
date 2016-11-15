@@ -92,74 +92,74 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public String getDataSet()
     {
-        return dataSet = dataSet == null ? reader.getAttributeValue( "dataSet" ) : dataSet;
+        return dataSet = dataSet == null ? reader.getAttributeValue( FIELD_DATASET ) : dataSet;
     }
 
     @Override
     public void setDataSet( String dataSet )
     {
-        writeField( "dataSet", dataSet );
+        writeField( FIELD_DATASET, dataSet );
     }
 
     @Override
     public String getPeriod()
     {
-        return period = period == null ? reader.getAttributeValue( "period" ) : period;
+        return period = period == null ? reader.getAttributeValue( FIELD_PERIOD ) : period;
     }
 
     @Override
     public void setPeriod( String period )
     {
-        writeField( "period", period );
+        writeField( FIELD_PERIOD, period );
     }
 
     @Override
     public String getOrganisationUnit()
     {
         return organisationUnit = organisationUnit == null ?
-            reader.getAttributeValue( "organisationUnit") : organisationUnit;
+            reader.getAttributeValue( FIELD_ORGUNIT ) : organisationUnit;
     }
 
     @Override
     public void setOrganisationUnit( String organisationUnit )
     {
-        writeField( "organisationUnit", organisationUnit );
+        writeField( FIELD_ORGUNIT, organisationUnit );
     }
 
     @Override
     public String getAttributeOptionCombo()
     {
         return attributeOptionCombo = attributeOptionCombo == null ?
-            reader.getAttributeValue( "attributeOptionCombo" ) : attributeOptionCombo;
+            reader.getAttributeValue( FIELD_ATTR_OPTION_COMBO ) : attributeOptionCombo;
     }
 
     @Override
     public void setAttributeOptionCombo( String attributeOptionCombo )
     {
-        writeField( "attributeOptionCombo", attributeOptionCombo );
+        writeField( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo );
     }
 
     @Override
     public String getDate()
     {
-        return date = date == null ? reader.getAttributeValue( "date" ) : date;
+        return date = date == null ? reader.getAttributeValue( FIELD_DATE ) : date;
     }
 
     @Override
     public void setDate( String date )
     {
-        writeField( "date", date );
+        writeField( FIELD_DATE, date );
     }
 
     @Override
     public String getStoredBy()
     {
-        return storedBy = storedBy == null ? reader.getAttributeValue( "storedBy" ) : storedBy;
+        return storedBy = storedBy == null ? reader.getAttributeValue( FIELD_STORED_BY ) : storedBy;
     }
 
     @Override
     public void setStoredBy( String storedBy )
     {
-        writeField( "storedBy", storedBy );
+        writeField( FIELD_STORED_BY, storedBy );
     }
 }
