@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author Chau Thu Tran
@@ -364,4 +365,6 @@ public interface UserService
      * @param userRoles the collection of user roles.
      */
     void canIssueFilter( Collection<UserAuthorityGroup> userRoles );
+
+    List<ErrorReport> validateUser( User currentUser, User user );
 }
