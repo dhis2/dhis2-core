@@ -115,8 +115,21 @@
     <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
-    <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()"/>
-    <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()"/>
+    <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
+    <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
+
+    <!-- Apps -->
+    <sec:intercept-url pattern="/dhis-web-settings/**" access="hasAnyRole('ALL,SEE_SETTINGS_APP')" />
+    <sec:intercept-url pattern="/dhis-web-maintenance/**" access="hasAnyRole('ALL,SEE_MAINTENANCE_APP')" />
+    <sec:intercept-url pattern="/dhis-web-app-management/**" access="hasAnyRole('ALL,SEE_APP_MANAGEMENT_APP')" />
+    <sec:intercept-url pattern="/dhis-web-pivot/**" access="hasAnyRole('ALL,SEE_PIVOT_APP')" />
+    <sec:intercept-url pattern="/dhis-web-visualizer/**" access="hasAnyRole('ALL,SEE_VISUALIZER_APP')" />
+    <sec:intercept-url pattern="/dhis-web-mapping/**" access="hasAnyRole('ALL,SEE_MAPPING_APP')" />
+    <sec:intercept-url pattern="/dhis-web-usage-analytics/**" access="hasAnyRole('ALL,SEE_USAGE_ANALYTICS_APP')" />
+    <sec:intercept-url pattern="/dhis-web-tracker-capture/**" access="hasAnyRole('ALL,SEE_TRACKER_CAPTURE_APP')" />
+    <sec:intercept-url pattern="/dhis-web-event-capture/**" access="hasAnyRole('ALL,SEE_EVENT_CAPTURE_APP')" />
+    <!-- /Apps -->
+
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
@@ -351,6 +364,15 @@
     <property name="authorities">
       <set>
         <value>ALL</value>
+        <value>SEE_SETTINGS_APP</value>
+        <value>SEE_MAINTENANCE_APP</value>
+        <value>SEE_APP_MANAGEMENT_APP</value>
+        <value>SEE_PIVOT_APP</value>
+        <value>SEE_VISUALIZER_APP</value>
+        <value>SEE_MAPPING_APP</value>
+        <value>SEE_USAGE_ANALYTICS_APP</value>
+        <value>SEE_TRACKER_CAPTURE_APP</value>
+        <value>SEE_EVENT_CAPTURE_APP</value>
         <value>F_VIEW_EVENT_ANALYTICS</value>
         <value>F_DASHBOARD_PUBLIC_ADD</value>
         <value>F_METADATA_MANAGE</value>
