@@ -110,6 +110,9 @@
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
+    
+    <!-- Account recovery -->
+    
     <sec:intercept-url pattern="/api/account/username" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/recovery" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
@@ -117,6 +120,22 @@
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()"/>
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()"/>
+    
+    <!-- Apps -->
+    
+    <sec:intercept-url pattern="/dhis-web-pivot/**" access="hasAnyRole('ALL,M_dhis-web-pivot')" />
+    <sec:intercept-url pattern="/dhis-web-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-visualizer')" />
+    <sec:intercept-url pattern="/dhis-web-mapping/**" access="hasAnyRole('ALL,M_dhis-web-mapping')" />
+    <sec:intercept-url pattern="/dhis-web-event-reports/**" access="hasAnyRole('ALL,M_dhis-web-event-reports')" />
+    <sec:intercept-url pattern="/dhis-web-event-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-event-visualizer')" />
+    <sec:intercept-url pattern="/dhis-web-settings/**" access="hasAnyRole('ALL,M_dhis-web-settings')" />
+    <sec:intercept-url pattern="/dhis-web-maintenance/**" access="hasAnyRole('ALL,M_dhis-web-maintenance')" />
+    <sec:intercept-url pattern="/dhis-web-app-management/**" access="hasAnyRole('ALL,M_dhis-web-app-management')" />
+    <sec:intercept-url pattern="/dhis-web-usage-analytics/**" access="hasAnyRole('ALL,M_dhis-web-usage-analytics')" />
+    <sec:intercept-url pattern="/dhis-web-event-capture/**" access="hasAnyRole('ALL,M_dhis-web-event-capture')" />
+    <sec:intercept-url pattern="/dhis-web-tracker-capture/**" access="hasAnyRole('ALL,M_dhis-web-tracker-capture')" />
+    <sec:intercept-url pattern="/dhis-web-cache-cleaner/**" access="hasAnyRole('ALL,M_dhis-web-cache-cleaner')" />
+    
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
