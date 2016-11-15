@@ -42,6 +42,9 @@ public enum ErrorCode
     E3000( "User {0} is not allowed to create objects of type {1}." ),
     E3001( "User {0} is not allowed to update object {1}." ),
     E3002( "User {0} is not allowed to delete object {1}." ),
+    E3003( "User {0} is not allowed to grant users access to user role {1}." ),
+    E3004( "User {0} is not allowed to grant users access to user groups." ),
+    E3005( "User {0} is not allowed to grant users access to user group {1}." ),
 
     /* Metadata Validation Errors */
     E4000( "Missing required property \"{0}\"." ),
