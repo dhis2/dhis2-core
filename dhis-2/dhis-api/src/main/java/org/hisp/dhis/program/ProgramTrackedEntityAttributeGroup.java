@@ -161,15 +161,20 @@ public class ProgramTrackedEntityAttributeGroup
 
             if ( mergeMode.isReplace() )
             {
-                attributes = programTrackedEntityAttributeGroup.getAttributes();
                 uniqunessType = programTrackedEntityAttributeGroup.getUniqunessType();
                 description = programTrackedEntityAttributeGroup.getDescription();
             }
             else if ( mergeMode.isMerge() )
             {
-                attributes = programTrackedEntityAttributeGroup.getAttributes() == null ? attributes : programTrackedEntityAttributeGroup.getAttributes();
                 uniqunessType = programTrackedEntityAttributeGroup.getUniqunessType() == null ? uniqunessType : programTrackedEntityAttributeGroup.getUniqunessType();
                 description = programTrackedEntityAttributeGroup.getDescription() == null ? description : programTrackedEntityAttributeGroup.getDescription();
+            }
+
+            removeAllAttributes();
+
+            for ( ProgramTrackedEntityAttribute attribute : programTrackedEntityAttributeGroup.getAttributes() )
+            {
+                addAttribute( attribute );
             }
         }
     }

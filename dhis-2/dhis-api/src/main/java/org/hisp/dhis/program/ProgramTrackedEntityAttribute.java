@@ -322,7 +322,6 @@ public class ProgramTrackedEntityAttribute
                 attribute = programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
-                groups = programTrackedEntityAttribute.getGroups();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -331,7 +330,13 @@ public class ProgramTrackedEntityAttribute
                 attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();
-                groups = programTrackedEntityAttribute.getGroups() == null ? groups : programTrackedEntityAttribute.getGroups();
+            }
+
+            groups.clear();
+
+            for ( ProgramTrackedEntityAttributeGroup group : programTrackedEntityAttribute.getGroups() )
+            {
+                addGroup( group );
             }
         }
     }
