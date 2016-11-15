@@ -259,6 +259,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             var isValid = true;
             var dateFormat, startDate, endDate, eventDate, calendarSetting;
             if(!date) {
+                hideHeaderMessage();
                 return isValid
             }
             if (!periodStartDate && !periodEndDate) {
@@ -287,6 +288,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             }
             if(!isValid) {
                 setHeaderDelayMessage($translate.instant("date_out_of_ou_period"));
+            } else {
+                hideHeaderMessage();
             }
             return isValid;
         }
