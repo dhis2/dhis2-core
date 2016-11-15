@@ -64,7 +64,13 @@ public class LegendServiceTest
     @Test
     public void testDeleteLegend()
     {
-        //TODO
+        legendA = createLegend( 'A', 0d, 10d );
+
+        int idA = legendService.addLegend( legendA );
+
+        legendService.deleteLegend( legendA );
+
+        assertNull( legendService.getLegend( idA ) );
     }
     
     @Test
@@ -89,6 +95,20 @@ public class LegendServiceTest
     @Test
     public void testDeleteLegendSet()
     {
-        //TODO
+        legendA = createLegend( 'A', 0d, 10d );
+        legendB = createLegend( 'B', 0d, 10d );
+
+        legendService.addLegend( legendA );
+        legendService.addLegend( legendB );
+
+        legendSetA = createLegendSet( 'A' );
+        legendSetA.getLegends().add( legendA );
+        legendSetA.getLegends().add( legendB );
+
+        int idA = legendService.addLegendSet( legendSetA );
+
+        legendService.deleteLegendSet( legendSetA );
+
+        assertNull( legendService.getLegendSet( idA ) );
     }   
 }
