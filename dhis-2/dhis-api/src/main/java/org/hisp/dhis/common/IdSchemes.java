@@ -28,30 +28,36 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.util.ObjectUtils;
+
 import com.google.common.base.MoreObjects;
 
 /**
+ * Identifier schemes used to map meta data. The general identifier
+ * scheme can be overridden by id schemes specific to individual
+ * object types. The default id scheme is UID.
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class IdSchemes
 {
-    private IdScheme idScheme;
+    private IdScheme idScheme = IdScheme.UID;
 
-    private IdScheme dataElementIdScheme = IdScheme.UID;
+    private IdScheme dataElementIdScheme;
 
-    private IdScheme categoryOptionComboIdScheme = IdScheme.UID;
+    private IdScheme categoryOptionComboIdScheme;
     
-    private IdScheme categoryOptionIdScheme = IdScheme.UID;
+    private IdScheme categoryOptionIdScheme;
 
-    private IdScheme orgUnitIdScheme = IdScheme.UID;
+    private IdScheme orgUnitIdScheme;
 
-    private IdScheme programIdScheme = IdScheme.UID;
+    private IdScheme programIdScheme;
 
-    private IdScheme programStageIdScheme = IdScheme.UID;
+    private IdScheme programStageIdScheme;
 
-    private IdScheme trackedEntityIdScheme = IdScheme.UID;
+    private IdScheme trackedEntityIdScheme;
 
-    private IdScheme trackedEntityAttributeIdScheme = IdScheme.UID;
+    private IdScheme trackedEntityAttributeIdScheme;
 
     public IdSchemes()
     {
@@ -59,7 +65,7 @@ public class IdSchemes
 
     public IdScheme getScheme( IdScheme idScheme )
     {
-        return IdScheme.from( this.idScheme != null ? this.idScheme : idScheme );
+        return IdScheme.from( ObjectUtils.firstNonNull( idScheme, this.idScheme ) );
     }
 
     public IdScheme getIdScheme()
