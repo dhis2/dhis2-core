@@ -63,7 +63,7 @@ public class SpringCompleteDataSetRegistrationStore
 
     private static final String DATA_SET_SCHEME = "dsScheme";
     private static final String ORG_UNIT_SCHEME = "ouScheme";
-    private static final String ATTR_OPT_COMBO_SCHEME = "dsScheme";
+    private static final String ATTR_OPT_COMBO_SCHEME = "aocScheme";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -113,7 +113,7 @@ public class SpringCompleteDataSetRegistrationStore
             cdsr.setDataSet( rs.getString( Param.DATA_SET.name ) );
             cdsr.setOrganisationUnit( rs.getString( Param.ORG_UNIT.name ) );
             cdsr.setAttributeOptionCombo( rs.getString( Param.ATTR_OPT_COMBO.name ) );
-            cdsr.setDate( rs.getString( Param.DATE.name ) );
+            cdsr.setDate( removeTime( rs.getString( Param.DATE.name ) ) );
             cdsr.setStoredBy( rs.getString( Param.STORED_BY.name ) );
 
             cdsr.close();
@@ -275,6 +275,19 @@ public class SpringCompleteDataSetRegistrationStore
     private static String toIsoDate( String periodName, Date start, final Calendar calendar )
     {
         return PeriodType.getPeriodTypeByName( periodName ).createPeriod( start, calendar ).getIsoDate();
+    }
+
+    /*
+     * Remove time component from timestamp on the yyyy-MM-dd HH:mm:ss.SSS format (which we get from the DB directly)
+     */
+    private static String removeTime( String timestamp )
+    {
+        if ( timestamp == null )
+        {
+            return null;
+        }
+
+        return timestamp.substring( 0, 10 );
     }
 
     private enum Param {
