@@ -202,6 +202,17 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             today = $filter('date')(today, calendarSetting.keyDateFormat);
             return today;
         },
+        isBeforeToday: function (dateValue) {
+            var today;
+            if (!dateValue) {
+                return;
+            }
+            dateValue = moment(dateValue, CalendarService.getSetting().momentFormat);
+            if (dateValue.isBefore(this.getToday())) {
+                return true;
+            }
+            return false;
+        },
         formatFromUserToApi: function (dateValue) {
             if (!dateValue) {
                 return;
