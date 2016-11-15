@@ -889,7 +889,7 @@ public class DefaultDataValueSetService
                     categoryOptionCombo = fallbackCategoryOptionCombo;
                 }
             }
-
+            
             if ( attrOptionCombo == null )
             {
                 if ( requireAttrOptionCombo )
