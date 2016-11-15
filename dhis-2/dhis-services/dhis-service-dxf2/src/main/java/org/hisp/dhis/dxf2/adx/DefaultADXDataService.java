@@ -56,6 +56,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.util.XMLChar;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.CategoryComboMap;
@@ -111,6 +112,9 @@ public class DefaultADXDataService
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
+    
+    @Autowired
+    private SessionFactory sessionFactory;
 
     // -------------------------------------------------------------------------
     // Public methods
@@ -141,7 +145,7 @@ public class DefaultADXDataService
             try ( PipedOutputStream pipeOut = new PipedOutputStream() )
             {
                 Future<ImportSummary> futureImportSummary;
-                futureImportSummary = executor.submit( new PipedImporter( dataValueSetService, importOptions, pipeOut ) );
+                futureImportSummary = executor.submit( new PipedImporter( dataValueSetService, importOptions, pipeOut, sessionFactory ) );
                 XMLOutputFactory factory = XMLOutputFactory.newInstance();
                 XMLStreamWriter dxfWriter = factory.createXMLStreamWriter( pipeOut );
                 

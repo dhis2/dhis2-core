@@ -34,6 +34,8 @@ import java.io.PipedOutputStream;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -56,14 +58,17 @@ public class PipedImporter
 
     private final ImportOptions importOptions;
 
-    private final Authentication authentication;
+    private SessionFactory sessionFactory;
+    
+    private final Authentication authentication;    
 
     public PipedImporter( DataValueSetService dataValueSetService, ImportOptions importOptions,
-        PipedOutputStream pipeOut ) throws IOException
+        PipedOutputStream pipeOut, SessionFactory sessionFactory ) throws IOException
     {
         this.dataValueSetService = dataValueSetService;
         this.pipeIn = new PipedInputStream( pipeOut, PIPE_BUFFER_SIZE );
         this.importOptions = importOptions;
+        this.sessionFactory = sessionFactory;
         this.authentication = SecurityContextHolder.getContext().getAuthentication();
     }
 
@@ -72,6 +77,7 @@ public class PipedImporter
     {
         ImportSummary result = null;
         SecurityContextHolder.getContext().setAuthentication( authentication );
+        DbmsUtils.bindSessionToThread( sessionFactory );
 
         try
         {
@@ -86,6 +92,7 @@ public class PipedImporter
         finally
         {
             IOUtils.closeQuietly( pipeIn );
+            DbmsUtils.unbindSessionFromThread( sessionFactory );
         }
                 
         return result;
