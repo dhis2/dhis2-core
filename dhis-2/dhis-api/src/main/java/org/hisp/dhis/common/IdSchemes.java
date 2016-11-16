@@ -243,12 +243,13 @@ public class IdSchemes
             .add( "dataElementIdScheme", dataElementIdScheme )
             .add( "categoryOptionComboIdScheme", categoryOptionComboIdScheme )
             .add( "categoryOptionIdScheme", categoryOptionIdScheme )
-            .add( "dataSetIdScheme", dataSetIdScheme )
             .add( "orgUnitIdScheme", orgUnitIdScheme )
             .add( "programIdScheme", programIdScheme )
             .add( "programStageIdScheme", programStageIdScheme )
             .add( "trackedEntityIdScheme", trackedEntityIdScheme )
             .add( "trackedEntityAttributeIdScheme", trackedEntityAttributeIdScheme )
+            .add( "dataSetIdScheme", dataSetIdScheme )
+            .add( "attributeOptionComboIdScheme", attributeOptionComboIdScheme )
             .toString();
     }
 }
