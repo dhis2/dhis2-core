@@ -202,6 +202,17 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             today = $filter('date')(today, calendarSetting.keyDateFormat);
             return today;
         },
+        isBeforeToday: function (dateValue) {
+            var today;
+            if (!dateValue) {
+                return;
+            }
+            dateValue = moment(dateValue, CalendarService.getSetting().momentFormat);
+            if (dateValue.isBefore(this.getToday())) {
+                return true;
+            }
+            return false;
+        },
         formatFromUserToApi: function (dateValue) {
             if (!dateValue) {
                 return;
@@ -257,8 +268,9 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         },
         verifyOrgUnitPeriodDate: function(date, periodStartDate, periodEndDate) {
             var isValid = true;
-            var today, dateFormat, startDate, endDate, calendarSetting;
+            var dateFormat, startDate, endDate, eventDate, calendarSetting;
             if(!date) {
+                hideHeaderMessage();
                 return isValid
             }
             if (!periodStartDate && !periodEndDate) {
@@ -266,27 +278,29 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             } else {
                 calendarSetting = CalendarService.getSetting();
                 dateFormat = calendarSetting.momentFormat;
-                today = moment(this.getToday(), dateFormat);
+                eventDate = moment(date, dateFormat);
                 if (!periodStartDate) {
                     endDate = moment(periodEndDate, "YYYY-MM-DD");
-                    if (today.isAfter(endDate)) {
+                    if (eventDate.isAfter(endDate)) {
                         isValid = false;
                     }
                 } else if (!periodEndDate) {
                     startDate = moment(periodStartDate, "YYYY-MM-DD");
-                    if (today.isBefore(startDate)) {
+                    if (eventDate.isBefore(startDate)) {
                         isValid = false;
                     }
                 } else {
                     startDate = moment(periodStartDate, "YYYY-MM-DD");
                     endDate = moment(periodEndDate, "YYYY-MM-DD");
-                    if (today.isBefore(startDate) || today.isAfter(endDate)) {
+                    if (eventDate.isBefore(startDate) || eventDate.isAfter(endDate)) {
                         isValid = false;
                     }
                 }
             }
             if(!isValid) {
-                NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("date_out_of_ou_period"));
+                setHeaderDelayMessage($translate.instant("date_out_of_ou_period"));
+            } else {
+                hideHeaderMessage();
             }
             return isValid;
         }
@@ -3001,8 +3015,25 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* Factory for fetching OrgUnit */
-.factory('OrgUnitFactory', function($http, DHIS2URL, $q, SessionStorageService) {
+.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, SessionStorageService) {
     var orgUnit, orgUnitPromise, rootOrgUnitPromise,orgUnitTreePromise;
+    var indexedDB = $window.indexedDB;
+    var db = null;
+    function openStore(){
+        var deferred = $q.defer();
+        var request = indexedDB.open("dhis2ou");
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            deferred.resolve();
+        };
+
+        request.onerror = function(){
+            deferred.reject();
+        };
+
+        return deferred.promise;
+    }
     return {
         getChildren: function(uid){
             if( orgUnit !== uid ){
@@ -3073,6 +3104,44 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 def.resolve(null);
             }
             return def.promise;
+        },
+        getOrgUnitFromStore: function(uid){
+            var deferred = $q.defer();
+            if (db === null) {
+                openStore().then(getOu, function () {
+                    deferred.reject("DB not opened");
+                });
+            }
+            else {
+                getOu();
+            }
+            function getOu() {
+                var tx = db.transaction(["ou"]);
+                var store = tx.objectStore("ou");
+                var query = store.get(uid);
+
+                query.onsuccess = function(e){
+                    if(e.target.result){
+                        deferred.resolve(e.target.result);
+                    }
+                    else{
+                        var t = db.transaction(["ouPartial"]);
+                        var s = t.objectStore("ouPartial");
+                        var q = s.get(uid);
+                        q.onsuccess = function(e){
+                            deferred.resolve(e.target.result);
+                        };
+                        query.onerror = function(e){
+                            deferred.reject();
+                        }
+
+                    }
+                };
+                query.onerror = function(e){
+                    deferred.reject();
+                }
+            }
+            return deferred.promise;
         }
     };
 });

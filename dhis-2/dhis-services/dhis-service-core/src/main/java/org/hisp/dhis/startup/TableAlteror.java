@@ -969,6 +969,8 @@ public class TableAlteror
 
         removeOutdatedTranslationProperties();
 
+        updateLegendRelationship();
+
         log.info( "Tables updated" );
     }
     
@@ -1614,5 +1616,14 @@ public class TableAlteror
             executeSql( sql );
 
         }
+    }
+
+    private void updateLegendRelationship()
+    {
+        String sql = " update maplegend l set  maplegendsetid = ( select legendsetid from maplegendsetmaplegend m where m.maplegendid = l.maplegendid );";
+        executeSql( sql );
+
+        sql = " drop table maplegendsetmaplegend";
+        executeSql( sql );
     }
 }

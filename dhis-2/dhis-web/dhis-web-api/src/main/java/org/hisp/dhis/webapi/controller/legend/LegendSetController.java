@@ -101,6 +101,7 @@ public class LegendSetController
         }
 
         LegendSet newLegendSet = renderService.fromJson( request.getInputStream(), LegendSet.class );
+        newLegendSet.setUser( currentUserService.getCurrentUser() );
         newLegendSet.getLegends().forEach( legendService::addLegend );
 
         legendSet.mergeWith( newLegendSet, params.getMergeMode() );
