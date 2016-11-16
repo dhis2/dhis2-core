@@ -72,20 +72,8 @@
                                                 ${encoder.htmlEncode( $categoryOption.displayName )}
                                             #end
                                         </span>
-                                    </th>                               
-                                    #if($section.showRowTotals == "true" &&  $categoryOptions.size() == $colCount )
-                                        #set( $rowSubTotalRendered = true )
-                                        <th rowspan="$categories.size()">
-                                            ${i18n.getString( "sub_total" )}
-                                        </th>
-                                    #end
+                                    </th>
                                 #end                                
-                            #end                                                        
-                            #if( $section.showRowTotals == "true" && $rowSubTotalRendered == "false" )
-                                #set( $rowSubTotalRendered = true )
-                                <th>                                    
-                                    ${i18n.getString( "total" )}
-                                </th>
                             #end
                             #if( $section.showRowTotals == "true" && $rowTotalRendered == "false" && $categories.size() > 1)
                                 #set( $rowTotalRendered = true )
@@ -100,10 +88,8 @@
                 #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
                 #foreach( $optionCombo in $optionCombos )<span id="${optionCombo.uid}-optioncombo" class="hidden">${encoder.htmlEncode( $optionCombo.displayName )}</span>
                 #end
-                <tbody>
-                    #set( $columnTotalIds = "col" )
+                <tbody>                    
                     #foreach( $dataElement in $dataElements )
-                        #set( $rowSubTotalIds = "row-$dataElement.uid" )
                         #set( $rowTotalIds = "row-$dataElement.uid" )                        
                         #set( $cellCounter = 1 )
                         #if( $mark == 1 )
@@ -120,7 +106,6 @@
                             #foreach( $optionCombo in $optionCombos )
                                 #set( $dataEntryId = "${dataElement.uid}-${optionCombo.uid}-val" )
                                 #set( $commentId = "${dataElement.uid}-${optionCombo.uid}-comment" )
-                                #set( $rowSubTotalIds = "${rowSubTotalIds}-$optionCombo.uid" )
                                 #set( $rowTotalIds = "${rowTotalIds}-$optionCombo.uid" )
                                 #set( $greyedField = false )
                                 #set( $greyedField = $greyedFields.get( "${dataElement.uid}:${optionCombo.uid}" ) )
@@ -176,19 +161,8 @@
                                     #end
                                 #end
                                 #set( $tabIndex = $tabIndex + 1 )                                
-
-                                #if( $section.showRowTotals == "true" )                                    
-                                    #if( $cellCounter == $categoryOptions.size() )                                         
-                                        <td>                                
-                                            <input class="total-cell" type="text" id="$rowSubTotalIds">
-                                        </td>
-                                        #set( $cellCounter = 0 )
-                                        #set( $rowSubTotalIds = "row-$dataElement.uid" )
-                                    #end
-                                #end                                
-                                #set( $cellCounter = $cellCounter + 1 )
                             #end
-                            #if($section.showRowTotals == "true" &&  $categories.size() > 1 )                                    
+                            #if($section.showRowTotals == "true" &&  $optionCombos.size() > 1 )                                    
                                 <td>
                                     <input class="total-cell" type="text" id="$rowTotalIds">
                                 </td>
@@ -204,30 +178,17 @@
                         <tr>
                             <td #if( $mark == 1 )class="alt bold"#else class="reg bold"#end>
                                 ${i18n.getString( "total" )}
-                            </td>
-                            #set( $cellCounter = 1 )
+                            </td>                            
                             #set( $columnTotalIds = "col" )
-                            #set( $columnGrandTotalIds = "col" )
                             #foreach( $optionCombo in $optionCombos )
                                 #set( $columnTotalIds = "${columnTotalIds}-$optionCombo.uid" )
-                                #set( $columnGrandTotalIds = "${columnGrandTotalIds}-$optionCombo.uid" )
                                 <td>                                
                                     <input class="total-cell" type="text" id="col-${optionCombo.uid}">
                                 </td>
-                                #if( $section.showRowTotals == "true" )                                    
-                                    #if( $cellCounter == $categoryOptions.size() )                                         
-                                        <td>                                            
-                                            <input class="total-cell" type="text" id="$columnTotalIds">
-                                        </td>
-                                        #set( $cellCounter = 0 )
-                                        #set( $columnTotalIds = "col" )
-                                    #end
-                                #end
-                                #set( $cellCounter = $cellCounter + 1 )                                
                             #end
-                            #if($section.showRowTotals == "true" &&  $categories.size() > 1 )                                    
+                            #if( $dataElements.size() > 1 )                                    
                                 <td>
-                                    <input class="total-cell" type="text" id="$columnGrandTotalIds">
+                                    <input class="total-cell" type="text" id="$columnTotalIds">
                                 </td>
                             #end
                         </>
