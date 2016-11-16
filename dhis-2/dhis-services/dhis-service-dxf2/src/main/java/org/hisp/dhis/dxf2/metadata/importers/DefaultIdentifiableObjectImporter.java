@@ -268,13 +268,13 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
     /**
      * Called every time a new idObject is to be imported.
      *
-     * @param user   User to check
-     * @param object Object to import
+     * @param currentUser User to check
+     * @param object      Object to import
      * @return An ImportConflict instance if there was a conflict, otherwise null
      */
-    protected boolean newObject( User user, T object )
+    protected boolean newObject( User currentUser, T object )
     {
-        if ( !aclService.canCreate( user, object.getClass() ) )
+        if ( !aclService.canCreate( currentUser, object.getClass() ) )
         {
             summaryType.getImportConflicts().add(
                 new ImportConflict( IdentifiableObjectUtils.getDisplayName( object ), "Permission denied, you are not allowed to create objects of " +
@@ -295,6 +295,20 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
             return false;
         }
 
+        if ( User.class.isInstance( object ) )
+        {
+            User user = (User) object;
+            errorReports = userService.validateUser( currentUser, user );
+
+            if ( !errorReports.isEmpty() )
+            {
+                summaryType.getImportConflicts().add(
+                    new ImportConflict( IdentifiableObjectUtils.getDisplayName( object ), "Validation Violations: " + errorReports ) );
+
+                return false;
+            }
+        }
+
         // make sure that the internalId is 0, so that the system will generate a ID
         object.setId( 0 );
 
@@ -303,7 +317,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
             object.clearSharing( true );
         }
 
-        NonIdentifiableObjects nonIdentifiableObjects = new NonIdentifiableObjects( user );
+        NonIdentifiableObjects nonIdentifiableObjects = new NonIdentifiableObjects( currentUser );
         errorReports = nonIdentifiableObjects.validate( object, object );
 
         if ( !errorReports.isEmpty() )
@@ -334,7 +348,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
         Map<Field, Object> fields = detachFields( object );
         Map<Field, Collection<Object>> collectionFields = detachCollectionFields( object );
 
-        reattachFields( object, fields, user );
+        reattachFields( object, fields, currentUser );
 
         log.debug( "Trying to save new object => " + IdentifiableObjectUtils.getDisplayName( object ) + " (" + object.getClass().getSimpleName() + ")" +
             "" );
@@ -342,7 +356,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
         updatePeriodTypes( object );
         objectBridge.saveObject( object, !options.isSharing() );
 
-        reattachCollectionFields( object, collectionFields, user );
+        reattachCollectionFields( object, collectionFields, currentUser );
 
         objectBridge.updateObject( object );
 
@@ -360,7 +374,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
 
             sessionFactory.getCurrentSession().save( userCredentials );
 
-            reattachCollectionFields( userCredentials, collectionFieldsUserCredentials, user );
+            reattachCollectionFields( userCredentials, collectionFieldsUserCredentials, currentUser );
 
             sessionFactory.getCurrentSession().saveOrUpdate( userCredentials );
 
@@ -384,14 +398,14 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
     /**
      * Update idObject from old => new.
      *
-     * @param user            User to check for access.
+     * @param currentUser     User to check for access.
      * @param object          Object to import
      * @param persistedObject The current version of the idObject
      * @return An ImportConflict instance if there was a conflict, otherwise null
      */
-    protected boolean updateObject( User user, T object, T persistedObject )
+    protected boolean updateObject( User currentUser, T object, T persistedObject )
     {
-        if ( !aclService.canUpdate( user, persistedObject ) )
+        if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             summaryType.getImportConflicts().add(
                 new ImportConflict( IdentifiableObjectUtils.getDisplayName( persistedObject ), "Permission denied for update of object " +
@@ -420,7 +434,21 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
             return false;
         }
 
-        NonIdentifiableObjects nonIdentifiableObjects = new NonIdentifiableObjects( user );
+        if ( User.class.isInstance( object ) )
+        {
+            User user = (User) object;
+            errorReports = userService.validateUser( currentUser, user );
+
+            if ( !errorReports.isEmpty() )
+            {
+                summaryType.getImportConflicts().add(
+                    new ImportConflict( IdentifiableObjectUtils.getDisplayName( object ), "Validation Violations: " + errorReports ) );
+
+                return false;
+            }
+        }
+
+        NonIdentifiableObjects nonIdentifiableObjects = new NonIdentifiableObjects( currentUser );
         errorReports = nonIdentifiableObjects.validate( persistedObject, object );
 
         if ( !errorReports.isEmpty() )
@@ -452,7 +480,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
         Map<Field, Object> fields = detachFields( object );
         Map<Field, Collection<Object>> collectionFields = detachCollectionFields( object );
 
-        reattachFields( object, fields, user );
+        reattachFields( object, fields, currentUser );
 
         if ( !options.isDryRun() )
         {
@@ -473,7 +501,7 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
 
         updatePeriodTypes( persistedObject );
 
-        reattachCollectionFields( persistedObject, collectionFields, user );
+        reattachCollectionFields( persistedObject, collectionFields, currentUser );
 
         log.debug( "Starting update of object " + IdentifiableObjectUtils.getDisplayName( persistedObject ) + " (" + persistedObject.getClass()
             .getSimpleName() + ")" );
@@ -494,8 +522,8 @@ public class DefaultIdentifiableObjectImporter<T extends BaseIdentifiableObject>
 
                 ((User) persistedObject).getUserCredentials().mergeWith( userCredentials, options.getMergeMode() );
                 // mergeService.merge( ((User) persistedObject).getUserCredentials(), userCredentials, options.getMergeStrategy() );
-                reattachFields( ((User) persistedObject).getUserCredentials(), fieldsUserCredentials, user );
-                reattachCollectionFields( ((User) persistedObject).getUserCredentials(), collectionFieldsUserCredentials, user );
+                reattachFields( ((User) persistedObject).getUserCredentials(), fieldsUserCredentials, currentUser );
+                reattachCollectionFields( ((User) persistedObject).getUserCredentials(), collectionFieldsUserCredentials, currentUser );
 
                 sessionFactory.getCurrentSession().saveOrUpdate( ((User) persistedObject).getUserCredentials() );
             }
