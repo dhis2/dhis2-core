@@ -67,7 +67,7 @@ public interface ResourceTableService
      * Generates a resource table for all organisation units 
      */
     void generateOrganisationUnitGroupSetTable();
-    
+
     /**
      * Generates a resource table for all category option combos.
      * 

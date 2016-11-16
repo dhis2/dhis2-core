@@ -99,6 +99,9 @@ public class InitTableAlteror
 
         updateMessageConversationMessageCount();
 
+        // Set OrganisationUnitGroupSet includeSubhierarchyInAnalytics to false where IS NULL
+        executeSql( "UPDATE orgunitgroupset SET includesubhierarchyinanalytics = FALSE WHERE includesubhierarchyinanalytics IS NULL" );
+
         updateLegendSetAssociationAndDeleteOldAssociation();
     }
 
