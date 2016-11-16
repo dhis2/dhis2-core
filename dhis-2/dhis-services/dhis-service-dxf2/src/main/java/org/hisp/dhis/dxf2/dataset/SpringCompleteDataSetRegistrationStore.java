@@ -228,7 +228,7 @@ public class SpringCompleteDataSetRegistrationStore
                 .put( "periods", commaDelimitedIds( params.getPeriods() ) );
 
             // language=SQL
-            return " AND dv.periodid in ( ${periods} ) ";
+            return " AND cdsr.periodid in ( ${periods} ) ";
         }
 
         return "";
