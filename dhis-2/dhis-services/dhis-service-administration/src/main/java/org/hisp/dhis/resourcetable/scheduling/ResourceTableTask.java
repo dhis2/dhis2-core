@@ -108,7 +108,6 @@ public class ResourceTableTask
         resourceTableService.generateDataElementGroupSetTable();
         resourceTableService.generateIndicatorGroupSetTable();
         resourceTableService.generateOrganisationUnitGroupSetTable();
-        resourceTableService.generateOrganisationUnitGroupSetWithSubhierarchyTable();
         resourceTableService.generateCategoryTable();
         resourceTableService.generateDataElementTable();
         resourceTableService.generatePeriodTable();
