@@ -257,6 +257,8 @@ public class OrganisationUnitGroupSet
 
             compulsory = organisationUnitGroupSet.isCompulsory();
 
+            includeSubhierarchyInAnalytics = organisationUnitGroupSet.isIncludeSubhierarchyInAnalytics();
+
             if ( mergeMode.isReplace() )
             {
                 description = organisationUnitGroupSet.getDescription();

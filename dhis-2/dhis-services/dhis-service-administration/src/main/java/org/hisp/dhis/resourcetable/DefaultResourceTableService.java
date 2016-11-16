@@ -173,16 +173,6 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateOrganisationUnitGroupSetWithSubhierarchyTable()
-    {
-        resourceTableStore.generateResourceTable( new OrganisationUnitGroupSetResourceTableWithSubhierarchy(
-            organisationUnitService.getAllOrganisationUnits(),
-            idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
-    }
-
-    @Override
-    @Transactional
     public void generateCategoryTable()
     {
         resourceTableStore.generateResourceTable( new CategoryResourceTable( 
