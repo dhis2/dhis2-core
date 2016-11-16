@@ -66,6 +66,14 @@ public class SpringCompleteDataSetRegistrationStore
     private static final String ORG_UNIT_SCHEME = "ouScheme";
     private static final String ATTR_OPT_COMBO_SCHEME = "aocScheme";
 
+    private static final String P_PERIOD_TYPE = "ptname";
+    private static final String P_DATA_SET = "dsid";
+    private static final String P_ORG_UNIT = "ouid";
+    private static final String P_ATTR_OPT_COMBO = "aocid";
+    private static final String P_DATE = "created";
+    private static final String P_STORED_BY = "storedby";
+    private static final String P_PERIOD_START = "pe_start";
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -110,12 +118,12 @@ public class SpringCompleteDataSetRegistrationStore
 
             cdsr.open();
 
-            cdsr.setPeriod( toIsoDate( rs.getString( Param.PERIOD_TYPE.name ), rs.getDate( Param.PERIOD_START.name ), calendar ) );
-            cdsr.setDataSet( rs.getString( Param.DATA_SET.name ) );
-            cdsr.setOrganisationUnit( rs.getString( Param.ORG_UNIT.name ) );
-            cdsr.setAttributeOptionCombo( rs.getString( Param.ATTR_OPT_COMBO.name ) );
-            cdsr.setDate( removeTime( rs.getString( Param.DATE.name ) ) );
-            cdsr.setStoredBy( rs.getString( Param.STORED_BY.name ) );
+            cdsr.setPeriod( toIsoDate( rs.getString( P_PERIOD_TYPE ), rs.getDate( P_PERIOD_START ), calendar ) );
+            cdsr.setDataSet( rs.getString( P_DATA_SET ) );
+            cdsr.setOrganisationUnit( rs.getString( P_ORG_UNIT ) );
+            cdsr.setAttributeOptionCombo( rs.getString( P_ATTR_OPT_COMBO ) );
+            cdsr.setDate( removeTime( rs.getString( P_DATE ) ) );
+            cdsr.setStoredBy( rs.getString( P_STORED_BY ) );
 
             cdsr.close();
         } );
@@ -284,23 +292,5 @@ public class SpringCompleteDataSetRegistrationStore
     private static String removeTime( String timestamp )
     {
         return StringUtils.substring( timestamp, 0, 10 );
-    }
-
-    private enum Param {
-        PERIOD_TYPE( "ptname" ),
-        DATA_SET( "dsid" ),
-        ORG_UNIT( "ouid" ),
-        ATTR_OPT_COMBO( "aocid" ),
-        DATE( "created" ),
-        STORED_BY( "storedby"),
-        PERIOD_START( "pe_start" ),
-        PERIOD_END( "pe_end" );
-
-        final String name;
-
-        Param( String name )
-        {
-            this.name = name;
-        }
     }
 }
