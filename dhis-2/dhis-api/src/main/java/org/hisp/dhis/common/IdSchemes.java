@@ -79,6 +79,10 @@ public class IdSchemes
         return this;
     }
 
+    //--------------------------------------------------------------------------
+    // Object type id schemes
+    //--------------------------------------------------------------------------
+
     public IdScheme getDataElementIdScheme()
     {
         return getScheme( dataElementIdScheme );
@@ -145,15 +149,20 @@ public class IdSchemes
         return this;
     }
 
+    public IdScheme getTrackedEntityIdScheme()
+    {
+        return getScheme( trackedEntityIdScheme );
+    }
+
     public IdSchemes setTrackedEntityIdScheme( String idScheme )
     {
         this.trackedEntityIdScheme = IdScheme.from( idScheme );
         return this;
     }
 
-    public IdScheme getTrackedEntityIdScheme()
+    public IdScheme getTrackedEntityAttributeIdScheme()
     {
-        return trackedEntityIdScheme;
+        return getScheme( trackedEntityAttributeIdScheme );
     }
 
     public IdSchemes setTrackedEntityAttributeIdScheme( String idScheme )
@@ -162,10 +171,9 @@ public class IdSchemes
         return this;
     }
 
-    public IdScheme getTrackedEntityAttributeIdScheme()
-    {
-        return trackedEntityAttributeIdScheme;
-    }
+    //--------------------------------------------------------------------------
+    // Get value methods
+    //--------------------------------------------------------------------------
 
     public static String getValue( String uid, String code, IdentifiableProperty identifiableProperty )
     {
@@ -214,6 +222,8 @@ public class IdSchemes
             .add( "orgUnitIdScheme", orgUnitIdScheme )
             .add( "programIdScheme", programIdScheme )
             .add( "programStageIdScheme", programStageIdScheme )
+            .add( "trackedEntityIdScheme", trackedEntityIdScheme )
+            .add( "trackedEntityAttributeIdScheme", trackedEntityAttributeIdScheme )
             .toString();
     }
 }
