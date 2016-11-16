@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -641,6 +642,14 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
         
         return attribute;
+    }
+    
+    public static AttributeValue createAttributeValue( Attribute attribute, String value )
+    {
+        AttributeValue attributeValue = new AttributeValue( value, attribute );
+        attributeValue.setAutoFields();
+        
+        return attributeValue;
     }
 
     /**
