@@ -75,8 +75,8 @@ public interface EventDataQueryService
     EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format, ProgramStatus programStatus );
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
+        boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format );
 
     /**
      * Used for event query.
@@ -104,8 +104,8 @@ public interface EventDataQueryService
     EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc, 
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, 
-        boolean coordinatesOnly, EventStatus eventStatus, DisplayProperty displayProperty, String userOrgUnit,
-        Integer page, Integer pageSize, I18nFormat format, ProgramStatus programStatus );
+        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty, String userOrgUnit,
+        Integer page, Integer pageSize, I18nFormat format );
     
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 }
