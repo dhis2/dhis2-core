@@ -62,11 +62,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -181,7 +177,12 @@ public class EventQueryParams
      * Indicates whether to include underlying points for each cluster.
      */
     private boolean includeClusterPoints;
-    
+
+    /**
+     * Indicates the program status
+     */
+    private ProgramStatus programStatus;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -231,6 +232,7 @@ public class EventQueryParams
         params.clusterSize = this.clusterSize;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
+        params.programStatus = this.programStatus;
 
         params.periodType = this.periodType;
 
@@ -403,6 +405,14 @@ public class EventQueryParams
     }
 
     /**
+     * Gets program status
+     */
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    /**
      * Removes items and item filters of type program indicators.
      */
     public EventQueryParams removeProgramIndicatorItems()
@@ -534,6 +544,11 @@ public class EventQueryParams
     public boolean hasClusterSize()
     {
         return clusterSize != null;
+    }
+
+    public boolean hasProgramStatus()
+    {
+        return programStatus != null;
     }
     
     public boolean hasBbox()
@@ -950,6 +965,12 @@ public class EventQueryParams
         public Builder withIncludeClusterPoints( boolean includeClusterPoints )
         {
             this.params.includeClusterPoints = includeClusterPoints;
+            return this;
+        }
+
+        public Builder withProgramStatus( ProgramStatus programStatus )
+        {
+            this.params.programStatus = programStatus;
             return this;
         }
 
