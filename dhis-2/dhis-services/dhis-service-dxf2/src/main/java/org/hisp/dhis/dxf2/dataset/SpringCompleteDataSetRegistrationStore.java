@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.dataset;
 import com.google.common.collect.ImmutableMap;
 import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -278,16 +279,11 @@ public class SpringCompleteDataSetRegistrationStore
     }
 
     /*
-     * Remove time component from timestamp on the yyyy-MM-dd HH:mm:ss.SSS format (which we get from the DB directly)
+     * Remove time component from timestamp (yyyy-MM-dd HH:mm:ss.SSS)
      */
     private static String removeTime( String timestamp )
     {
-        if ( timestamp == null )
-        {
-            return null;
-        }
-
-        return timestamp.substring( 0, 10 );
+        return StringUtils.substring( timestamp, 0, 10 );
     }
 
     private enum Param {
