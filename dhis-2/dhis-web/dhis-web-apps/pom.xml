@@ -147,6 +147,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-user-profile</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!--  Dashboard -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-dashboard</artifactId>
+                  <version>${apps.version}</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-dashboard</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
