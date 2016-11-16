@@ -294,10 +294,10 @@ public class JdbcEventAnalyticsTableManager
                 String select = getSelectClause( dataElement.getValueType() );
 
                 String sql =
-                    "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
+                    "(select l.uid from maplegend l " +
                         "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " and l.endvalue > " +
                         select + " " +
-                        "and lsl.legendsetid=" + legendSet.getId() +
+                        "and l.maplegendsetid=" + legendSet.getId() +
                         " and dv.programstageinstanceid=psi.programstageinstanceid " +
                         "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
 
@@ -326,10 +326,10 @@ public class JdbcEventAnalyticsTableManager
                 String select = getSelectClause( attribute.getValueType() );
 
                 String sql =
-                    "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
+                    "(select l.uid from maplegend l " +
                         "inner join trackedentityattributevalue av on l.startvalue <= " + select +
                         " and l.endvalue > " + select + " " +
-                        "and lsl.legendsetid=" + legendSet.getId() +
+                        "and l.maplegendsetid=" + legendSet.getId() +
                         " and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
                         "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
 
