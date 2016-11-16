@@ -67,7 +67,16 @@ public interface ResourceTableService
      * Generates a resource table for all organisation units 
      */
     void generateOrganisationUnitGroupSetTable();
-    
+
+    /**
+     * Generates a resource table for all organisation units
+     * where organisation unit groups are based on inheritance form
+     * parent organisation units with the includeSubhierarchyInAnalytics
+     * flag set to true.
+     */
+    void generateOrganisationUnitGroupSetWithSubhierarchyTable();
+
+
     /**
      * Generates a resource table for all category option combos.
      * 

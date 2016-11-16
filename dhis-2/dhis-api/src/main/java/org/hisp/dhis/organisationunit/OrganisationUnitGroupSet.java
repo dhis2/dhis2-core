@@ -58,6 +58,8 @@ public class OrganisationUnitGroupSet
 {
     private boolean compulsory;
 
+    private boolean includeSubhierarchyInAnalytics;
+
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -73,12 +75,14 @@ public class OrganisationUnitGroupSet
         this.name = name;
         this.description = description;
         this.compulsory = compulsory;
+        this.includeSubhierarchyInAnalytics = false;
     }
 
     public OrganisationUnitGroupSet( String name, String description, boolean compulsory, boolean dataDimension )
     {
         this( name, description, compulsory );
         this.dataDimension = dataDimension;
+        this.includeSubhierarchyInAnalytics = false;
     }
 
     // -------------------------------------------------------------------------
@@ -213,6 +217,19 @@ public class OrganisationUnitGroupSet
     {
         this.compulsory = compulsory;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0)
+    public boolean isIncludeSubhierarchyInAnalytics()
+    {
+        return includeSubhierarchyInAnalytics;
+    }
+
+    public void setIncludeSubhierarchyInAnalytics( boolean includeSubhierarchyInAnalytics )
+    {
+        this.includeSubhierarchyInAnalytics = includeSubhierarchyInAnalytics;
+    }
+
 
     @JsonProperty( "organisationUnitGroups" )
     // @JsonSerialize(contentAs = BaseIdentifiableObject.class)

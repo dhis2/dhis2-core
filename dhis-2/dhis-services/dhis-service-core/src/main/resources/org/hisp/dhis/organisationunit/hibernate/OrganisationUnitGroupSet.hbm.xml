@@ -21,6 +21,8 @@
 
     <property name="compulsory" not-null="true" />
 
+    <property name="includeSubhierarchyInAnalytics" not-null="false" />
+
     <property name="dataDimension" column="datadimension" not-null="true" />
 
     <set name="organisationUnitGroups" table="orgunitgroupsetmembers">

@@ -28,8 +28,6 @@ package org.hisp.dhis.resourcetable.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.TaskId;
@@ -39,6 +37,8 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -108,6 +108,7 @@ public class ResourceTableTask
         resourceTableService.generateDataElementGroupSetTable();
         resourceTableService.generateIndicatorGroupSetTable();
         resourceTableService.generateOrganisationUnitGroupSetTable();
+        resourceTableService.generateOrganisationUnitGroupSetWithSubhierarchyTable();
         resourceTableService.generateCategoryTable();
         resourceTableService.generateDataElementTable();
         resourceTableService.generatePeriodTable();
