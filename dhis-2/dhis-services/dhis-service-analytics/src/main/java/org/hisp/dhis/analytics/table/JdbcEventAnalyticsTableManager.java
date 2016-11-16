@@ -295,11 +295,11 @@ public class JdbcEventAnalyticsTableManager
 
                 String sql =
                     "(select l.uid from maplegend l " +
-                        "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " and l.endvalue > " +
-                        select + " " +
-                        "and l.maplegendsetid=" + legendSet.getId() +
-                        " and dv.programstageinstanceid=psi.programstageinstanceid " +
-                        "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
+                    "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " " +
+                    "and l.endvalue > " + select + " " +
+                    "and l.maplegendsetid=" + legendSet.getId() + " " +
+                    "and dv.programstageinstanceid=psi.programstageinstanceid " +
+                    "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
 
                 columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
             }
@@ -327,11 +327,11 @@ public class JdbcEventAnalyticsTableManager
 
                 String sql =
                     "(select l.uid from maplegend l " +
-                        "inner join trackedentityattributevalue av on l.startvalue <= " + select +
-                        " and l.endvalue > " + select + " " +
-                        "and l.maplegendsetid=" + legendSet.getId() +
-                        " and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
-                        "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
+                    "inner join trackedentityattributevalue av on l.startvalue <= " + select + " " +
+                    "and l.endvalue > " + select + " " +
+                    "and l.maplegendsetid=" + legendSet.getId() + " " +
+                    "and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
+                    "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
 
                 columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
             }
