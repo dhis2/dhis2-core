@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -629,6 +630,17 @@ public abstract class DhisConvenienceTest
         }
 
         return categoryOptionGroupSet;
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     */
+    public static Attribute createAttribute( char uniqueCharacter )
+    {
+        Attribute attribute = new Attribute( "Attribute" + uniqueCharacter, ValueType.TEXT );
+        attribute.setAutoFields();
+        
+        return attribute;
     }
 
     /**
