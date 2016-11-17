@@ -811,7 +811,7 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
 
         ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
         {
-            dsScheme = IdScheme.from( cdsr.getDataSetIdScheme() );
+            dsScheme = IdScheme.from( cdsr.getDataSetIdSchemeProperty() );
             ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
             aocScheme = IdScheme.from( cdsr.getAttributeOptionComboIdSchemeProperty() );
 
