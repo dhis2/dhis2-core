@@ -3153,17 +3153,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     if (DateUtils.isBeforeToday(orgUnitFromStore.cdate)) {
                         deferred.resolve(true);
                     } else {
-                        deferred.resolve(true);
-                        //deferred.resolve(false);
+                        deferred.resolve(false);
                     }
                 } else {
                     /*The org unit is assumed to be opened if the status is not present.*/
-                    deferred.resolve(true);
-                    //deferred.resolve(false);
+                    deferred.resolve(false);
                 }
             }, function(){
-                deferred.resolve(true);
-                //deferred.resolve(false);
+                deferred.resolve(false);
             });
             return deferred.promise;
         }
