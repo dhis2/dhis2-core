@@ -57,10 +57,10 @@ import java.util.stream.Collectors;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class SpringCompleteDataSetRegistrationStore
-    implements CompleteDataSetRegistrationStore
+public class JdbcCompleteDataSetRegistrationExchangeStore
+    implements CompleteDataSetRegistrationExchangeStore
 {
-    private static final Log log = LogFactory.getLog( SpringCompleteDataSetRegistrationStore.class );
+    private static final Log log = LogFactory.getLog( JdbcCompleteDataSetRegistrationExchangeStore.class );
 
     private static final String DATA_SET_SCHEME = "dsScheme";
     private static final String ORG_UNIT_SCHEME = "ouScheme";

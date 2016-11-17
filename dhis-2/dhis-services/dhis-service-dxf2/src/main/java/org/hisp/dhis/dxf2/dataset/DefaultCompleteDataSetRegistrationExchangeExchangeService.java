@@ -89,10 +89,10 @@ import java.util.Set;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class DefaultCompleteDataSetRegistrationService
-    implements CompleteDataSetRegistrationService
+public class DefaultCompleteDataSetRegistrationExchangeExchangeService
+    implements CompleteDataSetRegistrationExchangeService
 {
-    private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationService.class );
+    private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeExchangeService.class );
 
     private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen from dxf2 DefaultDataValueSetService
 
@@ -101,7 +101,7 @@ public class DefaultCompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
 
     @Autowired
-    private CompleteDataSetRegistrationStore cdsrStore;
+    private CompleteDataSetRegistrationExchangeStore cdsrStore;
 
     @Autowired
     private IdentifiableObjectManager idObjManager;
@@ -135,7 +135,7 @@ public class DefaultCompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
 
     @Override
-    public ExportParams getFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
+    public ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
         Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes )
     {
         ExportParams params = new ExportParams();
@@ -175,59 +175,6 @@ public class DefaultCompleteDataSetRegistrationService
             .setOutputIdSchemes( idSchemes );
 
         return params;
-    }
-
-    public void validate( ExportParams params ) throws IllegalQueryException
-    {
-        if ( params == null )
-        {
-            throw new IllegalArgumentException( "ExportParams must be non-null" );
-        }
-
-        if ( params.getDataSets().isEmpty() )
-        {
-            validationError( "At least one data set must be specified" );
-        }
-
-        if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
-        {
-            validationError( "At least one valid period, start/end dates, created or created duration must be specified" );
-        }
-
-        if ( params.hasPeriods() && params.hasStartEndDate() )
-        {
-            validationError( "Both periods and start/end date cannot be specified" );
-        }
-
-        if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
-        {
-            validationError( "Start date must be before end date" );
-        }
-
-        if ( params.hasCreatedDuration() && DateUtils.getDuration( params.getCreatedDuration() ) == null )
-        {
-            validationError( "Duration is not valid: " + params.getCreatedDuration() );
-        }
-
-        if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
-        {
-            validationError( "At least one valid organisation unit or organisation unit group must be specified" );
-        }
-
-        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
-        {
-            validationError( "Children cannot be included for organisation unit groups" );
-        }
-
-        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
-        {
-            validationError( "At least one organisation unit must be specified when children are included" );
-        }
-
-        if ( params.hasLimit() && params.getLimit() < 0 )
-        {
-            validationError( "Limit cannot be less than zero: " + params.getLimit() );
-        }
     }
 
     @Override
@@ -321,6 +268,59 @@ public class DefaultCompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private void validate( ExportParams params ) throws IllegalQueryException
+    {
+        if ( params == null )
+        {
+            throw new IllegalArgumentException( "ExportParams must be non-null" );
+        }
+
+        if ( params.getDataSets().isEmpty() )
+        {
+            validationError( "At least one data set must be specified" );
+        }
+
+        if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
+        {
+            validationError( "At least one valid period, start/end dates, created or created duration must be specified" );
+        }
+
+        if ( params.hasPeriods() && params.hasStartEndDate() )
+        {
+            validationError( "Both periods and start/end date cannot be specified" );
+        }
+
+        if ( params.hasStartEndDate() && params.getStartDate().after( params.getEndDate() ) )
+        {
+            validationError( "Start date must be before end date" );
+        }
+
+        if ( params.hasCreatedDuration() && DateUtils.getDuration( params.getCreatedDuration() ) == null )
+        {
+            validationError( "Duration is not valid: " + params.getCreatedDuration() );
+        }
+
+        if ( !params.hasOrganisationUnits() && !params.hasOrganisationUnitGroups() )
+        {
+            validationError( "At least one valid organisation unit or organisation unit group must be specified" );
+        }
+
+        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        {
+            validationError( "Children cannot be included for organisation unit groups" );
+        }
+
+        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        {
+            validationError( "At least one organisation unit must be specified when children are included" );
+        }
+
+        if ( params.hasLimit() && params.getLimit() < 0 )
+        {
+            validationError( "Limit cannot be less than zero: " + params.getLimit() );
+        }
+    }
 
     private ImportSummary handleImportError( TaskId taskId, Throwable ex )
     {

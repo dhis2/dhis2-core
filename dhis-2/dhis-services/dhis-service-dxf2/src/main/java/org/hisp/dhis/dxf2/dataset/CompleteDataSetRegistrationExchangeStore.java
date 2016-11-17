@@ -28,42 +28,13 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.scheduling.TaskId;
-
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
-import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface CompleteDataSetRegistrationService
+public interface CompleteDataSetRegistrationExchangeStore
 {
-    ExportParams getFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
-        Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes );
-
-    void validate( ExportParams params ) throws IllegalQueryException;
-
-    void decideAccess( ExportParams params ) throws IllegalQueryException;
-
-    void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream out );
-
-    void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out );
-
-    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in );
-
-    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions );
-
-    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, TaskId taskId );
-
-    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in );
-
-    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions );
-
-    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, TaskId taskId );
+    void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
+    void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 }

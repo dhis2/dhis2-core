@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationService;
+import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +58,7 @@ public class CompleteDataSetRegistrationControllerV2
     public static final String RESOURCE_PATH = "completeDataSetRegistrationsV2";
 
     @Autowired
-    private DefaultCompleteDataSetRegistrationService registrationService;
+    private DefaultCompleteDataSetRegistrationExchangeExchangeService registrationService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -84,7 +84,7 @@ public class CompleteDataSetRegistrationControllerV2
     {
         response.setContentType( CONTENT_TYPE_XML );
 
-        ExportParams params = registrationService.getFromUrl(
+        ExportParams params = registrationService.paramsFromUrl(
             dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration, limit, idSchemes );
 
         registrationService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
@@ -110,7 +110,7 @@ public class CompleteDataSetRegistrationControllerV2
     {
         response.setContentType( CONTENT_TYPE_JSON );
 
-        ExportParams params = registrationService.getFromUrl(
+        ExportParams params = registrationService.paramsFromUrl(
             dataSet, orgUnit, orgUnitGroup, period, startDate, endDate, includeChildren, created, createdDuration, limit, idSchemes );
 
         registrationService.writeCompleteDataSetRegistrationsJson( params, response.getOutputStream() );
