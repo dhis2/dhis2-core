@@ -45,12 +45,9 @@ import static org.junit.Assert.assertNull;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-
 public class ProgramTrackedEntityAttributeGroupServiceTest
     extends DhisSpringTest
 {
-
     @Autowired
     private ProgramTrackedEntityAttributeGroupService service;
 
@@ -69,7 +66,7 @@ public class ProgramTrackedEntityAttributeGroupServiceTest
     {
         attrA = createProgramTrackedEntityAttribute( 'A' );
         attrB = createProgramTrackedEntityAttribute( 'B' );
-        Set attributes = new HashSet<>();
+        Set<ProgramTrackedEntityAttribute> attributes = new HashSet<>();
         attributes.add( attrA );
         attributes.add( attrB );
 

@@ -35,7 +35,6 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
-import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -53,7 +52,8 @@ import java.util.stream.Collectors;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Transactional
-public class DefaultCollectionService implements CollectionService
+public class DefaultCollectionService 
+    implements CollectionService
 {
     @Autowired
     private IdentifiableObjectManager manager;
@@ -72,9 +72,6 @@ public class DefaultCollectionService implements CollectionService
 
     @Autowired
     private CurrentUserService currentUserService;
-
-    @Autowired
-    private QueryService queryService;
 
     @Override
     @SuppressWarnings( "unchecked" )
