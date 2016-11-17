@@ -44,7 +44,8 @@
         #foreach( $categoryComboId in $categoryComboIds )
             #set( $seCbId = "${section.id}-${categoryComboId}" )
             #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )	
-            
+            #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
+
             <table id="sectionTable" class="sectionTable" cellspacing="0">
                 #set( $colCount = $numberOfTotalColumns.get( $categoryComboId ) )
                 #set( $categories = $orderedCategories.get( $categoryComboId ) )
@@ -53,8 +54,7 @@
                 #set( $hasFilterInSection = false )
                 #set( $mark = 0 )                
                 
-                <thead>
-                    #set( $rowSubTotalRendered = false )
+                <thead>                    
                     #set( $rowTotalRendered = false )
                     #foreach( $category in $categories )
                         #set( $categoryOptions = $optionsMap.get( $category.id ) )
@@ -75,7 +75,7 @@
                                     </th>
                                 #end                                
                             #end
-                            #if( $section.showRowTotals == "true" && $rowTotalRendered == "false" && $categories.size() > 1)
+                            #if( $section.showRowTotals == "true" && $rowTotalRendered == "false" && $optionCombos.size() > 1)
                                 #set( $rowTotalRendered = true )
                                 <th rowspan="$categories.size()">
                                     ${i18n.getString( "total" )}
@@ -85,7 +85,6 @@
                     #end
                 </thead>
 
-                #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
                 #foreach( $optionCombo in $optionCombos )<span id="${optionCombo.uid}-optioncombo" class="hidden">${encoder.htmlEncode( $optionCombo.displayName )}</span>
                 #end
                 <tbody>                    
@@ -164,33 +163,31 @@
                             #end
                             #if($section.showRowTotals == "true" &&  $optionCombos.size() > 1 )                                    
                                 <td>
-                                    <input class="total-cell" type="text" id="$rowTotalIds">
+                                    <input class="total-cell" type="text" id="$rowTotalIds" disabled>
                                 </td>
                             #end
                         </tr>
                     #end
-                    #if($section.showColumnTotals == "true" )
+                    #if($section.showColumnTotals == "true" && $dataElements.size() > 1)
                         #if( $mark == 1 )
                             #set( $mark = 0 )
                         #else
                             #set( $mark = 1 )
                         #end
                         <tr>
-                            <td #if( $mark == 1 )class="alt bold"#else class="reg bold"#end>
+                            <td #if( $mark == 1 )class="alt"#else class="reg"#end>
                                 ${i18n.getString( "total" )}
                             </td>                            
                             #set( $columnTotalIds = "col" )
                             #foreach( $optionCombo in $optionCombos )
                                 #set( $columnTotalIds = "${columnTotalIds}-$optionCombo.uid" )
                                 <td>                                
-                                    <input class="total-cell" type="text" id="col-${optionCombo.uid}">
+                                    <input class="total-cell" type="text" id="col-${optionCombo.uid}" disabled>
                                 </td>
-                            #end
-                            #if( $dataElements.size() > 1 )                                    
-                                <td>
-                                    <input class="total-cell" type="text" id="$columnTotalIds">
-                                </td>
-                            #end
+                            #end                            
+                            <td>
+                                <input class="total-cell" type="text" id="$columnTotalIds" disabled>
+                            </td>                            
                         </>
                     #end
                 </tbody>
