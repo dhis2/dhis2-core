@@ -44,6 +44,8 @@
 
   <bean id="org.hisp.dhis.dxf2.csv.CsvImportService" class="org.hisp.dhis.dxf2.csv.DefaultCsvImportService" />
 
+  <bean id="org.hisp.dhis.dxf2.metadata.collection.CollectionService" class="org.hisp.dhis.dxf2.metadata.collection.DefaultCollectionService" />
+
   <bean id="org.hisp.dhis.dxf2.datavalueset.DataValueSetService"
     class="org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService" />
 
@@ -72,11 +74,11 @@
 
   <bean id="org.hisp.dhis.dxf2.synch.SynchronizationManager" class="org.hisp.dhis.dxf2.synch.DefaultSynchronizationManager" />
 
-  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService"/>
+  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" />
 
   <bean id="dataSynchTask" class="org.hisp.dhis.dxf2.synch.DataSynchronizationTask" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService"/>
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService" />
 
   <bean id="metadataSyncTask" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask" scope="prototype" />
 
