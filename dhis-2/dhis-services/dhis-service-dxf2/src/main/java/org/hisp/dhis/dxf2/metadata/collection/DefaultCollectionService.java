@@ -35,6 +35,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -44,9 +45,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -72,11 +73,13 @@ public class DefaultCollectionService implements CollectionService
     @Autowired
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private QueryService queryService;
+
     @Override
     @SuppressWarnings( "unchecked" )
     public void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
     {
-        List<IdentifiableObject> items = new ArrayList<>();
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
         if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
@@ -96,19 +99,14 @@ public class DefaultCollectionService implements CollectionService
             throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
         }
 
-        for ( IdentifiableObject o : objects )
-        {
-            IdentifiableObject item = manager.getNoAcl( (Class<? extends IdentifiableObject>) property.getItemKlass(), o.getUid() );
+        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
 
-            if ( item != null )
-            {
-                items.add( item );
-            }
-            else
-            {
-                throw new WebMessageException( WebMessageUtils.notFound( "Collection " + propertyName + " does not have an item with ID: " + o.getUid() ) );
-            }
+        if ( itemCodes.isEmpty() )
+        {
+            return;
         }
+
+        List<? extends IdentifiableObject> items = manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
 
         manager.refresh( object );
 
@@ -154,7 +152,6 @@ public class DefaultCollectionService implements CollectionService
     @SuppressWarnings( "unchecked" )
     public void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
     {
-        List<IdentifiableObject> items = new ArrayList<>();
         Schema schema = schemaService.getDynamicSchema( object.getClass() );
 
         if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
@@ -174,19 +171,14 @@ public class DefaultCollectionService implements CollectionService
             throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
         }
 
-        for ( IdentifiableObject o : objects )
-        {
-            IdentifiableObject item = manager.getNoAcl( (Class<? extends IdentifiableObject>) property.getItemKlass(), o.getUid() );
+        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
 
-            if ( item != null )
-            {
-                items.add( item );
-            }
-            else
-            {
-                throw new WebMessageException( WebMessageUtils.notFound( "Collection " + propertyName + " does not have an item with ID: " + o.getUid() ) );
-            }
+        if ( itemCodes.isEmpty() )
+        {
+            return;
         }
+
+        List<? extends IdentifiableObject> items = manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
 
         manager.refresh( object );
 
