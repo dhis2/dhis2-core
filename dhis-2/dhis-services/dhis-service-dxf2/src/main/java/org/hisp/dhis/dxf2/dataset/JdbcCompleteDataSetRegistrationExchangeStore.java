@@ -168,7 +168,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     {
         if ( params.hasOrganisationUnitGroups() )
         {
-            // language=SQL
             return " LEFT JOIN orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
         }
 
@@ -226,7 +225,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
                 .put( "startDate", DateUtils.getMediumDateString( params.getStartDate() ) )
                 .put( "endDate", DateUtils.getMediumDateString( params.getEndDate() ) );
 
-            // language=SQL
             return " AND ( pe.startdate >= '${startDate}' AND pe.enddate <= '${endDate}' ) ";
         }
 
@@ -235,7 +233,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
             namedParamsBuilder
                 .put( "periods", commaDelimitedIds( params.getPeriods() ) );
 
-            // language=SQL
             return " AND cdsr.periodid in ( ${periods} ) ";
         }
 
@@ -269,7 +266,6 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         {
             namedParamsBuilder.put( "limit", params.getLimit().toString() );
 
-            // language=SQL
             return " LIMIT ${limit} ";
         }
 
