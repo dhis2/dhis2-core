@@ -28,8 +28,6 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
@@ -38,6 +36,9 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.program.ProgramStatus;
+
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -71,10 +72,10 @@ public interface EventDataQueryService
      * @param userOrgUnit the user organisation unit to use, overrides current user.
      * @param format the i18n format.
      */
-    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
-        Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta, 
-        boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy, 
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, boolean collapseDataDimensions, 
+    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
+        Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
+        boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
         boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format );
 
     /**
@@ -103,7 +104,8 @@ public interface EventDataQueryService
     EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc, 
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, 
-        boolean coordinatesOnly, EventStatus eventStatus, DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format );
+        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty, String userOrgUnit,
+        Integer page, Integer pageSize, I18nFormat format );
     
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 }

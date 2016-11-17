@@ -117,8 +117,6 @@ public class DefaultAnalyticsService
     private static final int PERCENT = 100;
     private static final int MAX_QUERIES = 8;
 
-    //TODO completeness on time
-
     @Autowired
     private AnalyticsManager analyticsManager;
 
@@ -520,9 +518,10 @@ public class DefaultAnalyticsService
      * Adds reporting rates to the given grid based on the given data query
      * parameters and reporting rate metric.
      *
-     * @param params the data query parameters.
-     * @param grid   the grid.
-     * @param metic  the reporting rate metric.
+     * @param dataSourceParams the data query parameters.
+     * @param grid the grid.
+     * @param metric the reporting rate metric.
+     * @param includeNumDen whether to include numerator and denominator.
      */
     private void addReportingRates( DataQueryParams dataSourceParams, Grid grid, ReportingRateMetric metric, boolean includeNumDen )
     {
@@ -641,7 +640,7 @@ public class DefaultAnalyticsService
      */
     private void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid )
     {
-        if ( (!params.getAllProgramDataElementsAndAttributes().isEmpty() || !params.getProgramIndicators().isEmpty()) && !params.isSkipData() )
+        if ( ( !params.getAllProgramDataElementsAndAttributes().isEmpty() || !params.getProgramIndicators().isEmpty() ) && !params.isSkipData() )
         {
             DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                 .retainDataDimensions( PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE, PROGRAM_INDICATOR ).build();
@@ -668,7 +667,7 @@ public class DefaultAnalyticsService
         if ( params.getDataDimensionAndFilterOptions().isEmpty() && !params.isSkipData() )
         {
             Map<String, Double> aggregatedDataMap = getAggregatedDataValueMap( DataQueryParams.newBuilder( params )
-                .withIncludeNumDen( false ).build() ); //TODO pass directly
+                .withIncludeNumDen( false ).build() );
 
             for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
             {
@@ -703,7 +702,7 @@ public class DefaultAnalyticsService
             // Names element
             // -----------------------------------------------------------------
 
-            Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+            Map<String, String> uidNameMap = AnalyticsUtils.getDimensionItemNameMap( params );
             Map<String, String> cocNameMap = AnalyticsUtils.getCocNameMap( params );
             uidNameMap.putAll( cocNameMap );
             uidNameMap.put( DATA_X_DIM_ID, DISPLAY_NAME_DATA_X );
@@ -749,10 +748,14 @@ public class DefaultAnalyticsService
             {
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
-            
+
+            // -----------------------------------------------------------------
+            // Dimension item meta data
+            // -----------------------------------------------------------------
+
             if ( params.isDimensionItemMeta() )
             {
-                metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getUidDimensionalItemMap( params ) );
+                metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getDimensionalItemObjectMap( params ) );
             }
 
             grid.setMetaData( metaData );
@@ -772,7 +775,7 @@ public class DefaultAnalyticsService
         {
             List<DimensionalItemObject> items = params.getAllDimensionItems();
 
-            Map<String, String> map = IdentifiableObjectUtils.getUidPropertyMap( items, params.getOutputIdScheme() );
+            Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( items, params.getOutputIdScheme() );
 
             grid.substituteMetaData( map );
         }
@@ -949,7 +952,7 @@ public class DefaultAnalyticsService
      *
      * @param params        the data query parameters.
      * @param tableName     the table name to use for the query.
-     * @param queryPlanners the list of additional query groupers to use for
+     * @param queryGroupers the list of additional query groupers to use for
      *                      query planning, use empty list for none.
      * @return a mapping between a dimension key and aggregated values.
      */

@@ -42,7 +42,7 @@ import org.hisp.dhis.report.ReportService;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

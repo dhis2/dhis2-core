@@ -28,6 +28,8 @@ package org.hisp.dhis.trackedentity.action.programindicator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableList;
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeService;
@@ -36,8 +38,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.opensymphony.xwork2.Action;
 
 import java.util.List;
 
@@ -146,6 +146,20 @@ public class UpdateProgramIndicatorAction
         this.displayInForm = displayInForm;
     }
 
+    private String aggregateExportCategoryOptionCombo;
+    
+    public void setAggregateExportCategoryOptionCombo( String aggregateExportCategoryOptionCombo )
+    {
+        this.aggregateExportCategoryOptionCombo = aggregateExportCategoryOptionCombo;
+    }
+
+    private String aggregateExportAttributeOptionCombo;
+
+    public void setAggregateExportAttributeOptionCombo( String aggregateExportAttributeOptionCombo )
+    {
+        this.aggregateExportAttributeOptionCombo = aggregateExportAttributeOptionCombo;
+    }
+
     private Integer programId;
 
     public Integer getProgramId()
@@ -155,7 +169,10 @@ public class UpdateProgramIndicatorAction
 
     private List<String> jsonAttributeValues;
 
-    public void setJsonAttributeValues( List<String> jsonAttributeValues ) { this.jsonAttributeValues = jsonAttributeValues; }
+    public void setJsonAttributeValues( List<String> jsonAttributeValues )
+    {
+        this.jsonAttributeValues = jsonAttributeValues;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation
@@ -177,8 +194,10 @@ public class UpdateProgramIndicatorAction
         indicator.setFilter( StringUtils.trimToNull( filter ) );
         indicator.setAggregationType( AggregationType.valueOf( aggregationType ) );
         indicator.setDecimals( decimals );
-        indicator.setLegendSet( legendSet );
+        indicator.setLegendSets( ImmutableList.<LegendSet>builder().add( legendSet ).build() );
         indicator.setDisplayInForm( displayInForm );
+        indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
+        indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
 
         if ( jsonAttributeValues != null )
         {
@@ -191,5 +210,4 @@ public class UpdateProgramIndicatorAction
 
         return SUCCESS;
     }
-
 }

@@ -50,6 +50,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -59,7 +60,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -182,6 +183,13 @@ public class DataValueController
         if ( commentValid != null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Invalid comment: " + comment ) );
+        }
+
+        OptionSet optionSet = dataElement.getOptionSet();
+        
+        if ( optionSet != null && !optionSet.getOptionCodesAsSet().contains( value ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
         }
 
         // ---------------------------------------------------------------------

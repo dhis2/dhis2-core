@@ -35,7 +35,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -185,18 +184,36 @@ public class SpringDataValueSetStore
 
     private String getDataValueSql( DataExportParams params )
     {
-        IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
+        IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
-        String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
-        String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
-        String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
+        String deScheme = idScheme.getDataElementIdScheme().getIdentifiableString().toLowerCase();
+        String ouScheme = idScheme.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
+        String ocScheme = idScheme.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
         String dataElements = getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) );
         String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
         String orgUnitGroups = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnitGroups() ) );
 
+        String deSql = idScheme.getDataElementIdScheme().isAttribute() ? 
+            "coalesce((" +
+            "select av.value as deid from attributevalue av " +
+            "inner join dataelementattributevalues deav on av.attributevalueid=deav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getDataElementIdScheme().getAttribute() + "' " +
+            "where dv.dataelementid=deav.dataelementid " +
+            "limit 1), de.uid) as deid" :
+            "de." + deScheme + " as deid";
+        
+        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ? 
+            "coalesce((" +
+            "select av.value as ouid from attributevalue av " +
+            "inner join organisationunitattributevalues ouav on av.attributevalueid=ouav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getOrgUnitIdScheme().getAttribute() + "' " +
+            "where dv.sourceid=ouav.organisationunitid " +
+            "limit 1), ou.uid) as ouid" :
+            "ou." + ouScheme + " as ouid";
+        
         String sql =
-            "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
+            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " +
             "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +

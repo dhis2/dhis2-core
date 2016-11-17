@@ -139,9 +139,13 @@ public class SystemController
         throws IOException, InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
+
         CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
-        CsvSchema.Builder schemaBuilder = CsvSchema.builder().setUseHeader( true );
-        schemaBuilder.addColumn( "uid" );
+
+        CsvSchema.Builder schemaBuilder = CsvSchema.builder()
+            .addColumn( "uid" )
+            .setUseHeader( true );
+
         csvGenerator.setSchema( schemaBuilder.build() );
 
         for ( int i = 0; i < limit; i++ )
@@ -150,6 +154,8 @@ public class SystemController
             csvGenerator.writeStringField( "uid", CodeGenerator.generateCode() );
             csvGenerator.writeEndObject();
         }
+
+        csvGenerator.flush();
     }
 
     @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )

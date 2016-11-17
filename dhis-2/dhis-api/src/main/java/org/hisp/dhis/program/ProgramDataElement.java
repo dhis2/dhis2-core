@@ -37,9 +37,12 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
+
+import java.util.List;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
@@ -116,15 +119,21 @@ public class ProgramDataElement
     }
 
     @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dataElement.getPropertyValue( idScheme );
+    }
+    
+    @Override
     public DimensionItemType getDimensionItemType()
     {
         return DimensionItemType.PROGRAM_DATA_ELEMENT;
     }
 
     @Override
-    public LegendSet getLegendSet()
+    public List<LegendSet> getLegendSets()
     {
-        return dataElement.getLegendSet();
+        return dataElement.getLegendSets();
     }
 
     @Override

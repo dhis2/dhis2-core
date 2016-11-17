@@ -42,10 +42,12 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -83,6 +85,7 @@ public class EventAnalyticsController
     // Aggregate
     // -------------------------------------------------------------------------
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody Grid getAggregateJson( // JSON, JSONP
         @PathVariable String program,
@@ -107,17 +110,19 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             value, aggregationType, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta, showHierarchy, sortOrder, limit, outputType,
-            eventStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
+            eventStatus, programStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getAggregatedEventData( params );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.xml", method = RequestMethod.GET )
     public void getAggregateXml(
         @PathVariable String program,
@@ -142,18 +147,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             value, aggregationType, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta, showHierarchy, sortOrder, limit, outputType,
-            eventStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
+            eventStatus, programStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xml", false );
         Grid grid = analyticsService.getAggregatedEventData( params );
         GridUtils.toXml( substituteMetaData( grid ), response.getOutputStream() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.xls", method = RequestMethod.GET )
     public void getAggregateXls(
         @PathVariable String program,
@@ -178,18 +185,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             value, aggregationType, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta, showHierarchy, sortOrder, limit, outputType,
-            eventStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
+            eventStatus, programStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
         Grid grid = analyticsService.getAggregatedEventData( params );
         GridUtils.toXls( substituteMetaData( grid ), response.getOutputStream() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.csv", method = RequestMethod.GET )
     public void getAggregateCsv(
         @PathVariable String program,
@@ -214,18 +223,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             value, aggregationType, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta, showHierarchy, sortOrder, limit, outputType,
-            eventStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
+            eventStatus, programStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
         Grid grid = analyticsService.getAggregatedEventData( params );
         GridUtils.toCsv( substituteMetaData( grid ), response.getWriter() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.html", method = RequestMethod.GET )
     public void getAggregateHtml(
         @PathVariable String program,
@@ -250,18 +261,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             value, aggregationType, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta, showHierarchy, sortOrder, limit, outputType,
-            eventStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
+            eventStatus, programStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getAggregatedEventData( params );
         GridUtils.toHtml( substituteMetaData( grid ), response.getWriter() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/aggregate/{program}.html+css", method = RequestMethod.GET )
     public void getAggregateHtmlCss(
         @PathVariable String program,
@@ -286,12 +299,13 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             value, aggregationType, skipMeta, skipData, skipRounding, completedOnly, hierarchyMeta, showHierarchy, sortOrder, limit, outputType,
-            eventStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
+            eventStatus, programStatus, collapseDataDimensions, aggregateData, displayProperty, userOrgUnit, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getAggregatedEventData( params );
@@ -323,11 +337,13 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getRectangle( params );
@@ -361,11 +377,13 @@ public class EventAnalyticsController
         @RequestParam Long clusterSize,
         @RequestParam String bbox,
         @RequestParam( required = false ) boolean includeClusterPoints,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         params = new EventQueryParams.Builder( params )
             .withClusterSize( clusterSize )
@@ -381,6 +399,7 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
@@ -402,16 +421,19 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getEvents( params );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xml", method = RequestMethod.GET )
     public void getQueryXml(
         @PathVariable String program,
@@ -433,17 +455,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xml", false );
         Grid grid = analyticsService.getEvents( params );
         GridUtils.toXml( substituteMetaData( grid ), response.getOutputStream() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xls", method = RequestMethod.GET )
     public void getQueryXls(
         @PathVariable String program,
@@ -465,17 +490,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
         Grid grid = analyticsService.getEvents( params );
         GridUtils.toXls( substituteMetaData( grid ), response.getOutputStream() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.csv", method = RequestMethod.GET )
     public void getQueryCsv(
         @PathVariable String program,
@@ -497,17 +525,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.csv", true );
         Grid grid = analyticsService.getEvents( params );
         GridUtils.toCsv( substituteMetaData( grid ), response.getWriter() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html", method = RequestMethod.GET )
     public void getQueryHtml(
         @PathVariable String program,
@@ -529,17 +560,20 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getEvents( params );
         GridUtils.toHtml( substituteMetaData( grid ), response.getWriter() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
     @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html+css", method = RequestMethod.GET )
     public void getQueryHtmlCss(
         @PathVariable String program,
@@ -561,11 +595,13 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
-            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
+            ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
+            displayProperty, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.html", false );
         Grid grid = analyticsService.getEvents( params );

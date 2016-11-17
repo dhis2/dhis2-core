@@ -30,6 +30,10 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -79,6 +83,9 @@ public class DataValueSetServiceExportTest
 
     @Autowired
     private DataValueService dataValueService;
+    
+    @Autowired
+    private AttributeService attributeService;
 
     private DataElement deA;
     private DataElement deB;
@@ -88,6 +95,10 @@ public class DataValueSetServiceExportTest
     private DataElementCategoryOptionCombo cocA;
     private DataElementCategoryOptionCombo cocB;
 
+    private Attribute atA;
+    
+    private AttributeValue avA;
+    
     private DataSet dsA;
     private DataSet dsB;
 
@@ -120,6 +131,16 @@ public class DataValueSetServiceExportTest
 
         categoryService.addDataElementCategoryOptionCombo( cocA );
         categoryService.addDataElementCategoryOptionCombo( cocB );
+        
+        atA = createAttribute( 'A' );
+        atA.setDataElementAttribute( true );
+        atA.setOrganisationUnitAttribute( true );
+        
+        idObjectManager.save( atA );
+        
+        avA = new AttributeValue( "AttributeValueA", atA );
+        
+        attributeService.addAttributeValue( deA, avA );
 
         dsA = createDataSet( 'A' );
         dsA.addDataSetElement( deA );
@@ -256,6 +277,39 @@ public class DataValueSetServiceExportTest
             assertNotNull( dv );
             assertEquals( deA.getCode(), dv.getDataElement() );
             assertEquals( ouA.getCode(), dv.getOrgUnit() );
+        }
+    }
+    
+    @Test
+    public void testExportOutputIdSchemeAttribute()
+    {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        String attributeIdScheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
+        
+        IdSchemes idSchemes = new IdSchemes()
+            .setDataElementIdScheme( attributeIdScheme );
+
+        DataExportParams params = new DataExportParams()
+            .setDataSets( Sets.newHashSet( dsB ) )
+            .setOrganisationUnits( Sets.newHashSet( ouA ) )
+            .setPeriods( Sets.newHashSet( peB ) )
+            .setOutputIdSchemes( idSchemes );
+
+        dataValueSetService.writeDataValueSetJson( params, out );
+
+        DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
+
+        assertNotNull( dvs );
+        assertNotNull( dvs.getDataSet() );
+        assertEquals( dsB.getUid(), dvs.getDataSet() );
+        assertEquals( 2, dvs.getDataValues().size() );
+
+        for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
+        {
+            assertNotNull( dv );
+            assertEquals( avA.getValue(), dv.getDataElement() );
+            assertEquals( ouA.getUid(), dv.getOrgUnit() );
         }
     }
 }

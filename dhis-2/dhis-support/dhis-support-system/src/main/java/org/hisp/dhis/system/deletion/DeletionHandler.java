@@ -87,6 +87,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.ProgramValidation;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -923,4 +924,12 @@ public abstract class DeletionHandler
     {
     }
 
+    public String allowDeleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup group )
+    {
+        return null;
+    }
+
+    public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup color )
+    {
+    }
 }

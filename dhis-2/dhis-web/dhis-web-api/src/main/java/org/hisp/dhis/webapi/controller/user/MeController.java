@@ -53,7 +53,7 @@ import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.user.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

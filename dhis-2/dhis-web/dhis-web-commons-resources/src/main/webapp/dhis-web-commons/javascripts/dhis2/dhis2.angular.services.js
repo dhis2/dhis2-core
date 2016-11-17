@@ -156,7 +156,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for dealing with dates */
-.service('DateUtils', function ($filter, CalendarService) {
+.service('DateUtils', function ($filter, CalendarService, NotificationService, $translate) {
 
     return {
         getDate: function (dateValue) {
@@ -202,6 +202,16 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             today = $filter('date')(today, calendarSetting.keyDateFormat);
             return today;
         },
+        isBeforeToday: function (dateValue) {
+            if (!dateValue) {
+                return;
+            }
+            dateValue = moment(dateValue, CalendarService.getSetting().momentFormat);
+            if (dateValue.isBefore(this.getToday())) {
+                return true;
+            }
+            return false;
+        },
         formatFromUserToApi: function (dateValue) {
             if (!dateValue) {
                 return;
@@ -232,6 +242,66 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             dateAfterOffset = Date.parse(dateAfterOffset);
             dateAfterOffset = $filter('date')(dateAfterOffset, calendarSetting.keyDateFormat);
             return dateAfterOffset;
+        },
+        verifyExpiryDate: function(date, expiryPeriodType, expiryDays){
+            var eventPeriodEndDate, eventDate, eventPeriod;
+            var isValid = true;
+            var calendarSetting, dateFormat, generator, today;
+            if(!date || !expiryPeriodType || !expiryDays) {
+                return isValid;
+            }
+            calendarSetting = CalendarService.getSetting();
+            dateFormat = calendarSetting.momentFormat;
+            generator = new dhis2.period.PeriodGenerator($.calendars.instance(calendarSetting.keyCalendar), dateFormat);
+            today = moment(this.getToday(), dateFormat);
+            eventDate = moment(date, dateFormat);
+            eventPeriod = generator.getPeriodForTheDate(eventDate.format("YYYY-MM-DD"), expiryPeriodType, true);
+            if (eventPeriod && eventPeriod.endDate) {
+                eventPeriodEndDate = moment(eventPeriod.endDate, "YYYY-MM-DD").add(expiryDays, "day");
+                if (today.isAfter(eventPeriodEndDate)) {
+                    NotificationService.showNotifcationDialog($translate.instant("error"), $translate.instant("event_date_out_of_range"));
+                    isValid = false;
+                }
+            }
+            return isValid;
+        },
+        verifyOrgUnitPeriodDate: function(date, periodStartDate, periodEndDate) {
+            var isValid = true;
+            var dateFormat, startDate, endDate, eventDate, calendarSetting;
+            if(!date) {
+                hideHeaderMessage();
+                return isValid
+            }
+            if (!periodStartDate && !periodEndDate) {
+                isValid = false;
+            } else {
+                calendarSetting = CalendarService.getSetting();
+                dateFormat = calendarSetting.momentFormat;
+                eventDate = moment(date, dateFormat);
+                if (!periodStartDate) {
+                    endDate = moment(periodEndDate, "YYYY-MM-DD");
+                    if (eventDate.isAfter(endDate)) {
+                        isValid = false;
+                    }
+                } else if (!periodEndDate) {
+                    startDate = moment(periodStartDate, "YYYY-MM-DD");
+                    if (eventDate.isBefore(startDate)) {
+                        isValid = false;
+                    }
+                } else {
+                    startDate = moment(periodStartDate, "YYYY-MM-DD");
+                    endDate = moment(periodEndDate, "YYYY-MM-DD");
+                    if (eventDate.isBefore(startDate) || eventDate.isAfter(endDate)) {
+                        isValid = false;
+                    }
+                }
+            }
+            if(!isValid) {
+                setHeaderDelayMessage($translate.instant("date_out_of_ou_period"));
+            } else {
+                hideHeaderMessage();
+            }
+            return isValid;
         }
     };
 })
@@ -402,6 +472,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-date-validator ' +
                                 ' max-date="' + 0 + '"' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
+                                ' ng-change="verifyExpiryDate()"'+
                                 ' ng-class="getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id,true)"' +
                                 ' blur-or-change="saveDatavalue(prStDes.' + fieldId + ')"' +
                                 ' ng-required="{{true}}"></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
@@ -476,6 +547,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                             ' d2-date ' +
                                             ' d2-date-validator ' +
                                             ' max-date="' + maxDate + '"' +
+                                            ' ng-change="verifyExpiryDate()"'+
                                             ' blur-or-change="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
                                             commonInputFieldProperty + ' ></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
@@ -624,14 +696,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' attribute-data="attributesById.' + attId + '" ' +
                                 ' selected-program-id="selectedProgram.id" ' +
                                 ' selected-tei-id="selectedTei.trackedEntityInstance" ' +
-                                ' ng-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ '|| attributesById.' + attId + '.generated"' +
+                                ' ng-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ '|| attributesById.' + attId + '.generated"' +
                                 ' d2-attribute-validator ' +
                                 ' ng-required=" ' + att.mandatory + '" ';
 
                             //check if attribute has optionset
                             if (att.optionSetValue) {
                                 var optionSetId = att.optionSet.id;
-                                newInputField = '<span class="hideInPrint"><ui-select theme="select2" ' + commonInputFieldProperty + '  on-select="teiValueUpdated(selectedTei,\'' + attId + '\')" >' +
+                                newInputField = '<span class="hideInPrint"><ui-select ng-disabled="model.orgUnitClosed" theme="select2" ' + commonInputFieldProperty + '  on-select="teiValueUpdated(selectedTei,\'' + attId + '\')" >' +
                                     '<ui-select-match style="width:100%;" allow-clear="true" placeholder="' + $translate.instant('select_or_search') + '">{{$select.selected.displayName || $select.selected}}</ui-select-match>' +
                                     '<ui-select-choices ' +
                                     'repeat="option.displayName as option in optionSets.' + optionSetId + '.options | filter: $select.search | limitTo:maxOptionSize">' +
@@ -646,7 +718,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 		att.valueType === "INTEGER_POSITIVE" ||
                                 		att.valueType === "INTEGER_NEGATIVE" ||
                                 		att.valueType === "INTEGER_ZERO_OR_POSITIVE" ) {
-                                    newInputField = '<span class="hideInPrint"><input type="number"' +
+                                    newInputField = '<span class="hideInPrint"><input ng-disabled="model.orgUnitClosed"  type="number"' +
                                         ' d2-number-validator ' +
                                         ' number-type="' + att.valueType + '" ' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
@@ -655,7 +727,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 else if (att.valueType === "BOOLEAN") {
                                 	newInputField = '<span class="hideInPrint"><d2-radio-button ' +
                                                             ' dh-required=" ' + (att.mandatory || att.unique) + '" ' +
-                                                            ' dh-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate + '"' +
+                                                            ' dh-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate + '"' +
                                                             ' dh-value="selectedTei.' + attId + '" ' +
                                                             ' dh-name="foo" ' +
                                                             ' dh-current-element="currentElement" ' +
@@ -669,21 +741,23 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 }
                                 else if (att.valueType === "DATE") {
                                     newInputField = '<span class="hideInPrint"><input  type="text"' +
+                                        ' ng-disabled="model.orgUnitClosed"'+   
                                         ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                         ' max-date=" ' + attMaxDate + ' " ' +
                                         ' d2-date' +
+                                        ' ng-change="verifyExpiryDate(\'selectedTei.'+attId+'\')"'+
                                         ' blur-or-change="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></span>' +
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "TRUE_ONLY") {
-                                    newInputField = '<span class="hideInPrint"><input type="checkbox" ' +
+                                    newInputField = '<span class="hideInPrint"><input ng-disabled="model.orgUnitClosed" type="checkbox" ' +
                                         ' ng-change="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></span>' +
                                         '<span class="not-for-screen"><input type="checkbox" ng-checked={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "EMAIL") {
-                                    newInputField = '<span class="hideInPrint"><input type="email"' +
+                                    newInputField = '<span class="hideInPrint"><input type="email" ng-disabled="model.orgUnitClosed"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' >' +
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -697,6 +771,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                             '<button class="btn btn-grp default-btn-height" type="button" ' + 
                                                                 ' title="{{\'add\' | translate}} {{attributesById.' + attId + '.displayName}}" ' +
                                                                 ' ng-if="!selectedTei.' + attId + '" ' +
+                                                                ' ng-disabled="model.orgUnitClosed"'+
                                                                 ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
                                                                 ' ng-click="getTrackerAssociate(attributesById.' + attId + ', selectedTei.' + attId + ')" >' +
                                                                 '<i class="fa fa-external-link"></i> ' +
@@ -704,6 +779,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                             '<button class="btn btn-grp default-btn-height" type="button" ' + 
                                                                 ' title="{{\'remove\' | translate}} {{attributesById.' + attId + '.displayName}}" ' +
                                                                 ' ng-if="selectedTei.' + attId + '" ' +
+                                                                ' ng-disabled="model.orgUnitClosed"'+
                                                                 ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
                                                                 ' ng-click="selectedTei.' + attId + ' = null" >' +
                                                                 '<i class="fa fa-trash-o"></i> ' +
@@ -718,7 +794,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 						                                    ' d2-object="selectedTei" ' +  
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
-					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+					                                        ' d2-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
 						                                    ' d2-coordinate-format="\'TEXT\'" > ' +
 						                            '</d2-map></span>'+
                                                                             '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -730,23 +806,23 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 				                                            ' d2-object="selectedTei" ' +  
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
-					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+					                                        ' d2-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
 					                                        ' d2-function="teiValueUpdated()" >' +
 				                                    ' </d2-org-unit-tree></span>'+
                                                                     '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "LONG_TEXT") {
-                                    newInputField = '<span><textarea row ="3" ' +
+                                    newInputField = '<span><textarea ng-disabled="model.orgUnitClosed" row ="3" ' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></textarea></span>';
                                 }
                                 else if (att.valueType === "TEXT") {
-                                    newInputField = '<input type="text" ' +
+                                    newInputField = '<input type="text" ng-disabled="model.orgUnitClosed"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + '>';
                                 }
                                 else if (att.valueType === "PHONE_NUMBER") {
-                                    newInputField = '<input type="text" ' +
+                                    newInputField = '<input type="text" ng-disabled="model.orgUnitClosed"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + '>';
                                 }
@@ -775,7 +851,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-focus-next-on-enter' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfEnrollment" ' +
-                                ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
+                                ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfEnrollment\')"'+
+                                ' ng-disabled="\'' + target + '\' === \'PROFILE\' || model.orgUnitClosed"' +
                                 ' d2-date' +
                                 ' max-date="' + enMaxDate + '"' +
                                 ' ng-required="true">';
@@ -790,7 +867,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' d2-focus-next-on-enter' +
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfIncident" ' +
-                                ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
+                                ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfIncident\')"'+
+                                ' ng-disabled="\'' + target + '\' === \'PROFILE\' || model.orgUnitClosed"' +
                                 ' d2-date ' +
                                 ' max-date="' + inMaxDate + '">';
                         }
@@ -1395,10 +1473,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         return variables;
     };
     
-    var getDataElementValueOrCode = function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
+    var getDataElementValueOrCodeForValueInternal = function(useCodeForOptionSet, value, dataElementId, allDes, optionSets) {
         return useCodeForOptionSet && allDes && allDes[dataElementId].dataElement.optionSet ? 
-                                            OptionSetService.getCode(optionSets[allDes[dataElementId].dataElement.optionSet.id].options, event[dataElementId])
-                                            : event[dataElementId];
+                                            OptionSetService.getCode(optionSets[allDes[dataElementId].dataElement.optionSet.id].options, value)
+                                            : value;
     };
 
     return {
@@ -1406,7 +1484,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return processSingleValue(value,type);
         },
         getDataElementValueOrCode: function(useCodeForOptionSet, event, dataElementId, allDes, optionSets) {
-            return getDataElementValueOrCode(useCodeForOptionSet, event, dataElementId, allDes, optionSets);
+            return getDataElementValueOrCodeForValueInternal(useCodeForOptionSet, event[dataElementId], dataElementId, allDes, optionSets);
+        },
+        getDataElementValueOrCodeForValue: function(useCodeForOptionSet, value, dataElementId, allDes, optionSets) {
+            return getDataElementValueOrCodeForValueInternal(useCodeForOptionSet, value, dataElementId, allDes, optionSets);
         },
         getVariables: function(allProgramRules, executingEvent, evs, allDes, selectedEntity, selectedEnrollment, optionSets) {
 
@@ -1441,7 +1522,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(event[dataElementId] !== null) {
                                 if(angular.isDefined(event[dataElementId])
                                         && event[dataElementId] !== ""){
-                                    var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
+                                    var value = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, event[dataElementId], dataElementId, allDes, optionSets);
                                             
                                     allValues.push(value);
                                     valueFound = true;
@@ -1461,7 +1542,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         if(angular.isDefined(event[dataElementId])
                             && event[dataElementId] !== null 
                             && event[dataElementId] !== ""){
-                            var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, event, dataElementId, allDes, optionSets);
+                            var value = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, event[dataElementId], dataElementId, allDes, optionSets);
                                     
                             allValues.push(value);
                             valueFound = true;
@@ -1473,7 +1554,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     if(angular.isDefined(executingEvent[dataElementId])
                         && executingEvent[dataElementId] !== null 
                         && executingEvent[dataElementId] !== ""){
-                        var value = getDataElementValueOrCode(programVariable.useCodeForOptionSet, executingEvent, dataElementId, allDes, optionSets);
+                        var value = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, executingEvent[dataElementId], dataElementId, allDes, optionSets);
                             
                         valueFound = true;
                         variables = pushVariable(variables, programVariable.displayName, value, null, allDes[dataElementId].dataElement.valueType, valueFound, '#', executingEvent.eventDate, programVariable.useCodeForOptionSet );
@@ -1492,7 +1573,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if(!currentEventPassed && evs.all[i] !== executingEvent &&
                                 angular.isDefined(evs.all[i][dataElementId])
                                 && evs.all[i][dataElementId] !== "") {
-                                previousvalue = getDataElementValueOrCode(programVariable.useCodeForOptionSet, evs.all[i], dataElementId, allDes, optionSets);
+                                previousvalue = getDataElementValueOrCodeForValueInternal(programVariable.useCodeForOptionSet, evs.all[i][dataElementId], dataElementId, allDes, optionSets);
                                 previousEventDate = evs.all[i].eventDate;
                                 allValues.push(value);
                                 valueFound = true;
@@ -2433,22 +2514,18 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             var variabletoassign = $rootScope.ruleeffects[ruleEffectKey][action.id].content ?
                                 $rootScope.ruleeffects[ruleEffectKey][action.id].content.replace("#{","").replace("}","") : null;
 
-                            if(variabletoassign || !angular.isDefined(variablesHash[variabletoassign])){
+                            if(variabletoassign && !angular.isDefined(variablesHash[variabletoassign])){
                                 //If a variable is mentioned in the content of the rule, but does not exist in the variables hash, show a warning:
                                 $log.warn("Variable " + variabletoassign + " was not defined.");
                             }
 
-                            if(variablesHash[variabletoassign] &&
-                                variablesHash[variabletoassign].variableValue !== updatedValue){
-                                //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
-                                updatedEffectsExits = true;
-                                
+                            if(variablesHash[variabletoassign]){
                                 var updatedValue = $rootScope.ruleeffects[ruleEffectKey][action.id].data;
                                 
                                 var valueType = determineValueType(updatedValue);
                                 
                                 if($rootScope.ruleeffects[ruleEffectKey][action.id].dataElement) {
-                                    updatedValue = VariableService.getDataElementValueOrCode(variablesHash[variabletoassign].useCodeForOptionSet, executingEvent, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
+                                    updatedValue = VariableService.getDataElementValueOrCodeForValue(variablesHash[variabletoassign].useCodeForOptionSet, updatedValue, $rootScope.ruleeffects[ruleEffectKey][action.id].dataElement.id, allDataElements, optionSets);
                                 }
                                 updatedValue = VariableService.processValue(updatedValue, valueType);
 
@@ -2460,6 +2537,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     variablePrefix:'#',
                                     allValues:[updatedValue]
                                 };
+                                
+                                if(variablesHash[variabletoassign].variableValue !== updatedValue) {
+                                    //If the variable was actually updated, we assume that there is an updated ruleeffect somewhere:
+                                    updatedEffectsExits = true;
+                                }
                             }
                         }
                     });
@@ -2935,8 +3017,26 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* Factory for fetching OrgUnit */
-.factory('OrgUnitFactory', function($http, DHIS2URL, $q, SessionStorageService) {
+.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, SessionStorageService, DateUtils) {
     var orgUnit, orgUnitPromise, rootOrgUnitPromise,orgUnitTreePromise;
+    var indexedDB = $window.indexedDB;
+    var orgUnitList = [];
+    var db = null;
+    function openStore(){
+        var deferred = $q.defer();
+        var request = indexedDB.open("dhis2ou");
+
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            deferred.resolve();
+        };
+
+        request.onerror = function(){
+            deferred.reject();
+        };
+
+        return deferred.promise;
+    }
     return {
         getChildren: function(uid){
             if( orgUnit !== uid ){
@@ -3007,6 +3107,62 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 def.resolve(null);
             }
             return def.promise;
+        },
+        getOrgUnitFromStore: function(uid){
+            var deferred = $q.defer();
+            if (db === null) {
+                openStore().then(getOu, function () {
+                    deferred.reject("DB not opened");
+                });
+            }
+            else {
+                getOu();
+            }
+            function getOu() {
+                var tx = db.transaction(["ou"]);
+                var store = tx.objectStore("ou");
+                var query = store.get(uid);
+
+                query.onsuccess = function(e){
+                    if(e.target.result){
+                        deferred.resolve(e.target.result);
+                    }
+                    else{
+                        var t = db.transaction(["ouPartial"]);
+                        var s = t.objectStore("ouPartial");
+                        var q = s.get(uid);
+                        q.onsuccess = function(e){
+                            deferred.resolve(e.target.result);
+                        };
+                        query.onerror = function(e){
+                            deferred.reject();
+                        }
+
+                    }
+                };
+                query.onerror = function(e){
+                    deferred.reject();
+                }
+            }
+            return deferred.promise;
+        },
+        getOrgUnitClosedStatus : function(orgUnitId) {
+            var deferred = $q.defer();
+            this.getOrgUnitFromStore(orgUnitId).then(function (orgUnitFromStore) {
+                if (orgUnitFromStore && orgUnitFromStore.cdate) {
+                    if (DateUtils.isBeforeToday(orgUnitFromStore.cdate)) {
+                        deferred.resolve(true);
+                    } else {
+                        deferred.resolve(false);
+                    }
+                } else {
+                    /*The org unit is assumed to be opened if the status is not present.*/
+                    deferred.resolve(false);
+                }
+            }, function(){
+                deferred.resolve(false);
+            });
+            return deferred.promise;
         }
     };
 });
