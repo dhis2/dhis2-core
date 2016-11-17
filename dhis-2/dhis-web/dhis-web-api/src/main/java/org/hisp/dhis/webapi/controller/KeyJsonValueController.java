@@ -37,7 +37,7 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
