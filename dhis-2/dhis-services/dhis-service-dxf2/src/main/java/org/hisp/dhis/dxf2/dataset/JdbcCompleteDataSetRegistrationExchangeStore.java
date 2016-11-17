@@ -166,12 +166,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 
     private static String createOrgUnitGroupJoin( ExportParams params )
     {
-        if ( params.hasOrganisationUnitGroups() )
-        {
-            return " LEFT JOIN orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
-        }
-
-        return "";
+        return params.hasOrganisationUnitGroups() ?
+            " LEFT JOIN orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) " : "";
     }
 
     private static String createDataSetClause( ExportParams params, ImmutableMap.Builder<String, String> namedParamsBuilder )
