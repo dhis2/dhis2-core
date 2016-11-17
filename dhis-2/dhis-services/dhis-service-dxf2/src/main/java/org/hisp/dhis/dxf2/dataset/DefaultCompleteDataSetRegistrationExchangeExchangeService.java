@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
 import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -95,6 +96,8 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
     private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeExchangeService.class );
 
     private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen from dxf2 DefaultDataValueSetService
+
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -269,7 +272,7 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void validate( ExportParams params ) throws IllegalQueryException
+    private static void validate( ExportParams params ) throws IllegalQueryException
     {
         if ( params == null )
         {
@@ -320,6 +323,41 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
         {
             validationError( "Limit cannot be less than zero: " + params.getLimit() );
         }
+
+        limitToValidIdSchemes( params );
+    }
+
+    /*
+     * Limit valid IdSchemes for export to UID, CODE, NAME
+     */
+    private static void limitToValidIdSchemes( ExportParams params )
+    {
+        IdSchemes schemes = params.getOutputIdSchemes();
+
+        // If generic IdScheme is set to ID -> override to UID
+        // For others: nullify field (inherits from generic scheme)
+
+        if ( !EXPORT_ID_SCHEMES.contains( schemes.getIdScheme() ) )
+        {
+            schemes.setIdScheme( IdScheme.UID.getIdentifiableString() );
+        }
+
+        if ( !EXPORT_ID_SCHEMES.contains( schemes.getDataSetIdScheme() ) )
+        {
+            schemes.setDataSetIdScheme( IdScheme.UID.getIdentifiableString() );
+        }
+
+        if ( !EXPORT_ID_SCHEMES.contains( schemes.getOrgUnitIdScheme() ) )
+        {
+            schemes.setOrgUnitIdScheme( IdScheme.UID.getIdentifiableString() );
+        }
+
+        if ( !EXPORT_ID_SCHEMES.contains( schemes.getAttributeOptionComboIdScheme() ) )
+        {
+            schemes.setAttributeOptionComboIdScheme( IdScheme.UID.getIdentifiableString() );
+        }
+
+        params.setOutputIdSchemes( schemes );
     }
 
     private ImportSummary handleImportError( TaskId taskId, Throwable ex )
@@ -329,7 +367,7 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
         return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
     }
 
-    private void validationError( String message ) throws IllegalQueryException
+    private static void validationError( String message ) throws IllegalQueryException
     {
         log.warn( "Validation error: " + message );
 
