@@ -911,7 +911,6 @@ public class DataQueryParams
      * Returns the number of days in the first dimension period in this query.
      * If no dimension periods exist, the frequency order of the period type of
      * the query is returned. If no period type exists, -1 is returned.
-     * @return
      */
     public int getDaysInFirstPeriod()
     {
@@ -1704,31 +1703,49 @@ public class DataQueryParams
     // Get helpers for dimensions and filters
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns all indicators part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllIndicators()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
-    
+
+    /**
+     * Returns all data elements part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllDataElements()
     {
         return ImmutableList.copyOf( ListUtils.union( getDataElements(), getFilterDataElements() ) );
     }
 
+    /**
+     * Returns all reporting rates part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllReportingRates()
     {
         return ImmutableList.copyOf( ListUtils.union( getReportingRates(), getFilterReportingRates() ) );
     }
-    
+
+    /**
+     * Returns all program attributes part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllProgramAttributes()
     {
         return ImmutableList.copyOf( ListUtils.union( getProgramAttributes(), getFilterProgramAttributes() ) );
     }
 
+    /**
+     * Returns all program data elements part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllProgramDataElements()
     {
         return ImmutableList.copyOf( ListUtils.union( getProgramDataElements(), getFilterProgramDataElements() ) );
     }
 
+    /**
+     * Returns all program attributes part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllProgramDataElementsAndAttributes()
     {
         return ListUtils.union( getAllProgramAttributes(), getAllProgramDataElements() );
@@ -1737,52 +1754,82 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
-  
+
+    /**
+     * Returns all indicators part of the data dimension.
+     */
     public List<DimensionalItemObject> getIndicators()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.INDICATOR, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-        
+
+    /**
+     * Returns all data elements part of the data dimension.
+     */
     public List<DimensionalItemObject> getDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all data element operands part of the data dimension.
+     */
     public List<DimensionalItemObject> getDataElementOperands()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT_OPERAND, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-        
+
+    /**
+     * Returns all reporting rates part of the data dimension.
+     */
     public List<DimensionalItemObject> getReportingRates()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.REPORTING_RATE, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
 
+    /**
+     * Returns all program indicators part of the data dimension.
+     */
     public List<DimensionalItemObject> getProgramIndicators()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all program data elements part of the data dimension.
+     */
     public List<DimensionalItemObject> getProgramDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_DATA_ELEMENT, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-        
+
+    /**
+     * Returns all indicators part of the data dimension.
+     */
     public List<DimensionalItemObject> getProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all periods part of the period dimension.
+     */
     public List<DimensionalItemObject> getPeriods()
     {
         return ImmutableList.copyOf( getDimensionOptions( PERIOD_DIM_ID ) );
     }
-    
+
+    /**
+     * Returns all organisation units part of the organisation unit dimension.
+     */
     public List<DimensionalItemObject> getOrganisationUnits()
     {
         return ImmutableList.copyOf( getDimensionOptions( ORGUNIT_DIM_ID ) );
     }
-    
+
+    /**
+     * Returns all data element group sets specified as dimensions.
+     */
     public List<DimensionalObject> getDataElementGroupSets()
     {
         return ListUtils.union( dimensions, filters ).stream().
@@ -1793,41 +1840,62 @@ public class DataQueryParams
     // Get helpers for filters
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns all indicators part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterIndicators()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.INDICATOR, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all data elements part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
+    /**
+     * Returns all reporting rates part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterReportingRates()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.REPORTING_RATE, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
-    public List<DimensionalItemObject> getFilterPeriods()
-    {
-        return ImmutableList.copyOf( getFilterOptions( PERIOD_DIM_ID ) );
-    }
-    
-    public List<DimensionalItemObject> getFilterOrganisationUnits()
-    {
-        return ImmutableList.copyOf( getFilterOptions( ORGUNIT_DIM_ID ) );
-    }
-    
+
+    /**
+     * Returns all program data elements part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterProgramDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_DATA_ELEMENT, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all program attributes part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all periods part of the period filter.
+     */
+    public List<DimensionalItemObject> getFilterPeriods()
+    {
+        return ImmutableList.copyOf( getFilterOptions( PERIOD_DIM_ID ) );
+    }
+
+    /**
+     * Returns all organisation units part of the organisation unit filter.
+     */
+    public List<DimensionalItemObject> getFilterOrganisationUnits()
+    {
+        return ImmutableList.copyOf( getFilterOptions( ORGUNIT_DIM_ID ) );
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
