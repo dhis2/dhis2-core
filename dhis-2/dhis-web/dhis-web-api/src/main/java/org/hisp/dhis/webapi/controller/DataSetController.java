@@ -63,7 +63,7 @@ import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
 import org.hisp.dhis.webapi.webdomain.form.Form;
 import org.springframework.beans.factory.annotation.Autowired;
