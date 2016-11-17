@@ -206,8 +206,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             if (!dateValue) {
                 return;
             }
-            dateValue = moment(dateValue, CalendarService.getSetting().momentFormat);
-            if (dateValue.isBefore(this.getToday())) {
+            dateValue = moment(dateValue, "YYYY-MM-DD");
+            if (dateValue.isBefore(moment())) {
                 return true;
             }
             return false;
