@@ -77,6 +77,9 @@ public class DataQueryParamsTest
     private ReportingRate rrB;
     private ReportingRate rrC;
     private ReportingRate rrD;
+    
+    private Period peA;
+    private Period peB;
 
     @Before
     public void setUpTest()
@@ -94,6 +97,9 @@ public class DataQueryParamsTest
         rrB = new ReportingRate( createDataSet( 'B', null ), ReportingRateMetric.REPORTING_RATE );
         rrC = new ReportingRate( createDataSet( 'C', null ), ReportingRateMetric.EXPECTED_REPORTS );
         rrD = new ReportingRate( createDataSet( 'D', null ), ReportingRateMetric.ACTUAL_REPORTS );
+        
+        peA = createPeriod( "201601" );
+        peB = createPeriod( "201603" );
     }
     
     @Test
@@ -269,5 +275,26 @@ public class DataQueryParamsTest
             .withDimensionOptions( DimensionalObject.DATA_X_DIM_ID, itemsAfter ).build();
         
         assertEquals( itemsAfter, params.getDimension( DimensionalObject.DATA_X_DIM_ID ).getItems() );        
+    }
+
+    @Test
+    public void testGetDaysForAvgSumIntAggregation()
+    {
+        List<DimensionalItemObject> dataElements = Lists.newArrayList( deA, deB, deC );
+        List<DimensionalItemObject> periods = Lists.newArrayList( peA, peB );
+        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( dataElements )
+            .withPeriods( periods ).build();
+        
+        assertEquals( peA.getDaysInPeriod(), params.getDaysForAvgSumIntAggregation() );
+        
+        params = DataQueryParams.newBuilder()
+            .withDataElements( dataElements )
+            .withFilterPeriods( periods ).build();
+        
+        int totalDays = peA.getDaysInPeriod() + peB.getDaysInPeriod();
+        
+        assertEquals( totalDays, params.getDaysForAvgSumIntAggregation() );
     }
 }
