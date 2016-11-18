@@ -259,10 +259,10 @@ public class JdbcAnalyticsTableManager
         if ( respectStartEndDates )
         {
             sql +=
-                "and ( aon.startdate is null or aon.startdate <= pe.startdate ) " +
-                "and ( aon.enddate is null or aon.enddate >= pe.enddate ) " +
-                "and ( con.startdate is null or con.startdate <= pe.startdate ) " +
-                "and ( con.enddate is null or con.enddate >= pe.enddate ) ";
+                "and (aon.startdate is null or aon.startdate <= pe.startdate) " +
+                "and (aon.enddate is null or aon.enddate >= pe.enddate) " +
+                "and (con.startdate is null or con.startdate <= pe.startdate) " +
+                "and (con.enddate is null or con.enddate >= pe.enddate) ";
         }
 
         if ( whereClause != null )
