@@ -32,9 +32,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.CalendarService;
@@ -57,6 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Lars Helge Overland
@@ -97,7 +101,16 @@ public class DefaultSystemService
     {
         systemInfo = getFixedSystemInfo();
         
-        log.info( "Version: " + systemInfo.getVersion() + ", revision: " + systemInfo.getRevision() + ", build date: " + systemInfo.getBuildTime() );
+        List<String> info = ImmutableList.<String>builder()
+            .add( "Version: " + systemInfo.getVersion() )
+            .add( "revision: " + systemInfo.getRevision() )
+            .add( "build date: " + systemInfo.getBuildTime() )
+            .add( "database name: " + systemInfo.getDatabaseInfo().getName() )
+            .add( "database type: " + systemInfo.getDatabaseInfo().getType() )
+            .add( "Java version: " + systemInfo.getJavaVersion() )
+            .build();
+        
+        log.info( StringUtils.join( info, ", " ) );
     }
 
     // -------------------------------------------------------------------------
