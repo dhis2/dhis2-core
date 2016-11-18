@@ -36,12 +36,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -551,7 +555,8 @@ public abstract class AbstractEventService
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, EventStatus status, Date lastUpdated,
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
-        boolean totalPages, boolean skipPaging, List<Order> orders, boolean includeAttributes, Set<String> events )
+        boolean totalPages, boolean skipPaging, List<Order> orders, boolean includeAttributes, Set<String> events,
+        Set<String> filters )
     {
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -600,9 +605,23 @@ public abstract class AbstractEventService
                 "Tracked entity instance is specified but does not exist: " + trackedEntityInstance );
         }
 
+        if ( events != null && filters != null )
+        {
+            throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
+        }
+
         if ( events == null )
         {
             events = new HashSet<>();
+        }
+
+        if ( filters != null )
+        {
+            for ( String filter : filters )
+            {
+                QueryItem item = getQueryItem( filter );
+                params.getFilters().add( item );
+            }
         }
 
         params.setProgram( pr );
@@ -1508,6 +1527,40 @@ public abstract class AbstractEventService
                 }
             }
         }
+    }
 
+    private QueryItem getQueryItem( String item )
+    {
+        String[] split = item.split( DimensionalObject.DIMENSION_NAME_SEP );
+
+        if ( split == null || split.length % 2 != 1 )
+        {
+            throw new IllegalQueryException( "Query item or filter is invalid: " + item );
+        }
+
+        QueryItem queryItem = getItem( split[0] );
+
+        if ( split.length > 1 )
+        {
+            for ( int i = 1; i < split.length; i += 2 )
+            {
+                QueryOperator operator = QueryOperator.fromString( split[i] );
+                queryItem.getFilters().add( new QueryFilter( operator, split[i + 1] ) );
+            }
+        }
+
+        return queryItem;
+    }
+
+    private QueryItem getItem( String item )
+    {
+        DataElement de = dataElementService.getDataElement( item );
+
+        if ( de == null )
+        {
+            throw new IllegalQueryException( "Dataelement does not exist: " + item );
+        }
+
+        return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
     }
 }

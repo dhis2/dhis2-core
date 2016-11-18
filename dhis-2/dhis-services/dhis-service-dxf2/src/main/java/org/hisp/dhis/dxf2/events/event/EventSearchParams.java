@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,6 +41,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -95,6 +97,8 @@ public class EventSearchParams
     private boolean includeAttributes;
 
     private Set<String> events = new HashSet<>();
+    
+    private List<QueryItem> filters = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -136,6 +140,15 @@ public class EventSearchParams
         this.page = DEFAULT_PAGE;
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
+    }
+    
+    /**
+     * Indicates whether this search params contain any filters.
+     * 
+     */
+    public boolean hasFilters()
+    {
+        return filters != null && !filters.isEmpty();
     }
 
     // -------------------------------------------------------------------------
@@ -351,4 +364,14 @@ public class EventSearchParams
     {
         return events;
     }
+
+    public List<QueryItem> getFilters()
+    {
+        return filters;
+    }
+
+    public void setFilters( List<QueryItem> filters )
+    {
+        this.filters = filters;
+    }    
 }
