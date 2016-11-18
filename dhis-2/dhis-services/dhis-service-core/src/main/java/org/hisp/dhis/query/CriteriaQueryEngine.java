@@ -175,13 +175,27 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     private Query getCriteriaQuery( Query query )
     {
         Query criteriaQuery = Query.from( query.getSchema() );
-        Iterator<org.hisp.dhis.query.Criterion> criterionIterator = query.getCriterions().iterator();
+        Iterator<org.hisp.dhis.query.Criterion> iterator = query.getCriterions().iterator();
 
-        while ( criterionIterator.hasNext() )
+        while ( iterator.hasNext() )
         {
-            org.hisp.dhis.query.Criterion criterion = criterionIterator.next();
+            org.hisp.dhis.query.Criterion criterion = iterator.next();
 
-            if ( Restriction.class.isInstance( criterion ) )
+            if ( Junction.class.isInstance( criterion ) )
+            {
+                Junction junction = handleJunctionCriteriaQuery( criteriaQuery, (Junction) criterion );
+
+                if ( !junction.getCriterions().isEmpty() )
+                {
+                    criteriaQuery.add( junction );
+                }
+
+                if ( ((Junction) criterion).getCriterions().isEmpty() )
+                {
+                    iterator.remove();
+                }
+            }
+            else if ( Restriction.class.isInstance( criterion ) )
             {
                 Restriction restriction = (Restriction) criterion;
 
@@ -194,7 +208,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
                         if ( property.isSimple() && property.isPersisted() )
                         {
                             criteriaQuery.getCriterions().add( criterion );
-                            criterionIterator.remove();
+                            iterator.remove();
                         }
                     }
                 }
@@ -208,6 +222,53 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         }
 
         return criteriaQuery;
+    }
+
+    private Junction handleJunctionCriteriaQuery( Query query, Junction queryJunction )
+    {
+        Iterator<org.hisp.dhis.query.Criterion> iterator = queryJunction.getCriterions().iterator();
+        Junction criteriaJunction = Disjunction.class.isInstance( queryJunction ) ?
+            new Disjunction( query.getSchema() ) : new Conjunction( query.getSchema() );
+
+        while ( iterator.hasNext() )
+        {
+            org.hisp.dhis.query.Criterion criterion = iterator.next();
+
+            if ( Junction.class.isInstance( criterion ) )
+            {
+                Junction junction = handleJunctionCriteriaQuery( query, (Junction) criterion );
+
+                if ( !junction.getCriterions().isEmpty() )
+                {
+                    criteriaJunction.add( junction );
+                }
+
+                if ( ((Junction) criterion).getCriterions().isEmpty() )
+                {
+                    iterator.remove();
+                }
+            }
+            else if ( Restriction.class.isInstance( criterion ) )
+            {
+                Restriction restriction = (Restriction) criterion;
+
+                if ( !restriction.getPath().contains( "\\." ) )
+                {
+                    if ( query.getSchema().haveProperty( restriction.getPath() ) )
+                    {
+                        Property property = query.getSchema().getProperty( restriction.getPath() );
+
+                        if ( property.isSimple() && property.isPersisted() )
+                        {
+                            criteriaJunction.getCriterions().add( criterion );
+                            iterator.remove();
+                        }
+                    }
+                }
+            }
+        }
+
+        return criteriaJunction;
     }
 
     private void addJunction( org.hibernate.criterion.Junction junction, org.hisp.dhis.query.Criterion criterion, Schema schema )
