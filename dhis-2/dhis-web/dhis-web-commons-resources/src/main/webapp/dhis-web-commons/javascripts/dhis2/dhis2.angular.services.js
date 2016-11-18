@@ -545,6 +545,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     		'<input type="text" value={{currentEvent.' + fieldId + '}}' +
                                                     	'</span>';
                                     }
+                                    else if (prStDe.dataElement.valueType === "PHONE_NUMBER") {
+                                        newInputField = '<span class="hideInPrint"><input type="text" ' +
+                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                            ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
+                                            commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
+                                    }
                                     else if (prStDe.dataElement.valueType === "TEXT") {
                                         newInputField = '<span class="hideInPrint"><input type="text" ' +
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
