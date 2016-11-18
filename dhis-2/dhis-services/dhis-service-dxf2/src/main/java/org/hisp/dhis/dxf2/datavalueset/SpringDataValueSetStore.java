@@ -188,11 +188,15 @@ public class SpringDataValueSetStore
 
         String deScheme = idScheme.getDataElementIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idScheme.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
-        String ocScheme = idScheme.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
+        String cocScheme = idScheme.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
         String dataElements = getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) );
         String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
         String orgUnitGroups = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnitGroups() ) );
+
+        //----------------------------------------------------------------------
+        // Identifier schemes
+        //----------------------------------------------------------------------
 
         String deSql = idScheme.getDataElementIdScheme().isAttribute() ? 
             "coalesce((" +
@@ -212,9 +216,31 @@ public class SpringDataValueSetStore
             "limit 1), ou.uid) as ouid" :
             "ou." + ouScheme + " as ouid";
         
+        String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
+            "coalesce((" +
+            "select av.value as cocid from attributevalue av " +
+            "inner join categoryoptioncomboattributevalues cocav on av.attributevalueid=cocav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "' " +
+            "where dv.categoryoptioncomboid=cocav.categoryoptioncomboid " +
+            "limit 1), coc.uid) as cocid" :
+            "coc." + cocScheme + " as cocid";
+
+        String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
+            "coalesce((" +
+            "select av.value as aocid from attributevalue av " +
+            "inner join categoryoptioncomboattributevalues cocav on av.attributevalueid=cocav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "' " +
+            "where dv.attributeoptioncomboid=cocav.categoryoptioncomboid " +
+            "limit 1), aoc.uid) as aocid" :
+            "aoc." + cocScheme + " as aocid";
+
+        //----------------------------------------------------------------------
+        // Data values
+        //----------------------------------------------------------------------
+
         String sql =
-            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + ouSql + ", " +
-            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
+            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + 
+            ouSql + ", " + cocSql + ", " + aocSql + ", " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
             "inner join dataelement de on (dv.dataelementid=de.dataelementid) " +
@@ -223,6 +249,10 @@ public class SpringDataValueSetStore
             "inner join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
             "inner join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
             "inner join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) ";
+
+        //----------------------------------------------------------------------
+        // Filters
+        //----------------------------------------------------------------------
 
         if ( params.hasOrganisationUnitGroups() )
         {
