@@ -96,7 +96,7 @@
                   <includes>**/*.*</includes>
                 </artifactItem>
 
-              <!-- 2.26 -->
+                <!-- 2.26 -->
 
                 <!-- Settings -->
                 <artifactItem>
@@ -152,7 +152,7 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-pivot</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
-                <!--  Translations app -->
+                <!--  Translations -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-translations</artifactId>
