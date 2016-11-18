@@ -52,7 +52,7 @@ public class BaseDimensionalItemObject
     /**
      * The legend sets for this dimension.
      */
-    protected List<LegendSet> legendSets = new ArrayList<>(  );
+    protected List<LegendSet> legendSets = new ArrayList<>();
 
     /**
      * The aggregation type for this dimension.
