@@ -28,17 +28,18 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 
 /**
  * @author Lars Helge Overland
@@ -62,7 +63,8 @@ public class CategoryOptionComboNameResourceTable
     {
         return "create table " + getTempTableName() + 
             " (categoryoptioncomboid integer not null primary key, " +
-            "categoryoptioncomboname varchar(255), approvallevel integer)";
+            "categoryoptioncomboname varchar(255), approvallevel integer, " +
+            "startdate date, enddate date)";
     }
 
     @Override
@@ -91,6 +93,17 @@ public class CategoryOptionComboNameResourceTable
                 values.add( coc.getId() );
                 values.add( coc.getName() );
                 values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
+
+                Date latestStartDate = null;
+                Date earliestEndDate = null;
+
+                for( DataElementCategoryOption co : coc.getCategoryOptions() )
+                {
+                    latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ? co.getStartDate() : latestStartDate);
+                    earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ? co.getEndDate() : earliestEndDate);
+                }
+                values.add( latestStartDate );
+                values.add( earliestEndDate );
 
                 batchArgs.add( values.toArray() );
             }
