@@ -780,6 +780,7 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET programIndicatorAttribute=false WHERE programIndicatorAttribute IS NULL" );
         executeSql( "UPDATE attribute SET sqlViewAttribute=false WHERE sqlViewAttribute IS NULL" );
         executeSql( "UPDATE attribute SET sectionAttribute=false WHERE sectionAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryoptioncomboattribute=false WHERE categoryoptioncomboattribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
