@@ -28,10 +28,23 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
+import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
+import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.TaskCategory;
+import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.system.scheduling.Scheduler;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +53,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Set;
 
@@ -59,6 +77,15 @@ public class CompleteDataSetRegistrationControllerV2
 
     @Autowired
     private DefaultCompleteDataSetRegistrationExchangeExchangeService registrationService;
+
+    @Autowired
+    private RenderService renderService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private Scheduler scheduler;
 
     // -------------------------------------------------------------------------
     // GET
@@ -122,19 +149,70 @@ public class CompleteDataSetRegistrationControllerV2
 
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
-        HttpServletRequest request, HttpServletResponse response
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
     )
         throws IOException
     {
-
+        if ( importOptions.isAsync() )
+        {
+            asyncImport( importOptions, CONTENT_TYPE_XML, request, response );
+        }
+        else
+        {
+            ImportSummary summary = registrationService.saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
+            response.setContentType( CONTENT_TYPE_XML );
+            renderService.toXml( response.getOutputStream(), summary );
+        }
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
-        HttpServletRequest request, HttpServletResponse response
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
     )
         throws IOException
     {
+        if ( importOptions.isAsync() )
+        {
+            asyncImport( importOptions, CONTENT_TYPE_JSON, request, response );
+        }
+        else
+        {
+            ImportSummary summary = registrationService.saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
+            response.setContentType( CONTENT_TYPE_JSON );
+            renderService.toJson( response.getOutputStream(), summary );
+        }
+    }
 
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private void asyncImport( ImportOptions importOptions, String contentType, HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        Pair<InputStream, String> tmpFile = saveTmpFile( request.getInputStream() );
+        TaskId taskId = new TaskId( TaskCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser() );
+
+        scheduler.executeTask( new ImportCompleteDataSetRegistrationsTask( tmpFile.getLeft(), tmpFile.getRight(), importOptions, contentType, taskId ) );
+
+        response.setHeader(
+            "Location", ContextUtils.getRootPath( request) + "/system/tasks/" + TaskCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT );
+        response.setStatus( HttpServletResponse.SC_ACCEPTED );
+    }
+
+    private Pair<InputStream, String> saveTmpFile( InputStream in )
+        throws IOException
+    {
+        String filename = RandomStringUtils.randomAlphanumeric( 6 );
+
+        File tmpFile = File.createTempFile( filename, null );
+        tmpFile.deleteOnExit();
+
+        try ( FileOutputStream out = new FileOutputStream( tmpFile ) )
+        {
+            IOUtils.copy( in, out );
+        }
+
+        return Pair.of( new BufferedInputStream( new FileInputStream( tmpFile ) ), filename );
     }
 }
