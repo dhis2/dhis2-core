@@ -229,30 +229,7 @@ public class JdbcEventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
-        }
-
-        if ( params.hasFilters() && (params.getEvents() == null || params.getEvents().isEmpty()) )
-        {
-            for ( QueryItem queryItem : params.getFilters() )
-            {
-                for ( QueryFilter queryFilter : queryItem.getFilters() )
-                {   
-                    System.out.println( "Item:  " + queryItem.getItemId() );
-                    System.out.println( "Operator:  " + queryFilter.getOperator() );
-                    System.out.println( "SQL Operator:  " + queryFilter.getSqlOperator() );
-                    System.out.println( "Filter:  " + queryFilter.getFilter() );
-
-                    /*if ( queryItem.isNumeric() )
-                    {
-                        
-                    }
-                    else
-                    {
-                        
-                    }*/
-                }
-            }
-        }
+        }        
 
         return events;
     }
