@@ -64,7 +64,7 @@ public class CategoryOptionComboNameResourceTable
         return "create table " + getTempTableName() + 
             " (categoryoptioncomboid integer not null primary key, " +
             "categoryoptioncomboname varchar(255), approvallevel integer, " +
-            "categoryoptionstartdate date, categoryoptionenddate date)";
+            "startdate date, enddate date)";
     }
 
     @Override
@@ -94,15 +94,16 @@ public class CategoryOptionComboNameResourceTable
                 values.add( coc.getName() );
                 values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
 
-                Date latest_start_date = null,
-                     earliest_end_date = null;
+                Date latestStartDate = null;
+                Date earliestEndDate = null;
+
                 for( DataElementCategoryOption co : coc.getCategoryOptions() )
                 {
-                    latest_start_date = (latest_start_date == null || latest_start_date.before( co.getStartDate() ) ? co.getStartDate() : latest_start_date);
-                    earliest_end_date = (earliest_end_date == null || earliest_end_date.after( co.getEndDate() ) ? co.getEndDate() : earliest_end_date);
+                    latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ? co.getStartDate() : latestStartDate);
+                    earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ? co.getEndDate() : earliestEndDate);
                 }
-                values.add( latest_start_date );
-                values.add( earliest_end_date );
+                values.add( latestStartDate );
+                values.add( earliestEndDate );
 
                 batchArgs.add( values.toArray() );
             }

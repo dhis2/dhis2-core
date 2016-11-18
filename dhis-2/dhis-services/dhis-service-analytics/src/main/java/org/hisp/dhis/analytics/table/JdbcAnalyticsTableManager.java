@@ -79,7 +79,7 @@ public class JdbcAnalyticsTableManager
 {
 
     @Autowired
-    SystemSettingManager systemSettingManager;
+    private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -245,20 +245,7 @@ public class JdbcAnalyticsTableManager
                 "inner join _periodstructure ps on dv.periodid=ps.periodid " +
                 "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
                 "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
-
-                ( systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_AND_END_DATES_IN_ANALYTICS_TABLE_EXPORT ).equals( true ) ?
-
-                    "and ( aon.categoryoptionstartdate IS NULL " +
-                    "or aon.categoryoptionstartdate <= pe.startdate ) " +
-                    "and ( aon.categoryoptionstartdate IS NULL " +
-                    "or aon.categoryoptionenddate >= pe.enddate ) " +
-
                 "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
-                    "and ( con.categoryoptionstartdate IS NULL " +
-                    "or con.categoryoptionstartdate <= pe.startdate ) " +
-                    "and ( con.categoryoptionstartdate IS NULL " +
-                    "or con.categoryoptionenddate >= pe.enddate ) " : ""
-                ) +
 
                 approvalClause +
                 "where de.valuetype in (" + valTypes + ") " +
@@ -267,6 +254,19 @@ public class JdbcAnalyticsTableManager
                 "and pe.startdate <= '" + end + "' " +
                 "and dv.value is not null " +
                 "and dv.deleted is false ";
+
+        if( systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT ).equals( true ) )
+        {
+            sql +=
+                "and ( aon.startdate is null " +
+                "or aon.startdate <= pe.startdate ) " +
+                "and ( aon.enddate is null " +
+                "or aon.enddate >= pe.enddate ) " +
+                "and ( con.startdate is null " +
+                "or con.startdate <= pe.startdate ) " +
+                "and ( con.enddate is null " +
+                "or con.enddate >= pe.enddate ) ";
+        }
 
         if ( whereClause != null )
         {
