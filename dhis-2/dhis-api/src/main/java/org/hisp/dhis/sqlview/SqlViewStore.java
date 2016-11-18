@@ -28,8 +28,6 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.common.Grid;
 
@@ -47,9 +45,7 @@ public interface SqlViewStore
 
     void dropViewTable( SqlView sqlView );
 
-    void setUpDataSqlViewTable( Grid sqlViewGrid, String viewTableName, Map<String, String> criteria );
-    
-    void executeQuery( Grid grid, String sql );
+    void populateSqlViewGrid( Grid grid, String sql );
 
     /**
      * Tests the given SQL for validity.

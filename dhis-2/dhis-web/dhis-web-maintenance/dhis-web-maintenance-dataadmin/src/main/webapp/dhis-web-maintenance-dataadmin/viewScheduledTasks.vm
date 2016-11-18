@@ -192,7 +192,7 @@
 
 </form>
 
-<form id="metadataSyncNowForm" method="post" action="executeMetaDataSyncTask.action"></form>
+<form id="metadataSyncNowForm" method="post" action="executeMetadataSyncTask.action"></form>
 
 <input type="hidden" id="currentRunningTaskStatus" name="currentRunningTaskStatus" type="hidden"
     #if ( ${currentRunningTaskStatus} == "task_already_running" )

@@ -35,10 +35,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
@@ -63,7 +64,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementOperand
-    extends BaseDimensionalItemObject
+    extends BaseDataDimensionalItemObject
 {
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
     public static final String NAME_TOTAL = "(Total)";
@@ -162,13 +163,26 @@ public class DataElementOperand
 
         if ( dataElement != null )
         {
-            item = dataElement.getUid() + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getUid()) : StringUtils.EMPTY);
+            item = dataElement.getUid() + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getUid() ) : StringUtils.EMPTY );
         }
         else if ( dataElementId != null )
         {
-            item = dataElementId + (optionComboId != null ? (SEPARATOR + optionComboId) : StringUtils.EMPTY);
+            item = dataElementId + ( optionComboId != null ? ( SEPARATOR + optionComboId ) : StringUtils.EMPTY );
         }
 
+        return item;
+    }
+
+    @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        String item = null;
+        
+        if ( dataElement != null )
+        {
+            item = dataElement.getPropertyValue( idScheme ) + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme ) ) : StringUtils.EMPTY );
+        }
+        
         return item;
     }
 
@@ -375,7 +389,7 @@ public class DataElementOperand
         this.optionComboId = categoryOptionCombo.getUid();
         this.operandId = dataElementId + SEPARATOR + optionComboId;
         this.operandName = getPrettyName( dataElement, categoryOptionCombo );
-        this.legendSet = dataElement.getLegendSet();
+        this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
         this.frequencyOrder = dataElement.getFrequencyOrder();
@@ -395,7 +409,7 @@ public class DataElementOperand
         this.dataElementId = dataElement.getUid();
         this.operandId = String.valueOf( dataElementId );
         this.operandName = getPrettyName( dataElement, null );
-        this.legendSet = dataElement.getLegendSet();
+        this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
         this.frequencyOrder = dataElement.getFrequencyOrder();

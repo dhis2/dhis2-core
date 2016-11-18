@@ -85,7 +85,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -213,6 +213,7 @@ public class EventController
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Set<String> filter,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -237,7 +238,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds, filter );
 
         Events events = eventService.getEvents( params );
 
@@ -293,6 +294,7 @@ public class EventController
         @RequestParam( required = false ) boolean skipPaging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         IdSchemes idSchemes, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
     {
@@ -308,7 +310,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null, filter );
 
         Events events = eventService.getEvents( params );
 
@@ -352,7 +354,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, eventStatus, null, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), true, null );
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), true, null, null );
 
         return eventRowService.getEventRows( params );
     }

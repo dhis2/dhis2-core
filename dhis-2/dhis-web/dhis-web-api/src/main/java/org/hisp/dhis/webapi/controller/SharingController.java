@@ -45,7 +45,7 @@ import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroups;

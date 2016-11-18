@@ -51,6 +51,8 @@ public class Legend
 
     private String image;
 
+    private LegendSet legendSet;
+
     public Legend()
     {
     }
@@ -122,6 +124,18 @@ public class Legend
         this.image = image;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSet getLegendSet()
+    {
+        return legendSet;
+    }
+
+    public void setLegendSet( LegendSet legendSet )
+    {
+        this.legendSet = legendSet;
+    }
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -137,6 +151,7 @@ public class Legend
                 endValue = legend.getEndValue();
                 color = legend.getColor();
                 image = legend.getImage();
+                legendSet = legend.getLegendSet();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -144,6 +159,7 @@ public class Legend
                 endValue = legend.getEndValue() == null ? endValue : legend.getEndValue();
                 color = legend.getColor() == null ? color : legend.getColor();
                 image = legend.getImage() == null ? image : legend.getImage();
+                legendSet = legend.getLegendSet() == null ? legendSet : legend.getLegendSet();
             }
         }
     }

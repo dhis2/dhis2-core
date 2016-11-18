@@ -28,20 +28,8 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
-
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EXECUTION_DATE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -49,17 +37,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.EventAnalyticalObject;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -69,19 +47,20 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 
 /**
  * @author Lars Helge Overland
@@ -122,11 +101,11 @@ public class DefaultEventDataQueryService
     public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, boolean collapseDataDimensions,
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
         boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, displayProperty, userOrgUnit, null, null, format );
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, userOrgUnit, null, null, format );
 
         EventQueryParams params = new EventQueryParams.Builder( query )
             .withValue( getValueDimension( value ) )
@@ -137,7 +116,8 @@ public class DefaultEventDataQueryService
             .withLimit( limit )
             .withOutputType( MoreObjects.firstNonNull( outputType, EventOutputType.EVENT ) )
             .withCollapseDataDimensions( collapseDataDimensions )
-            .withAggregateData( aggregateData ).build();
+            .withAggregateData( aggregateData )
+            .withProgramStatus( programStatus ).build();
 
         return params;
     }
@@ -146,7 +126,7 @@ public class DefaultEventDataQueryService
     public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
-        boolean coordinatesOnly, EventStatus eventStatus, DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize,
+        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize,
         I18nFormat format )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder();
@@ -255,7 +235,8 @@ public class DefaultEventDataQueryService
             .withEventStatus( eventStatus )
             .withDisplayProperty( displayProperty )
             .withPage( page )
-            .withPageSize( pageSize ).build();
+            .withPageSize( pageSize )
+            .withProgramStatus( programStatus ).build();
     }
 
     @Override

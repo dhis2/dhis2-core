@@ -283,6 +283,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit DROP CONSTRAINT organisationunit_shortname_key" );
 
         executeSql( "ALTER TABLE section DROP CONSTRAINT section_name_key" );
+        executeSql( "UPDATE section SET showrowtotals = false WHERE showrowtotals IS NULL" );
+        executeSql( "UPDATE section SET showcolumntotals = false WHERE showcolumntotals IS NULL" );
         executeSql( "UPDATE dataelement SET aggregationtype='avg_sum_org_unit' where aggregationtype='average'" );
 
         // revert prepare aggregate*Value tables for offline diffs
@@ -780,6 +782,7 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET programIndicatorAttribute=false WHERE programIndicatorAttribute IS NULL" );
         executeSql( "UPDATE attribute SET sqlViewAttribute=false WHERE sqlViewAttribute IS NULL" );
         executeSql( "UPDATE attribute SET sectionAttribute=false WHERE sectionAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryoptioncomboattribute=false WHERE categoryoptioncomboattribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
@@ -966,6 +969,8 @@ public class TableAlteror
         upgradeDataSetElements();
 
         removeOutdatedTranslationProperties();
+
+        updateLegendRelationship();
 
         log.info( "Tables updated" );
     }
@@ -1612,5 +1617,14 @@ public class TableAlteror
             executeSql( sql );
 
         }
+    }
+
+    private void updateLegendRelationship()
+    {
+        String sql = " update maplegend l set  maplegendsetid = ( select legendsetid from maplegendsetmaplegend m where m.maplegendid = l.maplegendid );";
+        executeSql( sql );
+
+        sql = " drop table maplegendsetmaplegend";
+        executeSql( sql );
     }
 }

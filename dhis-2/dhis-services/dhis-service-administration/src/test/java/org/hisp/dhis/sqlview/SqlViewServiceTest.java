@@ -35,14 +35,11 @@ import static org.junit.Assert.assertNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Dang Duy Hieu
@@ -170,50 +167,7 @@ public class SqlViewServiceTest
         assertEquals( "_view_sqlviewc", sqlViewC.getViewName() );
         assertNotSame( "_view_sqlviewc", sqlViewD.getViewName() );
     }
-    
-    @Test
-    public void testSubsituteSql()
-    {
-        Map<String, String> variables = new HashMap<>();
-        variables.put( "level", "4" );
-        variables.put( "id", "abc" );
-        
-        String sql = "select * from datavalue where level=${level} and id='${id}'";
-        
-        String expected = "select * from datavalue where level=4 and id='abc'";
-        
-        String actual = sqlViewService.substituteSql( sql, variables );
-        
-        assertEquals( expected, actual );
-    }
 
-    @Test
-    public void testSubsituteSqlMalicious()
-    {
-        Map<String, String> variables = new HashMap<>();
-        variables.put( "level", "; delete from datavalue;" );
-        
-        String sql = "select * from datavalue where level=${level}";
-        
-        String expected = "select * from datavalue where level=${level}";
-        
-        String actual = sqlViewService.substituteSql( sql, variables );
-        
-        assertEquals( expected, actual );
-    }
-    
-    @Test
-    public void testGetVariables()
-    {
-        String sql = "select * from dataelement where valuetype = '${valueType} and aggregationtype = '${aggregationType}'";
-        
-        Set<String> expected = Sets.newHashSet( "valueType", "aggregationType" );
-        
-        Set<String> actual = sqlViewService.getVariables( sql );
-        
-        assertEquals( expected, actual );
-    }
-    
     @Test( expected = IllegalQueryException.class )
     public void testValidateIllegalKeywords()
     {

@@ -77,7 +77,7 @@ public class EncryptedStringUserType
     }
 
     @Override
-    public Class returnedClass()
+    public Class<?> returnedClass()
     {
         return String.class;
     }
