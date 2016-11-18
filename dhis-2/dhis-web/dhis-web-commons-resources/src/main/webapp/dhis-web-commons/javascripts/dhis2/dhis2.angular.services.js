@@ -206,8 +206,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             if (!dateValue) {
                 return;
             }
-            dateValue = moment(dateValue, CalendarService.getSetting().momentFormat);
-            if (dateValue.isBefore(this.getToday())) {
+            dateValue = moment(dateValue, "YYYY-MM-DD");
+            if (dateValue.isBefore(moment())) {
                 return true;
             }
             return false;
@@ -618,6 +618,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 					                                    '<span class="not-for-screen">' +
                                                     		'<input type="text" value={{currentEvent.' + fieldId + '}}' +
                                                     	'</span>';
+                                    }
+                                    else if (prStDe.dataElement.valueType === "PHONE_NUMBER") {
+                                        newInputField = '<span class="hideInPrint"><input ng-disabled="model.editingDisabled" type="text" ' +
+                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                            ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
+                                            commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
                                     }
                                     else if (prStDe.dataElement.valueType === "TEXT") {
                                         newInputField = '<span class="hideInPrint"><input ng-disabled="model.editingDisabled" type="text" ' +
@@ -3017,7 +3023,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* Factory for fetching OrgUnit */
-.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, SessionStorageService, DateUtils) {
+.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, $timeout, $translate, SessionStorageService, DateUtils) {
     var orgUnit, orgUnitPromise, rootOrgUnitPromise,orgUnitTreePromise;
     var indexedDB = $window.indexedDB;
     var orgUnitList = [];
@@ -3151,17 +3157,31 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             this.getOrgUnitFromStore(orgUnitId).then(function (orgUnitFromStore) {
                 if (orgUnitFromStore && orgUnitFromStore.cdate) {
                     if (DateUtils.isBeforeToday(orgUnitFromStore.cdate)) {
+                        setOrgUnitClosedMessage(true);
                         deferred.resolve(true);
                     } else {
+                        setOrgUnitClosedMessage(false);
                         deferred.resolve(false);
                     }
                 } else {
                     /*The org unit is assumed to be opened if the status is not present.*/
+                    setOrgUnitClosedMessage(false);
                     deferred.resolve(false);
                 }
             }, function(){
+                setOrgUnitClosedMessage(false);
                 deferred.resolve(false);
             });
+
+            function setOrgUnitClosedMessage(closedStatus) {
+                if (closedStatus) {
+                    $timeout(function(){
+                        setHeaderMessage($translate.instant("orgunit_closed"));
+                    }, 600);
+                } else {
+                    hideHeaderMessage();
+                }
+            }
             return deferred.promise;
         }
     };

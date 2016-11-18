@@ -34,6 +34,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -90,6 +91,7 @@ public interface AttributeStore
         .put( ProgramIndicator.class, "programIndicatorAttribute")
         .put( SqlView.class, "sqlViewAttribute")
         .put( Section.class, "sectionAttribute")
+        .put( DataElementCategoryOptionCombo.class, "categoryOptionComboAttribute")
         .build();
 
     /**

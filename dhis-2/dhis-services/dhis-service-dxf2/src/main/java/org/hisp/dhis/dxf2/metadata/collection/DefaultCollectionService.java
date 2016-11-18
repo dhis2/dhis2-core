@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Transactional
-public class DefaultCollectionService 
+public class DefaultCollectionService
     implements CollectionService
 {
     @Autowired
@@ -93,7 +93,7 @@ public class DefaultCollectionService
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable object collections can be added to." ) );
         }
 
         Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
@@ -165,7 +165,7 @@ public class DefaultCollectionService
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable object collections can be removed from." ) );
         }
 
         Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
@@ -232,7 +232,7 @@ public class DefaultCollectionService
 
         if ( !property.isCollection() || !property.isIdentifiableObject() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable collections are allowed to be cleared." ) );
         }
 
         Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
