@@ -213,7 +213,6 @@ public class EventController
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String event,
-        @RequestParam( required = false ) Set<String> filter,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -238,7 +237,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds, filter );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds, null );
 
         Events events = eventService.getEvents( params );
 
@@ -294,7 +293,6 @@ public class EventController
         @RequestParam( required = false ) boolean skipPaging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
-        @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         IdSchemes idSchemes, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
     {
@@ -310,7 +308,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null, filter );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null, null );
 
         Events events = eventService.getEvents( params );
 
