@@ -257,6 +257,10 @@ public class JdbcAnalyticsManager
         {
             sql = "max(value)";
         }
+        else if ( params.isAggregationType( NONE ) )
+        {
+            sql = "value";
+        }
         else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and undefined //TODO
         {
             sql = "sum(value)";
