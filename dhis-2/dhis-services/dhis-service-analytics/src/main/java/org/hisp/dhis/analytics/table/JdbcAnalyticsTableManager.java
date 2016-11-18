@@ -246,7 +246,7 @@ public class JdbcAnalyticsTableManager
                 "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
                 "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
 
-                ( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_HIDE_OUT_OF_DATE_CATEGORY_OPTION_COMBO_AND_ATTRIBUTE_OPTION_COMBO ).equals( true ) ?
+                ( systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_AND_END_DATES_IN_ANALYTICS_TABLE_EXPORT ).equals( true ) ?
 
                     "and ( aon.categoryoptionstartdate IS NULL " +
                     "or aon.categoryoptionstartdate <= pe.startdate ) " +
