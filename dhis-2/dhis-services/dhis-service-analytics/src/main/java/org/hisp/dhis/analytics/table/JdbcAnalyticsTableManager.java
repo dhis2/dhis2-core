@@ -44,9 +44,12 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.ArrayList;
@@ -79,6 +82,10 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -237,10 +244,12 @@ public class JdbcAnalyticsTableManager
                 "inner join dataelement de on dv.dataelementid=de.dataelementid " +
                 "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
                 "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
-                "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
                 "inner join period pe on dv.periodid=pe.periodid " +
                 "inner join _periodstructure ps on dv.periodid=ps.periodid " +
                 "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
+                "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
+                "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
+
                 approvalClause +
                 "where de.valuetype in (" + valTypes + ") " +
                 "and de.domaintype = 'AGGREGATE' " +
@@ -248,6 +257,19 @@ public class JdbcAnalyticsTableManager
                 "and pe.startdate <= '" + end + "' " +
                 "and dv.value is not null " +
                 "and dv.deleted is false ";
+
+        if( systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT ).equals( true ) )
+        {
+            sql +=
+                "and ( aon.startdate is null " +
+                "or aon.startdate <= pe.startdate ) " +
+                "and ( aon.enddate is null " +
+                "or aon.enddate >= pe.enddate ) " +
+                "and ( con.startdate is null " +
+                "or con.startdate <= pe.startdate ) " +
+                "and ( con.enddate is null " +
+                "or con.enddate >= pe.enddate ) ";
+        }
 
         if ( whereClause != null )
         {
