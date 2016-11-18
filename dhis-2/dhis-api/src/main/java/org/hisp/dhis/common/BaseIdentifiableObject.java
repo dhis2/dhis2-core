@@ -37,6 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -694,6 +695,26 @@ public class BaseIdentifiableObject
             }
         }
 
+        return null;
+    }
+    
+    /**
+     * Returns the attribute value for the given attributes. Returns null
+     * if there are no attribute values for the given attribute.
+     * 
+     * @param attribute the attribute.
+     * @return the attribute value if exists, null if not.
+     */
+    public String getValueForAttribute( Attribute attribute )
+    {
+        for ( AttributeValue attributeValue : attributeValues )
+        {
+            if ( attribute.equals( attributeValue.getAttribute().getUid() ) )
+            {
+                return attributeValue.getValue();
+            }
+        }
+        
         return null;
     }
 

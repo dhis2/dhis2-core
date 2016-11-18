@@ -98,6 +98,9 @@ public class DataValueSetServiceExportTest
     private Attribute atA;
     
     private AttributeValue avA;
+    private AttributeValue avB;
+    private AttributeValue avC;
+    private AttributeValue avD;
     
     private DataSet dsA;
     private DataSet dsB;
@@ -135,13 +138,10 @@ public class DataValueSetServiceExportTest
         atA = createAttribute( 'A' );
         atA.setDataElementAttribute( true );
         atA.setOrganisationUnitAttribute( true );
+        atA.setCategoryOptionComboAttribute( true );
         
         idObjectManager.save( atA );
         
-        avA = new AttributeValue( "AttributeValueA", atA );
-        
-        attributeService.addAttributeValue( deA, avA );
-
         dsA = createDataSet( 'A' );
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
@@ -160,6 +160,16 @@ public class DataValueSetServiceExportTest
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
+
+        avA = new AttributeValue( "AttributeValueA", atA );
+        avB = new AttributeValue( "AttributeValueB", atA );
+        avC = new AttributeValue( "AttributeValueC", atA );
+        avD = new AttributeValue( "AttributeValueD", atA );
+        
+        attributeService.addAttributeValue( deA, avA );
+        attributeService.addAttributeValue( ouA, avB );
+        attributeService.addAttributeValue( cocA, avC );
+        attributeService.addAttributeValue( cocB, avD );
 
         // Data values
 
@@ -288,7 +298,9 @@ public class DataValueSetServiceExportTest
         String attributeIdScheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
         
         IdSchemes idSchemes = new IdSchemes()
-            .setDataElementIdScheme( attributeIdScheme );
+            .setDataElementIdScheme( attributeIdScheme )
+            .setOrgUnitIdScheme( attributeIdScheme )
+            .setCategoryOptionComboIdScheme( attributeIdScheme );
 
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsB ) )
@@ -299,7 +311,7 @@ public class DataValueSetServiceExportTest
         dataValueSetService.writeDataValueSetJson( params, out );
 
         DataValueSet dvs = JacksonUtils.fromJson( out.toByteArray(), DataValueSet.class );
-
+        
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
         assertEquals( dsB.getUid(), dvs.getDataSet() );
@@ -309,7 +321,8 @@ public class DataValueSetServiceExportTest
         {
             assertNotNull( dv );
             assertEquals( avA.getValue(), dv.getDataElement() );
-            assertEquals( ouA.getUid(), dv.getOrgUnit() );
+            assertEquals( avB.getValue(), dv.getOrgUnit() );
+            assertEquals( avC.getValue(), dv.getAttributeOptionCombo() );
         }
     }
 }
