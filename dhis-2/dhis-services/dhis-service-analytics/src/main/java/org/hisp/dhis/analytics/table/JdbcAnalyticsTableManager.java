@@ -210,6 +210,7 @@ public class JdbcAnalyticsTableManager
         final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
         final String tableName = table.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
+        final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
 
         String sql = "insert into " + table.getTempTableName() + " (";
 
@@ -257,17 +258,13 @@ public class JdbcAnalyticsTableManager
                 "and pe.startdate <= '" + end + "' " +
                 "and dv.value is not null ";
 
-        if( systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT ).equals( true ) )
+        if ( respectStartEndDates )
         {
             sql +=
-                "and ( aon.startdate is null " +
-                "or aon.startdate <= pe.startdate ) " +
-                "and ( aon.enddate is null " +
-                "or aon.enddate >= pe.enddate ) " +
-                "and ( con.startdate is null " +
-                "or con.startdate <= pe.startdate ) " +
-                "and ( con.enddate is null " +
-                "or con.enddate >= pe.enddate ) ";
+                "and ( aon.startdate is null or aon.startdate <= pe.startdate ) " +
+                "and ( aon.enddate is null or aon.enddate >= pe.enddate ) " +
+                "and ( con.startdate is null or con.startdate <= pe.startdate ) " +
+                "and ( con.enddate is null or con.enddate >= pe.enddate ) ";
         }
 
         if ( whereClause != null )
