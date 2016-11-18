@@ -95,13 +95,13 @@
         </action>
     </package>
 
-    <package name="dhis-web-menu-management" extends="dhis-web-commons" namespace="/dhis-web-menu-management">
+    <package name="dhis-web-translations" extends="dhis-web-commons" namespace="/dhis-web-translations">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">index.html</result>
         </action>
     </package>
 
-    <package name="dhis-web-translations" extends="dhis-web-commons" namespace="/dhis-web-translations">
+    <package name="dhis-web-menu-management" extends="dhis-web-commons" namespace="/dhis-web-menu-management">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">index.html</result>
         </action>
