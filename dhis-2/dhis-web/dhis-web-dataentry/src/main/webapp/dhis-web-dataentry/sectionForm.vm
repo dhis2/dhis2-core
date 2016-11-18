@@ -44,37 +44,53 @@
         #foreach( $categoryComboId in $categoryComboIds )
             #set( $seCbId = "${section.id}-${categoryComboId}" )
             #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )	
-            
+            #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
+
             <table id="sectionTable" class="sectionTable" cellspacing="0">
                 #set( $colCount = $numberOfTotalColumns.get( $categoryComboId ) )
                 #set( $categories = $orderedCategories.get( $categoryComboId ) )
                 #set( $optionsMap = $orderedOptionsMap.get( $categoryComboId ) )
                 #set( $colRepeat = $catColRepeat.get( $categoryComboId ) )
                 #set( $hasFilterInSection = false )
-                #set( $mark = 0 )
-
-                <thead>
+                #set( $mark = 0 )                
+                
+                <thead>                    
+                    #set( $rowTotalRendered = false )
                     #foreach( $category in $categories )
                         #set( $categoryOptions = $optionsMap.get( $category.id ) )
-                        #set( $colCount = $colCount / $categoryOptions.size() )
-
-                        <tr colspan="$colCount">
+                        #set( $colCount = $colCount / $categoryOptions.size() )                        
+                        <tr>
                             <td>#if( $hasFilterInSection == false )<input type="text" class="sectionFilter" placeholder="$encoder.jsEscape( $i18n.getString( "filter_in_section" ) , "'")" onkeyup="dhis2.de.filterInSection($(this));">#set( $hasFilterInSection = true )#end</td>
                             #set( $cols = $colRepeat.get( $category.id ) )
                             #foreach( $col in $cols )
                                 #foreach( $categoryOption in $categoryOptions )
-                                    <th colspan="$colCount" scope="col"><span align="center">#if( $categoryOption.isDefault() )${i18n.getString( "value" )}#else ${encoder.htmlEncode( $categoryOption.displayName )}#end</span></th>
-                                #end
+                                    <th colspan="$colCount" scope="col">
+                                        <span align="center">
+                                            #if( $categoryOption.isDefault() )
+                                                ${i18n.getString( "value" )}
+                                            #else 
+                                                ${encoder.htmlEncode( $categoryOption.displayName )}
+                                            #end
+                                        </span>
+                                    </th>
+                                #end                                
+                            #end
+                            #if( $section.showRowTotals == "true" && $rowTotalRendered == "false" && $optionCombos.size() > 1)
+                                #set( $rowTotalRendered = true )
+                                <th rowspan="$categories.size()">
+                                    ${i18n.getString( "total" )}
+                                </th>
                             #end
                         </tr>
                     #end
                 </thead>
 
-                #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
                 #foreach( $optionCombo in $optionCombos )<span id="${optionCombo.uid}-optioncombo" class="hidden">${encoder.htmlEncode( $optionCombo.displayName )}</span>
                 #end
-                <tbody>
+                <tbody>                    
                     #foreach( $dataElement in $dataElements )
+                        #set( $rowTotalIds = "row-$dataElement.uid" )                        
+                        #set( $cellCounter = 1 )
                         #if( $mark == 1 )
                             #set( $mark = 0 )
                         #else
@@ -89,6 +105,7 @@
                             #foreach( $optionCombo in $optionCombos )
                                 #set( $dataEntryId = "${dataElement.uid}-${optionCombo.uid}-val" )
                                 #set( $commentId = "${dataElement.uid}-${optionCombo.uid}-comment" )
+                                #set( $rowTotalIds = "${rowTotalIds}-$optionCombo.uid" )
                                 #set( $greyedField = false )
                                 #set( $greyedField = $greyedFields.get( "${dataElement.uid}:${optionCombo.uid}" ) )
                                 #if( $dataElement.valueType == "BOOLEAN" )
@@ -142,9 +159,36 @@
                                       <td><input name="entryfield" class="entryfield" id="${dataEntryId}" type="text" tabindex="${tabIndex}"#if( $greyedField || !$hasAccess ) disabled="disabled"#end></td>
                                     #end
                                 #end
-                                #set( $tabIndex = $tabIndex + 1 )
+                                #set( $tabIndex = $tabIndex + 1 )                                
+                            #end
+                            #if($section.showRowTotals == "true" &&  $optionCombos.size() > 1 )                                    
+                                <td>
+                                    <input class="total-cell" type="text" id="$rowTotalIds" disabled>
+                                </td>
                             #end
                         </tr>
+                    #end
+                    #if($section.showColumnTotals == "true" && $dataElements.size() > 1)
+                        #if( $mark == 1 )
+                            #set( $mark = 0 )
+                        #else
+                            #set( $mark = 1 )
+                        #end
+                        <tr>
+                            <td #if( $mark == 1 )class="alt"#else class="reg"#end>
+                                ${i18n.getString( "total" )}
+                            </td>                            
+                            #set( $columnTotalIds = "col" )
+                            #foreach( $optionCombo in $optionCombos )
+                                #set( $columnTotalIds = "${columnTotalIds}-$optionCombo.uid" )
+                                <td>                                
+                                    <input class="total-cell" type="text" id="col-${optionCombo.uid}" disabled>
+                                </td>
+                            #end                            
+                            <td>
+                                <input class="total-cell" type="text" id="$columnTotalIds" disabled>
+                            </td>                            
+                        </>
                     #end
                 </tbody>
             </table>

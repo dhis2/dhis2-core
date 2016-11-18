@@ -28,20 +28,21 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.ValueType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -52,6 +53,9 @@ public class DataElementCategoryOptionComboServiceTest
 {
     @Autowired
     private DataElementCategoryService categoryService;
+
+    @Autowired
+    private AttributeService attributeService;
   
     private DataElementCategory categoryA;
     private DataElementCategory categoryB;
@@ -260,5 +264,65 @@ public class DataElementCategoryOptionComboServiceTest
         String expected = "Male, 0-20";
         
         assertEquals( expected, categoryOptionComboA.getName() );
+    }
+
+    @Test
+    public void testAddAttributeValue()
+    {
+        categoryOptionComboA = new DataElementCategoryOptionCombo();
+
+        Set<DataElementCategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionB );
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+
+        int id = categoryService.addDataElementCategoryOptionCombo( categoryOptionComboA );
+
+        categoryOptionComboA = categoryService.getDataElementCategoryOptionCombo( id );
+
+
+        Attribute attribute1 = new Attribute( "attribute 1", ValueType.TEXT );
+        attribute1.setCategoryOptionComboAttribute( true );
+        attributeService.addAttribute( attribute1 );
+
+        AttributeValue avA = new AttributeValue( "value 1" );
+        avA.setAttribute( attribute1 );
+
+
+        attributeService.addAttributeValue( categoryOptionComboA, avA );
+
+        assertNotNull( attributeService.getAttributeValue( avA.getId() ) );
+
+    }
+
+    @Test
+    public void testDeleteAttributeValue()
+    {
+        categoryOptionComboA = new DataElementCategoryOptionCombo();
+
+        Set<DataElementCategoryOption> categoryOptions = Sets.newHashSet( categoryOptionA, categoryOptionB );
+
+        categoryOptionComboA.setCategoryCombo( categoryComboA );
+        categoryOptionComboA.setCategoryOptions( categoryOptions );
+
+        int id = categoryService.addDataElementCategoryOptionCombo( categoryOptionComboA );
+
+        categoryOptionComboA = categoryService.getDataElementCategoryOptionCombo( id );
+
+        Attribute attribute1 = new Attribute( "attribute 1", ValueType.TEXT );
+        attribute1.setCategoryOptionComboAttribute( true );
+        attributeService.addAttribute( attribute1 );
+
+        AttributeValue avA = new AttributeValue( "value 1" );
+        avA.setAttribute( attribute1 );
+
+
+        attributeService.addAttributeValue( categoryOptionComboA, avA );
+
+        attributeService.deleteAttributeValue( avA );
+
+        avA = attributeService.getAttributeValue( avA.getId() );
+
+        assertNull( avA );
     }
 }

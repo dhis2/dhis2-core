@@ -203,12 +203,11 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             return today;
         },
         isBeforeToday: function (dateValue) {
-            var today;
             if (!dateValue) {
                 return;
             }
-            dateValue = moment(dateValue, CalendarService.getSetting().momentFormat);
-            if (dateValue.isBefore(this.getToday())) {
+            dateValue = moment(dateValue, "YYYY-MM-DD");
+            if (dateValue.isBefore(moment())) {
                 return true;
             }
             return false;
@@ -620,6 +619,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                     		'<input type="text" value={{currentEvent.' + fieldId + '}}' +
                                                     	'</span>';
                                     }
+                                    else if (prStDe.dataElement.valueType === "PHONE_NUMBER") {
+                                        newInputField = '<span class="hideInPrint"><input ng-disabled="model.editingDisabled" type="text" ' +
+                                            ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
+                                            ' ng-blur="saveDatavalue(prStDes.' + fieldId + ', outerForm.' + fieldId + ')"' +
+                                            commonInputFieldProperty + '></span><span class="not-for-screen"><input type="text" value={{currentEvent.' + fieldId + '}}></span>';
+                                    }
                                     else if (prStDe.dataElement.valueType === "TEXT") {
                                         newInputField = '<span class="hideInPrint"><input ng-disabled="model.editingDisabled" type="text" ' +
                                             ' ng-class="{{getInputNotifcationClass(prStDes.' + fieldId + '.dataElement.id, true)}}" ' +
@@ -697,14 +702,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' attribute-data="attributesById.' + attId + '" ' +
                                 ' selected-program-id="selectedProgram.id" ' +
                                 ' selected-tei-id="selectedTei.trackedEntityInstance" ' +
-                                ' ng-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ '|| attributesById.' + attId + '.generated"' +
+                                ' ng-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ '|| attributesById.' + attId + '.generated"' +
                                 ' d2-attribute-validator ' +
                                 ' ng-required=" ' + att.mandatory + '" ';
 
                             //check if attribute has optionset
                             if (att.optionSetValue) {
                                 var optionSetId = att.optionSet.id;
-                                newInputField = '<span class="hideInPrint"><ui-select theme="select2" ' + commonInputFieldProperty + '  on-select="teiValueUpdated(selectedTei,\'' + attId + '\')" >' +
+                                newInputField = '<span class="hideInPrint"><ui-select ng-disabled="model.orgUnitClosed" theme="select2" ' + commonInputFieldProperty + '  on-select="teiValueUpdated(selectedTei,\'' + attId + '\')" >' +
                                     '<ui-select-match style="width:100%;" allow-clear="true" placeholder="' + $translate.instant('select_or_search') + '">{{$select.selected.displayName || $select.selected}}</ui-select-match>' +
                                     '<ui-select-choices ' +
                                     'repeat="option.displayName as option in optionSets.' + optionSetId + '.options | filter: $select.search | limitTo:maxOptionSize">' +
@@ -719,7 +724,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 		att.valueType === "INTEGER_POSITIVE" ||
                                 		att.valueType === "INTEGER_NEGATIVE" ||
                                 		att.valueType === "INTEGER_ZERO_OR_POSITIVE" ) {
-                                    newInputField = '<span class="hideInPrint"><input type="number"' +
+                                    newInputField = '<span class="hideInPrint"><input ng-disabled="model.orgUnitClosed"  type="number"' +
                                         ' d2-number-validator ' +
                                         ' number-type="' + att.valueType + '" ' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
@@ -728,7 +733,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 else if (att.valueType === "BOOLEAN") {
                                 	newInputField = '<span class="hideInPrint"><d2-radio-button ' +
                                                             ' dh-required=" ' + (att.mandatory || att.unique) + '" ' +
-                                                            ' dh-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate + '"' +
+                                                            ' dh-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate + '"' +
                                                             ' dh-value="selectedTei.' + attId + '" ' +
                                                             ' dh-name="foo" ' +
                                                             ' dh-current-element="currentElement" ' +
@@ -742,6 +747,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 }
                                 else if (att.valueType === "DATE") {
                                     newInputField = '<span class="hideInPrint"><input  type="text"' +
+                                        ' ng-disabled="model.orgUnitClosed"'+   
                                         ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                         ' max-date=" ' + attMaxDate + ' " ' +
                                         ' d2-date' +
@@ -751,13 +757,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "TRUE_ONLY") {
-                                    newInputField = '<span class="hideInPrint"><input type="checkbox" ' +
+                                    newInputField = '<span class="hideInPrint"><input ng-disabled="model.orgUnitClosed" type="checkbox" ' +
                                         ' ng-change="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></span>' +
                                         '<span class="not-for-screen"><input type="checkbox" ng-checked={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "EMAIL") {
-                                    newInputField = '<span class="hideInPrint"><input type="email"' +
+                                    newInputField = '<span class="hideInPrint"><input type="email" ng-disabled="model.orgUnitClosed"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' >' +
                                         '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -771,6 +777,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                             '<button class="btn btn-grp default-btn-height" type="button" ' + 
                                                                 ' title="{{\'add\' | translate}} {{attributesById.' + attId + '.displayName}}" ' +
                                                                 ' ng-if="!selectedTei.' + attId + '" ' +
+                                                                ' ng-disabled="model.orgUnitClosed"'+
                                                                 ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
                                                                 ' ng-click="getTrackerAssociate(attributesById.' + attId + ', selectedTei.' + attId + ')" >' +
                                                                 '<i class="fa fa-external-link"></i> ' +
@@ -778,6 +785,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                                             '<button class="btn btn-grp default-btn-height" type="button" ' + 
                                                                 ' title="{{\'remove\' | translate}} {{attributesById.' + attId + '.displayName}}" ' +
                                                                 ' ng-if="selectedTei.' + attId + '" ' +
+                                                                ' ng-disabled="model.orgUnitClosed"'+
                                                                 ' ng-class="{true: \'disable-clicks\'} [editingDisabled]" ' +
                                                                 ' ng-click="selectedTei.' + attId + ' = null" >' +
                                                                 '<i class="fa fa-trash-o"></i> ' +
@@ -792,7 +800,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 						                                    ' d2-object="selectedTei" ' +  
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
-					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+					                                        ' d2-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
 						                                    ' d2-coordinate-format="\'TEXT\'" > ' +
 						                            '</d2-map></span>'+
                                                                             '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -804,23 +812,23 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 				                                            ' d2-object="selectedTei" ' +  
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
-					                                        ' d2-disabled="editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+					                                        ' d2-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
 					                                        ' d2-function="teiValueUpdated()" >' +
 				                                    ' </d2-org-unit-tree></span>'+
                                                                     '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
                                 }
                                 else if (att.valueType === "LONG_TEXT") {
-                                    newInputField = '<span><textarea row ="3" ' +
+                                    newInputField = '<span><textarea ng-disabled="model.orgUnitClosed" row ="3" ' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + ' ></textarea></span>';
                                 }
                                 else if (att.valueType === "TEXT") {
-                                    newInputField = '<input type="text" ' +
+                                    newInputField = '<input type="text" ng-disabled="model.orgUnitClosed"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + '>';
                                 }
                                 else if (att.valueType === "PHONE_NUMBER") {
-                                    newInputField = '<input type="text" ' +
+                                    newInputField = '<input type="text" ng-disabled="model.orgUnitClosed"' +
                                         ' ng-blur="teiValueUpdated(selectedTei,\'' + attId + '\')" ' +
                                         commonInputFieldProperty + '>';
                                 }
@@ -850,7 +858,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfEnrollment" ' +
                                 ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfEnrollment\')"'+
-                                ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
+                                ' ng-disabled="\'' + target + '\' === \'PROFILE\' || model.orgUnitClosed"' +
                                 ' d2-date' +
                                 ' max-date="' + enMaxDate + '"' +
                                 ' ng-required="true">';
@@ -866,7 +874,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 ' placeholder="{{dhis2CalendarFormat.keyDateFormat}}" ' +
                                 ' ng-model="selectedEnrollment.dateOfIncident" ' +
                                 ' ng-change="verifyExpiryDate(\'selectedEnrollment.dateOfIncident\')"'+
-                                ' ng-disabled="\'' + target + '\' === \'PROFILE\'"' +
+                                ' ng-disabled="\'' + target + '\' === \'PROFILE\' || model.orgUnitClosed"' +
                                 ' d2-date ' +
                                 ' max-date="' + inMaxDate + '">';
                         }
@@ -3015,9 +3023,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* Factory for fetching OrgUnit */
-.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, SessionStorageService) {
+.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, SessionStorageService, DateUtils) {
     var orgUnit, orgUnitPromise, rootOrgUnitPromise,orgUnitTreePromise;
     var indexedDB = $window.indexedDB;
+    var orgUnitList = [];
     var db = null;
     function openStore(){
         var deferred = $q.defer();
@@ -3141,6 +3150,24 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     deferred.reject();
                 }
             }
+            return deferred.promise;
+        },
+        getOrgUnitClosedStatus : function(orgUnitId) {
+            var deferred = $q.defer();
+            this.getOrgUnitFromStore(orgUnitId).then(function (orgUnitFromStore) {
+                if (orgUnitFromStore && orgUnitFromStore.cdate) {
+                    if (DateUtils.isBeforeToday(orgUnitFromStore.cdate)) {
+                        deferred.resolve(true);
+                    } else {
+                        deferred.resolve(false);
+                    }
+                } else {
+                    /*The org unit is assumed to be opened if the status is not present.*/
+                    deferred.resolve(false);
+                }
+            }, function(){
+                deferred.resolve(false);
+            });
             return deferred.promise;
         }
     };

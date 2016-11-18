@@ -101,4 +101,11 @@
 		</action>
 	</package>
 
+        <package name="dhis-web-translations" extends="dhis-web-commons" namespace="/dhis-web-translations">
+                <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+                        <result name="success" type="redirect">index.html</result>
+                </action>
+        </package>
+
+
 </struts>
