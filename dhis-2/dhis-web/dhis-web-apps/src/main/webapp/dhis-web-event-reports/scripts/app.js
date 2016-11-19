@@ -4054,6 +4054,9 @@ Ext.onReady( function() {
 			getDimensionPanel,
 			getDimensionPanels,
 
+            defaultItems,
+            getItems,
+
             accordionBody,
 			accordionPanels = [],
             accordion,
@@ -6395,6 +6398,7 @@ Ext.onReady( function() {
 			//});
 
 			panel = {
+                itemId: dimension.itemId,
 				xtype: 'panel',
 				title: '<div class="' + iconCls + '">' + dimension.name + '</div>',
 				hideCollapseTool: true,
@@ -6461,27 +6465,38 @@ Ext.onReady( function() {
 		};
 
             // accordion
+        defaultItems = [
+            data,
+            period,
+            organisationUnit,
+            ...ns.core.init.dimensions.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'))
+        ];
+        
+        getItems = function(panels = []) {
+            var items = [
+                ...panels.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'))
+            ];
+
+            items[items.length - 1].cls = 'ns-accordion-last';
+
+            return items;
+        };
+        
         accordionBody = Ext.create('Ext.panel.Panel', {
 			layout: 'accordion',
 			activeOnTop: true,
 			cls: 'ns-accordion',
 			bodyStyle: 'border:0 none',
 			height: 700,
-			items: function() {
-                var panels = [
-                    data,
-                    period,
-                    organisationUnit
-                ],
-				dims = Ext.clone(ns.core.init.dimensions);
-
-				panels = panels.concat(getDimensionPanels(dims, 'ns-panel-title-dimension'));
-
-				last = panels[panels.length - 1];
-				last.cls = 'ns-accordion-last';
-
-				return panels;
-            }(),
+            toBeRemoved: [],
+            removeItems: function() {
+                this.toBeRemoved.forEach(id => {
+                    console.log(id);
+                    accordionBody.remove(id);
+                });
+                this.toBeRemoved = [];
+            },
+            items: defaultItems,
             listeners: {
                 afterrender: function() { // nasty workaround, should be fixed
                     //organisationUnit.expand();
@@ -6490,6 +6505,30 @@ Ext.onReady( function() {
                 }
             }
 		});
+
+        ER.fn = function(n) {
+            
+            var dimensions = [
+                {itemId: 'abc', name: 'Test dim 1'},
+                {itemId: 'abcd', name: 'Test dim 2'},
+                {itemId: 'abcde', name: 'Test dim 3'}
+            ];
+
+            if (n) {
+                dimensions.push({itemId: 'abcf', name: 'Test dim 4'});
+            }
+
+            var items = getItems(dimensions);
+            
+            var h = ns.app.westRegion.hasScrollbar ?
+                            ns.core.conf.layout.west_scrollbarheight_accordion_indicator : ns.core.conf.layout.west_maxheight_accordion_indicator;
+
+            accordionBody.removeItems();
+            accordionBody.add(items);
+            accordionBody.toBeRemoved = items.map(item => item.itemId);
+
+            accordion.setThisHeight(h);
+        };
 
 		// functions
 
@@ -6719,10 +6758,10 @@ Ext.onReady( function() {
 			map: layer ? layer.map : null,
 			layer: layer ? layer : null,
 			menu: layer ? layer.menu : null,
-
 			setThisHeight: function(mx) {
 				var settingsHeight = 41,
-					containerHeight = settingsHeight + (this.panels.length * 28) + mx,
+					//containerHeight = settingsHeight + (this.panels.length * 28) + mx,
+					containerHeight = settingsHeight + (accordionBody.items.items.length * 28) + mx,
 					accordionHeight = ns.app.westRegion.getHeight() - settingsHeight - ns.core.conf.layout.west_fill,
                     accordionBodyHeight;
 
