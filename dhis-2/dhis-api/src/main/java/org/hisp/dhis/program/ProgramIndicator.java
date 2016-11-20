@@ -103,7 +103,9 @@ public class ProgramIndicator
     private Boolean displayInForm;
 
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
-
+    
+    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
+ 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -251,7 +253,6 @@ public class ProgramIndicator
         this.displayInForm = displayInForm;
     }
 
-
     @JsonProperty( "programIndicatorGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programIndicatorGroups", namespace = DxfNamespaces.DXF_2_0 )
@@ -264,6 +265,18 @@ public class ProgramIndicator
     public void setGroups( Set<ProgramIndicatorGroup> groups )
     {
         this.groups = groups;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramIndicatorAnalyticsType getProgramIndicatorAnalyticsType()
+    {
+        return programIndicatorAnalyticsType;
+    }
+
+    public void setProgramIndicatorAnalyticsType( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    {
+        this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
     }
 
     @Override
@@ -282,6 +295,7 @@ public class ProgramIndicator
                 filter = programIndicator.getFilter();
                 decimals = programIndicator.getDecimals();
                 displayInForm = programIndicator.getDisplayInForm();
+                programIndicatorAnalyticsType = programIndicator.getProgramIndicatorAnalyticsType();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -290,6 +304,8 @@ public class ProgramIndicator
                 filter = programIndicator.getFilter() == null ? filter : programIndicator.getFilter();
                 decimals = programIndicator.getDecimals() == null ? decimals : programIndicator.getDecimals();
                 displayInForm = programIndicator.getDisplayInForm() == null ? displayInForm : programIndicator.getDisplayInForm();
+                programIndicatorAnalyticsType = programIndicator.getProgramIndicatorAnalyticsType() == null ?
+                    programIndicatorAnalyticsType : programIndicator.getProgramIndicatorAnalyticsType();
             }
         }
     }

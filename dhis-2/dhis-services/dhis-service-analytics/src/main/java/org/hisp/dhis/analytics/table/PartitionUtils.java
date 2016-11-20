@@ -103,17 +103,20 @@ public class PartitionUtils
         return partitions.prunePartitions( validPartitions );
     }
     
-    public static Partitions getPartitions( String tablePrefix, String tableSuffix )
+    /*
+     * Get Partitions, used for tables that does not have partitioning by year
+     */
+    public static Partitions getPartitions( String tablePrefix, String tableSuffix, Set<String> validPartitions )
     {
         tablePrefix = StringUtils.trimToEmpty( tablePrefix );
         tableSuffix = StringUtils.trimToEmpty( tableSuffix );
 
         Partitions partitions = new Partitions();
 
-        String name = tablePrefix + SEP  + tableSuffix;
+        String name = tablePrefix + tableSuffix;
         partitions.add( name.toLowerCase() );
 
-        return partitions;
+        return partitions.prunePartitions( validPartitions );
     }
 
     public static Partitions getPartitions( List<DimensionalItemObject> periods, 

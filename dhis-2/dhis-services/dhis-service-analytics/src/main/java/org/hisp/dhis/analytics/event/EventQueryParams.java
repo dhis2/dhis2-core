@@ -65,6 +65,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorAnalyticsType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -520,6 +521,18 @@ public class EventQueryParams
     public boolean hasProgramIndicatorDimension()
     {
         return programIndicator != null;
+    }
+    
+    public boolean hasEventProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            ProgramIndicatorAnalyticsType.EVENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
+    }
+    
+    public boolean hasEnrollmentProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
     }
 
     /**
