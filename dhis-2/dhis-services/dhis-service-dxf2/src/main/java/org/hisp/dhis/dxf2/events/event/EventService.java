@@ -1,5 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
+import org.hisp.dhis.common.Grid;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -75,6 +77,8 @@ public interface EventService
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
     List<Event> getEventsJson( InputStream inputStream ) throws IOException;
+    
+    Grid getEventsGrid( EventSearchParams params );
 
     int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
 

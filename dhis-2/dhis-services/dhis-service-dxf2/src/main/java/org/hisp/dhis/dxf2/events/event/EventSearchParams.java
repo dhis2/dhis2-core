@@ -44,6 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -52,8 +53,26 @@ import java.util.Set;
  */
 public class EventSearchParams
 {
+    public static final String EVENT_ID = "event";
+    public static final String EVENT_CREATED_ID = "created";
+    public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
+    public static final String EVENT_STORED_BY_ID = "storedBy";
+    public static final String EVENT_COMPLETED_BY_ID = "completedBy";
+    public static final String EVENT_COMPLETED_DATE_ID = "completedDate";
+    public static final String EVENT_DUE_DATE_ID = "dueDate";
+    public static final String EVENT_EXECUTION_DATE_ID = "executionDate";
+    public static final String EVENT_ORG_UNIT_ID = "orgUnit";
+    public static final String EVENT_ORG_UNIT_NAME = "orgUnitName";    
+    public static final String EVENT_STATUS_ID = "status";
+    public static final String EVENT_LONGITUDE_ID = "longitude";
+    public static final String EVENT_LATITUDE_ID = "latitude";
+    public static final String EVENT_PROGRAM_STAGE_ID = "programStage";
+    public static final String EVENT_PROGRAM_ID = "program";
+    public static final String EVENT_ATTRIBUTE_OPTION_COMBO_ID = "attributeOptionCombo";
+    
+    public static final String PAGER_META_KEY = "pager";
+    
     public static final int DEFAULT_PAGE = 1;
-
     public static final int DEFAULT_PAGE_SIZE = 50;
 
     private Program program;
@@ -98,7 +117,15 @@ public class EventSearchParams
 
     private Set<String> events = new HashSet<>();
     
-    private List<QueryItem> filters = new ArrayList<>();
+    /**
+     * Filters for the response.
+     */
+    private List<QueryItem> filters = new ArrayList<>();    
+
+    /**
+     * DataElements to be included in the response. Can be used to filter response.
+     */    
+    private List<QueryItem> dataElements = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -149,6 +176,75 @@ public class EventSearchParams
     public boolean hasFilters()
     {
         return filters != null && !filters.isEmpty();
+    }
+    
+    /**
+     * Returns a list of dataElements and filters combined.
+     */
+    public List<QueryItem> getDataElementsAndFilters()
+    {
+        List<QueryItem> items = new ArrayList<>();
+        items.addAll( dataElements );
+        items.addAll( filters );
+        return items;
+    }
+    
+    public EventSearchParams addDataElements( List<QueryItem> des )
+    {
+        dataElements.addAll( des );
+        return this;
+    }
+    
+    /**
+     * Add the given dataElements to this params if they are not already present.
+     */
+    public EventSearchParams addAttributesIfNotExist( List<QueryItem> des )
+    {
+        for ( QueryItem de : des )
+        {
+            if ( dataElements != null && !dataElements.contains( de ) )
+            {
+                dataElements.add( de );            
+            }
+        }
+        
+        return this;
+    }
+    
+    /**
+     * Performs a set of operations on this params.
+     * 
+     * <ul>
+     * <li>
+     * If a query item is specified as an attribute item as well as a filter 
+     * item, the filter item will be removed. In that case, if the attribute 
+     * item does not have any filters and the filter item has one or more filters, 
+     * these will be applied to the attribute item. 
+     * </li>
+     * </ul> 
+     */
+    public void conform()
+    {
+        Iterator<QueryItem> filterIter = filters.iterator();
+        
+        while ( filterIter.hasNext() )
+        {
+            QueryItem filter = filterIter.next();
+        
+            int index = dataElements.indexOf( filter ); // Filter present as de
+            
+            if ( index >= 0 )
+            {
+                QueryItem dataElement = dataElements.get( index );
+                
+                if ( !dataElement.hasFilter() && filter.hasFilter() )
+                {
+                    dataElement.getFilters().addAll( filter.getFilters() );
+                }
+                
+                filterIter.remove();
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -373,5 +469,16 @@ public class EventSearchParams
     public void setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
-    }    
+    }
+
+    public List<QueryItem> getDataElements()
+    {
+        return dataElements;
+    }
+
+    public void setDataElements( List<QueryItem> dataElements )
+    {
+        this.dataElements = dataElements;
+    }
+    
 }

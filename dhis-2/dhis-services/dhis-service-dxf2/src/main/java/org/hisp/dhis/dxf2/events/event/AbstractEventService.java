@@ -37,6 +37,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -82,6 +84,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
@@ -103,6 +106,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +114,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -430,27 +435,7 @@ public abstract class AbstractEventService
     {
         validate( params );
 
-        List<OrganisationUnit> organisationUnits = new ArrayList<>();
-
-        OrganisationUnit orgUnit = params.getOrgUnit();
-        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-        if ( params.getOrgUnit() != null )
-        {
-            if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
-            }
-            else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.add( orgUnit );
-                organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
-            }
-        }
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -489,6 +474,103 @@ public abstract class AbstractEventService
             programStageInstance -> events.getEvents().add( convertProgramStageInstance( programStageInstance ) ) );
 
         return events;
+    }    
+    
+    @Override
+    public Grid getEventsGrid( EventSearchParams params )
+    {
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
+        
+        if( params.getProgramStage() != null )
+        {
+            params.addDataElements( QueryItem.getDataElementQueryItems( params.getProgramStage().getAllDataElements() ) );
+        }
+        
+        // ---------------------------------------------------------------------
+        // Conform parameters
+        // ---------------------------------------------------------------------
+
+        params.conform();
+        
+        // ---------------------------------------------------------------------
+        // Grid headers
+        // ---------------------------------------------------------------------
+
+        Grid grid = new ListGrid();
+
+        grid.addHeader( new GridHeader( EVENT_ID, "event" ) );
+        grid.addHeader( new GridHeader( EVENT_CREATED_ID, "created" ) );
+        grid.addHeader( new GridHeader( EVENT_LAST_UPDATED_ID, "lastUpdated" ) );
+        grid.addHeader( new GridHeader( EVENT_STORED_BY_ID, "storedBy" ) );
+        grid.addHeader( new GridHeader( EVENT_COMPLETED_BY_ID, "completedBy" ) );
+        grid.addHeader( new GridHeader( EVENT_COMPLETED_DATE_ID, "completedDate" ) );
+        grid.addHeader( new GridHeader( EVENT_DUE_DATE_ID, "dueDate" ) );
+        grid.addHeader( new GridHeader( EVENT_EXECUTION_DATE_ID, "executionDate" ) );
+        grid.addHeader( new GridHeader( EVENT_ORG_UNIT_ID, "orgUnit" ) );
+        grid.addHeader( new GridHeader( EVENT_ORG_UNIT_NAME, "orgUnitName" ) );
+        grid.addHeader( new GridHeader( EVENT_STATUS_ID, "status" ) );
+        grid.addHeader( new GridHeader( EVENT_LONGITUDE_ID, "longitude" ) );
+        grid.addHeader( new GridHeader( EVENT_LATITUDE_ID, "latitude" ) );
+        grid.addHeader( new GridHeader( EVENT_PROGRAM_STAGE_ID, "programStage" ) );
+        grid.addHeader( new GridHeader( EVENT_PROGRAM_ID, "program" ) );
+        grid.addHeader( new GridHeader( EVENT_ATTRIBUTE_OPTION_COMBO_ID, "attributeOptionCombo" ) );
+
+        for ( QueryItem item : params.getDataElements() )
+        {
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
+        }
+
+        List<Map<String, String>> events = eventStore.getEventsGrid( params, organisationUnits );
+
+        // ---------------------------------------------------------------------
+        // Grid rows
+        // ---------------------------------------------------------------------
+
+        for ( Map<String, String> event : events )
+        {   
+            grid.addRow();
+            
+            grid.addValue( event.get( EVENT_ID ) );
+            grid.addValue( event.get( EVENT_CREATED_ID ) );
+            grid.addValue( event.get( EVENT_LAST_UPDATED_ID ) );
+            grid.addValue( event.get( EVENT_STORED_BY_ID ) );
+            grid.addValue( event.get( EVENT_COMPLETED_BY_ID ) );
+            grid.addValue( event.get( EVENT_COMPLETED_DATE_ID ) );
+            grid.addValue( event.get( EVENT_DUE_DATE_ID ) );            
+            grid.addValue( event.get( EVENT_EXECUTION_DATE_ID ) );
+            grid.addValue( event.get( EVENT_ORG_UNIT_ID ) );
+            grid.addValue( event.get( EVENT_ORG_UNIT_NAME ) );
+            grid.addValue( event.get( EVENT_STATUS_ID ) );
+            grid.addValue( event.get( EVENT_LONGITUDE_ID ) );
+            grid.addValue( event.get( EVENT_LATITUDE_ID ) );
+            grid.addValue( event.get( EVENT_PROGRAM_STAGE_ID ) );
+            grid.addValue( event.get( EVENT_PROGRAM_ID ) );
+            grid.addValue( event.get( EVENT_ATTRIBUTE_OPTION_COMBO_ID ) );
+            
+            for ( QueryItem item : params.getDataElements() )
+            {
+                grid.addValue( event.get( item.getItemId() ) );
+            }
+        }
+
+        Map<String, Object> metaData = new HashMap<>();
+
+        if ( params.isPaging() )
+        {
+            int count = 0;
+
+            if ( params.isTotalPages() )
+            {
+                count = eventStore.getEventCount( params, organisationUnits );
+            }
+
+            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            metaData.put( PAGER_META_KEY, pager );
+        }
+        
+        grid.setMetaData( metaData );
+        
+        return grid;
     }
 
     @Override
@@ -519,28 +601,8 @@ public abstract class AbstractEventService
     @Override
     public EventRows getEventRows( EventSearchParams params )
     {
-        List<OrganisationUnit> organisationUnits = new ArrayList<>();
-
-        OrganisationUnit orgUnit = params.getOrgUnit();
-        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-        if ( params.getOrgUnit() != null )
-        {
-            if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
-            }
-            else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.add( orgUnit );
-                organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
-            }
-        }
-
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
+        
         EventRows eventRows = new EventRows();
 
         List<EventRow> eventRowList = eventStore.getEventRows( params, organisationUnits );
@@ -945,6 +1007,33 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+    
+    private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
+    {
+        List<OrganisationUnit> organisationUnits = new ArrayList<>();
+
+        OrganisationUnit orgUnit = params.getOrgUnit();
+        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
+
+        if ( params.getOrgUnit() != null )
+        {
+            if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
+            {
+                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
+            }
+            else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
+            {
+                organisationUnits.add( orgUnit );
+                organisationUnits.addAll( orgUnit.getChildren() );
+            }
+            else // SELECTED
+            {
+                organisationUnits.add( orgUnit );
+            }
+        }
+        
+        return organisationUnits;
+    }
 
     private Event convertProgramStageInstance( ProgramStageInstance programStageInstance )
     {
