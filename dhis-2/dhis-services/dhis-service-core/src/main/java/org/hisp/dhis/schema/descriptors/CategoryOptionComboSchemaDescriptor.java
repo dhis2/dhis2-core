@@ -51,7 +51,6 @@ public class CategoryOptionComboSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataElementCategoryOptionCombo.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( false );
         schema.setOrder( 1190 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE,

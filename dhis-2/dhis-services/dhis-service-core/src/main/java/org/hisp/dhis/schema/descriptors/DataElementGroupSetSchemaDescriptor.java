@@ -51,7 +51,6 @@ public class DataElementGroupSetSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataElementGroupSet.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1220 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATAELEMENTGROUPSET_PUBLIC_ADD" ) ) );
