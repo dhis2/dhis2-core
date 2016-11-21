@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -52,11 +53,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -80,6 +83,9 @@ public class DataQueryParamsTest
     
     private Period peA;
     private Period peB;
+    
+    private OrganisationUnit ouA;
+    private OrganisationUnit ouB;
 
     @Before
     public void setUpTest()
@@ -100,6 +106,9 @@ public class DataQueryParamsTest
         
         peA = createPeriod( "201601" );
         peB = createPeriod( "201603" );
+        
+        ouA = createOrganisationUnit( 'A' );
+        ouB = createOrganisationUnit( 'B' );
     }
     
     @Test
@@ -296,5 +305,21 @@ public class DataQueryParamsTest
         int totalDays = peA.getDaysInPeriod() + peB.getDaysInPeriod();
         
         assertEquals( totalDays, params.getDaysForAvgSumIntAggregation() );
+    }
+
+    @Test
+    public void testGetDimensionsAndFiltersByDimensionTypes()
+    {        
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
+            .withPeriods( Lists.newArrayList( peA, peB ) )
+            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
+            .build();
+        
+        List<DimensionalObject> dimensions = params.getDimensionsAndFilters( Sets.newHashSet( DimensionType.PERIOD, DimensionType.ORGANISATION_UNIT ) );
+        
+        assertEquals( 2, dimensions.size() );
+        assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
+        assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );        
     }
 }
