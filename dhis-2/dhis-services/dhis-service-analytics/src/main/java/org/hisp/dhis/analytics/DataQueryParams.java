@@ -813,6 +813,24 @@ public class DataQueryParams
     }
 
     /**
+     * Returns a list of dimensions and filters of the given set of dimension types.
+     */
+    public List<DimensionalObject> getDimensionsAndFilters( Set<DimensionType> dimensionTypes )
+    {
+        List<DimensionalObject> list = new ArrayList<>();
+        
+        for ( DimensionalObject dimension : getDimensionsAndFilters() )
+        {
+            if ( dimensionTypes.contains( dimension.getDimensionType() ) )
+            {
+                list.add( dimension );
+            }
+        }
+        
+        return list;
+    }
+
+    /**
      * Retrieves the options for the the dimension or filter with the given 
      * identifier. Returns an empty list if the dimension or filter is not present.
      */

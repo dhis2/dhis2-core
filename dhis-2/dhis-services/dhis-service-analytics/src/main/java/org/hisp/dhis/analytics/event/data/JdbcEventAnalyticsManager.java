@@ -44,6 +44,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -76,8 +78,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-
-import com.google.common.collect.Lists;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -656,10 +656,13 @@ public class JdbcEventAnalyticsManager
         // Organisation unit group sets
         // ---------------------------------------------------------------------
 
-        for ( DimensionalObject dim : params.getDimensionsAndFilters( DimensionType.ORGANISATION_UNIT_GROUP_SET ) )
+        List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters( 
+            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
+        
+        for ( DimensionalObject dim : dynamicDimensions )
         {            
             String col = statementBuilder.columnQuote( dim.getDimensionName() );
-                
+            
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
