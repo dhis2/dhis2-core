@@ -379,6 +379,9 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
         Clock clock = new Clock( log ).startClock().logTime( "Starting complete data set registration import, options: " + importOptions );
         notifier.clear( id ).notify( id, "Process started" );
 
+        // Start here so we can access any outer attributes for the configuration
+        completeRegistrations.open();
+
         ImportSummary importSummary = new ImportSummary();
 
         // ---------------------------------------------------------------------
@@ -457,6 +460,8 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
             // Meta-data validation
             // ---------------------------------------------------------------------
 
+            String storedBy;
+
             try
             {
                 // Validate CDSR meta-data properties
@@ -478,9 +483,9 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
                     validateHasMatchingPeriodTypes( mdProps );
                 }
 
-                String storedBy = cdsr.getStoredBy();
+                storedBy = cdsr.getStoredBy();
                 validateStoredBy( storedBy, i18n );
-                cdsr.setStoredBy( StringUtils.isBlank( storedBy ) ? currentUser : storedBy );
+                storedBy = StringUtils.isBlank( storedBy ) ? currentUser : storedBy;
 
                 // TODO Check if Period is within range of data set?
             }
@@ -494,7 +499,7 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
             // Create complete data set registration
             // -----------------------------------------------------------------
 
-            CompleteDataSetRegistration internalCdsr = createCompleteDataSetRegistration( cdsr, mdProps, now );
+            CompleteDataSetRegistration internalCdsr = createCompleteDataSetRegistration( cdsr, mdProps, now, storedBy );
 
             CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null : batchHandler.findObject( internalCdsr );
 
@@ -584,7 +589,7 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
     }
 
     private static CompleteDataSetRegistration createCompleteDataSetRegistration(
-        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now )
+        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now, String storedBy )
     {
         return new CompleteDataSetRegistration(
             mdProps.dataSet,
@@ -592,7 +597,7 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
             mdProps.orgUnit,
             mdProps.attrOptCombo,
             cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now,
-            cdsr.getStoredBy()
+            storedBy
         );
     }
 

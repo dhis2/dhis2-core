@@ -64,8 +64,7 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     protected void open()
     {
-        writer.openElement( "completeDataSetRegistration" );
-//        writer.openElement( FIELD_DATASET );
+        writer.openElement( FIELD_COMPLETE_DATA_SET_REGISTRATION );
     }
 
     @Override
@@ -82,6 +81,11 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     protected void writeField( String fieldName, String value )
     {
+        if ( value == null )
+        {
+            return;
+        }
+
         writer.writeAttribute( fieldName, value );
     }
 

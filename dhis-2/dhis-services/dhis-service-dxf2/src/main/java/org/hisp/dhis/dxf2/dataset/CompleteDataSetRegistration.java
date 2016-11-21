@@ -45,6 +45,8 @@ public class CompleteDataSetRegistration
     // Field names
     //--------------------------------------------------------------------------
 
+    protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATION = "completeDataSetRegistration";
+
     protected static final String FIELD_DATASET = "dataSet";
 
     protected static final String FIELD_PERIOD = "period";

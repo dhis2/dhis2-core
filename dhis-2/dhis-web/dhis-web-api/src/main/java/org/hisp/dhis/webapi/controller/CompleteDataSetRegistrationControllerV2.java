@@ -36,7 +36,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
-import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.TaskCategory;
@@ -156,12 +155,12 @@ public class CompleteDataSetRegistrationControllerV2
     {
         if ( importOptions.isAsync() )
         {
-            asyncImport( importOptions, CONTENT_TYPE_XML, request, response );
+            asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_XML, request, response );
         }
         else
         {
-            ImportSummary summary = registrationService.saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
             response.setContentType( CONTENT_TYPE_XML );
+            ImportSummary summary = registrationService.saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
             renderService.toXml( response.getOutputStream(), summary );
         }
     }
@@ -174,12 +173,12 @@ public class CompleteDataSetRegistrationControllerV2
     {
         if ( importOptions.isAsync() )
         {
-            asyncImport( importOptions, CONTENT_TYPE_JSON, request, response );
+            asyncImport( importOptions, ImportCompleteDataSetRegistrationsTask.FORMAT_JSON, request, response );
         }
         else
         {
-            ImportSummary summary = registrationService.saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
             response.setContentType( CONTENT_TYPE_JSON );
+            ImportSummary summary = registrationService.saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
             renderService.toJson( response.getOutputStream(), summary );
         }
     }
@@ -197,7 +196,7 @@ public class CompleteDataSetRegistrationControllerV2
 
         scheduler.executeTask(
             new ImportCompleteDataSetRegistrationsTask(
-                tmpFile.getLeft(), tmpFile.getRight(), importOptions, format, taskId )
+                registrationService, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format, taskId )
         );
 
         response.setHeader(

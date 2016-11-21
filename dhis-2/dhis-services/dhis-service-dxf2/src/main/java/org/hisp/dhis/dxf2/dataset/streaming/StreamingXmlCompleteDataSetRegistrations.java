@@ -95,6 +95,10 @@ public class StreamingXmlCompleteDataSetRegistrations
             writer.closeElement();
             writer.closeDocument();
         }
+        else
+        {
+            reader.closeReader();
+        }
     }
 
     @Override
@@ -116,7 +120,7 @@ public class StreamingXmlCompleteDataSetRegistrations
     @Override
     public String getIdScheme()
     {
-        return get( idScheme, super::getIdScheme, super::setIdScheme );
+        return get( FIELD_ID_SCHEME, super::getIdScheme, super::setIdScheme );
     }
 
     @Override

@@ -32,7 +32,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.SecurityContextRunnable;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,27 +44,32 @@ import java.nio.file.Path;
 public class ImportCompleteDataSetRegistrationsTask
     extends SecurityContextRunnable
 {
-    private static final String FORMAT_JSON = "json", FORMAT_XML = "xml";
+    public static final String FORMAT_JSON = "json", FORMAT_XML = "xml";
 
-    private final String format;
+    private String format;
 
-    private final InputStream input;
+    private InputStream input;
 
-    private final Path tmpFile;
+    private Path tmpFile;
 
-    private final ImportOptions importOptions;
+    private ImportOptions importOptions;
 
-    private final TaskId taskId;
+    private TaskId taskId;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private CompleteDataSetRegistrationExchangeService registrationService;
-    public ImportCompleteDataSetRegistrationsTask(
+
+    // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
+    public ImportCompleteDataSetRegistrationsTask( CompleteDataSetRegistrationExchangeService registrationService,
         InputStream input, Path tmpFile, ImportOptions importOptions, String format, TaskId taskId )
     {
+        this.registrationService = registrationService;
         this.input = input;
         this.tmpFile = tmpFile;
         this.importOptions = importOptions;
