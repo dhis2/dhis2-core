@@ -4959,6 +4959,7 @@ Ext.onReady( function() {
 
         data = Ext.create('Ext.panel.Panel', {
             title: '<div class="ns-panel-title-data">Data</div>',
+            cls: 'ns-accordion-first',
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             items: [
@@ -4966,17 +4967,18 @@ Ext.onReady( function() {
                 dataElementAvailable,
                 dataElementSelected
             ],
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+					ns.core.conf.layout.west_scrollbarheight_accordion_indicator :
+                    ns.core.conf.layout.west_maxheight_accordion_indicator;
+            },
             onExpand: function() {
-				var h = ns.app.westRegion.hasScrollbar ?
-					ns.core.conf.layout.west_scrollbarheight_accordion_indicator : ns.core.conf.layout.west_maxheight_accordion_indicator;
-
-				accordion.setThisHeight(h);
+				accordion.setThisHeight(this.getHeightValue());
 
                 var msHeight = this.getHeight() - 28 - programStagePanel.getHeight() - 6;
 
                 dataElementAvailable.setHeight(msHeight * 0.4);
-                dataElementSelected.setHeight(msHeight * 0.6);
-
+                dataElementSelected.setHeight(msHeight * 0.6 - 1);
             },
             listeners: {
 				added: function(cmp) {
@@ -5624,10 +5626,14 @@ Ext.onReady( function() {
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             width: accBaseWidth,
-			onExpand: function() {
-				var h = ns.app.westRegion.hasScrollbar ?
-					ns.core.conf.layout.west_scrollbarheight_accordion_period : ns.core.conf.layout.west_maxheight_accordion_period;
-				accordion.setThisHeight(h);
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+					ns.core.conf.layout.west_scrollbarheight_accordion_period :
+                    ns.core.conf.layout.west_maxheight_accordion_period;
+            },
+            onExpand: function() {
+				accordion.setThisHeight(this.getHeightValue());
+                
 				ns.core.web.multiSelect.setHeight(
 					[fixedPeriodAvailable, fixedPeriodSelected],
 					this,
@@ -6176,10 +6182,14 @@ Ext.onReady( function() {
                 },
                 treePanel
             ],
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+					ns.core.conf.layout.west_scrollbarheight_accordion_organisationunit :
+                    ns.core.conf.layout.west_maxheight_accordion_organisationunit;
+            },
             onExpand: function() {
-                var h = ns.app.westRegion.hasScrollbar ?
-                    ns.core.conf.layout.west_scrollbarheight_accordion_organisationunit : ns.core.conf.layout.west_maxheight_accordion_organisationunit;
-                accordion.setThisHeight(h);
+				accordion.setThisHeight(this.getHeightValue());
+
                 treePanel.setHeight(this.getHeight() - ns.core.conf.layout.west_fill_accordion_organisationunit);
             },
             listeners: {
@@ -6416,14 +6426,18 @@ Ext.onReady( function() {
 
 					return config.items.length ? config : null;
 				},
-				onExpand: function() {
+                getHeightValue: function() {
+                    return ns.app.westRegion.hasScrollbar ?
+                        ns.core.conf.layout.west_scrollbarheight_accordion_indicator :
+                        ns.core.conf.layout.west_maxheight_accordion_indicator;
+                },
+                onExpand: function() {
 					if (!availableStore.isLoaded) {
 						availableStore.loadPage();
 					}
-
-					var h = ns.app.westRegion.hasScrollbar ?
-						ns.core.conf.layout.west_scrollbarheight_accordion_dataset : ns.core.conf.layout.west_maxheight_accordion_dataset;
-					accordion.setThisHeight(h);
+                    
+                    accordion.setThisHeight(this.getHeightValue());
+                    
 					ns.core.web.multiSelect.setHeight(
 						[available, selected],
 						this,
@@ -6473,13 +6487,7 @@ Ext.onReady( function() {
         ];
         
         getItems = function(panels = []) {
-            var items = [
-                ...panels.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'))
-            ];
-
-            items[items.length - 1].cls = 'ns-accordion-last';
-
-            return items;
+            return panels.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'));
         };
         
         accordionBody = Ext.create('Ext.panel.Panel', {
@@ -6505,30 +6513,6 @@ Ext.onReady( function() {
                 }
             }
 		});
-
-        ER.fn = function(n) {
-            
-            var dimensions = [
-                {itemId: 'abc', name: 'Test dim 1'},
-                {itemId: 'abcd', name: 'Test dim 2'},
-                {itemId: 'abcde', name: 'Test dim 3'}
-            ];
-
-            if (n) {
-                dimensions.push({itemId: 'abcf', name: 'Test dim 4'});
-            }
-
-            var items = getItems(dimensions);
-            
-            var h = ns.app.westRegion.hasScrollbar ?
-                            ns.core.conf.layout.west_scrollbarheight_accordion_indicator : ns.core.conf.layout.west_maxheight_accordion_indicator;
-
-            accordionBody.removeItems();
-            accordionBody.add(items);
-            accordionBody.toBeRemoved = items.map(item => item.itemId);
-
-            accordion.setThisHeight(h);
-        };
 
 		// functions
 
