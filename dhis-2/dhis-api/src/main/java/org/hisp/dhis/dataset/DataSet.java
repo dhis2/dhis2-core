@@ -37,13 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import org.hisp.dhis.common.BaseDataDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -87,6 +81,11 @@ public class DataSet
      * The PeriodType indicating the frequency that this DataSet should be used
      */
     private PeriodType periodType;
+
+    /**
+     * The openPeriods is a set of periods in which data sets are open for entry
+     */
+    private Set<Period> openPeriods = new HashSet<>();
 
     /**
      * All DataElements associated with this DataSet.
@@ -288,6 +287,11 @@ public class DataSet
 
         sources.clear();
         sources.addAll( updates );
+    }
+
+    public boolean addOpenPeriod( Period period )
+    {
+        return openPeriods.add( period );
     }
 
     public boolean addDataSetElement( DataSetElement element )
@@ -536,6 +540,20 @@ public class DataSet
     public void setPeriodType( PeriodType periodType )
     {
         this.periodType = periodType;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseDimensionalItemObject.class )
+    @JacksonXmlElementWrapper( localName = "openPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "openPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Period> getOpenPeriods()
+    {
+        return openPeriods;
+    }
+
+    public void setOpenPeriods( Set<Period> openPeriods )
+    {
+        this.openPeriods = openPeriods;
     }
 
     @JsonProperty
@@ -881,6 +899,9 @@ public class DataSet
                 startDate = dataSet.getStartDate() == null ? startDate : dataSet.getStartDate();
                 endDate = dataSet.getEndDate() == null ? endDate : dataSet.getEndDate();
             }
+
+            openPeriods.clear();
+            dataSet.getOpenPeriods().forEach( this::addOpenPeriod );
 
             removeAllDataSetElements();
             dataSet.getDataSetElements().forEach( this::addDataSetElement );
