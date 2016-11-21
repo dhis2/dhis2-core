@@ -328,7 +328,7 @@ public class JdbcEventAnalyticsManager
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
             "ST_AsText(ST_Centroid(ST_Collect(geom))) as center", "ST_Extent(geom) as extent" );
-
+ 
         columns.add( params.isIncludeClusterPoints() ?
             "array_to_string(array_agg(psi), ',') as points" :
             "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
@@ -426,13 +426,14 @@ public class JdbcEventAnalyticsManager
             
             return function + "(" + expression + ")";
         }
-        else if ( params.hasProgramIndicatorDimension() )
+        else if ( params.hasEventProgramIndicatorDimension() )
         {
             String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
             
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
             
-            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression() );
+            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
+                params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             return function + "(" + expression + ")";
             
@@ -507,8 +508,8 @@ public class JdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
-                
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression() ) + ")" + asClause );
+                //TODO: Will this support program indicators of enrollment type?
+                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getProgramIndicatorAnalyticsType() ) + ")" + asClause );
             }
             else
             {
@@ -704,7 +705,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
-            String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), false );
+            String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
+                params.getProgramIndicator().getProgramIndicatorAnalyticsType(), false );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             

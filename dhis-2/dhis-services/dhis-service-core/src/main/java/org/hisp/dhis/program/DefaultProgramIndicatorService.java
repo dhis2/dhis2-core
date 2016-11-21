@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import com.google.common.collect.ImmutableMap;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
@@ -259,13 +260,13 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public String getAnalyticsSQl( String expression )
+    public String getAnalyticsSQl( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
     {
-        return getAnalyticsSQl( expression, true );
+        return getAnalyticsSQl( expression, programIndicatorAnalyticsType, true );
     }
 
     @Override
-    public String getAnalyticsSQl( String expression, boolean ignoreMissingValues )
+    public String getAnalyticsSQl( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType, boolean ignoreMissingValues )
     {
         if ( expression == null )
         {
