@@ -49,7 +49,6 @@ public class TrackedEntityProgramIndicatorDimensionSchemaDescriptor implements S
         Schema schema = new Schema( TrackedEntityProgramIndicatorDimension.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setMetadata( false );
-        schema.setShareable( false );
         schema.setOrder( 1490 );
 
         return schema;

@@ -51,7 +51,6 @@ public class CategorySchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataElementCategory.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1170 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_CATEGORY_PUBLIC_ADD" ) ) );
