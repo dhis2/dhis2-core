@@ -59,6 +59,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.Set;
 
@@ -187,20 +188,24 @@ public class CompleteDataSetRegistrationControllerV2
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void asyncImport( ImportOptions importOptions, String contentType, HttpServletRequest request, HttpServletResponse response )
+    private void asyncImport( ImportOptions importOptions, String format, HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
-        Pair<InputStream, String> tmpFile = saveTmpFile( request.getInputStream() );
+        Pair<InputStream, Path> tmpFile = saveTmpFile( request.getInputStream() );
+
         TaskId taskId = new TaskId( TaskCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT, currentUserService.getCurrentUser() );
 
-        scheduler.executeTask( new ImportCompleteDataSetRegistrationsTask( tmpFile.getLeft(), tmpFile.getRight(), importOptions, contentType, taskId ) );
+        scheduler.executeTask(
+            new ImportCompleteDataSetRegistrationsTask(
+                tmpFile.getLeft(), tmpFile.getRight(), importOptions, format, taskId )
+        );
 
         response.setHeader(
             "Location", ContextUtils.getRootPath( request) + "/system/tasks/" + TaskCategory.COMPLETE_DATA_SET_REGISTRATION_IMPORT );
         response.setStatus( HttpServletResponse.SC_ACCEPTED );
     }
 
-    private Pair<InputStream, String> saveTmpFile( InputStream in )
+    private Pair<InputStream, Path> saveTmpFile( InputStream in )
         throws IOException
     {
         String filename = RandomStringUtils.randomAlphanumeric( 6 );
@@ -213,6 +218,6 @@ public class CompleteDataSetRegistrationControllerV2
             IOUtils.copy( in, out );
         }
 
-        return Pair.of( new BufferedInputStream( new FileInputStream( tmpFile ) ), filename );
+        return Pair.of( new BufferedInputStream( new FileInputStream( tmpFile ) ), tmpFile.toPath() );
     }
 }

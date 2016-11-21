@@ -33,10 +33,11 @@ import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.MimeType;
-import org.springframework.util.MimeTypeUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -44,19 +45,17 @@ import java.io.InputStream;
 public class ImportCompleteDataSetRegistrationsTask
     extends SecurityContextRunnable
 {
-    public static final String CONTENT_TYPE_JSON = "application/json";
+    private static final String FORMAT_JSON = "json", FORMAT_XML = "xml";
 
-    public static final String CONTENT_TYPE_XML = "application/xml";
+    private final String format;
 
-    private InputStream input;
+    private final InputStream input;
 
-    private String tmpFilename;
+    private final Path tmpFile;
 
-    private ImportOptions importOptions;
+    private final ImportOptions importOptions;
 
-    private String contentType;
-
-    private TaskId taskId;
+    private final TaskId taskId;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -65,12 +64,12 @@ public class ImportCompleteDataSetRegistrationsTask
     @Autowired
     private CompleteDataSetRegistrationExchangeService registrationService;
     public ImportCompleteDataSetRegistrationsTask(
-        InputStream input, String tmpFilename, ImportOptions importOptions, String contentType, TaskId taskId )
+        InputStream input, Path tmpFile, ImportOptions importOptions, String format, TaskId taskId )
     {
         this.input = input;
-        this.tmpFilename = tmpFilename;
+        this.tmpFile = tmpFile;
         this.importOptions = importOptions;
-        this.contentType = contentType;
+        this.format = format;
         this.taskId = taskId;
     }
 
@@ -83,24 +82,18 @@ public class ImportCompleteDataSetRegistrationsTask
     {
         try
         {
-            MimeType mimeType = MimeType.valueOf( contentType );
-
-            if ( MimeTypeUtils.APPLICATION_XML.includes( mimeType ) )
+            if ( FORMAT_XML.equals( format ) )
             {
                 registrationService.saveCompleteDataSetRegistrationsXml( input, importOptions, taskId );
             }
-            else if ( MimeTypeUtils.APPLICATION_JSON.includes( mimeType ) )
+            else if ( FORMAT_JSON.equals( format ) )
             {
                 registrationService.saveCompleteDataSetRegistrationsJson( input, importOptions, taskId );
-            }
-            else
-            {
-                // TODO XML default?
             }
         }
         finally
         {
-            cleanUpTmpFile( tmpFilename );
+            cleanUpTmpFile( tmpFile );
         }
     }
 
@@ -108,8 +101,20 @@ public class ImportCompleteDataSetRegistrationsTask
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void cleanUpTmpFile( String tmpFilename )
+    private void cleanUpTmpFile( Path tmpFile )
     {
-        // TODO Delete tmpfile after we're done
+        if ( tmpFile == null )
+        {
+            return;
+        }
+
+        try
+        {
+            Files.deleteIfExists( tmpFile );
+        }
+        catch ( IOException ignored )
+        {
+            // Intentionally ignored
+        }
     }
 }
