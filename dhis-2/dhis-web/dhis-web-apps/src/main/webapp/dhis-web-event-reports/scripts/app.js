@@ -4355,7 +4355,8 @@ Ext.onReady( function() {
 		});
 
 		onProgramSelect = function(programId, layout) {
-            var load;
+            var load,
+                getCategories;
 
             programId = layout ? layout.program.id : programId;
 
@@ -4365,10 +4366,45 @@ Ext.onReady( function() {
 			dataElementSelected.removeAllDataElements(true);
             ns.app.aggregateLayoutWindow.value.resetData();
 
-            load = function(stages) {
+            getCategories = function(categoryCombo) {
+                if (!(Ext.isObject(categoryCombo) && Ext.isArray(categoryCombo.categories) && categoryCombo.categories.length)) {
+                    return;
+                }
+                
+                var cats = categoryCombo.categories;
+
+                if (cats.length === 1 && cats[0].name === 'default') {
+                    return;
+                }
+
+                var arraySort = ns.core.support.prototype.array.sort;
+
+                // sort categories
+                arraySort(cats);
+
+                // sort category options
+                cats.forEach(cat => {
+                    cat.items = cat.categoryOptions;
+                    
+                    if (Ext.isArray(cat.items)) {
+                        arraySort(cat.items);
+                    }
+                });
+
+                return cats;
+            };
+
+            load = function(stages, categories) {
+                
+                // categories
+                if (categories) {
+                    accordionBody.addItems(categories);
+                }
+
+                // stages
                 stage.enable();
                 stage.clearValue();
-
+                
                 stagesByProgramStore.removeAll();
                 stagesByProgramStore.loadData(stages);
 
@@ -4385,12 +4421,21 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programIndicators[id,' + namePropertyUrl + '],programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl + ',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]&paging=false',
+                    url: [
+                        ns.core.init.contextPath + '/api/programs.json',
+                        '?filter=id:eq:' + programId,
+                        '&fields=programStages[id,displayName|rename(name)]',
+                        ',programIndicators[id,' + namePropertyUrl + ']',
+                        ',programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl +',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]',
+                        ',categoryCombo[id,' + namePropertyUrl + ',categories[id,' + namePropertyUrl + ',categoryOptions[id,' + namePropertyUrl + ']]]',
+                        '&paging=false'
+                    ].join(''),
                     success: function(r) {
                         var program = Ext.decode(r.responseText).programs[0],
                             stages,
                             attributes,
                             programIndicators,
+                            categoryCombo,
                             stageId;
 
                         if (!program) {
@@ -4400,6 +4445,7 @@ Ext.onReady( function() {
                         stages = program.programStages;
                         attributes = Ext.Array.pluck(program.programTrackedEntityAttributes, 'trackedEntityAttribute');
                         programIndicators = program.programIndicators;
+                        categoryCombo = program.categoryCombo;
 
                         // filter confidential, mark as attribute
                         attributes.filter(function(item) {
@@ -4427,7 +4473,7 @@ Ext.onReady( function() {
                             // stages cache
                             stageStorage[programId] = stages;
 
-                            load(stages);
+                            load(stages, getCategories(categoryCombo));
                         }
                     }
                 });
@@ -6406,7 +6452,7 @@ Ext.onReady( function() {
 			//availableStore.on('load', function() {
 				//ns.core.web.multiSelect.filterAvailable(available, selected);
 			//});
-
+            
 			panel = {
                 itemId: dimension.itemId,
 				xtype: 'panel',
@@ -6468,16 +6514,6 @@ Ext.onReady( function() {
 			return panel;
 		};
 
-		getDimensionPanels = function(dimensions, iconCls) {
-			var panels = [];
-
-			for (var i = 0, panel; i < dimensions.length; i++) {
-				panels.push(getDimensionPanel(dimensions[i], iconCls));
-			}
-
-			return panels;
-		};
-
             // accordion
         defaultItems = [
             data,
@@ -6486,8 +6522,8 @@ Ext.onReady( function() {
             ...ns.core.init.dimensions.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'))
         ];
         
-        getItems = function(panels = []) {
-            return panels.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'));
+        getItems = function(dimensions = []) {
+            return dimensions.map(dimension => getDimensionPanel(dimension, 'ns-panel-title-dimension'));
         };
         
         accordionBody = Ext.create('Ext.panel.Panel', {
@@ -6497,11 +6533,18 @@ Ext.onReady( function() {
 			bodyStyle: 'border:0 none',
 			height: 700,
             toBeRemoved: [],
+            addItems: function(dimensions) {
+                this.removeItems();
+                this.add(getItems(dimensions));
+                this.toBeRemoved = dimensions.map(dimension => dimension.itemId);
+                
+                accordion.setThisHeight();
+            },
             removeItems: function() {
                 this.toBeRemoved.forEach(id => {
-                    console.log(id);
                     accordionBody.remove(id);
                 });
+                
                 this.toBeRemoved = [];
             },
             items: defaultItems,
@@ -6743,12 +6786,14 @@ Ext.onReady( function() {
 			layer: layer ? layer : null,
 			menu: layer ? layer.menu : null,
 			setThisHeight: function(mx) {
-				var settingsHeight = 41,
-					//containerHeight = settingsHeight + (this.panels.length * 28) + mx,
-					containerHeight = settingsHeight + (accordionBody.items.items.length * 28) + mx,
+                mx = mx || this.getExpandedPanel().getHeightValue();
+                
+				var settingsHeight = 41;
+
+                var containerHeight = settingsHeight + (accordionBody.items.items.length * 28) + mx,
 					accordionHeight = ns.app.westRegion.getHeight() - settingsHeight - ns.core.conf.layout.west_fill,
                     accordionBodyHeight;
-
+                    
 				if (ns.app.westRegion.hasScrollbar) {
                     accordionBodyHeight = containerHeight - settingsHeight - ns.core.conf.layout.west_fill;
 				}
