@@ -4385,7 +4385,7 @@ Ext.onReady( function() {
                 // sort category options
                 cats.forEach(cat => {
                     cat.items = cat.categoryOptions;
-                    
+
                     if (Ext.isArray(cat.items)) {
                         arraySort(cat.items);
                     }
@@ -6479,7 +6479,13 @@ Ext.onReady( function() {
                 },
                 onExpand: function() {
 					if (!availableStore.isLoaded) {
-						availableStore.loadPage();
+                        if (Ext.isArray(dimension.items) && dimension.items.length) {
+                            availableStore.loadData(dimension.items);
+                            availableStore.isLoaded = true;
+                        }
+                        else {
+                            availableStore.loadPage();
+                        }
 					}
                     
                     accordion.setThisHeight(this.getHeightValue());
@@ -6547,14 +6553,7 @@ Ext.onReady( function() {
                 
                 this.toBeRemoved = [];
             },
-            items: defaultItems,
-            listeners: {
-                afterrender: function() { // nasty workaround, should be fixed
-                    //organisationUnit.expand();
-                    //period.expand();
-                    //data.expand();
-                }
-            }
+            items: defaultItems
 		});
 
 		// functions
