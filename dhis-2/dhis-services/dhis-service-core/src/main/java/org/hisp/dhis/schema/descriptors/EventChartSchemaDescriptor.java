@@ -49,7 +49,6 @@ public class EventChartSchemaDescriptor
     {
         Schema schema = new Schema( EventChart.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1540 );
         schema.setImplicitPrivateAuthority( true );
 

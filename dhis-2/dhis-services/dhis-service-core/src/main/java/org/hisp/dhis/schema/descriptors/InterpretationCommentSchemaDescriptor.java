@@ -49,7 +49,6 @@ public class InterpretationCommentSchemaDescriptor implements SchemaDescriptor
         Schema schema = new Schema( InterpretationComment.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setMetadata( false );
-        schema.setShareable( false );
         schema.setOrder( 1441 );
 
         return schema;
