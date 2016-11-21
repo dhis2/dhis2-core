@@ -59,7 +59,6 @@ public class FileResourceCleanUpTask
         List<Pair<String, String>> deleted = new ArrayList<>();
 
         fileResourceService.getOrphanedFileResources()
-            .stream()
             .forEach( fr -> {
                 deleted.add( ImmutablePair.of( fr.getName(), fr.getUid() ) );
                 fileResourceService.deleteFileResource( fr.getUid() );
