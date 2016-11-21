@@ -49,7 +49,6 @@ public class FileResourceSchemaDescriptor
     {
         Schema schema = new Schema( FileResource.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( false );
         schema.setMetadata( false );
         schema.setOrder( 1250 );
         return schema;

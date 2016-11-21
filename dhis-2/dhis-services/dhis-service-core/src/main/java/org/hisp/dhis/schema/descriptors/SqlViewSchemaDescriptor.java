@@ -51,7 +51,6 @@ public class SqlViewSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( SqlView.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1010 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SQLVIEW_PUBLIC_ADD" ) ) );
