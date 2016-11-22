@@ -35,6 +35,19 @@ import java.io.OutputStream;
  */
 public interface CompleteDataSetRegistrationExchangeStore
 {
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as XML.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the XML result to.
+     */
     void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
+
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the JSON result to.
+     */
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 }
