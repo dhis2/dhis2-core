@@ -54,13 +54,19 @@ import java.util.Map;
 public class CriteriaQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private final List<InternalHibernateGenericStore<T>> hibernateGenericStores = new ArrayList<>();
+    private final List<InternalHibernateGenericStore<T>> hibernateGenericStores;
 
     private Map<Class<?>, InternalHibernateGenericStore<T>> stores = new HashMap<>();
+
+    @Autowired
+    public CriteriaQueryEngine( List<InternalHibernateGenericStore<T>> hibernateGenericStores,
+        CurrentUserService currentUserService )
+    {
+        this.hibernateGenericStores = hibernateGenericStores;
+        this.currentUserService = currentUserService;
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )

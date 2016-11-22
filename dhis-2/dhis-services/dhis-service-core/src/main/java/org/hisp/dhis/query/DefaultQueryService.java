@@ -45,14 +45,21 @@ public class DefaultQueryService
 {
     private static final Log log = LogFactory.getLog( DefaultQueryService.class );
 
-    @Autowired
-    private QueryParser queryParser;
+    private final QueryParser queryParser;
+
+    private final CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
+
+    private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
 
     @Autowired
-    private CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
-
-    @Autowired
-    private InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
+    public DefaultQueryService( QueryParser queryParser,
+        CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
+        InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
+    {
+        this.criteriaQueryEngine = criteriaQueryEngine;
+        this.inMemoryQueryEngine = inMemoryQueryEngine;
+        this.queryParser = queryParser;
+    }
 
     @Override
     public List<? extends IdentifiableObject> query( Query query )

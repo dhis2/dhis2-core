@@ -49,8 +49,13 @@ import java.util.stream.Collectors;
 public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
+    private final SchemaService schemaService;
+
     @Autowired
-    private SchemaService schemaService;
+    public InMemoryQueryEngine( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     public List<T> query( Query query )
