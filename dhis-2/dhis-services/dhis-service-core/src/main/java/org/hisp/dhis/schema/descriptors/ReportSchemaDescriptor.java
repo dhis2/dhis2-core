@@ -51,7 +51,6 @@ public class ReportSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( Report.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 2000 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_REPORT_PUBLIC_ADD" ) ) );
