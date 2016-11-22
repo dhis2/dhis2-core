@@ -658,6 +658,7 @@ public class DefaultDataValueSetService
         CachingMap<String, Optional<Set<String>>> dataElementOptionsMap = new CachingMap<>();
         CachingMap<String, Boolean> approvalMap = new CachingMap<>();
         CachingMap<String, Boolean> lowestApprovalLevelMap = new CachingMap<>();
+        CachingMap<String, Boolean> periodOpenForDataElement = new CachingMap<>();
 
         // ---------------------------------------------------------------------
         // Get meta-data maps
@@ -1024,6 +1025,12 @@ public class DefaultDataValueSetService
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of data set: " + implicitDataSet.getUid() ) );
+                continue;
+            }
+
+            if( !periodOpenForDataElement.get(dataElement.getUid() + period.getIsoDate(), () -> dataElement.isPeriodInDataSetOpenPeriods( period ) ) )
+            {
+                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data set(s)" ) );
                 continue;
             }
 

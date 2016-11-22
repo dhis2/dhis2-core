@@ -36,18 +36,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -85,7 +80,7 @@ public class DataSet
     /**
      * The openPeriods is a set of periods in which data sets are open for entry
      */
-    private Set<Period> openPeriods = new HashSet<>();
+    private Set<Period> openPeriods = new java.util.HashSet<>();
 
     /**
      * All DataElements associated with this DataSet.
@@ -543,7 +538,8 @@ public class DataSet
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseDimensionalItemObject.class )
+    @JsonSerialize( contentUsing = JacksonPeriodSerializer.class )
+    @JsonDeserialize( contentUsing = JacksonPeriodDeserializer.class )
     @JacksonXmlElementWrapper( localName = "openPeriods", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "openPeriods", namespace = DxfNamespaces.DXF_2_0 )
     public Set<Period> getOpenPeriods()
