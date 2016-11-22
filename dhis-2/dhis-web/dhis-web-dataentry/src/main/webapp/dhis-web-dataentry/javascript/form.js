@@ -1307,15 +1307,16 @@ function displayPeriods()
 
     dhis2.de.periodChoices = [];
 
+    dhis2.de.openPeriodsWhitelist = dhis2.de.dataSets[dataSetId].openPeriods.map(function(_period) { return _period.isoPeriod; });
+
     $.safeEach( periods, function( idx, item ) 
     {
-        console.log(dhis2.de.dataSets[dataSetId]);
-        if ( dhis2.de.dataSets[dataSetId].openPeriods.length > 0 )
+        console.log(dhis2.de.openPeriodsWhitelist, item.iso, dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 );
+        if ( dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 )
         {
-            console.log("Filter!");
+            addOptionById( 'selectedPeriodId', item.iso, item.name );
+            dhis2.de.periodChoices[ item.iso ] = item;
         }
-        addOptionById( 'selectedPeriodId', item.iso, item.name );
-        dhis2.de.periodChoices[ item.iso ] = item;
     } );
 }
 
