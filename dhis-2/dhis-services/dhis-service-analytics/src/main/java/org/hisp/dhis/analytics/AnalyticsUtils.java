@@ -301,10 +301,12 @@ public class AnalyticsUtils
         Assert.isTrue( ouInx >= 0 );
         Assert.isTrue( vlInx >= 0 );
         
-        String created = DateUtils.getMediumDateString();
-        
         Map<String, DimensionalItemObject> itemMap = (Map<String, DimensionalItemObject>) grid.
             getMetaData().get( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey() );
+
+        Assert.isTrue( itemMap != null );
+        
+        String created = DateUtils.getMediumDateString();
         
         DataValueSet dvs = new DataValueSet();
         
@@ -312,6 +314,8 @@ public class AnalyticsUtils
         {
             String dx = String.valueOf( row.get( dxInx ) );
             
+            DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
+                        
             DataValue dv = new DataValue();
             
             dv.setDataElement( dx );
@@ -322,24 +326,17 @@ public class AnalyticsUtils
             dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
             dv.setLastUpdated( created );
-
-            if ( itemMap != null && itemMap.containsKey( dx ) )
+            
+            if ( item != null && item.hasAggregateExportCategoryOptionCombo() )
             {
-                DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
-                
-                Assert.isTrue( item != null );
-                
-                if ( item.hasAggregateExportCategoryOptionCombo() )
-                {
-                    dv.setCategoryOptionCombo( item.getAggregateExportCategoryOptionCombo() );
-                }
-                
-                if ( item.hasAggregateExportAttributeOptionCombo() )
-                {
-                    dv.setAttributeOptionCombo( item.getAggregateExportAttributeOptionCombo() );
-                }
+                dv.setCategoryOptionCombo( item.getAggregateExportCategoryOptionCombo() );
             }
-                        
+            
+            if ( item != null && item.hasAggregateExportAttributeOptionCombo() )
+            {
+                dv.setAttributeOptionCombo( item.getAggregateExportAttributeOptionCombo() );
+            }
+            
             dvs.getDataValues().add( dv );
         }
         
