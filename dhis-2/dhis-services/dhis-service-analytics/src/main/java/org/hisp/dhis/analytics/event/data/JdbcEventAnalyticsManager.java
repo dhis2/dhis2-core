@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -644,10 +646,13 @@ public class JdbcEventAnalyticsManager
         // Organisation unit group sets
         // ---------------------------------------------------------------------
 
-        for ( DimensionalObject dim : params.getDimensionsAndFilters( DimensionType.ORGANISATION_UNIT_GROUP_SET ) )
+        List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters( 
+            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
+        
+        for ( DimensionalObject dim : dynamicDimensions )
         {            
             String col = statementBuilder.columnQuote( dim.getDimensionName() );
-                
+            
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 

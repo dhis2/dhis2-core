@@ -39,7 +39,7 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.restdocs.RestDocumentation;
+import org.springframework.restdocs.JUnitRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -101,7 +101,7 @@ public abstract class DhisWebSpringTest
     protected SchemaService schemaService;
 
     @Rule
-    public RestDocumentation restDocumentation = new RestDocumentation( "target/generated-snippets" );
+    public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation( "target/generated-snippets" );
 
     @Before
     public void setup() throws Exception
