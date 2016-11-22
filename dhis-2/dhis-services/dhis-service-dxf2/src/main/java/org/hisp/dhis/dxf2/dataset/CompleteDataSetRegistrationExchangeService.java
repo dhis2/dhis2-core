@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.dataset;
  */
 
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.TaskId;
@@ -40,28 +39,83 @@ import java.util.Date;
 import java.util.Set;
 
 /**
+ * Import/export service for {@link CompleteDataSetRegistration data set completion registrations}.
+ *
  * @author Halvdan Hoem Grelland
  */
 public interface CompleteDataSetRegistrationExchangeService
 {
+    /**
+     * Transform query parameters into an {@link ExportParams} instance.
+     *
+     * @param dataSets list of {@link org.hisp.dhis.dataset.DataSet} UIDs.
+     * @param orgUnits list of {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs.
+     * @param orgUnitGroups list of {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} UIDs.
+     * @param periods list of {@link org.hisp.dhis.period.Period} names.
+     * @param startDate start of limiting date interval.
+     * @param endDate end of interval (inclusive).
+     * @param includeChildren whether to recursively include descendant organisation units.
+     * @param created base created date for query.
+     * @param createdDuration duration (relative to {@code created}).
+     * @param limit record number limit (minimum 0).
+     * @param idSchemes identifier schemes applying to this query.
+     * @return an instance of {@link ExportParams} corresponding to the given query parameters.
+     */
     ExportParams paramsFromUrl( Set<String> dataSets, Set<String> orgUnits, Set<String> orgUnitGroups, Set<String> periods,
         Date startDate, Date endDate, boolean includeChildren, Date created, String createdDuration, Integer limit, IdSchemes idSchemes );
 
-    void decideAccess( ExportParams params ) throws IllegalQueryException;
-
+    /**
+     * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as XML.
+     *
+     * @param params the export query.
+     * @param out the stream to write to.
+     */
     void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream out );
 
+    /**
+     * Queries and writes {@link CompleteDataSetRegistrations} to the given {@link OutputStream} as JSON.
+     *
+     * @param params the export query.
+     * @param out the stream to write to.
+     */
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out );
 
-    ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in );
-
+    /**
+     * Imports {@link CompleteDataSetRegistrations} from an XML payload.
+     *
+     * @param in the stream providing the XML payload.
+     * @param importOptions the options for the import.
+     * @return a summary of the import process.
+     */
     ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions );
 
+    /**
+     * Imports {@link CompleteDataSetRegistrations} from an XML payload.
+     *
+     * @param in the stream providing the XML payload.
+     * @param importOptions the options for the import.
+     * @param taskId the task (optional).
+     * @return a summary of the import process.
+     */
     ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, TaskId taskId );
 
-    ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in );
 
+    /**
+     * Imports {@link CompleteDataSetRegistrations} from a JSON payload.
+     *
+     * @param in the stream providing the XML payload.
+     * @param importOptions the options for the import.
+     * @return a summary of the import process.
+     */
     ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions );
 
+    /**
+     * Imports {@link CompleteDataSetRegistrations} from a JSON payload.
+     *
+     * @param in the stream providing the XML payload.
+     * @param importOptions the options for the import.
+     * @param taskId the task (optional).
+     * @return a summary of the import process.
+     */
     ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, TaskId taskId );
 }

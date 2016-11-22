@@ -181,18 +181,6 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
     }
 
     @Override
-    public void decideAccess( ExportParams params ) throws IllegalQueryException
-    {
-        for ( OrganisationUnit ou : params.getOrganisationUnits() )
-        {
-            if ( !orgUnitService.isInUserHierarchy( ou ) )
-            {
-                throw new IllegalQueryException( "User is not allowed to view org unit: " + ou.getUid() );
-            }
-        }
-    }
-
-    @Override
     public void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream out )
     {
         decideAccess( params );
@@ -201,19 +189,12 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
         cdsrStore.writeCompleteDataSetRegistrationsXml( params, out );
     }
 
-    @Override
     public void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out )
     {
         decideAccess( params );
         validate( params );
 
         cdsrStore.writeCompleteDataSetRegistrationsJson( params, out );
-    }
-
-    @Override
-    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in )
-    {
-        return saveCompleteDataSetRegistrationsXml( in, ImportOptions.getDefaultImportOptions(), null );
     }
 
     @Override
@@ -237,12 +218,6 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
         {
             return handleImportError( taskId, ex );
         }
-    }
-
-    @Override
-    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in )
-    {
-        return saveCompleteDataSetRegistrationsJson( in, ImportOptions.getDefaultImportOptions(), null );
     }
 
     @Override
@@ -358,6 +333,17 @@ public class DefaultCompleteDataSetRegistrationExchangeExchangeService
         }
 
         params.setOutputIdSchemes( schemes );
+    }
+
+    private void decideAccess( ExportParams params ) throws IllegalQueryException
+    {
+        for ( OrganisationUnit ou : params.getOrganisationUnits() )
+        {
+            if ( !orgUnitService.isInUserHierarchy( ou ) )
+            {
+                throw new IllegalQueryException( "User is not allowed to view org unit: " + ou.getUid() );
+            }
+        }
     }
 
     private ImportSummary handleImportError( TaskId taskId, Throwable ex )
