@@ -33,7 +33,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeExchangeService;
+import org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
 import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -70,13 +70,13 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
  */
 @Controller
 @RequestMapping( value = CompleteDataSetRegistrationControllerV2.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.V26 } )
 public class CompleteDataSetRegistrationControllerV2
 {
     public static final String RESOURCE_PATH = "completeDataSetRegistrationsV2";
 
     @Autowired
-    private DefaultCompleteDataSetRegistrationExchangeExchangeService registrationService;
+    private DefaultCompleteDataSetRegistrationExchangeService registrationService;
 
     @Autowired
     private RenderService renderService;

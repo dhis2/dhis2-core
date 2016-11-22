@@ -90,10 +90,10 @@ import java.util.Set;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class DefaultCompleteDataSetRegistrationExchangeExchangeService
+public class DefaultCompleteDataSetRegistrationExchangeService
     implements CompleteDataSetRegistrationExchangeService
 {
-    private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeExchangeService.class );
+    private static final Log log = LogFactory.getLog( DefaultCompleteDataSetRegistrationExchangeService.class );
 
     private static final int CACHE_MISS_THRESHOLD = 500; // Arbitrarily chosen from dxf2 DefaultDataValueSetService
 

@@ -53,7 +53,7 @@
     class="org.hisp.dhis.dxf2.datavalueset.SpringDataValueSetStore" />
 
   <bean id="org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService"
-    class="org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeExchangeService" />
+    class="org.hisp.dhis.dxf2.dataset.DefaultCompleteDataSetRegistrationExchangeService" />
 
   <bean id="org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeStore"
     class="org.hisp.dhis.dxf2.dataset.JdbcCompleteDataSetRegistrationExchangeStore" />
