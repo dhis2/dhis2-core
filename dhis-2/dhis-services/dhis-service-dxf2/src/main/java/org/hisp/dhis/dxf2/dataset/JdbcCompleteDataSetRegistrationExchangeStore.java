@@ -62,17 +62,37 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
 {
     private static final Log log = LogFactory.getLog( JdbcCompleteDataSetRegistrationExchangeStore.class );
 
+    //--------------------------------------------------------------------------
+    // Id scheme parameters
+    //--------------------------------------------------------------------------
+
     private static final String DATA_SET_SCHEME = "dsScheme";
+
     private static final String ORG_UNIT_SCHEME = "ouScheme";
+
     private static final String ATTR_OPT_COMBO_SCHEME = "aocScheme";
 
+    //--------------------------------------------------------------------------
+    // Columns names in returned rows
+    //--------------------------------------------------------------------------
+
     private static final String P_PERIOD_TYPE = "ptname";
+
     private static final String P_DATA_SET = "dsid";
+
     private static final String P_ORG_UNIT = "ouid";
+
     private static final String P_ATTR_OPT_COMBO = "aocid";
+
     private static final String P_DATE = "created";
+
     private static final String P_STORED_BY = "storedby";
+
     private static final String P_PERIOD_START = "pe_start";
+
+    //--------------------------------------------------------------------------
+    // Dependencies
+    //--------------------------------------------------------------------------
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -140,7 +160,7 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
             .put( ORG_UNIT_SCHEME, idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase() )
             .put( ATTR_OPT_COMBO_SCHEME, idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase() );
 
-        String sql = // language=SQL
+        String sql =
             "SELECT ds.${dsScheme} AS dsid, pe.startdate AS pe_start, pt.name AS ptname, ou.${ouScheme} AS ouid, " +
             "aoc.${aocScheme} AS aocid, cdsr.storedby AS storedby, cdsr.date AS created " +
             "FROM completedatasetregistration cdsr " +
