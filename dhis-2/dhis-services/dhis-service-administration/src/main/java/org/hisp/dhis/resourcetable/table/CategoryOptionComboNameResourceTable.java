@@ -97,11 +97,12 @@ public class CategoryOptionComboNameResourceTable
                 Date latestStartDate = null;
                 Date earliestEndDate = null;
 
-                for( DataElementCategoryOption co : coc.getCategoryOptions() )
+                for ( DataElementCategoryOption co : coc.getCategoryOptions() )
                 {
                     latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ? co.getStartDate() : latestStartDate);
                     earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ? co.getEndDate() : earliestEndDate);
                 }
+
                 values.add( latestStartDate );
                 values.add( earliestEndDate );
 

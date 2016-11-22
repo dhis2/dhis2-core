@@ -1309,6 +1309,11 @@ function displayPeriods()
 
     $.safeEach( periods, function( idx, item ) 
     {
+        console.log(dhis2.de.dataSets[dataSetId]);
+        if ( dhis2.de.dataSets[dataSetId].openPeriods.length > 0 )
+        {
+            console.log("Filter!");
+        }
         addOptionById( 'selectedPeriodId', item.iso, item.name );
         dhis2.de.periodChoices[ item.iso ] = item;
     } );
