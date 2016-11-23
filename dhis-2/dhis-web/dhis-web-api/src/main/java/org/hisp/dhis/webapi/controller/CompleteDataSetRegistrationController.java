@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,7 @@ import org.hisp.dhis.dxf2.dataset.tasks.ImportCompleteDataSetRegistrationsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -68,7 +70,6 @@ import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -104,7 +105,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
  */
 @Controller
 @RequestMapping( value = CompleteDataSetRegistrationController.RESOURCE_PATH )
-//@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } ) // TODO ?
 public class CompleteDataSetRegistrationController
 {
     public static final String RESOURCE_PATH = "/completeDataSetRegistrations";
@@ -360,19 +360,8 @@ public class CompleteDataSetRegistrationController
         }
         else
         {
-            for ( OrganisationUnit unit : children )
-            {
-                if ( unit.getDataSets().contains( dataSet ) )
-                {
-                    CompleteDataSetRegistration completeDataSetRegistration = registerCompleteDataSet( dataSet, period,
-                        organisationUnit, attributeOptionCombo, storedBy, completionDate );
-
-                    if ( completeDataSetRegistration != null )
-                    {
-                        registrations.add( completeDataSetRegistration );
-                    }
-                }
-            }
+            addRegistrationsForOrgUnits( registrations, Sets.union( children, Sets.newHashSet( organisationUnit ) ), dataSet, period,
+                attributeOptionCombo, storedBy, completionDate );
         }
 
         registrationService.saveCompleteDataSetRegistrations( registrations, true );
@@ -454,19 +443,7 @@ public class CompleteDataSetRegistrationController
                 orgUnits.addAll( organisationUnit.getChildren() );
             }
 
-            for ( OrganisationUnit orgUnit : orgUnits )
-            {
-                if ( orgUnit.getDataSets().contains( dataSet ) )
-                {
-                    CompleteDataSetRegistration completeDataSetRegistration = registerCompleteDataSet( dataSet, period,
-                        orgUnit, attributeOptionCombo, storedBy, completionDate );
-
-                    if ( completeDataSetRegistration != null )
-                    {
-                        registrations.add( completeDataSetRegistration );
-                    }
-                }
-            }
+            addRegistrationsForOrgUnits( registrations, orgUnits, dataSet, period, attributeOptionCombo, storedBy, completionDate );
         }
 
         registrationService.saveCompleteDataSetRegistrations( registrations, true );
@@ -550,6 +527,25 @@ public class CompleteDataSetRegistrationController
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private void addRegistrationsForOrgUnits( List<CompleteDataSetRegistration> registrations, Set<OrganisationUnit> organisationUnits, DataSet dataSet, Period period,
+        DataElementCategoryOptionCombo attributeOptionCombo, String storedBy, Date completionDate )
+        throws WebMessageException
+    {
+        for ( OrganisationUnit ou : organisationUnits )
+        {
+            if ( ou.getDataSets().contains( dataSet ) )
+            {
+                CompleteDataSetRegistration registration =
+                    registerCompleteDataSet( dataSet, period, ou, attributeOptionCombo, storedBy, completionDate );
+
+                if ( registration != null )
+                {
+                    registrations.add( registration );
+                }
+            }
+        }
+    }
 
     private void asyncImport( ImportOptions importOptions, String format, HttpServletRequest request, HttpServletResponse response )
         throws IOException
