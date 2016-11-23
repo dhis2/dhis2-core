@@ -34,6 +34,7 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
@@ -52,8 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 /**
  * @author Lars Helge Overland
@@ -598,7 +597,7 @@ public class ListGrid
 
             if ( !Double.isNaN( predicted ) )
             {
-                regressionColumn.add( getRounded( predicted, 1 ) );
+                regressionColumn.add( Precision.round( predicted, 1 ) );
             }
             else
             {

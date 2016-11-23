@@ -36,6 +36,8 @@ import java.util.regex.Pattern;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+
+import org.apache.commons.math3.util.Precision;
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.commons.validator.routines.IntegerValidator;
 import org.hisp.dhis.expression.Operator;
@@ -205,20 +207,6 @@ public class MathUtils
     }
 
     /**
-     * Returns a number rounded off to the given number of decimals.
-     *
-     * @param value    the value to round off.
-     * @param decimals the number of decimals.
-     * @return a number rounded off to the given number of decimals.
-     */
-    public static double getRounded( double value, int decimals )
-    {
-        final double factor = Math.pow( 10, decimals );
-
-        return Math.round( value * factor ) / factor;
-    }
-
-    /**
      * Returns a rounded off number.
      * <p>
      * <ul>
@@ -231,14 +219,9 @@ public class MathUtils
      */
     public static double getRounded( double value )
     {
-        if ( value < 1d && value > -1d )
-        {
-            return getRounded( value, 2 );
-        }
-        else
-        {
-            return getRounded( value, 1 );
-        }
+        int scale = ( value < 1d && value > -1d ) ? 2 : 1;
+        
+        return Precision.round( value, scale );
     }
 
     /**
@@ -267,7 +250,7 @@ public class MathUtils
     {
         if ( value >= 10.0 || value <= -10.0 )
         {
-            return getRounded( value, 1 );
+            return Precision.round( value, 1 );
         }
         else
         {
