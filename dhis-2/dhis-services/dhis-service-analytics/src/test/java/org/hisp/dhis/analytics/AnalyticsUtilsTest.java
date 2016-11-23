@@ -267,6 +267,7 @@ public class AnalyticsUtilsTest
     {
         DataElement dxB = createDataElement( 'B' );
         dxB.setUid( "dxB" );
+        dxB.setValueType( ValueType.NUMBER );
         dxB.setAggregateExportCategoryOptionCombo( "coA" );
         
         DataElement dxC = createDataElement( 'C' );
@@ -320,6 +321,6 @@ public class AnalyticsUtilsTest
         assertEquals( "peA", dvs.getDataValues().get( 6 ).getPeriod() );
         assertNull( dvs.getDataValues().get( 6 ).getCategoryOptionCombo() );
         assertEquals( "aoA", dvs.getDataValues().get( 6 ).getAttributeOptionCombo() );
-        assertEquals( "7.0", dvs.getDataValues().get( 6 ).getValue() );
+        assertEquals( "7", dvs.getDataValues().get( 6 ).getValue() );
     }
 }

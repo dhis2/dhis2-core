@@ -47,6 +47,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -283,7 +284,9 @@ public class AnalyticsUtils
 
     /**
      * Generates a data value set based on the given grid with aggregated data.
-     * Sets the created and last updated fields to the current date.
+     * Sets the created and last updated fields to the current date. If aggregate
+     * value is associated with a data element of value type integer, the
+     * aggregate value is converted from double to integer.
      * 
      * @param grid the grid.
      * @return a data value set.
@@ -313,15 +316,23 @@ public class AnalyticsUtils
         for ( List<Object> row : grid.getRows() )
         {
             String dx = String.valueOf( row.get( dxInx ) );
+            Object vl = row.get( vlInx );
             
             DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
                         
+            if ( item != null && vl != null && ( vl instanceof Double ) &&
+                DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() && 
+                ((DataElement) item).getValueType().isInteger() )
+            {
+                vl = ((Double) vl).intValue();
+            }
+            
             DataValue dv = new DataValue();
             
             dv.setDataElement( dx );
             dv.setPeriod( String.valueOf( row.get( peInx ) ) );
             dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
-            dv.setValue( String.valueOf( row.get( vlInx ) ) );
+            dv.setValue( String.valueOf( vl ) );
             dv.setComment( KEY_AGG_VALUE );
             dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
