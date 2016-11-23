@@ -102,7 +102,10 @@ public class DefaultProgramStageInstanceService
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         dataValueAuditService.deleteTrackedEntityDataValueAudits( programStageInstance );
-        programStageInstanceStore.delete( programStageInstance );
+
+        // Soft delete
+        programStageInstance.setDeleted( true );
+        programStageInstanceStore.save( programStageInstance );
     }
 
     @Override
