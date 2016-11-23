@@ -35,6 +35,9 @@ import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
 
@@ -43,6 +46,9 @@ import java.util.Iterator;
  */
 public class DefaultQueryPlanner implements QueryPlanner
 {
+    @Autowired
+    private SchemaService schemaService;
+
     @Override
     public QueryPlan planQuery( Query query )
     {
@@ -149,6 +155,8 @@ public class DefaultQueryPlanner implements QueryPlanner
             {
                 Restriction restriction = (Restriction) criterion;
 
+                System.err.println( "Path: " + hasPersistedPath( query.getSchema(), restriction.getPath() ) );
+
                 if ( !restriction.getPath().contains( "\\." ) )
                 {
                     if ( query.getSchema().haveProperty( restriction.getPath() ) )
@@ -166,5 +174,37 @@ public class DefaultQueryPlanner implements QueryPlanner
         }
 
         return criteriaJunction;
+    }
+
+    private boolean hasPersistedPath( Schema schema, String path )
+    {
+        Schema curSchema = schema;
+        String[] pathComponents = path.split( "\\." );
+
+        if ( pathComponents.length == 0 || pathComponents.length > 2 )
+        {
+            return false;
+        }
+
+        for ( String pathComponent : pathComponents )
+        {
+            Property property = curSchema.getPersistedProperty( pathComponent );
+
+            if ( property == null )
+            {
+                return false;
+            }
+
+            if ( property.isCollection() )
+            {
+                curSchema = schemaService.getDynamicSchema( property.getItemKlass() );
+            }
+            else
+            {
+                curSchema = schemaService.getDynamicSchema( property.getKlass() );
+            }
+        }
+
+        return true;
     }
 }
