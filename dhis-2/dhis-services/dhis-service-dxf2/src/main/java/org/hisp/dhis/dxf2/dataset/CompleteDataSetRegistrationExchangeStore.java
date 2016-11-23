@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.dxf2.dataset;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,21 +28,26 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.OutputStream;
+
 /**
- * @author Lars Helge Overland
+ * @author Halvdan Hoem Grelland
  */
-public enum TaskCategory
+public interface CompleteDataSetRegistrationExchangeStore
 {
-    RESOURCETABLE_UPDATE,
-    ANALYTICSTABLE_UPDATE,
-    MONITORING,
-    DATAVALUE_IMPORT,
-    EVENT_IMPORT,
-    METADATA_IMPORT,
-    AGGREGATE_QUERY_BUILDER,
-    SENDING_REMINDER_MESSAGE,
-    SENDING_SMS,
-    DATAINTEGRITY,
-    PUSH_ANALYSIS,
-    COMPLETE_DATA_SET_REGISTRATION_IMPORT
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as XML.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the XML result to.
+     */
+    void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
+
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the JSON result to.
+     */
+    void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 }
