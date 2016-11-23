@@ -39,7 +39,9 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,19 +103,12 @@ public class DefaultQueryPlanner implements QueryPlanner
             else if ( Restriction.class.isInstance( criterion ) )
             {
                 Restriction restriction = (Restriction) criterion;
+                QueryPath queryPath = getQueryPath( query.getSchema(), restriction.getPath() );
 
-                if ( !restriction.getPath().contains( "\\." ) )
+                if ( queryPath != null && queryPath.isPersisted() && !queryPath.haveAlias() )
                 {
-                    if ( pQuery.getSchema().haveProperty( restriction.getPath() ) )
-                    {
-                        Property property = query.getSchema().getProperty( restriction.getPath() );
-
-                        if ( property.isSimple() && property.isPersisted() )
-                        {
-                            pQuery.getCriterions().add( criterion );
-                            iterator.remove();
-                        }
-                    }
+                    pQuery.getCriterions().add( criterion );
+                    iterator.remove();
                 }
             }
         }
@@ -154,21 +149,12 @@ public class DefaultQueryPlanner implements QueryPlanner
             else if ( Restriction.class.isInstance( criterion ) )
             {
                 Restriction restriction = (Restriction) criterion;
+                QueryPath queryPath = getQueryPath( query.getSchema(), restriction.getPath() );
 
-                System.err.println( "Path: " + hasPersistedPath( query.getSchema(), restriction.getPath() ) );
-
-                if ( !restriction.getPath().contains( "\\." ) )
+                if ( queryPath != null && queryPath.isPersisted() && !queryPath.haveAlias() )
                 {
-                    if ( query.getSchema().haveProperty( restriction.getPath() ) )
-                    {
-                        Property property = query.getSchema().getProperty( restriction.getPath() );
-
-                        if ( property.isSimple() && property.isPersisted() )
-                        {
-                            criteriaJunction.getCriterions().add( criterion );
-                            iterator.remove();
-                        }
-                    }
+                    criteriaJunction.getCriterions().add( criterion );
+                    iterator.remove();
                 }
             }
         }
@@ -176,35 +162,56 @@ public class DefaultQueryPlanner implements QueryPlanner
         return criteriaJunction;
     }
 
-    private boolean hasPersistedPath( Schema schema, String path )
+    private QueryPath getQueryPath( Schema schema, String path )
     {
         Schema curSchema = schema;
+        Property curProperty;
+        String name = null;
+        boolean persisted = true;
+        List<String> alias = new ArrayList<>();
         String[] pathComponents = path.split( "\\." );
 
-        if ( pathComponents.length == 0 || pathComponents.length > 2 )
+        if ( pathComponents.length == 0 )
         {
-            return false;
+            return null;
         }
 
-        for ( String pathComponent : pathComponents )
+        for ( int idx = 0; idx < pathComponents.length; idx++ )
         {
-            Property property = curSchema.getPersistedProperty( pathComponent );
+            name = pathComponents[idx];
+            curProperty = curSchema.getProperty( name );
 
-            if ( property == null )
+            if ( curProperty == null )
             {
-                return false;
+                throw new RuntimeException( "Invalid path property: " + name );
             }
 
-            if ( property.isCollection() )
+            if ( !curProperty.isPersisted() )
             {
-                curSchema = schemaService.getDynamicSchema( property.getItemKlass() );
+                persisted = false;
+            }
+
+            if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
+            {
+                return new QueryPath( name, persisted, alias.toArray( new String[]{} ) );
+            }
+
+            if ( curProperty.isCollection() )
+            {
+                curSchema = schemaService.getDynamicSchema( curProperty.getItemKlass() );
+                alias.add( curProperty.getCollectionName() );
+            }
+            else if ( !curProperty.isSimple() )
+            {
+                curSchema = schemaService.getDynamicSchema( curProperty.getKlass() );
+                alias.add( curProperty.getName() );
             }
             else
             {
-                curSchema = schemaService.getDynamicSchema( property.getKlass() );
+                return new QueryPath( name, persisted, alias.toArray( new String[]{} ) );
             }
         }
 
-        return true;
+        return new QueryPath( name, persisted, alias.toArray( new String[]{} ) );
     }
 }
