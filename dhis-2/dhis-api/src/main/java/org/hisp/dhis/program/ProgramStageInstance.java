@@ -49,6 +49,8 @@ public class ProgramStageInstance
 
     private ProgramStage programStage;
 
+    private boolean deleted;
+
     private String storedBy;
 
     private Date dueDate;
@@ -79,13 +81,14 @@ public class ProgramStageInstance
 
     public ProgramStageInstance()
     {
-
+        this.deleted =false;
     }
 
     public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
     {
         this.programInstance = programInstance;
         this.programStage = programStage;
+        this.deleted = false;
     }
 
     // -------------------------------------------------------------------------
@@ -235,5 +238,15 @@ public class ProgramStageInstance
     public EventStatus getStatus()
     {
         return status;
+    }
+
+    public boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
+    {
+        this.deleted = deleted;
     }
 }
