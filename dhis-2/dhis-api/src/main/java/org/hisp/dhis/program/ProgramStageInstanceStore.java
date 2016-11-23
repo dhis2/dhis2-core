@@ -115,5 +115,5 @@ public interface ProgramStageInstanceStore
     /**
      * Deletes all events from the database where deleted = true.
      */
-    void permanentlyRemoveSoftDeletedEvents();
+    void permanentlyRemoveSoftDeletedProgramStageInstances();
 }

@@ -285,4 +285,10 @@ public class DefaultProgramStageInstanceService
 
         return programStageInstance;
     }
+
+    @Override
+    public void permanentlyRemoveSoftDeletedProgramStageInstances()
+    {
+        programStageInstanceStore.permanentlyRemoveSoftDeletedProgramStageInstances();
+    }
 }
