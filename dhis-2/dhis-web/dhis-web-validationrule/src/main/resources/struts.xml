@@ -34,12 +34,12 @@
       <param name="menu">/dhis-web-validationrule/menu.vm</param>
       <param name="javascripts">javascript/general.js,javascript/expressionBuilder.js,
       	javascript/validationRule.js,javascript/addValidationRuleForm.js</param>
-      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_PUBLIC_ADD, F_VALIDATIONRULE_PRIVATE_ADD</param>
     </action>
 
     <action name="addValidationRule" class="org.hisp.dhis.validationrule.action.AddValidationRuleAction">
       <result name="success" type="redirect">validationRule.action</result>
-      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_PUBLIC_ADD, F_VALIDATIONRULE_PRIVATE_ADD</param>
     </action>
 
     <action name="removeValidationRule" class="org.hisp.dhis.validationrule.action.RemoveValidationRuleAction">
@@ -64,12 +64,12 @@
       <param name="page">/dhis-web-validationrule/updateValidationRuleForm.vm</param>
       <param name="javascripts">javascript/general.js,javascript/expressionBuilder.js,
       	javascript/validationRule.js,javascript/updateValidationRuleForm.js</param>
-      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_PUBLIC_ADD, F_VALIDATIONRULE_PRIVATE_ADD</param>
     </action>
 
     <action name="updateValidationRule" class="org.hisp.dhis.validationrule.action.UpdateValidationRuleAction">
       <result name="success" type="redirect">validationRule.action?currentPage=${keyCurrentPage}&amp;key=${keyCurrentKey}</result>
-      <param name="requiredAuthorities">F_VALIDATIONRULE_ADD</param>
+      <param name="requiredAuthorities">F_VALIDATIONRULE_PUBLIC_ADD, F_VALIDATIONRULE_PRIVATE_ADD</param>
     </action>
 
     <action name="getFilteredDataElements" class="org.hisp.dhis.validationrule.action.GetFilteredDataElementsAction">
