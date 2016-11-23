@@ -62,6 +62,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -284,9 +285,7 @@ public class AnalyticsUtils
 
     /**
      * Generates a data value set based on the given grid with aggregated data.
-     * Sets the created and last updated fields to the current date. If aggregate
-     * value is associated with a data element of value type integer, the
-     * aggregate value is converted from double to integer.
+     * Sets the created and last updated fields to the current date.
      * 
      * @param grid the grid.
      * @return a data value set.
@@ -316,17 +315,11 @@ public class AnalyticsUtils
         for ( List<Object> row : grid.getRows() )
         {
             String dx = String.valueOf( row.get( dxInx ) );
-            Object vl = row.get( vlInx );
             
             DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
-                        
-            if ( item != null && vl != null && ( vl instanceof Double ) &&
-                DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() && 
-                ((DataElement) item).getValueType().isInteger() )
-            {
-                vl = ((Double) vl).intValue();
-            }
             
+            Object vl = getIntegerOrValue( row.get( vlInx ), item );
+                        
             DataValue dv = new DataValue();
             
             dv.setDataElement( dx );
@@ -354,6 +347,35 @@ public class AnalyticsUtils
         return dvs;        
     }
 
+    /**
+     * Handles conversion of double values to integer. A value is converted to
+     * integer if it is a double, and if either the dimensional item object is
+     * associated with a data element of value type integer, or associated with
+     * an indicator with zero decimals in aggregated output.
+     * 
+     * @param value the value.
+     * @param item the dimensional item object.
+     * @return an object, double or integer depending on the given arguments.
+     */
+    private static Object getIntegerOrValue( Object value, DataDimensionalItemObject item )
+    {
+        boolean doubleValue = item != null && value != null && ( value instanceof Double );
+        
+        if ( doubleValue )
+        {
+            if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() && ((DataElement) item).getValueType().isInteger() )
+            {
+                value = ((Double) value).intValue();
+            }
+            else if ( DimensionItemType.INDICATOR == item.getDimensionItemType() && ((Indicator) item).hasZeroDecimals() )
+            {
+                value = ((Double) value).intValue();
+            }
+        }
+        
+        return value;        
+    }
+    
     /**
      * Returns a mapping between dimension item identifiers and dimensional
      * item object for the given query. The output identifier scheme of the
