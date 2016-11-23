@@ -34,6 +34,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.datacompletion.CompleteDataSetRegistrationRequest;
@@ -149,6 +150,9 @@ public class CompleteDataSetRegistrationController
 
     @Autowired
     private Scheduler scheduler;
+
+    @Autowired
+    private SessionFactory sessionFactory;
 
     // -------------------------------------------------------------------------
     // GET
@@ -556,7 +560,7 @@ public class CompleteDataSetRegistrationController
 
         scheduler.executeTask(
             new ImportCompleteDataSetRegistrationsTask(
-                registrationExchangeService, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format, taskId )
+                registrationExchangeService, sessionFactory, tmpFile.getLeft(), tmpFile.getRight(), importOptions, format, taskId )
         );
 
         response.setHeader(

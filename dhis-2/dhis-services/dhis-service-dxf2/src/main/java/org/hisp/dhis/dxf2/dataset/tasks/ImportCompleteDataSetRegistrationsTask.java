@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.dataset.tasks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.scheduling.TaskId;
@@ -44,6 +48,8 @@ import java.nio.file.Path;
 public class ImportCompleteDataSetRegistrationsTask
     extends SecurityContextRunnable
 {
+    Log log = LogFactory.getLog( ImportCompleteDataSetRegistrationsTask.class );
+
     public static final String FORMAT_JSON = "json", FORMAT_XML = "xml";
 
     private String format;
@@ -56,6 +62,8 @@ public class ImportCompleteDataSetRegistrationsTask
 
     private TaskId taskId;
 
+    private SessionFactory sessionFactory;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -67,9 +75,10 @@ public class ImportCompleteDataSetRegistrationsTask
     // -------------------------------------------------------------------------
 
     public ImportCompleteDataSetRegistrationsTask( CompleteDataSetRegistrationExchangeService registrationService,
-        InputStream input, Path tmpFile, ImportOptions importOptions, String format, TaskId taskId )
+        SessionFactory sessionFactory, InputStream input, Path tmpFile, ImportOptions importOptions, String format, TaskId taskId )
     {
         this.registrationService = registrationService;
+        this.sessionFactory = sessionFactory;
         this.input = input;
         this.tmpFile = tmpFile;
         this.importOptions = importOptions;
@@ -101,6 +110,18 @@ public class ImportCompleteDataSetRegistrationsTask
         }
     }
 
+    @Override
+    public void before()
+    {
+        DbmsUtils.bindSessionToThread( sessionFactory );
+    }
+
+    @Override
+    public void after()
+    {
+        DbmsUtils.unbindSessionFromThread( sessionFactory );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -119,6 +140,7 @@ public class ImportCompleteDataSetRegistrationsTask
         catch ( IOException ignored )
         {
             // Intentionally ignored
+            log.warn( "Deleting temporary file failed: " + tmpFile, ignored );
         }
     }
 }
