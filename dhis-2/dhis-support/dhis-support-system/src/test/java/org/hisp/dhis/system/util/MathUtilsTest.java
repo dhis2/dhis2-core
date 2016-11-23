@@ -90,18 +90,6 @@ public class MathUtilsTest
         
         assertEquals( 12.0, MathUtils.getMax( array ), DELTA );
     }
-
-    @Test
-    public void testRounding()
-    {
-        double[] numbers = { 34532.0, 23467000.0, 0.0034568 };
-        String [] rounded = {"34530", "23470000", "0.003457" };
-
-        for (int i=0; i < numbers.length; ++i)
-        {
-            assertEquals( rounded[i], MathUtils.roundToString( numbers[i], 4) );
-        }
-    }
     
     @Test
     public void testIsNumeric()

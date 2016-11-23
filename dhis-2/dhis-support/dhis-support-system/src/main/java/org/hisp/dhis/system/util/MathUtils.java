@@ -28,8 +28,6 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -300,21 +298,6 @@ public class MathUtils
         final double magnitude = Math.pow( 10.0, power );
         final long shifted = Math.round( value * magnitude );
         return shifted / magnitude;
-    }
-
-    /**
-     * Returns a string representation of number rounded to given number of
-     * significant figures
-     *
-     * @param value
-     * @param significantFigures
-     * @return
-     */
-    public static String roundToString( double value, int significantFigures )
-    {
-        MathContext mc = new MathContext( significantFigures );
-        BigDecimal num = new BigDecimal( value );
-        return num.round( mc ).toPlainString();
     }
 
     /**
