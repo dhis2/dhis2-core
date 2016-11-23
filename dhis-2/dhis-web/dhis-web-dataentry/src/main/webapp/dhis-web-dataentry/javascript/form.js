@@ -1311,8 +1311,7 @@ function displayPeriods()
 
     $.safeEach( periods, function( idx, item ) 
     {
-        console.log(dhis2.de.openPeriodsWhitelist, item.iso, dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 );
-        if ( dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 )
+        if ( dhis2.de.openPeriodsWhitelist.length == 0 || dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 )
         {
             addOptionById( 'selectedPeriodId', item.iso, item.name );
             dhis2.de.periodChoices[ item.iso ] = item;
