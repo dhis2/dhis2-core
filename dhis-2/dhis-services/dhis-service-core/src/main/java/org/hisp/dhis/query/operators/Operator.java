@@ -44,20 +44,23 @@ import java.util.List;
  */
 public abstract class Operator
 {
+    protected final String name;
+
     protected final List<Object> args = new ArrayList<>();
 
     protected final Typed typed;
 
     protected Type argumentType;
 
-    public Operator( Typed typed )
+    public Operator( String name, Typed typed )
     {
+        this.name = name;
         this.typed = typed;
     }
 
-    public Operator( Typed typed, Object arg )
+    public Operator( String name, Typed typed, Object arg )
     {
-        this( typed );
+        this( name, typed );
         this.argumentType = new Type( arg );
         this.args.add( arg );
         validate();
@@ -74,9 +77,9 @@ public abstract class Operator
         }
     }
 
-    public Operator( Typed typed, Object... args )
+    public Operator( String name, Typed typed, Object... args )
     {
-        this( typed );
+        this( name, typed );
         this.argumentType = new Type( args[0] );
         Collections.addAll( this.args, args );
     }
@@ -119,4 +122,11 @@ public abstract class Operator
     public abstract Criterion getHibernateCriterion( Property property );
 
     public abstract boolean test( Object value );
+
+
+    @Override
+    public String toString()
+    {
+        return "[" + name + ", args: " + args + "]";
+    }
 }

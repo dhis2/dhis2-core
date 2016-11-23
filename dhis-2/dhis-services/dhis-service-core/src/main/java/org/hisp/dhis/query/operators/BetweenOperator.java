@@ -44,7 +44,7 @@ public class BetweenOperator extends Operator
 {
     public BetweenOperator( Object arg0, Object arg1 )
     {
-        super( Typed.from( String.class, Number.class, Date.class ), arg0, arg1 );
+        super( "between", Typed.from( String.class, Number.class, Date.class ), arg0, arg1 );
     }
 
     @Override

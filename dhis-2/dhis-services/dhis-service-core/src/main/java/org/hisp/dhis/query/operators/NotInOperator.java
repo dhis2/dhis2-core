@@ -41,7 +41,7 @@ public class NotInOperator extends InOperator
 {
     public NotInOperator( Collection<?> arg )
     {
-        super( arg );
+        super( "!in", arg );
     }
 
     @Override

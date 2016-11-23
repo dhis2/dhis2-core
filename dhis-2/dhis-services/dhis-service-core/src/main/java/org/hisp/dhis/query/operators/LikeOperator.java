@@ -46,7 +46,14 @@ public class LikeOperator extends Operator
 
     public LikeOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
     {
-        super( Typed.from( String.class ), arg );
+        super( "like", Typed.from( String.class ), arg );
+        this.caseSensitive = caseSensitive;
+        this.matchMode = getMatchMode( matchMode );
+    }
+
+    public LikeOperator( String name, Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    {
+        super( name, Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
         this.matchMode = getMatchMode( matchMode );
     }

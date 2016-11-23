@@ -39,7 +39,7 @@ public class NotEqualOperator extends EqualOperator
 {
     public NotEqualOperator( Object arg )
     {
-        super( arg );
+        super( "ne", arg );
     }
 
     @Override

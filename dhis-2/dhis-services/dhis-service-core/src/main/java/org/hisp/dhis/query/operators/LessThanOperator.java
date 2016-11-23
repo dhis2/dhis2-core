@@ -46,7 +46,7 @@ public class LessThanOperator extends Operator
 {
     public LessThanOperator( Object arg )
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
+        super( "lt", Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
     }
 
     @Override

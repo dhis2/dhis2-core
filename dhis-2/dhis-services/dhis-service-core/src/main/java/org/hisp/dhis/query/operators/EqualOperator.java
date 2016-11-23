@@ -46,7 +46,12 @@ public class EqualOperator extends Operator
 {
     public EqualOperator( Object arg )
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ), arg );
+        super( "eq", Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ), arg );
+    }
+
+    public EqualOperator( String name, Object arg )
+    {
+        super( name, Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ), arg );
     }
 
     @Override

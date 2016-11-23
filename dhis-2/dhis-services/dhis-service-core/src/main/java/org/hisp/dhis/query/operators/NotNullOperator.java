@@ -42,7 +42,7 @@ public class NotNullOperator extends Operator
 {
     public NotNullOperator()
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ) );
+        super( "!null", Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ) );
     }
 
     @Override

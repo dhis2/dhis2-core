@@ -44,7 +44,12 @@ public class InOperator extends Operator
 {
     public InOperator( Collection<?> arg )
     {
-        super( Typed.from( Collection.class ), arg );
+        super( "in", Typed.from( Collection.class ), arg );
+    }
+
+    public InOperator( String name, Collection<?> arg )
+    {
+        super( name, Typed.from( Collection.class ), arg );
     }
 
     @Override

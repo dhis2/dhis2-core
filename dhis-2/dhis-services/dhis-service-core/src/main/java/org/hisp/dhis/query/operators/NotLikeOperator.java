@@ -39,7 +39,7 @@ public class NotLikeOperator extends LikeOperator
 {
     public NotLikeOperator( Object arg, boolean caseSensitive, MatchMode matchMode )
     {
-        super( arg, caseSensitive, matchMode );
+        super( "!like", arg, caseSensitive, matchMode );
     }
 
     @Override

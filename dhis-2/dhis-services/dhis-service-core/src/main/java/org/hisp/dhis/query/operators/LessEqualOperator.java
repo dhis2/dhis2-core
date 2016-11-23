@@ -46,7 +46,7 @@ public class LessEqualOperator extends Operator
 {
     public LessEqualOperator( Object arg )
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
+        super( "le", Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
     }
 
     @Override

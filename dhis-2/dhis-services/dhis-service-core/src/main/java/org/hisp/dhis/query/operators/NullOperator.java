@@ -42,7 +42,7 @@ public class NullOperator extends Operator
 {
     public NullOperator()
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ) );
+        super( "null", Typed.from( String.class, Boolean.class, Number.class, Date.class, Enum.class ) );
     }
 
     @Override

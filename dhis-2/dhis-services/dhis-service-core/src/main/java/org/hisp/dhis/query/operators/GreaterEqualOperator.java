@@ -46,7 +46,7 @@ public class GreaterEqualOperator extends Operator
 {
     public GreaterEqualOperator( Object arg )
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
+        super( "ge", Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
     }
 
     @Override

@@ -46,7 +46,7 @@ public class GreaterThanOperator extends Operator
 {
     public GreaterThanOperator( Object arg )
     {
-        super( Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
+        super( "gt", Typed.from( String.class, Boolean.class, Number.class, Date.class ), arg );
     }
 
     @Override
