@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -107,9 +106,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     {
         Schema schema = query.getSchema();
 
-        // create a copy of this query using only the restrictions
-        Query countQuery = Query.from( query.getSchema() );
-        countQuery.add( query.getCriterions() );
+        Query countQuery = Query.from( query ).setSkipPaging( true );
 
         if ( schema == null )
         {
@@ -142,139 +139,20 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
     private Criteria buildCriteria( Criteria criteria, Query query )
     {
-        Query criteriaQuery = getCriteriaQuery( query );
-
-        for ( org.hisp.dhis.query.Criterion criterion : criteriaQuery.getCriterions() )
+        for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
         {
             addCriterion( criteria, criterion, query.getSchema() );
         }
 
-        // no more criterions available, so we can do our own paging
-        if ( query.isEmpty() )
-        {
-            if ( query.getFirstResult() != null )
-            {
-                criteria.setFirstResult( query.getFirstResult() );
-            }
+        criteria.setFirstResult( query.getFirstResult() );
+        criteria.setMaxResults( query.getMaxResults() );
 
-            if ( query.getMaxResults() != null )
-            {
-                criteria.setMaxResults( query.getMaxResults() );
-            }
-        }
-
-        for ( Order order : criteriaQuery.getOrders() )
+        for ( Order order : query.getOrders() )
         {
             criteria.addOrder( getHibernateOrder( order ) );
         }
 
         return criteria;
-    }
-
-    /**
-     * Remove criterions that can be applied by criteria engine, and return those. The rest of
-     * the criterions will be passed on to the next query engine.
-     *
-     * @param query Query
-     * @return Query instance
-     */
-    private Query getCriteriaQuery( Query query )
-    {
-        Query criteriaQuery = Query.from( query.getSchema() );
-        Iterator<org.hisp.dhis.query.Criterion> iterator = query.getCriterions().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            org.hisp.dhis.query.Criterion criterion = iterator.next();
-
-            if ( Junction.class.isInstance( criterion ) )
-            {
-                Junction junction = handleJunctionCriteriaQuery( criteriaQuery, (Junction) criterion );
-
-                if ( !junction.getCriterions().isEmpty() )
-                {
-                    criteriaQuery.add( junction );
-                }
-
-                if ( ((Junction) criterion).getCriterions().isEmpty() )
-                {
-                    iterator.remove();
-                }
-            }
-            else if ( Restriction.class.isInstance( criterion ) )
-            {
-                Restriction restriction = (Restriction) criterion;
-
-                if ( !restriction.getPath().contains( "\\." ) )
-                {
-                    if ( criteriaQuery.getSchema().haveProperty( restriction.getPath() ) )
-                    {
-                        Property property = query.getSchema().getProperty( restriction.getPath() );
-
-                        if ( property.isSimple() && property.isPersisted() )
-                        {
-                            criteriaQuery.getCriterions().add( criterion );
-                            iterator.remove();
-                        }
-                    }
-                }
-            }
-        }
-
-        if ( query.ordersPersisted() )
-        {
-            criteriaQuery.addOrders( query.getOrders() );
-            query.clearOrders();
-        }
-
-        return criteriaQuery;
-    }
-
-    private Junction handleJunctionCriteriaQuery( Query query, Junction queryJunction )
-    {
-        Iterator<org.hisp.dhis.query.Criterion> iterator = queryJunction.getCriterions().iterator();
-        Junction criteriaJunction = Disjunction.class.isInstance( queryJunction ) ?
-            new Disjunction( query.getSchema() ) : new Conjunction( query.getSchema() );
-
-        while ( iterator.hasNext() )
-        {
-            org.hisp.dhis.query.Criterion criterion = iterator.next();
-
-            if ( Junction.class.isInstance( criterion ) )
-            {
-                Junction junction = handleJunctionCriteriaQuery( query, (Junction) criterion );
-
-                if ( !junction.getCriterions().isEmpty() )
-                {
-                    criteriaJunction.add( junction );
-                }
-
-                if ( ((Junction) criterion).getCriterions().isEmpty() )
-                {
-                    iterator.remove();
-                }
-            }
-            else if ( Restriction.class.isInstance( criterion ) )
-            {
-                Restriction restriction = (Restriction) criterion;
-
-                if ( !restriction.getPath().contains( "\\." ) )
-                {
-                    if ( query.getSchema().haveProperty( restriction.getPath() ) )
-                    {
-                        Property property = query.getSchema().getProperty( restriction.getPath() );
-
-                        if ( property.isSimple() && property.isPersisted() )
-                        {
-                            criteriaJunction.getCriterions().add( criterion );
-                            iterator.remove();
-                        }
-                    }
-                }
-            }
-        }
-
-        return criteriaJunction;
     }
 
     private void addJunction( org.hibernate.criterion.Junction junction, org.hisp.dhis.query.Criterion criterion, Schema schema )

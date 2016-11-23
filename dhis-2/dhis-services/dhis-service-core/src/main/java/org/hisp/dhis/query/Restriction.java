@@ -28,7 +28,6 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.query.operators.Operator;
 
 /**
@@ -65,9 +64,6 @@ public class Restriction implements Criterion
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "path", path )
-            .add( "operator", operator )
-            .toString();
+        return "[" + path + ", op: " + operator + "]";
     }
 }

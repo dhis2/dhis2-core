@@ -1,8 +1,8 @@
-package org.hisp.dhis.query;
+package org.hisp.dhis.query.planner;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,35 +28,12 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.query.Query;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class Junction extends Criteria implements Criterion
+public interface QueryPlanner
 {
-    public enum Type
-    {
-        AND, OR
-    }
-
-    protected Type type;
-
-    public Junction( Schema schema, Type type )
-    {
-        super( schema );
-        this.type = type;
-    }
-
-    public Type getType()
-    {
-        return type;
-    }
-
-
-    @Override
-    public String toString()
-    {
-        return "[ " + type + ", " + criterions + "]";
-    }
+    QueryPlan planQuery( Query query );
 }

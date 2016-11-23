@@ -49,6 +49,8 @@ public class Query extends Criteria
 
     private List<Order> orders = new ArrayList<>();
 
+    private boolean skipPaging;
+
     private Integer firstResult = 0;
 
     private Integer maxResults = Integer.MAX_VALUE;
@@ -65,6 +67,20 @@ public class Query extends Criteria
     public static Query from( Schema schema, Junction.Type rootJunction )
     {
         return new Query( schema, rootJunction );
+    }
+
+    public static Query from( Query query )
+    {
+        Query clone = Query.from( query.getSchema(), query.getRootJunction().getType() );
+        clone.setUser( query.getUser() );
+        clone.setLocale( query.getLocale() );
+        clone.addOrders( query.getOrders() );
+        clone.setFirstResult( query.getFirstResult() );
+        clone.setMaxResults( query.getMaxResults() );
+        clone.add( query.getCriterions() );
+        clone.setObjects( query.getObjects() );
+
+        return clone;
     }
 
     private Query( Schema schema )
@@ -136,9 +152,20 @@ public class Query extends Criteria
         this.locale = locale;
     }
 
+    public boolean isSkipPaging()
+    {
+        return skipPaging;
+    }
+
+    public Query setSkipPaging( boolean skipPaging )
+    {
+        this.skipPaging = skipPaging;
+        return this;
+    }
+
     public Integer getFirstResult()
     {
-        return firstResult;
+        return skipPaging ? 0 : firstResult;
     }
 
     public Query setFirstResult( Integer firstResult )
@@ -149,7 +176,7 @@ public class Query extends Criteria
 
     public Integer getMaxResults()
     {
-        return maxResults;
+        return skipPaging ? Integer.MAX_VALUE : maxResults;
     }
 
     public Query setMaxResults( Integer maxResults )
@@ -176,9 +203,10 @@ public class Query extends Criteria
         return objects;
     }
 
-    public void setObjects( List<? extends IdentifiableObject> objects )
+    public Query setObjects( List<? extends IdentifiableObject> objects )
     {
         this.objects = objects;
+        return this;
     }
 
     public Query addOrder( Order... orders )

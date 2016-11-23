@@ -27,6 +27,8 @@
 
   <bean id="org.hisp.dhis.schema.SchemaService" class="org.hisp.dhis.schema.DefaultSchemaService" />
 
+  <bean id="org.hisp.dhis.query.planner.QueryPlanner" class="org.hisp.dhis.query.planner.DefaultQueryPlanner" />
+
   <bean id="org.hisp.dhis.query.QueryParser" class="org.hisp.dhis.query.DefaultQueryParser" />
 
   <bean id="org.hisp.dhis.query.CriteriaQueryEngine" class="org.hisp.dhis.query.CriteriaQueryEngine" />
