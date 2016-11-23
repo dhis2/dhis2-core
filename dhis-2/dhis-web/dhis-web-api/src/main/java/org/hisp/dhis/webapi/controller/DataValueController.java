@@ -221,6 +221,12 @@ public class DataValueController
         validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
+        // Period validation
+        // ---------------------------------------------------------------------
+
+        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
+
+        // ---------------------------------------------------------------------
         // Assemble and save data value
         // ---------------------------------------------------------------------
 
@@ -354,6 +360,12 @@ public class DataValueController
         // ---------------------------------------------------------------------
 
         validateDataSetNotLocked( dataElement, period, organisationUnit, attributeOptionCombo );
+
+        // ---------------------------------------------------------------------
+        // Period validation
+        // ---------------------------------------------------------------------
+
+        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
 
         // ---------------------------------------------------------------------
         // Delete data value
@@ -688,6 +700,15 @@ public class DataValueController
         if ( dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked" ) );
+        }
+    }
+
+    private void validatePeriodWithinDataSetOpenPeriods( DataElement dataElement, Period period )
+        throws WebMessageException
+    {
+        if ( !dataElement.isPeriodInDataSetOpenPeriods( period ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Period reported is not open in data set" ) );
         }
     }
 }

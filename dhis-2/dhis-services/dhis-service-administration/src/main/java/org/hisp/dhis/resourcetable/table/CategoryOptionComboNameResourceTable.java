@@ -91,7 +91,6 @@ public class CategoryOptionComboNameResourceTable
                 values.add( coc.getId() );
                 values.add( coc.getName() );
                 values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
-
                 values.add( coc.getLatestStartDate() );
                 values.add( coc.getEarliestEndDate() );
 
