@@ -156,6 +156,13 @@ public class HibernateProgramStageInstanceStore
             .setDate( "targetDate", targetDate ).list();
     }
 
+    @Override
+    public void permanentlyRemoveSoftDeletedEvents()
+    {
+        getQuery( "delete from ProgramStageInstance where deleted = true" )
+            .executeUpdate();
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
