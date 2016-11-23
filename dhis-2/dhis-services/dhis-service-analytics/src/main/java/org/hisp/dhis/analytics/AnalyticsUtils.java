@@ -43,6 +43,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DataDimensionItemType;
@@ -180,11 +181,11 @@ public class AnalyticsUtils
         }
         else if ( params.isSkipRounding() )
         {
-            return MathUtils.getRounded( value, DECIMALS_NO_ROUNDING );
+            return Precision.round( value, DECIMALS_NO_ROUNDING );
         }
         else if ( decimals != null && decimals > 0 )
         {
-            return MathUtils.getRounded( value, decimals );
+            return Precision.round( value, decimals );
         }
         else
         {
@@ -211,7 +212,7 @@ public class AnalyticsUtils
         }
         else if ( params.isSkipRounding() )
         {
-            return MathUtils.getRounded( (Double) value, DECIMALS_NO_ROUNDING );
+            return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
         
         return MathUtils.getRounded( (Double) value );
