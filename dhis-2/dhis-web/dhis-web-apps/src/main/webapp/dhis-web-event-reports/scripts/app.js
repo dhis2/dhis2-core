@@ -4054,6 +4054,9 @@ Ext.onReady( function() {
 			getDimensionPanel,
 			getDimensionPanels,
 
+            defaultItems,
+            getItems,
+
             accordionBody,
 			accordionPanels = [],
             accordion,
@@ -4352,7 +4355,8 @@ Ext.onReady( function() {
 		});
 
 		onProgramSelect = function(programId, layout) {
-            var load;
+            var load,
+                getCategories;
 
             programId = layout ? layout.program.id : programId;
 
@@ -4362,10 +4366,45 @@ Ext.onReady( function() {
 			dataElementSelected.removeAllDataElements(true);
             ns.app.aggregateLayoutWindow.value.resetData();
 
-            load = function(stages) {
+            getCategories = function(categoryCombo) {
+                if (!(Ext.isObject(categoryCombo) && Ext.isArray(categoryCombo.categories) && categoryCombo.categories.length)) {
+                    return;
+                }
+                
+                var cats = categoryCombo.categories;
+
+                if (cats.length === 1 && cats[0].name === 'default') {
+                    return;
+                }
+
+                var arraySort = ns.core.support.prototype.array.sort;
+
+                // sort categories
+                arraySort(cats);
+
+                // sort category options
+                cats.forEach(cat => {
+                    cat.items = cat.categoryOptions;
+
+                    if (Ext.isArray(cat.items)) {
+                        arraySort(cat.items);
+                    }
+                });
+
+                return cats;
+            };
+
+            load = function(stages, categories) {
+                
+                // categories
+                if (categories) {
+                    accordionBody.addItems(categories);
+                }
+
+                // stages
                 stage.enable();
                 stage.clearValue();
-
+                
                 stagesByProgramStore.removeAll();
                 stagesByProgramStore.loadData(stages);
 
@@ -4382,12 +4421,21 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programIndicators[id,' + namePropertyUrl + '],programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl + ',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]&paging=false',
+                    url: [
+                        ns.core.init.contextPath + '/api/programs.json',
+                        '?filter=id:eq:' + programId,
+                        '&fields=programStages[id,displayName|rename(name)]',
+                        ',programIndicators[id,' + namePropertyUrl + ']',
+                        ',programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl +',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]',
+                        ',categoryCombo[id,' + namePropertyUrl + ',categories[id,' + namePropertyUrl + ',categoryOptions[id,' + namePropertyUrl + ']]]',
+                        '&paging=false'
+                    ].join(''),
                     success: function(r) {
                         var program = Ext.decode(r.responseText).programs[0],
                             stages,
                             attributes,
                             programIndicators,
+                            categoryCombo,
                             stageId;
 
                         if (!program) {
@@ -4397,6 +4445,7 @@ Ext.onReady( function() {
                         stages = program.programStages;
                         attributes = Ext.Array.pluck(program.programTrackedEntityAttributes, 'trackedEntityAttribute');
                         programIndicators = program.programIndicators;
+                        categoryCombo = program.categoryCombo;
 
                         // filter confidential, mark as attribute
                         attributes.filter(function(item) {
@@ -4424,7 +4473,7 @@ Ext.onReady( function() {
                             // stages cache
                             stageStorage[programId] = stages;
 
-                            load(stages);
+                            load(stages, getCategories(categoryCombo));
                         }
                     }
                 });
@@ -4956,6 +5005,7 @@ Ext.onReady( function() {
 
         data = Ext.create('Ext.panel.Panel', {
             title: '<div class="ns-panel-title-data">Data</div>',
+            cls: 'ns-accordion-first',
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             items: [
@@ -4963,17 +5013,18 @@ Ext.onReady( function() {
                 dataElementAvailable,
                 dataElementSelected
             ],
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+					ns.core.conf.layout.west_scrollbarheight_accordion_indicator :
+                    ns.core.conf.layout.west_maxheight_accordion_indicator;
+            },
             onExpand: function() {
-				var h = ns.app.westRegion.hasScrollbar ?
-					ns.core.conf.layout.west_scrollbarheight_accordion_indicator : ns.core.conf.layout.west_maxheight_accordion_indicator;
-
-				accordion.setThisHeight(h);
+				accordion.setThisHeight(this.getHeightValue());
 
                 var msHeight = this.getHeight() - 28 - programStagePanel.getHeight() - 6;
 
                 dataElementAvailable.setHeight(msHeight * 0.4);
-                dataElementSelected.setHeight(msHeight * 0.6);
-
+                dataElementSelected.setHeight(msHeight * 0.6 - 1);
             },
             listeners: {
 				added: function(cmp) {
@@ -5621,10 +5672,14 @@ Ext.onReady( function() {
             bodyStyle: 'padding:1px',
             hideCollapseTool: true,
             width: accBaseWidth,
-			onExpand: function() {
-				var h = ns.app.westRegion.hasScrollbar ?
-					ns.core.conf.layout.west_scrollbarheight_accordion_period : ns.core.conf.layout.west_maxheight_accordion_period;
-				accordion.setThisHeight(h);
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+					ns.core.conf.layout.west_scrollbarheight_accordion_period :
+                    ns.core.conf.layout.west_maxheight_accordion_period;
+            },
+            onExpand: function() {
+				accordion.setThisHeight(this.getHeightValue());
+                
 				ns.core.web.multiSelect.setHeight(
 					[fixedPeriodAvailable, fixedPeriodSelected],
 					this,
@@ -6173,10 +6228,14 @@ Ext.onReady( function() {
                 },
                 treePanel
             ],
+            getHeightValue: function() {
+                return ns.app.westRegion.hasScrollbar ?
+					ns.core.conf.layout.west_scrollbarheight_accordion_organisationunit :
+                    ns.core.conf.layout.west_maxheight_accordion_organisationunit;
+            },
             onExpand: function() {
-                var h = ns.app.westRegion.hasScrollbar ?
-                    ns.core.conf.layout.west_scrollbarheight_accordion_organisationunit : ns.core.conf.layout.west_maxheight_accordion_organisationunit;
-                accordion.setThisHeight(h);
+				accordion.setThisHeight(this.getHeightValue());
+
                 treePanel.setHeight(this.getHeight() - ns.core.conf.layout.west_fill_accordion_organisationunit);
             },
             listeners: {
@@ -6393,8 +6452,9 @@ Ext.onReady( function() {
 			//availableStore.on('load', function() {
 				//ns.core.web.multiSelect.filterAvailable(available, selected);
 			//});
-
+            
 			panel = {
+                itemId: dimension.itemId,
 				xtype: 'panel',
 				title: '<div class="' + iconCls + '">' + dimension.name + '</div>',
 				hideCollapseTool: true,
@@ -6412,14 +6472,24 @@ Ext.onReady( function() {
 
 					return config.items.length ? config : null;
 				},
-				onExpand: function() {
+                getHeightValue: function() {
+                    return ns.app.westRegion.hasScrollbar ?
+                        ns.core.conf.layout.west_scrollbarheight_accordion_indicator :
+                        ns.core.conf.layout.west_maxheight_accordion_indicator;
+                },
+                onExpand: function() {
 					if (!availableStore.isLoaded) {
-						availableStore.loadPage();
+                        if (Ext.isArray(dimension.items) && dimension.items.length) {
+                            availableStore.loadData(dimension.items);
+                            availableStore.isLoaded = true;
+                        }
+                        else {
+                            availableStore.loadPage();
+                        }
 					}
-
-					var h = ns.app.westRegion.hasScrollbar ?
-						ns.core.conf.layout.west_scrollbarheight_accordion_dataset : ns.core.conf.layout.west_maxheight_accordion_dataset;
-					accordion.setThisHeight(h);
+                    
+                    accordion.setThisHeight(this.getHeightValue());
+                    
 					ns.core.web.multiSelect.setHeight(
 						[available, selected],
 						this,
@@ -6450,45 +6520,40 @@ Ext.onReady( function() {
 			return panel;
 		};
 
-		getDimensionPanels = function(dimensions, iconCls) {
-			var panels = [];
-
-			for (var i = 0, panel; i < dimensions.length; i++) {
-				panels.push(getDimensionPanel(dimensions[i], iconCls));
-			}
-
-			return panels;
-		};
-
             // accordion
+        defaultItems = [
+            data,
+            period,
+            organisationUnit,
+            ...ns.core.init.dimensions.map(panel => getDimensionPanel(panel, 'ns-panel-title-dimension'))
+        ];
+        
+        getItems = function(dimensions = []) {
+            return dimensions.map(dimension => getDimensionPanel(dimension, 'ns-panel-title-dimension'));
+        };
+        
         accordionBody = Ext.create('Ext.panel.Panel', {
 			layout: 'accordion',
 			activeOnTop: true,
 			cls: 'ns-accordion',
 			bodyStyle: 'border:0 none',
 			height: 700,
-			items: function() {
-                var panels = [
-                    data,
-                    period,
-                    organisationUnit
-                ],
-				dims = Ext.clone(ns.core.init.dimensions);
-
-				panels = panels.concat(getDimensionPanels(dims, 'ns-panel-title-dimension'));
-
-				last = panels[panels.length - 1];
-				last.cls = 'ns-accordion-last';
-
-				return panels;
-            }(),
-            listeners: {
-                afterrender: function() { // nasty workaround, should be fixed
-                    //organisationUnit.expand();
-                    //period.expand();
-                    //data.expand();
-                }
-            }
+            toBeRemoved: [],
+            addItems: function(dimensions) {
+                this.removeItems();
+                this.add(getItems(dimensions));
+                this.toBeRemoved = dimensions.map(dimension => dimension.itemId);
+                
+                accordion.setThisHeight();
+            },
+            removeItems: function() {
+                this.toBeRemoved.forEach(id => {
+                    accordionBody.remove(id);
+                });
+                
+                this.toBeRemoved = [];
+            },
+            items: defaultItems
 		});
 
 		// functions
@@ -6719,13 +6784,15 @@ Ext.onReady( function() {
 			map: layer ? layer.map : null,
 			layer: layer ? layer : null,
 			menu: layer ? layer.menu : null,
-
 			setThisHeight: function(mx) {
-				var settingsHeight = 41,
-					containerHeight = settingsHeight + (this.panels.length * 28) + mx,
+                mx = mx || this.getExpandedPanel().getHeightValue();
+                
+				var settingsHeight = 41;
+
+                var containerHeight = settingsHeight + (accordionBody.items.items.length * 28) + mx,
 					accordionHeight = ns.app.westRegion.getHeight() - settingsHeight - ns.core.conf.layout.west_fill,
                     accordionBodyHeight;
-
+                    
 				if (ns.app.westRegion.hasScrollbar) {
                     accordionBodyHeight = containerHeight - settingsHeight - ns.core.conf.layout.west_fill;
 				}
