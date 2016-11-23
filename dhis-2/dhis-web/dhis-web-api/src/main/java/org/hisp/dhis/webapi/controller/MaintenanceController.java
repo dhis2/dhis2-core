@@ -52,6 +52,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -59,6 +60,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -119,6 +121,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/analyticsTablesClear", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void clearAnalyticsTables()
     {
         for ( AnalyticsTableService service : analyticsTableService )
@@ -129,6 +132,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/expiredInvitationsClear", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void clearExpiredInvitations()
     {
         maintenanceService.removeExpiredInvitations();
@@ -136,6 +140,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/ouPathsUpdate", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void forceUpdatePaths()
     {
         organisationUnitService.forceUpdatePaths();
@@ -143,6 +148,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/periodPruning", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void prunePeriods()
     {
         maintenanceService.prunePeriods();
@@ -150,6 +156,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/zeroDataValueRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteZeroDataValues()
     {
         maintenanceService.deleteZeroDataValues();
@@ -157,6 +164,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void createSqlViews()
     {
         resourceTableService.createAllSqlViews();
@@ -164,6 +172,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/sqlViewsDrop", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void dropSqlViews()
     {
         resourceTableService.dropAllSqlViews();
@@ -171,6 +180,7 @@ public class MaintenanceController
 
     @RequestMapping( value = "/categoryOptionComboUpdate", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCategoryOptionCombos()
     {
         categoryService.addAndPruneAllOptionCombos();
@@ -178,14 +188,14 @@ public class MaintenanceController
 
     @RequestMapping( value = { "/cacheClear", "/cache" }, method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void clearCache()
     {
         cacheManager.clearCache();
         partitionManager.clearCaches();
     }
 
-    @RequestMapping( value = "/dataPruning/organisationUnits/{uid}", method = { RequestMethod.PUT,
-        RequestMethod.POST } )
+    @RequestMapping( value = "/dataPruning/organisationUnits/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL')" )
     public void pruneDataByOrganisationUnit( @PathVariable String uid, HttpServletResponse response )
         throws Exception
@@ -259,6 +269,7 @@ public class MaintenanceController
 
     @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void performMaintenance(
         @RequestParam( required = false ) boolean analyticsTableClear,
         @RequestParam( required = false ) boolean expiredInvitationsClear,
