@@ -404,5 +404,6 @@ public class Period
         endDate = period.getEndDate();
         periodType = period.getPeriodType();
         isoPeriod = period.getIsoDate();
+
     }
 }

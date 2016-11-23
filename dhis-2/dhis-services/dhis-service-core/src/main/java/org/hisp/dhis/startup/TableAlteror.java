@@ -646,6 +646,8 @@ public class TableAlteror
 
         executeSql( "UPDATE userroleauthorities SET authority='F_LEGEND_SET_PUBLIC_ADD' WHERE authority='F_LEGEND_SET_ADD'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority='F_VALIDATIONRULE_PUBLIC_ADD' WHERE authority='F_VALIDATIONRULE_ADD'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );

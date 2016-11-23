@@ -28,8 +28,6 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -38,6 +36,8 @@ import java.util.regex.Pattern;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+
+import org.apache.commons.math3.util.Precision;
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.apache.commons.validator.routines.IntegerValidator;
 import org.hisp.dhis.expression.Operator;
@@ -207,20 +207,6 @@ public class MathUtils
     }
 
     /**
-     * Returns a number rounded off to the given number of decimals.
-     *
-     * @param value    the value to round off.
-     * @param decimals the number of decimals.
-     * @return a number rounded off to the given number of decimals.
-     */
-    public static double getRounded( double value, int decimals )
-    {
-        final double factor = Math.pow( 10, decimals );
-
-        return Math.round( value * factor ) / factor;
-    }
-
-    /**
      * Returns a rounded off number.
      * <p>
      * <ul>
@@ -233,14 +219,9 @@ public class MathUtils
      */
     public static double getRounded( double value )
     {
-        if ( value < 1d && value > -1d )
-        {
-            return getRounded( value, 2 );
-        }
-        else
-        {
-            return getRounded( value, 1 );
-        }
+        int scale = ( value < 1d && value > -1d ) ? 2 : 1;
+        
+        return Precision.round( value, scale );
     }
 
     /**
@@ -269,7 +250,7 @@ public class MathUtils
     {
         if ( value >= 10.0 || value <= -10.0 )
         {
-            return getRounded( value, 1 );
+            return Precision.round( value, 1 );
         }
         else
         {
@@ -300,21 +281,6 @@ public class MathUtils
         final double magnitude = Math.pow( 10.0, power );
         final long shifted = Math.round( value * magnitude );
         return shifted / magnitude;
-    }
-
-    /**
-     * Returns a string representation of number rounded to given number of
-     * significant figures
-     *
-     * @param value
-     * @param significantFigures
-     * @return
-     */
-    public static String roundToString( double value, int significantFigures )
-    {
-        MathContext mc = new MathContext( significantFigures );
-        BigDecimal num = new BigDecimal( value );
-        return num.round( mc ).toPlainString();
     }
 
     /**

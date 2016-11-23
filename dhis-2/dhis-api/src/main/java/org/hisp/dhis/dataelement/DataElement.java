@@ -709,6 +709,28 @@ public class DataElement
         this.commentOptionSet = commentOptionSet;
     }
 
+    public boolean isPeriodInDataSetOpenPeriods( Period period )
+    {
+        if ( getDataSets().isEmpty() )
+        {
+            return true;
+        }
+
+        boolean result = false;
+
+        for ( DataSet dataSet : getDataSets() )
+        {
+            if ( dataSet.getOpenPeriods().contains( period ))
+            {
+                return true;
+            }
+
+            result = result || dataSet.getOpenPeriods().isEmpty();
+        }
+
+        return result;
+    }
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
