@@ -32,6 +32,7 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of QueryEngine that uses Hibernate Criteria and
@@ -107,7 +109,9 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             return new ArrayList<>();
         }
 
-        return criteria.list();
+        query.getAliases().forEach( alias -> criteria.createAlias( alias, alias, JoinType.INNER_JOIN ) );
+
+        return (List<T>) criteria.list().stream().distinct().collect( Collectors.toList() );
     }
 
     @Override

@@ -40,6 +40,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -96,6 +97,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
                 if ( !junction.getCriterions().isEmpty() )
                 {
+                    pQuery.getAliases().addAll( junction.getAliases() );
                     pQuery.add( junction );
                 }
 
@@ -111,6 +113,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
                 if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias() )
                 {
+                    pQuery.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
                 }
@@ -142,6 +145,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
                 if ( !junction.getCriterions().isEmpty() )
                 {
+                    criteriaJunction.getAliases().addAll( junction.getAliases() );
                     criteriaJunction.add( junction );
                 }
 
@@ -155,8 +159,9 @@ public class DefaultQueryPlanner implements QueryPlanner
                 Restriction restriction = (Restriction) criterion;
                 restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
 
-                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias() )
+                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias( 1 ) )
                 {
+                    criteriaJunction.getAliases().addAll( Arrays.asList( ((Restriction) criterion).getQueryPath().getAlias() ) );
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();
                 }
