@@ -783,6 +783,35 @@ public abstract class AbstractEventService
             dataValueService.getTrackedEntityDataValues( programStageInstance ) );
         Map<String, TrackedEntityDataValue> existingDataValues = getDataElementDataValueMap( dataValues );
 
+        if ( programStageInstance.getProgramStage().getCaptureCoordinates() )
+        {
+            Coordinate coordinate = null;
+
+            if ( programStageInstance.getLongitude() != null && programStageInstance.getLatitude() != null )
+            {
+                coordinate = new Coordinate( programStageInstance.getLongitude(), programStageInstance.getLatitude() );
+
+                try
+                {
+                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(),
+                        new TypeReference<List<Double>>()
+                        {
+                        } );
+
+                    coordinate.setLongitude( list.get( 0 ) );
+                    coordinate.setLatitude( list.get( 1 ) );
+                }
+                catch ( IOException ignored )
+                {
+                }
+            }
+
+            if ( coordinate != null && coordinate.isValid() )
+            {
+                event.setCoordinate( coordinate );
+            }
+        }
+
         for ( DataValue value : event.getDataValues() )
         {
             DataElement dataElement = getDataElement( importOptions.getIdSchemes().getDataElementIdScheme(),
