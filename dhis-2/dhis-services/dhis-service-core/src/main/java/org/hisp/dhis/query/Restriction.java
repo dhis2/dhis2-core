@@ -29,6 +29,7 @@ package org.hisp.dhis.query;
  */
 
 import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,6 +46,11 @@ public class Restriction implements Criterion
      */
     private Operator operator;
 
+    /**
+     * Query Path.
+     */
+    private QueryPath queryPath;
+
     public Restriction( String path, Operator operator )
     {
         this.path = path;
@@ -59,6 +65,22 @@ public class Restriction implements Criterion
     public Operator getOperator()
     {
         return operator;
+    }
+
+    public QueryPath getQueryPath()
+    {
+        return queryPath;
+    }
+
+    public Restriction setQueryPath( QueryPath queryPath )
+    {
+        this.queryPath = queryPath;
+        return this;
+    }
+
+    public boolean haveQueryPath()
+    {
+        return queryPath != null;
     }
 
     @Override

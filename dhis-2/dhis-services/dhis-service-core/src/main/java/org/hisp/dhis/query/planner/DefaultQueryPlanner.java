@@ -103,9 +103,9 @@ public class DefaultQueryPlanner implements QueryPlanner
             else if ( Restriction.class.isInstance( criterion ) )
             {
                 Restriction restriction = (Restriction) criterion;
-                QueryPath queryPath = getQueryPath( query.getSchema(), restriction.getPath() );
+                restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
 
-                if ( queryPath != null && queryPath.isPersisted() && !queryPath.haveAlias() )
+                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias() )
                 {
                     pQuery.getCriterions().add( criterion );
                     iterator.remove();
@@ -149,9 +149,9 @@ public class DefaultQueryPlanner implements QueryPlanner
             else if ( Restriction.class.isInstance( criterion ) )
             {
                 Restriction restriction = (Restriction) criterion;
-                QueryPath queryPath = getQueryPath( query.getSchema(), restriction.getPath() );
+                restriction.setQueryPath( getQueryPath( query.getSchema(), restriction.getPath() ) );
 
-                if ( queryPath != null && queryPath.isPersisted() && !queryPath.haveAlias() )
+                if ( restriction.getQueryPath().isPersisted() && !restriction.getQueryPath().haveAlias() )
                 {
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();

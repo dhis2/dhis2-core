@@ -80,7 +80,12 @@ public class QueryPath
 
     public boolean haveAlias()
     {
-        return alias.length > 0;
+        return haveAlias( 0 );
+    }
+
+    public boolean haveAlias( int n )
+    {
+        return alias != null && alias.length > n;
     }
 
     @Override
