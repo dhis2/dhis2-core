@@ -37,7 +37,7 @@ import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
