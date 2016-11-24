@@ -33,6 +33,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
+import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
 import java.util.ArrayList;
@@ -119,7 +120,7 @@ public abstract class Operator
         return typed.isValid( klass );
     }
 
-    public abstract Criterion getHibernateCriterion( Property property );
+    public abstract Criterion getHibernateCriterion( QueryPath queryPath );
 
     public abstract boolean test( Object value );
 

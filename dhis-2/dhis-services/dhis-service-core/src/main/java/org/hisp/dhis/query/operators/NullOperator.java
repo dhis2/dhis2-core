@@ -31,7 +31,7 @@ package org.hisp.dhis.query.operators;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPath;
 
 import java.util.Date;
 
@@ -46,9 +46,9 @@ public class NullOperator extends Operator
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.isNull( property.getFieldName() );
+        return Restrictions.isNull( queryPath.getPath() );
     }
 
     @Override

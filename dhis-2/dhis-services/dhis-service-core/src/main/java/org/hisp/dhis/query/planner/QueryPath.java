@@ -30,6 +30,7 @@ package org.hisp.dhis.query.planner;
 
 import com.google.api.client.repackaged.com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.schema.Property;
 
 import java.util.Arrays;
 
@@ -38,7 +39,7 @@ import java.util.Arrays;
  */
 public class QueryPath
 {
-    private final String name;
+    private final Property property;
 
     private final boolean persisted;
 
@@ -46,26 +47,26 @@ public class QueryPath
 
     private static final Joiner PATH_JOINER = Joiner.on( "." );
 
-    public QueryPath( String name, boolean persisted )
+    public QueryPath( Property property, boolean persisted )
     {
-        this.name = name;
+        this.property = property;
         this.persisted = persisted;
     }
 
-    public QueryPath( String name, boolean persisted, String[] alias )
+    public QueryPath( Property property, boolean persisted, String[] alias )
     {
-        this( name, persisted );
+        this( property, persisted );
         this.alias = alias;
     }
 
-    public String getName()
+    public Property getProperty()
     {
-        return name;
+        return property;
     }
 
     public String getPath()
     {
-        return haveAlias() ? name : PATH_JOINER.join( alias ) + "." + name;
+        return haveAlias() ? PATH_JOINER.join( alias ) + "." + property.getFieldName() : property.getFieldName();
     }
 
     public boolean isPersisted()
@@ -80,7 +81,7 @@ public class QueryPath
 
     public boolean haveAlias()
     {
-        return haveAlias( 0 );
+        return alias != null && alias.length > 0;
     }
 
     public boolean haveAlias( int n )
@@ -92,7 +93,8 @@ public class QueryPath
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-            .add( "name", name )
+            .add( "name", property.getName() )
+            .add( "path", getPath() )
             .add( "persisted", persisted )
             .add( "alias", Arrays.toString( alias ) )
             .toString();

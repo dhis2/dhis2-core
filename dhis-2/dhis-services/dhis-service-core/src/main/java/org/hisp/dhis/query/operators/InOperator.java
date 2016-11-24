@@ -32,7 +32,7 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPath;
 
 import java.util.Collection;
 import java.util.Date;
@@ -53,9 +53,9 @@ public class InOperator extends Operator
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.in( property.getFieldName(), getValue( Collection.class, property.getItemKlass(), args.get( 0 ) ) );
+        return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
     }
 
     @Override

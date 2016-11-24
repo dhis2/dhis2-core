@@ -57,6 +57,8 @@ public class Query extends Criteria
 
     private Junction.Type rootJunctionType = Junction.Type.AND;
 
+    private boolean plannedQuery;
+
     private List<? extends IdentifiableObject> objects;
 
     public static Query from( Schema schema )
@@ -196,6 +198,17 @@ public class Query extends Criteria
         }
 
         throw new QueryException( "Unhandled junction type: " + rootJunctionType );
+    }
+
+    public boolean isPlannedQuery()
+    {
+        return plannedQuery;
+    }
+
+    public Query setPlannedQuery( boolean plannedQuery )
+    {
+        this.plannedQuery = plannedQuery;
+        return this;
     }
 
     public List<? extends IdentifiableObject> getObjects()

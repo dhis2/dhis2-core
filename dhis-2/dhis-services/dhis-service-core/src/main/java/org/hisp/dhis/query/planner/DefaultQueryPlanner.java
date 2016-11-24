@@ -54,8 +54,14 @@ public class DefaultQueryPlanner implements QueryPlanner
     @Override
     public QueryPlan planQuery( Query query )
     {
-        Query npQuery = Query.from( query );
-        Query pQuery = getPersistedQuery( npQuery );
+        return planQuery( query, false );
+    }
+
+    @Override
+    public QueryPlan planQuery( Query query, boolean persistedOnly )
+    {
+        Query npQuery = Query.from( query ).setPlannedQuery( true );
+        Query pQuery = getQuery( npQuery, persistedOnly ).setPlannedQuery( true );
 
         // if there are any non persisted criterions left, we leave the paging to the in-memory engine
         if ( !npQuery.getCriterions().isEmpty() )
@@ -72,12 +78,10 @@ public class DefaultQueryPlanner implements QueryPlanner
     }
 
     /**
-     * Remove criterions that can be applied by criteria engine, and return those.
-     *
      * @param query Query
      * @return Query instance
      */
-    private Query getPersistedQuery( Query query )
+    private Query getQuery( Query query, boolean persistedOnly )
     {
         Query pQuery = Query.from( query.getSchema(), query.getRootJunction().getType() );
         Iterator<Criterion> iterator = query.getCriterions().iterator();
@@ -88,7 +92,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
             if ( Junction.class.isInstance( criterion ) )
             {
-                Junction junction = handleJunctionCriteriaQuery( pQuery, (Junction) criterion );
+                Junction junction = handleJunction( pQuery, (Junction) criterion, persistedOnly );
 
                 if ( !junction.getCriterions().isEmpty() )
                 {
@@ -122,7 +126,7 @@ public class DefaultQueryPlanner implements QueryPlanner
         return pQuery;
     }
 
-    private Junction handleJunctionCriteriaQuery( Query query, Junction queryJunction )
+    private Junction handleJunction( Query query, Junction queryJunction, boolean persistedOnly )
     {
         Iterator<org.hisp.dhis.query.Criterion> iterator = queryJunction.getCriterions().iterator();
         Junction criteriaJunction = Disjunction.class.isInstance( queryJunction ) ?
@@ -134,7 +138,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
             if ( Junction.class.isInstance( criterion ) )
             {
-                Junction junction = handleJunctionCriteriaQuery( query, (Junction) criterion );
+                Junction junction = handleJunction( query, (Junction) criterion, persistedOnly );
 
                 if ( !junction.getCriterions().isEmpty() )
                 {
@@ -156,6 +160,11 @@ public class DefaultQueryPlanner implements QueryPlanner
                     criteriaJunction.getCriterions().add( criterion );
                     iterator.remove();
                 }
+                else if ( persistedOnly )
+                {
+                    throw new RuntimeException( "Path " + restriction.getQueryPath().getPath() +
+                        " is not fully persisted, unable to build persisted only query plan." );
+                }
             }
         }
 
@@ -165,8 +174,7 @@ public class DefaultQueryPlanner implements QueryPlanner
     private QueryPath getQueryPath( Schema schema, String path )
     {
         Schema curSchema = schema;
-        Property curProperty;
-        String name = null;
+        Property curProperty = null;
         boolean persisted = true;
         List<String> alias = new ArrayList<>();
         String[] pathComponents = path.split( "\\." );
@@ -178,7 +186,7 @@ public class DefaultQueryPlanner implements QueryPlanner
 
         for ( int idx = 0; idx < pathComponents.length; idx++ )
         {
-            name = pathComponents[idx];
+            String name = pathComponents[idx];
             curProperty = curSchema.getProperty( name );
 
             if ( curProperty == null )
@@ -193,25 +201,25 @@ public class DefaultQueryPlanner implements QueryPlanner
 
             if ( (!curProperty.isSimple() && idx == pathComponents.length - 1) )
             {
-                return new QueryPath( name, persisted, alias.toArray( new String[]{} ) );
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
             }
 
             if ( curProperty.isCollection() )
             {
                 curSchema = schemaService.getDynamicSchema( curProperty.getItemKlass() );
-                alias.add( curProperty.getCollectionName() );
+                alias.add( curProperty.getFieldName() );
             }
             else if ( !curProperty.isSimple() )
             {
                 curSchema = schemaService.getDynamicSchema( curProperty.getKlass() );
-                alias.add( curProperty.getName() );
+                alias.add( curProperty.getFieldName() );
             }
             else
             {
-                return new QueryPath( name, persisted, alias.toArray( new String[]{} ) );
+                return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
             }
         }
 
-        return new QueryPath( name, persisted, alias.toArray( new String[]{} ) );
+        return new QueryPath( curProperty, persisted, alias.toArray( new String[]{} ) );
     }
 }

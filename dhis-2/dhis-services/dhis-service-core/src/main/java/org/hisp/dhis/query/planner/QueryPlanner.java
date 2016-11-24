@@ -36,4 +36,6 @@ import org.hisp.dhis.query.Query;
 public interface QueryPlanner
 {
     QueryPlan planQuery( Query query );
+
+    QueryPlan planQuery( Query query, boolean persistedOnly );
 }

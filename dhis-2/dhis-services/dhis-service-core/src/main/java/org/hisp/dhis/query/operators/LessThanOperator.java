@@ -34,6 +34,7 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
+import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
 import java.util.Collection;
@@ -50,8 +51,10 @@ public class LessThanOperator extends Operator
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
+        Property property = queryPath.getProperty();
+
         if ( property.isCollection() )
         {
             Integer value = QueryUtils.parseValue( Integer.class, args.get( 0 ) );
@@ -61,10 +64,10 @@ public class LessThanOperator extends Operator
                 throw new QueryException( "Left-side is collection, and right-side is not a valid integer, so can't compare by size." );
             }
 
-            return Restrictions.sizeLt( property.getFieldName(), value );
+            return Restrictions.sizeLt( queryPath.getPath(), value );
         }
 
-        return Restrictions.lt( property.getFieldName(), args.get( 0 ) );
+        return Restrictions.lt( queryPath.getPath(), args.get( 0 ) );
     }
 
     @Override
