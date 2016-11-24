@@ -46,7 +46,7 @@ import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.utils.WebMessageUtils;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datastatistics.EventInterval;

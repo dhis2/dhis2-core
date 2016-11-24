@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
-       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
-  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd">
 
   <bean class="org.hisp.dhis.dxf2.metadata2.objectbundle.hooks.IdentifiableObjectBundleHook" />
 
@@ -25,6 +25,8 @@
   <bean class="org.hisp.dhis.dxf2.metadata2.objectbundle.hooks.ValidationRuleObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata2.objectbundle.hooks.PredictorObjectBundleHook" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata2.collection.CollectionService" class="org.hisp.dhis.dxf2.metadata2.collection.DefaultCollectionService" />
 
   <bean id="org.hisp.dhis.dxf2.metadata2.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata2.objectbundle.DefaultObjectBundleService" />
 
@@ -51,10 +53,10 @@
   <bean id="org.hisp.dhis.dxf2.metadata.ObjectBridge" class="org.hisp.dhis.dxf2.metadata.DefaultObjectBridge" scope="prototype" />
 
   <bean id="org.hisp.dhis.dxf2.datavalueset.DataValueSetService"
-        class="org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService" />
+    class="org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService" />
 
   <bean id="org.hisp.dhis.dxf2.datavalueset.DataValueSetStore"
-        class="org.hisp.dhis.dxf2.datavalueset.SpringDataValueSetStore">
+    class="org.hisp.dhis.dxf2.datavalueset.SpringDataValueSetStore">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
@@ -69,12 +71,12 @@
   <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
 
   <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"
-        class="org.hisp.dhis.dxf2.events.trackedentity.JacksonTrackedEntityInstanceService" scope="prototype">
+    class="org.hisp.dhis.dxf2.events.trackedentity.JacksonTrackedEntityInstanceService" scope="prototype">
     <aop:scoped-proxy proxy-target-class="false" />
   </bean>
 
   <bean id="org.hisp.dhis.dxf2.events.enrollment.EnrollmentService"
-        class="org.hisp.dhis.dxf2.events.enrollment.JacksonEnrollmentService" scope="prototype">
+    class="org.hisp.dhis.dxf2.events.enrollment.JacksonEnrollmentService" scope="prototype">
     <aop:scoped-proxy proxy-target-class="false" />
   </bean>
 
@@ -84,11 +86,11 @@
 
   <bean id="org.hisp.dhis.dxf2.synch.SynchronizationManager" class="org.hisp.dhis.dxf2.synch.DefaultSynchronizationManager" />
 
-  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" scope="prototype"/>
+  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" scope="prototype" />
 
   <bean id="dataSynchTask" class="org.hisp.dhis.dxf2.synch.DataSynchronizationTask" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService"  scope="prototype"/>
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" class="org.hisp.dhis.dxf2.metadata.sync.DefaultMetadataSyncService" scope="prototype" />
 
   <bean id="metadataSyncTask" class="org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask" scope="prototype" />
 
@@ -98,29 +100,29 @@
 
   <bean id="metadataSyncPostProcessor" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" class="org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService" scope="prototype"/>
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" class="org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncImportHandler" scope="prototype"/>
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncImportHandler" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype"/>
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype" />
 
-  <bean id="retryPolicy" class ="org.springframework.retry.policy.SimpleRetryPolicy">
-    <property name="maxAttempts" ref="maxAttempts"/>
+  <bean id="retryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
+    <property name="maxAttempts" ref="maxAttempts" />
   </bean>
 
-  <bean id="backOffPolicy" class ="org.springframework.retry.backoff.ExponentialBackOffPolicy">
-    <property name="initialInterval" ref="initialInterval"/>
+  <bean id="backOffPolicy" class="org.springframework.retry.backoff.ExponentialBackOffPolicy">
+    <property name="initialInterval" ref="initialInterval" />
   </bean>
 
   <bean id="retryTemplate" class="org.springframework.retry.support.RetryTemplate">
-    <property name="backOffPolicy" ref="backOffPolicy"/>
-    <property name="retryPolicy" ref ="retryPolicy"/>
+    <property name="backOffPolicy" ref="backOffPolicy" />
+    <property name="retryPolicy" ref="retryPolicy" />
   </bean>
 
   <!-- register idObject handlers -->
 
   <bean id="organisationUnitObjectHandler"
-        class="org.hisp.dhis.dxf2.metadata.handlers.OrganisationUnitObjectHandler" scope="prototype" />
+    class="org.hisp.dhis.dxf2.metadata.handlers.OrganisationUnitObjectHandler" scope="prototype" />
 
   <!-- register importers -->
 
@@ -157,7 +159,7 @@
   </bean>
 
   <bean id="categoryOptionGroupSetImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.dataelement.CategoryOptionGroupSet" />
   </bean>
 
@@ -262,17 +264,17 @@
   </bean>
 
   <bean id="organisationUnitLevelImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.organisationunit.OrganisationUnitLevel" />
   </bean>
 
   <bean id="organisationUnitGroupImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.organisationunit.OrganisationUnitGroup" />
   </bean>
 
   <bean id="organisationUnitGroupSetImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" />
   </bean>
 
@@ -371,37 +373,37 @@
   </bean>
 
   <bean id="trackedEntityImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.trackedentity.TrackedEntity" />
   </bean>
 
   <bean id="trackedEntityAttributeImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.trackedentity.TrackedEntityAttribute" />
   </bean>
 
   <bean id="trackedEntityAttributeGroupImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.trackedentity.TrackedEntityAttributeGroup" />
   </bean>
 
   <bean id="dashboardImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.dashboard.Dashboard" />
   </bean>
 
   <bean id="dashboardItemImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.dashboard.DashboardItem" />
   </bean>
 
   <bean id="oAuth2ClientImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.security.oauth2.OAuth2Client" />
   </bean>
 
   <bean id="programTrackedEntityAttributeImporter" class="org.hisp.dhis.dxf2.metadata.importers.DefaultIdentifiableObjectImporter"
-        scope="prototype">
+    scope="prototype">
     <constructor-arg name="importerClass" type="java.lang.Class" value="org.hisp.dhis.program.ProgramTrackedEntityAttribute" />
   </bean>
 

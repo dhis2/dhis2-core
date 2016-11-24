@@ -40,7 +40,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationSummary;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

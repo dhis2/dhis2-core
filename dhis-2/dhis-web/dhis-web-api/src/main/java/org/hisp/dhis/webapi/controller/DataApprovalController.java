@@ -64,7 +64,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.approval.Approval;
 import org.hisp.dhis.webapi.webdomain.approval.Approvals;
 import org.springframework.beans.factory.annotation.Autowired;
