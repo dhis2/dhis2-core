@@ -1458,55 +1458,6 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    public void testCreateOrgUnitWithTranslations() throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/ou_with_translation.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.ALL );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
-
-        OrganisationUnit root = manager.get( OrganisationUnit.class, "inVD5SdytkT" );
-        assertNull( root.getParent() );
-        assertEquals( 3, root.getChildren().size() );
-        assertEquals( 1, root.getTranslations().size() );
-    }
-
-    @Test
-    public void testSetDefaultCategoryCombo() throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/de_no_cc.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setAtomicMode( AtomicMode.ALL );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
-
-        List<DataElement> dataElements = manager.getAll( DataElement.class );
-        assertEquals( 1, dataElements.size() );
-
-        DataElement dataElement = dataElements.get( 0 );
-
-        assertEquals( "CCCC", dataElement.getName() );
-        assertEquals( "CCCC", dataElement.getShortName() );
-    }
-
-    @Test
     public void testCreateDuplicateDefault() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
