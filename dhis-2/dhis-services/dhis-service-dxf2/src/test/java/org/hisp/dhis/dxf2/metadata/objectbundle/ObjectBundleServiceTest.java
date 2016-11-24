@@ -1485,33 +1485,6 @@ public class ObjectBundleServiceTest
     }
 
     @Test
-    public void testSetDefaultCategoryCombo() throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/de_no_cc.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setAtomicMode( AtomicMode.ALL );
-        params.setObjects( metadata );
-
-        ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
-
-        objectBundleService.commit( bundle );
-
-        List<DataElement> dataElements = manager.getAll( DataElement.class );
-        assertEquals( 1, dataElements.size() );
-
-        DataElement dataElement = dataElements.get( 0 );
-
-        assertEquals( "CCCC", dataElement.getName() );
-        assertEquals( "CCCC", dataElement.getShortName() );
-        assertNotNull( dataElement.getDataElementCategoryCombo() );
-    }
-
-    @Test
     public void testCreateDuplicateDefault() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
