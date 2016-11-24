@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -397,7 +398,7 @@ public class Preheat
     public static boolean isDefaultClass( Class<?> klass )
     {
         return DataElementCategory.class.isAssignableFrom( klass ) || DataElementCategoryOption.class.isAssignableFrom( klass )
-            || DataElementCategoryCombo.class.isAssignableFrom( klass );
+            || DataElementCategoryCombo.class.isAssignableFrom( klass ) || DataElementCategoryOptionCombo.class.isAssignableFrom( klass );
     }
 
     public static boolean isDefault( IdentifiableObject object )
