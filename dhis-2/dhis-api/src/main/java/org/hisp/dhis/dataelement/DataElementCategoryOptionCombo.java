@@ -270,6 +270,38 @@ public class DataElementCategoryOptionCombo
         return orgUnits;
     }
 
+    public Date getLatestStartDate()
+    {
+        Date latestStartDate = null;
+        
+        for ( DataElementCategoryOption co : getCategoryOptions() )
+        {
+            if ( co.getStartDate() != null )
+            {
+                latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ?
+                    co.getStartDate() : latestStartDate);
+            }
+        }
+
+        return latestStartDate;
+    }
+
+    public Date getEarliestEndDate()
+    {
+        Date earliestEndDate = null;
+        
+        for ( DataElementCategoryOption co : getCategoryOptions() )
+        {
+            if ( co.getEndDate() != null )
+            {
+                earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ?
+                    co.getStartDate() : earliestEndDate);
+            }
+        }
+
+        return earliestEndDate;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -380,38 +412,6 @@ public class DataElementCategoryOptionCombo
     public void setIgnoreApproval( boolean ignoreApproval )
     {
         this.ignoreApproval = ignoreApproval;
-    }
-
-    public Date getLatestStartDate()
-    {
-        Date latestStartDate = null;
-        for( DataElementCategoryOption co : getCategoryOptions() )
-        {
-            if(co.getStartDate() != null)
-            {
-                latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ?
-                    co.getStartDate() :
-                    latestStartDate);
-            }
-        }
-
-        return latestStartDate;
-    }
-
-    public Date getEarliestEndDate()
-    {
-        Date earliestEndDate = null;
-        for( DataElementCategoryOption co : getCategoryOptions() )
-        {
-            if(co.getEndDate() != null)
-            {
-                earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ?
-                    co.getStartDate() :
-                    earliestEndDate);
-            }
-        }
-
-        return earliestEndDate;
     }
 
     @Override
