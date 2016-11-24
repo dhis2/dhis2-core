@@ -30,9 +30,7 @@ package org.hisp.dhis.query;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
@@ -109,7 +107,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             return new ArrayList<>();
         }
 
-        query.getAliases().forEach( alias -> criteria.createAlias( alias, alias, JoinType.INNER_JOIN ) );
+        query.getAliases().forEach( alias -> criteria.createAlias( alias, alias ) );
 
         return (List<T>) criteria.list().stream().distinct().collect( Collectors.toList() );
     }
@@ -118,43 +116,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     @SuppressWarnings( "unchecked" )
     public int count( Query query )
     {
-        Schema schema = query.getSchema();
-
-        Query countQuery = Query.from( query ).setSkipPaging( true );
-
-        if ( schema == null )
-        {
-            return 0;
-        }
-
-        InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject>) schema.getKlass() );
-
-        if ( store == null )
-        {
-            return 0;
-        }
-
-        if ( query.getUser() == null )
-        {
-            query.setUser( currentUserService.getCurrentUser() );
-        }
-
-        if ( !query.isPlannedQuery() )
-        {
-            QueryPlan queryPlan = queryPlanner.planQuery( query, true );
-            query = queryPlan.getPersistedQuery();
-        }
-
-        Criteria criteria = buildCriteria( store.getSharingCriteria( query.getUser() ), countQuery );
-
-        if ( criteria == null )
-        {
-            return 0;
-        }
-
-        return ((Number) criteria
-            .setProjection( Projections.countDistinct( "id" ) )
-            .uniqueResult()).intValue();
+        return query( Query.from( query ).setSkipPaging( true ) ).size();
     }
 
     private Criteria buildCriteria( Criteria criteria, Query query )
