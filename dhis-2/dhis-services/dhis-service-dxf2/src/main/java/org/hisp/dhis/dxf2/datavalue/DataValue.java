@@ -94,6 +94,17 @@ public class DataValue
         return creat != null && !creat.isEmpty();
     }
     
+    public String getPrimaryKey()
+    {
+        return new StringBuilder()
+            .append( dataElement )
+            .append( period )
+            .append( orgUnit )
+            .append( categoryOptionCombo )
+            .append( attributeOptionCombo )
+            .toString();
+    }
+    
     @Override
     public String toString()
     {

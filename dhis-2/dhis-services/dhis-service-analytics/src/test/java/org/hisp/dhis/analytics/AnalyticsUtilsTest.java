@@ -313,7 +313,7 @@ public class AnalyticsUtilsTest
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxD", "ouA", "peA", 9d ) );
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxE", "ouA", "peB", 10d ) );
         
-        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( grid );
+        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( grid, DataQueryParams.newBuilder().build() );
         
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
@@ -353,5 +353,39 @@ public class AnalyticsUtilsTest
         assertNull( dvs.getDataValues().get( 9 ).getCategoryOptionCombo() );
         assertNull( dvs.getDataValues().get( 9 ).getAttributeOptionCombo() );
         assertEquals( "10", dvs.getDataValues().get( 9 ).getValue() );        
+    }
+
+    @Test
+    public void testGetDataValueSetFromGridWithDuplicates()
+    {
+        Map<String, DimensionalItemObject> itemMap = Maps.newHashMap();
+
+        Grid grid = new ListGrid();
+        
+        grid.getMetaData().put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), itemMap );
+        
+        grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
+        grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
+        
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", 1d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", 2d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", 2d ) ); // Duplicate
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peA", 3d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouB", "peB", 4d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", 5d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", 5d ) ); // Duplicate
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peB", 6d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", 7d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", 7d ) ); // Duplicate
+        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peB", 8d ) );
+        
+        DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( grid, 
+            DataQueryParams.newBuilder()
+            .withDuplicatesOnly( true ).build() );
+
+        assertNotNull( dvs );
+        assertNotNull( dvs.getDataValues() );
+        assertEquals( 3, dvs.getDataValues().size() );
     }
 }
