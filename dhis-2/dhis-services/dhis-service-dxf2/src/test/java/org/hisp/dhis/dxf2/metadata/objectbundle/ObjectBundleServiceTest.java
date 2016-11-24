@@ -39,6 +39,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -543,7 +544,6 @@ public class ObjectBundleServiceTest
         assertFalse( user.getOrganisationUnits().isEmpty() );
         assertEquals( "PdWlltZnVZe", user.getOrganisationUnit().getUid() );
     }
-
 
     @Test
     public void testCreateDataSetsWithUgaUID() throws IOException
@@ -1482,6 +1482,59 @@ public class ObjectBundleServiceTest
         assertNull( root.getParent() );
         assertEquals( 3, root.getChildren().size() );
         assertEquals( 1, root.getTranslations().size() );
+    }
+
+    @Test
+    public void testSetDefaultCategoryCombo() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/de_no_cc.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setAtomicMode( AtomicMode.ALL );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        List<DataElement> dataElements = manager.getAll( DataElement.class );
+        assertEquals( 1, dataElements.size() );
+
+        DataElement dataElement = dataElements.get( 0 );
+
+        assertEquals( "CCCC", dataElement.getName() );
+        assertEquals( "CCCC", dataElement.getShortName() );
+        assertNotNull( dataElement.getDataElementCategoryCombo() );
+    }
+
+    @Test
+    public void testCreateDuplicateDefault() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/metadata_duplicate_default.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleValidationService.validate( bundle );
+        objectBundleService.commit( bundle );
+
+        List<DataElementCategory> categories = manager.getAllByName( DataElementCategory.class, "default" );
+        List<DataElementCategoryOption> categoryOptions = manager.getAllByName( DataElementCategoryOption.class, "default" );
+        List<DataElementCategoryCombo> categoryCombos = manager.getAllByName( DataElementCategoryCombo.class, "default" );
+        List<DataElementCategoryOptionCombo> categoryOptionCombos = manager.getAllByName( DataElementCategoryOptionCombo.class, "default" );
+
+        assertEquals( 1, categories.size() );
+        assertEquals( 1, categoryOptions.size() );
+        assertEquals( 1, categoryCombos.size() );
+        assertEquals( 1, categoryOptionCombos.size() );
     }
 
     private void defaultSetup()
