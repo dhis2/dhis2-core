@@ -1,8 +1,8 @@
-package org.hisp.dhis.query;
+package org.hisp.dhis.query.planner;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,35 +28,75 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Schema;
+import com.google.api.client.repackaged.com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.schema.Property;
+
+import java.util.Arrays;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class Junction extends Criteria implements Criterion
+public class QueryPath
 {
-    public enum Type
+    private final Property property;
+
+    private final boolean persisted;
+
+    private String[] alias = new String[]{};
+
+    private static final Joiner PATH_JOINER = Joiner.on( "." );
+
+    public QueryPath( Property property, boolean persisted )
     {
-        AND, OR
+        this.property = property;
+        this.persisted = persisted;
     }
 
-    protected Type type;
-
-    public Junction( Schema schema, Type type )
+    public QueryPath( Property property, boolean persisted, String[] alias )
     {
-        super( schema );
-        this.type = type;
+        this( property, persisted );
+        this.alias = alias;
     }
 
-    public Type getType()
+    public Property getProperty()
     {
-        return type;
+        return property;
     }
 
+    public String getPath()
+    {
+        return haveAlias() ? PATH_JOINER.join( alias ) + "." + property.getFieldName() : property.getFieldName();
+    }
+
+    public boolean isPersisted()
+    {
+        return persisted;
+    }
+
+    public String[] getAlias()
+    {
+        return alias;
+    }
+
+    public boolean haveAlias()
+    {
+        return alias != null && alias.length > 0;
+    }
+
+    public boolean haveAlias( int n )
+    {
+        return alias != null && alias.length > n;
+    }
 
     @Override
     public String toString()
     {
-        return "[ " + type + ", " + criterions + "]";
+        return MoreObjects.toStringHelper( this )
+            .add( "name", property.getName() )
+            .add( "path", getPath() )
+            .add( "persisted", persisted )
+            .add( "alias", Arrays.toString( alias ) )
+            .toString();
     }
 }
