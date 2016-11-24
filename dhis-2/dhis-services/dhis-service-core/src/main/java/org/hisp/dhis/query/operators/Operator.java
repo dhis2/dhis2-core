@@ -34,7 +34,6 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-import org.hisp.dhis.schema.Property;
 
 import java.util.ArrayList;
 import java.util.Collections;

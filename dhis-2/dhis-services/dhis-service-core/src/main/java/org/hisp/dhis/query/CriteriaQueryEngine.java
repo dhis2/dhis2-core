@@ -113,7 +113,6 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public int count( Query query )
     {
         return query( Query.from( query ).setSkipPaging( true ) ).size();
