@@ -133,6 +133,8 @@ public class OrganisationUnit
     private transient List<String> groupNames = new ArrayList<>();
 
     private transient Double value;
+    
+    private transient Integer memberCount;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -349,6 +351,8 @@ public class OrganisationUnit
         return !this.children.isEmpty();
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
     public boolean isLeaf()
     {
         return children == null || children.isEmpty();
@@ -875,7 +879,7 @@ public class OrganisationUnit
     }
 
     /**
-     * Do not set directly.
+     * Do not set directly, managed by persistence layer.
      */
     public void setPath( String path )
     {
@@ -1174,6 +1178,22 @@ public class OrganisationUnit
     {
         this.currentParent = currentParent;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getMemberCount()
+    {
+        return memberCount;
+    }
+
+    public void setMemberCount( Integer memberCount )
+    {
+        this.memberCount = memberCount;
+    }
+
+    // -------------------------------------------------------------------------
+    // Merge
+    // -------------------------------------------------------------------------
 
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
