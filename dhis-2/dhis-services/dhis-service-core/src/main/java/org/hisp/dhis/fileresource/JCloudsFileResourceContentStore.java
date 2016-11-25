@@ -61,7 +61,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -320,30 +319,10 @@ public class JCloudsFileResourceContentStore
 
     private String putBlob( Blob blob )
     {
-        String etag = null;
-
-        try
-        {
-            etag = blobStore.putBlob( config.container, blob );
-        }
-        catch ( RuntimeException rte )
-        {
-            Throwable cause = rte.getCause();
-
-            if ( cause != null && cause instanceof UserPrincipalNotFoundException )
-            {
-                // Intentionally ignored exception which occurs with JClouds on localized
-                // Windows systems while trying to resolve the "Everyone" group.
-                // See https://issues.apache.org/jira/browse/JCLOUDS-1015
-                log.debug( "Ignored UserPrincipalNotFoundException. Workaround for JClouds bug 'JCLOUDS-1015'." );
-            }
-            else
-            {
-                throw rte;
-            }
-        }
-
-        return etag;
+        // Note:
+        //  On JClouds < 2.0.0 this line is affected by 'JCLOUDS-1015'.
+        //  The workaround was to catch 'UserPrincipalNotFoundException', but this should no longer be necessary.
+        return blobStore.putBlob( config.container, blob );
     }
 
     private Blob createBlob( FileResource fileResource, byte[] bytes )
