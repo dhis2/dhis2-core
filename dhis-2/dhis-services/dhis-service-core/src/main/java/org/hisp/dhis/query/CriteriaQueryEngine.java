@@ -30,7 +30,10 @@ package org.hisp.dhis.query;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.planner.QueryPlan;
@@ -43,7 +46,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of QueryEngine that uses Hibernate Criteria and
@@ -100,29 +102,12 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             query = queryPlan.getPersistedQuery();
         }
 
-        Criteria criteria = buildCriteria( store.getSharingCriteria( query.getUser() ), query );
+        DetachedCriteria detachedCriteria = buildCriteria( store.getSharingDetachedCriteria( query.getUser() ), query );
+        Criteria criteria = store.getCriteria();
 
         if ( criteria == null )
         {
             return new ArrayList<>();
-        }
-
-        query.getAliases().forEach( alias -> criteria.createAlias( alias, alias ) );
-
-        return (List<T>) criteria.list().stream().distinct().collect( Collectors.toList() );
-    }
-
-    @Override
-    public int count( Query query )
-    {
-        return query( Query.from( query ).setSkipPaging( true ) ).size();
-    }
-
-    private Criteria buildCriteria( Criteria criteria, Query query )
-    {
-        for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
-        {
-            addCriterion( criteria, criterion );
         }
 
         criteria.setFirstResult( query.getFirstResult() );
@@ -133,7 +118,61 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             criteria.addOrder( getHibernateOrder( order ) );
         }
 
-        return criteria;
+        return criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) ).list();
+    }
+
+    @Override
+    public int count( Query query )
+    {
+        return query( Query.from( query ).setSkipPaging( true ) ).size();
+    }
+
+    private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
+    {
+        for ( org.hisp.dhis.query.Criterion criterion : query.getCriterions() )
+        {
+            addCriterion( detachedCriteria, criterion );
+        }
+
+        query.getAliases().forEach( alias -> detachedCriteria.createAlias( alias, alias ) );
+
+        return detachedCriteria.setProjection(
+            Projections.distinct( Projections.id() )
+        );
+    }
+
+    private void addCriterion( DetachedCriteria criteria, org.hisp.dhis.query.Criterion criterion )
+    {
+        if ( Restriction.class.isInstance( criterion ) )
+        {
+            Restriction restriction = (Restriction) criterion;
+            Criterion hibernateCriterion = getHibernateCriterion( restriction );
+
+            if ( hibernateCriterion != null )
+            {
+                criteria.add( hibernateCriterion );
+            }
+        }
+        else if ( Junction.class.isInstance( criterion ) )
+        {
+            org.hibernate.criterion.Junction junction = null;
+
+            if ( Disjunction.class.isInstance( criterion ) )
+            {
+                junction = Restrictions.disjunction();
+            }
+            else if ( Conjunction.class.isInstance( criterion ) )
+            {
+                junction = Restrictions.conjunction();
+            }
+
+            criteria.add( junction );
+
+            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
+            {
+                addJunction( junction, c );
+            }
+        }
     }
 
     private void addJunction( org.hibernate.criterion.Junction junction, org.hisp.dhis.query.Criterion criterion )
@@ -162,40 +201,6 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
             }
 
             junction.add( j );
-
-            for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
-            {
-                addJunction( junction, c );
-            }
-        }
-    }
-
-    private void addCriterion( Criteria criteria, org.hisp.dhis.query.Criterion criterion )
-    {
-        if ( Restriction.class.isInstance( criterion ) )
-        {
-            Restriction restriction = (Restriction) criterion;
-            Criterion hibernateCriterion = getHibernateCriterion( restriction );
-
-            if ( hibernateCriterion != null )
-            {
-                criteria.add( hibernateCriterion );
-            }
-        }
-        else if ( Junction.class.isInstance( criterion ) )
-        {
-            org.hibernate.criterion.Junction junction = null;
-
-            if ( Disjunction.class.isInstance( criterion ) )
-            {
-                junction = Restrictions.disjunction();
-            }
-            else if ( Conjunction.class.isInstance( criterion ) )
-            {
-                junction = Restrictions.conjunction();
-            }
-
-            criteria.add( junction );
 
             for ( org.hisp.dhis.query.Criterion c : ((Junction) criterion).getCriterions() )
             {
