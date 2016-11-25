@@ -31,7 +31,7 @@ package org.hisp.dhis.fileresource;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -46,6 +46,8 @@ import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
 import org.jclouds.domain.Credentials;
 import org.jclouds.domain.Location;
+import org.jclouds.domain.LocationBuilder;
+import org.jclouds.domain.LocationScope;
 import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.http.HttpRequest;
 import org.jclouds.http.HttpResponseException;
@@ -59,10 +61,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -73,14 +73,12 @@ public class JCloudsFileResourceContentStore
     implements FileResourceContentStore
 {
     private static final Log log = LogFactory.getLog( JCloudsFileResourceContentStore.class );
-
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^((?!-)[a-zA-Z0-9-]{1,63}(?<!-))+$" );
-
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
 
     private BlobStore blobStore;
     private BlobStoreContext blobStoreContext;
-    private String container;
+    private BlobStoreProperties config;
 
     // -------------------------------------------------------------------------
     // Providers
@@ -117,78 +115,62 @@ public class JCloudsFileResourceContentStore
     @PostConstruct
     public void init()
     {
-        String provider = configurationProvider.getProperty( ConfigurationKey.FILESTORE_PROVIDER );
-        String location = configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION );
-        String identity = configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY );
-        String secret = configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET );
-
-        provider = validateAndSelectProvider( provider );
-
-        container = configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER );
-
-        if ( !isValidContainerName( container ) )
-        {
-            if ( container != null )
-            {
-                log.warn( "Container name '" + container + "' is illegal." +
-                    "Standard domain name naming conventions apply (and underscores are not allowed). " +
-                    "Using default container name '" + ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() + "'." );
-            }
-
-            container = ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue();
-        }
-
-        Properties overrides = new Properties();
-
-        Credentials credentials = new Credentials( "Unused", "Unused" );
-
         // ---------------------------------------------------------------------
-        // Provider specific configuration
+        // Bootstrap config
         // ---------------------------------------------------------------------
 
-        if ( provider.equals( JCLOUDS_PROVIDER_KEY_FILESYSTEM ) && locationManager.externalDirectorySet() )
-        {
-            overrides.setProperty( FilesystemConstants.PROPERTY_BASEDIR, locationManager.getExternalDirectoryPath() );
-        }
-        else if ( provider.equals( JCLOUDS_PROVIDER_KEY_AWS_S3 ) )
-        {
-            credentials = new Credentials( identity, secret );
+        config = new BlobStoreProperties(
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_PROVIDER ),
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
+        );
 
-            if ( credentials.identity.isEmpty() || credentials.credential.isEmpty() )
-            {
-                log.warn( "AWS S3 store configured with empty credentials, authentication not possible." );
-            }
-        }
+        Pair<Credentials, Properties> providerConfig = configureForProvider(
+            config.provider,
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_IDENTITY ),
+            configurationProvider.getProperty( ConfigurationKey.FILESTORE_SECRET )
+        );
 
         // ---------------------------------------------------------------------
         // Set up JClouds context
         // ---------------------------------------------------------------------
 
-        blobStoreContext = ContextBuilder.newBuilder( provider )
-            .credentials( credentials.identity, credentials.credential )
-            .overrides( overrides ).build( BlobStoreContext.class );
+        blobStoreContext = ContextBuilder.newBuilder( config.provider )
+            .credentials( providerConfig.getLeft().identity, providerConfig.getLeft().credential )
+            .overrides( providerConfig.getRight() )
+            .build( BlobStoreContext.class );
 
         blobStore = blobStoreContext.getBlobStore();
 
-        Optional<? extends Location> configuredLocation = blobStore.listAssignableLocations()
-            .stream().filter( l -> l.getId().equals( location ) ).findFirst();
+        Location provider = new LocationBuilder()
+            .scope( LocationScope.PROVIDER )
+            .id( config.provider )
+            .description( config.provider )
+            .build();
 
         try
         {
-            blobStore.createContainerInLocation( configuredLocation.isPresent() ? configuredLocation.get() : null, container );
+            Location location = new LocationBuilder()
+                .scope( LocationScope.REGION )
+                .id( config.location )
+                .description( config.location )
+                .parent( provider )
+                .build();
 
-            log.info( "File store configured with provider '" + provider + "' and container '" + container + "'. " +
-                ( configuredLocation.isPresent() ? "Provider location: " + configuredLocation.get().getId() : StringUtils.EMPTY ) );
+            blobStore.createContainerInLocation( location, config.container );
+
+            log.info( String.format( "File store configured with provider: '%s', container: '%s' and location: '%s'.",
+                config.provider, config.container, config.location ) );
         }
         catch ( HttpResponseException ex )
         {
-            log.error( "Could not configure file store with provider '" + provider + "' and container '" + container + "'. " +
-                "Check your internet connectivity. File storage will not be available.", ex );
+            log.error( String.format( "Could not configure file store with provider '%s' and container '%s'.\n" +
+                "File storage will not be available.", config.provider, config.container ), ex );
         }
         catch ( AuthorizationException ex )
         {
-            log.error( "Could not authenticate with file store provider '" + provider + "' and container '" + container + "'. " +
-                "File storage will not be available.", ex );
+            log.error( String.format( "Could not authenticate with file store provider '%s' and container '%s'. " +
+                    "File storage will not be available.", config.provider, config.location ), ex );
         }
     }
 
@@ -274,8 +256,7 @@ public class JCloudsFileResourceContentStore
         }
         catch ( IOException ioe )
         {
-            // Intentionally ignored
-            log.warn( "Temporary file '" + file.toPath() + "' could not be deleted.", ioe );
+            log.warn( String.format( "Temporary file '%s' could not be deleted.", file.toPath() ), ioe );
         }
 
         return fileResource.getStorageKey();
@@ -307,7 +288,7 @@ public class JCloudsFileResourceContentStore
 
         try
         {
-            httpRequest = signer.signGetBlob( container, key, FIVE_MINUTES_IN_SECONDS );
+            httpRequest = signer.signGetBlob( config.container, key, FIVE_MINUTES_IN_SECONDS );
         }
         catch ( UnsupportedOperationException uoe )
         {
@@ -323,45 +304,25 @@ public class JCloudsFileResourceContentStore
 
     private Blob getBlob( String key )
     {
-        return blobStore.getBlob( container, key );
+        return blobStore.getBlob( config.container, key );
     }
 
     private boolean blobExists( String key )
     {
-        return key != null && blobStore.blobExists( container, key );
+        return key != null && blobStore.blobExists( config.container, key );
     }
 
     private void deleteBlob( String key )
     {
-        blobStore.removeBlob( container, key );
+        blobStore.removeBlob( config.container, key );
     }
 
     private String putBlob( Blob blob )
     {
-        String etag = null;
-
-        try
-        {
-            etag = blobStore.putBlob( container, blob );
-        }
-        catch ( RuntimeException rte )
-        {
-            Throwable cause = rte.getCause();
-
-            if ( cause != null && cause instanceof UserPrincipalNotFoundException )
-            {
-                // Intentionally ignored exception which occurs with JClouds on localized
-                // Windows systems while trying to resolve the "Everyone" group.
-                // See https://issues.apache.org/jira/browse/JCLOUDS-1015
-                log.debug( "Ignored UserPrincipalNotFoundException. Workaround for JClouds bug 'JCLOUDS-1015'." );
-            }
-            else
-            {
-                throw rte;
-            }
-        }
-
-        return etag;
+        // Note:
+        //  On JClouds < 2.0.0 this line is affected by 'JCLOUDS-1015'.
+        //  The workaround was to catch 'UserPrincipalNotFoundException', but this should no longer be necessary.
+        return blobStore.putBlob( config.container, blob );
     }
 
     private Blob createBlob( FileResource fileResource, byte[] bytes )
@@ -386,31 +347,87 @@ public class JCloudsFileResourceContentStore
             .build();
     }
 
-    private String validateAndSelectProvider( String provider )
-    {
-        if ( !SUPPORTED_PROVIDERS.contains( provider ) )
-        {
-            log.warn( "Ignored unsupported file store provider '" + provider + "', using file system provider." );
-            provider = JCLOUDS_PROVIDER_KEY_FILESYSTEM;
-        }
-
-        if ( provider.equals( JCLOUDS_PROVIDER_KEY_FILESYSTEM ) && !locationManager.externalDirectorySet() )
-        {
-            log.info( "File system file store provider could not be configured; external directory is not set. " +
-                "Falling back to in-memory provider." );
-            provider = JCLOUDS_PROVIDER_KEY_TRANSIENT;
-        }
-
-        return provider;
-    }
-
-    private boolean isValidContainerName( String containerName ) 
-    {
-        return containerName != null && CONTAINER_NAME_PATTERN.matcher( containerName ).matches();
-    }
-
     private boolean requestSigningSupported( BlobRequestSigner signer )
     {
         return !( signer instanceof RequestSigningUnsupported ) && !( signer instanceof LocalBlobRequestSigner );
+    }
+
+    private Pair<Credentials, Properties> configureForProvider( String provider, String identity, String secret )
+    {
+        Properties overrides = new Properties();
+        Credentials credentials = new Credentials( "Unused", "Unused" );
+
+        if ( provider.equals( JCLOUDS_PROVIDER_KEY_FILESYSTEM ) && locationManager.externalDirectorySet() )
+        {
+            overrides.setProperty( FilesystemConstants.PROPERTY_BASEDIR, locationManager.getExternalDirectoryPath() );
+        }
+        else if ( provider.equals( JCLOUDS_PROVIDER_KEY_AWS_S3 ) )
+        {
+            credentials = new Credentials( identity, secret );
+
+            if ( credentials.identity.isEmpty() || credentials.credential.isEmpty() )
+            {
+                log.warn( "AWS S3 store configured without credentials, authentication not possible." );
+            }
+        }
+
+        return Pair.of( credentials, overrides );
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal classes
+    // -------------------------------------------------------------------------
+
+    private class BlobStoreProperties
+    {
+        private String provider;
+        private String location;
+        private String container;
+
+        BlobStoreProperties( String provider, String location, String container )
+        {
+            this.provider = provider;
+            this.location = location;
+            this.container = container;
+
+            validate();
+            validateAndSelectProvider();
+        }
+
+        private void validate()
+        {
+            if ( !isValidContainerName( container ) )
+            {
+                if ( container != null )
+                {
+                    log.warn( String.format( "Container name '%s' is illegal. " +
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container, ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
+                }
+
+                container = ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue();
+            }
+        }
+
+        private boolean isValidContainerName( String containerName )
+        {
+            return containerName != null && CONTAINER_NAME_PATTERN.matcher( containerName ).matches();
+        }
+
+        private void validateAndSelectProvider()
+        {
+            if ( !SUPPORTED_PROVIDERS.contains( provider ) )
+            {
+                log.warn( "Ignored unsupported file store provider '" + provider + "', using file system provider." );
+                provider = JCLOUDS_PROVIDER_KEY_FILESYSTEM;
+            }
+
+            if ( provider.equals( JCLOUDS_PROVIDER_KEY_FILESYSTEM ) && !locationManager.externalDirectorySet() )
+            {
+                log.info( "File system file store provider could not be configured; external directory is not set. " +
+                    "Falling back to in-memory provider." );
+                provider = JCLOUDS_PROVIDER_KEY_TRANSIENT;
+            }
+        }
     }
 }

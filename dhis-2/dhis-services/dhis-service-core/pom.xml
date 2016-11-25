@@ -82,18 +82,6 @@
       <artifactId>poi-ooxml</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.jclouds</groupId>
-      <artifactId>jclouds-all</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.jclouds.api</groupId>
-      <artifactId>filesystem</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.jclouds.provider</groupId>
-      <artifactId>aws-s3</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-ldap</artifactId>
     </dependency>    
@@ -101,7 +89,22 @@
       <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
     </dependency>
-    
+
+    <!-- JClouds -->
+
+    <dependency>
+      <groupId>org.apache.jclouds</groupId>
+      <artifactId>jclouds-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jclouds</groupId>
+      <artifactId>jclouds-blobstore</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jclouds.api</groupId>
+      <artifactId>filesystem</artifactId>
+    </dependency>
+
     <!-- SMS -->
     <dependency>
       <groupId>com.googlecode.jsmpp</groupId>
