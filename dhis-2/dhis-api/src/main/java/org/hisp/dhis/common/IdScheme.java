@@ -167,12 +167,12 @@ public class IdScheme
             return identifiableProperty.name();
         }
     }
-    
+
     public static boolean isAttribute( String str )
     {
         return !StringUtils.isEmpty( str ) && str.toUpperCase().startsWith( ATTR_ID_SCHEME_PREFIX ) && str.length() == 21;
-    }  
-    
+    }
+
     @Override
     public String toString()
     {

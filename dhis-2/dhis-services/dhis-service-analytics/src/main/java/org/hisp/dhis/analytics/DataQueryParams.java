@@ -230,6 +230,12 @@ public class DataQueryParams
     protected OutputFormat outputFormat;
     
     /**
+     * Indicates whether to return duplicate data values only. Applicable to
+     * {@link OutputFormat} DATA_VALUE_SET only. 
+     */
+    protected boolean duplicatesOnly;
+    
+    /**
      * The required approval level identifier for data to be included in query response.
      */
     protected String approvalLevel;
@@ -384,6 +390,7 @@ public class DataQueryParams
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
         params.outputFormat = this.outputFormat;
+        params.duplicatesOnly = this.duplicatesOnly;
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
@@ -1652,6 +1659,11 @@ public class DataQueryParams
     {
         return outputFormat;
     }
+    
+    public boolean isDuplicatesOnly()
+    {
+        return duplicatesOnly;
+    }
 
     public String getApprovalLevel()
     {
@@ -2246,6 +2258,12 @@ public class DataQueryParams
         public Builder withOutputFormat( OutputFormat outputFormat )
         {
             this.params.outputFormat = outputFormat;
+            return this;
+        }
+        
+        public Builder withDuplicatesOnly( boolean duplicatesOnly )
+        {
+            this.params.duplicatesOnly = duplicatesOnly;
             return this;
         }
         

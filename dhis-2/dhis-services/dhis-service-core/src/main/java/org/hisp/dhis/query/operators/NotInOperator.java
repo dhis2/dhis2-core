@@ -30,7 +30,7 @@ package org.hisp.dhis.query.operators;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPath;
 
 import java.util.Collection;
 
@@ -41,13 +41,13 @@ public class NotInOperator extends InOperator
 {
     public NotInOperator( Collection<?> arg )
     {
-        super( arg );
+        super( "!in", arg );
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.not( super.getHibernateCriterion( property ) );
+        return Restrictions.not( super.getHibernateCriterion( queryPath ) );
     }
 
     @Override

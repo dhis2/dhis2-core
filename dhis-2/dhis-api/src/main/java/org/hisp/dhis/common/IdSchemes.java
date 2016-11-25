@@ -59,6 +59,10 @@ public class IdSchemes
 
     private IdScheme trackedEntityAttributeIdScheme;
 
+    private IdScheme dataSetIdScheme;
+
+    private IdScheme attributeOptionComboIdScheme;
+
     public IdSchemes()
     {
     }
@@ -113,6 +117,26 @@ public class IdSchemes
     public IdSchemes setCategoryOptionIdScheme( String idScheme )
     {
         this.categoryOptionIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdScheme getAttributeOptionComboIdScheme()
+    {
+        return getScheme( attributeOptionComboIdScheme );
+    }
+
+    public IdSchemes setAttributeOptionComboIdScheme( String idScheme )
+    {
+        this.attributeOptionComboIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdScheme getDataSetIdScheme() {
+        return getScheme( dataSetIdScheme );
+    }
+
+    public IdSchemes setDataSetIdScheme( String idScheme ) {
+        this.dataSetIdScheme = IdScheme.from( idScheme );
         return this;
     }
 
@@ -224,6 +248,8 @@ public class IdSchemes
             .add( "programStageIdScheme", programStageIdScheme )
             .add( "trackedEntityIdScheme", trackedEntityIdScheme )
             .add( "trackedEntityAttributeIdScheme", trackedEntityAttributeIdScheme )
+            .add( "dataSetIdScheme", dataSetIdScheme )
+            .add( "attributeOptionComboIdScheme", attributeOptionComboIdScheme )
             .toString();
     }
 }
