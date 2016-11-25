@@ -316,7 +316,7 @@ public class TableAlteror
         executeSql( "UPDATE programinstance SET status=2 WHERE programinstanceid in "
             + "( select psi.programinstanceid from programinstance pi join programstageinstance psi "
             + "on psi.programinstanceid = psi.programstageinstanceid "
-            + "where pi.completed=true and psi.completed = false ) and psi.deleted is false" );
+            + "where pi.completed=true and psi.completed = false )" );
 
         // Set completed status for events
         executeSql( "UPDATE programinstance SET status=1 WHERE status is null" );
