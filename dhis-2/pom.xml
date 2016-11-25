@@ -821,7 +821,17 @@
       <!-- Apache jClouds -->
       <dependency>
         <groupId>org.apache.jclouds</groupId>
-        <artifactId>jclouds-all</artifactId>
+        <artifactId>jclouds-core</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds</groupId>
+        <artifactId>jclouds-blobstore</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds.api</groupId>
+        <artifactId>s3</artifactId>
         <version>${jclouds.version}</version>
       </dependency>
       <dependency>
