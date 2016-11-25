@@ -43,6 +43,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Collection;
@@ -62,6 +63,14 @@ public class HibernateProgramStageInstanceStore
             NotificationTrigger.getAllApplicableToProgramStageInstance(),
             NotificationTrigger.getAllScheduledTriggers()
         );
+
+    public ProgramStageInstance get( int id )
+    {
+        return (ProgramStageInstance) getCriteria(
+            Restrictions.eq( "id", id ),
+            Restrictions.eq( "deleted", false )
+        ).uniqueResult();
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -121,7 +130,7 @@ public class HibernateProgramStageInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=?", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(*) from programstageinstance where uid=? and deleted is false", Integer.class, uid );
         return result != null && result > 0;
     }
 
