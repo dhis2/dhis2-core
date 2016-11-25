@@ -158,13 +158,6 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    public void permanentlyRemoveSoftDeletedProgramStageInstances()
-    {
-        getQuery( "delete from ProgramStageInstance where deleted = true" )
-            .executeUpdate();
-    }
-
-    @Override
     protected void preProcessCriteria( Criteria criteria )
     {
 

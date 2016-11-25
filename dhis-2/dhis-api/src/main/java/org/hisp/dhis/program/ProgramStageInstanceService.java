@@ -163,8 +163,4 @@ public interface ProgramStageInstanceService
     ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
 
-    /**
-     * Permanently remove soft deleted programStageInstances from the database (deleted = true)
-     */
-    void permanentlyRemoveSoftDeletedProgramStageInstances();
 }

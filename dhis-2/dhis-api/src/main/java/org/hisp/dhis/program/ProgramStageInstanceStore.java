@@ -112,8 +112,4 @@ public interface ProgramStageInstanceStore
      */
     List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 
-    /**
-     * Deletes all events from the database where deleted = true.
-     */
-    void permanentlyRemoveSoftDeletedProgramStageInstances();
 }

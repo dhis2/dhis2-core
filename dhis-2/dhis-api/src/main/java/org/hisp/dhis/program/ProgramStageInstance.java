@@ -81,7 +81,7 @@ public class ProgramStageInstance
 
     public ProgramStageInstance()
     {
-        this.deleted =false;
+        this.deleted = false;
     }
 
     public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
