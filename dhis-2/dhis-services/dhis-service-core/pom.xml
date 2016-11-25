@@ -102,15 +102,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.jclouds.api</groupId>
-      <artifactId>s3</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.jclouds.api</groupId>
       <artifactId>filesystem</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.jclouds.provider</groupId>
-      <artifactId>aws-s3</artifactId>
     </dependency>
 
     <!-- SMS -->
