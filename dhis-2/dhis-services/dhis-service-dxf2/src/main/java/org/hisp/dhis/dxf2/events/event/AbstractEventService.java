@@ -556,7 +556,7 @@ public abstract class AbstractEventService
         String trackedEntityInstance, Date startDate, Date endDate, EventStatus status, Date lastUpdated,
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, boolean includeAttributes, Set<String> events,
-        Set<String> filters )
+        Set<String> filters, boolean includeDeleted )
     {
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -644,6 +644,7 @@ public abstract class AbstractEventService
         params.setIncludeAttributes( includeAttributes );
         params.setOrders( orders );
         params.setEvents( events );
+        params.setIncludeDeleted( includeDeleted );
 
         return params;
     }

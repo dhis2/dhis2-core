@@ -413,8 +413,7 @@ public class JdbcEventStore
             + "INNER JOIN dataelementcategoryoption deco ON cocco.categoryoptionid=deco.categoryoptionid "
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
-            + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "where psi.deleted is false ";
+            + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) ";
 
         if ( params.getTrackedEntityInstance() != null )
         {
@@ -498,6 +497,11 @@ public class JdbcEventStore
         if ( params.getEvents() != null && !params.getEvents().isEmpty() && !params.hasFilters() )
         {
             sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            sql += hlp.whereAnd() + " psi.deleted is false ";
         }
 
         return sql;

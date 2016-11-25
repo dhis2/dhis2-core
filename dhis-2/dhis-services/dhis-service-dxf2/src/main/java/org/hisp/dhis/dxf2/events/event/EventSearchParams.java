@@ -100,6 +100,8 @@ public class EventSearchParams
     
     private List<QueryItem> filters = new ArrayList<>();
 
+    private boolean includeDeleted;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -373,5 +375,15 @@ public class EventSearchParams
     public void setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
-    }    
+    }
+
+    public void setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
+    }
+
+    public boolean isIncludeDeleted()
+    {
+        return this.includeDeleted;
+    }
 }
