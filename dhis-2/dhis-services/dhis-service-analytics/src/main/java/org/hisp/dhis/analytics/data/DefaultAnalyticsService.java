@@ -189,7 +189,7 @@ public class DefaultAnalyticsService
         
         Grid grid = getAggregatedDataValueGridInternal( query );
                 
-        return AnalyticsUtils.getDataValueSetFromGrid( grid );
+        return AnalyticsUtils.getDataValueSetFromGrid( grid, params );
     }
     
     @Override

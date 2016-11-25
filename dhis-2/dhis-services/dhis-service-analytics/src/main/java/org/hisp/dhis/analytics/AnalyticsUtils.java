@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,6 +73,7 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -291,7 +293,7 @@ public class AnalyticsUtils
      * @return a data value set.
      */
     @SuppressWarnings("unchecked")
-    public static DataValueSet getDataValueSetFromGrid( Grid grid )
+    public static DataValueSet getDataValueSetFromGrid( Grid grid, DataQueryParams params )
     {
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
         int peInx = grid.getIndexOfHeader( PERIOD_DIM_ID );
@@ -311,6 +313,8 @@ public class AnalyticsUtils
         String created = DateUtils.getMediumDateString();
         
         DataValueSet dvs = new DataValueSet();
+        
+        Set<String> primaryKeys = Sets.newHashSet();
         
         for ( List<Object> row : grid.getRows() )
         {
@@ -341,7 +345,10 @@ public class AnalyticsUtils
                 dv.setAttributeOptionCombo( item.getAggregateExportAttributeOptionCombo() );
             }
             
-            dvs.getDataValues().add( dv );
+            if ( !params.isDuplicatesOnly() || !primaryKeys.add( dv.getPrimaryKey() ) )
+            {
+                dvs.getDataValues().add( dv );
+            }
         }
         
         return dvs;        
