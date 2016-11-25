@@ -836,6 +836,12 @@
         <version>${jclouds.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.jclouds.provider</groupId>
+        <artifactId>aws-s3</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
+
       <!--Reporting -->
       <dependency>
         <groupId>net.sf.jasperreports</groupId>
