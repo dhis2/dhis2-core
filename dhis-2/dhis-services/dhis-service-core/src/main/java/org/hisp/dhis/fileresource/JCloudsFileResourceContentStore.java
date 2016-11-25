@@ -150,14 +150,7 @@ public class JCloudsFileResourceContentStore
 
         try
         {
-            Location location = new LocationBuilder()
-                .scope( LocationScope.REGION )
-                .id( config.location )
-                .description( config.location )
-                .parent( provider )
-                .build();
-
-            blobStore.createContainerInLocation( location, config.container );
+            blobStore.createContainerInLocation( createRegionLocation( config, provider ), config.container );
 
             log.info( String.format( "File store configured with provider: '%s', container: '%s' and location: '%s'.",
                 config.provider, config.container, config.location ) );
@@ -350,6 +343,17 @@ public class JCloudsFileResourceContentStore
     private boolean requestSigningSupported( BlobRequestSigner signer )
     {
         return !( signer instanceof RequestSigningUnsupported ) && !( signer instanceof LocalBlobRequestSigner );
+    }
+
+    private static Location createRegionLocation( BlobStoreProperties config, Location provider )
+    {
+        return config.location != null ?
+            new LocationBuilder()
+                .scope( LocationScope.REGION )
+                .id( config.location )
+                .description( config.location )
+                .parent( provider )
+                .build() : null;
     }
 
     private Pair<Credentials, Properties> configureForProvider( String provider, String identity, String secret )
