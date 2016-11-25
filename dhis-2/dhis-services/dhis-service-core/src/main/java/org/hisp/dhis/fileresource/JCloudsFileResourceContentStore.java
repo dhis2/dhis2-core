@@ -421,13 +421,9 @@ public class JCloudsFileResourceContentStore
             {
                 if ( container != null )
                 {
-                    log.warn(
-                        String.format(
-                            "Container name '%s' is illegal. Standard domain name naming conventions apply (no underscores allowed). " +
-                                "Using default container name ' %s'",
-                            container, ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue()
-                        )
-                    );
+                    log.warn( String.format( "Container name '%s' is illegal. " +
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container, ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 
                 container = ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue();
