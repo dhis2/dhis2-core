@@ -43,7 +43,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Collection;
@@ -63,14 +62,6 @@ public class HibernateProgramStageInstanceStore
             NotificationTrigger.getAllApplicableToProgramStageInstance(),
             NotificationTrigger.getAllScheduledTriggers()
         );
-
-    public ProgramStageInstance get( int id )
-    {
-        return (ProgramStageInstance) getCriteria(
-            Restrictions.eq( "id", id ),
-            Restrictions.eq( "deleted", false )
-        ).uniqueResult();
-    }
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -157,7 +148,8 @@ public class HibernateProgramStageInstanceStore
             "and psi.dueDate is not null " +
             "and psi.executionDate is null " +
             "and psi.status != :skippedEventStatus " +
-            "and cast(:targetDate as date) = psi.dueDate";
+            "and cast(:targetDate as date) = psi.dueDate " +
+            "and psi.deleted is false";
 
         return getQuery( hql )
             .setEntity( "notificationTemplate", template )
@@ -170,6 +162,15 @@ public class HibernateProgramStageInstanceStore
     {
         getQuery( "delete from ProgramStageInstance where deleted = true" )
             .executeUpdate();
+    }
+
+    @Override
+    protected void preProcessCriteria( Criteria criteria )
+    {
+
+        // Filter out soft deleted values
+        criteria.add( Restrictions.eq( "deleted", false ) );
+
     }
 
     // -------------------------------------------------------------------------
