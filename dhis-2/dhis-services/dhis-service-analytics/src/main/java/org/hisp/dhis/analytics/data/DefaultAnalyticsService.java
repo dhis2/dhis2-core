@@ -182,14 +182,13 @@ public class DefaultAnalyticsService
         DataQueryParams query = DataQueryParams.newBuilder( params )
             .withSkipMeta( false )
             .withSkipData( false )
-            .withDimensionItemMeta( true )
             .withIncludeNumDen( false )
             .withOutputFormat( OutputFormat.DATA_VALUE_SET )
             .build();
         
         Grid grid = getAggregatedDataValueGridInternal( query );
                 
-        return AnalyticsUtils.getDataValueSetFromGrid( grid, params );
+        return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
     
     @Override
@@ -260,6 +259,8 @@ public class DefaultAnalyticsService
         // ---------------------------------------------------------------------
 
         addMetaData( params, grid );
+        
+        handleDataValueSet( params, grid );
 
         applyIdScheme( params, grid );
 
@@ -750,16 +751,22 @@ public class DefaultAnalyticsService
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
-            // -----------------------------------------------------------------
-            // Dimension item meta data
-            // -----------------------------------------------------------------
-
-            if ( params.isDimensionItemMeta() )
-            {
-                metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getDimensionalItemObjectMap( params ) );
-            }
-
             grid.setMetaData( metaData );
+        }
+    }
+
+    /**
+     * Prepares the given grid to be converted to a data value set, given
+     * that the output format is of type DATA_VALUE_SET.
+     * 
+     * @param params the data query parameters.
+     * @param grid   the grid.
+     */
+    private void handleDataValueSet( DataQueryParams params, Grid grid )
+    {
+        if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) && !params.isSkipHeaders() )
+        {
+            AnalyticsUtils.handleGridForDataValueSet( params, grid );
         }
     }
 

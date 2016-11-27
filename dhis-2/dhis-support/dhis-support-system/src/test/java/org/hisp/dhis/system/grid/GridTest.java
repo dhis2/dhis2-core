@@ -292,6 +292,42 @@ public class GridTest
         assertTrue( row2.contains( 23 ) );
         assertTrue( row2.contains( 24 ) );
     }
+
+    @Test
+    public void testAddColumnAtIndex()
+    {
+        List<Object> columnValues = new ArrayList<>();
+        columnValues.add( 14 );
+        columnValues.add( 24 );
+        columnValues.add( 34 );
+        columnValues.add( 44 );
+        
+        gridA.addColumn( 1, columnValues );
+        
+        List<Object> column1 = gridA.getColumn( 1 );
+        
+        assertEquals( 4, column1.size() );
+        assertTrue( column1.contains( 14 ) );
+        assertTrue( column1.contains( 24 ) );
+        assertTrue( column1.contains( 34 ) );
+        assertTrue( column1.contains( 44 ) );
+        
+        List<Object> column2 = gridA.getColumn( 2 );
+
+        assertEquals( 4, column2.size() );
+        assertTrue( column2.contains( 12 ) );
+        assertTrue( column2.contains( 22 ) );
+        assertTrue( column2.contains( 32 ) );
+        assertTrue( column2.contains( 42 ) );
+        
+        List<Object> row2 = gridA.getRow( 1 );
+        
+        assertEquals( 4, row2.size() );
+        assertTrue( row2.contains( 21 ) );
+        assertTrue( row2.contains( 24 ) );
+        assertTrue( row2.contains( 22 ) );
+        assertTrue( row2.contains( 23 ) );
+    }
     
     @Test
     public void testAddAndPopulateColumn()

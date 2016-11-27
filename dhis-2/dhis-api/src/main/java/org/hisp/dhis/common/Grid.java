@@ -110,8 +110,18 @@ public interface Grid
     
     /**
      * Adds a header value.
+     * 
+     * @param header the grid header.
      */
     Grid addHeader( GridHeader header );
+
+    /**
+     * Adds a header value at the given column index.
+     * 
+     * @param columnIndex the column index to insert the grid header at.
+     * @param header the grid header.
+     */
+    Grid addHeader( int columnIndex, GridHeader header );
     
     /**
      * Adds a number of empty values to the Grid.
@@ -232,6 +242,16 @@ public interface Grid
      *         than the rows in grid, or if the grid rows are not of the same length.
      */
     Grid addColumn( List<Object> columnValues );
+
+    /**
+     * Adds a new column at the end of the grid.
+     * 
+     * @param columnIndex the index at where to insert the column.
+     * @param columnValues the column values to add.
+     * @throws IllegalStateException if the columnValues has different length
+     *         than the rows in grid, or if the grid rows are not of the same length.
+     */
+    Grid addColumn( int columnIndex, List<Object> columnValues );
     
     /**
      * Adds a new column at the end of the grid and populates it with the given
