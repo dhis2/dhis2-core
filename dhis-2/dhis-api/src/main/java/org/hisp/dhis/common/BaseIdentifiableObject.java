@@ -52,7 +52,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -595,69 +594,6 @@ public class BaseIdentifiableObject
         {
             userGroupAccesses.clear();
         }
-    }
-
-    /**
-     * Get a map of uids to internal identifiers
-     *
-     * @param objects the IdentifiableObjects to put in the map
-     * @return the map
-     */
-    public static Map<String, Integer> getUIDMap( Collection<? extends BaseIdentifiableObject> objects )
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( IdentifiableObject object : objects )
-        {
-            String uid = object.getUid();
-            int internalId = object.getId();
-
-            map.put( uid, internalId );
-        }
-
-        return map;
-    }
-
-    /**
-     * Get a map of codes to internal identifiers
-     *
-     * @param objects the NameableObjects to put in the map
-     * @return the map
-     */
-    public static Map<String, Integer> getCodeMap( Collection<? extends BaseIdentifiableObject> objects )
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( BaseIdentifiableObject object : objects )
-        {
-            String code = object.getCode();
-            int internalId = object.getId();
-
-            map.put( code, internalId );
-        }
-
-        return map;
-    }
-
-    /**
-     * Get a map of names to internal identifiers
-     *
-     * @param objects the NameableObjects to put in the map
-     * @return the map
-     */
-    public static Map<String, Integer> getNameMap( Collection<? extends BaseIdentifiableObject> objects )
-    {
-        Map<String, Integer> map = new HashMap<>();
-
-        for ( BaseIdentifiableObject object : objects )
-        {
-            String name = object.getName();
-            int internalId = object.getId();
-
-            map.put( name, internalId );
-        }
-
-        return map;
     }
 
     /**
