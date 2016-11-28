@@ -525,8 +525,17 @@ public class HibernateGenericStore<T>
             throw new ReadAccessDeniedException( object.toString() );
         }
 
+        return postProcessObject( object );
+    }
+
+    /**
+     * Override to inspect, or alter object before it is returned.
+     */
+    protected T postProcessObject( T object )
+    {
         return object;
     }
+
 
     @Override
     public final T getNoAcl( int id )
