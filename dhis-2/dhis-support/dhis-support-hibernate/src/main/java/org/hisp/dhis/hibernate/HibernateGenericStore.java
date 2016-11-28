@@ -505,6 +505,11 @@ public class HibernateGenericStore<T>
             throw new ReadAccessDeniedException( object.toString() );
         }
 
+        return postProcessObject( object );
+    }
+
+    protected T postProcessObject( T object )
+    {
         return object;
     }
 
