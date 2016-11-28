@@ -617,7 +617,7 @@ public abstract class AbstractEventService
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, EventStatus status, Date lastUpdated,
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
-        boolean totalPages, boolean skipPaging, List<Order> orders, boolean includeAttributes, Set<String> events,
+        boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
         Set<String> filters )
     {
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
@@ -679,6 +679,11 @@ public abstract class AbstractEventService
 
         if ( filters != null )
         {
+            if( StringUtils.isNotEmpty( programStage ) && ps == null )
+            {
+                throw new IllegalQueryException( "ProgramStagee needs to be specified for event filtering to work" );               
+            }
+            
             for ( String filter : filters )
             {
                 QueryItem item = getQueryItem( filter );
@@ -705,6 +710,7 @@ public abstract class AbstractEventService
         params.setSkipPaging( skipPaging );
         params.setIncludeAttributes( includeAttributes );
         params.setOrders( orders );
+        params.setGridOrders( gridOrders );
         params.setEvents( events );
 
         return params;

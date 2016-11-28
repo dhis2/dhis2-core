@@ -60,7 +60,7 @@ public class EventSearchParams
     public static final String EVENT_COMPLETED_BY_ID = "completedBy";
     public static final String EVENT_COMPLETED_DATE_ID = "completedDate";
     public static final String EVENT_DUE_DATE_ID = "dueDate";
-    public static final String EVENT_EXECUTION_DATE_ID = "executionDate";
+    public static final String EVENT_EXECUTION_DATE_ID = "eventDate";
     public static final String EVENT_ORG_UNIT_ID = "orgUnit";
     public static final String EVENT_ORG_UNIT_NAME = "orgUnitName";    
     public static final String EVENT_STATUS_ID = "status";
@@ -112,6 +112,8 @@ public class EventSearchParams
     private boolean skipPaging;
 
     private List<Order> orders;
+    
+    private List<String> gridOrders;
 
     private boolean includeAttributes;
 
@@ -439,6 +441,16 @@ public class EventSearchParams
     public void setOrders( List<Order> orders )
     {
         this.orders = orders;
+    }
+    
+    public List<String> getGridOrders()
+    {
+        return this.gridOrders;
+    }
+
+    public void setGridOrders( List<String> gridOrders )
+    {
+        this.gridOrders = gridOrders;
     }
 
     public DataElementCategoryOptionCombo getCategoryOptionCombo()

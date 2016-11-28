@@ -588,12 +588,13 @@ var d2Controllers = angular.module('d2Controllers', [])
         }
     };
 
-    $scope.setSelectedOrgUnit = function( orgUnitId ){
-        $scope.model.selectedOrgUnitId = orgUnitId;
+    $scope.setSelectedOrgUnit = function( orgUnit ){
+    	$scope.model.selectedOrgUnit = orgUnit;
+        $scope.model.selectedOrgUnitId = orgUnit.id;
     };
 
     $scope.select = function () {
-        $modalInstance.close( $scope.model.selectedOrgUnitId );
+        $modalInstance.close( $scope.model.selectedOrgUnit );
     };
 
     $scope.close = function(){

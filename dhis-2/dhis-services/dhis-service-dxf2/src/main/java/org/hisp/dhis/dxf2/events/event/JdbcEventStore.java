@@ -59,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,10 +94,10 @@ public class JdbcEventStore
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     @Autowired
     private StatementBuilder statementBuilder;
-    
+
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
 
@@ -244,39 +245,47 @@ public class JdbcEventStore
 
     @Override
     public List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits )
-    {        
-        SqlHelper hlp = new SqlHelper();        
+    {
+        SqlHelper hlp = new SqlHelper();
+
+        List<String> staticSortSortColumns = new ArrayList<>();
+
+        staticSortSortColumns.add( EVENT_ID );
+        staticSortSortColumns.add( EVENT_CREATED_ID );
+        staticSortSortColumns.add( EVENT_LAST_UPDATED_ID );
+        staticSortSortColumns.add( EVENT_STORED_BY_ID );
+        staticSortSortColumns.add( EVENT_COMPLETED_BY_ID );
+        staticSortSortColumns.add( EVENT_COMPLETED_DATE_ID );
+        staticSortSortColumns.add( EVENT_EXECUTION_DATE_ID );
+        staticSortSortColumns.add( EVENT_DUE_DATE_ID );
+        staticSortSortColumns.add( EVENT_ORG_UNIT_ID );
+        staticSortSortColumns.add( EVENT_ORG_UNIT_NAME );
+        staticSortSortColumns.add( EVENT_STATUS_ID );
 
         // ---------------------------------------------------------------------
         // Select clause
         // ---------------------------------------------------------------------
-        
-        String sql = "select psi.uid as " + EVENT_ID + ", "
-            + "psi.created as " + EVENT_CREATED_ID + ", " 
-            + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " 
-            + "psi.storedby as " + EVENT_STORED_BY_ID + ", " 
-            + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " 
-            + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID + ", "
-            + "psi.duedate as " + EVENT_DUE_DATE_ID + ", "
-            + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID + ", "
-            + "ou.uid as " + EVENT_ORG_UNIT_ID + ", "
-            + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
-            + "psi.status as " + EVENT_STATUS_ID + ", "            
-            + "psi.longitude as " + EVENT_LONGITUDE_ID + ", "
-            + "psi.latitude as " + EVENT_LATITUDE_ID + ", "
-            + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", "
-            + "p.uid as " + EVENT_PROGRAM_ID + ", "
-            + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", ";
-        
+
+        String sql = "select psi.uid as " + EVENT_ID + ", " + "psi.created as " + EVENT_CREATED_ID + ", "
+            + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " + "psi.storedby as " + EVENT_STORED_BY_ID + ", "
+            + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
+            + ", " + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID
+            + ", " + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
+            + "psi.status as " + EVENT_STATUS_ID + ", " + "psi.longitude as " + EVENT_LONGITUDE_ID + ", "
+            + "psi.latitude as " + EVENT_LATITUDE_ID + ", " + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
+            + EVENT_PROGRAM_ID + ", " + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", ";
+
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             String col = statementBuilder.columnQuote( item.getItemId() );
-
-            sql += col + ".value as " + col + ", ";
+            
+            sql += item.isNumeric() ? "CAST( " + col + ".value AS NUMERIC ) as " : col + ".value as ";
+            
+            sql += col + ", ";
         }
 
         sql = removeLastComma( sql ) + " ";
-        
+
         // ---------------------------------------------------------------------
         // From and where clause
         // ---------------------------------------------------------------------
@@ -284,21 +293,29 @@ public class JdbcEventStore
         sql += getFromWhereClause( params, hlp, organisationUnits );
 
         // ---------------------------------------------------------------------
+        // Order clause
+        // ---------------------------------------------------------------------
+
+        sql += getGridOrderQuery( params, staticSortSortColumns );
+
+        // ---------------------------------------------------------------------
         // Paging clause
         // ---------------------------------------------------------------------
 
         sql += getEventPagingQuery( params );
-        
+
         // ---------------------------------------------------------------------
         // Query
         // ---------------------------------------------------------------------
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        log.debug( "Event query SQL: " + sql );
+        //log.debug( "Event query SQL: " + sql );
+        
+        System.out.println( "Event query SQL: " + sql );
 
         List<Map<String, String>> list = new ArrayList<>();
-        
+
         while ( rowSet.next() )
         {
             final Map<String, String> map = new HashMap<>();
@@ -319,7 +336,7 @@ public class JdbcEventStore
             map.put( EVENT_PROGRAM_STAGE_ID, rowSet.getString( EVENT_PROGRAM_STAGE_ID ) );
             map.put( EVENT_PROGRAM_ID, rowSet.getString( EVENT_PROGRAM_ID ) );
             map.put( EVENT_ATTRIBUTE_OPTION_COMBO_ID, rowSet.getString( EVENT_ATTRIBUTE_OPTION_COMBO_ID ) );
-            
+
             for ( QueryItem item : params.getDataElements() )
             {
                 map.put( item.getItemId(), rowSet.getString( item.getItemId() ) );
@@ -327,7 +344,7 @@ public class JdbcEventStore
 
             list.add( map );
         }
-        
+
         return list;
     }
 
@@ -611,7 +628,8 @@ public class JdbcEventStore
      * From, join and where clause. For attribute params, restriction is set in
      * inner join. For query params, restriction is set in where clause.
      */
-    private String getFromWhereClause( EventSearchParams params, SqlHelper hlp, List<OrganisationUnit> organisationUnits )
+    private String getFromWhereClause( EventSearchParams params, SqlHelper hlp,
+        List<OrganisationUnit> organisationUnits )
     {
         String sql = "from programstageinstance psi "
             + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
@@ -629,8 +647,8 @@ public class JdbcEventStore
             final String joinClause = item.hasFilter() ? "inner join" : "left join";
 
             sql += joinClause + " " + "trackedentitydatavalue as " + col + " " + "on " + col
-                + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col
-                + ".dataelementid = " + item.getItem().getId() + " ";
+                + ".programstageinstanceid = psi.programstageinstanceid " + "and " + col + ".dataelementid = "
+                + item.getItem().getId() + " ";
 
             if ( item.hasFilter() )
             {
@@ -638,7 +656,7 @@ public class JdbcEventStore
                 {
                     final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
 
-                    final String queryCol = item.isNumeric() ? (col + ".value") : "lower(" + col + ".value)";
+                    final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)") : "lower(" + col + ".value)";
 
                     sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
                         + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
@@ -652,6 +670,11 @@ public class JdbcEventStore
                 + getCommaDelimitedString( getIdentifiers( organisationUnits ) ) + ") ";
         }
         
+        if ( params.getProgramStage() != null )
+        {
+            sql += hlp.whereAnd() + " ps.programstageid = " + params.getProgramStage().getId() + " ";
+        }
+
         return sql;
     }
 
@@ -685,6 +708,51 @@ public class JdbcEventStore
             + "inner join trackedentitycomment psinote on psic.trackedentitycommentid=psinote.trackedentitycommentid ";
 
         return sql;
+    }
+
+    private String getGridOrderQuery( EventSearchParams params, List<String> sortColumns )
+    {        
+        if ( params.getGridOrders() != null && params.getDataElements() != null && !params.getDataElements().isEmpty()
+            && sortColumns != null && !sortColumns.isEmpty() )
+        {
+            ArrayList<String> orderFields = new ArrayList<String>();
+
+            for ( String order : params.getGridOrders() )
+            {
+                String[] prop = order.split( ":" );
+
+                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+                {
+                    if ( sortColumns.contains( prop[0] ) )
+                    {
+                        orderFields.add( prop[0] + " " + prop[1] );
+                    }
+                    else
+                    {
+                        Iterator<QueryItem> itermIterator = params.getDataElements().iterator();
+
+                        while ( itermIterator.hasNext() )
+                        {
+                            QueryItem item = itermIterator.next();
+
+                            if ( prop[0].equals( item.getItemId() ) )
+                            {
+                                orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
+                                break;
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            if ( !orderFields.isEmpty() )
+            {
+                return "order by " + StringUtils.join( orderFields, ',' );
+            }
+        }
+
+        return "order by lastUpdated desc ";
     }
 
     private String getOrderQuery( List<Order> orders )

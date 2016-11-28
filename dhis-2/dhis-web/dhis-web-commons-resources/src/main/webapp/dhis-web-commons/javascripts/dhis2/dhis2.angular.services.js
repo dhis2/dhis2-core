@@ -2584,12 +2584,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 lastEventDate = currentEvent.eventDate;
 
                 
-                var pager = {pageSize: NUMBER_OF_EVENTS_IN_SCOPE};
-                var ordering = {field:"eventDate",direction:"desc"};
-                var filterings = [{field:"programStage", value:programStageId}];
-                return DHIS2EventFactory.getByFilters(orgUnitId, pager, true, ordering, filterings).then(function(newestEvents) {
-                    filterings.push({field:"dueDate",value:lastEventDate});
-                    return DHIS2EventFactory.getByFilters(orgUnitId, pager, true, ordering, filterings).then(function(previousEvents) {
+                var pager = {pageSize: NUMBER_OF_EVENTS_IN_SCOPE};                
+                var ordering = {id:"eventDate",direction:"desc"};
+                
+                return DHIS2EventFactory.getByStage(orgUnitId, programStageId, null, pager, true, null, null, ordering).then(function(newestEvents) {
+                    var filterUrl = '&filter=dueDate:EQ:' + lastEventDate; 
+                    return DHIS2EventFactory.getByStage(orgUnitId, programStageId, null, pager, true, null, filterUrl, ordering).then(function(previousEvents) {
                         eventScopeExceptCurrent = [];
                         var eventIdDictionary = {};
                         var allEventsWithPossibleDuplicates = newestEvents.events.concat(previousEvents.events);

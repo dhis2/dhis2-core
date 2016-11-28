@@ -222,7 +222,6 @@ public class EventController
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
-        WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         if ( fields.isEmpty() )
@@ -243,7 +242,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds, filter );        
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter );        
         
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
         
@@ -299,7 +298,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds, null );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null );
 
         Events events = eventService.getEvents( params );
 
@@ -370,7 +369,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null, null );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null );
 
         Events events = eventService.getEvents( params );
 
@@ -414,7 +413,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, eventStatus, null, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), true, null, null );
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null );
 
         return eventRowService.getEventRows( params );
     }
@@ -435,37 +434,7 @@ public class EventController
 
         return event;
     }
-
-    private List<Order> getOrderParams( String order )
-    {
-        if ( order != null && !StringUtils.isEmpty( order ) )
-        {
-            OrderParams op = new OrderParams( Sets.newLinkedHashSet( Arrays.asList( order.split( "," ) ) ) );
-            return op.getOrders( getSchema() );
-        }
-
-        return null;
-    }
-
-    private Map<Object, Object> getMetaData( Program program )
-    {
-        Map<Object, Object> metaData = new HashMap<>();
-
-        if ( program != null )
-        {
-            Map<String, String> dataElements = new HashMap<>();
-
-            for ( DataElement de : program.getDataElements() )
-            {
-                dataElements.put( de.getUid(), de.getDisplayName() );
-            }
-
-            metaData.put( META_DATA_KEY_DE, dataElements );
-        }
-
-        return metaData;
-    }
-
+    
     @RequestMapping( value = "/files", method = RequestMethod.GET )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
@@ -827,6 +796,10 @@ public class EventController
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+    
     private boolean fieldsContains( String match, List<String> fields )
     {
         for ( String field : fields )
@@ -845,4 +818,46 @@ public class EventController
     {
         return fieldsContains( "href", fields );
     }
+    
+    private List<Order> getOrderParams( String order )
+    {
+        if ( order != null && !StringUtils.isEmpty( order ) )
+        {
+            OrderParams op = new OrderParams( Sets.newLinkedHashSet( Arrays.asList( order.split( "," ) ) ) );
+            return op.getOrders( getSchema() );
+        }
+
+        return null;
+    }
+    
+    private List<String> getGridOrderParams( String order )
+    {
+        if ( order != null && !StringUtils.isEmpty( order ) )
+        {
+            
+            return Arrays.asList( order.split( "," ) ) ; 
+        }
+
+        return null;
+    }
+
+    private Map<Object, Object> getMetaData( Program program )
+    {
+        Map<Object, Object> metaData = new HashMap<>();
+
+        if ( program != null )
+        {
+            Map<String, String> dataElements = new HashMap<>();
+
+            for ( DataElement de : program.getDataElements() )
+            {
+                dataElements.put( de.getUid(), de.getDisplayName() );
+            }
+
+            metaData.put( META_DATA_KEY_DE, dataElements );
+        }
+
+        return metaData;
+    }
+
 }
