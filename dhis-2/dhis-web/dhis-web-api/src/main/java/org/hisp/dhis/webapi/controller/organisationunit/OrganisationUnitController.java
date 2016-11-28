@@ -32,11 +32,11 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitByLevelComparator;
@@ -155,24 +155,24 @@ public class OrganisationUnitController
         }
 
         List<OrganisationUnit> list = (List<OrganisationUnit>) queryService.query( query );
-        
+
         // ---------------------------------------------------------------------
         // Collection member count in hierarchy handling
         // ---------------------------------------------------------------------
 
         IdentifiableObject member = null;
-        
-        if ( memberObject != null && memberCollection != null && ( member = manager.get( memberObject ) ) != null )
+
+        if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
         {
             for ( OrganisationUnit unit : list )
             {
                 Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member, memberCollection );
-                
-                unit.setMemberCount( ( count != null ? count.intValue() : 0 ) );
+
+                unit.setMemberCount( (count != null ? count.intValue() : 0) );
             }
         }
-        
-        return list;        
+
+        return list;
     }
 
     @Override
@@ -336,6 +336,15 @@ public class OrganisationUnitController
             }
 
             generator.writeStringField( "parentGraph", organisationUnit.getParentGraph( roots ) );
+
+            generator.writeArrayFieldStart( "groups" );
+
+            for ( OrganisationUnitGroup group : organisationUnit.getGroups() )
+            {
+                generator.writeString( group.getUid() );
+            }
+
+            generator.writeEndArray();
         }
 
         generator.writeEndObject();

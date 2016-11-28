@@ -274,7 +274,7 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( detachedCriteria ) );
 
         criteria.add( disjunction );
-
+        
         return criteria;
     }
 
