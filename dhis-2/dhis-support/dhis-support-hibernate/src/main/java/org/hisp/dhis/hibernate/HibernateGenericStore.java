@@ -193,8 +193,9 @@ public class HibernateGenericStore<T>
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
+        preProcessDetachedCriteria( criteria );
 
-        return getExecutableCriteria( preProcessDetachedCriteria( criteria ) );
+        return getExecutableCriteria( criteria );
     }
 
     @Override
@@ -243,7 +244,7 @@ public class HibernateGenericStore<T>
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
-        criteria = preProcessDetachedCriteria( criteria );
+        preProcessDetachedCriteria( criteria );
 
         if ( !sharingEnabled( user ) || user == null )
         {
@@ -281,9 +282,8 @@ public class HibernateGenericStore<T>
      * Override to add additional restrictions to criteria before
      * it is invoked.
      */
-    protected DetachedCriteria preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
+    protected void preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
     {
-        return detachedCriteria;
     }
 
     protected Criteria getClazzCriteria()
