@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics;
  */
 
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -42,7 +44,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.calendar.Calendar;
@@ -55,7 +56,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObjectUtils;
@@ -73,6 +74,7 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
@@ -303,27 +305,26 @@ public class AnalyticsUtils
      * Generates a data value set based on the given grid with aggregated data.
      * Sets the created and last updated fields to the current date.
      * 
+     * @param params the data query parameters.
      * @param grid the grid.
      * @return a data value set.
      */
-    @SuppressWarnings("unchecked")
-    public static DataValueSet getDataValueSetFromGrid( Grid grid, DataQueryParams params )
+    public static DataValueSet getDataValueSetFromGrid( DataQueryParams params, Grid grid )
     {
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
         int peInx = grid.getIndexOfHeader( PERIOD_DIM_ID );
         int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
+        int coInx = grid.getIndexOfHeader( CATEGORYOPTIONCOMBO_DIM_ID );
+        int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
         int vlInx = grid.getWidth() - 1;
         
         Assert.isTrue( dxInx >= 0 );
         Assert.isTrue( peInx >= 0 );
         Assert.isTrue( ouInx >= 0 );
+        Assert.isTrue( coInx >= 0 );
+        Assert.isTrue( aoInx >= 0 );
         Assert.isTrue( vlInx >= 0 );
-        
-        Map<String, DimensionalItemObject> itemMap = (Map<String, DimensionalItemObject>) grid.
-            getMetaData().get( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey() );
-
-        Assert.isTrue( itemMap != null );
-        
+                
         String created = DateUtils.getMediumDateString();
         
         DataValueSet dvs = new DataValueSet();
@@ -332,33 +333,22 @@ public class AnalyticsUtils
         
         for ( List<Object> row : grid.getRows() )
         {
-            String dx = String.valueOf( row.get( dxInx ) );
-            
-            DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
-            
-            Object vl = getIntegerOrValue( row.get( vlInx ), item );
-                        
             DataValue dv = new DataValue();
             
-            dv.setDataElement( dx );
+            Object coc = row.get( coInx );
+            Object aoc = row.get( aoInx );
+            
+            dv.setDataElement( String.valueOf( row.get( dxInx ) ) );
             dv.setPeriod( String.valueOf( row.get( peInx ) ) );
             dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
-            dv.setValue( String.valueOf( vl ) );
+            dv.setCategoryOptionCombo( coc != null ? String.valueOf( coc ) : null );
+            dv.setAttributeOptionCombo( aoc != null ? String.valueOf( aoc ) : null );
+            dv.setValue( String.valueOf( row.get( vlInx ) ) );
             dv.setComment( KEY_AGG_VALUE );
             dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
             dv.setLastUpdated( created );
-            
-            if ( item != null && item.hasAggregateExportCategoryOptionCombo() )
-            {
-                dv.setCategoryOptionCombo( item.getAggregateExportCategoryOptionCombo() );
-            }
-            
-            if ( item != null && item.hasAggregateExportAttributeOptionCombo() )
-            {
-                dv.setAttributeOptionCombo( item.getAggregateExportAttributeOptionCombo() );
-            }
-            
+                        
             if ( !params.isDuplicatesOnly() || !primaryKeys.add( dv.getPrimaryKey() ) )
             {
                 dvs.getDataValues().add( dv );
@@ -366,6 +356,58 @@ public class AnalyticsUtils
         }
         
         return dvs;        
+    }
+    
+    /**
+     * Prepares the given grid to be converted to a data value set.
+     * 
+     * <ul>
+     * <li>Adds a category option combo and a attribute option combo
+     * column to the grid based on the aggregated export properties
+     * of the associated data item.</li>
+     * <li>Converts data values from double to integer based on the
+     * associated data item if required.</li>
+     * </ul>
+     * 
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    public static void handleGridForDataValueSet( DataQueryParams params, Grid grid )
+    {
+        Map<String, DimensionalItemObject> dimItemObjectMap = AnalyticsUtils.getDimensionalItemObjectMap( params );
+        
+        List<Object> cocCol = Lists.newArrayList();
+        List<Object> aocCol = Lists.newArrayList();
+        
+        int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
+        int vlInx = grid.getWidth() - 1;
+        
+        Assert.isTrue( dxInx >= 0 );
+        Assert.isTrue( vlInx >= 0 );
+        
+        for ( List<Object> row : grid.getRows() )
+        {
+            String dx = String.valueOf( row.get( dxInx ) );
+            
+            Assert.notNull( dx );
+            
+            DataDimensionalItemObject item = (DataDimensionalItemObject) dimItemObjectMap.get( dx );
+
+            Assert.notNull( item );
+            
+            Object value = AnalyticsUtils.getIntegerOrValue( row.get( vlInx ), item );
+            
+            row.set( vlInx, value );
+            
+            cocCol.add( item.getAggregateExportCategoryOptionCombo() );
+            aocCol.add( item.getAggregateExportAttributeOptionCombo() );
+        }
+
+        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) );
+        grid.addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) );
+
+        grid.addColumn( vlInx, aocCol );
+        grid.addColumn( vlInx, cocCol );
     }
 
     /**
@@ -378,7 +420,7 @@ public class AnalyticsUtils
      * @param item the dimensional item object.
      * @return an object, double or integer depending on the given arguments.
      */
-    private static Object getIntegerOrValue( Object value, DataDimensionalItemObject item )
+    public static Object getIntegerOrValue( Object value, DataDimensionalItemObject item )
     {
         boolean doubleValue = item != null && value != null && ( value instanceof Double );
         
@@ -399,23 +441,20 @@ public class AnalyticsUtils
     
     /**
      * Returns a mapping between dimension item identifiers and dimensional
-     * item object for the given query. The output identifier scheme of the
-     * given query is taken into account for the dimension item map keys.
+     * item object for the given query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
     public static Map<String, DimensionalItemObject> getDimensionalItemObjectMap( DataQueryParams params )
-    {
-        IdScheme idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID );
-        
+    {        
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
         
         Map<String, DimensionalItemObject> map = new HashMap<>();
         
         for ( DimensionalObject dimension : dimensions )
         {
-            dimension.getItems().stream().forEach( i -> map.put( i.getDimensionItem( idScheme ), i ) );
+            dimension.getItems().stream().forEach( i -> map.put( i.getDimensionItem(), i ) );
         }
         
         return map;

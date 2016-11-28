@@ -192,7 +192,11 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getCriteria()
     {
-        return getClazzCriteria().setCacheable( cacheable );
+        Criteria criteria = getClazzCriteria().setCacheable( cacheable );
+
+        preProcessCriteria( criteria );
+        
+        return criteria;
     }
 
     @Override
@@ -270,7 +274,18 @@ public class HibernateGenericStore<T>
 
         criteria.add( disjunction );
 
+        preProcessCriteria( criteria );
+
         return criteria;
+    }
+
+    /**
+     * Override to add additional restrictions to criteria before
+     * it is invoked.
+     */
+    protected void preProcessCriteria( Criteria criteria )
+    {
+
     }
 
     protected Criteria getClazzCriteria()
@@ -295,6 +310,9 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
+
+        preProcessCriteria( criteria );
+
         return criteria;
     }
 

@@ -189,6 +189,16 @@ public class ListGrid
     }
 
     @Override
+    public Grid addHeader( int headerIndex, GridHeader header )
+    {
+        headers.add( headerIndex, header );
+
+        updateColumnIndexMap();
+
+        return this;
+    }
+
+    @Override
     public Grid addEmptyHeaders( int number )
     {
         for ( int i = 0; i < number; i++ )
@@ -426,8 +436,8 @@ public class ListGrid
     {
         verifyGridState();
 
-        int rowIndex = 0;
-        int columnIndex = 0;
+        int currentRowIndex = 0;
+        int currentColumnIndex = 0;
 
         if ( grid.size() != columnValues.size() )
         {
@@ -436,7 +446,28 @@ public class ListGrid
 
         for ( int i = 0; i < grid.size(); i++ )
         {
-            grid.get( rowIndex++ ).add( columnValues.get( columnIndex++ ) );
+            grid.get( currentRowIndex++ ).add( columnValues.get( currentColumnIndex++ ) );
+        }
+
+        return this;
+    }
+
+    @Override
+    public Grid addColumn( int columnIndex, List<Object> columnValues )
+    {
+        verifyGridState();
+
+        int currentRowIndex = 0;
+        int currentColumnIndex = 0;
+
+        if ( grid.size() != columnValues.size() )
+        {
+            throw new IllegalStateException( "Number of column values (" + columnValues.size() + ") is not equal to number of rows (" + grid.size() + ")" );
+        }
+
+        for ( int i = 0; i < grid.size(); i++ )
+        {
+            grid.get( currentRowIndex++ ).add( columnIndex, columnValues.get( currentColumnIndex++ ) );
         }
 
         return this;
