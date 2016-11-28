@@ -193,6 +193,7 @@ public class HibernateGenericStore<T>
     public final Criteria getCriteria()
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
+
         preProcessDetachedCriteria( criteria );
 
         return getExecutableCriteria( criteria );
@@ -274,7 +275,6 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( detachedCriteria ) );
 
         criteria.add( disjunction );
-        
         return criteria;
     }
 
@@ -329,7 +329,6 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
-
         return criteria;
     }
 
