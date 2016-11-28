@@ -17,8 +17,13 @@
 </p>
 
 <p>
-	<input type="checkbox" id="softDeletedValues"/>
-	<label for="softDeletedValues">$i18n.getString( "remove_soft_deleted_data_values" )</label>
+    <input type="checkbox" id="softDeletedValues"/>
+    <label for="softDeletedValues">$i18n.getString( "remove_soft_deleted_data_values" )</label>
+</p>
+
+<p>
+    <input type="checkbox" id="softDeletedEvents"/>
+    <label for="softDeletedEvents">$i18n.getString( "remove_soft_deleted_events" )</label>
 </p>
 
 <p>

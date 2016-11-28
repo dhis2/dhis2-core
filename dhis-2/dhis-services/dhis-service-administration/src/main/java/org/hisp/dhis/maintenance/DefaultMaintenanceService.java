@@ -123,7 +123,7 @@ public class DefaultMaintenanceService
     {
         int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
 
-        log.info( "Permanently deleted soft deleted program stage instances" );
+        log.info( "Permanently deleted soft deleted events: " + result );
 
         return result;
     }

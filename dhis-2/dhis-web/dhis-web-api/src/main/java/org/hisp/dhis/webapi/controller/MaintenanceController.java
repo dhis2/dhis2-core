@@ -228,7 +228,7 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean periodPruning,
         @RequestParam( required = false ) boolean zeroDataValueRemoval,
         @RequestParam( required = false ) boolean softDeletedDataValueRemoval,
-        @RequestParam( required = false ) boolean softDeletedProgramStageInstanceRemoval,
+        @RequestParam( required = false ) boolean softDeletedEventRemoval,
         @RequestParam( required = false ) boolean sqlViewsDrop,
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
@@ -259,13 +259,13 @@ public class MaintenanceController
         {
             deleteZeroDataValues();
         }
-        
+
         if ( softDeletedDataValueRemoval )
         {
             deleteSoftDeletedDataValues();
         }
 
-        if ( softDeletedProgramStageInstanceRemoval )
+        if ( softDeletedEventRemoval )
         {
             deleteSoftDeletedProgramStageInstances();
         }
