@@ -618,6 +618,7 @@ public class JdbcEventAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
+        //Need to handle the enrollment analytics with enrollmentdate
         if ( params.hasStartEndDate() )
         {        
             sql += "where executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
