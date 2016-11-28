@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.Criteria;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -158,12 +159,21 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    protected void preProcessCriteria( Criteria criteria )
+    protected DetachedCriteria preProcessDetachedCriteria( DetachedCriteria criteria )
     {
 
         // Filter out soft deleted values
         criteria.add( Restrictions.eq( "deleted", false ) );
 
+        System.out.println("AM I EVEN BEING CALLED???");
+
+        return criteria;
+    }
+
+    @Override
+    protected ProgramStageInstance postProcessObject( ProgramStageInstance programStageInstance )
+    {
+        return programStageInstance.isDeleted() ? null : programStageInstance;
     }
 
     // -------------------------------------------------------------------------

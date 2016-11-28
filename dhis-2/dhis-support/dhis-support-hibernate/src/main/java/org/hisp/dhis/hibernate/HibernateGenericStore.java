@@ -194,9 +194,7 @@ public class HibernateGenericStore<T>
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
 
-        preProcessDetachedCriteria( criteria );
-
-        return getExecutableCriteria( criteria );
+        return getExecutableCriteria( preProcessDetachedCriteria( criteria ) );
     }
 
     @Override
@@ -245,6 +243,8 @@ public class HibernateGenericStore<T>
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
+        criteria = preProcessDetachedCriteria( criteria );
+
         if ( !sharingEnabled( user ) || user == null )
         {
             return criteria;
@@ -273,8 +273,6 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( detachedCriteria ) );
 
         criteria.add( disjunction );
-
-        preProcessDetachedCriteria( criteria );
 
         return criteria;
     }
@@ -331,6 +329,7 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
+
         return criteria;
     }
 
