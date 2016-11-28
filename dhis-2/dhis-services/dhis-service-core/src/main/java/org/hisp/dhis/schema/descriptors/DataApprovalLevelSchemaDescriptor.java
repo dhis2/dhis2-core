@@ -48,7 +48,6 @@ public class DataApprovalLevelSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataApprovalLevel.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1370 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );

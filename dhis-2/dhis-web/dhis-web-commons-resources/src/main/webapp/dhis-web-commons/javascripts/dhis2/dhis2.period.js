@@ -425,6 +425,46 @@ dhis2.period.PeriodGenerator.prototype.filterFuturePeriodsExceptCurrent = functi
   return array;
 };
 
+dhis2.period.PeriodGenerator.prototype.getPeriodForTheDate = function(date, type) {
+  var dateArray = date.split('-');
+  var year = parseInt(dateArray [0]), month = parseInt(dateArray [1]), day = parseInt(dateArray [2]);
+  var yearOffset = year - (new Date()).getFullYear();
+  var offset = 0, eventDate, allPeriods, periodWithDate = null;
+
+  if (type === 'FinancialOct') {
+    offset = month <= 9 ? 4 : 5;
+  } else if (type === 'FinancialJuly') {
+    offset = month <= 6 ? 4 : 5;
+  } else if (type === 'FinancialApril') {
+    offset = month <= 3 ? 4 : 5;
+  } else if (type === 'Yearly') {
+    offset = -5;
+  } else if (type === 'SixMonthlyApril') {
+    offset = month < 4 ? -1 : 0;
+  } else if ((type === 'SixMonthly') || (type === 'Quarterly') || (type === 'BiMonthly') || (type === 'Monthly')
+      || (type === 'Weekly') || (type === 'Daily')) {
+    offset = 0;
+  } else {
+    return periodWithDate;
+  }
+
+  allPeriods = this.generatePeriods(type, yearOffset + offset);
+
+  if (allPeriods) {
+    for (var i = 0, sd, ed; i < allPeriods.length; i++) {
+      sd = moment(allPeriods[i]._startDate.toString(), "YYYY-MM-DD");
+      ed = moment(allPeriods[i]._endDate.toString(), "YYYY-MM-DD");
+      eventDate = moment(date, "YYYY-MM-DD");
+      if (!(eventDate.isBefore(sd) || eventDate.isAfter(ed))) {
+        periodWithDate = {startDate: sd.format("YYYY-MM-DD"), endDate: ed.format("YYYY-MM-DD")};
+        break;
+      }
+    }
+  }
+
+  return periodWithDate;
+};
+
 /**
  * Base class for generator classes, should not be instantiated directly.
  *
@@ -997,3 +1037,6 @@ function getHMISMonthsInYear( calendar, year ) {
 
   	return monthsInYear;
 }
+
+
+

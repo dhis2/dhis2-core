@@ -85,7 +85,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -121,6 +121,7 @@ import java.util.zip.GZIPOutputStream;
 public class EventController
 {
     public static final String RESOURCE_PATH = "/events";
+
     private static final String META_DATA_KEY_DE = "de";
 
     //--------------------------------------------------------------------------
@@ -236,7 +237,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds, null );
 
         Events events = eventService.getEvents( params );
 
@@ -307,7 +308,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null, null );
 
         Events events = eventService.getEvents( params );
 
@@ -351,7 +352,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, eventStatus, null, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), true, null );
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), true, null, null );
 
         return eventRowService.getEventRows( params );
     }

@@ -105,8 +105,9 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> period,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> orgUnit,
+        @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
+        @RequestParam( required = false ) Set<String> orgUnitGroup,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -116,7 +117,7 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_XML );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetXml( params, response.getOutputStream() );
     }
@@ -149,8 +150,9 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> period,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> orgUnit,
+        @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
+        @RequestParam( required = false ) Set<String> orgUnitGroup,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -160,7 +162,7 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_JSON );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetJson( params, response.getOutputStream() );
     }
@@ -172,8 +174,9 @@ public class DataValueSetController
         @RequestParam( required = false ) Set<String> period,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> orgUnit,
+        @RequestParam( required = false ) Set<String> orgUnit,
         @RequestParam( required = false ) boolean children,
+        @RequestParam( required = false ) Set<String> orgUnitGroup,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
@@ -184,7 +187,7 @@ public class DataValueSetController
         response.setContentType( CONTENT_TYPE_CSV );
 
         DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
-            period, startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
         dataValueSetService.writeDataValueSetCsv( params, response.getWriter() );
     }

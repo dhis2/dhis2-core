@@ -192,30 +192,60 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getCriteria()
     {
-        return getClazzCriteria().setCacheable( cacheable );
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
+
+        preProcessDetachedCriteria( criteria );
+
+        return getExecutableCriteria( criteria );
     }
 
     @Override
     public final Criteria getSharingCriteria()
     {
-        return getSharingCriteria( "r%" );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUser(), "r%" ) );
     }
 
     @Override
     public final Criteria getSharingCriteria( String access )
     {
-        return getSharingCriteria( currentUserService.getCurrentUser(), access );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUser(), access ) );
     }
 
     @Override
     public final Criteria getSharingCriteria( User user )
     {
-        return getSharingCriteria( user, "r%" );
+        return getExecutableCriteria( getSharingDetachedCriteria( user, "r%" ) );
     }
 
-    private Criteria getSharingCriteria( User user, String access )
+    @Override
+    public final DetachedCriteria getSharingDetachedCriteria()
     {
-        Criteria criteria = getSession().createCriteria( getClazz(), "c" ).setCacheable( cacheable );
+        return getSharingDetachedCriteria( currentUserService.getCurrentUser(), "r%" );
+    }
+
+    @Override
+    public final DetachedCriteria getSharingDetachedCriteria( String access )
+    {
+        return getSharingDetachedCriteria( currentUserService.getCurrentUser(), access );
+    }
+
+    @Override
+    public final DetachedCriteria getSharingDetachedCriteria( User user )
+    {
+        return getSharingDetachedCriteria( user, "r%" );
+    }
+
+    @Override
+    public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
+    {
+        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
+    }
+
+    private DetachedCriteria getSharingDetachedCriteria( User user, String access )
+    {
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
+
+        preProcessDetachedCriteria( criteria );
 
         if ( !sharingEnabled( user ) || user == null )
         {
@@ -245,8 +275,15 @@ public class HibernateGenericStore<T>
         disjunction.add( Subqueries.exists( detachedCriteria ) );
 
         criteria.add( disjunction );
-
         return criteria;
+    }
+
+    /**
+     * Override to add additional restrictions to criteria before
+     * it is invoked.
+     */
+    protected void preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
+    {
     }
 
     protected Criteria getClazzCriteria()
@@ -271,6 +308,7 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
+
         return criteria;
     }
 
@@ -281,7 +319,7 @@ public class HibernateGenericStore<T>
      * @param expressions the Criterions for the Criteria.
      * @return a Criteria instance.
      */
-    protected final Criteria getSharingCriteria( Criterion... expressions )
+    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
     {
         Criteria criteria = getSharingCriteria();
 
@@ -315,7 +353,7 @@ public class HibernateGenericStore<T>
     @SuppressWarnings( "unchecked" )
     protected final T getSharingObject( Criterion... expressions )
     {
-        return (T) getSharingCriteria( expressions ).uniqueResult();
+        return (T) getSharingDetachedCriteria( expressions ).uniqueResult();
     }
 
     /**
@@ -487,8 +525,17 @@ public class HibernateGenericStore<T>
             throw new ReadAccessDeniedException( object.toString() );
         }
 
+        return postProcessObject( object );
+    }
+
+    /**
+     * Override to inspect, or alter object before it is returned.
+     */
+    protected T postProcessObject( T object )
+    {
         return object;
     }
+
 
     @Override
     public final T getNoAcl( int id )

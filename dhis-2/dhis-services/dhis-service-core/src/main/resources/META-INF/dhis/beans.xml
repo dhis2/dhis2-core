@@ -27,6 +27,8 @@
 
   <bean id="org.hisp.dhis.schema.SchemaService" class="org.hisp.dhis.schema.DefaultSchemaService" />
 
+  <bean id="org.hisp.dhis.query.planner.QueryPlanner" class="org.hisp.dhis.query.planner.DefaultQueryPlanner" />
+
   <bean id="org.hisp.dhis.query.QueryParser" class="org.hisp.dhis.query.DefaultQueryParser" />
 
   <bean id="org.hisp.dhis.query.CriteriaQueryEngine" class="org.hisp.dhis.query.CriteriaQueryEngine" />
@@ -586,6 +588,14 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore"
+    class="org.hisp.dhis.program.hibernate.HibernateProgramTrackedEntityAttributeGroupStore">
+    <property name="clazz" value="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
 
   <bean id="org.hisp.dhis.program.ProgramValidationStore"
     class="org.hisp.dhis.program.hibernate.HibernateProgramValidationStore">
@@ -1351,6 +1361,11 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
     <property name="programDataElementStore" ref="org.hisp.dhis.program.ProgramDataElementStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService"
+    class="org.hisp.dhis.program.DefaultProgramTrackedEntityAttributeGroupService">
+    <property name="attributeGroupStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" />
   </bean>
 
   <!-- ProgramMessage services -->

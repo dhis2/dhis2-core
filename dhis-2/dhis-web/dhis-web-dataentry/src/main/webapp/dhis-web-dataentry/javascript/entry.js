@@ -253,6 +253,8 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
     var valueSaver = new ValueSaver( dataElementId,	periodId, optionComboId, value, feedbackId, color );
     valueSaver.save();
 
+    dhis2.de.populateRowTotals();
+    dhis2.de.populateColumnTotals();
     dhis2.de.updateIndicators(); // Update indicators for custom form
     dhis2.de.updateDataElementTotals( dataElementId ); // Update data element totals for custom forms
     

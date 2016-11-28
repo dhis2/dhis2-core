@@ -78,6 +78,11 @@ public @interface ApiVersion
         V25( "25" ),
 
         /**
+         * /api/26/name
+         */
+        V26( "26" ),
+
+        /**
          * Map to all versions, not including default.
          */
         ALL( "*", true );

@@ -52,4 +52,11 @@ public abstract class Junction extends Criteria implements Criterion
     {
         return type;
     }
+
+
+    @Override
+    public String toString()
+    {
+        return "[ " + type + ", " + criterions + "]";
+    }
 }

@@ -110,8 +110,18 @@ public interface Grid
     
     /**
      * Adds a header value.
+     * 
+     * @param header the grid header.
      */
     Grid addHeader( GridHeader header );
+
+    /**
+     * Adds a header value at the given column index.
+     * 
+     * @param columnIndex the column index to insert the grid header at.
+     * @param header the grid header.
+     */
+    Grid addHeader( int columnIndex, GridHeader header );
     
     /**
      * Adds a number of empty values to the Grid.
@@ -232,6 +242,16 @@ public interface Grid
      *         than the rows in grid, or if the grid rows are not of the same length.
      */
     Grid addColumn( List<Object> columnValues );
+
+    /**
+     * Adds a new column at the end of the grid.
+     * 
+     * @param columnIndex the index at where to insert the column.
+     * @param columnValues the column values to add.
+     * @throws IllegalStateException if the columnValues has different length
+     *         than the rows in grid, or if the grid rows are not of the same length.
+     */
+    Grid addColumn( int columnIndex, List<Object> columnValues );
     
     /**
      * Adds a new column at the end of the grid and populates it with the given
@@ -334,7 +354,8 @@ public interface Grid
     
     /**
      * Substitutes the grid header names and the grid values for meta type columns
-     * based on the given mapping.
+     * based on the given mapping. Values are left unchanged when there is not match
+     * in the given meta data map.
      * 
      * @param metaDataMap meta data map of keys and value substitutions.
      */
@@ -343,6 +364,8 @@ public interface Grid
     /**
      * Substitutes the grid values based on the given mapping. Substitutes values
      * per row based on the given source column index and target column index.
+     * Values are left unchanged when there is not match in the given meta data
+     * map.
      * 
      * @param sourceColumnIndex the index of the column to read values.
      * @param targetColumnIndex the index of the column to substitute values.

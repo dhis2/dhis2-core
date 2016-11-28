@@ -48,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.comparator.ObjectStringValueComparator;
 import org.hisp.dhis.dataelement.DataElementOperand;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -489,7 +490,24 @@ public class DimensionalObjectUtils
         
         return set;
     }
-    
+
+    /**
+     * Returns a mapping between the base dimension item identifier and the 
+     * dimension item identifier defined by the given identifier scheme.
+     *
+     * @param objects the dimensional item objects.
+     * @param idScheme the identifier scheme.
+     * @return a mapping between dimension item identifiers.
+     */
+    public static Map<String, String> getDimensionItemIdSchemeMap( Collection<? extends DimensionalItemObject> objects, IdScheme idScheme )
+    {
+        Map<String, String> map = Maps.newHashMap();
+
+        objects.forEach( obj -> map.put( obj.getDimensionItem(), obj.getDimensionItem( IdScheme.from( idScheme ) ) ) );
+
+        return map;
+    }
+
     /**
      * Returns a dimension item identifier for the given data set identifier and
      * reporting date metric.

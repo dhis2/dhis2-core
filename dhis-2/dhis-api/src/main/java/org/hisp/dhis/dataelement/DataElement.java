@@ -487,22 +487,27 @@ public class DataElement
     }
 
     /**
-     * Returns the minimum number of expiry days from the data sets of this data
-     * element. Returns {@link DataSet.NO_EXPIRY} if no data sets has expiry.
+     * Returns the maximum number of expiry days from the data sets of this data
+     * element. Returns {@link DataSet.NO_EXPIRY} if any data set has no expiry.
      */
     public int getExpiryDays()
     {
-        int expiryDays = Integer.MAX_VALUE;
+        int expiryDays = Integer.MIN_VALUE;
 
         for ( DataSet dataSet : getDataSets() )
         {
-            if ( dataSet.getExpiryDays() != NO_EXPIRY && dataSet.getExpiryDays() < expiryDays )
+            if ( dataSet.getExpiryDays() == NO_EXPIRY )
+            {
+                return NO_EXPIRY;
+            }
+
+            if ( dataSet.getExpiryDays() > expiryDays )
             {
                 expiryDays = dataSet.getExpiryDays();
             }
         }
 
-        return expiryDays == Integer.MAX_VALUE ? NO_EXPIRY : expiryDays;
+        return expiryDays == Integer.MIN_VALUE ? NO_EXPIRY : expiryDays;
     }
 
     /**
@@ -604,7 +609,7 @@ public class DataElement
 
     @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
     public DataElementCategoryCombo getDataElementCategoryCombo()
     {
         return dataElementCategoryCombo;
@@ -702,6 +707,28 @@ public class DataElement
     public void setCommentOptionSet( OptionSet commentOptionSet )
     {
         this.commentOptionSet = commentOptionSet;
+    }
+
+    public boolean isPeriodInDataSetOpenPeriods( Period period )
+    {
+        if ( getDataSets().isEmpty() )
+        {
+            return true;
+        }
+
+        boolean result = false;
+
+        for ( DataSet dataSet : getDataSets() )
+        {
+            if ( dataSet.getOpenPeriods().contains( period ))
+            {
+                return true;
+            }
+
+            result = result || dataSet.getOpenPeriods().isEmpty();
+        }
+
+        return result;
     }
 
     @Override

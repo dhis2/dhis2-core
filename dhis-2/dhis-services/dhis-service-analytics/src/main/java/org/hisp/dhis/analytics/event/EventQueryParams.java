@@ -67,6 +67,7 @@ import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorAnalyticsType;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -182,7 +183,12 @@ public class EventQueryParams
      * Indicates whether to include underlying points for each cluster.
      */
     private boolean includeClusterPoints;
-    
+
+    /**
+     * Indicates the program status
+     */
+    private ProgramStatus programStatus;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -232,6 +238,7 @@ public class EventQueryParams
         params.clusterSize = this.clusterSize;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
+        params.programStatus = this.programStatus;
 
         params.periodType = this.periodType;
 
@@ -250,7 +257,7 @@ public class EventQueryParams
         {
             ProgramDataElement element = (ProgramDataElement) object;
             DataElement dataElement = element.getDataElement(); 
-            QueryItem item = new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
+            QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItem( item );
         }
@@ -259,7 +266,7 @@ public class EventQueryParams
         {
             ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
             TrackedEntityAttribute attribute = element.getAttribute();
-            QueryItem item = new QueryItem( attribute, attribute.getLegendSet(), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
+            QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItem( item );
         }
@@ -268,7 +275,7 @@ public class EventQueryParams
         {
             ProgramDataElement element = (ProgramDataElement) object;
             DataElement dataElement = element.getDataElement(); 
-            QueryItem item = new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
+            QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItemFilter( item );
         }
@@ -277,7 +284,7 @@ public class EventQueryParams
         {
             ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
             TrackedEntityAttribute attribute = element.getAttribute();
-            QueryItem item = new QueryItem( attribute, attribute.getLegendSet(), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
+            QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             builder.addItemFilter( item );
         }
 
@@ -401,6 +408,14 @@ public class EventQueryParams
         }
 
         return optionSets;
+    }
+
+    /**
+     * Gets program status
+     */
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
     }
 
     /**
@@ -548,6 +563,11 @@ public class EventQueryParams
     public boolean hasClusterSize()
     {
         return clusterSize != null;
+    }
+
+    public boolean hasProgramStatus()
+    {
+        return programStatus != null;
     }
     
     public boolean hasBbox()
@@ -964,6 +984,12 @@ public class EventQueryParams
         public Builder withIncludeClusterPoints( boolean includeClusterPoints )
         {
             this.params.includeClusterPoints = includeClusterPoints;
+            return this;
+        }
+
+        public Builder withProgramStatus( ProgramStatus programStatus )
+        {
+            this.params.programStatus = programStatus;
             return this;
         }
 

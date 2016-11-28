@@ -111,7 +111,7 @@ public class Schema implements Ordered, Klass
     /**
      * Is sharing supported for instances of this class.
      */
-    private boolean shareable;
+    private Boolean shareable;
 
     /**
      * Points to relative Web-API endpoint (if exposed).
@@ -288,7 +288,8 @@ public class Schema implements Ordered, Klass
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isShareable()
     {
-        return shareable;
+        return shareable != null ? shareable :
+            (havePersistedProperty( "user" ) && havePersistedProperty( "userGroupAccesses" ) && havePersistedProperty( "publicAccess" ));
     }
 
     public void setShareable( boolean shareable )

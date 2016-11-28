@@ -31,6 +31,8 @@ package org.hisp.dhis.common;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
 
+import java.util.List;
+
 /**
 * @author Lars Helge Overland
 */
@@ -43,13 +45,29 @@ public interface DimensionalItemObject
     String getDimensionItem();
     
     /**
+     * Gets the dimension item identifier based on the given
+     * identifier scheme.
+     * 
+     * @param idScheme the identifier scheme.
+     */
+    String getDimensionItem( IdScheme idScheme );
+    
+    /**
      * Gets the dimension type of this dimension item.
      */
     DimensionItemType getDimensionItemType();
 
     /**
-     * Gets the legend set.
+     * Gets the legend sets.
      */
+    List<LegendSet> getLegendSets();
+
+    /**
+     * Gets the first legendSet in the legendSet list.
+     * Only exists to avoid breaking existing applications,
+     * should be removed when 2.25 is no longer supported.
+     */
+    @Deprecated
     LegendSet getLegendSet();
 
     /**

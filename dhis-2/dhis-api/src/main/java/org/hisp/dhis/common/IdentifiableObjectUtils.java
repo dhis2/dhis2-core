@@ -286,7 +286,7 @@ public class IdentifiableObjectUtils
         
         return map;
     }
-    
+
     /**
      * Returns a mapping between the uid and the name of the given identifiable
      * objects.

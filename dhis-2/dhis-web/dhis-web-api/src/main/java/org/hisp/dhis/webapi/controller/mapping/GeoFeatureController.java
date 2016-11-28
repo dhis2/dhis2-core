@@ -170,8 +170,8 @@ public class GeoFeatureController
         Set<String> set = new HashSet<>();
         set.add( ou );
 
-        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null,
-            false, false, false, false, false, false, false, false, false, displayProperty, null, null, null, relativePeriodDate, userOrgUnit );
+        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null,
+            false, false, false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit );
 
         DimensionalObject dim = params.getDimension( DimensionalObject.ORGUNIT_DIM_ID );
 

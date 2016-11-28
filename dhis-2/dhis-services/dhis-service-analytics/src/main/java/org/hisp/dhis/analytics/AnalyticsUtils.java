@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics;
  */
 
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -40,17 +42,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObjectUtils;
@@ -59,6 +65,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -67,13 +74,17 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsUtils
 {
+    private static final int DECIMALS_NO_ROUNDING = 10;
+
     private static final String KEY_AGG_VALUE = "[aggregated]";
     
     public static String getDebugDataSql( DataQueryParams params )
@@ -158,8 +169,9 @@ public class AnalyticsUtils
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
      * returned unchanged. If the given number of decimals is specified, the
-     * value is rounded to the given decimals. Otherwise, default rounding is
-     * used.
+     * value is rounded to the given decimals. If skip rounding is specified
+     * in the given data query parameters, 10 decimals is used. Otherwise,
+     * default rounding is used.
      * 
      * @param params the query parameters.
      * @param decimals the number of decimals.
@@ -168,13 +180,17 @@ public class AnalyticsUtils
      */
     public static Double getRoundedValue( DataQueryParams params, Integer decimals, Double value )
     {
-        if ( value == null || params.isSkipRounding() )
+        if ( value == null )
         {
             return value;
         }
+        else if ( params.isSkipRounding() )
+        {
+            return Precision.round( value, DECIMALS_NO_ROUNDING );
+        }
         else if ( decimals != null && decimals > 0 )
         {
-            return MathUtils.getRounded( value, decimals );
+            return Precision.round( value, decimals );
         }
         else
         {
@@ -185,17 +201,23 @@ public class AnalyticsUtils
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
      * returned unchanged. If the given number is null or not of class Double,
-     * the value is returned unchanged. Otherwise, default rounding is used.
-     *  
+     * the value is returned unchanged. If skip rounding is specified in the
+     * given data query parameters, 10 decimals is used. Otherwise, default
+     * rounding is used.
+     *
      * @param params the query parameters.
      * @param value the value.
      * @return a value.
      */
     public static Object getRoundedValueObject( DataQueryParams params, Object value )
     {
-        if ( value == null || params.isSkipRounding() || !Double.class.equals( value.getClass() ) )
+        if ( value == null || !Double.class.equals( value.getClass() ) )
         {
             return value;
+        }
+        else if ( params.isSkipRounding() )
+        {
+            return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
         
         return MathUtils.getRounded( (Double) value );
@@ -246,7 +268,7 @@ public class AnalyticsUtils
 
     /**
      * Generates a mapping where the key represents the dimensional item identifiers
-     * concatenated by {@link DimensionalObject.DIMENSION_SEP} and the value is 
+     * concatenated by DimensionalObject.DIMENSION_SEP and the value is
      * the corresponding aggregated data value based on the given grid. Assumes 
      * that the value column is the last column in the grid. 
      *
@@ -283,76 +305,149 @@ public class AnalyticsUtils
      * Generates a data value set based on the given grid with aggregated data.
      * Sets the created and last updated fields to the current date.
      * 
+     * @param params the data query parameters.
      * @param grid the grid.
      * @return a data value set.
      */
-    @SuppressWarnings("unchecked")
-    public static DataValueSet getDataValueSetFromGrid( Grid grid )
+    public static DataValueSet getDataValueSetFromGrid( DataQueryParams params, Grid grid )
     {
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
         int peInx = grid.getIndexOfHeader( PERIOD_DIM_ID );
         int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
+        int coInx = grid.getIndexOfHeader( CATEGORYOPTIONCOMBO_DIM_ID );
+        int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
         int vlInx = grid.getWidth() - 1;
         
         Assert.isTrue( dxInx >= 0 );
         Assert.isTrue( peInx >= 0 );
         Assert.isTrue( ouInx >= 0 );
+        Assert.isTrue( coInx >= 0 );
+        Assert.isTrue( aoInx >= 0 );
         Assert.isTrue( vlInx >= 0 );
-        
+                
         String created = DateUtils.getMediumDateString();
-        
-        Map<String, DimensionalItemObject> itemMap = (Map<String, DimensionalItemObject>) grid.
-            getMetaData().get( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey() );
         
         DataValueSet dvs = new DataValueSet();
         
+        Set<String> primaryKeys = Sets.newHashSet();
+        
         for ( List<Object> row : grid.getRows() )
         {
-            String dx = String.valueOf( row.get( dxInx ) );
-            
             DataValue dv = new DataValue();
             
-            dv.setDataElement( dx );
+            Object coc = row.get( coInx );
+            Object aoc = row.get( aoInx );
+            
+            dv.setDataElement( String.valueOf( row.get( dxInx ) ) );
             dv.setPeriod( String.valueOf( row.get( peInx ) ) );
             dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
+            dv.setCategoryOptionCombo( coc != null ? String.valueOf( coc ) : null );
+            dv.setAttributeOptionCombo( aoc != null ? String.valueOf( aoc ) : null );
             dv.setValue( String.valueOf( row.get( vlInx ) ) );
             dv.setComment( KEY_AGG_VALUE );
             dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
             dv.setLastUpdated( created );
-
-            if ( itemMap != null && itemMap.containsKey( dx ) )
-            {
-                DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
-                
-                Assert.isTrue( item != null );
-                
-                if ( item.hasAggregateExportCategoryOptionCombo() )
-                {
-                    dv.setCategoryOptionCombo( item.getAggregateExportCategoryOptionCombo() );
-                }
-                
-                if ( item.hasAggregateExportAttributeOptionCombo() )
-                {
-                    dv.setAttributeOptionCombo( item.getAggregateExportAttributeOptionCombo() );
-                }
-            }
                         
-            dvs.getDataValues().add( dv );
+            if ( !params.isDuplicatesOnly() || !primaryKeys.add( dv.getPrimaryKey() ) )
+            {
+                dvs.getDataValues().add( dv );
+            }
         }
         
         return dvs;        
     }
+    
+    /**
+     * Prepares the given grid to be converted to a data value set.
+     * 
+     * <ul>
+     * <li>Adds a category option combo and a attribute option combo
+     * column to the grid based on the aggregated export properties
+     * of the associated data item.</li>
+     * <li>Converts data values from double to integer based on the
+     * associated data item if required.</li>
+     * </ul>
+     * 
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    public static void handleGridForDataValueSet( DataQueryParams params, Grid grid )
+    {
+        Map<String, DimensionalItemObject> dimItemObjectMap = AnalyticsUtils.getDimensionalItemObjectMap( params );
+        
+        List<Object> cocCol = Lists.newArrayList();
+        List<Object> aocCol = Lists.newArrayList();
+        
+        int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
+        int vlInx = grid.getWidth() - 1;
+        
+        Assert.isTrue( dxInx >= 0 );
+        Assert.isTrue( vlInx >= 0 );
+        
+        for ( List<Object> row : grid.getRows() )
+        {
+            String dx = String.valueOf( row.get( dxInx ) );
+            
+            Assert.notNull( dx );
+            
+            DataDimensionalItemObject item = (DataDimensionalItemObject) dimItemObjectMap.get( dx );
+
+            Assert.notNull( item );
+            
+            Object value = AnalyticsUtils.getIntegerOrValue( row.get( vlInx ), item );
+            
+            row.set( vlInx, value );
+            
+            cocCol.add( item.getAggregateExportCategoryOptionCombo() );
+            aocCol.add( item.getAggregateExportAttributeOptionCombo() );
+        }
+
+        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) );
+        grid.addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) );
+
+        grid.addColumn( vlInx, aocCol );
+        grid.addColumn( vlInx, cocCol );
+    }
 
     /**
-     * Returns a mapping between identifiers and dimensional item object for the 
-     * given query.
+     * Handles conversion of double values to integer. A value is converted to
+     * integer if it is a double, and if either the dimensional item object is
+     * associated with a data element of value type integer, or associated with
+     * an indicator with zero decimals in aggregated output.
+     * 
+     * @param value the value.
+     * @param item the dimensional item object.
+     * @return an object, double or integer depending on the given arguments.
+     */
+    public static Object getIntegerOrValue( Object value, DataDimensionalItemObject item )
+    {
+        boolean doubleValue = item != null && value != null && ( value instanceof Double );
+        
+        if ( doubleValue )
+        {
+            if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() && ((DataElement) item).getValueType().isInteger() )
+            {
+                value = ((Double) value).intValue();
+            }
+            else if ( DimensionItemType.INDICATOR == item.getDimensionItemType() && ((Indicator) item).hasZeroDecimals() )
+            {
+                value = ((Double) value).intValue();
+            }
+        }
+        
+        return value;        
+    }
+    
+    /**
+     * Returns a mapping between dimension item identifiers and dimensional
+     * item object for the given query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
-    public static Map<String, DimensionalItemObject> getUidDimensionalItemMap( DataQueryParams params )
-    {
+    public static Map<String, DimensionalItemObject> getDimensionalItemObjectMap( DataQueryParams params )
+    {        
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
         
         Map<String, DimensionalItemObject> map = new HashMap<>();
@@ -371,7 +466,7 @@ public class AnalyticsUtils
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
-    public static Map<String, String> getUidNameMap( DataQueryParams params )
+    public static Map<String, String> getDimensionItemNameMap( DataQueryParams params )
     {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
 
@@ -415,7 +510,7 @@ public class AnalyticsUtils
      * for the given query.
      *
      * @param params the data query parameters.
-     * @param a mapping between identifiers and names.
+     * @returns a mapping between identifiers and names.
      */
     public static Map<String, String> getCocNameMap( DataQueryParams params )
     {

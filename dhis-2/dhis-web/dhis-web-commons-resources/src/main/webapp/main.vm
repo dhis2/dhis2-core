@@ -50,8 +50,10 @@
     <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/header-bar.js?_rev=$!{buildRevision}"></script>
     <script>
         // Needs to be wrapped in jQuery to be sure the DOM is parsed as the script is not at the bottom.
-        jQuery(function () {
-            Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), undefined, { noLoadingIndicator: true });
+        jQuery(function () {        	
+        	if( Dhis2HeaderBar ){
+        		Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), undefined, { noLoadingIndicator: true });
+        	}            
         });
     </script>
     <!-- // End menu -->
@@ -86,6 +88,7 @@
     <script type="text/javascript" src="../dhis-web-commons/javascripts/dhis2/dhis2.select.js?_rev=$!{buildRevision}"></script>
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.min.js?_rev=$!{buildRevision}"></script>
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.plus.min.js?_rev=$!{buildRevision}"></script>
+    <script type="text/javascript" src="../dhis-web-commons/javascripts/moment/moment-with-langs.min.js?_rev=$!{buildRevision}"></script>
 	<script type="text/javascript" src="../dhis-web-commons/select2/select2.min.js?_rev=$!{buildRevision}"></script>
     #if( $keyCalendar == "coptic" || $keyCalendar == "ethiopian" || $keyCalendar == "islamic"  || $keyCalendar == "julian" || $keyCalendar == "nepali" || $keyCalendar == "thai" )
     <script type="text/javascript" src="../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.${keyCalendar}.min.js?_rev=$!{buildRevision}"></script>

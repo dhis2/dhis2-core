@@ -42,6 +42,7 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -605,7 +606,7 @@ public class DateUtils
      */
     public static Date parseDate( final String dateString )
     {
-        if ( dateString == null )
+        if ( StringUtils.isEmpty( dateString ) )
         {
             return null;
         }

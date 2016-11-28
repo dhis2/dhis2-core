@@ -123,6 +123,20 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
+    public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
+    {
+        final String hql = 
+            "select count(*) from OrganisationUnit o " +
+            "where o.path like :path " +
+            "and :object in elements(o." + collectionName + ")";
+        
+        return (Long) getQuery( hql )
+            .setString( "path", parent.getPath() + "%" )
+            .setEntity( "object", member )
+            .uniqueResult();
+    }
+
+    @Override
     @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getOrganisationUnits( OrganisationUnitQueryParams params )
     {
