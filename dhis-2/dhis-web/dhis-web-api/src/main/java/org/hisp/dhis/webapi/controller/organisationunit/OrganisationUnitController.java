@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitByLevelComparator;
@@ -314,6 +315,15 @@ public class OrganisationUnitController
             }
 
             generator.writeStringField( "parentGraph", organisationUnit.getParentGraph( roots ) );
+
+            generator.writeArrayFieldStart( "groups" );
+
+            for ( OrganisationUnitGroup group : organisationUnit.getGroups() )
+            {
+                generator.writeString( group.getUid() );
+            }
+
+            generator.writeEndArray();
         }
 
         generator.writeEndObject();
