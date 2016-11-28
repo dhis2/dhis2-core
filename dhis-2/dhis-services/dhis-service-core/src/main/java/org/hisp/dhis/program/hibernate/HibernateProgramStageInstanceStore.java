@@ -159,15 +159,10 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    protected DetachedCriteria preProcessDetachedCriteria( DetachedCriteria criteria )
+    protected void preProcessDetachedCriteria( DetachedCriteria criteria )
     {
-
         // Filter out soft deleted values
         criteria.add( Restrictions.eq( "deleted", false ) );
-
-        System.out.println("AM I EVEN BEING CALLED???");
-
-        return criteria;
     }
 
     @Override
