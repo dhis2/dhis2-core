@@ -78,12 +78,6 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     public List<T> query( Query query )
     {
         Schema schema = query.getSchema();
-
-        if ( schema == null )
-        {
-            return new ArrayList<>();
-        }
-
         InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject>) schema.getKlass() );
 
         if ( store == null )
@@ -122,9 +116,39 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public int count( Query query )
     {
-        return query( Query.from( query ).setSkipPaging( true ) ).size();
+        Schema schema = query.getSchema();
+        InternalHibernateGenericStore<?> store = getStore( (Class<? extends IdentifiableObject>) schema.getKlass() );
+
+        if ( store == null )
+        {
+            return 0;
+        }
+
+        if ( query.getUser() == null )
+        {
+            query.setUser( currentUserService.getCurrentUser() );
+        }
+
+        if ( !query.isPlannedQuery() )
+        {
+            QueryPlan queryPlan = queryPlanner.planQuery( query, true );
+            query = queryPlan.getPersistedQuery();
+        }
+
+        DetachedCriteria detachedCriteria = buildCriteria( store.getSharingDetachedCriteria( query.getUser() ), query );
+        Criteria criteria = store.getCriteria();
+
+        if ( criteria == null )
+        {
+            return 0;
+        }
+
+        return ((Number) criteria.add( Subqueries.propertyIn( "id", detachedCriteria ) )
+            .setProjection( Projections.countDistinct( "id" ) )
+            .uniqueResult()).intValue();
     }
 
     private DetachedCriteria buildCriteria( DetachedCriteria detachedCriteria, Query query )
