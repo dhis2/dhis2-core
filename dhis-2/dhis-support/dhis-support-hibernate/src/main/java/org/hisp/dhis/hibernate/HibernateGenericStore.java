@@ -192,11 +192,11 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getCriteria()
     {
-        Criteria criteria = getClazzCriteria().setCacheable( cacheable );
+        DetachedCriteria criteria = DetachedCriteria.forClass( getClazz() );
 
-        preProcessCriteria( criteria );
+        preProcessDetachedCriteria( criteria );
 
-        return criteria;
+        return getExecutableCriteria( criteria );
     }
 
     @Override
@@ -238,7 +238,7 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getExecutableCriteria( DetachedCriteria detachedCriteria )
     {
-        return preProcessCriteria( detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable ) );
+        return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
     }
 
     private DetachedCriteria getSharingDetachedCriteria( User user, String access )
@@ -283,15 +283,6 @@ public class HibernateGenericStore<T>
      * Override to add additional restrictions to criteria before
      * it is invoked.
      */
-    protected Criteria preProcessCriteria( Criteria criteria )
-    {
-        return criteria;
-    }
-
-    /**
-     * Override to add additional restrictions to criteria before
-     * it is invoked.
-     */
     protected DetachedCriteria preProcessDetachedCriteria( DetachedCriteria detachedCriteria )
     {
         return detachedCriteria;
@@ -319,8 +310,6 @@ public class HibernateGenericStore<T>
         }
 
         criteria.setCacheable( cacheable );
-
-        preProcessCriteria( criteria );
 
         return criteria;
     }
