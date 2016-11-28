@@ -32,6 +32,8 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -93,6 +95,8 @@ public class OrganisationUnitController
             options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ), options.isTrue( "levelSorted" ) );
         boolean anyQueryPropertySet = ObjectUtils.firstNonNull( options.get( "query" ), options.getInt( "level" ),
             options.getInt( "maxLevel" ) ) != null || options.isTrue( "withinUserHierarchy" );
+        String memberObject = options.get( "memberObject" );
+        String memberCollection = options.get( "memberCollection" );
 
         // ---------------------------------------------------------------------
         // Special parameter handling
@@ -150,7 +154,25 @@ public class OrganisationUnitController
             query.setObjects( objects );
         }
 
-        return (List<OrganisationUnit>) queryService.query( query );
+        List<OrganisationUnit> list = (List<OrganisationUnit>) queryService.query( query );
+        
+        // ---------------------------------------------------------------------
+        // Collection member count in hierarchy handling
+        // ---------------------------------------------------------------------
+
+        IdentifiableObject member = null;
+        
+        if ( memberObject != null && memberCollection != null && ( member = manager.get( memberObject ) ) != null )
+        {
+            for ( OrganisationUnit unit : list )
+            {
+                Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member, memberCollection );
+                
+                unit.setMemberCount( ( count != null ? count.intValue() : 0 ) );
+            }
+        }
+        
+        return list;        
     }
 
     @Override

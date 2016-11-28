@@ -821,14 +821,21 @@
       <!-- Apache jClouds -->
       <dependency>
         <groupId>org.apache.jclouds</groupId>
-        <artifactId>jclouds-all</artifactId>
+        <artifactId>jclouds-core</artifactId>
         <version>${jclouds.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.apache.jclouds</groupId>
+        <artifactId>jclouds-blobstore</artifactId>
+        <version>${jclouds.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.jclouds.api</groupId>
         <artifactId>filesystem</artifactId>
         <version>${jclouds.version}</version>
       </dependency>
+
       <dependency>
         <groupId>org.apache.jclouds.provider</groupId>
         <artifactId>aws-s3</artifactId>
@@ -1100,7 +1107,7 @@
     <struts.version>2.3.24.1</struts.version>
     <hibernate.version>5.1.0.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
-    <jclouds.version>1.9.2</jclouds.version>
+    <jclouds.version>2.0.0</jclouds.version>
     <!-- Keep in sync with Hibernate -->
     <javassist.version>3.20.0-GA</javassist.version>
     <!-- unit test dependencies-->

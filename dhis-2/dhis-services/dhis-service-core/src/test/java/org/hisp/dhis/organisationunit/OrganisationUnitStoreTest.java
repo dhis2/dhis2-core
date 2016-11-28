@@ -38,6 +38,8 @@ import java.util.List;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,6 +61,9 @@ public class OrganisationUnitStoreTest
     private OrganisationUnitGroupStore orgUnitGroupStore;
     
     @Autowired
+    private DataSetService dataSetService;
+    
+    @Autowired
     private IdentifiableObjectManager idObjectManager;
 
     private OrganisationUnit ouA;
@@ -73,6 +78,9 @@ public class OrganisationUnitStoreTest
     
     private DataElementCategoryOption coA;
     private DataElementCategoryOption coB;
+    
+    private DataSet dsA;
+    private DataSet dsB;
     
     // -------------------------------------------------------------------------
     // OrganisationUnit
@@ -96,6 +104,9 @@ public class OrganisationUnitStoreTest
         
         idObjectManager.save( coA );
         idObjectManager.save( coB );
+        
+        dsA = createDataSet( 'A' );
+        dsB = createDataSet( 'B' );
     }
     
     public void testGetOrganisationUnitsWithoutGroups()
@@ -117,6 +128,32 @@ public class OrganisationUnitStoreTest
         assertTrue( orgUnits.contains( ouC ) );
         assertTrue( orgUnits.contains( ouD ) );
         assertTrue( orgUnits.contains( ouE ) );        
+    }
+    
+    @Test
+    public void testGetOrganisationUnitHierarchyMemberCount()
+    {
+        dsA.addOrganisationUnit( ouD );
+        dsA.addOrganisationUnit( ouE );
+        dsA.addOrganisationUnit( ouG );
+        dsB.addOrganisationUnit( ouD );
+        
+        dataSetService.addDataSet( dsA );
+        dataSetService.addDataSet( dsB );
+        
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+        orgUnitStore.save( ouC );
+        orgUnitStore.save( ouD );
+        orgUnitStore.save( ouE );
+        orgUnitStore.save( ouF );
+        orgUnitStore.save( ouG );
+        
+        assertEquals( new Long( 3 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouA, dsA, "dataSets" ) );
+        
+        assertEquals( new Long( 2 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouB, dsA, "dataSets" ) );
+
+        assertEquals( new Long( 1 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouA, dsB, "dataSets" ) );
     }
     
     @Test
