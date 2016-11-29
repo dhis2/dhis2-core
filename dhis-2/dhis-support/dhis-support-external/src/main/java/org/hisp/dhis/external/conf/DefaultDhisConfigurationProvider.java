@@ -41,6 +41,7 @@ import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -48,6 +49,8 @@ import org.hisp.dhis.external.location.LocationManagerException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import javax.crypto.Cipher;
 
@@ -60,6 +63,7 @@ public class DefaultDhisConfigurationProvider
     private static final Log log = LogFactory.getLog( DefaultDhisConfigurationProvider.class );
 
     private static final String CONF_FILENAME = "dhis.conf";
+    private static final String TEST_CONF_FILENAME = "dhis-test.conf";
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
     private static final String ENABLED_VALUE = "on";
@@ -87,6 +91,14 @@ public class DefaultDhisConfigurationProvider
 
     public void init()
     {
+        if ( SystemUtils.isTestRun() )
+        {
+            // Short-circuit here when we're setting up a test context
+
+            this.properties = getTestProperties();
+            return;
+        }
+
         // ---------------------------------------------------------------------
         // Load DHIS 2 configuration file into properties bundle
         // ---------------------------------------------------------------------
@@ -160,6 +172,22 @@ public class DefaultDhisConfigurationProvider
         {
             log.warn( "Could not load credential from dhis-google-auth.json", ex );
         }
+    }
+
+    private Properties getTestProperties()
+    {
+        Properties testProperties = new Properties();
+
+        try
+        {
+            properties = PropertiesLoaderUtils.loadProperties( new ClassPathResource( TEST_CONF_FILENAME ) );
+        }
+        catch ( IOException ioe )
+        {
+            log.warn( "Failed to read file from classpath: " + TEST_CONF_FILENAME, ioe );
+        }
+
+        return testProperties;
     }
 
     // -------------------------------------------------------------------------
