@@ -86,7 +86,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;

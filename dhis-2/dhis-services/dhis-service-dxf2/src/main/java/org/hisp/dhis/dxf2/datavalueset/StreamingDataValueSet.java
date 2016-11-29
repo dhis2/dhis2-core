@@ -89,6 +89,12 @@ public class StreamingDataValueSet
     }
 
     @Override
+    public String getCategoryOptionComboIdScheme()
+    {
+        return categoryOptionComboIdScheme = categoryOptionComboIdScheme == null ? reader.getAttributeValue( FIELD_CATEGORYOPTCOMBOIDSCHEME ) : categoryOptionComboIdScheme;
+    }
+    
+    @Override
     public Boolean getDryRun()
     {
         return dryRun = dryRun == null ? ( TRUE.equals( reader.getAttributeValue( FIELD_DRYRUN ) ) ? Boolean.TRUE : null ) : dryRun;
