@@ -42,13 +42,13 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
-//import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-//import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.scheduling.annotation.Async;
@@ -61,7 +61,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
     private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
-
+    public static final String SEP = "_";
     
     @Override
     @Transactional
@@ -250,27 +250,33 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, "character varying(15)", "dps." + column ) );
         }
 
-        for ( DataElement dataElement : table.getProgram().getDataElements() )
+        for ( ProgramStage programStage : table.getProgram().getProgramStages() )
         {
-            ValueType valueType = dataElement.getValueType();
-            String dataType = getColumnType( valueType );
-            String dataClause = dataElement.isNumericType() ? numericClause : dataElement.getValueType().isDate() ? dateClause : "";
-            String select = getSelectClause( valueType );
-            boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
+            for( ProgramStageDataElement programStageDataElement : 
+                programStage.getProgramStageDataElements() )
+            {
+                DataElement dataElement = programStageDataElement.getDataElement();
+                ValueType valueType = dataElement.getValueType();
+                String dataType = getColumnType( valueType );
+                String dataClause = dataElement.isNumericType() ? numericClause : dataElement.getValueType().isDate() ? dateClause : "";
+                String select = getSelectClause( valueType );
+                boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
-            //Only this has been changed so far:
-            String sql = "( SELECT " + select + " FROM trackedentitydatavalue tedv " + 
-                         "JOIN programstageinstance psi " + 
-                         "ON psi.programstageinstanceid = tedv.programstageinstanceid " + 
-                         "WHERE psi.executiondate is not null " + 
-                         "AND psi.programinstanceid = pi.programinstanceid " +
-                         dataClause + 
-                         " AND tedv.dataelementid = " + dataElement.getId() + " " +
-                         "ORDER BY psi.executiondate desc " +
-                         "LIMIT 1 ) as " + quote( dataElement.getUid() );
+                //Only this has been changed so far:
+                String sql = "( SELECT " + select + " FROM trackedentitydatavalue tedv " + 
+                             "JOIN programstageinstance psi " + 
+                             "ON psi.programstageinstanceid = tedv.programstageinstanceid " + 
+                             "WHERE psi.executiondate is not null " + 
+                             "AND psi.programinstanceid = pi.programinstanceid " +
+                             dataClause + 
+                             " AND tedv.dataelementid = " + dataElement.getId() + 
+                             " AND psi.programStageId = " + programStage.getId() +
+                             " ORDER BY psi.executiondate desc " +
+                             "LIMIT 1 ) as " + quote( programStage.getUid() + SEP + dataElement.getUid() );
 
 
-            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
+                columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + SEP + dataElement.getUid() ), dataType, sql, skipIndex ) ); 
+            }
         }
 
         /* TODO: REIMPLEMENT
@@ -300,7 +306,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
         }
-        
+/*      TODO: REIMPLEMENT
         for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributesWithLegendSet() )
         {
             String column = quote( attribute.getUid() + PartitionUtils.SEP + attribute.getLegendSet().getUid() );
@@ -312,7 +318,7 @@ public class JdbcEnrollmentAnalyticsTableManager
                 "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
             
             columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
-        }
+        }*/
 
         //PSI not a column in enrollment analytics:
         //AnalyticsTableColumn psi = new AnalyticsTableColumn( quote( "psi" ), "character(11) not null", "psi.uid" );
