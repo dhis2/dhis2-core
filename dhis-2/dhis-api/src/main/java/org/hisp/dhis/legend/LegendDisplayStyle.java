@@ -31,8 +31,8 @@ package org.hisp.dhis.legend;
 /**
  * @author Lars Helge Overland
  */
-public enum LegendSetDisplayType
+public enum LegendDisplayStyle
 {
-    TEXT, 
-    FILL;
+    FILL,
+    TEXT;
 }
