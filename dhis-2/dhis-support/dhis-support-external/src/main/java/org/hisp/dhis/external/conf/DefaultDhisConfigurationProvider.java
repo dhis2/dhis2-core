@@ -50,6 +50,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import javax.crypto.Cipher;
@@ -91,53 +92,31 @@ public class DefaultDhisConfigurationProvider
 
     public void init()
     {
-        if ( SystemUtils.isTestRun() )
-        {
-            // Short-circuit here when we're setting up a test context
-
-            this.properties = getTestProperties();
-            return;
-        }
-
         // ---------------------------------------------------------------------
         // Load DHIS 2 configuration file into properties bundle
         // ---------------------------------------------------------------------
 
-        InputStream in = null;
-
-        try
+        if ( SystemUtils.isTestRun() )
         {
-            in = locationManager.getInputStream( CONF_FILENAME );
+            this.properties = loadDhisTestConf();
+
+            return; // Short-circuit here when we're setting up a test context
         }
-        catch ( LocationManagerException ex1 )
+        else
         {
-            log.debug( "Could not load dhis.conf" );
-        }
-
-        Properties properties = new Properties();
-
-        if ( in != null )
-        {
-            try
-            {
-                properties.load( in );                
-            }
-            catch ( IOException ex )
-            {
-                throw new IllegalStateException( "Properties could not be loaded", ex );
-            }
+            this.properties = loadDhisConf();
         }
 
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into properties bundle
         // ---------------------------------------------------------------------
-        
+
         try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
             
-            properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
-            properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL.getKey(), json.get( "client_email" ) );
+            this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
+            this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL.getKey(), json.get( "client_email" ) );
         }
         catch ( LocationManagerException ex )
         {
@@ -147,8 +126,6 @@ public class DefaultDhisConfigurationProvider
         {
             log.warn( "Could not load credential from dhis-google-auth.json", ex );
         }
-        
-        this.properties = properties;
 
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into GoogleCredential
@@ -172,22 +149,6 @@ public class DefaultDhisConfigurationProvider
         {
             log.warn( "Could not load credential from dhis-google-auth.json", ex );
         }
-    }
-
-    private Properties getTestProperties()
-    {
-        Properties testProperties = new Properties();
-
-        try
-        {
-            properties = PropertiesLoaderUtils.loadProperties( new ClassPathResource( TEST_CONF_FILENAME ) );
-        }
-        catch ( IOException ioe )
-        {
-            log.warn( "Failed to read file from classpath: " + TEST_CONF_FILENAME, ioe );
-        }
-
-        return testProperties;
     }
 
     // -------------------------------------------------------------------------
@@ -249,7 +210,7 @@ public class DefaultDhisConfigurationProvider
                 return Optional.empty();
             }            
         }
-        catch( IOException ex )
+        catch ( IOException ex )
         {
             throw new IllegalStateException( "Could not retrieve refresh token: " + ex.getMessage(), ex );
         }
@@ -322,5 +283,38 @@ public class DefaultDhisConfigurationProvider
         }
 
         return EncryptionStatus.OK;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private Properties loadDhisConf()
+        throws IllegalStateException
+    {
+        try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
+        {
+            return PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
+        }
+        catch ( LocationManagerException | IOException ex )
+        {
+            log.debug( String.format( "Could not load %s", CONF_FILENAME ), ex );
+
+            throw new IllegalStateException( "Properties could not be loaded", ex );
+        }
+    }
+
+    private Properties loadDhisTestConf()
+    {
+        try
+        {
+            return PropertiesLoaderUtils.loadProperties( new ClassPathResource( TEST_CONF_FILENAME ) );
+        }
+        catch ( IOException ex )
+        {
+            log.warn( String.format( "Could not load %s from classpath", TEST_CONF_FILENAME ), ex );
+
+            return new Properties();
+        }
     }
 }
