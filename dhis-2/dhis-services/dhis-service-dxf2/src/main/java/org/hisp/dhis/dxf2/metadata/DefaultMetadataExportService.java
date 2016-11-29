@@ -312,6 +312,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
+        if ( DataElementCategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (DataElementCategoryCombo) object );
 
         return metadata;
     }
