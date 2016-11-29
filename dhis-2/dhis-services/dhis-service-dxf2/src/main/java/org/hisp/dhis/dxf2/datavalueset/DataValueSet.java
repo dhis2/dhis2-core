@@ -74,8 +74,6 @@ public class DataValueSet
     protected String orgUnitIdScheme;
     
     protected String categoryOptionComboIdScheme;
-    
-    protected String attributeOptionComboIdScheme;
 
     protected Boolean dryRun;
 
