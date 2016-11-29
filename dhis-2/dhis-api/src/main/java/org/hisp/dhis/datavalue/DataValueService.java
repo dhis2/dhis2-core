@@ -84,13 +84,20 @@ public interface DataValueService
      * @param dataValue the DataValue to delete.
      */
     void deleteDataValue( DataValue dataValue );
-    
+
     /**
      * Deletes all data values for the given organisation unit.
-     * 
+     *
      * @param organisationUnit the organisation unit.
      */
     void deleteDataValues( OrganisationUnit organisationUnit );
+
+    /**
+     * Deletes all data values for the given data element.
+     *
+     * @param dataElement the data element.
+     */
+    void deleteDataValues( DataElement dataElement );
 
     /**
      * Returns a DataValue.
