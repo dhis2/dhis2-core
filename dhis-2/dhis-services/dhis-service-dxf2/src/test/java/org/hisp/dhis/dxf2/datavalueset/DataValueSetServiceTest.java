@@ -182,7 +182,10 @@ public class DataValueSetServiceTest
         categoryA = createDataElementCategory( 'A', categoryOptionA, categoryOptionB );
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryComboDef = categoryService.getDefaultDataElementCategoryCombo();
+        
         ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
+        ocDef.setCode( "OC_DEF_CODE" );
+        categoryService.updateDataElementCategoryOptionCombo( ocDef );
 
         osA = new OptionSet( "OptionSetA", ValueType.INTEGER );
         osA.getOptions().add( new Option( "Blue", "1" ) );
@@ -586,6 +589,29 @@ public class DataValueSetServiceTest
     {
         ImportSummary summary = dataValueSetService.saveDataValueSet( new ClassPathResource( "datavalueset/dataValueSetC.xml" ).getInputStream() );
 
+        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertEquals( 3, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
+        assertEquals( 0, summary.getImportCount().getIgnored() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+
+        assertNotNull( dataValues );
+        assertEquals( 3, dataValues.size() );
+    }
+
+    @Test
+    public void testImportDataValuesWithCategoryOptionComboIdScheme()
+        throws Exception
+    {
+        in = new ClassPathResource( "datavalueset/dataValueSetCCode.xml" ).getInputStream();
+
+        ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme( "CODE" );
+        
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        
         assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
