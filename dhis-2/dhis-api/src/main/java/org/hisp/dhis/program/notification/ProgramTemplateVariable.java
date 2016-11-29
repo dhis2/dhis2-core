@@ -42,6 +42,9 @@ import java.util.stream.Collectors;
  *     <li>program_name</li>
  *     <li>org_unit_name</li>
  *     <li>current_date</li>
+ *     <li>enrollment_date</li>
+ *     <li>days_since_enrollment_date</li>
+ *     <li>incident_date</li>
  * </ul>
  *
  * @author Halvdan Hoem Grelland
