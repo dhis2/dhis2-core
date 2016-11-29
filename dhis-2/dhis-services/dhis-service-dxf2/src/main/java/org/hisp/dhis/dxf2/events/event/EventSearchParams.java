@@ -52,7 +52,7 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 public class EventSearchParams
-{
+{             
     public static final String EVENT_ID = "event";
     public static final String EVENT_CREATED_ID = "created";
     public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
@@ -97,7 +97,13 @@ public class EventSearchParams
 
     private EventStatus eventStatus;
 
-    private Date lastUpdated;
+    private Date lastUpdatedStartDate;
+    
+    private Date lastUpdatedEndDate;
+    
+    private Date dueDateStart;
+    
+    private Date dueDateEnd;
 
     private DataElementCategoryOptionCombo categoryOptionCombo;
 
@@ -184,10 +190,18 @@ public class EventSearchParams
      * Returns a list of dataElements and filters combined.
      */
     public List<QueryItem> getDataElementsAndFilters()
-    {
+    {   
         List<QueryItem> items = new ArrayList<>();
-        items.addAll( dataElements );
         items.addAll( filters );
+        
+        for ( QueryItem de : dataElements )
+        {
+            if ( items != null && !items.contains( de ) )
+            {
+                items.add( de );            
+            }            
+        }
+        
         return items;
     }
     
@@ -195,23 +209,7 @@ public class EventSearchParams
     {
         dataElements.addAll( des );
         return this;
-    }
-    
-    /**
-     * Add the given dataElements to this params if they are not already present.
-     */
-    public EventSearchParams addAttributesIfNotExist( List<QueryItem> des )
-    {
-        for ( QueryItem de : des )
-        {
-            if ( dataElements != null && !dataElements.contains( de ) )
-            {
-                dataElements.add( de );            
-            }
-        }
-        
-        return this;
-    }
+    }    
     
     /**
      * Performs a set of operations on this params.
@@ -361,16 +359,46 @@ public class EventSearchParams
     public void setEventStatus( EventStatus eventStatus )
     {
         this.eventStatus = eventStatus;
+    }    
+
+    public Date getLastUpdatedStartDate()
+    {
+        return lastUpdatedStartDate;
     }
 
-    public Date getLastUpdated()
+    public void setLastUpdatedStartDate( Date lastUpdatedStartDate )
     {
-        return lastUpdated;
+        this.lastUpdatedStartDate = lastUpdatedStartDate;
     }
 
-    public void setLastUpdated( Date lastUpdated )
+    public Date getLastUpdatedEndDate()
     {
-        this.lastUpdated = lastUpdated;
+        return lastUpdatedEndDate;
+    }
+
+    public void setLastUpdatedEndDate( Date lastUpdatedEndDate )
+    {
+        this.lastUpdatedEndDate = lastUpdatedEndDate;
+    }
+
+    public Date getDueDateStart()
+    {
+        return dueDateStart;
+    }
+
+    public void setDueDateStart( Date dueDateStart )
+    {
+        this.dueDateStart = dueDateStart;
+    }
+
+    public Date getDueDateEnd()
+    {
+        return dueDateEnd;
+    }
+
+    public void setDueDateEnd( Date dueDateEnd )
+    {
+        this.dueDateEnd = dueDateEnd;
     }
 
     public IdSchemes getIdSchemes()

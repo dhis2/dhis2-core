@@ -73,6 +73,7 @@ import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.dxf2.events.event.AbstractEventService.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -248,20 +249,6 @@ public class JdbcEventStore
     {
         SqlHelper hlp = new SqlHelper();
 
-        List<String> staticSortSortColumns = new ArrayList<>();
-
-        staticSortSortColumns.add( EVENT_ID );
-        staticSortSortColumns.add( EVENT_CREATED_ID );
-        staticSortSortColumns.add( EVENT_LAST_UPDATED_ID );
-        staticSortSortColumns.add( EVENT_STORED_BY_ID );
-        staticSortSortColumns.add( EVENT_COMPLETED_BY_ID );
-        staticSortSortColumns.add( EVENT_COMPLETED_DATE_ID );
-        staticSortSortColumns.add( EVENT_EXECUTION_DATE_ID );
-        staticSortSortColumns.add( EVENT_DUE_DATE_ID );
-        staticSortSortColumns.add( EVENT_ORG_UNIT_ID );
-        staticSortSortColumns.add( EVENT_ORG_UNIT_NAME );
-        staticSortSortColumns.add( EVENT_STATUS_ID );
-
         // ---------------------------------------------------------------------
         // Select clause
         // ---------------------------------------------------------------------
@@ -278,9 +265,9 @@ public class JdbcEventStore
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
             String col = statementBuilder.columnQuote( item.getItemId() );
-            
+
             sql += item.isNumeric() ? "CAST( " + col + ".value AS NUMERIC ) as " : col + ".value as ";
-            
+
             sql += col + ", ";
         }
 
@@ -296,7 +283,7 @@ public class JdbcEventStore
         // Order clause
         // ---------------------------------------------------------------------
 
-        sql += getGridOrderQuery( params, staticSortSortColumns );
+        sql += getGridOrderQuery( params );
 
         // ---------------------------------------------------------------------
         // Paging clause
@@ -310,32 +297,18 @@ public class JdbcEventStore
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        //log.debug( "Event query SQL: " + sql );
+        log.debug( "Event query SQL: " + sql );
         
-        System.out.println( "Event query SQL: " + sql );
-
         List<Map<String, String>> list = new ArrayList<>();
 
         while ( rowSet.next() )
         {
             final Map<String, String> map = new HashMap<>();
 
-            map.put( EVENT_ID, rowSet.getString( EVENT_ID ) );
-            map.put( EVENT_CREATED_ID, rowSet.getString( EVENT_CREATED_ID ) );
-            map.put( EVENT_LAST_UPDATED_ID, rowSet.getString( EVENT_LAST_UPDATED_ID ) );
-            map.put( EVENT_STORED_BY_ID, rowSet.getString( EVENT_STORED_BY_ID ) );
-            map.put( EVENT_COMPLETED_BY_ID, rowSet.getString( EVENT_COMPLETED_BY_ID ) );
-            map.put( EVENT_COMPLETED_DATE_ID, rowSet.getString( EVENT_COMPLETED_DATE_ID ) );
-            map.put( EVENT_DUE_DATE_ID, rowSet.getString( EVENT_DUE_DATE_ID ) );
-            map.put( EVENT_EXECUTION_DATE_ID, rowSet.getString( EVENT_EXECUTION_DATE_ID ) );
-            map.put( EVENT_ORG_UNIT_ID, rowSet.getString( EVENT_ORG_UNIT_ID ) );
-            map.put( EVENT_ORG_UNIT_NAME, rowSet.getString( EVENT_ORG_UNIT_NAME ) );
-            map.put( EVENT_STATUS_ID, rowSet.getString( EVENT_STATUS_ID ) );
-            map.put( EVENT_LONGITUDE_ID, rowSet.getString( EVENT_LONGITUDE_ID ) );
-            map.put( EVENT_LATITUDE_ID, rowSet.getString( EVENT_LATITUDE_ID ) );
-            map.put( EVENT_PROGRAM_STAGE_ID, rowSet.getString( EVENT_PROGRAM_STAGE_ID ) );
-            map.put( EVENT_PROGRAM_ID, rowSet.getString( EVENT_PROGRAM_ID ) );
-            map.put( EVENT_ATTRIBUTE_OPTION_COMBO_ID, rowSet.getString( EVENT_ATTRIBUTE_OPTION_COMBO_ID ) );
+            for ( String col : STATIC_EVENT_COLUMNS )
+            {
+                map.put( col, rowSet.getString( col ) );
+            }
 
             for ( QueryItem item : params.getDataElements() )
             {
@@ -562,10 +535,16 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " pi.followup is " + (params.getFollowUp() ? "true" : "false") + " ";
         }
 
-        if ( params.getLastUpdated() != null )
+        if ( params.getLastUpdatedStartDate() != null )
         {
-            sql += hlp.whereAnd() + " psi.lastupdated > '" + DateUtils.getLongDateString( params.getLastUpdated() )
-                + "' ";
+            sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+        }
+
+        if ( params.getLastUpdatedEndDate() != null )
+        {
+            Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
+            sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
         }
 
         if ( params.getCategoryOptionCombo() != null )
@@ -625,8 +604,8 @@ public class JdbcEventStore
     }
 
     /**
-     * From, join and where clause. For attribute params, restriction is set in
-     * inner join. For query params, restriction is set in where clause.
+     * From, join and where clause. For dataElement params, restriction is set
+     * in inner join. For query params, restriction is set in where clause.
      */
     private String getFromWhereClause( EventSearchParams params, SqlHelper hlp,
         List<OrganisationUnit> organisationUnits )
@@ -656,7 +635,8 @@ public class JdbcEventStore
                 {
                     final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
 
-                    final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)") : "lower(" + col + ".value)";
+                    final String queryCol = item.isNumeric() ? " CAST( " + (col + ".value AS NUMERIC)")
+                        : "lower(" + col + ".value)";
 
                     sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
                         + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
@@ -669,10 +649,55 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " psi.organisationunitid in ("
                 + getCommaDelimitedString( getIdentifiers( organisationUnits ) ) + ") ";
         }
-        
+
         if ( params.getProgramStage() != null )
         {
             sql += hlp.whereAnd() + " ps.programstageid = " + params.getProgramStage().getId() + " ";
+        }
+
+        if ( params.getStartDate() != null )
+        {
+            sql += hlp.whereAnd() + " (psi.executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' "
+                + "or (psi.executiondate is null and psi.duedate >= '" + getMediumDateString( params.getStartDate() )
+                + "')) ";
+        }
+
+        if ( params.getEndDate() != null )
+        {
+            Date dateAfterEndDate = getDateAfterAddition( params.getEndDate(), 1 );
+            sql += hlp.whereAnd() + " (psi.executiondate < '" + getMediumDateString( dateAfterEndDate ) + "' "
+                + "or (psi.executiondate is null and psi.duedate < '" + getMediumDateString( dateAfterEndDate )
+                + "')) ";
+        }
+
+        if ( params.getLastUpdatedStartDate() != null )
+        {
+            sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+        }
+
+        if ( params.getLastUpdatedEndDate() != null )
+        {
+            Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
+            sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+        }
+
+        if ( params.getEventStatus() != null )
+        {
+            if ( params.getEventStatus() == EventStatus.VISITED )
+            {
+                sql += hlp.whereAnd() + " psi.status = '" + EventStatus.ACTIVE.name()
+                    + "' and psi.executiondate is not null ";
+            }
+            else if ( params.getEventStatus() == EventStatus.OVERDUE )
+            {
+                sql += hlp.whereAnd() + " date(now()) > date(psi.duedate) and psi.status = '"
+                    + EventStatus.SCHEDULE.name() + "' ";
+            }
+            else
+            {
+                sql += hlp.whereAnd() + " psi.status = '" + params.getEventStatus().name() + "' ";
+            }
         }
 
         return sql;
@@ -710,10 +735,11 @@ public class JdbcEventStore
         return sql;
     }
 
-    private String getGridOrderQuery( EventSearchParams params, List<String> sortColumns )
-    {        
+    private String getGridOrderQuery( EventSearchParams params )
+    {
+
         if ( params.getGridOrders() != null && params.getDataElements() != null && !params.getDataElements().isEmpty()
-            && sortColumns != null && !sortColumns.isEmpty() )
+            && STATIC_EVENT_COLUMNS != null && !STATIC_EVENT_COLUMNS.isEmpty() )
         {
             ArrayList<String> orderFields = new ArrayList<String>();
 
@@ -723,7 +749,7 @@ public class JdbcEventStore
 
                 if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
                 {
-                    if ( sortColumns.contains( prop[0] ) )
+                    if ( STATIC_EVENT_COLUMNS.contains( prop[0] ) )
                     {
                         orderFields.add( prop[0] + " " + prop[1] );
                     }

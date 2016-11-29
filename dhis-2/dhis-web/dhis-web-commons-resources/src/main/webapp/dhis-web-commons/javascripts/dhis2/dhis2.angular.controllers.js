@@ -9,7 +9,10 @@ var d2Controllers = angular.module('d2Controllers', [])
             $modalInstance,
             hiddenGridColumns,
             gridColumns,
-            saveGridColumns){
+            gridColumnDomainKey,
+            gridColumnKey,
+            gridColumnsInUserStore,
+            GridColumnService){
     
     $scope.gridColumns = gridColumns;
     $scope.hiddenGridColumns = hiddenGridColumns;
@@ -26,7 +29,9 @@ var d2Controllers = angular.module('d2Controllers', [])
         else{
             $scope.hiddenGridColumns++;            
         }
-        saveGridColumns($scope.gridColumns);
+        
+        gridColumnsInUserStore[gridColumnKey] = angular.copy($scope.gridColumns);
+        GridColumnService.set(gridColumnsInUserStore, gridColumnDomainKey);
     };    
 })
 

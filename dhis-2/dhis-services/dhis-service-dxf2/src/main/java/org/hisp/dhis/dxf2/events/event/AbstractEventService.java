@@ -76,6 +76,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
@@ -104,6 +105,7 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -124,7 +126,12 @@ public abstract class AbstractEventService
     implements EventService
 {
     private static final Log log = LogFactory.getLog( AbstractEventService.class );
-
+    
+    public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_CREATED_ID,
+        EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
+        EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
+        EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID, EVENT_ATTRIBUTE_OPTION_COMBO_ID);
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -479,18 +486,23 @@ public abstract class AbstractEventService
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );        
         
-        if( params.getProgramStage() != null )
-        {
-            params.addDataElements( QueryItem.getDataElementQueryItems( params.getProgramStage().getAllDataElements() ) );
+        // ---------------------------------------------------------------------
+        // If no data element is specified, use those configured for 
+        // display in report
+        // ---------------------------------------------------------------------
+        if( params.getDataElements().isEmpty() && params.getProgramStage() != null  && params.getProgramStage().getProgramStageDataElements() != null )
+        {            
+            for( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
+            {
+                if( pde.getDisplayInReports() )
+                {                    
+                    QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(), pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(), pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
+                    params.getDataElements().add( qi );
+                }
+            }
         }
-        
-        // ---------------------------------------------------------------------
-        // Conform parameters
-        // ---------------------------------------------------------------------
-
-        params.conform();
         
         // ---------------------------------------------------------------------
         // Grid headers
@@ -498,23 +510,11 @@ public abstract class AbstractEventService
 
         Grid grid = new ListGrid();
 
-        grid.addHeader( new GridHeader( EVENT_ID, "event" ) );
-        grid.addHeader( new GridHeader( EVENT_CREATED_ID, "created" ) );
-        grid.addHeader( new GridHeader( EVENT_LAST_UPDATED_ID, "lastUpdated" ) );
-        grid.addHeader( new GridHeader( EVENT_STORED_BY_ID, "storedBy" ) );
-        grid.addHeader( new GridHeader( EVENT_COMPLETED_BY_ID, "completedBy" ) );
-        grid.addHeader( new GridHeader( EVENT_COMPLETED_DATE_ID, "completedDate" ) );
-        grid.addHeader( new GridHeader( EVENT_DUE_DATE_ID, "dueDate" ) );
-        grid.addHeader( new GridHeader( EVENT_EXECUTION_DATE_ID, "executionDate" ) );
-        grid.addHeader( new GridHeader( EVENT_ORG_UNIT_ID, "orgUnit" ) );
-        grid.addHeader( new GridHeader( EVENT_ORG_UNIT_NAME, "orgUnitName" ) );
-        grid.addHeader( new GridHeader( EVENT_STATUS_ID, "status" ) );
-        grid.addHeader( new GridHeader( EVENT_LONGITUDE_ID, "longitude" ) );
-        grid.addHeader( new GridHeader( EVENT_LATITUDE_ID, "latitude" ) );
-        grid.addHeader( new GridHeader( EVENT_PROGRAM_STAGE_ID, "programStage" ) );
-        grid.addHeader( new GridHeader( EVENT_PROGRAM_ID, "program" ) );
-        grid.addHeader( new GridHeader( EVENT_ATTRIBUTE_OPTION_COMBO_ID, "attributeOptionCombo" ) );
-
+        for( String col : STATIC_EVENT_COLUMNS )
+        {
+            grid.addHeader( new GridHeader( col, col ) );
+        }
+        
         for ( QueryItem item : params.getDataElements() )
         {
             grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
@@ -530,7 +530,12 @@ public abstract class AbstractEventService
         {   
             grid.addRow();
             
-            grid.addValue( event.get( EVENT_ID ) );
+            for( String col : STATIC_EVENT_COLUMNS )
+            {                
+                grid.addValue( event.get( col ) );
+            }
+            
+            /*grid.addValue( event.get( EVENT_ID ) );
             grid.addValue( event.get( EVENT_CREATED_ID ) );
             grid.addValue( event.get( EVENT_LAST_UPDATED_ID ) );
             grid.addValue( event.get( EVENT_STORED_BY_ID ) );
@@ -545,7 +550,7 @@ public abstract class AbstractEventService
             grid.addValue( event.get( EVENT_LATITUDE_ID ) );
             grid.addValue( event.get( EVENT_PROGRAM_STAGE_ID ) );
             grid.addValue( event.get( EVENT_PROGRAM_ID ) );
-            grid.addValue( event.get( EVENT_ATTRIBUTE_OPTION_COMBO_ID ) );
+            grid.addValue( event.get( EVENT_ATTRIBUTE_OPTION_COMBO_ID ) );*/
             
             for ( QueryItem item : params.getDataElements() )
             {
@@ -594,7 +599,7 @@ public abstract class AbstractEventService
     {
         EventSearchParams params = new EventSearchParams();
         params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        params.setLastUpdated( lastSuccessTime );
+        params.setLastUpdatedStartDate( lastSuccessTime );
         return params;
     }
 
@@ -615,10 +620,10 @@ public abstract class AbstractEventService
     @Override
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
-        String trackedEntityInstance, Date startDate, Date endDate, EventStatus status, Date lastUpdated,
+        String trackedEntityInstance, Date startDate, Date endDate, EventStatus status, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters )
+        Set<String> filters, Set<String> dataElements )
     {
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -681,7 +686,7 @@ public abstract class AbstractEventService
         {
             if( StringUtils.isNotEmpty( programStage ) && ps == null )
             {
-                throw new IllegalQueryException( "ProgramStagee needs to be specified for event filtering to work" );               
+                throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );               
             }
             
             for ( String filter : filters )
@@ -690,6 +695,17 @@ public abstract class AbstractEventService
                 params.getFilters().add( item );
             }
         }
+        
+        if ( dataElements != null )
+        {
+            for ( String de : dataElements )
+            {
+                QueryItem dataElement = getQueryItem( de );
+
+                params.getDataElements().add( dataElement );
+            }
+        }
+
 
         params.setProgram( pr );
         params.setProgramStage( ps );
@@ -701,7 +717,8 @@ public abstract class AbstractEventService
         params.setStartDate( startDate );
         params.setEndDate( endDate );
         params.setEventStatus( status );
-        params.setLastUpdated( lastUpdated );
+        params.setLastUpdatedStartDate( lastUpdatedStartDate );
+        params.setLastUpdatedEndDate( lastUpdatedEndDate );
         params.setCategoryOptionCombo( attributeCoc );
         params.setIdSchemes( idSchemes );
         params.setPage( page );
