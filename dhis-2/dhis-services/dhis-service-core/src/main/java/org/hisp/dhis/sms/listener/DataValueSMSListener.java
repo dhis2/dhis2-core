@@ -214,8 +214,8 @@ public class DataValueSMSListener
         Matcher matcher = pattern.matcher( sms );
         while ( matcher.find() )
         {
-            String key = matcher.group( 1 );
-            String value = matcher.group( 2 );
+            String key = matcher.group( 1 ).trim();
+            String value = matcher.group( 2 ).trim();
 
             if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
             {
