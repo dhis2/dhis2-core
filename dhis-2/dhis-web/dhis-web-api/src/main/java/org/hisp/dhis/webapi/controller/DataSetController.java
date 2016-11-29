@@ -118,9 +118,6 @@ public class DataSetController
     private DataEntryFormService dataEntryFormService;
 
     @Autowired
-    private MetadataExportService exportService;
-
-    @Autowired
     private DataValueService dataValueService;
 
     @Autowired
