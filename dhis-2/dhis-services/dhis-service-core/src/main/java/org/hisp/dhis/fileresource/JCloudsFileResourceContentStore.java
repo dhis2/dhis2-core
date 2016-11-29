@@ -89,7 +89,8 @@ public class JCloudsFileResourceContentStore
     private static final String JCLOUDS_PROVIDER_KEY_AWS_S3 = "aws-s3";
     private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
-    private static final List<String> SUPPORTED_PROVIDERS = Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3 );
+    private static final List<String> SUPPORTED_PROVIDERS =
+        Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -125,6 +126,8 @@ public class JCloudsFileResourceContentStore
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
         );
+
+
 
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,

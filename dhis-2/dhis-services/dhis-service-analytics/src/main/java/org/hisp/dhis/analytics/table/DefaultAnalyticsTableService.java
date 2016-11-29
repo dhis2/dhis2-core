@@ -53,7 +53,7 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.system.util.SystemUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

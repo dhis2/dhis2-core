@@ -29,7 +29,7 @@ package org.hisp.dhis.validation;
  */
 
 import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.system.util.SystemUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
