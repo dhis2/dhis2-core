@@ -104,6 +104,9 @@
                     <option value="V{program_name}">$i18n.getString( "program_name" )</option>
                     <option value="V{org_unit_name}">$i18n.getString( "org_unit_name" )</option>
                     <option value="V{current_date}">$i18n.getString( "current_date" )</option>
+                    <option value="V{enrollment_date}">$i18n.getString( "enrollment_date" )</option>
+                    <option value="V{days_since_enrollment_date}">$i18n.getString( "days_since_enrollment_date" )</option>
+                    <option value="V{incident_date}">$i18n.getString( "incident_date" )</option>
                     #foreach( $attr in $attributes )
                         <option value="A{$attr.uid}">$attr.displayName</option>
                     #end
