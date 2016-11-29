@@ -55,6 +55,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.legend.LegendSetDisplayType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
@@ -174,6 +175,11 @@ public class ReportTable
      * The legend set in the table.
      */
     private LegendSet legendSet;
+    
+    /**
+     * The legend set display type.
+     */
+    private LegendSetDisplayType legendSetDisplayType;
 
     /**
      * Indicates showing organisation unit hierarchy names.
@@ -928,6 +934,18 @@ public class ReportTable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendSetDisplayType getLegendSetDisplayType()
+    {
+        return legendSetDisplayType;
+    }
+
+    public void setLegendSetDisplayType( LegendSetDisplayType legendSetDisplayType )
+    {
+        this.legendSetDisplayType = legendSetDisplayType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isShowHierarchy()
     {
         return showHierarchy;
@@ -1034,6 +1052,7 @@ public class ReportTable
             hideEmptyRows = reportTable.isHideEmptyRows();
             topLimit = reportTable.getTopLimit();
             sortOrder = reportTable.getSortOrder();
+            legendSetDisplayType = reportTable.getLegendSetDisplayType();
 
             if ( mergeMode.isReplace() )
             {
