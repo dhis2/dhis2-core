@@ -62,7 +62,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Halvdan Hoem Grelland
  */
-//@Ignore( "Work in progress" )
+@Ignore( "Work in progress" )
 public class NotificationMessageRendererTest
     extends DhisSpringTest
 {
