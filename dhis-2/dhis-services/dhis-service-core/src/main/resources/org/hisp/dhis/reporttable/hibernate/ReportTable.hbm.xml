@@ -189,6 +189,14 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_reporttable_legendsetid" />
 
+    <property name="legendSetDisplayType" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendSetDisplayType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
     <property name="showHierarchy" />
 
     <property name="showDimensionLabels" />
