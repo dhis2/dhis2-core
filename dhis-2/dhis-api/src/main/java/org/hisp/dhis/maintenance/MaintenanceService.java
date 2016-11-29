@@ -28,6 +28,7 @@ package org.hisp.dhis.maintenance;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -66,6 +67,14 @@ public interface MaintenanceService
      * @return true if the data pruning took place, false if not permitted.
      */
     boolean pruneData( OrganisationUnit organisationUnit );
+
+    /**
+     * Prunes data and audit records related to the given data element
+     *
+     * @param dataElement the data element.
+     * @return true if the data pruning took place, false if not permitted.
+     */
+    boolean pruneData( DataElement dataElement );
     
     /**
      * Deletes user accounts representing expired account invitations.

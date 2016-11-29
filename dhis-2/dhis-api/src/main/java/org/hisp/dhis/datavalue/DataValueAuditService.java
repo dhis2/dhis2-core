@@ -54,10 +54,17 @@ public interface DataValueAuditService
 
     /**
      * Deletes all data value audits for the given organisation unit.
-     * 
+     *
      * @param organisationUnit the organisation unit.
      */
     void deleteDataValueAudits( OrganisationUnit organisationUnit );
+
+    /**
+     * Deletes all data value audits for the given data element.
+     *
+     * @param dataElement the data element.
+     */
+    void deleteDataValueAudits( DataElement dataElement );
     
     /**
      * Returns all DataValueAudits for the given DataValue.

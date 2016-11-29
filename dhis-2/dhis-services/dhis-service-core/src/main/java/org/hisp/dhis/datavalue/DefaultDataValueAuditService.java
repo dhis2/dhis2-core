@@ -71,6 +71,12 @@ public class DefaultDataValueAuditService
     }
 
     @Override
+    public void deleteDataValueAudits( DataElement dataElement )
+    {
+        dataValueAuditStore.deleteDataValueAudits( dataElement );
+    }
+
+    @Override
     public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
     {
         return dataValueAuditStore.getDataValueAudits( dataValue );

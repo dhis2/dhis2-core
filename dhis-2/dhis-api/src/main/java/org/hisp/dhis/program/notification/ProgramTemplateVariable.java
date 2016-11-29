@@ -42,6 +42,9 @@ import java.util.stream.Collectors;
  *     <li>program_name</li>
  *     <li>org_unit_name</li>
  *     <li>current_date</li>
+ *     <li>enrollment_date</li>
+ *     <li>days_since_enrollment_date</li>
+ *     <li>incident_date</li>
  * </ul>
  *
  * @author Halvdan Hoem Grelland
@@ -51,7 +54,10 @@ public enum ProgramTemplateVariable
 {
     PROGRAM_NAME( "program_name" ),
     ORG_UNIT_NAME( "org_unit_name" ),
-    CURRENT_DATE( "current_date" );
+    CURRENT_DATE( "current_date" ),
+    ENROLLMENT_DATE( "enrollment_date" ),
+    DAYS_SINCE_ENROLLMENT_DATE( "days_since_enrollment_date" ),
+    INCIDENT_DATE( "incident_date" );
 
     private static final Map<String, ProgramTemplateVariable> variableNameMap =
         EnumSet.allOf( ProgramTemplateVariable.class ).stream()
