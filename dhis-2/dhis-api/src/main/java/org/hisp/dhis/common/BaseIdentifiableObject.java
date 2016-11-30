@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.attribute.Attribute;
@@ -49,6 +48,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
 
@@ -134,6 +134,11 @@ public class BaseIdentifiableObject
     protected Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
+     * Access for users
+     */
+    protected Set<UserAccess> userAccesses = new HashSet<>();
+
+    /**
      * Access information for this object. Applies to current user.
      */
     protected transient Access access;
@@ -189,8 +194,8 @@ public class BaseIdentifiableObject
         {
             return object.getDisplayName() == null ? 0 : 1;
         }
-        
-        return object.getDisplayName() == null ? -1 : 
+
+        return object.getDisplayName() == null ? -1 :
             this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 
@@ -336,29 +341,29 @@ public class BaseIdentifiableObject
     /**
      * Returns a translated value for this object for the given property. The
      * current locale is read from the user context.
-     * 
-     * @param property the translation property.
+     *
+     * @param property     the translation property.
      * @param defaultValue the value to use if there are no translations.
      * @return a translated value.
      */
     protected String getTranslation( TranslationProperty property, String defaultValue )
     {
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE, Locale.class );
-        
+
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
-        
+
         if ( locale == null || property == null )
         {
             return defaultValue;
         }
-        
+
         loadTranslationsCacheIfEmpty();
-        
+
         String cacheKey = ObjectTranslation.getCacheKey( locale.toString(), property );
-        
+
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }
-    
+
     /**
      * Populates the translationsCache map unless it is already populated.
      */
@@ -370,7 +375,7 @@ public class BaseIdentifiableObject
             {
                 if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
                 {
-                    String key = ObjectTranslation.getCacheKey( translation.getLocale(), translation.getProperty() );            
+                    String key = ObjectTranslation.getCacheKey( translation.getLocale(), translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
                 }
             }
@@ -430,6 +435,20 @@ public class BaseIdentifiableObject
     public void setUserGroupAccesses( Set<UserGroupAccess> userGroupAccesses )
     {
         this.userGroupAccesses = userGroupAccesses;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<UserAccess> getUserAccesses()
+    {
+        return userAccesses;
+    }
+
+    public void setUserAccesses( Set<UserAccess> userAccesses )
+    {
+        this.userAccesses = userAccesses;
     }
 
     @Override
@@ -499,12 +518,12 @@ public class BaseIdentifiableObject
 
         return true;
     }
-    
+
     /**
      * Equality check against typed identifiable object. This method is not
      * vulnerable to proxy issues, where an uninitialized object class type
      * fails comparison to a real class.
-     * 
+     *
      * @param other the identifiable object to compare this object against.
      * @return true if equal.
      */
@@ -633,11 +652,11 @@ public class BaseIdentifiableObject
 
         return null;
     }
-    
+
     /**
      * Returns the attribute value for the given attributes. Returns null
      * if there are no attribute values for the given attribute.
-     * 
+     *
      * @param attribute the attribute.
      * @return the attribute value if exists, null if not.
      */
@@ -650,7 +669,7 @@ public class BaseIdentifiableObject
                 return attributeValue.getValue();
             }
         }
-        
+
         return null;
     }
 
