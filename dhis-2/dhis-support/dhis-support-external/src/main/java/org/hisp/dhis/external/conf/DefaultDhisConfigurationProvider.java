@@ -86,6 +86,11 @@ public class DefaultDhisConfigurationProvider
      * Cache for properties.
      */
     private Properties properties;
+
+    /**
+     * Replace environment variables with respective values.
+     */
+    private StrSubstitutor strSubstitutor;
     
     /**
      * Cache for Google credential.
@@ -106,6 +111,8 @@ public class DefaultDhisConfigurationProvider
         }
         else
         {
+            this.strSubstitutor = new StrSubstitutor( System.getenv() );
+
             this.properties = scanForEnvironmentVariables( loadDhisConf() );
         }
 
@@ -332,10 +339,6 @@ public class DefaultDhisConfigurationProvider
 
     private String getEnvironmentVariableValue( String propertyValue )
     {
-        Map<String, String> envVariables = System.getenv();
-
-        StrSubstitutor strSubstitutor = new StrSubstitutor( envVariables );
-
-        return strSubstitutor.replace( propertyValue );
+        return strSubstitutor.replace( propertyValue ).trim();
     }
 }
