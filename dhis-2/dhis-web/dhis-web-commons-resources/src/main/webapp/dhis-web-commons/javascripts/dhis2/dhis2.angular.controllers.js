@@ -9,7 +9,10 @@ var d2Controllers = angular.module('d2Controllers', [])
             $modalInstance,
             hiddenGridColumns,
             gridColumns,
-            saveGridColumns){
+            gridColumnDomainKey,
+            gridColumnKey,
+            gridColumnsInUserStore,
+            GridColumnService){
     
     $scope.gridColumns = gridColumns;
     $scope.hiddenGridColumns = hiddenGridColumns;
@@ -26,7 +29,9 @@ var d2Controllers = angular.module('d2Controllers', [])
         else{
             $scope.hiddenGridColumns++;            
         }
-        saveGridColumns($scope.gridColumns);
+        
+        gridColumnsInUserStore[gridColumnKey] = angular.copy($scope.gridColumns);
+        GridColumnService.set(gridColumnsInUserStore, gridColumnDomainKey);
     };    
 })
 
@@ -588,12 +593,13 @@ var d2Controllers = angular.module('d2Controllers', [])
         }
     };
 
-    $scope.setSelectedOrgUnit = function( orgUnitId ){
-        $scope.model.selectedOrgUnitId = orgUnitId;
+    $scope.setSelectedOrgUnit = function( orgUnit ){
+    	$scope.model.selectedOrgUnit = orgUnit;
+        $scope.model.selectedOrgUnitId = orgUnit.id;
     };
 
     $scope.select = function () {
-        $modalInstance.close( $scope.model.selectedOrgUnitId );
+        $modalInstance.close( $scope.model.selectedOrgUnit );
     };
 
     $scope.close = function(){

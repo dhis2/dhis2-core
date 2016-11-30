@@ -2563,13 +2563,19 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         }
     };
     
-    var internalProcessEvent = function(event) {
-        event.eventDate = DateUtils.formatFromApiToUser(event.eventDate);
-        
-        angular.forEach(event.dataValues, function(dataValue) {
-            event[dataValue.dataElement] = dataValue.value;
-        });
-        return event;
+    var internalProcessEventGrid = function( eventGrid ){
+    	var events = [];
+    	if( eventGrid && eventGrid.rows && eventGrid.headers ){    		
+    		angular.forEach(eventGrid.rows, function(row) {
+    			var ev = {};
+    			var i = 0;
+        		angular.forEach(eventGrid.headers, function(h){
+        			ev[h] = row[i];
+        			i++;
+        		});                            
+            });
+    	}
+    	return events;
     };
 
     var internalGetOrLoadScope = function(currentEvent,programStageId,orgUnitId) {        
@@ -2584,20 +2590,20 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 lastEventDate = currentEvent.eventDate;
 
                 
-                var pager = {pageSize: NUMBER_OF_EVENTS_IN_SCOPE};
-                var ordering = {field:"eventDate",direction:"desc"};
-                var filterings = [{field:"programStage", value:programStageId}];
-                return DHIS2EventFactory.getByFilters(orgUnitId, pager, true, ordering, filterings).then(function(newestEvents) {
-                    filterings.push({field:"dueDate",value:lastEventDate});
-                    return DHIS2EventFactory.getByFilters(orgUnitId, pager, true, ordering, filterings).then(function(previousEvents) {
+                var pager = {pageSize: NUMBER_OF_EVENTS_IN_SCOPE};                
+                var ordering = {id:"eventDate",direction:"desc"};
+                
+                return DHIS2EventFactory.getByStage(orgUnitId, programStageId, null, pager, true, null, null, ordering).then(function(events) {                	
+                	var allEventsWithPossibleDuplicates = internalProcessEventGrid( events );                	
+                    var filterUrl = '&dueDateStart=' + lastEventDate + '&dueDateEnd=' + lastEventDate; 
+                    return DHIS2EventFactory.getByStage(orgUnitId, programStageId, null, pager, true, null, filterUrl, ordering).then(function(events) {
+                    	allEventsWithPossibleDuplicates = allEventsWithPossibleDuplicates.concat( internalProcessEventGrid( events ) );
                         eventScopeExceptCurrent = [];
                         var eventIdDictionary = {};
-                        var allEventsWithPossibleDuplicates = newestEvents.events.concat(previousEvents.events);
                         angular.forEach(allEventsWithPossibleDuplicates, function(eventInScope) {
                             if(currentEvent.event !== eventInScope.event 
                                     && !eventIdDictionary[eventInScope.event]) {
-                                //Add event and update dictionary to avoid duplicates:
-                                eventScopeExceptCurrent.push(internalProcessEvent(eventInScope));
+                                //Add event and update dictionary to avoid duplicates:                                
                                 eventIdDictionary[eventInScope.event] = true;
                             }
                         });

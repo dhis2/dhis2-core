@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -169,6 +170,18 @@ public class QueryItem
         for ( TrackedEntityAttribute attribute : attributes )
         {
             queryItems.add( new QueryItem( attribute, (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get(0) ), attribute.getValueType(), attribute.getAggregationType(), attribute.hasOptionSet() ? attribute.getOptionSet() : null ) );
+        }
+
+        return queryItems;
+    }
+    
+    public static List<QueryItem> getDataElementQueryItems( Collection<DataElement> dataElements )
+    {
+        List<QueryItem> queryItems = new ArrayList<>();
+
+        for ( DataElement dataElement : dataElements )
+        {
+            queryItems.add( new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.hasOptionSet() ? dataElement.getOptionSet() : null ) );
         }
 
         return queryItems;
