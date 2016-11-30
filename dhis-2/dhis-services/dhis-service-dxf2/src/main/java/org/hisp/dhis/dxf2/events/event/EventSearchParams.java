@@ -44,7 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -211,41 +210,6 @@ public class EventSearchParams
         return this;
     }    
     
-    /**
-     * Performs a set of operations on this params.
-     * 
-     * <ul>
-     * <li>
-     * If a query item is specified as an attribute item as well as a filter 
-     * item, the filter item will be removed. In that case, if the attribute 
-     * item does not have any filters and the filter item has one or more filters, 
-     * these will be applied to the attribute item. 
-     * </li>
-     * </ul> 
-     */
-    public void conform()
-    {
-        Iterator<QueryItem> filterIter = filters.iterator();
-        
-        while ( filterIter.hasNext() )
-        {
-            QueryItem filter = filterIter.next();
-        
-            int index = dataElements.indexOf( filter ); // Filter present as de
-            
-            if ( index >= 0 )
-            {
-                QueryItem dataElement = dataElements.get( index );
-                
-                if ( !dataElement.hasFilter() && filter.hasFilter() )
-                {
-                    dataElement.getFilters().addAll( filter.getFilters() );
-                }
-                
-                filterIter.remove();
-            }
-        }
-    }
 
     // -------------------------------------------------------------------------
     // Getters and setters
