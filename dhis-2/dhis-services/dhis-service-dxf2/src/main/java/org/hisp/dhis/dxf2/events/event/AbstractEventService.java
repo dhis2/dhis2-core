@@ -535,23 +535,6 @@ public abstract class AbstractEventService
                 grid.addValue( event.get( col ) );
             }
             
-            /*grid.addValue( event.get( EVENT_ID ) );
-            grid.addValue( event.get( EVENT_CREATED_ID ) );
-            grid.addValue( event.get( EVENT_LAST_UPDATED_ID ) );
-            grid.addValue( event.get( EVENT_STORED_BY_ID ) );
-            grid.addValue( event.get( EVENT_COMPLETED_BY_ID ) );
-            grid.addValue( event.get( EVENT_COMPLETED_DATE_ID ) );
-            grid.addValue( event.get( EVENT_DUE_DATE_ID ) );            
-            grid.addValue( event.get( EVENT_EXECUTION_DATE_ID ) );
-            grid.addValue( event.get( EVENT_ORG_UNIT_ID ) );
-            grid.addValue( event.get( EVENT_ORG_UNIT_NAME ) );
-            grid.addValue( event.get( EVENT_STATUS_ID ) );
-            grid.addValue( event.get( EVENT_LONGITUDE_ID ) );
-            grid.addValue( event.get( EVENT_LATITUDE_ID ) );
-            grid.addValue( event.get( EVENT_PROGRAM_STAGE_ID ) );
-            grid.addValue( event.get( EVENT_PROGRAM_ID ) );
-            grid.addValue( event.get( EVENT_ATTRIBUTE_OPTION_COMBO_ID ) );*/
-            
             for ( QueryItem item : params.getDataElements() )
             {
                 grid.addValue( event.get( item.getItemId() ) );
@@ -620,7 +603,7 @@ public abstract class AbstractEventService
     @Override
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
-        String trackedEntityInstance, Date startDate, Date endDate, EventStatus status, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
+        String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, 
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
         Set<String> filters, Set<String> dataElements )
@@ -715,10 +698,12 @@ public abstract class AbstractEventService
         params.setFollowUp( followUp );
         params.setOrgUnitSelectionMode( orgUnitSelectionMode );
         params.setStartDate( startDate );
-        params.setEndDate( endDate );
-        params.setEventStatus( status );
+        params.setEndDate( endDate );   
+        params.setDueDateStart( dueDateStart );
+        params.setDueDateEnd( dueDateEnd );
         params.setLastUpdatedStartDate( lastUpdatedStartDate );
         params.setLastUpdatedEndDate( lastUpdatedEndDate );
+        params.setEventStatus( status );
         params.setCategoryOptionCombo( attributeCoc );
         params.setIdSchemes( idSchemes );
         params.setPage( page );

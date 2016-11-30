@@ -206,9 +206,11 @@ public class EventController
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) EventStatus status,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) EventStatus status,
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
         @RequestParam( required = false ) boolean skipMeta,
@@ -243,7 +245,7 @@ public class EventController
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdatedStartDate, lastUpdatedEndDate, attributeOptionCombo,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement );        
         
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
@@ -264,9 +266,11 @@ public class EventController
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) EventStatus status,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) EventStatus status,
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
         @RequestParam( required = false ) boolean skipMeta,
@@ -300,7 +304,7 @@ public class EventController
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdatedStartDate, lastUpdatedEndDate, attributeOptionCombo,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null );
 
         Events events = eventService.getEvents( params );
@@ -347,9 +351,11 @@ public class EventController
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
-        @RequestParam( required = false ) EventStatus status,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
         @RequestParam( required = false ) Date lastUpdatedStartDate,
         @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) EventStatus status,
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
         @RequestParam( required = false ) Integer page,
@@ -372,7 +378,7 @@ public class EventController
         }
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdatedStartDate, lastUpdatedEndDate, attributeOptionCombo,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null );
 
         Events events = eventService.getEvents( params );
@@ -416,7 +422,7 @@ public class EventController
         DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
-            orgUnit, ouMode, null, startDate, endDate, eventStatus, null, null, attributeOptionCombo,
+            orgUnit, ouMode, null, startDate, endDate, null, null, null, null, eventStatus, attributeOptionCombo,
             null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null );
 
         return eventRowService.getEventRows( params );

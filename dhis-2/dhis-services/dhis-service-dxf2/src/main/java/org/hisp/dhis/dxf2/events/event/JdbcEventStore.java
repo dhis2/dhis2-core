@@ -298,7 +298,7 @@ public class JdbcEventStore
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
-        
+
         List<Map<String, String>> list = new ArrayList<>();
 
         while ( rowSet.next() )
@@ -664,9 +664,8 @@ public class JdbcEventStore
 
         if ( params.getEndDate() != null )
         {
-            Date dateAfterEndDate = getDateAfterAddition( params.getEndDate(), 1 );
-            sql += hlp.whereAnd() + " (psi.executiondate < '" + getMediumDateString( dateAfterEndDate ) + "' "
-                + "or (psi.executiondate is null and psi.duedate < '" + getMediumDateString( dateAfterEndDate )
+            sql += hlp.whereAnd() + " (psi.executiondate <= '" + getMediumDateString( params.getEndDate() ) + "' "
+                + "or (psi.executiondate is null and psi.duedate <= '" + getMediumDateString( params.getEndDate() )
                 + "')) ";
         }
 
@@ -678,8 +677,20 @@ public class JdbcEventStore
 
         if ( params.getLastUpdatedEndDate() != null )
         {
-            Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
-            sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+            sql += hlp.whereAnd() + " psi.lastupdated <= '"
+                + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
+        }
+        
+        if ( params.getDueDateStart() != null )
+        {
+            sql += hlp.whereAnd() + " psi.duedate is not null and psi.duedate >= '"
+                + DateUtils.getLongDateString( params.getDueDateStart() ) + "' ";
+        }
+
+        if ( params.getDueDateEnd() != null )
+        {
+            sql += hlp.whereAnd() + " psi.duedate is not null and psi.duedate <= '"
+                + DateUtils.getLongDateString( params.getDueDateEnd() ) + "' ";
         }
 
         if ( params.getEventStatus() != null )
