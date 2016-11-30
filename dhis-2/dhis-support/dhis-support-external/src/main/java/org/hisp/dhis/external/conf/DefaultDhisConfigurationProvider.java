@@ -32,13 +32,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -104,7 +101,7 @@ public class DefaultDhisConfigurationProvider
         }
         else
         {
-            this.properties = loadDhisConf();
+            this.properties = scanForEnvironmentVariables( loadDhisConf() );
         }
 
         // ---------------------------------------------------------------------
@@ -259,7 +256,7 @@ public class DefaultDhisConfigurationProvider
         try
         {
             maxKeyLength = Cipher.getMaxAllowedKeyLength( "AES" );
-            
+
             if ( maxKeyLength == 128 )
             {
                 return EncryptionStatus.MISSING_JCE_POLICY;
@@ -316,5 +313,24 @@ public class DefaultDhisConfigurationProvider
 
             return new Properties();
         }
+    }
+
+    private Properties scanForEnvironmentVariables( Properties properties )
+    {
+        Set<Map.Entry<Object, Object>> pairs = properties.entrySet();
+
+        pairs.stream().forEach(( prop ) -> prop.setValue(
+                getEnvironmentVariableValue( prop.getValue().toString() ) ) );
+
+        return properties;
+    }
+
+    private String getEnvironmentVariableValue( String propertyValue )
+    {
+        Map<String, String> envVariables = System.getenv();
+
+        StrSubstitutor strSubstitutor = new StrSubstitutor( envVariables );
+
+        return strSubstitutor.replace( propertyValue );
     }
 }
