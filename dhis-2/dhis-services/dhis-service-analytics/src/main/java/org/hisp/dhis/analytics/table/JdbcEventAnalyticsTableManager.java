@@ -208,7 +208,7 @@ public class JdbcEventAnalyticsTableManager
                 "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
                 "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
                 "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
-                "left join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
+                "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
                 "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
                 "where psi.executiondate >= '" + start + "' " + 
                 "and psi.executiondate <= '" + end + "' " +

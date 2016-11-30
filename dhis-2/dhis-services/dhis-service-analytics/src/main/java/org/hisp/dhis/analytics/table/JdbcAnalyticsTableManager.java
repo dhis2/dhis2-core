@@ -236,12 +236,12 @@ public class JdbcAnalyticsTableManager
                 valueExpression + " as value, " +
                 textValueExpression + " as textvalue " +
                 "from datavalue dv " +
-                "left join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-                "left join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
-                "left join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
-                "left join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
+                "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
+                "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
+                "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
+                "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
                 "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
-                "left join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
+                "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
                 "inner join dataelement de on dv.dataelementid=de.dataelementid " +
                 "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
                 "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
