@@ -171,6 +171,12 @@ public class StreamingXmlDataValueSet
     }
 
     @Override
+    public void setCategoryOptionComboIdScheme( String categoryOptionComboIdScheme )
+    {
+        writer.writeAttribute( FIELD_CATEGORYOPTCOMBOIDSCHEME, categoryOptionComboIdScheme );
+    }
+    
+    @Override
     public void setDataSet( String dataSet )
     {
         writer.writeAttribute( FIELD_DATASET, dataSet );
