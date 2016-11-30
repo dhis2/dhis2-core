@@ -28,6 +28,8 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.notification.TemplateVariable;
+
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.stream.Collectors;

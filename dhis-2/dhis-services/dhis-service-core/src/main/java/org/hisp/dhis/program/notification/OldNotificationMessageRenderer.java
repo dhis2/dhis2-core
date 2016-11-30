@@ -35,6 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.notification.NotificationMessage;
+import org.hisp.dhis.notification.TemplateVariable;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -70,9 +72,9 @@ import java.util.stream.Collectors;
  *
  * @author Halvdan Hoem Grelland
  */
-public class NotificationMessageRenderer
+public class OldNotificationMessageRenderer
 {
-    private static final Log log = LogFactory.getLog( NotificationMessageRenderer.class );
+    private static final Log log = LogFactory.getLog( OldNotificationMessageRenderer.class );
 
     private static final int SMS_CHAR_LIMIT = 160 * 4;  // Four concatenated SMS messages
     private static final int EMAIL_CHAR_LIMIT = 10000;  // Somewhat arbitrarily chosen limits
@@ -115,7 +117,7 @@ public class NotificationMessageRenderer
     // Private constructor
     // -------------------------------------------------------------------------
 
-    private NotificationMessageRenderer() {}
+    private OldNotificationMessageRenderer() {}
 
     // -------------------------------------------------------------------------
     // Public methods
@@ -240,7 +242,7 @@ public class NotificationMessageRenderer
 
         return tei.getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeUids.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), NotificationMessageRenderer::value ) );
+            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), OldNotificationMessageRenderer::value ) );
     }
 
     private static String replaceExpressions( String input, Map<String, String> variableMap, Map<String, String> teiAttributeValueMap )

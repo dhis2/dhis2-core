@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -31,8 +31,24 @@ package org.hisp.dhis.program.notification;
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface TemplateVariable
+public class NotificationMessage
 {
-    String name();
-    String getVariableName();
+    private String subject = "";
+    private String message = "";
+
+    public NotificationMessage( String subject, String message )
+    {
+        this.subject = subject;
+        this.message = message;
+    }
+
+    public String getSubject()
+    {
+        return subject;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
 }

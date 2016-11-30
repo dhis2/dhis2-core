@@ -31,6 +31,7 @@ package org.hisp.dhis.program.notification;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -63,7 +64,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Halvdan Hoem Grelland
  */
 @Ignore( "Work in progress" )
-public class NotificationMessageRendererTest
+public class OldNotificationMessageRendererTest
     extends DhisSpringTest
 {
     @Autowired
@@ -189,7 +190,7 @@ public class NotificationMessageRendererTest
     public void testRenderProgramStageNotification()
     {
         NotificationMessage rendered =
-            NotificationMessageRenderer.render( programStageInstanceA, programNotificationTemplateA );
+            OldNotificationMessageRenderer.render( programStageInstanceA, programNotificationTemplateA );
 
         assertNotNull( rendered );
         // TODO Actually check contents
