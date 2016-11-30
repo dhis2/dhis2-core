@@ -212,6 +212,16 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             }
             return false;
         },
+        isAfterToday: function (dateValue) {
+            if (!dateValue) {
+                return;
+            }
+            dateValue = moment(dateValue, "YYYY-MM-DD");
+            if (dateValue.isAfter(moment())) {
+                return true;
+            }
+            return false;
+        },
         formatFromUserToApi: function (dateValue) {
             if (!dateValue) {
                 return;
@@ -333,7 +343,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for common utils */
-.service('CommonUtils', function(DateUtils, OptionSetService, CurrentSelection, FileService){
+.service('CommonUtils', function($timeout, DateUtils, OptionSetService, CurrentSelection, FileService){
 
     return {
         formatDataValue: function(event, val, obj, optionSets, destination){
@@ -419,6 +429,14 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 }
             }
             return false;            	
+        },
+        displayHeaderMessage: function( message ){
+            $timeout(function(){
+                setHeaderMessage( message );
+            }, 1000);
+        },
+        removeHeaderMessage: function( ){
+            hideHeaderMessage();
         }
     };
 })
@@ -3028,11 +3046,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     }
 })
 
+
+
 /* Factory for fetching OrgUnit */
-.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, $timeout, $translate, SessionStorageService, DateUtils) {
+.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, CommonUtils, $translate, SessionStorageService, DateUtils) {
     var orgUnit, orgUnitPromise, rootOrgUnitPromise,orgUnitTreePromise;
     var indexedDB = $window.indexedDB;
-    var orgUnitList = [];
     var db = null;
     function openStore(){
         var deferred = $q.defer();
@@ -3100,35 +3119,25 @@ var d2Services = angular.module('d2Services', ['ngResource'])
         getOrgUnit: function(uid) {
             var def = $q.defer();
             var selectedOrgUnit = SessionStorageService.get('SELECTED_OU');
-            if (selectedOrgUnit) {
-                def.resolve(selectedOrgUnit);
-            } else if (uid) {
+            if (selectedOrgUnit && selectedOrgUnit.id === uid ) {
+                def.resolve( selectedOrgUnit );
+            } 
+            else{
                 this.get(uid).then(function (response) {
-                    if (response.organisationUnits && response.organisationUnits[0]) {
-                        def.resolve({
-                            displayName: response.organisationUnits[0].displayName,
-                            id: response.organisationUnits[0].id
-                        });
-                    } else if (response && response.id) {
-                        def.resolve(response);
-                    } else {
-                        def.resolve(null);
-                    }
+                    def.resolve( response ? response : null );
                 });
-            } else {
-                def.resolve(null);
             }
             return def.promise;
         },
-        getOrgUnitFromStore: function(uid){
+        getFromStoreOrServer: function(uid){            
             var deferred = $q.defer();
             if (db === null) {
                 openStore().then(getOu, function () {
                     deferred.reject("DB not opened");
                 });
             }
-            else {
-                getOu();
+            else {                
+                getOu();                
             }
             function getOu() {
                 var tx = db.transaction(["ou"]);
@@ -3136,7 +3145,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 var query = store.get(uid);
 
                 query.onsuccess = function(e){
-                    if(e.target.result){
+                    if(e.target.result){                        
                         deferred.resolve(e.target.result);
                     }
                     else{
@@ -3144,50 +3153,45 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         var s = t.objectStore("ouPartial");
                         var q = s.get(uid);
                         q.onsuccess = function(e){
-                            deferred.resolve(e.target.result);
+                            if( e.target.result ){
+                                deferred.resolve(e.target.result);
+                            }
+                            else{                                
+                                deferred.resolve( $http.get( DHIS2URL + '/organisationUnits/'+ uid + '.json?fields=id,displayName|rename(n),closedDate|rename(cdate),openingDate|rename(odate)' ) );                                
+                            }
                         };
-                        query.onerror = function(e){
+                        q.onerror = function(e){                            
                             deferred.reject();
-                        }
-
+                        };
                     }
                 };
                 query.onerror = function(e){
                     deferred.reject();
-                }
+                };
             }
             return deferred.promise;
         },
         getOrgUnitClosedStatus : function(orgUnitId) {
             var deferred = $q.defer();
-            this.getOrgUnitFromStore(orgUnitId).then(function (orgUnitFromStore) {
-                if (orgUnitFromStore && orgUnitFromStore.cdate) {
-                    if (DateUtils.isBeforeToday(orgUnitFromStore.cdate)) {
-                        setOrgUnitClosedMessage(true);
-                        deferred.resolve(true);
-                    } else {
-                        setOrgUnitClosedMessage(false);
-                        deferred.resolve(false);
+            this.getFromStoreOrServer(orgUnitId).then(function (ou) {
+                var closed = false;
+                if( ou ){                    
+                    if( ou.cdate ){
+                        closed = DateUtils.isBeforeToday( ou.cdate ) ? true : false;                                                
+                    }                    
+                    if(!closed && ou.odate ){
+                        closed = DateUtils.isAfterToday( ou.odate ) ? true : false;
                     }
-                } else {
-                    /*The org unit is assumed to be opened if the status is not present.*/
-                    setOrgUnitClosedMessage(false);
-                    deferred.resolve(false);
+                }                
+                if( closed ){
+                    CommonUtils.displayHeaderMessage( $translate.instant('orgunit_closed') );
                 }
-            }, function(){
-                setOrgUnitClosedMessage(false);
-                deferred.resolve(false);
+                else{
+                    CommonUtils.removeHeaderMessage();
+                }
+                deferred.resolve( closed );
             });
-
-            function setOrgUnitClosedMessage(closedStatus) {
-                if (closedStatus) {
-                    $timeout(function(){
-                        setHeaderMessage($translate.instant("orgunit_closed"));
-                    }, 600);
-                } else {
-                    hideHeaderMessage();
-                }
-            }
+            
             return deferred.promise;
         }
     };
