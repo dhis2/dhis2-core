@@ -36,6 +36,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
 
 import java.lang.reflect.Method;
@@ -657,6 +658,30 @@ public class Property implements Ordered, Klass
     public void setInverseRole( String inverseRole )
     {
         this.inverseRole = inverseRole;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TranslationProperty getTranslationKey()
+    {
+        if ( !isPersisted() )
+        {
+            return null;
+        }
+
+        switch ( name )
+        {
+            case "name":
+                return TranslationProperty.NAME;
+            case "shortName":
+                return TranslationProperty.SHORT_NAME;
+            case "description":
+                return TranslationProperty.DESCRIPTION;
+            case "formName":
+                return TranslationProperty.FORM_NAME;
+        }
+
+        return null;
     }
 
     @JsonProperty
