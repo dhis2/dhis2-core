@@ -77,6 +77,12 @@ public class StreamingJsonDataValueSet extends DataValueSet
     }
 
     @Override
+    public void setDataSetIdScheme( String dataSetIdScheme )
+    {
+        writeObjectField( FIELD_DATASETIDSCHEME, dataSetIdScheme );
+    }
+    
+    @Override
     public void setDataSet( String dataSet )
     {
         writeObjectField( FIELD_DATASET, dataSet );
