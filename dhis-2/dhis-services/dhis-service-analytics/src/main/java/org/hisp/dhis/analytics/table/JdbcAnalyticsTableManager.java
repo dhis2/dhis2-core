@@ -268,8 +268,8 @@ public class JdbcAnalyticsTableManager
         {
             String sql =
                 "left join _dataapprovalminlevel da " +
-                    "on des.workflowid=da.workflowid and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid " +
-                    "and (";
+                "on des.workflowid=da.workflowid and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid " +
+                "and (";
 
             Set<OrganisationUnitLevel> levels = dataApprovalLevelService.getOrganisationUnitApprovalLevels();
 
@@ -377,9 +377,9 @@ public class JdbcAnalyticsTableManager
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
-                "from datavalue dv " +
-                "inner join period pe on dv.periodid=pe.periodid " +
-                "where pe.startdate is not null ";
+            "from datavalue dv " +
+            "inner join period pe on dv.periodid=pe.periodid " +
+            "where pe.startdate is not null ";
 
         if ( earliest != null )
         {
