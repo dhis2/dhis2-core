@@ -323,7 +323,6 @@ public class SharingController
     private List<SharingUserAccess> getSharingUser( String key, int max )
     {
         List<SharingUserAccess> sharingUsers = new ArrayList<>();
-
         List<User> users = userService.getAllUsersBetweenByName( key, 0, max );
 
         for ( User user : users )
@@ -342,7 +341,6 @@ public class SharingController
     private List<SharingUserGroupAccess> getSharingUserGroups( @RequestParam String key, int max )
     {
         List<SharingUserGroupAccess> sharingUserGroupAccesses = new ArrayList<>();
-
         List<UserGroup> userGroups = userGroupService.getUserGroupsBetweenByName( key, 0, max );
 
         for ( UserGroup userGroup : userGroups )
