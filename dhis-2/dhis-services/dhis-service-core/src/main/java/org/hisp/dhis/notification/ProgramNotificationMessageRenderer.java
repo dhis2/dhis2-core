@@ -96,7 +96,7 @@ public class ProgramNotificationMessageRenderer
 
         return entity.getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::value ) );
+            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::filterValue ) );
     }
 
     @Override
@@ -109,7 +109,7 @@ public class ProgramNotificationMessageRenderer
     // Internal methods
     // -------------------------------------------------------------------------
 
-    private static String value( TrackedEntityAttributeValue av )
+    private static String filterValue( TrackedEntityAttributeValue av )
     {
         String value = av.getPlainValue();
 

@@ -97,7 +97,7 @@ public class ProgramStageNotificationMessageRenderer
 
         return entity.getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramStageNotificationMessageRenderer::value ) );
+            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramStageNotificationMessageRenderer::filterValue ) );
     }
 
     @Override
@@ -110,7 +110,7 @@ public class ProgramStageNotificationMessageRenderer
     // Internal methods
     // -------------------------------------------------------------------------
 
-    private static String value( TrackedEntityAttributeValue av )
+    private static String filterValue( TrackedEntityAttributeValue av )
     {
         String value = av.getPlainValue();
 
