@@ -6,7 +6,7 @@ addons:
     packages:
     - oracle-java8-installer
 script:
-- mvn clean test ./dhis-2/pom-full.xml
+- mvn clean test -f ./dhis-2/pom-full.xml
 
 cache:
   directories:
