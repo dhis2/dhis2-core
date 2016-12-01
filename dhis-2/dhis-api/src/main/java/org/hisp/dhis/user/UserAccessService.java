@@ -1,8 +1,8 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,27 +28,20 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotificationMessage
+public interface UserAccessService
 {
-    private String subject = "";
-    private String message = "";
+    String ID = UserAccess.class.getName();
 
-    public NotificationMessage( String subject, String message )
-    {
-        this.subject = subject;
-        this.message = message;
-    }
+    void addUserAccess( UserAccess userAccess );
 
-    public String getSubject()
-    {
-        return subject;
-    }
+    void updateUserAccess( UserAccess userAccess );
 
-    public String getMessage()
-    {
-        return message;
-    }
+    void deleteUserAccess( UserAccess userAccess );
+
+    List<UserAccess> getAllUserAccesses();
 }

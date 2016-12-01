@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -41,7 +42,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.message.DeliveryChannel;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -56,8 +56,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -188,10 +186,6 @@ public class NotificationMessageRendererTest
     @Test
     public void testRenderProgramStageNotification()
     {
-        NotificationMessage rendered =
-            NotificationMessageRenderer.render( programStageInstanceA, programNotificationTemplateA );
-
-        assertNotNull( rendered );
-        // TODO Actually check contents
+        // TODO
     }
 }

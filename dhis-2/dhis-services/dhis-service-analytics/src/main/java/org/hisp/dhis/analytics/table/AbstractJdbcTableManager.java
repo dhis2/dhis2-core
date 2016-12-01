@@ -217,6 +217,32 @@ public abstract class AbstractJdbcTableManager
         executeSilently( "drop table " + tableName );
         executeSilently( "drop table " + realTable );
     }
+
+    @Override
+    @Async
+    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    {
+        taskLoop: while ( true )
+        {
+            AnalyticsTable table = tables.poll();
+
+            if ( table == null )
+            {
+                break taskLoop;
+            }
+
+            populateTable( table );
+        }
+
+        return null;
+    }
+
+    /**
+     * Populates the given analytics table.
+     * 
+     * @param table the analytics table to populate.
+     */
+    protected abstract void populateTable( AnalyticsTable table );
     
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -319,12 +345,12 @@ public abstract class AbstractJdbcTableManager
      */
     protected void populateAndLog( String sql, String tableName )
     {
-        log.info( "Populate table: " + tableName + " SQL: " + sql );
+        log.debug( "Populate table: " + tableName + " SQL: " + sql );
 
         Timer timer = new SystemTimer().start();
         
         jdbcTemplate.execute( sql );
         
-        log.info( "Populated " + tableName + ": " + timer.stop().toString() );
+        log.info( "Populated table in " + timer.stop().toString() + ": " + tableName );
     }
 }

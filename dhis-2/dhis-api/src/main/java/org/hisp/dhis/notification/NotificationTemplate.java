@@ -1,8 +1,4 @@
-package org.hisp.dhis.program.message;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -32,12 +28,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
+import org.hisp.dhis.common.DeliveryChannel;
 
-@JacksonXmlRootElement( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
-public enum DeliveryChannel
+import java.util.Set;
+
+/**
+ * @author Halvdan Hoem Grelland
+ */
+public interface NotificationTemplate
 {
-    SMS, EMAIL
+    String getSubjectTemplate();
+
+    String getMessageTemplate();
+
+    Set<DeliveryChannel> getDeliveryChannels();
 }

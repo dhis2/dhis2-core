@@ -2,7 +2,7 @@ package org.hisp.dhis.webapi.webdomain.sharing;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,29 +29,72 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SharingUserGroups
+public class SharingUserAccess
 {
     @JsonProperty
-    private List<SharingUserGroupAccess> userGroups = new ArrayList<>();
+    private String id;
 
-    public SharingUserGroups()
+    @JsonProperty
+    private String name;
+
+    @JsonProperty
+    private String displayName;
+
+    @JsonProperty
+    private String access;
+
+    public SharingUserAccess()
     {
     }
 
-    public List<SharingUserGroupAccess> getUserGroups()
+    public String getId()
     {
-        return userGroups;
+        return id;
     }
 
-    public void setUserGroups( List<SharingUserGroupAccess> userGroups )
+    public void setId( String id )
     {
-        this.userGroups = userGroups;
+        this.id = id;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
+    }
+
+    public String getAccess()
+    {
+        return access;
+    }
+
+    public void setAccess( String access )
+    {
+        this.access = access;
+    }
+
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).
+            add( "id", id ).add( "name", name ).add( "access", access ).toString();
     }
 }

@@ -109,7 +109,7 @@ public interface AnalyticsTableManager
      * 
      * @param tables the analytics tables.
      */
-    Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );    
+    Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
 
     /**
      * Returns all years for which it exists data values.

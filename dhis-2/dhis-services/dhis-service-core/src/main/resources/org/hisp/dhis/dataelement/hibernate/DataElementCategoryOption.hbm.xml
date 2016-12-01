@@ -19,7 +19,7 @@
 
     <property name="shortName" column="shortname" unique="true" length="50" />
 
-    <property name="startDate" type="date"/>
+    <property name="startDate" type="date" />
 
     <property name="endDate" type="date" />
 
@@ -73,6 +73,12 @@
       <cache usage="read-write" />
       <key column="categoryoptionid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="dataelementcategoryoptionuseraccesses">
+      <cache usage="read-write" />
+      <key column="categoryoptionid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

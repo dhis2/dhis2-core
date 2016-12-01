@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.sms.MessageBatchStatus;
 import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.sms.MessageResponseSummary;
@@ -145,6 +145,8 @@ public class SmsMessageSender
         {
             return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, MessageBatchStatus.FAILED, batch );
         }
+
+        batch.getBatch().stream().forEach( item -> item.setRecipients( normalizePhoneNumber( item.getRecipients() ) ) );
 
         for ( SmsGateway smsGateway : smsGateways )
         {

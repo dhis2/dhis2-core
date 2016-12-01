@@ -3123,8 +3123,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             var selectedOrgUnit = SessionStorageService.get('SELECTED_OU');
             if (selectedOrgUnit && selectedOrgUnit.id === uid ) {
                 def.resolve( selectedOrgUnit );
-            } 
-            else{
+            }
+            else if(uid){
                 this.get(uid).then(function (response) {
                     def.resolve( response ? response : null );
                 });

@@ -207,7 +207,7 @@ public class DefaultAnalyticsTableService
         
         for ( int i = 0; i < taskNo; i++ )
         {
-            futures.add( tableManager.populateTableAsync( tableQ ) );
+            futures.add( tableManager.populateTablesAsync( tableQ ) );
         }
         
         ConcurrentUtils.waitForCompletion( futures );
