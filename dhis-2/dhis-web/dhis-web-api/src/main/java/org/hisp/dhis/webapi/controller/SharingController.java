@@ -250,12 +250,12 @@ public class SharingController
             object.setUser( user );
         }
 
-        Iterator<UserGroupAccess> iterator = object.getUserGroupAccesses().iterator();
+        Iterator<UserGroupAccess> userGroupAccessIterator = object.getUserGroupAccesses().iterator();
 
-        while ( iterator.hasNext() )
+        while ( userGroupAccessIterator.hasNext() )
         {
-            UserGroupAccess userGroupAccess = iterator.next();
-            iterator.remove();
+            UserGroupAccess userGroupAccess = userGroupAccessIterator.next();
+            userGroupAccessIterator.remove();
 
             userGroupAccessService.deleteUserGroupAccess( userGroupAccess );
         }
@@ -274,6 +274,16 @@ public class SharingController
 
                 object.getUserGroupAccesses().add( userGroupAccess );
             }
+        }
+
+        Iterator<UserAccess> userAccessIterator = object.getUserAccesses().iterator();
+
+        while ( userAccessIterator.hasNext() )
+        {
+            UserAccess userAccess = userAccessIterator.next();
+            userAccessIterator.remove();
+
+            userAccessService.deleteUserAccess( userAccess );
         }
 
         for ( SharingUserAccess sharingUserAccess : sharing.getObject().getUserAccesses() )

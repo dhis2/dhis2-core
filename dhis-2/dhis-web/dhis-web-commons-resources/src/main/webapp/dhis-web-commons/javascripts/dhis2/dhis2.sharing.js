@@ -57,11 +57,11 @@ function renderAccessTemplate(item) {
   return _.template( tmpl, item );
 }
 
-function addUserGroupAccessSelectedItem(e) {
+function addAccessSelectedItem(e) {
   var tmpl_html = renderAccessTemplate( {
-    label: sharingSelectedItem.label,
     id: sharingSelectedItem.id,
-    type: 'userGroup',
+    type: sharingSelectedItem.type,
+    label: sharingSelectedItem.label,
     access: "r-------"
   } );
 
@@ -73,17 +73,17 @@ function addUserGroupAccessSelectedItem(e) {
   $( '#addAccess' ).attr( 'disabled', true );
 }
 
-function removeUserGroupAccess(e) {
+function removeAccess(e) {
   e.preventDefault();
   $( this ).parent().parent().remove();
 }
 
-function clearUserGroupAccesses() {
+function clearAccesses() {
   $( '#sharingAccessTable tbody tr[id]' ).remove();
 }
 
-function setUserGroupAccesses(userGroupAccesses) {
-  clearUserGroupAccesses();
+function setAccesses(userGroupAccesses, userAccesses) {
+  clearAccesses();
 
   if ( userGroupAccesses ) {
     userGroupAccesses.reverse();
@@ -92,6 +92,22 @@ function setUserGroupAccesses(userGroupAccesses) {
       var tmpl_html = renderAccessTemplate( {
         label: item.name,
         id: item.id,
+        type: 'userGroup',
+        access: item.access
+      } );
+
+      $( tmpl_html ).insertAfter( $( '#sharingAccessTable tbody tr' ).not( '[id]' ).last() );
+    } );
+  }
+
+  if ( userAccesses ) {
+    userAccesses.reverse();
+
+    $.each( userAccesses, function(idx, item) {
+      var tmpl_html = renderAccessTemplate( {
+        label: item.name,
+        id: item.id,
+        type: 'user',
         access: item.access
       } );
 
@@ -124,19 +140,20 @@ function getExternalAccess() {
   return $( '#sharingExternalAccess' ).is( ':checked' );
 }
 
-function getUserGroupAccesses() {
+function getAccesses() {
   var v = [];
 
   $( '#sharingAccessTable tbody tr[id]' ).each( function(idx, item) {
     var jqItem = $( item );
 
-    var groupName = $( item ).find( '.sharingGroupName' ).text();
-    var groupAccess = $( item ).find( '.sharingGroupAccess' ).val();
+    var name = $( item ).find( '.sharingName' ).text();
+    var access = $( item ).find( '.sharingAccess' ).val();
 
     v.push( {
       id: jqItem.attr( 'id' ),
-      name: groupName,
-      access: groupAccess
+      type: jqItem.attr( 'type' ),
+      name: name,
+      access: access
     } );
   } );
 
@@ -163,7 +180,7 @@ function showSharingDialog(type, uid) {
     setCreatedBy( data.object.user );
     setPublicAccess( data.object.publicAccess );
     setExternalAccess( data.object.externalAccess );
-    setUserGroupAccesses( data.object.userGroupAccesses );
+    setAccesses( data.object.userGroupAccesses, data.object.userAccesses );
 
     $( '#sharingName' ).text( data.object.name );
 
@@ -176,8 +193,8 @@ function showSharingDialog(type, uid) {
     }
 
     $( '.removeUserGroupAccess' ).unbind( 'click' );
-    $( document ).on( 'click', '.removeUserGroupAccess', removeUserGroupAccess );
-    $( '#addAccess' ).unbind( 'click' ).bind( 'click', addUserGroupAccessSelectedItem );
+    $( document ).on( 'click', '.removeUserGroupAccess', removeAccess );
+    $( '#addAccess' ).unbind( 'click' ).bind( 'click', addAccessSelectedItem );
 
     $( '#sharingSettings' ).dialog( {
       modal: true,
@@ -194,7 +211,18 @@ function showSharingDialog(type, uid) {
 
           data.object.publicAccess = getPublicAccess();
           data.object.externalAccess = getExternalAccess();
-          data.object.userGroupAccesses = getUserGroupAccesses();
+
+          var allAccesses = getAccesses();
+
+          data.object.userGroupAccesses = allAccesses.filter( function(item) {
+            return item.type === 'userGroup';
+          } );
+
+          data.object.userAccesses = allAccesses.filter( function(item) {
+            return item.type === 'user';
+          } );
+
+          console.log( data );
 
           saveSharingSettings( type, uid, data ).done( function() {
             $( '#sharingSearch' ).autocomplete( 'destroy' );
@@ -215,15 +243,50 @@ function showSharingDialog(type, uid) {
           }
         } ).success( function(data) {
           var v = [];
-          var u = getUserGroupAccesses();
+
+          var allAccesses = getAccesses();
+          var ug = allAccesses.filter( function(item) {
+            return item.type === 'userGroup';
+          } );
+
+          var u = allAccesses.filter( function(item) {
+            return item.type === 'user';
+          } );
+
+          console.log( 'ug', ug );
+          console.log( 'u', u );
 
           if ( data.userGroups ) {
             $.each( data.userGroups, function(idx, item) {
               var d = {};
 
+              d.id = item.id;
+              d.type = 'userGroup';
               d.label = item.name;
               d.value = item.name;
+
+              var found = false;
+
+              $.each( ug, function(idx, item) {
+                if ( item.id == d.id ) {
+                  found = true;
+                }
+              } );
+
+              if ( !found ) {
+                v.push( d );
+              }
+            } );
+          }
+
+          if ( data.users ) {
+            $.each( data.users, function(idx, item) {
+              var d = {};
+
               d.id = item.id;
+              d.type = 'user';
+              d.label = item.name;
+              d.value = item.name;
 
               var found = false;
 

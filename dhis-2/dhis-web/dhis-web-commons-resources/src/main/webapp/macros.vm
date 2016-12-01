@@ -433,10 +433,10 @@ jQuery.each(attributes, function(i, item) {
 </div>
 
 <script id="access-template" type="text/template">
-<tr id="<%= id %>">
-    <td class="sharingGroupName" style="width: 300px;"><%= label %></td>
+<tr id="<%= id %>" type="<%= type %>">
+    <td class="sharingName" style="width: 300px;"><%= label %></td>
     <td>
-        <select class="sharingGroupAccess" style="width: 150px;">
+        <select class="sharingAccess" style="width: 150px;">
             <option value="r-------" <% if(access == 'r-------') { %>selected<% } %>>$i18n.getString( "can_view" )</option>
             <option value="rw------" <% if(access == 'rw------') { %>selected<% } %>>$i18n.getString( "can_edit_and_view" )</option>
         </select>
