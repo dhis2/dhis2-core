@@ -157,10 +157,8 @@ public class JdbcAnalyticsTableManager
 
     @Override
     @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-
         final String approvalClause = getApprovalJoinClause();
 
         taskLoop: while ( true )
@@ -172,21 +170,36 @@ public class JdbcAnalyticsTableManager
                 break taskLoop;
             }
 
-            String intClause =
-                "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
-                "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
-                "or de.zeroissignificant = true ) ";
-
-            populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
-
-            populateTable( table, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
-
-            populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
-
-            populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+            populateTable( table, approvalClause );
         }
 
         return null;
+    }
+    
+    /**
+     * Populates the given analytics tables. Executes separate queries
+     * for each main value type.
+     * 
+     * @param table               analytics table to populate.
+     * @param approvalClause      SQL clause for approval, empty string
+     *                            if approval in analytics is not enabled.
+     */
+    private void populateTable( AnalyticsTable table, String approvalClause )
+    {
+        final String dbl = statementBuilder.getDoubleColumnType();
+        
+        String intClause =
+            "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
+            "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
+            "or de.zeroissignificant = true ) ";
+
+        populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+
+        populateTable( table, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
+
+        populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
+
+        populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
 
     /**
