@@ -403,11 +403,10 @@ public class AnalyticsUtils
             aocCol.add( item.getAggregateExportAttributeOptionCombo() );
         }
 
-        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) );
-        grid.addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) );
-
-        grid.addColumn( vlInx, aocCol );
-        grid.addColumn( vlInx, cocCol );
+        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) )
+            .addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) )
+            .addColumn( vlInx, aocCol )
+            .addColumn( vlInx, cocCol );
     }
 
     /**

@@ -335,12 +335,11 @@ public class JdbcEventAnalyticsManager
 
         while ( rowSet.next() )
         {
-            grid.addRow();
-            
-            grid.addValue( rowSet.getLong( "count" ) );
-            grid.addValue( rowSet.getString( "center" ) );
-            grid.addValue( rowSet.getString( "extent" ) );
-            grid.addValue( rowSet.getString( "points" ) );         
+            grid.addRow()
+                .addValue( rowSet.getLong( "count" ) )
+                .addValue( rowSet.getString( "center" ) )
+                .addValue( rowSet.getString( "extent" ) )
+                .addValue( rowSet.getString( "points" ) );         
         }
         
         return grid;

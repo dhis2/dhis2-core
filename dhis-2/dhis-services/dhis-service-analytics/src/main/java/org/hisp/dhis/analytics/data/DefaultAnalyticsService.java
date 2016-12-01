@@ -323,9 +323,9 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, Double.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, Double.class.getName(), false, false ) );
             }
         }
     }
@@ -390,15 +390,15 @@ public class DefaultAnalyticsService
 
                         row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
 
-                        grid.addRow();
-                        grid.addValues( DimensionItem.getItemIdentifiers( row ) );
-                        grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                        grid.addRow()
+                            .addValues( DimensionItem.getItemIdentifiers( row ) )
+                            .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
 
                         if ( params.isIncludeNumDen() )
                         {
-                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getNumeratorValue() ) );
-                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getDenominatorValue() ) );
-                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getFactorAnnualizedValue() ) );
+                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getNumeratorValue() ) )
+                                .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getDenominatorValue() ) )
+                                .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getFactorAnnualizedValue() ) );
                         }
                     }
                 }
@@ -427,9 +427,9 @@ public class DefaultAnalyticsService
             {
                 Object value = AnalyticsUtils.getRoundedValueObject( params, entry.getValue() );
 
-                grid.addRow();
-                grid.addValues( entry.getKey().split( DIMENSION_SEP ) );
-                grid.addValue( value );
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( value );
 
                 if ( params.isIncludeNumDen() )
                 {
@@ -478,9 +478,9 @@ public class DefaultAnalyticsService
             {
                 Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
 
-                grid.addRow();
-                grid.addValues( entry.getKey().split( DIMENSION_SEP ) );
-                grid.addValue( value );
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( value );
 
                 if ( params.isIncludeNumDen() )
                 {
@@ -617,15 +617,15 @@ public class DefaultAnalyticsService
                     String reportingRate = DimensionalObjectUtils.getDimensionItem( dataRow.get( DX_INDEX ), metric );
                     dataRow.set( DX_INDEX, reportingRate );
 
-                    grid.addRow();
-                    grid.addValues( dataRow.toArray() );
-                    grid.addValue( dataSourceParams.isSkipRounding() ? value : MathUtils.getRounded( value ) );
+                    grid.addRow()
+                        .addValues( dataRow.toArray() )
+                        .addValue( dataSourceParams.isSkipRounding() ? value : MathUtils.getRounded( value ) );
 
                     if ( includeNumDen )
                     {
-                        grid.addValue( actual );
-                        grid.addValue( target );
-                        grid.addValue( PERCENT );
+                        grid.addValue( actual )
+                            .addValue( target )
+                            .addValue( PERCENT );
                     }
                 }
             }
@@ -674,9 +674,9 @@ public class DefaultAnalyticsService
             {
                 Double value = params.isSkipRounding() ? entry.getValue() : MathUtils.getRounded( entry.getValue() );
 
-                grid.addRow();
-                grid.addValues( entry.getKey().split( DIMENSION_SEP ) );
-                grid.addValue( value );
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( value );
 
                 if ( params.isIncludeNumDen() )
                 {
@@ -973,10 +973,10 @@ public class DefaultAnalyticsService
 
         Timer timer = new Timer().start().disablePrint();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( optimalQueries ).
-            withTableName( tableName ).
-            withQueryGroupers( queryGroupers ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( optimalQueries )
+            .withTableName( tableName )
+            .withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 

@@ -157,9 +157,9 @@ public class DefaultEventAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, Double.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, Double.class.getName(), false, false ) );
             }
 
             // -----------------------------------------------------------------
@@ -257,13 +257,13 @@ public class DefaultEventAnalyticsService
         // Headers
         // ---------------------------------------------------------------------
 
-        grid.addHeader( new GridHeader( ITEM_EVENT, "Event", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_PROGRAM_STAGE, "Program stage", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_EXECUTION_DATE, "Event date", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, "Organisation unit name", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, "Organisation unit code", String.class.getName(), false, true ) );
+        grid.addHeader( new GridHeader( ITEM_EVENT, "Event", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, "Program stage", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_EXECUTION_DATE, "Event date", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, "Organisation unit name", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, "Organisation unit code", String.class.getName(), false, true ) );
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
@@ -354,10 +354,10 @@ public class DefaultEventAnalyticsService
         // Headers
         // ---------------------------------------------------------------------
 
-        grid.addHeader( new GridHeader( ITEM_COUNT, "Count", Long.class.getName(), false, false ) );
-        grid.addHeader( new GridHeader( ITEM_CENTER, "Center", String.class.getName(), false, false ) );
-        grid.addHeader( new GridHeader( ITEM_EXTENT, "Extent", String.class.getName(), false, false ) );
-        grid.addHeader( new GridHeader( ITEM_POINTS, "Points", String.class.getName(), false, false ) );
+        grid.addHeader( new GridHeader( ITEM_COUNT, "Count", Long.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_CENTER, "Center", String.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_EXTENT, "Extent", String.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_POINTS, "Points", String.class.getName(), false, false ) );
 
         // ---------------------------------------------------------------------
         // Data
