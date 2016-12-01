@@ -121,24 +121,27 @@ var d2Directives = angular.module('d2Directives', [])
             placement: "@placement",
             trigger: "@trigger"
         },
-        link: function (scope, element, attrs) {
-            var content = $templateCache.get(scope.template);
-            content = $compile(content)(scope);
-            scope.content.heading = scope.content.value && scope.content.value.length > 20 ? scope.content.value.substring(0,20).concat('...') : scope.content.value;
-            var options = {
-                content: content,
-                placement: scope.placement ? scope.placement : 'auto',
-                trigger: scope.trigger ? scope.trigger : 'hover',
-                html: true,
-                title: $translate.instant('_details')
-            };
-            element.popover(options);
+        link: function (scope, element) {
+            var content;
+            if (scope.content) {
+                content = $templateCache.get(scope.template);
+                content = $compile(content)(scope);
+                scope.content.heading = scope.content.value && scope.content.value.length > 20 ? scope.content.value.substring(0, 20).concat('...') : scope.content.value;
+                var options = {
+                    content: content,
+                    placement: scope.placement ? scope.placement : 'auto',
+                    trigger: scope.trigger ? scope.trigger : 'hover',
+                    html: true,
+                    title: $translate.instant('_details')
+                };
+                element.popover(options);
 
-            $('body').on('click', function (e) {
-                if( !element[0].contains(e.target) ) {
-                    element.popover('hide');
-                }
-            });
+                $('body').on('click', function (e) {
+                    if (!element[0].contains(e.target)) {
+                        element.popover('hide');
+                    }
+                });
+            }
         }
     };
 })
