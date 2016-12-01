@@ -186,10 +186,6 @@ public class NotificationMessageRendererTest
     @Test
     public void testRenderProgramStageNotification()
     {
-//        NotificationMessage rendered =
-//            OldNotificationMessageRenderer.render( programStageInstanceA, programNotificationTemplateA );
-
-//        assertNotNull( rendered );
-        // TODO Actually check contents
+        // TODO
     }
 }
