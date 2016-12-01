@@ -174,8 +174,8 @@ public class JdbcAnalyticsTableManager
 
             String intClause =
                 "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
-                    "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
-                    "or de.zeroissignificant = true ) ";
+                "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
+                "or de.zeroissignificant = true ) ";
 
             populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
@@ -183,9 +183,7 @@ public class JdbcAnalyticsTableManager
 
             populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
 
-            // Both TEXT_TYPES and DATE_TYPES are populated in the same way
             populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
-
         }
 
         return null;
