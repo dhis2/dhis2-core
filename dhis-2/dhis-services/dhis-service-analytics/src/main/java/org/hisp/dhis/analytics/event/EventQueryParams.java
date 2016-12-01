@@ -689,11 +689,6 @@ public class EventQueryParams
         return geometryOnly;
     }
 
-    public void setGeometryOnly( boolean geometryOnly )
-    {
-        this.geometryOnly = geometryOnly; //TODO builder
-    }
-
     public boolean isAggregateData()
     {
         return aggregateData;
@@ -870,6 +865,12 @@ public class EventQueryParams
         public Builder withCoordinatesOnly( boolean coordinatesOnly )
         {
             this.params.coordinatesOnly = coordinatesOnly;
+            return this;
+        }
+        
+        public Builder withGeometryOnly( boolean geometryOnly )
+        {
+            this.params.geometryOnly = geometryOnly;
             return this;
         }
 

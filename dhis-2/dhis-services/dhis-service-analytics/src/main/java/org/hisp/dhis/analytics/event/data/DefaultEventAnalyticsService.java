@@ -338,6 +338,10 @@ public class DefaultEventAnalyticsService
             throw new IllegalQueryException( "Spatial database support is not enabled" );
         }
         
+        params = new EventQueryParams.Builder( params )
+            .withGeometryOnly( true )
+            .build();
+        
         securityManager.decideAccess( params );
         
         queryPlanner.validate( params );
@@ -373,6 +377,10 @@ public class DefaultEventAnalyticsService
         {
             throw new IllegalQueryException( "Spatial database support is not enabled" );
         }
+
+        params = new EventQueryParams.Builder( params )
+            .withGeometryOnly( true )
+            .build();
         
         securityManager.decideAccess( params );
         
