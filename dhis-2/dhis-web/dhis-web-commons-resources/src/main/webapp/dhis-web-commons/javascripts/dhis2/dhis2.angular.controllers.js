@@ -485,9 +485,10 @@ var d2Controllers = angular.module('d2Controllers', [])
     });
 })
 
-.controller('OrgUnitTreeController', function($scope, $modalInstance, OrgUnitFactory, orgUnitId) {
-
+.controller('OrgUnitTreeController', function($scope, $modalInstance, OrgUnitFactory, orgUnitId, orgUnitNames) {
+    
     $scope.model = {selectedOrgUnitId: orgUnitId ? orgUnitId : null};
+    $scope.orgUnitNames = orgUnitNames;
 
     function expandOrgUnit( orgUnit, ou ){
         if( ou.path.indexOf( orgUnit.path ) !== -1 ){
@@ -594,15 +595,16 @@ var d2Controllers = angular.module('d2Controllers', [])
     };
 
     $scope.setSelectedOrgUnit = function( orgUnit ){
-    	$scope.model.selectedOrgUnit = orgUnit;
+    	$scope.model.selectedOrgUnit = {id: orgUnit.id, displayName: orgUnit.displayName};
         $scope.model.selectedOrgUnitId = orgUnit.id;
+        $scope.orgUnitNames[orgUnit.id] = orgUnit.displayName;
     };
 
     $scope.select = function () {
-        $modalInstance.close( $scope.model.selectedOrgUnit );
+        $modalInstance.close( {selected: $scope.model.selectedOrgUnit, names: $scope.orgUnitNames} );
     };
 
-    $scope.close = function(){
+    $scope.close = function(){        
         $modalInstance.close();
     };
 });

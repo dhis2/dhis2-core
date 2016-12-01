@@ -655,7 +655,8 @@ var d2Directives = angular.module('d2Directives', [])
             d2Object: '=',
             d2Disabled: '=',
             d2Required: '=',
-            d2CallbackFunction: '&d2Function'
+            d2CallbackFunction: '&d2Function',
+            d2OrgunitNames: '='
         },
         controller: function($scope, $modal){
             
@@ -667,17 +668,21 @@ var d2Directives = angular.module('d2Directives', [])
                     resolve: {
                         orgUnitId: function(){
                             return $scope.d2Object[dataElementId] ? $scope.d2Object[dataElementId] : $scope.selectedOrgUnit.id;
+                        },
+                        orgUnitNames: function(){
+                            return $scope.d2OrgunitNames;
                         }
                     }
                 });
 
-                modalInstance.result.then(function (orgUnitId) {
-                    if( orgUnitId ){
-                        $scope.d2Object[dataElementId] = orgUnitId;
+                modalInstance.result.then(function ( res ) {
+                    if( res && res.selected && res.selected.id ){
+                        $scope.d2Object[dataElementId] = res.selected.id;
+                        $scope.d2OrgunitNames = res.names;
                         if( angular.isDefined( $scope.d2CallbackFunction ) ){
                             $scope.d2CallbackFunction($scope.d2Object, dataElementId);
                         }                            
-                    }
+                    }                    
                 }, function () {
                 });
             };

@@ -630,7 +630,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 					                                            ' d2-object="currentEvent" ' +
 					                                            ' d2-value="currentEvent.' + fieldId + '" ' +
 					                                            ' d2-disabled="model.editingDisabled || isHidden(prStDes.' + fieldId + '.dataElement.id) || selectedEnrollment.status===\'CANCELLED\' || selectedEnrollment.status===\'COMPLETED\' || currentEvent[uid]==\'uid\' || currentEvent.editingNotAllowed" ' +
-					                                            ' d2-required="prStDes.' + fieldId + '.compulsory" ' +						                                            
+					                                            ' d2-required="prStDes.' + fieldId + '.compulsory" ' +
+                                                                                    ' d2-orgunit-names="orgUnitNames" ' +
 					                                            ' d2-function="saveDatavalue(prStDes.' + fieldId + ', currentEvent, value )" >' +
 					                                    ' </d2-org-unit-tree></span>' +
 					                                    '<span class="not-for-screen">' +
@@ -831,6 +832,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
 						                                    ' d2-required=" ' + (att.mandatory || att.unique) + '" ' +
 					                                        ' d2-disabled="model.orgUnitClosed || editingDisabled || isHidden(attributesById.' + attId + '.id) || ' + isTrackerAssociate+ ' || attributesById.' + attId + '.generated"' +
+                                                                                ' d2-orgunit-names="orgUnitNames" ' +
 					                                        ' d2-function="teiValueUpdated()" >' +
 				                                    ' </d2-org-unit-tree></span>'+
                                                                     '<span class="not-for-screen"><input type="text" value={{selectedTei.' + attId + '}}></span>';
@@ -3129,7 +3131,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
             }
             return def.promise;
         },
-        getFromStoreOrServer: function(uid){            
+        getFromStoreOrServer: function(uid){
             var deferred = $q.defer();
             if (db === null) {
                 openStore().then(getOu, function () {
