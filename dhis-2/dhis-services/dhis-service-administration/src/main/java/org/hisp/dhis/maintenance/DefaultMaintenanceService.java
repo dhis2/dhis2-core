@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.commons.util.PageRange;
 import org.hisp.dhis.dataapproval.DataApprovalService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -166,6 +167,26 @@ public class DefaultMaintenanceService
         
         log.info( "Pruned data for organisation unit: " + organisationUnit );
         
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public boolean pruneData( DataElement dataElement )
+    {
+        User user = currentUserService.getCurrentUser();
+
+
+        if ( user == null  || !user.isSuper() )
+        {
+            return false;
+        }
+
+        dataValueAuditService.deleteDataValueAudits( dataElement );
+        dataValueService.deleteDataValues( dataElement );
+
+        log.info( "Pruned data for data element: " + dataElement );
+
         return true;
     }
 

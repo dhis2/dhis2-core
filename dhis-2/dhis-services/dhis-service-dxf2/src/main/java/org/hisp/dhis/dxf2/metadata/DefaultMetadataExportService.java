@@ -312,6 +312,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
+        if ( DataElementCategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (DataElementCategoryCombo) object );
 
         return metadata;
     }
@@ -370,7 +371,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         if ( categoryOptionCombo == null ) return metadata;
         metadata.putValue( DataElementCategoryOptionCombo.class, categoryOptionCombo );
 
-        handleCategoryCombo( metadata, categoryOptionCombo.getCategoryCombo() );
         categoryOptionCombo.getCategoryOptions().forEach( categoryOption -> handleCategoryOption( metadata, categoryOption ) );
 
         return metadata;
@@ -382,6 +382,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         metadata.putValue( DataElementCategoryCombo.class, categoryCombo );
 
         categoryCombo.getCategories().forEach( category -> handleCategory( metadata, category ) );
+        categoryCombo.getOptionCombos().forEach( optionCombo -> handleCategoryOptionCombo( metadata, optionCombo ) );
 
         return metadata;
     }

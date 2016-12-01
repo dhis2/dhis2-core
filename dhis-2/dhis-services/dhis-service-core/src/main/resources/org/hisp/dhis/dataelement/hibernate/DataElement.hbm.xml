@@ -106,6 +106,12 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="dataelementuseraccesses">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
   </class>
 
 </hibernate-mapping>

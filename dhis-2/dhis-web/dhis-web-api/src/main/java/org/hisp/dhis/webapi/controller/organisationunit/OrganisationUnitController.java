@@ -258,7 +258,7 @@ public class OrganisationUnitController
         rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
         rpParents = rpParents != null ? rpParents : new ArrayList<>();
 
-        List<OrganisationUnit> parents = new ArrayList<>( manager.getByUid( OrganisationUnit.class, rpParents ) );
+        List<OrganisationUnit> parents = manager.getByUid( OrganisationUnit.class, rpParents );
 
         if ( rpLevels.isEmpty() )
         {
@@ -270,7 +270,7 @@ public class OrganisationUnitController
             parents.addAll( organisationUnitService.getRootOrganisationUnits() );
         }
 
-        List<OrganisationUnit> organisationUnits = new ArrayList<>( organisationUnitService.getOrganisationUnitsAtLevels( rpLevels, parents ) );
+        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels, parents );
 
         response.setContentType( "application/json" );
 
@@ -301,8 +301,9 @@ public class OrganisationUnitController
 
         FeatureType featureType = organisationUnit.getFeatureType();
 
-        // if featureType is anything other than Point, just assume MultiPolygon
-        if ( !(featureType == FeatureType.POINT) )
+        // If featureType is anything other than Point, just assume MultiPolygon
+        
+        if ( !( featureType == FeatureType.POINT ) )
         {
             featureType = FeatureType.MULTI_POLYGON;
         }

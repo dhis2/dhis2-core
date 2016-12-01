@@ -102,10 +102,10 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
         SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format )
+        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, I18nFormat format )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, userOrgUnit, null, null, format );
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, relativePeriodDate, userOrgUnit, null, null, format );
 
         EventQueryParams params = new EventQueryParams.Builder( query )
             .withValue( getValueDimension( value ) )
@@ -126,8 +126,8 @@ public class DefaultEventDataQueryService
     public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
-        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty, String userOrgUnit, Integer page, Integer pageSize,
-        I18nFormat format )
+        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
+        Date relativePeriodDate, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         
@@ -171,7 +171,7 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, null, userOrgUnits,
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
                     format, true, idScheme );
 
                 if ( dimObj != null )
@@ -191,7 +191,7 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, null, userOrgUnits,
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
                     format, true, idScheme );
 
                 if ( dimObj != null )

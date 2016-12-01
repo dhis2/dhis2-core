@@ -1,8 +1,4 @@
-package org.hisp.dhis.program.message;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.commons.util;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,16 +24,44 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) AR
+ * ISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Torgeir Lorange Ostby
  */
-
-@JacksonXmlRootElement( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
-public enum DeliveryChannel
+public class SystemUtils
 {
-    SMS, EMAIL
+    private static final int FACTOR_MB = 1024 * 1024;
+
+    /**
+     * Indicates whether the current thread is running for testing.
+     * @return true if test run.
+     */
+    public static boolean isTestRun()
+    {
+        return "true".equals( System.getProperty( "org.hisp.dhis.test", "false" ) );
+    }
+    
+    /**
+     * Gets the number of CPU cores available to this JVM.
+     * @return the number of available CPU cores.
+     */
+    public static int getCpuCores()
+    {
+        return Runtime.getRuntime().availableProcessors();
+    }
+
+    /**
+     * Gets a String containing info of available and used memory of this JVM.
+     * @return an info string.
+     */
+    public static String getMemoryString()
+    {
+        return "Mem Total in JVM: " + ( Runtime.getRuntime().totalMemory() / FACTOR_MB ) + 
+            " Free in JVM: " + ( Runtime.getRuntime().freeMemory() / FACTOR_MB ) +
+            " Max Limit: " + ( Runtime.getRuntime().maxMemory() / FACTOR_MB );     
+    }
 }

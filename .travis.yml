@@ -6,8 +6,12 @@ addons:
     packages:
     - oracle-java8-installer
 script:
-- mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
+- mvn clean test  -T 1C  -f ./dhis-2/pom-full.xml
 
+cache:
+  directories:
+  - $HOME/.m2
+  
 branches:
   only:
   - master

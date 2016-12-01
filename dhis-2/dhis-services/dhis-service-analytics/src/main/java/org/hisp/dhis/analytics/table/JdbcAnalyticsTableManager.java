@@ -156,41 +156,25 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    protected void populateTable( AnalyticsTable table )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
-
         final String approvalClause = getApprovalJoinClause();
+        
+        String intClause =
+            "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
+            "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
+            "or de.zeroissignificant = true ) ";
 
-        taskLoop: while ( true )
-        {
-            AnalyticsTable table = tables.poll();
+        populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
-            if ( table == null )
-            {
-                break taskLoop;
-            }
+        populateTable( table, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
 
-            String intClause =
-                "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
-                    "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
-                    "or de.zeroissignificant = true ) ";
+        populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
 
-            populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
-
-            populateTable( table, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
-
-            populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
-
-            // Both TEXT_TYPES and DATE_TYPES are populated in the same way
-            populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
-
-        }
-
-        return null;
+        populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
-
+    
     /**
      * Populates the given analytics table.
      *
@@ -233,12 +217,12 @@ public class JdbcAnalyticsTableManager
                 valueExpression + " as value, " +
                 textValueExpression + " as textvalue " +
                 "from datavalue dv " +
-                "left join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-                "left join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
-                "left join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
-                "left join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
+                "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
+                "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
+                "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
+                "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
                 "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
-                "left join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
+                "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
                 "inner join dataelement de on dv.dataelementid=de.dataelementid " +
                 "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
                 "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +

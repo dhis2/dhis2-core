@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -92,10 +92,10 @@ public class NotificationMessageRenderer
             .put( ProgramStageTemplateVariable.PROGRAM_NAME,         psi -> psi.getProgramStage().getProgram().getDisplayName() )
             .put( ProgramStageTemplateVariable.PROGRAM_STAGE_NAME,   psi -> psi.getProgramStage().getDisplayName() )
             .put( ProgramStageTemplateVariable.ORG_UNIT_NAME,        psi -> psi.getOrganisationUnit().getDisplayName() )
-            .put( ProgramStageTemplateVariable.DUE_DATE,             psi -> DateUtils.getMediumDateString( psi.getDueDate() ) ) // TODO Figure out formatting to use for Date
-            .put( ProgramStageTemplateVariable.DAYS_SINCE_DUE_DATE,  psi -> daysSinceDue( psi ) )
-            .put( ProgramStageTemplateVariable.DAYS_UNTIL_DUE_DATE,  psi -> daysUntilDue( psi ) )
-            .put( ProgramStageTemplateVariable.CURRENT_DATE,         psi -> DateUtils.getMediumDateString( new Date() ) )
+            .put( ProgramStageTemplateVariable.DUE_DATE,             psi -> formatDate( psi.getDueDate() ) )
+            .put( ProgramStageTemplateVariable.DAYS_SINCE_DUE_DATE,  psi -> daysSince( psi.getDueDate() ) )
+            .put( ProgramStageTemplateVariable.DAYS_UNTIL_DUE_DATE,  psi -> daysUntil( psi.getDueDate() ) )
+            .put( ProgramStageTemplateVariable.CURRENT_DATE,         psi -> formatDate( new Date() ) )
             .build();
 
     /**
@@ -103,9 +103,12 @@ public class NotificationMessageRenderer
      */
     private static final ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> ENROLLMENT_VARIABLE_RESOLVERS
         = new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
-            .put( ProgramTemplateVariable.PROGRAM_NAME,     ps -> ps.getProgram().getDisplayName() )
-            .put( ProgramTemplateVariable.ORG_UNIT_NAME,    ps -> ps.getOrganisationUnit().getDisplayName() )
-            .put( ProgramTemplateVariable.CURRENT_DATE,     ps -> DateUtils.getMediumDateString( new Date() ) )
+            .put( ProgramTemplateVariable.PROGRAM_NAME,                 pi -> pi.getProgram().getDisplayName() )
+            .put( ProgramTemplateVariable.ORG_UNIT_NAME,                pi -> pi.getOrganisationUnit().getDisplayName() )
+            .put( ProgramTemplateVariable.CURRENT_DATE,                 pi -> formatDate( new Date() ) )
+            .put( ProgramTemplateVariable.ENROLLMENT_DATE,              pi -> formatDate( pi.getEnrollmentDate() ) )
+            .put( ProgramTemplateVariable.INCIDENT_DATE,                pi -> formatDate( pi.getIncidentDate() ) )
+            .put( ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE,   pi -> daysSince( pi.getEnrollmentDate() ) )
             .build();
 
     // -------------------------------------------------------------------------
@@ -267,16 +270,6 @@ public class NotificationMessageRenderer
         return new NotificationMessage( subject, message );
     }
 
-    private static String daysUntilDue( ProgramStageInstance psi )
-    {
-        return String.valueOf( Days.daysBetween( DateTime.now(), new DateTime( psi.getDueDate() ) ).getDays() );
-    }
-
-    private static String daysSinceDue( ProgramStageInstance psi )
-    {
-        return String.valueOf( Days.daysBetween( new DateTime( psi.getDueDate() ), DateTime.now() ).getDays() );
-    }
-
     private static String value( TrackedEntityAttributeValue av )
     {
         String value = av.getPlainValue();
@@ -299,5 +292,20 @@ public class NotificationMessageRenderer
     private static String chop( String input, int limit )
     {
         return input.substring( 0, Math.min( input.length(), limit ) );
+    }
+
+    private static String daysUntil( Date date )
+    {
+        return String.valueOf( Days.daysBetween( DateTime.now(), new DateTime( date ) ).getDays() );
+    }
+
+    private static String daysSince( Date date )
+    {
+        return String.valueOf( Days.daysBetween( new DateTime( date ) , DateTime.now() ).getDays() );
+    }
+
+    private static String formatDate( Date date )
+    {
+        return DateUtils.getMediumDateString( date );
     }
 }

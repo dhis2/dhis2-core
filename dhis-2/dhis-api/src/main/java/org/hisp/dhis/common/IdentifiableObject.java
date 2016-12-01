@@ -33,6 +33,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.ObjectTranslation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 
 import java.io.Serializable;
@@ -76,6 +77,8 @@ public interface IdentifiableObject
     boolean getExternalAccess();
 
     Set<UserGroupAccess> getUserGroupAccesses();
+
+    Set<UserAccess> getUserAccesses();
 
     Access getAccess();
 

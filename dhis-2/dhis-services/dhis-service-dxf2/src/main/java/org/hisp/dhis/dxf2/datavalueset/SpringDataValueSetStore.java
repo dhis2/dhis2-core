@@ -34,6 +34,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
@@ -137,10 +138,14 @@ public class SpringDataValueSetStore
     {
         if ( params.isSingleDataValueSet() )
         {
-            dataValueSet.setDataSet( params.getFirstDataSet().getUid() ); //TODO id scheme
+            IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
+            IdScheme ouScheme = idScheme.getOrgUnitIdScheme();
+            IdScheme dataSetScheme = idScheme.getDataSetIdScheme();
+            
+            dataValueSet.setDataSet( params.getFirstDataSet().getPropertyValue( dataSetScheme ) );
             dataValueSet.setCompleteDate( getLongGmtDateString( completeDate ) );
             dataValueSet.setPeriod( params.getFirstPeriod().getIsoDate() );
-            dataValueSet.setOrgUnit( params.getFirstOrganisationUnit().getUid() );
+            dataValueSet.setOrgUnit( params.getFirstOrganisationUnit().getPropertyValue( ouScheme ) );
         }
 
         final Calendar calendar = PeriodType.getCalendar();

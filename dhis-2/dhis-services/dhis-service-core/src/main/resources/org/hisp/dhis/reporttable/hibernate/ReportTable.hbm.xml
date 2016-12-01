@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
-    
+
     <property name="description" type="text" />
 
     <property name="regression" />
@@ -150,7 +150,7 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
-    
+
     <set name="interpretations" inverse="true">
       <key column="reporttableid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -189,6 +189,14 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_reporttable_legendsetid" />
 
+    <property name="legendDisplayStyle" length="40">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.legend.LegendDisplayStyle</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
     <property name="showHierarchy" />
 
     <property name="showDimensionLabels" />
@@ -206,6 +214,12 @@
       <cache usage="read-write" />
       <key column="reporttableid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="reporttableuseraccesses">
+      <cache usage="read-write" />
+      <key column="reporttableid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Object Translation -->

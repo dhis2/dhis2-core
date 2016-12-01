@@ -38,6 +38,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.program.ProgramStatus;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -75,8 +76,9 @@ public interface EventDataQueryService
     EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format );
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus,
+        boolean collapseDataDimensions, boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate,
+        String userOrgUnit, I18nFormat format );
 
     /**
      * Used for event query.
@@ -104,8 +106,8 @@ public interface EventDataQueryService
     EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc, 
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, 
-        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty, String userOrgUnit,
-        Integer page, Integer pageSize, I18nFormat format );
+        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
+        Date relativePeriodDate, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format );
     
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 }

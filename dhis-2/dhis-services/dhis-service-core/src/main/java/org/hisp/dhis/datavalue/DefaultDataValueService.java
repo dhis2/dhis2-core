@@ -221,7 +221,13 @@ public class DefaultDataValueService
     {
         dataValueStore.deleteDataValues( organisationUnit );
     }
-    
+
+    @Override
+    public void deleteDataValues( DataElement dataElement )
+    {
+        dataValueStore.deleteDataValues( dataElement );
+    }
+
     @Override
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, DataElementCategoryOptionCombo categoryOptionCombo )
     {

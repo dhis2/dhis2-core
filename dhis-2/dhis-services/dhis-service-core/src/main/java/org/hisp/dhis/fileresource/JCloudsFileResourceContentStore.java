@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
+import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -88,7 +89,8 @@ public class JCloudsFileResourceContentStore
     private static final String JCLOUDS_PROVIDER_KEY_AWS_S3 = "aws-s3";
     private static final String JCLOUDS_PROVIDER_KEY_TRANSIENT = "transient";
 
-    private static final List<String> SUPPORTED_PROVIDERS = Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3 );
+    private static final List<String> SUPPORTED_PROVIDERS =
+        Arrays.asList( JCLOUDS_PROVIDER_KEY_FILESYSTEM, JCLOUDS_PROVIDER_KEY_AWS_S3, JCLOUDS_PROVIDER_KEY_TRANSIENT );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -124,6 +126,8 @@ public class JCloudsFileResourceContentStore
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_LOCATION ),
             configurationProvider.getProperty( ConfigurationKey.FILESTORE_CONTAINER )
         );
+
+
 
         Pair<Credentials, Properties> providerConfig = configureForProvider(
             config.provider,
@@ -312,10 +316,29 @@ public class JCloudsFileResourceContentStore
 
     private String putBlob( Blob blob )
     {
-        // Note:
-        //  On JClouds < 2.0.0 this line is affected by 'JCLOUDS-1015'.
-        //  The workaround was to catch 'UserPrincipalNotFoundException', but this should no longer be necessary.
-        return blobStore.putBlob( config.container, blob );
+        String etag = null;
+
+        try
+        {
+            etag = blobStore.putBlob( config.container, blob );
+        }
+        catch ( RuntimeException rte )
+        {
+            Throwable cause = rte.getCause();
+
+            if ( cause != null && cause instanceof UserPrincipalNotFoundException )
+            {
+                // Intentionally ignored exception which occurs with JClouds (< 2.0.0) on localized Windows.
+                // See https://issues.apache.org/jira/browse/JCLOUDS-1015
+                log.debug( "Ignored UserPrincipalNotFoundException. Workaround for 'JCLOUDS-1015'." );
+            }
+            else
+            {
+                throw rte;
+            }
+        }
+
+        return etag;
     }
 
     private Blob createBlob( FileResource fileResource, byte[] bytes )

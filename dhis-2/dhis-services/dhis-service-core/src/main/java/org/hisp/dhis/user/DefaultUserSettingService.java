@@ -34,7 +34,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.SystemUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;

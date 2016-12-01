@@ -261,18 +261,30 @@ public class HibernateGenericStore<T>
         disjunction.add( Restrictions.isNull( "c.user.id" ) );
         disjunction.add( Restrictions.eq( "c.user.id", user.getId() ) );
 
-        DetachedCriteria detachedCriteria = DetachedCriteria.forClass( getClazz(), "dc" );
-        detachedCriteria.createCriteria( "dc.userGroupAccesses", "uga" );
-        detachedCriteria.createCriteria( "uga.userGroup", "ug" );
-        detachedCriteria.createCriteria( "ug.members", "ugm" );
+        DetachedCriteria userGroupDetachedCriteria = DetachedCriteria.forClass( getClazz(), "ugdc" );
+        userGroupDetachedCriteria.createCriteria( "ugdc.userGroupAccesses", "uga" );
+        userGroupDetachedCriteria.createCriteria( "uga.userGroup", "ug" );
+        userGroupDetachedCriteria.createCriteria( "ug.members", "ugm" );
 
-        detachedCriteria.add( Restrictions.eqProperty( "dc.id", "c.id" ) );
-        detachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
-        detachedCriteria.add( Restrictions.like( "uga.access", access ) );
+        userGroupDetachedCriteria.add( Restrictions.eqProperty( "ugdc.id", "c.id" ) );
+        userGroupDetachedCriteria.add( Restrictions.eq( "ugm.id", user.getId() ) );
+        userGroupDetachedCriteria.add( Restrictions.like( "uga.access", access ) );
 
-        detachedCriteria.setProjection( Property.forName( "uga.id" ) );
+        userGroupDetachedCriteria.setProjection( Property.forName( "uga.id" ) );
 
-        disjunction.add( Subqueries.exists( detachedCriteria ) );
+        disjunction.add( Subqueries.exists( userGroupDetachedCriteria ) );
+
+        DetachedCriteria userDetachedCriteria = DetachedCriteria.forClass( getClazz(), "udc" );
+        userDetachedCriteria.createCriteria( "udc.userAccesses", "ua" );
+        userDetachedCriteria.createCriteria( "ua.user", "u" );
+
+        userDetachedCriteria.add( Restrictions.eqProperty( "udc.id", "c.id" ) );
+        userDetachedCriteria.add( Restrictions.eq( "u.id", user.getId() ) );
+        userDetachedCriteria.add( Restrictions.like( "ua.access", access ) );
+
+        userDetachedCriteria.setProjection( Property.forName( "ua.id" ) );
+
+        disjunction.add( Subqueries.exists( userDetachedCriteria ) );
 
         criteria.add( disjunction );
         return criteria;
@@ -407,6 +419,11 @@ public class HibernateGenericStore<T>
                 if ( identifiableObject.getUserGroupAccesses() != null )
                 {
                     identifiableObject.getUserGroupAccesses().clear();
+                }
+
+                if ( identifiableObject.getUserAccesses() != null )
+                {
+                    identifiableObject.getUserAccesses().clear();
                 }
             }
 
