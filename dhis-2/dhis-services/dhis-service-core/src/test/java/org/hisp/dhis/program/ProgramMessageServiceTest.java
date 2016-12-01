@@ -38,7 +38,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;

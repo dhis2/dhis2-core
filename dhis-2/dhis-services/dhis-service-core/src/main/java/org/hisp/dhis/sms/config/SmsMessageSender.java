@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.sms.MessageBatchStatus;
 import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.sms.MessageResponseSummary;

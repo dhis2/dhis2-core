@@ -30,7 +30,7 @@ package org.hisp.dhis.message;
 
 import java.util.Set;
 
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.sms.MessageResponseStatus;
 import org.hisp.dhis.sms.MessageResponseSummary;
 import org.hisp.dhis.sms.outbound.MessageBatch;
