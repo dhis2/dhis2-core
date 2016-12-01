@@ -98,11 +98,11 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Abstract methods
     // -------------------------------------------------------------------------
 
-    protected abstract TemplateVariable fromVariableName( String name );
-
     protected abstract ImmutableMap<TemplateVariable, Function<T, String>> getVariableResolvers();
 
     protected abstract Map<String, String> resolveAttributeValues( Set<String> attributeKeys, T entity );
+
+    protected abstract TemplateVariable fromVariableName( String name );
 
     protected abstract boolean isValidVariableName( String variableName );
 

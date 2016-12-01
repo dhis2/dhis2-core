@@ -76,12 +76,6 @@ public class ProgramStageNotificationMessageRenderer
     // -------------------------------------------------------------------------
 
     @Override
-    protected TemplateVariable fromVariableName( String name )
-    {
-        return ProgramStageTemplateVariable.fromVariableName( name );
-    }
-
-    @Override
     protected ImmutableMap<TemplateVariable, Function<ProgramStageInstance, String>> getVariableResolvers()
     {
         return VARIABLE_RESOLVERS;
@@ -98,6 +92,13 @@ public class ProgramStageNotificationMessageRenderer
         return entity.getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramStageNotificationMessageRenderer::filterValue ) );
+    }
+
+
+    @Override
+    protected TemplateVariable fromVariableName( String name )
+    {
+        return ProgramStageTemplateVariable.fromVariableName( name );
     }
 
     @Override
