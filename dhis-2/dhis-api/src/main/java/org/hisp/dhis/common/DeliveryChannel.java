@@ -1,6 +1,4 @@
-package org.hisp.dhis.program.message;
-
-import org.hisp.dhis.common.DxfNamespaces;
+package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
