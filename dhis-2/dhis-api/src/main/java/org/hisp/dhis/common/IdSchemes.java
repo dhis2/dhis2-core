@@ -131,11 +131,13 @@ public class IdSchemes
         return this;
     }
 
-    public IdScheme getDataSetIdScheme() {
+    public IdScheme getDataSetIdScheme()
+    {
         return getScheme( dataSetIdScheme );
     }
 
-    public IdSchemes setDataSetIdScheme( String idScheme ) {
+    public IdSchemes setDataSetIdScheme( String idScheme )
+    {
         this.dataSetIdScheme = IdScheme.from( idScheme );
         return this;
     }

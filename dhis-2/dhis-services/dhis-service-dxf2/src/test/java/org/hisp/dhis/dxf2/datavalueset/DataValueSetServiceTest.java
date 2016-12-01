@@ -913,7 +913,7 @@ public class DataValueSetServiceTest
     }
     
     @Test
-    public void testImportDataValuesWithDatasetAllowsPeriods()
+    public void testImportDataValuesWithDataSetAllowsPeriods()
         throws Exception
     {
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
@@ -938,12 +938,12 @@ public class DataValueSetServiceTest
 
         String importData =
             "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\" idScheme=\"code\" dataSet=\"DS_A\" orgUnit=\"OU_A\">\n" +
-                "  <dataValue dataElement=\"DE_A\" period=\"" + tooEarly.getIsoDate() + "\" value=\"10001\" />\n" +
-                "  <dataValue dataElement=\"DE_B\" period=\"" + okBefore.getIsoDate() + "\" value=\"10002\" />\n" +
-                "  <dataValue dataElement=\"DE_C\" period=\"" + okAfter.getIsoDate() + "\" value=\"10003\" />\n" +
-                "  <dataValue dataElement=\"DE_D\" period=\"" + tooLate.getIsoDate() + "\" value=\"10004\" />\n" +
-                "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n" +
-                "</dataValueSet>\n";
+            "  <dataValue dataElement=\"DE_A\" period=\"" + tooEarly.getIsoDate() + "\" value=\"10001\" />\n" +
+            "  <dataValue dataElement=\"DE_B\" period=\"" + okBefore.getIsoDate() + "\" value=\"10002\" />\n" +
+            "  <dataValue dataElement=\"DE_C\" period=\"" + okAfter.getIsoDate() + "\" value=\"10003\" />\n" +
+            "  <dataValue dataElement=\"DE_D\" period=\"" + tooLate.getIsoDate() + "\" value=\"10004\" />\n" +
+            "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n" +
+            "</dataValueSet>\n";
 
         in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
 

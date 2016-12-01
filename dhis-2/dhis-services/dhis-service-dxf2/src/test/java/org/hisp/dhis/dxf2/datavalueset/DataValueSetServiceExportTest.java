@@ -258,14 +258,15 @@ public class DataValueSetServiceExportTest
     }
 
     @Test
-    public void testExportOutputIdSchemeCode()
+    public void testExportOutputSingleDataValueSetIdSchemeCode()
         throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         IdSchemes idSchemes = new IdSchemes()
             .setOrgUnitIdScheme( IdentifiableProperty.CODE.name() )
-            .setDataElementIdScheme( IdentifiableProperty.CODE.name() );
+            .setDataElementIdScheme( IdentifiableProperty.CODE.name() )
+            .setDataSetIdScheme( IdentifiableProperty.CODE.name() );
 
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsB ) )
@@ -279,7 +280,9 @@ public class DataValueSetServiceExportTest
 
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
-        assertEquals( dsB.getUid(), dvs.getDataSet() );
+        assertNotNull( dvs.getOrgUnit() );
+        assertEquals( dsB.getCode(), dvs.getDataSet() );
+        assertEquals( ouA.getCode(), dvs.getOrgUnit() );
         assertEquals( 2, dvs.getDataValues().size() );
 
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )

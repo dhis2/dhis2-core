@@ -616,16 +616,20 @@ public class DefaultDataValueSetService
         IdScheme dvSetIdScheme = IdScheme.from( dataValueSet.getIdSchemeProperty() );
         IdScheme dvSetDataElementIdScheme = IdScheme.from( dataValueSet.getDataElementIdSchemeProperty() );
         IdScheme dvSetOrgUnitIdScheme = IdScheme.from( dataValueSet.getOrgUnitIdSchemeProperty() );
-        IdScheme dvSetCategoryOptComboIdScheme = IdScheme.from( dataValueSet.getCategoryOptionComboIdScheme() );
+        IdScheme dvSetCategoryOptComboIdScheme = IdScheme.from( dataValueSet.getCategoryOptionComboIdSchemeProperty() );
+        IdScheme dvSetDataSetIdScheme = IdScheme.from( dataValueSet.getDataSetIdSchemeProperty() );
 
-        log.info( "Data value set scheme: " + dvSetIdScheme + ", data element scheme: " + dvSetDataElementIdScheme + ", org unit scheme: " + dvSetOrgUnitIdScheme );
+        log.info( "Data value set identifier scheme: " + dvSetIdScheme + ", data element: " + dvSetDataElementIdScheme + 
+            ", org unit: " + dvSetOrgUnitIdScheme + ", category option combo: " + dvSetCategoryOptComboIdScheme + ", data set: " + dvSetDataSetIdScheme );
 
         IdScheme idScheme = dvSetIdScheme.isNotNull() ? dvSetIdScheme : importOptions.getIdSchemes().getIdScheme();
         IdScheme dataElementIdScheme = dvSetDataElementIdScheme.isNotNull() ? dvSetDataElementIdScheme : importOptions.getIdSchemes().getDataElementIdScheme();
         IdScheme orgUnitIdScheme = dvSetOrgUnitIdScheme.isNotNull() ? dvSetOrgUnitIdScheme : importOptions.getIdSchemes().getOrgUnitIdScheme();
         IdScheme categoryOptComboIdScheme = dvSetCategoryOptComboIdScheme.isNotNull() ? dvSetCategoryOptComboIdScheme : importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
+        IdScheme dataSetIdScheme = dvSetDataSetIdScheme.isNotNull() ? dvSetDataSetIdScheme : importOptions.getIdSchemes().getDataSetIdScheme();
         
-        log.info( "Scheme: " + idScheme + ", data element scheme: " + dataElementIdScheme + ", org unit scheme: " + orgUnitIdScheme );
+        log.info( "Identifier scheme: " + idScheme + ", data element: " + dataElementIdScheme + 
+            ", org unit: " + orgUnitIdScheme + ", category option combo: " + categoryOptComboIdScheme + ", data set: " + dataSetIdScheme );
 
         ImportStrategy strategy = dataValueSet.getStrategy() != null ?
             ImportStrategy.valueOf( dataValueSet.getStrategy() ) : importOptions.getImportStrategy();
@@ -691,7 +695,7 @@ public class DefaultDataValueSetService
         // Get outer meta-data
         // ---------------------------------------------------------------------
 
-        DataSet dataSet = dataValueSet.getDataSet() != null ? identifiableObjectManager.getObject( DataSet.class, idScheme, dataValueSet.getDataSet() ) : null;
+        DataSet dataSet = dataValueSet.getDataSet() != null ? identifiableObjectManager.getObject( DataSet.class, dataSetIdScheme, dataValueSet.getDataSet() ) : null;
 
         Date completeDate = parseDate( dataValueSet.getCompleteDate() );
 

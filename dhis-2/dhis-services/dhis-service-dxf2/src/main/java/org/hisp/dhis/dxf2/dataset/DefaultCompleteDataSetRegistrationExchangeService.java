@@ -738,7 +738,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         );
     }
 
-    private static boolean exceedsThreshold( CachingMap cachingMap )
+    private static boolean exceedsThreshold( CachingMap<?, ?> cachingMap )
     {
         return cachingMap.getCacheMissCount() > CACHE_MISS_THRESHOLD;
     }

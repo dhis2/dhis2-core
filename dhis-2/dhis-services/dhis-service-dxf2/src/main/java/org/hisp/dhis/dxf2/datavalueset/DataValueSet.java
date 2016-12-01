@@ -52,6 +52,7 @@ public class DataValueSet
     protected static final String FIELD_DATAELEMENTIDSCHEME = "dataElementIdScheme";
     protected static final String FIELD_ORGUNITIDSCHEME = "orgUnitIdScheme";
     protected static final String FIELD_CATEGORYOPTCOMBOIDSCHEME = "categoryOptionComboIdScheme";
+    protected static final String FIELD_DATASETIDSCHEME = "dataSetIdScheme";
     protected static final String FIELD_DRYRUN = "dryRun";
     protected static final String FIELD_IMPORTSTRATEGY = "importStrategy";
 
@@ -74,6 +75,8 @@ public class DataValueSet
     protected String orgUnitIdScheme;
     
     protected String categoryOptionComboIdScheme;
+    
+    protected String dataSetIdScheme;
 
     protected Boolean dryRun;
 
@@ -155,6 +158,18 @@ public class DataValueSet
     public void setCategoryOptionComboIdScheme( String categoryOptionComboIdScheme )
     {
         this.categoryOptionComboIdScheme = categoryOptionComboIdScheme;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getDataSetIdScheme()
+    {
+        return dataSetIdScheme;
+    }
+
+    public void setDataSetIdScheme( String dataSetIdScheme )
+    {
+        this.dataSetIdScheme = dataSetIdScheme;
     }
 
     @JsonProperty
@@ -344,6 +359,16 @@ public class DataValueSet
     public IdScheme getCategoryOptionComboIdSchemeProperty()
     {
         return getIdScheme( getCategoryOptionComboIdScheme() );
+    }
+
+    /**
+     * Returns the data set identifier scheme. Falls back to the general
+     * identifier scheme if not set. IdScheme.NULL is returned if no scheme has
+     * been set.
+     */
+    public IdScheme getDataSetIdSchemeProperty()
+    {
+        return getIdScheme( getDataSetIdScheme() );
     }
 
     private IdScheme getIdScheme( String objectIdScheme )

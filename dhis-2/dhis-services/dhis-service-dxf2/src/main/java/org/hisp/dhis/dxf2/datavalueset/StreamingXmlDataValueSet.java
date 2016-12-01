@@ -93,6 +93,12 @@ public class StreamingXmlDataValueSet
     {
         return categoryOptionComboIdScheme = categoryOptionComboIdScheme == null ? reader.getAttributeValue( FIELD_CATEGORYOPTCOMBOIDSCHEME ) : categoryOptionComboIdScheme;
     }
+
+    @Override
+    public String getDataSetIdScheme()
+    {
+        return dataSetIdScheme = dataSetIdScheme == null ? reader.getAttributeValue( FIELD_DATASETIDSCHEME ) : dataSetIdScheme;
+    }
     
     @Override
     public Boolean getDryRun()
@@ -168,6 +174,18 @@ public class StreamingXmlDataValueSet
     public void setOrgUnitIdScheme( String orgUnitIdScheme )
     {
         writer.writeAttribute( FIELD_ORGUNITIDSCHEME, orgUnitIdScheme );
+    }
+
+    @Override
+    public void setCategoryOptionComboIdScheme( String categoryOptionComboIdScheme )
+    {
+        writer.writeAttribute( FIELD_CATEGORYOPTCOMBOIDSCHEME, categoryOptionComboIdScheme );
+    }
+    
+    @Override
+    public void setDataSetIdScheme( String dataSetIdScheme )
+    {
+        writer.writeAttribute( FIELD_DATASETIDSCHEME, dataSetIdScheme );
     }
 
     @Override

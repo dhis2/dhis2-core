@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.hibernate.HibernateUtils;
-import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -52,13 +51,10 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
 {
     private final SchemaService schemaService;
 
-    private final QueryPlanner queryPlanner;
-
     @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService, QueryPlanner queryPlanner )
+    public InMemoryQueryEngine( SchemaService schemaService )
     {
         this.schemaService = schemaService;
-        this.queryPlanner = queryPlanner;
     }
 
     @Override
