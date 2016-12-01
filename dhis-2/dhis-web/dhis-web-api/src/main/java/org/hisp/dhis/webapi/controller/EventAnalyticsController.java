@@ -107,12 +107,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -145,12 +145,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -184,12 +184,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -223,12 +223,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -262,12 +262,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -301,12 +301,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
         @RequestParam( required = false ) boolean aggregateData,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -340,13 +340,13 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String clusterField,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -383,6 +383,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
@@ -392,7 +393,6 @@ public class EventAnalyticsController
         @RequestParam( required = false ) String clusterField,
         @RequestParam String bbox,
         @RequestParam( required = false ) boolean includeClusterPoints,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -434,12 +434,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -469,12 +469,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -505,12 +505,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -541,12 +541,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -577,12 +577,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -613,12 +613,12 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean coordinatesOnly,
         @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
     {
