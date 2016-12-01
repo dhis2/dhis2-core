@@ -8,6 +8,10 @@ addons:
 script:
 - mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
 
+cache:
+  directories:
+  - $HOME/.m2
+  
 branches:
   only:
   - master
