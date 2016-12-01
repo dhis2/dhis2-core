@@ -158,64 +158,51 @@ public class JdbcEventAnalyticsTableManager
         jdbcTemplate.execute( sqlCreate );
     }
 
-    @Async
     @Override
-    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    protected void populateTable( AnalyticsTable table )
     {
-        taskLoop: while ( true )
+        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
+        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
+        final String tableName = table.getTempTableName();
+        final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
+
+        String sql = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
         {
-            AnalyticsTable table = tables.poll();
-
-            if ( table == null )
-            {
-                break taskLoop;
-            }
-
-            final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-            final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
-            final String tableName = table.getTempTableName();
-            final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
-
-            String sql = "insert into " + table.getTempTableName() + " (";
-
-            List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-            
-            validateDimensionColumns( columns );
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getName() + ",";
-            }
-
-            sql = removeLast( sql, 1 ) + ") select ";
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getAlias() + ",";
-            }
-
-            sql = removeLast( sql, 1 ) + " ";
-
-            sql += "from programstageinstance psi " +
-                "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
-                "inner join programstage ps on psi.programstageid=ps.programstageid " +
-                "inner join program pr on pi.programid=pr.programid " +
-                "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
-                "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
-                "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
-                "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
-                "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
-                "where psi.executiondate >= '" + start + "' " + 
-                "and psi.executiondate <= '" + end + "' " +
-                "and pr.programid=" + table.getProgram().getId() + " " + 
-                "and psi.organisationunitid is not null " +
-                "and psi.executiondate is not null";
-
-            populateAndLog( sql, tableName );
+            sql += col.getName() + ",";
         }
 
-        return null;
+        sql = removeLast( sql, 1 ) + ") select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
+        }
+
+        sql = removeLast( sql, 1 ) + " ";
+
+        sql += "from programstageinstance psi " +
+            "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
+            "inner join programstage ps on psi.programstageid=ps.programstageid " +
+            "inner join program pr on pi.programid=pr.programid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
+            "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
+            "where psi.executiondate >= '" + start + "' " + 
+            "and psi.executiondate <= '" + end + "' " +
+            "and pr.programid=" + table.getProgram().getId() + " " + 
+            "and psi.organisationunitid is not null " +
+            "and psi.executiondate is not null";
+
+        populateAndLog( sql, tableName );
     }
 
     @Override
