@@ -1348,6 +1348,8 @@
     <property name="programInstanceStore" ref="org.hisp.dhis.program.ProgramInstanceStore" />
     <property name="programStageInstanceStore" ref="org.hisp.dhis.program.ProgramStageInstanceStore" />
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
+    <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
   </bean>
 
   <bean id="org.hisp.dhis.programrule.ProgramRuleVariableService" class="org.hisp.dhis.programrule.DefaultProgramRuleVariableService">
@@ -1487,6 +1489,12 @@
     class="org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" />
 
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
+
+  <!-- Notification renderers -->
+
+  <bean id="programNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramNotificationMessageRenderer" />
+
+  <bean id="programStageNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer" />
 
   <!-- I18n UI -->
 
