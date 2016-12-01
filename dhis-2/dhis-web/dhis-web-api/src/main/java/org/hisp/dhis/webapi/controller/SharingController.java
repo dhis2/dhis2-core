@@ -52,8 +52,6 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
-import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroups;
-import org.hisp.dhis.webapi.webdomain.sharing.SharingUsers;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -66,6 +64,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -311,19 +310,19 @@ public class SharingController
 
         int max = pageSize != null ? pageSize : Integer.MAX_VALUE;
 
-        SharingUserGroups sharingUserGroups = getSharingUserGroups( key, max );
-        SharingUsers sharingUsers = getSharingUser( key, max );
+        List<SharingUserGroupAccess> userGroupAccesses = getSharingUserGroups( key, max );
+        List<SharingUserAccess> userAccesses = getSharingUser( key, max );
 
         Map<String, Object> output = new HashMap<>();
-        output.put( "userGroups", sharingUserGroups.getUserGroups() );
-        output.put( "users", sharingUsers.getUsers() );
+        output.put( "userGroups", userGroupAccesses );
+        output.put( "users", userAccesses );
 
         renderService.toJson( response.getOutputStream(), output );
     }
 
-    private SharingUsers getSharingUser( String key, int max )
+    private List<SharingUserAccess> getSharingUser( String key, int max )
     {
-        SharingUsers sharingUsers = new SharingUsers();
+        List<SharingUserAccess> sharingUsers = new ArrayList<>();
 
         List<User> users = userService.getAllUsersBetweenByName( key, 0, max );
 
@@ -334,15 +333,15 @@ public class SharingController
             sharingUserAccess.setName( user.getDisplayName() );
             sharingUserAccess.setDisplayName( user.getDisplayName() );
 
-            sharingUsers.getUsers().add( sharingUserAccess );
+            sharingUsers.add( sharingUserAccess );
         }
 
         return sharingUsers;
     }
 
-    private SharingUserGroups getSharingUserGroups( @RequestParam String key, int max )
+    private List<SharingUserGroupAccess> getSharingUserGroups( @RequestParam String key, int max )
     {
-        SharingUserGroups sharingUserGroups = new SharingUserGroups();
+        List<SharingUserGroupAccess> sharingUserGroupAccesses = new ArrayList<>();
 
         List<UserGroup> userGroups = userGroupService.getUserGroupsBetweenByName( key, 0, max );
 
@@ -354,9 +353,10 @@ public class SharingController
             sharingUserGroupAccess.setName( userGroup.getDisplayName() );
             sharingUserGroupAccess.setDisplayName( userGroup.getDisplayName() );
 
-            sharingUserGroups.getUserGroups().add( sharingUserGroupAccess );
+            sharingUserGroupAccesses.add( sharingUserGroupAccess );
         }
-        return sharingUserGroups;
+
+        return sharingUserGroupAccesses;
     }
 
     // -------------------------------------------------------------------------
