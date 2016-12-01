@@ -393,6 +393,11 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.user.UserAccessStore" class="org.hisp.dhis.hibernate.HibernateGenericStore">
+    <property name="clazz" value="org.hisp.dhis.user.UserAccess" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
   <bean id="org.hisp.dhis.validation.ValidationCriteriaStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.validation.ValidationCriteria" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -1002,6 +1007,10 @@
 
   <bean id="org.hisp.dhis.user.UserGroupAccessService" class="org.hisp.dhis.user.DefaultUserGroupAccessService">
     <property name="userGroupAccessStore" ref="org.hisp.dhis.user.UserGroupAccessStore" />
+  </bean>
+
+  <bean id="org.hisp.dhis.user.UserAccessService" class="org.hisp.dhis.user.DefaultUserAccessService">
+    <property name="userAccessStore" ref="org.hisp.dhis.user.UserAccessStore" />
   </bean>
 
   <bean id="org.hisp.dhis.validation.ValidationCriteriaService" class="org.hisp.dhis.validation.DefaultValidationCriteriaService">

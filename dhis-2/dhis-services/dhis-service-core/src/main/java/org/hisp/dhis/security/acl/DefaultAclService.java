@@ -35,6 +35,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,6 +118,16 @@ public class DefaultAclService implements AclService
             }
         }
 
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to write to this object through user access? */
+            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
+                && user.equals( userAccess.getUser() ) )
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -162,6 +173,16 @@ public class DefaultAclService implements AclService
             /* Is the user allowed to read this object through group access? */
             if ( AccessStringHelper.canRead( userGroupAccess.getAccess() )
                 && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to read to this object through user access? */
+            if ( AccessStringHelper.canRead( userAccess.getAccess() )
+                && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }
@@ -217,6 +238,16 @@ public class DefaultAclService implements AclService
             /* Is the user allowed to write to this object through group access? */
             if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
                 && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to write to this object through group access? */
+            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
+                && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }

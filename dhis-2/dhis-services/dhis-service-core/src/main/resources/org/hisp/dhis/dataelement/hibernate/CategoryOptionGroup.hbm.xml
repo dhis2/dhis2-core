@@ -54,6 +54,12 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="categoryoptiongroupuseraccesses">
+      <cache usage="read-write" />
+      <key column="categoryoptiongroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <join table="categoryoptiongroupsetmembers" inverse="true">
       <key column="categoryoptiongroupid" />
       <many-to-one column="categoryoptiongroupsetid" name="groupSet" />

@@ -3,7 +3,7 @@
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
->
+  >
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.mapping.ExternalMapLayer" table="externalmaplayer">
@@ -25,9 +25,9 @@
 
     <property name="layers" column="layers" type="text" />
 
-    <property name="imageFormat" column="imageformat" type="org.hisp.dhis.mapping.ImageFormat"  not-null="true"/>
+    <property name="imageFormat" column="imageformat" type="org.hisp.dhis.mapping.ImageFormat" not-null="true" />
 
-    <property name="mapService" column="mapservice"  type="org.hisp.dhis.mapping.MapService" not-null="true"/>
+    <property name="mapService" column="mapservice" type="org.hisp.dhis.mapping.MapService" not-null="true" />
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
       column="legendsetid" foreign-key="fk_externalmaplayer_legendsetid" />
@@ -42,6 +42,12 @@
       <cache usage="read-write" />
       <key column="externalmaplayerid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="externalmaplayeruseraccesses">
+      <cache usage="read-write" />
+      <key column="externalmaplayerid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

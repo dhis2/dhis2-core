@@ -52,6 +52,12 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="dataelementgroupuseraccesses">
+      <cache usage="read-write" />
+      <key column="dataelementgroupid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <join table="dataelementgroupsetmembers" inverse="true">
       <key column="dataelementgroupid" />
       <many-to-one column="dataelementgroupsetid" name="groupSet" />

@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
-    
+
     <property name="description" type="text" />
 
     <property name="regression" />
@@ -150,7 +150,7 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
-    
+
     <set name="interpretations" inverse="true">
       <key column="reporttableid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -214,6 +214,12 @@
       <cache usage="read-write" />
       <key column="reporttableid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="reporttableuseraccesses">
+      <cache usage="read-write" />
+      <key column="reporttableid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Object Translation -->
