@@ -9,7 +9,7 @@
   <class name="org.hisp.dhis.trackedentity.TrackedEntityAttribute" table="trackedentityattribute">
 
     <cache usage="read-write" />
-    
+
     <id name="id" column="trackedentityattributeid">
       <generator class="native" />
     </id>
@@ -50,7 +50,7 @@
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_trackedentityattribute_legendsetid" ></many-to-many>
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_trackedentityattribute_legendsetid"></many-to-many>
     </list>
 
     <property name="inherit" column="inherit" />
@@ -68,15 +68,15 @@
     <property name="confidential" />
 
     <property name="unique" column="uniquefield" />
-    
+
     <property name="generated" />
-    
+
     <property name="pattern" />
 
     <property name="orgunitScope" />
 
     <property name="programScope" />
-    
+
     <property name="searchScope" length="40" column="searchscope">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.trackedentity.TrackedEntityAttributeSearchScope</param>
@@ -97,8 +97,13 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    <!-- Dynamic attribute values -->
+    <set name="userAccesses" table="trackedentityattributeuseraccesses">
+      <cache usage="read-write" />
+      <key column="trackedentityattributeid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
 
+    <!-- Dynamic attribute values -->
     <set name="attributeValues" table="trackedentityattributeattributevalues" cascade="delete-orphan">
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />

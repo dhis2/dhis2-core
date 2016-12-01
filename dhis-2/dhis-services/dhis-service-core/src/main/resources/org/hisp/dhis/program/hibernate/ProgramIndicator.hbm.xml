@@ -75,6 +75,12 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
+    <set name="userAccesses" table="programindicatoruseraccesses">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
     <!-- Dynamic attribute values -->
     <set name="attributeValues" table="programindicatorattributevalues" cascade="delete-orphan">
       <cache usage="read-write" />

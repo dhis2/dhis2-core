@@ -33,8 +33,10 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -172,6 +174,9 @@ public class EventController
 
     @Autowired
     protected TrackedEntityInstanceService entityInstanceService;
+    
+    @Autowired
+    private ContextUtils contextUtils;
 
     private Schema schema;
 
@@ -189,6 +194,66 @@ public class EventController
     // READ
     // -------------------------------------------------------------------------
 
+    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
+    public @ResponseBody Grid getEventsGrid(
+        @RequestParam( required = false ) String program,
+        @RequestParam( required = false ) String programStage,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Boolean followUp,
+        @RequestParam( required = false ) String trackedEntityInstance,
+        @RequestParam( required = false ) String orgUnit,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdatedStartDate,
+        @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) EventStatus status,
+        @RequestParam( required = false ) String attributeCc,
+        @RequestParam( required = false ) String attributeCos,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean totalPages,
+        @RequestParam( required = false ) boolean skipPaging,
+        @RequestParam( required = false ) String order,
+        @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Set<String> dataElement,
+        @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        boolean allowNoAttrOptionCombo = trackedEntityInstance != null && entityInstanceService.getTrackedEntityInstance( trackedEntityInstance ) != null;
+
+        DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, allowNoAttrOptionCombo );
+
+        if ( attributeOptionCombo == null && !allowNoAttrOptionCombo )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + attributeCc + " " + attributeCos ) );
+        }
+
+        Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+
+        EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement );        
+        
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
+        
+        return eventService.getEventsGrid( params );
+        
+    }
+    
     @RequestMapping( value = "", method = RequestMethod.GET )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public @ResponseBody RootNode getEvents(
@@ -201,8 +266,11 @@ public class EventController
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdatedStartDate,
+        @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
-        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
         @RequestParam( required = false ) boolean skipMeta,
@@ -236,8 +304,8 @@ public class EventController
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, eventIds, null );
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null );
 
         Events events = eventService.getEvents( params );
 
@@ -283,8 +351,11 @@ public class EventController
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Date dueDateStart,
+        @RequestParam( required = false ) Date dueDateEnd,
+        @RequestParam( required = false ) Date lastUpdatedStartDate,
+        @RequestParam( required = false ) Date lastUpdatedEndDate,
         @RequestParam( required = false ) EventStatus status,
-        @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
         @RequestParam( required = false ) Integer page,
@@ -307,8 +378,8 @@ public class EventController
         }
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
-            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, status, lastUpdated, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), false, null, null );
+            orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null );
 
         Events events = eventService.getEvents( params );
 
@@ -351,8 +422,8 @@ public class EventController
         DataElementCategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
-            orgUnit, ouMode, null, startDate, endDate, eventStatus, null, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), true, null, null );
+            orgUnit, ouMode, null, startDate, endDate, null, null, null, null, eventStatus, attributeOptionCombo,
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null );
 
         return eventRowService.getEventRows( params );
     }
@@ -373,37 +444,7 @@ public class EventController
 
         return event;
     }
-
-    private List<Order> getOrderParams( String order )
-    {
-        if ( order != null && !StringUtils.isEmpty( order ) )
-        {
-            OrderParams op = new OrderParams( Sets.newLinkedHashSet( Arrays.asList( order.split( "," ) ) ) );
-            return op.getOrders( getSchema() );
-        }
-
-        return null;
-    }
-
-    private Map<Object, Object> getMetaData( Program program )
-    {
-        Map<Object, Object> metaData = new HashMap<>();
-
-        if ( program != null )
-        {
-            Map<String, String> dataElements = new HashMap<>();
-
-            for ( DataElement de : program.getDataElements() )
-            {
-                dataElements.put( de.getUid(), de.getDisplayName() );
-            }
-
-            metaData.put( META_DATA_KEY_DE, dataElements );
-        }
-
-        return metaData;
-    }
-
+    
     @RequestMapping( value = "/files", method = RequestMethod.GET )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
@@ -765,6 +806,10 @@ public class EventController
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+    
     private boolean fieldsContains( String match, List<String> fields )
     {
         for ( String field : fields )
@@ -783,4 +828,46 @@ public class EventController
     {
         return fieldsContains( "href", fields );
     }
+    
+    private List<Order> getOrderParams( String order )
+    {
+        if ( order != null && !StringUtils.isEmpty( order ) )
+        {
+            OrderParams op = new OrderParams( Sets.newLinkedHashSet( Arrays.asList( order.split( "," ) ) ) );
+            return op.getOrders( getSchema() );
+        }
+
+        return null;
+    }
+    
+    private List<String> getGridOrderParams( String order )
+    {
+        if ( order != null && !StringUtils.isEmpty( order ) )
+        {
+            
+            return Arrays.asList( order.split( "," ) ) ; 
+        }
+
+        return null;
+    }
+
+    private Map<Object, Object> getMetaData( Program program )
+    {
+        Map<Object, Object> metaData = new HashMap<>();
+
+        if ( program != null )
+        {
+            Map<String, String> dataElements = new HashMap<>();
+
+            for ( DataElement de : program.getDataElements() )
+            {
+                dataElements.put( de.getUid(), de.getDisplayName() );
+            }
+
+            metaData.put( META_DATA_KEY_DE, dataElements );
+        }
+
+        return metaData;
+    }
+
 }

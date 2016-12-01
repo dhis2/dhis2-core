@@ -30,6 +30,7 @@ package org.hisp.dhis.program.message;
 
 import java.util.Set;
 
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;

@@ -544,6 +544,7 @@ public class DefaultPreheatService implements PreheatService
 
                 object.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                 object.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                object.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
                 addIdentifiers( map, object );
             }

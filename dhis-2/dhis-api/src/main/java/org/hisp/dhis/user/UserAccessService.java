@@ -1,12 +1,8 @@
-package org.hisp.dhis.program.message;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,12 +28,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
+import java.util.List;
 
-@JacksonXmlRootElement( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
-public enum DeliveryChannel
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+public interface UserAccessService
 {
-    SMS, EMAIL
+    String ID = UserAccess.class.getName();
+
+    void addUserAccess( UserAccess userAccess );
+
+    void updateUserAccess( UserAccess userAccess );
+
+    void deleteUserAccess( UserAccess userAccess );
+
+    List<UserAccess> getAllUserAccesses();
 }

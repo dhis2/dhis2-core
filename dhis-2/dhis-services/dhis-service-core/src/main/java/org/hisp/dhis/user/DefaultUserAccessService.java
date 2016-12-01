@@ -1,8 +1,9 @@
-package org.hisp.dhis.sms.outbound;
+
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,47 +29,53 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericStore;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
-import java.util.ArrayList;
-
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.sms.OutBoundMessage;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Zubair <rajazubair.asghar@gmail.com>
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-
-@JacksonXmlRootElement( localName = "messageBatch" )
-public class MessageBatch
+@Transactional
+public class DefaultUserAccessService implements UserAccessService
 {
-    private List<OutBoundMessage> Batch = new ArrayList<>();
-    
-    private DeliveryChannel deliveryChannel = DeliveryChannel.EMAIL;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    public MessageBatch()
+    private GenericStore<UserAccess> userAccessStore;
+
+    public void setUserAccessStore( GenericStore<UserAccess> userAccessStore )
     {
-        super();
-    }
-    
-    public List<OutBoundMessage> getBatch()
-    {
-        return Batch;
+        this.userAccessStore = userAccessStore;
     }
 
-    public void setBatch( List<OutBoundMessage> batch )
+    // -------------------------------------------------------------------------
+    // UserGroupAccess
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void addUserAccess( UserAccess userAccess )
     {
-        Batch = batch;
+        userAccessStore.save( userAccess );
     }
 
-    public DeliveryChannel getDeliveryChannel()
+    @Override
+    public void updateUserAccess( UserAccess userAccess )
     {
-        return deliveryChannel;
+        userAccessStore.update( userAccess );
     }
 
-    public void setDeliveryChannel( DeliveryChannel deliveryChannel )
+    @Override
+    public void deleteUserAccess( UserAccess userAccess )
     {
-        this.deliveryChannel = deliveryChannel;
+        userAccessStore.delete( userAccess );
+    }
+
+    @Override
+    public List<UserAccess> getAllUserAccesses()
+    {
+        return userAccessStore.getAll();
     }
 }

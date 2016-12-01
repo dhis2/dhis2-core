@@ -588,11 +588,42 @@ div#selectionTree
   width: 700px;
 }
 
-.ticket-tools {
+/*
+ * Media Query for ticket-tools
+*/
+
+@media (min-width: 1250px)
+{
+  .ticket-tools-horizontal {
+    display: none;
+  }
+  .ticket-tools-vertical {
+    display: block;
+  }
+}
+
+@media (max-width: 1250px)
+{
+  .ticket-tools-vertical {
+    display: none;
+  }
+  .ticket-tools-horizontal {
+    display: block;
+  }
+}
+
+.ticket-tools-vertical {
   float: left;
   width: 200px;
   margin: 45px 0 0 45px;
   padding: 10px;
+  border: solid 1px #cccccc;
+}
+
+.ticket-tools-horizontal {
+  width: 680px;
+  padding: 10px 10px 0 10px;
+  margin: 10px 0 10px 0;
   border: solid 1px #cccccc;
 }
 
@@ -613,6 +644,12 @@ div#selectionTree
 
 .ticket-tools-input select, .ticket-tools-input input {
   width: 100%;
+}
+
+.ticket-tools-horizontal .ticket-tools-segment {
+  display: inline-block;
+  width: 30%;
+  padding: 0 10px 0 10px;
 }
 
 
