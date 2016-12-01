@@ -49,6 +49,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
+ * Template formats supported:
+ *  A{uid-of-attribute}
+ *  V{name-of-variable}
+ *
+ * The implementing superclass defines how these are resolved.
+ *
+ * @param <T> the type of the root object used for resolving expression values.
+ *
  * @author Halvdan Hoem Grelland
  */
 public abstract class BaseNotificationMessageRenderer<T>
@@ -188,9 +196,10 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Util methods
     // -------------------------------------------------------------------------
 
-    // Simple limiter. No space wasted on ellipsis etc.
     protected static String chop( String input, int limit )
     {
+        // Simple limiter. No space wasted on ellipsis etc.
+
         return input.substring( 0, Math.min( input.length(), limit ) );
     }
 
