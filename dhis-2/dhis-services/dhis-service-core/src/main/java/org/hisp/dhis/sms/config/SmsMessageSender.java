@@ -146,6 +146,8 @@ public class SmsMessageSender
             return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, MessageBatchStatus.FAILED, batch );
         }
 
+        batch.getBatch().stream().forEach( item -> item.setRecipients( normalizePhoneNumber( item.getRecipients() ) ) );
+
         for ( SmsGateway smsGateway : smsGateways )
         {
             if ( smsGateway.accept( defaultGateway ) )
