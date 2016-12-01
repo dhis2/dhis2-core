@@ -160,7 +160,7 @@ public class JdbcEventAnalyticsTableManager
 
     @Async
     @Override
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
     {
         taskLoop: while ( true )
         {

@@ -112,7 +112,7 @@ public class JdbcCompletenessTargetTableManager
 
     @Override
     @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
     {
         taskLoop: while ( true )
         {
