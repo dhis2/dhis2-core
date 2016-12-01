@@ -2,7 +2,7 @@ package org.hisp.dhis.webapi.webdomain.sharing;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,14 +29,12 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SharingObject
+public class SharingUserAccess
 {
     @JsonProperty
     private String id;
@@ -48,21 +46,9 @@ public class SharingObject
     private String displayName;
 
     @JsonProperty
-    private String publicAccess;
+    private String access;
 
-    @JsonProperty
-    private boolean externalAccess;
-
-    @JsonProperty
-    private SharingUser user = new SharingUser();
-
-    @JsonProperty
-    private List<SharingUserGroupAccess> userGroupAccesses = new ArrayList<>();
-
-    @JsonProperty
-    private List<SharingUserAccess> userAccesses = new ArrayList<>();
-
-    public SharingObject()
+    public SharingUserAccess()
     {
     }
 
@@ -96,53 +82,19 @@ public class SharingObject
         this.displayName = displayName;
     }
 
-    public String getPublicAccess()
+    public String getAccess()
     {
-        return publicAccess;
+        return access;
     }
 
-    public void setPublicAccess( String publicAccess )
+    public void setAccess( String access )
     {
-        this.publicAccess = publicAccess;
+        this.access = access;
     }
 
-    public boolean hasExternalAccess()
+    public String toString()
     {
-        return externalAccess;
-    }
-
-    public void setExternalAccess( boolean externalAccess )
-    {
-        this.externalAccess = externalAccess;
-    }
-
-    public SharingUser getUser()
-    {
-        return user;
-    }
-
-    public void setUser( SharingUser user )
-    {
-        this.user = user;
-    }
-
-    public List<SharingUserGroupAccess> getUserGroupAccesses()
-    {
-        return userGroupAccesses;
-    }
-
-    public void setUserGroupAccesses( List<SharingUserGroupAccess> userGroupAccesses )
-    {
-        this.userGroupAccesses = userGroupAccesses;
-    }
-
-    public List<SharingUserAccess> getUserAccesses()
-    {
-        return userAccesses;
-    }
-
-    public void setUserAccesses( List<SharingUserAccess> userAccesses )
-    {
-        this.userAccesses = userAccesses;
+        return MoreObjects.toStringHelper( this ).
+            add( "id", id ).add( "name", name ).add( "access", access ).toString();
     }
 }

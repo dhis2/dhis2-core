@@ -34,19 +34,22 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserAccessService;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
+import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroups;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
@@ -88,6 +91,9 @@ public class SharingController
 
     @Autowired
     private UserGroupAccessService userGroupAccessService;
+
+    @Autowired
+    private UserAccessService userAccessService;
 
     @Autowired
     private AclService aclService;
@@ -172,6 +178,18 @@ public class SharingController
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
         }
 
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            SharingUserAccess sharingUserAccess = new SharingUserAccess();
+
+            sharingUserAccess.setId( userAccess.getUser().getUid() );
+            sharingUserAccess.setName( userAccess.getUser().getDisplayName() );
+            sharingUserAccess.setDisplayName( userAccess.getUser().getDisplayName() );
+            sharingUserAccess.setAccess( userAccess.getAccess() );
+
+            sharing.getObject().getUserAccesses().add( sharingUserAccess );
+        }
+
         Collections.sort( sharing.getObject().getUserGroupAccesses(), SharingUserGroupAccessNameComparator.INSTANCE );
 
         renderService.toJson( response.getOutputStream(), sharing );
@@ -206,7 +224,7 @@ public class SharingController
         // ---------------------------------------------------------------------
         // Ignore externalAccess if user is not allowed to make objects external
         // ---------------------------------------------------------------------
-        
+
         if ( aclService.canExternalize( user, object.getClass() ) )
         {
             object.setExternalAccess( sharing.getObject().hasExternalAccess() );
@@ -215,7 +233,7 @@ public class SharingController
         // ---------------------------------------------------------------------
         // Ignore publicAccess if user is not allowed to make objects public
         // ---------------------------------------------------------------------
-        
+
         if ( aclService.canCreatePublic( user, object.getClass() ) )
         {
             object.setPublicAccess( sharing.getObject().getPublicAccess() );
@@ -249,6 +267,22 @@ public class SharingController
                 userGroupAccessService.addUserGroupAccess( userGroupAccess );
 
                 object.getUserGroupAccesses().add( userGroupAccess );
+            }
+        }
+
+        for ( SharingUserAccess sharingUserAccess : sharing.getObject().getUserAccesses() )
+        {
+            UserAccess userAccess = new UserAccess();
+            userAccess.setAccess( sharingUserAccess.getAccess() );
+
+            User sharingUser = manager.get( User.class, sharingUserAccess.getId() );
+
+            if ( sharingUser != null )
+            {
+                userAccess.setUser( sharingUser );
+                userAccessService.addUserAccess( userAccess );
+
+                object.getUserAccesses().add( userAccess );
             }
         }
 
@@ -314,7 +348,7 @@ public class SharingController
                     .append( "} " );
             }
         }
-        
+
         return builder.toString();
     }
 }

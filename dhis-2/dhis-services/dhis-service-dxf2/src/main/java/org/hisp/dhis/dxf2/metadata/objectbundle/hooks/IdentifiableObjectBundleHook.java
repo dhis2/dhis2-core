@@ -35,6 +35,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.core.annotation.Order;
@@ -55,6 +57,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         Session session = sessionFactory.getCurrentSession();
         handleAttributeValues( session, identifiableObject, bundle, schema );
         handleUserGroupAccesses( session, identifiableObject, bundle, schema );
+        handleUserAccesses( session, identifiableObject, bundle, schema );
         handleObjectTranslations( session, identifiableObject, bundle, schema );
     }
 
@@ -67,6 +70,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         Session session = sessionFactory.getCurrentSession();
         handleAttributeValues( session, object, bundle, schema );
         handleUserGroupAccesses( session, object, bundle, schema );
+        handleUserAccesses( session, object, bundle, schema );
         handleObjectTranslations( session, object, bundle, schema );
     }
 
@@ -100,6 +104,24 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             UserGroup userGroup = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userGroupAccess.getUserGroup() );
             userGroupAccess.setUserGroup( userGroup );
             session.save( userGroupAccess );
+        }
+    }
+
+    private void handleUserAccesses( Session session, IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
+    {
+        if ( !schema.havePersistedProperty( "userAccesses" ) ) return;
+
+        if ( bundle.isSkipSharing() )
+        {
+            identifiableObject.getUserAccesses().clear();
+            return;
+        }
+
+        for ( UserAccess userAccess : identifiableObject.getUserAccesses() )
+        {
+            User user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), userAccess.getUser() );
+            userAccess.setUser( user );
+            session.save( userAccess );
         }
     }
 

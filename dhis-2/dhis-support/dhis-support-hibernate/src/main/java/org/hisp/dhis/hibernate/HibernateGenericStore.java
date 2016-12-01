@@ -408,6 +408,11 @@ public class HibernateGenericStore<T>
                 {
                     identifiableObject.getUserGroupAccesses().clear();
                 }
+
+                if ( identifiableObject.getUserAccesses() != null )
+                {
+                    identifiableObject.getUserAccesses().clear();
+                }
             }
 
             if ( identifiableObject.getUser() == null )

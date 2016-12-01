@@ -730,10 +730,10 @@ public class BaseIdentifiableObject
         publicAccess = other.getPublicAccess() == null ? publicAccess : other.getPublicAccess();
         externalAccess = other.getExternalAccess();
 
-        if ( userGroupAccesses != null )
-        {
-            userGroupAccesses.clear();
-            userGroupAccesses.addAll( other.getUserGroupAccesses() );
-        }
+        userGroupAccesses.clear();
+        userGroupAccesses.addAll( other.getUserGroupAccesses() );
+
+        userAccesses.clear();
+        userAccesses.addAll( other.getUserAccesses() );
     }
 }
