@@ -156,37 +156,10 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    @Async
-    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        final String approvalClause = getApprovalJoinClause();
-
-        taskLoop: while ( true )
-        {
-            AnalyticsTable table = tables.poll();
-
-            if ( table == null )
-            {
-                break taskLoop;
-            }
-
-            populateTable( table, approvalClause );
-        }
-
-        return null;
-    }
-    
-    /**
-     * Populates the given analytics tables. Executes separate queries
-     * for each main value type.
-     * 
-     * @param table               analytics table to populate.
-     * @param approvalClause      SQL clause for approval, empty string
-     *                            if approval in analytics is not enabled.
-     */
-    private void populateTable( AnalyticsTable table, String approvalClause )
+    protected void populateTable( AnalyticsTable table )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
+        final String approvalClause = getApprovalJoinClause();
         
         String intClause =
             "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
@@ -201,7 +174,7 @@ public class JdbcAnalyticsTableManager
 
         populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
-
+    
     /**
      * Populates the given analytics table.
      *
