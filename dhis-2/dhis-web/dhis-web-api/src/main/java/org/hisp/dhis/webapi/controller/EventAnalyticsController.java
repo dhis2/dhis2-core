@@ -320,7 +320,7 @@ public class EventAnalyticsController
     }
 
     // -------------------------------------------------------------------------
-    // Count
+    // Count / rectangle
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = RESOURCE_PATH + "/count/{program}", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
@@ -345,6 +345,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String clusterField,
         @RequestParam( required = false ) ProgramStatus programStatus,
         Model model,
         HttpServletResponse response ) throws Exception
@@ -353,6 +354,10 @@ public class EventAnalyticsController
             ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, eventStatus, programStatus,
             displayProperty, relativePeriodDate, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
+        params = new EventQueryParams.Builder( params )
+            .withClusterField( eventDataQueryService.getClusterField( clusterField ) )
+            .build();
+        
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getRectangle( params );
     }
@@ -384,6 +389,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam Long clusterSize,
+        @RequestParam( required = false ) String clusterField,
         @RequestParam String bbox,
         @RequestParam( required = false ) boolean includeClusterPoints,
         @RequestParam( required = false ) ProgramStatus programStatus,
@@ -396,8 +402,10 @@ public class EventAnalyticsController
 
         params = new EventQueryParams.Builder( params )
             .withClusterSize( clusterSize )
+            .withClusterField( eventDataQueryService.getClusterField( clusterField ) )
             .withBbox( bbox )
-            .withIncludeClusterPoints( includeClusterPoints ).build();
+            .withIncludeClusterPoints( includeClusterPoints )
+            .build();
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
 

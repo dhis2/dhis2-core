@@ -314,10 +314,12 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
+        String clusterField = statementBuilder.columnQuote( params.getClusterField() );
+        
         params.setGeometryOnly( true );
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
-            "ST_AsText(ST_Centroid(ST_Collect(geom))) as center", "ST_Extent(geom) as extent" );
+            "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
 
         columns.add( params.isIncludeClusterPoints() ?
             "array_to_string(array_agg(psi), ',') as points" :
@@ -325,9 +327,9 @@ public class JdbcEventAnalyticsManager
         
         String sql = "select " + StringUtils.join( columns, "," ) + " ";
         
-        sql += getFromWhereClause( params, Lists.newArrayList( "psi", "geom" ) );
+        sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
         
-        sql += "group by ST_SnapToGrid(ST_Transform(geom, 3785), " + params.getClusterSize() + ") ";
+        sql += "group by ST_SnapToGrid(ST_Transform(" + clusterField + ", 3785), " + params.getClusterSize() + ") ";
 
         log.debug( "Analytics event cluster SQL: " + sql );
         
@@ -371,12 +373,14 @@ public class JdbcEventAnalyticsManager
     
     @Override
     public Rectangle getRectangle( EventQueryParams params )
-    {        
+    {
+        String clusterField = statementBuilder.columnQuote( params.getClusterField() );
+        
         params.setGeometryOnly( true );
         
-        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(geom) AS " + COL_EXTENT + " ";
+        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
         
-        sql += getFromWhereClause( params, Lists.newArrayList( "psi", "geom" ) );
+        sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
 
         log.debug( "Analytics event count and extent SQL: " + sql );
         
@@ -735,7 +739,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and geom is not null ";
+            sql += "and " + statementBuilder.columnQuote( params.getClusterField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -745,7 +749,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += "and geom && ST_MakeEnvelope(" + params.getBbox() + ",4326)";
+            sql += "and " + statementBuilder.columnQuote( params.getClusterField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
         
         return sql;

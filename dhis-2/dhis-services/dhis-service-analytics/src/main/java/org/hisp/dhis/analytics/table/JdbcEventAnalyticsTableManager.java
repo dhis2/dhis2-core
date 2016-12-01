@@ -405,6 +405,10 @@ public class JdbcEventAnalyticsTableManager
         {
             return "timestamp";
         }
+        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        {
+            return "geometry(Point, 4326)";
+        }
         else
         {
             return "text";
@@ -428,6 +432,10 @@ public class JdbcEventAnalyticsTableManager
         else if ( Date.class.equals( valueType.getJavaClass() ) )
         {
             return "cast(value as timestamp)";
+        }
+        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        {
+            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || value || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
         else
         {

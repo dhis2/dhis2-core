@@ -110,4 +110,14 @@ public interface EventDataQueryService
         Date relativePeriodDate, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format );
     
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
+    
+    /**
+     * Returns the cluster column field to use for the given cluster field. Cluster field
+     * must match EVENT, a data element identifier or an attribute identifier.
+     * 
+     * @param clusterField the cluster field.
+     * @return the cluster column field.
+     * @throws IllegalQueryException if the cluster field is not valid.
+     */
+    String getClusterField( String clusterField );
 }

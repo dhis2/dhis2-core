@@ -295,6 +295,41 @@ public class DefaultEventDataQueryService
 
         return params.build();
     }
+    
+    @Override
+    public String getClusterField( String clusterField )
+    {
+        if ( clusterField == null || EventQueryParams.EVENT_CLUSTER_FIELD.equals( clusterField ) )
+        {
+            return "geom";
+        }
+        
+        DataElement dataElement = dataElementService.getDataElement( clusterField );
+        
+        if ( dataElement != null )
+        {
+            if ( ValueType.COORDINATE != dataElement.getValueType() )
+            {
+                throw new IllegalQueryException( "Data element must be of value type coordinate to be used as cluster field: " + clusterField );
+            }
+            
+            return dataElement.getUid();
+        }
+                
+        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( clusterField );
+        
+        if ( attribute != null )
+        {
+            if ( ValueType.COORDINATE != attribute.getValueType() )
+            {
+                throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as cluster field: " + clusterField );
+            }
+            
+            return attribute.getUid();
+        }
+        
+        throw new IllegalQueryException( "Cluster field not valid: " + clusterField );
+    }
 
     // -------------------------------------------------------------------------
     // Supportive methods

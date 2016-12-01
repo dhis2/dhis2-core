@@ -147,6 +147,11 @@ public class DefaultEventQueryPlanner
             violation = "Bbox is invalid: " + params.getBbox() + ", must be on format: 'min-lng,min-lat,max-lng,max-lat'";
         }
         
+        if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getClusterField() == null )
+        {
+            violation = "Cluster field must be specified when bbox or cluster size are specified";
+        }
+        
         if ( violation != null )
         {
             log.warn( "Event analytics validation failed: " + violation );
