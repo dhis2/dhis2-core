@@ -266,7 +266,7 @@ public class JdbcEventAnalyticsTableManager
             String select = getSelectClause( valueType );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
-            String sql = "(select " + select + " from trackedentitydatavalue where deleted is false and programstageinstanceid=psi.programstageinstanceid " +
+            String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " +
                 "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
