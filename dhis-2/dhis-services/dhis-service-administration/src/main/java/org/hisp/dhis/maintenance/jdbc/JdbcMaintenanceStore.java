@@ -73,4 +73,14 @@ public class JdbcMaintenanceStore
         
         return jdbcTemplate.update( sql );
     }
+
+    @Override
+    public int deleteSoftDeletedProgramStageInstances()
+    {
+        String sql =
+            "delete from programstageinstance " +
+            "where deleted is true";
+
+        return jdbcTemplate.update( sql );
+    }
 }

@@ -134,6 +134,8 @@ public class EventSearchParams
      */    
     private List<QueryItem> dataElements = new ArrayList<>();
 
+    private boolean includeDeleted;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -475,6 +477,16 @@ public class EventSearchParams
         this.filters = filters;
     }
 
+    public void setIncludeDeleted( boolean includeDeleted )
+    {
+        this.includeDeleted = includeDeleted;
+    }
+
+    public boolean isIncludeDeleted()
+    {
+        return this.includeDeleted;
+    }
+
     public List<QueryItem> getDataElements()
     {
         return dataElements;
@@ -484,5 +496,5 @@ public class EventSearchParams
     {
         this.dataElements = dataElements;
     }
-    
+
 }

@@ -163,11 +163,11 @@ public class DataElementOperand
 
         if ( dataElement != null )
         {
-            item = dataElement.getUid() + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getUid() ) : StringUtils.EMPTY );
+            item = dataElement.getUid() + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getUid()) : StringUtils.EMPTY);
         }
         else if ( dataElementId != null )
         {
-            item = dataElementId + ( optionComboId != null ? ( SEPARATOR + optionComboId ) : StringUtils.EMPTY );
+            item = dataElementId + (optionComboId != null ? (SEPARATOR + optionComboId) : StringUtils.EMPTY);
         }
 
         return item;
@@ -177,12 +177,12 @@ public class DataElementOperand
     public String getDimensionItem( IdScheme idScheme )
     {
         String item = null;
-        
+
         if ( dataElement != null )
         {
-            item = dataElement.getPropertyValue( idScheme ) + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme ) ) : StringUtils.EMPTY );
+            item = dataElement.getPropertyValue( idScheme ) + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme )) : StringUtils.EMPTY);
         }
-        
+
         return item;
     }
 
@@ -195,12 +195,6 @@ public class DataElementOperand
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @Override
     public String getName()

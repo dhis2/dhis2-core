@@ -203,12 +203,6 @@ public class PushAnalysis
     }
 
     @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
-    @Override
     public String toString()
     {
         return MoreObjects.toStringHelper( this )

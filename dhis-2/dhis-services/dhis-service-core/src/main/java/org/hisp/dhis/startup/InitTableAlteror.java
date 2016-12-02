@@ -102,6 +102,11 @@ public class InitTableAlteror
         // Set OrganisationUnitGroupSet includeSubhierarchyInAnalytics to false where IS NULL
         executeSql( "UPDATE orgunitgroupset SET includesubhierarchyinanalytics = FALSE WHERE includesubhierarchyinanalytics IS NULL" );
 
+        // Update programstageinstance set deleted = false where deleted = null
+        executeSql( "UPDATE programstageinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table programstageinstance alter column deleted set not null" );
+        executeSql( "create index in_programstageinstance_deleted on programstageinstace(deleted)" );
+
         updateLegendSetAssociationAndDeleteOldAssociation();
     }
 

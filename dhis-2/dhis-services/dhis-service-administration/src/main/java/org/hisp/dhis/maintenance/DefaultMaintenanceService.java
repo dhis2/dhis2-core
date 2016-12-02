@@ -118,7 +118,17 @@ public class DefaultMaintenanceService
         
         return result;
     }
-    
+
+    @Override
+    public int deleteSoftDeletedProgramStageInstances()
+    {
+        int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
+
+        log.info( "Permanently deleted soft deleted events: " + result );
+
+        return result;
+    }
+
     @Override
     public void prunePeriods()
     {

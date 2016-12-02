@@ -133,7 +133,7 @@ public class OrganisationUnit
     private transient List<String> groupNames = new ArrayList<>();
 
     private transient Double value;
-    
+
     private transient Integer memberCount;
 
     // -------------------------------------------------------------------------
@@ -817,12 +817,6 @@ public class OrganisationUnit
     public boolean hasCategoryOptions()
     {
         return categoryOptions != null && !categoryOptions.isEmpty();
-    }
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
     }
 
     public boolean isRoot()

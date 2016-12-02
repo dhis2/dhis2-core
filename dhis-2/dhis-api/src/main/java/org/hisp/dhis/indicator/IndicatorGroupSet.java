@@ -169,12 +169,6 @@ public class IndicatorGroupSet
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @PropertyRange( min = 2 )

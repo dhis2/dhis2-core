@@ -115,12 +115,6 @@ public class OrganisationUnitLevel
         return "[Name: " + name + ", level: " + level + "]";
     }
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

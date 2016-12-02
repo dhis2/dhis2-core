@@ -220,6 +220,7 @@ public class EventController
         @RequestParam( required = false ) boolean skipPaging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam( required = false ) String event,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) Set<String> dataElement,
@@ -246,7 +247,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement );        
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement, includeDeleted );
         
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
         
@@ -280,6 +281,7 @@ public class EventController
         @RequestParam( required = false ) boolean skipPaging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam( required = false ) String event,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -305,7 +307,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null, includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -364,6 +366,7 @@ public class EventController
         @RequestParam( required = false ) boolean skipPaging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         IdSchemes idSchemes, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
     {
@@ -379,7 +382,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, null, null, null, includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -416,6 +419,7 @@ public class EventController
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) boolean skipPaging,
         @RequestParam( required = false ) String order,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam Map<String, String> parameters, Model model )
         throws WebMessageException
     {
@@ -423,7 +427,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null, null, null, eventStatus, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null );
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null, includeDeleted );
 
         return eventRowService.getEventRows( params );
     }
