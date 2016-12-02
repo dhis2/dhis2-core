@@ -173,6 +173,11 @@ public class DefaultAnalyticsService
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
+    
+    public Grid getRawDataValues( DataQueryParams params )
+    {
+        return null;
+    }
 
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
@@ -188,7 +193,7 @@ public class DefaultAnalyticsService
                 
         return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
-    
+        
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {

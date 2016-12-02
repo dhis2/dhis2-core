@@ -77,7 +77,6 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
-
     @Autowired
     private SystemSettingManager systemSettingManager;
 
