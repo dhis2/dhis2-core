@@ -200,7 +200,8 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate <= '" + end + "' " +
             "and pr.programid=" + table.getProgram().getId() + " " + 
             "and psi.organisationunitid is not null " +
-            "and psi.executiondate is not null";
+            "and psi.executiondate is not null" +
+            "and psi.deleted is false";
 
         populateAndLog( sql, tableName );
     }
@@ -265,7 +266,7 @@ public class JdbcEventAnalyticsTableManager
             String select = getSelectClause( valueType );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
-            String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " + 
+            String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " +
                 "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
@@ -362,7 +363,8 @@ public class JdbcEventAnalyticsTableManager
         String sql = 
             "select distinct(extract(year from psi.executiondate)) " +
             "from programstageinstance psi " +
-            "where psi.executiondate is not null ";
+            "where psi.executiondate is not null " +
+            "and psi.deleted is false ";
 
         if ( earliest != null )
         {

@@ -606,7 +606,7 @@ public abstract class AbstractEventService
         String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, 
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters, Set<String> dataElements )
+        Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -714,6 +714,7 @@ public abstract class AbstractEventService
         params.setOrders( orders );
         params.setGridOrders( gridOrders );
         params.setEvents( events );
+        params.setIncludeDeleted( includeDeleted );
 
         return params;
     }
