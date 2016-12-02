@@ -365,7 +365,7 @@ public class AnalyticsController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".json", method = RequestMethod.GET )
-    public @ResponseBody DataValueSet getRawDataJson(
+    public @ResponseBody Grid getRawDataJson(
         @RequestParam Set<String> dimension,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean skipMeta,
@@ -385,7 +385,7 @@ public class AnalyticsController
             ignoreLimit, hideEmptyRows, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return analyticsService.getAggregatedDataValueSet( params );
+        return analyticsService.getRawDataValues( params );
     }
 
     // -------------------------------------------------------------------------

@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.calendar.Calendar;
@@ -119,6 +120,9 @@ public class DefaultAnalyticsService
 
     @Autowired
     private AnalyticsManager analyticsManager;
+    
+    @Autowired
+    private RawAnalyticsManager rawAnalyticsManager;
 
     @Autowired
     private AnalyticsSecurityManager securityManager;
@@ -176,7 +180,12 @@ public class DefaultAnalyticsService
     
     public Grid getRawDataValues( DataQueryParams params )
     {
-        return null;
+        //TODO constraints
+        
+        securityManager.decideAccess( params );
+        queryPlanner.validate( params );
+        
+        return getRawDataGrid( params );
     }
 
     @Override
@@ -1022,6 +1031,23 @@ public class DefaultAnalyticsService
         timer.getTime( "Got analytics values" );
 
         return map;
+    }
+    
+    private Grid getRawDataGrid( DataQueryParams params )
+    {
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withTableName( ANALYTICS_TABLE_NAME ).build();
+        
+        List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+        
+        Grid grid = new ListGrid();
+        
+        for ( DataQueryParams query : queries )
+        {
+            rawAnalyticsManager.getRawDataValues( query, grid );
+        }
+        
+        return grid;
     }
 
     // -------------------------------------------------------------------------

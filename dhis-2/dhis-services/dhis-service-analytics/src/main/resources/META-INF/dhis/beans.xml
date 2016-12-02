@@ -40,6 +40,8 @@
   
   <bean id="org.hisp.dhis.analytics.AnalyticsManager" class="org.hisp.dhis.analytics.data.JdbcAnalyticsManager" />
   
+  <bean id="org.hisp.dhis.analytics.RawAnalyticsManager" class="org.hisp.dhis.analytics.data.JdbcRawAnalyticsManager" />
+  
   <bean id="org.hisp.dhis.analytics.DataQueryService" class="org.hisp.dhis.analytics.data.DefaultDataQueryService" />
   
   <bean id="org.hisp.dhis.analytics.AnalyticsService" class="org.hisp.dhis.analytics.data.DefaultAnalyticsService" />

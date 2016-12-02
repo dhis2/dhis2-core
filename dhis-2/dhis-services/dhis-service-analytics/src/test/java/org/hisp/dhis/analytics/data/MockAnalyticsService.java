@@ -64,6 +64,12 @@ public class MockAnalyticsService
     }
 
     @Override
+    public Grid getRawDataValues( DataQueryParams params )
+    {
+        throw new NotImplementedException( "" );
+    }
+    
+    @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
     {
         throw new NotImplementedException( "" );
