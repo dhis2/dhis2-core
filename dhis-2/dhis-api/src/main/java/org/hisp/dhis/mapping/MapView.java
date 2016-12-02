@@ -255,12 +255,6 @@ public class MapView
     }
 
     @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
-    @Override
     public String getName()
     {
         if ( !dataDimensionItems.isEmpty() && dataDimensionItems.get( 0 ).getDimensionalItemObject() != null )

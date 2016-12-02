@@ -94,7 +94,7 @@ public abstract class BaseChart
     protected Integer rangeAxisSteps; // Minimum 1
 
     protected Integer rangeAxisDecimals;
-    
+
     // -------------------------------------------------------------------------
     // Dimensional properties
     // -------------------------------------------------------------------------
@@ -183,12 +183,6 @@ public abstract class BaseChart
     }
 
     @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
-    @Override
     protected void clearTransientStateProperties()
     {
         format = null;
@@ -200,7 +194,7 @@ public abstract class BaseChart
 
         clearTransientChartStateProperties();
     }
-    
+
     public boolean isRegression()
     {
         return regressionType == null || RegressionType.NONE != regressionType;

@@ -54,8 +54,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendDisplayStyle;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
@@ -175,7 +175,7 @@ public class ReportTable
      * The legend set in the table.
      */
     private LegendSet legendSet;
-    
+
     /**
      * The legend set display type.
      */
@@ -726,12 +726,6 @@ public class ReportTable
     // Get- and set-methods for persisted properties
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isRegression()
@@ -1029,7 +1023,7 @@ public class ReportTable
     {
         this.gridTitle = gridTitle;
     }
-    
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
