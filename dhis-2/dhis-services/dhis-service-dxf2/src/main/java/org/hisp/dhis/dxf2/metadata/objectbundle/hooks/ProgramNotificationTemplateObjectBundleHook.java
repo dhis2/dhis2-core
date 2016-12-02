@@ -31,7 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.program.notification.NotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 
 /**
@@ -68,7 +68,7 @@ public class ProgramNotificationTemplateObjectBundleHook
             template.setRelativeScheduledDays( null );
         }
 
-        if ( NotificationRecipient.USER_GROUP != template.getNotificationRecipient() )
+        if ( ProgramNotificationRecipient.USER_GROUP != template.getNotificationRecipient() )
         {
             template.setRecipientUserGroup( null );
         }

@@ -31,7 +31,7 @@ package org.hisp.dhis.program.notification;
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum NotificationRecipient
+public enum ProgramNotificationRecipient
 {
     TRACKED_ENTITY_INSTANCE,
     ORGANISATION_UNIT_CONTACT,
