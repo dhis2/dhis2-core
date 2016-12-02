@@ -314,7 +314,7 @@ public class JdbcAnalyticsManager
      */
     private String getFromWhereClause( DataQueryParams params, String partition )
     {
-        SqlHelper sqlHelper = new SqlHelper();        
+        SqlHelper sqlHelper = new SqlHelper();
 
         String sql = "from " + getPartitionSql( params, partition ) + " ";
 
