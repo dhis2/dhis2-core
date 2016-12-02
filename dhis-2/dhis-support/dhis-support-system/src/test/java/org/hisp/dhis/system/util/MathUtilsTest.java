@@ -279,13 +279,14 @@ public class MathUtilsTest
     @Test
     public void testIsCoordinate()
     {
-        assertTrue( MathUtils.isCoordinate( "0.0,0.0" ) );
-        assertTrue( MathUtils.isCoordinate( "18, 65" ) );
-        assertTrue( MathUtils.isCoordinate( "18.56, 65.342" ) );
-        assertTrue( MathUtils.isCoordinate( "18.56,65.342" ) );
-        assertTrue( MathUtils.isCoordinate( "-18.56,-65.342" ) );
-        assertTrue( MathUtils.isCoordinate( "   18.56 ,  65.342    " ) );
-        assertTrue( MathUtils.isCoordinate( "   -180 ,  -90    " ) );
+        assertTrue( MathUtils.isCoordinate( "[0.0,0.0]" ) );
+        assertTrue( MathUtils.isCoordinate( "[18, 65]" ) );
+        assertTrue( MathUtils.isCoordinate( "[18.56, 65.342]" ) );
+        assertTrue( MathUtils.isCoordinate( "[18.56,65.342]" ) );
+        assertTrue( MathUtils.isCoordinate( "[-18.56,-65.342]" ) );
+        assertTrue( MathUtils.isCoordinate( "   [18.56 ,  65.342   ]    " ) );
+        assertTrue( MathUtils.isCoordinate( "   [  -180 ,  -90]    " ) );
+        assertTrue( MathUtils.isCoordinate( "   [  12.30 ,  45.67    ]    " ) );
         
         assertFalse( MathUtils.isCoordinate( "" ) );
         assertFalse( MathUtils.isCoordinate( null ) );
@@ -299,6 +300,9 @@ public class MathUtilsTest
         assertFalse( MathUtils.isCoordinate( "12147483647" ) );
         assertFalse( MathUtils.isCoordinate( "-181 ,-90" ) );
         assertFalse( MathUtils.isCoordinate( "-180 , 91" ) );
+        assertFalse( MathUtils.isCoordinate( "12,34" ) );
+        assertFalse( MathUtils.isCoordinate( "[,]" ) );
+        assertFalse( MathUtils.isCoordinate( "[12,  ]" ) );
     }
 
     @Test
