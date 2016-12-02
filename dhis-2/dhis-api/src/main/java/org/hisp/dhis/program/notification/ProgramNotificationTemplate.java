@@ -58,7 +58,7 @@ public class ProgramNotificationTemplate
 
     private NotificationTrigger notificationTrigger;
 
-    private NotificationRecipient notificationRecipient;
+    private ProgramNotificationRecipient notificationRecipient;
 
     private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
 
@@ -79,7 +79,7 @@ public class ProgramNotificationTemplate
     }
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
-        NotificationTrigger notificationTrigger, NotificationRecipient notificationRecipient,
+        NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
         Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup )
     {
         this.name = name;
@@ -135,12 +135,12 @@ public class ProgramNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationRecipient getNotificationRecipient()
+    public ProgramNotificationRecipient getNotificationRecipient()
     {
         return notificationRecipient;
     }
 
-    public void setNotificationRecipient( NotificationRecipient notificationRecipient )
+    public void setNotificationRecipient( ProgramNotificationRecipient notificationRecipient )
     {
         this.notificationRecipient = notificationRecipient;
     }

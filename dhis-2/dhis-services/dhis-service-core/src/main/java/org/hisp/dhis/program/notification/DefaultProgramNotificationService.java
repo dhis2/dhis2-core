@@ -294,13 +294,13 @@ public class DefaultProgramNotificationService
 
         Set<User> recipients = Sets.newHashSet();
 
-        NotificationRecipient recipientType = template.getNotificationRecipient();
+        ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
-        if ( recipientType == NotificationRecipient.USER_GROUP )
+        if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
             recipients.addAll( template.getRecipientUserGroup().getMembers() );
         }
-        else if ( recipientType == NotificationRecipient.USERS_AT_ORGANISATION_UNIT )
+        else if ( recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT )
         {
 
             OrganisationUnit organisationUnit =
@@ -317,13 +317,13 @@ public class DefaultProgramNotificationService
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
-        NotificationRecipient recipientType = template.getNotificationRecipient();
+        ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
-        if ( recipientType == NotificationRecipient.ORGANISATION_UNIT_CONTACT )
+        if ( recipientType == ProgramNotificationRecipient.ORGANISATION_UNIT_CONTACT )
         {
             recipients.setOrganisationUnit( organisationUnit );
         }
-        else if ( recipientType == NotificationRecipient.TRACKED_ENTITY_INSTANCE )
+        else if ( recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE )
         {
             recipients.setTrackedEntityInstance( trackedEntityInstance );
         }
