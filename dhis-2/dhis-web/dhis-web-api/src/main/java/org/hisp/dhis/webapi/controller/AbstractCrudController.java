@@ -456,7 +456,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         property.getSetterMethod().invoke( persistedObject, value );
 
-        preheatService.refresh( persistedObject );
         manager.update( persistedObject );
     }
 
