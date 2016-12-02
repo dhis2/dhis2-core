@@ -28,7 +28,10 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.security.Authority;
+
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -93,4 +96,11 @@ public interface SchemaService
      * @return List of all available metadata schemas
      */
     List<Schema> getMetadataSchemas();
+
+    /**
+     * Collect all authorities from schema descriptors.
+     *
+     * @return
+     */
+    Set<String> collectAuthorities();
 }
