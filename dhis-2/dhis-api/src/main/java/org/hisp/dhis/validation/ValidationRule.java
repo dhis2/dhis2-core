@@ -47,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.validation.notification.ValidationRuleNotificationTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -98,6 +99,11 @@ public class ValidationRule
      * The set of ValidationRuleGroups to which this ValidationRule belongs.
      */
     private Set<ValidationRuleGroup> groups = new HashSet<>();
+
+    /**
+     * Notification templates for this ValidationRule
+     */
+    private Set<ValidationRuleNotificationTemplate> notificationTemplates;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -335,6 +341,19 @@ public class ValidationRule
     public void setGroups( Set<ValidationRuleGroup> groups )
     {
         this.groups = groups;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ValidationRuleNotificationTemplate> getNotificationTemplates()
+    {
+        return notificationTemplates;
+    }
+
+    public void setNotificationTemplates( Set<ValidationRuleNotificationTemplate> notificationTemplates )
+    {
+        this.notificationTemplates = notificationTemplates;
     }
 
     @Override

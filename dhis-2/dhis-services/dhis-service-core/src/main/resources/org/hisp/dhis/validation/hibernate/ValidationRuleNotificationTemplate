@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+<hibernate-mapping>
+  <class name="org.hisp.dhis.validation.notification.ValidationRuleNotificationTemplate"
+    table="validationrulenotificationtemplate">
+
+    <id name="id" column="validationrulenotificationtemplateid">
+      <generator class="native" />
+    </id>
+    &identifiableProperties;
+
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
+
+    <property name="subjectTemplate" column="subjecttemplate" not-null="false" length="100" />
+
+    <property name="messageTemplate" column="messagetemplate" not-null="false" type="text" />
+
+    <property name="notificationRecipient" column="notificationrecipienttype">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.validation.notification.ValidationRuleNotificationRecipient</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup" column="usergroupid"
+      foreign-key="fk_validationrulenotificationtemplate_usergroup" not-null="false" />
+
+    <set name="validationRules" table="validationrulevalidationrulenotificationtemplates" inverse="true">
+      <key column="validationrulenotificationtemplateid" />
+      <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid" />
+    </set>
+
+  </class>
+
+</hibernate-mapping>

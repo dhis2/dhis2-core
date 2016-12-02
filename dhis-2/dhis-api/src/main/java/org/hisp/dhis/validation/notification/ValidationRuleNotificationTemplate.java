@@ -1,4 +1,4 @@
-package org.hisp.dhis.notification;
+package org.hisp.dhis.validation.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -30,14 +30,15 @@ package org.hisp.dhis.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.program.notification.NotificationRecipient;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.Set;
@@ -49,15 +50,34 @@ public class ValidationRuleNotificationTemplate
     extends BaseIdentifiableObject
     implements NotificationTemplate
 {
+    /**
+     * We're not directly supporting delivery channels for validation rule notifications.
+     * Therefore, all delivery channels are set (but not exposed), to comply with
+     * the {@link NotificationTemplate} contract.
+     *
+     * Note:
+     *  The fact that we include 'SMS' (instead of just an empty Set, for example)
+     *  has the side-effect of limiting max message length on the rendering side.
+     */
+    private static final Set<DeliveryChannel> deliveryChannels = Sets.newHashSet( DeliveryChannel.values() );
+
+    // -------------------------------------------------------------------------
+    // Properties
+    // -------------------------------------------------------------------------
+
     private String subjectTemplate;
 
     private String messageTemplate;
 
-    private Set<DeliveryChannel> deliveryChannels;
-
     private Set<ValidationRule> validationRules;
 
-    private NotificationRecipient notificationRecipient;
+    private ValidationRuleNotificationRecipient notificationRecipient;
+
+    // -------------------------------------------------------------------------
+    // Conditionally relevant properties
+    // -------------------------------------------------------------------------
+
+    private UserGroup recipientUserGroup;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -93,22 +113,15 @@ public class ValidationRuleNotificationTemplate
         return messageTemplate;
     }
 
-    public void setMessageTemplate( String messageTemplate )
-    {
-        this.messageTemplate = messageTemplate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Override
     public Set<DeliveryChannel> getDeliveryChannels()
     {
         return deliveryChannels;
     }
 
-    public void setDeliveryChannels( Set<DeliveryChannel> deliveryChannels )
+    public void setMessageTemplate( String messageTemplate )
     {
-        this.deliveryChannels = deliveryChannels;
+        this.messageTemplate = messageTemplate;
     }
 
     @JsonProperty
@@ -121,6 +134,30 @@ public class ValidationRuleNotificationTemplate
     public void setValidationRules( Set<ValidationRule> validationRules )
     {
         this.validationRules = validationRules;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ValidationRuleNotificationRecipient getNotificationRecipient()
+    {
+        return notificationRecipient;
+    }
+
+    public void setNotificationRecipient( ValidationRuleNotificationRecipient notificationRecipient )
+    {
+        this.notificationRecipient = notificationRecipient;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserGroup getRecipientUserGroup()
+    {
+        return recipientUserGroup;
+    }
+
+    public void setRecipientUserGroup( UserGroup recipientUserGroup )
+    {
+        this.recipientUserGroup = recipientUserGroup;
     }
 
     // -------------------------------------------------------------------------
@@ -140,15 +177,16 @@ public class ValidationRuleNotificationTemplate
             {
                 subjectTemplate = that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate();
+                notificationRecipient = that.getNotificationRecipient();
+                recipientUserGroup = that.getRecipientUserGroup();
             }
             else if ( mergeMode.isMerge() )
             {
                 subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
+                notificationRecipient = that.getNotificationRecipient() == null ? notificationRecipient : that.getNotificationRecipient();
+                recipientUserGroup = that.getRecipientUserGroup() == null ? recipientUserGroup : that.getRecipientUserGroup();
             }
-
-            deliveryChannels.clear();
-            deliveryChannels.addAll( that.getDeliveryChannels() );
         }
     }
 }
