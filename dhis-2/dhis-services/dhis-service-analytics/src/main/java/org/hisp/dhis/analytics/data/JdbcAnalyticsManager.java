@@ -316,7 +316,7 @@ public class JdbcAnalyticsManager
     {
         SqlHelper sqlHelper = new SqlHelper();        
 
-        String sql = "from " + getPartition( params, partition ) + " ";
+        String sql = "from " + getPartitionSql( params, partition ) + " ";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -406,10 +406,11 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a subquery if preAggregationMeasureCriteria is given
-     * returns the partition of not.
+     * If preAggregationMeasureCriteria is specified, generates a query which
+     * provides a filtered view of the data according to the criteria .If not, 
+     * returns the full view of the partition.
      */
-    private String getPartition( DataQueryParams params, String partition )
+    private String getPartitionSql( DataQueryParams params, String partition )
     {
         if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
         {
@@ -457,7 +458,8 @@ public class JdbcAnalyticsManager
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {
-        SqlHelper sqlHelper = new SqlHelper(  );
+        SqlHelper sqlHelper = new SqlHelper();
+        
         String sql = " ";
 
         for ( MeasureFilter filter : params.getMeasureCriteria().keySet() )
