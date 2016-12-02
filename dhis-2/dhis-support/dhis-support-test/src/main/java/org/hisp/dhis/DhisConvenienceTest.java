@@ -88,7 +88,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
-import org.hisp.dhis.program.notification.NotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -1676,7 +1676,7 @@ public abstract class DhisConvenienceTest
             "Subject",
             "Message",
             trigger,
-            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
             Sets.newHashSet(),
             days,
             null

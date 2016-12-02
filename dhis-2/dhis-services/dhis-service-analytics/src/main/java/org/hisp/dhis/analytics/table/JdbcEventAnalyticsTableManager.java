@@ -200,7 +200,7 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate <= '" + end + "' " +
             "and pr.programid=" + table.getProgram().getId() + " " + 
             "and psi.organisationunitid is not null " +
-            "and psi.executiondate is not null" +
+            "and psi.executiondate is not null " +
             "and psi.deleted is false";
 
         populateAndLog( sql, tableName );

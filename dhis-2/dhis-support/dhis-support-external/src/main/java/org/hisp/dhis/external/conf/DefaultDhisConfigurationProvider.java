@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -86,11 +85,6 @@ public class DefaultDhisConfigurationProvider
      * Cache for properties.
      */
     private Properties properties;
-
-    /**
-     * Replace environment variables with respective values.
-     */
-    private StrSubstitutor strSubstitutor;
     
     /**
      * Cache for Google credential.
@@ -111,9 +105,7 @@ public class DefaultDhisConfigurationProvider
         }
         else
         {
-            this.strSubstitutor = new StrSubstitutor( System.getenv() );
-
-            this.properties = scanForEnvironmentVariables( loadDhisConf() );
+            this.properties = loadDhisConf();
         }
 
         // ---------------------------------------------------------------------
@@ -303,9 +295,12 @@ public class DefaultDhisConfigurationProvider
     {
         try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
         {
-            return PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
+            Properties conf = PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
+            replaceEnvironmentVariables( conf );
+
+            return conf;
         }
-        catch ( LocationManagerException | IOException ex )
+        catch ( LocationManagerException | IOException | SecurityException ex )
         {
             log.debug( String.format( "Could not load %s", CONF_FILENAME ), ex );
 
@@ -327,18 +322,10 @@ public class DefaultDhisConfigurationProvider
         }
     }
 
-    private Properties scanForEnvironmentVariables( Properties properties )
+    private void replaceEnvironmentVariables( Properties properties )
     {
-        Set<Map.Entry<Object, Object>> pairs = properties.entrySet();
+        final StrSubstitutor substitutor = new StrSubstitutor( System.getenv() ); // Matches on ${...}
 
-        pairs.stream().forEach(( prop ) -> prop.setValue(
-                getEnvironmentVariableValue( prop.getValue().toString() ) ) );
-
-        return properties;
-    }
-
-    private String getEnvironmentVariableValue( String propertyValue )
-    {
-        return strSubstitutor.replace( propertyValue ).trim();
+        properties.entrySet().forEach( entry -> entry.setValue( substitutor.replace( entry.getValue() ).trim() ) );
     }
 }

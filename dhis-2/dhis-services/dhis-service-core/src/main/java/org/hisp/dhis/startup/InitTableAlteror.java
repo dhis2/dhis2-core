@@ -143,15 +143,13 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
     }
 
-    private void updateMessageConversationMessageCount() {
-
+    private void updateMessageConversationMessageCount()
+    {
         Integer nullCounts = statementManager.getHolder().queryForInteger( "SELECT count(*) from messageconversation WHERE messagecount IS NULL" );
 
-        if(nullCounts > 0)
+        if ( nullCounts > 0 )
         {
-            // Count messages in messageConversations
-            executeSql(
-                "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid) " );
+            executeSql( "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid)" );
         }
     }
 

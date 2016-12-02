@@ -36,7 +36,7 @@
 
     <property name="notificationRecipient" column="notificationrecipienttype">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.program.notification.NotificationRecipient</param>
+        <param name="enumClass">org.hisp.dhis.program.notification.ProgramNotificationRecipient</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
