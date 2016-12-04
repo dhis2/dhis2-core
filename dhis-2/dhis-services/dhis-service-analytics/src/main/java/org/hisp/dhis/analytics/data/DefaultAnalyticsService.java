@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.calendar.Calendar;
@@ -119,6 +120,9 @@ public class DefaultAnalyticsService
 
     @Autowired
     private AnalyticsManager analyticsManager;
+    
+    @Autowired
+    private RawAnalyticsManager rawAnalyticsManager;
 
     @Autowired
     private AnalyticsSecurityManager securityManager;
@@ -173,6 +177,16 @@ public class DefaultAnalyticsService
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
+    
+    public Grid getRawDataValues( DataQueryParams params )
+    {
+        //TODO constraints
+        
+        securityManager.decideAccess( params );
+        queryPlanner.validate( params );
+        
+        return getRawDataGrid( params );
+    }
 
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
@@ -188,7 +202,7 @@ public class DefaultAnalyticsService
                 
         return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
-    
+        
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {
@@ -1017,6 +1031,44 @@ public class DefaultAnalyticsService
         timer.getTime( "Got analytics values" );
 
         return map;
+    }
+    
+    /**
+     * Returns headers, raw data and meta data as a grid.
+     * 
+     * @param params the data query parameters.
+     * @return a grid.
+     */
+    private Grid getRawDataGrid( DataQueryParams params )
+    {
+        Grid grid = new ListGrid();
+        
+        addHeaders( params, grid );
+        
+        addRawData( params, grid );
+        
+        addMetaData( params, grid );
+        
+        return grid;
+    }
+    
+    /**
+     * Adds raw data to the grid for the given data query parameters.
+     * 
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    private void addRawData(DataQueryParams params, Grid grid )
+    {
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withTableName( ANALYTICS_TABLE_NAME ).build();
+        
+        List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+        
+        for ( DataQueryParams query : queries )
+        {
+            rawAnalyticsManager.getRawDataValues( query, grid );
+        }
     }
 
     // -------------------------------------------------------------------------

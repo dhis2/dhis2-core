@@ -66,8 +66,7 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
- * from the analytics table. Organisation units provided as arguments must be on
- * the same level in the hierarchy.
+ * from the analytics table.
  *
  * @author Lars Helge Overland
  */
@@ -95,7 +94,7 @@ public class JdbcAnalyticsManager
     private StatementBuilder statementBuilder;
 
     // -------------------------------------------------------------------------
-    // Implementation
+    // AnalyticsManager implementation
     // -------------------------------------------------------------------------
 
     @Override
@@ -314,7 +313,7 @@ public class JdbcAnalyticsManager
      */
     private String getFromWhereClause( DataQueryParams params, String partition )
     {
-        SqlHelper sqlHelper = new SqlHelper();        
+        SqlHelper sqlHelper = new SqlHelper();
 
         String sql = "from " + getPartitionSql( params, partition ) + " ";
 
