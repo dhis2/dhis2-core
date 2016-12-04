@@ -1033,21 +1033,42 @@ public class DefaultAnalyticsService
         return map;
     }
     
+    /**
+     * Returns headers, raw data and meta data as a grid.
+     * 
+     * @param params the data query parameters.
+     * @return a grid.
+     */
     private Grid getRawDataGrid( DataQueryParams params )
+    {
+        Grid grid = new ListGrid();
+        
+        addHeaders( params, grid );
+        
+        addRawData( params, grid );
+        
+        addMetaData( params, grid );
+        
+        return grid;
+    }
+    
+    /**
+     * Adds raw data to the grid for the given data query parameters.
+     * 
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    private void addRawData(DataQueryParams params, Grid grid )
     {
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withTableName( ANALYTICS_TABLE_NAME ).build();
         
         List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
         
-        Grid grid = new ListGrid();
-        
         for ( DataQueryParams query : queries )
         {
             rawAnalyticsManager.getRawDataValues( query, grid );
         }
-        
-        return grid;
     }
 
     // -------------------------------------------------------------------------
