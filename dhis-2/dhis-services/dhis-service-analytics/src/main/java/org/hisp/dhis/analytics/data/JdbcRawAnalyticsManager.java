@@ -86,7 +86,7 @@ public class JdbcRawAnalyticsManager
         
         String sql = getStatement( params );
         
-        log.info( "Get raw data SQL: " + sql );
+        log.debug( "Get raw data SQL: " + sql );
         
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
         
