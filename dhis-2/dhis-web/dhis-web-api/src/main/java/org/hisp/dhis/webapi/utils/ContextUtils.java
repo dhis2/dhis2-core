@@ -40,6 +40,8 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -249,6 +251,27 @@ public class ContextUtils
         return builder.toString();
     }
 
+    /**
+     * Indicates whether the media type (content type) of the
+     * given HTTP request is compatible with the given media type.
+     * 
+     * @param request the HTTP response.
+     * @param mediaType the media type.
+     */
+    public static boolean isCompatibleWith( HttpServletResponse response, MediaType mediaType )
+    {                
+        try
+        {
+            String contentType = response.getContentType();
+            
+            return contentType != null && MediaType.parseMediaType( contentType ).isCompatibleWith( mediaType );
+        }
+        catch ( InvalidMediaTypeException ex )
+        {
+            return false;
+        }
+    }
+    
     /**
      * Returns a mapping of dimension identifiers and dimension option identifiers
      * based on the given set of dimension strings. Splits the strings using : as
