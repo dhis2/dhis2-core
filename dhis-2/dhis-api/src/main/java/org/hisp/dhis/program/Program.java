@@ -738,38 +738,44 @@ public class Program
     {
         this.captureCoordinates = captureCoordinates;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getExpiryDays() {
-		return expiryDays;
-	}
+    public int getExpiryDays()
+    {
+        return expiryDays;
+    }
 
-	public void setExpiryDays(int expiryDays) {
-		this.expiryDays = expiryDays;
-	}
-	
-	@JsonProperty
+    public void setExpiryDays( int expiryDays )
+    {
+        this.expiryDays = expiryDays;
+    }
+
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-	public PeriodType getExpiryPeriodType() {
-		return expiryPeriodType;
-	}
+    public PeriodType getExpiryPeriodType()
+    {
+        return expiryPeriodType;
+    }
 
-	public void setExpiryPeriodType(PeriodType expiryPeriodType) {
-		this.expiryPeriodType = expiryPeriodType;
-	}
+    public void setExpiryPeriodType( PeriodType expiryPeriodType )
+    {
+        this.expiryPeriodType = expiryPeriodType;
+    }
 
-	@JsonProperty
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-	public int getCompleteEventsExpiryDays() {
-		return completeEventsExpiryDays;
-	}
+    public int getCompleteEventsExpiryDays()
+    {
+        return completeEventsExpiryDays;
+    }
 
-	public void setCompleteEventsExpiryDays(int completeEventsExpiryDays) {
-		this.completeEventsExpiryDays = completeEventsExpiryDays;
-	}
+    public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
+    {
+        this.completeEventsExpiryDays = completeEventsExpiryDays;
+    }
 
-	@Override
+    @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
         super.mergeWith( other, mergeMode );
