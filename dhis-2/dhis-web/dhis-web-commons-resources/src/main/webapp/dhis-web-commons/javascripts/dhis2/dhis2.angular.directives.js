@@ -39,6 +39,7 @@ var d2Directives = angular.module('d2Directives', [])
                 var ou = {id: ids[0], displayName: names[0]};
                 if(orgUnitFromUrl && ou.id !== orgUnitFromUrl) {
                     selection.setOrgUnitFromURL(orgUnitFromUrl);
+                    orgUnitFromUrl=null;
                 } else {
                     $timeout(function () {
                         scope.selectedOrgUnit = ou;
