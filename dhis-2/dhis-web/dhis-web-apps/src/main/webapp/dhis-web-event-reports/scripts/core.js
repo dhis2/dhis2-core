@@ -633,8 +633,8 @@ Ext.onReady( function() {
 
 					//layout.regression = Ext.isBoolean(config.regression) ? config.regression : false;
 					//layout.cumulative = Ext.isBoolean(config.cumulative) ? config.cumulative : false;
-					//layout.sortOrder = Ext.isNumber(config.sortOrder) ? config.sortOrder : 0;
-					//layout.topLimit = Ext.isNumber(config.topLimit) ? config.topLimit : 0;
+					layout.sortOrder = Ext.isNumber(config.sortOrder) ? config.sortOrder : 0;
+					layout.topLimit = Ext.isNumber(config.topLimit) ? config.topLimit : 0;
 
                     // relative period date
                     if (support.prototype.date.getYYYYMMDD(config.relativePeriodDate)) {
