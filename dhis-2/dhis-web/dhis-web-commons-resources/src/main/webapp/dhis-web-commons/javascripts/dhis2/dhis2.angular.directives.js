@@ -650,7 +650,7 @@ var d2Directives = angular.module('d2Directives', [])
         restrict: 'E',            
         templateUrl: "../dhis-web-commons/angular-forms/orgunit-input.html",
         scope: {            
-            selectedOrgUnit: '=',
+            selectedOrgUnitId: '@',
             id: '@',
             d2Object: '=',
             d2Disabled: '=',
@@ -666,7 +666,7 @@ var d2Directives = angular.module('d2Directives', [])
                     controller: 'OrgUnitTreeController',
                     resolve: {
                         orgUnitId: function(){
-                            return $scope.d2Object[dataElementId] ? $scope.d2Object[dataElementId] : $scope.selectedOrgUnit.id;
+                            return $scope.d2Object[dataElementId] ? $scope.d2Object[dataElementId] : $scope.selectedOrgUnitId;
                         }
                     }
                 });

@@ -533,7 +533,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                     }
                                     else if (prStDe.dataElement.valueType === "ORGANISATION_UNIT") {
                                     	newInputField = '<span class="hideInPrint"><d2-org-unit-tree ' +
-					                                            ' selected-org-unit="selectedOrgUnit" ' +
+					                                            ' selected-org-unit-id="{{selectedOrgUnit.id}}" ' +
 					                                            ' id="{{prStDes.' + fieldId + '.dataElement.id}}" ' +
 					                                            ' d2-object="currentEvent" ' +
 					                                            ' d2-value="currentEvent.' + fieldId + '" ' +
@@ -729,7 +729,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                                 }
                                 else if (att.valueType === "ORGANISATION_UNIT") {
                                 	newInputField = '<span class="hideInPrint"><d2-org-unit-tree ' +
-				                                            ' selected-org-unit="selectedOrgUnit" ' +
+				                                            ' selected-org-unit-id="{{selectedOrgUnit.id}}" ' +
 				                                            ' id=" ' + attId + '" ' +
 				                                            ' d2-object="selectedTei" ' +  
 						                                    ' d2-value="selectedTei.' + attId + '" ' +
