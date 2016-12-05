@@ -33,6 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
 import java.util.ArrayList;
@@ -51,6 +52,8 @@ public class ImportSummaries extends AbstractWebMessageResponse
     private int deleted;
 
     private int ignored;
+
+    private ImportOptions importOptions;
 
     private List<ImportSummary> importSummaries = new ArrayList<>();
 
@@ -118,6 +121,18 @@ public class ImportSummaries extends AbstractWebMessageResponse
     public int getIgnored()
     {
         return ignored;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportOptions getImportOptions()
+    {
+        return importOptions;
+    }
+
+    public void setImportOptions( ImportOptions importOptions )
+    {
+        this.importOptions = importOptions;
     }
 
     @Override

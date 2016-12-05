@@ -87,8 +87,9 @@ public class DefaultMetadataImportService implements MetadataImportService
     {
         Timer timer = new SystemTimer().start();
 
-        ImportReport report = new ImportReport();
-        report.setStatus( Status.OK );
+        ImportReport importReport = new ImportReport();
+        importReport.setImportParams( params );
+        importReport.setStatus( Status.OK );
 
         if ( params.getUser() == null )
         {
@@ -107,25 +108,25 @@ public class DefaultMetadataImportService implements MetadataImportService
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        report.addTypeReports( validationReport.getTypeReportMap() );
+        importReport.addTypeReports( validationReport.getTypeReportMap() );
 
         if ( !(!validationReport.getErrorReports().isEmpty() && AtomicMode.ALL == bundle.getAtomicMode()) )
         {
             Timer commitTimer = new SystemTimer().start();
 
             ObjectBundleCommitReport commitReport = objectBundleService.commit( bundle );
-            report.addTypeReports( commitReport.getTypeReportMap() );
+            importReport.addTypeReports( commitReport.getTypeReportMap() );
 
-            if ( !report.getErrorReports().isEmpty() )
+            if ( !importReport.getErrorReports().isEmpty() )
             {
-                report.setStatus( Status.WARNING );
+                importReport.setStatus( Status.WARNING );
             }
 
             log.info( "(" + bundle.getUsername() + ") Import:Commit took " + commitTimer.toString() );
         }
         else
         {
-            report.setStatus( Status.ERROR );
+            importReport.setStatus( Status.ERROR );
         }
 
         message = "(" + bundle.getUsername() + ") Import:Done took " + timer.toString();
@@ -135,18 +136,18 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( bundle.hasTaskId() )
         {
             notifier.notify( bundle.getTaskId(), NotificationLevel.INFO, message, true )
-                .addTaskSummary( bundle.getTaskId(), report );
+                .addTaskSummary( bundle.getTaskId(), importReport );
         }
 
-        Lists.newArrayList( report.getTypeReportMap().keySet() ).forEach( typeReportKey ->
+        Lists.newArrayList( importReport.getTypeReportMap().keySet() ).forEach( typeReportKey ->
         {
-            if ( report.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
+            if ( importReport.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
             {
-                report.getTypeReportMap().remove( typeReportKey );
+                importReport.getTypeReportMap().remove( typeReportKey );
                 return;
             }
 
-            TypeReport typeReport = report.getTypeReportMap().get( typeReportKey );
+            TypeReport typeReport = importReport.getTypeReportMap().get( typeReportKey );
 
             if ( ImportReportMode.ERRORS == params.getImportReportMode() )
             {
@@ -165,7 +166,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             }
         } );
 
-        return report;
+        return importReport;
     }
 
     @Override

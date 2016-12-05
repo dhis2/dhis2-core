@@ -33,6 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
 import java.util.HashSet;
@@ -42,6 +43,8 @@ import java.util.Set;
 public class ImportSummary extends AbstractWebMessageResponse
 {
     private ImportStatus status = ImportStatus.SUCCESS;
+
+    private ImportOptions importOptions;
 
     private String description;
 
@@ -98,6 +101,18 @@ public class ImportSummary extends AbstractWebMessageResponse
     public void setStatus( ImportStatus status )
     {
         this.status = status;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportOptions getImportOptions()
+    {
+        return importOptions;
+    }
+
+    public void setImportOptions( ImportOptions importOptions )
+    {
+        this.importOptions = importOptions;
     }
 
     @JsonProperty

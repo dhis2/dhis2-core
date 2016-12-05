@@ -584,6 +584,7 @@ public class EventController
         if ( !importOptions.isAsync() )
         {
             ImportSummaries importSummaries = eventService.addEventsXml( inputStream, importOptions );
+            importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
                 .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
@@ -594,6 +595,7 @@ public class EventController
             if ( importSummaries.getImportSummaries().size() == 1 )
             {
                 ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
 
                 if ( !importOptions.isDryRun() )
                 {
@@ -627,6 +629,7 @@ public class EventController
         if ( !importOptions.isAsync() )
         {
             ImportSummaries importSummaries = eventService.addEventsJson( inputStream, importOptions );
+            importSummaries.setImportOptions( importOptions );
 
             importSummaries.getImportSummaries().stream()
                 .filter( importSummary -> !importOptions.isDryRun() && !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
@@ -637,6 +640,7 @@ public class EventController
             if ( importSummaries.getImportSummaries().size() == 1 )
             {
                 ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
 
                 if ( !importOptions.isDryRun() )
                 {
@@ -689,6 +693,7 @@ public class EventController
         if ( !importOptions.isAsync() )
         {
             ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
+            importSummaries.setImportOptions( importOptions );
             webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
         }
         else
@@ -719,6 +724,7 @@ public class EventController
         updatedEvent.setEvent( uid );
 
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
+        importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
@@ -737,6 +743,7 @@ public class EventController
         updatedEvent.setEvent( uid );
 
         ImportSummary importSummary = eventService.updateEvent( updatedEvent, false, importOptions );
+        importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 

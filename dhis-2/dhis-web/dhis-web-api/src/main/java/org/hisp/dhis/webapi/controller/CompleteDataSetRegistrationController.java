@@ -266,6 +266,7 @@ public class CompleteDataSetRegistrationController
         {
             response.setContentType( CONTENT_TYPE_XML );
             ImportSummary summary = registrationExchangeService.saveCompleteDataSetRegistrationsXml( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
             renderService.toXml( response.getOutputStream(), summary );
         }
     }
@@ -285,6 +286,7 @@ public class CompleteDataSetRegistrationController
         {
             response.setContentType( CONTENT_TYPE_JSON );
             ImportSummary summary = registrationExchangeService.saveCompleteDataSetRegistrationsJson( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
             renderService.toJson( response.getOutputStream(), summary );
         }
     }
