@@ -28,8 +28,6 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.security.Authority;
-
 import java.util.List;
 import java.util.Set;
 

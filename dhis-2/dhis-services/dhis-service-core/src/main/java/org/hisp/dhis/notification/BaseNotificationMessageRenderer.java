@@ -71,8 +71,8 @@ public abstract class BaseNotificationMessageRenderer<T>
     protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
     protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
 
-    private static final Pattern VAR_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" );
-    private static final Pattern ATTR_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" );
+    protected static final Pattern VAR_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" );
+    protected static final Pattern ATTR_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" );
 
     private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches the variable in group 1
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
@@ -193,13 +193,11 @@ public abstract class BaseNotificationMessageRenderer<T>
     }
 
     // -------------------------------------------------------------------------
-    // Util methods
+    // Supportive methods
     // -------------------------------------------------------------------------
 
     protected static String chop( String input, int limit )
     {
-        // Simple limiter. No space wasted on ellipsis etc.
-
         return input.substring( 0, Math.min( input.length(), limit ) );
     }
 
