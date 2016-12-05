@@ -49,16 +49,16 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  *
  * Example configuration:
  * 
- *  {@code
- *  <filter>
- *      <filter-name>ShallowEtagHeaderFilter</filter-name>
- *      <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
- *      <init-param>
- *          <param-name>excludeUriRegex</param-name>
- *          <param-value>/api/dataValues|/api/dataValues/files</param-value>
- *      </init-param>
- *  </filter>
- *  }
+ * {@code
+ * <filter>
+ *     <filter-name>ShallowEtagHeaderFilter</filter-name>
+ *     <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+ *     <init-param>
+ *         <param-name>excludeUriRegex</param-name>
+ *         <param-value>/api/dataValues|/api/dataValues/files</param-value>
+ *     </init-param>
+ * </filter>
+ * }
  *
  *  The example exactly matches and excludes any request to the '/api/dataValues' 
  *  and '/api/dataValues/files' from the filter.
