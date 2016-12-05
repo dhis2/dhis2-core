@@ -653,7 +653,7 @@ var d2Directives = angular.module('d2Directives', [])
         restrict: 'E',            
         templateUrl: "../dhis-web-commons/angular-forms/orgunit-input.html",
         scope: {            
-            selectedOrgUnit: '@',
+        	selectedOrgUnitId: '@',
             id: '@',
             d2Object: '=',
             d2Disabled: '=',
