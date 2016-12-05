@@ -136,7 +136,6 @@ public class ContextUtils
             cacheControl = CacheControl.noCache();
         }
 
-
         if ( cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE )
         {
             Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( SettingKey.CACHEABILITY );

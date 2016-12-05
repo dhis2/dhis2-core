@@ -128,11 +128,11 @@ public class ValidateRunValidationAction
                 return INPUT;
             }
 
-            if( aggregate && selectedOrganisationUnit.getChildren().size() == 0){
-            	 
-            	message = i18n.getString( "specify_organisationunit_has_children" );
-                 
-                 return INPUT;
+            if ( aggregate && selectedOrganisationUnit.getChildren().size() == 0 )
+            {
+                message = i18n.getString( "specify_organisationunit_has_children" );
+
+                return INPUT;
             }
         }
         catch ( Exception e )

@@ -57,6 +57,19 @@ import org.apache.commons.lang3.StringUtils;
  * that the regular expression only need to match a subsequence of the 
  * request URI, not the entire URI.
  * 
+ * Example configuration:
+ * 
+ * {@code
+ * <filter>
+ *     <filter-name>yourRegexFilter</filter-name>
+ *     <filter-class>org.hisp.dhis.servlet.filter.YourRegexFilter</filter-class>
+ *     <init-param>
+ *         <param-name>urlPattern</param-name>
+ *         <param-value>index\.action|index\.html</param-value>
+ *     </init-param>
+ * </filter>
+ * }
+ * 
  * @author Lars Helge Overland
  */
 public abstract class HttpUrlPatternFilter

@@ -51,7 +51,10 @@ public class GetGeneralSettingsAction
 
     private I18nLocaleService i18nLocaleService;
 
-    public void setI18nLocaleService( I18nLocaleService i18nLocaleService ) { this.i18nLocaleService = i18nLocaleService; }
+    public void setI18nLocaleService( I18nLocaleService i18nLocaleService )
+    {
+        this.i18nLocaleService = i18nLocaleService;
+    }
 
     private LocaleManager localeManager;
 

@@ -57,12 +57,6 @@ public class ProgramNotificationMessageRenderer
             .build();
 
     // -------------------------------------------------------------------------
-    // Singleton instance
-    // -------------------------------------------------------------------------
-
-    public static final ProgramNotificationMessageRenderer INSTANCE = new ProgramNotificationMessageRenderer();
-
-    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
