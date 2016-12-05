@@ -36,7 +36,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
-import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
@@ -359,8 +358,7 @@ public class DefaultProgramNotificationService
     {
         DhisMessage dhisMessage = new DhisMessage();
 
-//        dhisMessage.message = NotificationMessageRenderer.render( pi, template );
-        dhisMessage.message = ProgramNotificationMessageRenderer.INSTANCE.render( pi, template );
+        dhisMessage.message = programNotificationRenderer.render( pi, template );
 
         dhisMessage.recipients = resolveDhisMessageRecipients( template, pi, null );
 
