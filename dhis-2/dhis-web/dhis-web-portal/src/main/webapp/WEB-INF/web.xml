@@ -35,6 +35,14 @@
     </init-param>
   </filter>
   <filter>
+    <filter-name>httpNoCacheFilter</filter-name>
+    <filter-class>org.hisp.dhis.servlet.filter.HttpNoCacheFilter</filter-class>
+    <init-param>
+      <param-name>urlPattern</param-name>
+      <param-value>index\.action|index\.html|/$</param-value>
+    </init-param>
+  </filter>
+  <filter>
     <filter-name>hiddenHttpMethodFilter</filter-name>
     <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
     <async-supported>true</async-supported>
@@ -92,6 +100,10 @@
   <filter-mapping>
     <filter-name>shallowEtagHeaderFilter</filter-name>
     <url-pattern>/api/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>httpNoCacheFilter</filter-name>
+    <url-pattern>/*</url-pattern>
   </filter-mapping>
   <filter-mapping>
     <filter-name>shallowEtagHeaderFilter</filter-name>
