@@ -469,6 +469,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     validateHasMatchingPeriodTypes( mdProps );
                 }
 
+                if ( config.strictOrgUnits )
+                {
+                    validateDataSetIsAssignedToOrgUnit( mdProps);
+                }
+
                 storedBy = cdsr.getStoredBy();
                 validateStoredBy( storedBy, i18n );
                 storedBy = StringUtils.isBlank( storedBy ) ? currentUser : storedBy;
@@ -687,6 +692,18 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 new ImportConflict( props.period.getUid(),
                     String.format( "Period type of period: %s is not equal to the period type of data set: %s",
                     props.period.getIsoDate(), props.dataSet.getPeriodType() ) ) );
+        }
+    }
+
+    private static void validateDataSetIsAssignedToOrgUnit( MetaDataProperties props )
+        throws ImportConflictException
+    {
+        if ( !props.orgUnit.getDataSets().contains( props.dataSet ) )
+        {
+            throw new ImportConflictException(
+                new ImportConflict(
+                    props.dataSet.getUid(), String.format( "Data set %s is not assigned to organisation unit %s",
+                    props.dataSet.getUid(), props.orgUnit.getUid() ) ) );
         }
     }
 
