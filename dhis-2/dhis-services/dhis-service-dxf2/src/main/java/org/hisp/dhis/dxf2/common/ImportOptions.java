@@ -28,7 +28,10 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -113,36 +116,50 @@ public class ImportOptions
     // Get methods
     //--------------------------------------------------------------------------
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public IdSchemes getIdSchemes()
     {
         return idSchemes;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDryRun()
     {
         return dryRun;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getPreheatCache()
     {
         return preheatCache;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isAsync()
     {
         return async;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDatasetAllowsPeriods()
     {
         return datasetAllowsPeriods;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStrategy getImportStrategy()
     {
         return importStrategy != null ? importStrategy : ImportStrategy.NEW_AND_UPDATES;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public MergeMode getMergeMode()
     {
         return mergeMode;
@@ -153,46 +170,64 @@ public class ImportOptions
         this.mergeMode = mergeMode;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipExistingCheck()
     {
         return skipExistingCheck;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSharing()
     {
         return sharing;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipNotifications()
     {
         return skipNotifications;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictPeriods()
     {
         return strictPeriods;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictCategoryOptionCombos()
     {
         return strictCategoryOptionCombos;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictAttributeOptionCombos()
     {
         return strictAttributeOptionCombos;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictOrganisationUnits()
     {
         return strictOrganisationUnits;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isRequireCategoryOptionCombo()
     {
         return requireCategoryOptionCombo;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isRequireAttributeOptionCombo()
     {
         return requireAttributeOptionCombo;

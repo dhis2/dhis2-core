@@ -28,7 +28,11 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -51,6 +55,7 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "metadataImportParams", namespace = DxfNamespaces.DXF_2_0 )
 public class MetadataImportParams
 {
     private User user;
@@ -88,6 +93,8 @@ public class MetadataImportParams
         addObjects( objects );
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
     {
         return user != null ? user.getUsername() : "system-process";
@@ -103,6 +110,8 @@ public class MetadataImportParams
         this.user = user;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ObjectBundleMode getImportMode()
     {
         return importMode;
@@ -113,6 +122,8 @@ public class MetadataImportParams
         this.importMode = importMode;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public PreheatIdentifier getIdentifier()
     {
         return identifier;
@@ -123,6 +134,8 @@ public class MetadataImportParams
         this.identifier = identifier;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public PreheatMode getPreheatMode()
     {
         return preheatMode;
@@ -133,6 +146,8 @@ public class MetadataImportParams
         this.preheatMode = preheatMode;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStrategy getImportStrategy()
     {
         return importStrategy;
@@ -143,6 +158,8 @@ public class MetadataImportParams
         this.importStrategy = importStrategy;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AtomicMode getAtomicMode()
     {
         return atomicMode;
@@ -153,6 +170,8 @@ public class MetadataImportParams
         this.atomicMode = atomicMode;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public MergeMode getMergeMode()
     {
         return mergeMode;
@@ -163,6 +182,8 @@ public class MetadataImportParams
         this.mergeMode = mergeMode;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FlushMode getFlushMode()
     {
         return flushMode;
@@ -183,6 +204,8 @@ public class MetadataImportParams
         this.importReportMode = importReportMode;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipSharing()
     {
         return skipSharing;
@@ -193,6 +216,8 @@ public class MetadataImportParams
         this.skipSharing = skipSharing;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipValidation()
     {
         return skipValidation;
