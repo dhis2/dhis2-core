@@ -115,6 +115,7 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.notification.ValidationRuleNotificationTemplate;
 
 /**
  * A DeletionHandler should override methods for objects that, when deleted,
@@ -386,6 +387,15 @@ public abstract class DeletionHandler
     }
 
     public void deleteDataEntryForm( DataEntryForm form )
+    {
+    }
+
+    public String allowDeleteValidationRuleNotificationTemplate( ValidationRuleNotificationTemplate vrnt )
+    {
+        return null;
+    }
+
+    public void deleteValidationRuleNotificationTemplate( ValidationRuleNotificationTemplate vrnt )
     {
     }
 
