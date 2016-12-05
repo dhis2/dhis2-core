@@ -61,7 +61,7 @@ import org.apache.commons.lang3.StringUtils;
  * 
  * {@code
  * <filter>
- *     <filter-name>dhis</filter-name>
+ *     <filter-name>yourRegexFilter</filter-name>
  *     <filter-class>org.hisp.dhis.servlet.filter.YourRegexFilter</filter-class>
  *     <init-param>
  *         <param-name>urlPattern</param-name>
