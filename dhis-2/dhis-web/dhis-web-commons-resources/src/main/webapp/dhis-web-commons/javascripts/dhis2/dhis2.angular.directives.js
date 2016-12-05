@@ -718,35 +718,37 @@ var d2Directives = angular.module('d2Directives', [])
             d2LngSaved: '=',
             d2CoordinateFormat: '='
         },
-        controller: function($scope, $modal, $filter, DHIS2COORDINATESIZE){            
-            $scope.coordinateObject = angular.copy( $scope.d2Object );                        
-            if( $scope.d2CoordinateFormat === 'TEXT' ){        
-                if( $scope.d2Object[$scope.id] && $scope.d2Object[$scope.id] !== ''){                    
-                    var coordinates = $scope.d2Object[$scope.id].split(",");
-                    $scope.coordinateObject.coordinate = {latitude: parseFloat(coordinates[1]), longitude: parseFloat(coordinates[0])};
-                }
-                else{
-                    $scope.coordinateObject.coordinate = {};
-                }
-            }            
-            if( !$scope.coordinateObject.coordinate ){
-                $scope.coordinateObject.coordinate = {};
-            }
+        controller: function($scope, $modal, $filter, $translate, DHIS2COORDINATESIZE, NotificationService){            
+            $scope.coordinateObject = angular.copy( $scope.d2Object );
             
-            $scope.showMap = function(){                
-                if( $scope.d2CoordinateFormat === 'TEXT' ){        
+            function processCoordinate(){
+            	if( $scope.d2CoordinateFormat === 'TEXT' ){        
                     if( $scope.d2Object[$scope.id] && $scope.d2Object[$scope.id] !== ''){                        
-                        var coordinates = $scope.d2Object[$scope.id].split(",");
+                        var coordinatePattern = /^\[\d+\.?\d+\,\d+\.?\d+\]$/;
+                        if( !coordinatePattern.test( $scope.d2Object[$scope.id] ) ){
+                            NotificationService.showNotifcationDialog($translate.instant('error'), $translate.instant('invalid_coordinate_format') + ":  " + $scope.d2Object[$scope.id] );
+                        }
+                        
+                    	var coordinates = $scope.d2Object[$scope.id].slice(1,-1).split( ",");                        
+                    	if( !dhis2.validation.isNumber( coordinates[0] ) || !dhis2.validation.isNumber( coordinates[0] ) ){
+                            NotificationService.showNotifcationDialog($translate.instant('error'), $translate.instant('invalid_coordinate_format') + ":  " + $scope.d2Object[$scope.id] );
+                    	}
                         $scope.coordinateObject.coordinate = {latitude: parseFloat(coordinates[1]), longitude: parseFloat(coordinates[0])};
-                    }                    
+                    }
                     else{
                         $scope.coordinateObject.coordinate = {};
                     }
-                }
-                
+                }            
                 if( !$scope.coordinateObject.coordinate ){
                     $scope.coordinateObject.coordinate = {};
                 }
+            };
+            
+            processCoordinate();
+            
+            $scope.showMap = function(){                
+                
+            	processCoordinate();            	
                             
                 var modalInstance = $modal.open({
                     templateUrl: '../dhis-web-commons/angular-forms/map.html',
@@ -774,7 +776,7 @@ var d2Directives = angular.module('d2Directives', [])
                         $scope.coordinateObject.coordinate.longitude = location.lng;                        
 
                         if( $scope.d2CoordinateFormat === 'TEXT' ){                        
-                            $scope.d2Object[$scope.id] = location.lng + ',' + location.lat;
+                            $scope.d2Object[$scope.id] = '[' + location.lng + ',' + location.lat + ']';
                             if( angular.isDefined( $scope.d2CallbackFunction ) ){
                                 $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParamText} );
                             }
@@ -834,7 +836,7 @@ var d2Directives = angular.module('d2Directives', [])
                 	}
                 	
                     if( $scope.d2CoordinateFormat === 'TEXT' ){                    
-                        $scope.d2Object[$scope.id] = $scope.coordinateObject.coordinate.longitude + ',' + $scope.coordinateObject.coordinate.latitude;                        
+                        $scope.d2Object[$scope.id] = '[' + $scope.coordinateObject.coordinate.longitude + ',' + $scope.coordinateObject.coordinate.latitude + ']';                        
                         saveCoordinate( 'TEXT',  $scope.prStDe);
                     }
                     else{
