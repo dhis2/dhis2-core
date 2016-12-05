@@ -141,6 +141,14 @@ function Selection()
         sessionStorage[ OU_SELECTED_KEY ] = JSON.stringify( selected );
     };
 
+    this.setOrgUnitFromURL = function (selected) {
+        selection.setSelected(selected);
+        subtree.reloadTree();
+        setTimeout(function () {
+            selection.select(selected);
+        },100);
+    };
+
     this.selectedExists = function() {
         return sessionStorage[ OU_SELECTED_KEY ] != null;
     };
