@@ -322,6 +322,7 @@ public class DefaultEventAnalyticsService
         if ( params.isPaging() )
         {
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            
             metaData.put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
         }
 

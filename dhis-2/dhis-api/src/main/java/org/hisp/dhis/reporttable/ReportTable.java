@@ -986,9 +986,10 @@ public class ReportTable
     }
 
     @JsonIgnore
-    public void setReportingPeriodName( String reportingPeriodName )
+    public ReportTable setReportingPeriodName( String reportingPeriodName )
     {
         this.reportingPeriodName = reportingPeriodName;
+        return this;
     }
 
     @JsonIgnore
@@ -997,9 +998,10 @@ public class ReportTable
         return gridColumns;
     }
 
-    public void setGridColumns( List<List<DimensionalItemObject>> gridColumns )
+    public ReportTable setGridColumns( List<List<DimensionalItemObject>> gridColumns )
     {
         this.gridColumns = gridColumns;
+        return this;
     }
 
     @JsonIgnore
@@ -1008,9 +1010,10 @@ public class ReportTable
         return gridRows;
     }
 
-    public void setGridRows( List<List<DimensionalItemObject>> gridRows )
+    public ReportTable setGridRows( List<List<DimensionalItemObject>> gridRows )
     {
         this.gridRows = gridRows;
+        return this;
     }
 
     @JsonIgnore
@@ -1019,9 +1022,10 @@ public class ReportTable
         return gridTitle;
     }
 
-    public void setGridTitle( String gridTitle )
+    public ReportTable setGridTitle( String gridTitle )
     {
         this.gridTitle = gridTitle;
+        return this;
     }
 
     @Override

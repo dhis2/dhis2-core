@@ -146,9 +146,11 @@ public class DefaultAnalyticsService
     private DataQueryService dataQueryService;
 
     // -------------------------------------------------------------------------
-    // Methods for retrieving aggregated data
+    // AnalyticsService implementation
     // -------------------------------------------------------------------------
 
+    //TODO use immutable maps for meta data
+    
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
@@ -850,13 +852,13 @@ public class DefaultAnalyticsService
             }
         }
 
-        reportTable.setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() );
-        reportTable.setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() );
+        reportTable.setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() )
+            .setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() )
+            .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
 
         addIfEmpty( reportTable.getGridColumns() );
         addIfEmpty( reportTable.getGridRows() );
-
-        reportTable.setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
+        
         reportTable.setHideEmptyRows( params.isHideEmptyRows() );
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
