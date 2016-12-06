@@ -112,6 +112,13 @@ public interface AnalyticsTableManager
     Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );    
 
     /**
+     * Performs analyze operations on analytics tables.
+     * 
+     * @param tables the analytics tables.
+     */
+    void analyzeTables( List<AnalyticsTable> tables );
+    
+    /**
      * Returns all years for which it exists data values.
      * 
      * @param earliest the earliest date to include as data year, null if no restriction.

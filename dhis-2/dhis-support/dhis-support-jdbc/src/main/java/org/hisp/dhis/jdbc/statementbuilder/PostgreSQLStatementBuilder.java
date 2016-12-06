@@ -57,7 +57,7 @@ public class PostgreSQLStatementBuilder
     @Override
     public String getVacuum( String table )
     {
-        return "vacuum analyze " + table + ";";
+        return "vacuum " + table + ";";
     }
     
     @Override
