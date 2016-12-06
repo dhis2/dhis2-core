@@ -1078,12 +1078,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected List<T> getEntity( String uid, WebOptions options )
     {
         ArrayList<T> list = new ArrayList<>();
-        Optional<T> identifiableObject = Optional.fromNullable( manager.getNoAcl( getEntityClass(), uid ) );
+        java.util.Optional<T> identifiableObject = java.util.Optional.ofNullable( manager.getNoAcl( getEntityClass(), uid ) );
 
-        if ( identifiableObject.isPresent() )
-        {
-            list.add( identifiableObject.get() );
-        }
+        identifiableObject.ifPresent( list::add );
 
         return list; //TODO consider ACL
     }

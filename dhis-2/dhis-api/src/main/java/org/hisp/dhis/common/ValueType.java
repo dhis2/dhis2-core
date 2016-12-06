@@ -30,8 +30,8 @@ package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Date;
 import java.util.Set;
@@ -79,17 +79,17 @@ public enum ValueType
 
     public static final Set<ValueType> DATE_TYPES = ImmutableSet.<ValueType>builder().add(
         DATE, DATETIME ).build();
-    
+
     private final Class<?> javaClass;
-    
+
     private boolean aggregateable;
 
-    private ValueType()
+    ValueType()
     {
         this.javaClass = null;
     }
 
-    private ValueType( Class<?> javaClass, boolean aggregateable )
+    ValueType( Class<?> javaClass, boolean aggregateable )
     {
         this.javaClass = javaClass;
         this.aggregateable = aggregateable;
@@ -134,7 +134,7 @@ public enum ValueType
     {
         return this == COORDINATE;
     }
-    
+
     public boolean isAggregateable()
     {
         return aggregateable;

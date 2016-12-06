@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.message.MessageConversationPriority;
@@ -51,7 +52,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -60,7 +60,12 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -342,7 +347,7 @@ public class MessageConversationController
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode setMessageStatus(
         @PathVariable String uid,
-        @RequestParam( required = true ) MessageConversationStatus messageConversationStatus,
+        @RequestParam MessageConversationStatus messageConversationStatus,
         HttpServletResponse response )
     {
         RootNode responseNode = new RootNode( "response" );
@@ -417,7 +422,7 @@ public class MessageConversationController
             return responseNode;
         }
 
-        if( !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
+        if ( !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
         {
             response.setStatus( HttpServletResponse.SC_CONFLICT );
             responseNode.addChild( new SimpleNode( "message", "User provided is not a member of the system's feedback recipient group" ) );

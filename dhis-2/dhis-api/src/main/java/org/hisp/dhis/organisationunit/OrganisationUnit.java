@@ -248,8 +248,8 @@ public class OrganisationUnit
         Set<DataSet> toRemove = Sets.difference( dataSets, updates );
         Set<DataSet> toAdd = Sets.difference( updates, dataSets );
 
-        toRemove.stream().forEach( d -> d.getSources().remove( this ) );
-        toAdd.stream().forEach( d -> d.getSources().add( this ) );
+        toRemove.forEach( d -> d.getSources().remove( this ) );
+        toAdd.forEach( d -> d.getSources().add( this ) );
 
         dataSets.clear();
         dataSets.addAll( updates );
@@ -481,7 +481,7 @@ public class OrganisationUnit
 
                     for ( String coordinates : tuple.getCoordinatesTuple() )
                     {
-                        builder.append( "[" + coordinates + "]," );
+                        builder.append( "[" ).append( coordinates ).append( "]," );
                     }
 
                     builder.deleteCharAt( builder.lastIndexOf( "," ) );
@@ -506,7 +506,7 @@ public class OrganisationUnit
             {
                 for ( String coordinates : tuple.getCoordinatesTuple() )
                 {
-                    builder.append( "[" + coordinates + "]" );
+                    builder.append( "[" ).append( coordinates ).append( "]" );
                 }
             }
         }

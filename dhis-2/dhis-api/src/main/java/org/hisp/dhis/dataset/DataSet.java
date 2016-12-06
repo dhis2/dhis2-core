@@ -289,8 +289,8 @@ public class DataSet
         Set<OrganisationUnit> toRemove = Sets.difference( sources, updates );
         Set<OrganisationUnit> toAdd = Sets.difference( updates, sources );
 
-        toRemove.stream().forEach( u -> u.getDataSets().remove( this ) );
-        toAdd.stream().forEach( u -> u.getDataSets().add( this ) );
+        toRemove.forEach( u -> u.getDataSets().remove( this ) );
+        toAdd.forEach( u -> u.getDataSets().add( this ) );
 
         sources.clear();
         sources.addAll( updates );
