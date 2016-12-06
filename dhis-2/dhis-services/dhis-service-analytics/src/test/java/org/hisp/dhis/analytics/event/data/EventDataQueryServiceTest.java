@@ -356,22 +356,22 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetClusterField()
+    public void testGetCoordinateField()
     {
-        assertEquals( "geom", dataQueryService.getClusterField( EventQueryParams.EVENT_CLUSTER_FIELD ) );
-        assertEquals( "geom", dataQueryService.getClusterField( null ) );
-        assertEquals( deC.getUid(), dataQueryService.getClusterField( deC.getUid() ) );        
+        assertEquals( "geom", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
+        assertEquals( "geom", dataQueryService.getCoordinateField( null ) );
+        assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );        
     }
 
     @Test( expected = IllegalQueryException.class )
-    public void testGetInvalidClusterFieldException()
+    public void testGetInvalidCoordinateFieldException()
     {
-        dataQueryService.getClusterField( "someField" );
+        dataQueryService.getCoordinateField( "someField" );
     }
 
     @Test( expected = IllegalQueryException.class )
-    public void testGetNonCoordinateValueTypeClusterFieldException()
+    public void testGetNonCoordinateValueTypeCoordinateFieldException()
     {
-        dataQueryService.getClusterField( deA.getUid() );
+        dataQueryService.getCoordinateField( deA.getUid() );
     }
 }

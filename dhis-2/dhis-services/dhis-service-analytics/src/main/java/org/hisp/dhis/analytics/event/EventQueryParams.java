@@ -71,7 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class EventQueryParams
     extends DataQueryParams
 {
-    public static final String EVENT_CLUSTER_FIELD = "EVENT";
+    public static final String EVENT_COORDINATE_FIELD = "EVENT";
     
     /**
      * The query items.
@@ -171,9 +171,9 @@ public class EventQueryParams
     private Long clusterSize;
     
     /**
-     * The cluster field to use as basis for event clustering.
+     * The coordinate field to use as basis for spatial event analytics.
      */
-    private String clusterField;
+    private String coordinateField;
 
     /**
      * Bounding box for events to include in clustering.
@@ -237,7 +237,7 @@ public class EventQueryParams
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
-        params.clusterField = this.clusterField;
+        params.coordinateField = this.coordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
@@ -699,9 +699,9 @@ public class EventQueryParams
         return clusterSize;
     }
 
-    public String getClusterField()
+    public String getCoordinateField()
     {
-        return clusterField;
+        return coordinateField;
     }
 
     public String getBbox()
@@ -970,9 +970,9 @@ public class EventQueryParams
             return this;
         }
         
-        public Builder withClusterField( String clusterField )
+        public Builder withCoordinateField( String coordinateField )
         {
-            this.params.clusterField = clusterField;
+            this.params.coordinateField = coordinateField;
             return this;
         }
         

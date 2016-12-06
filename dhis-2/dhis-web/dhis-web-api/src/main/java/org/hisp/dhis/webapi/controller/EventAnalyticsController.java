@@ -346,7 +346,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String clusterField,
+        @RequestParam( required = false ) String coordinateField,
         Model model,
         HttpServletResponse response ) throws Exception
     {
@@ -355,7 +355,7 @@ public class EventAnalyticsController
             displayProperty, relativePeriodDate, userOrgUnit, page, pageSize, i18nManager.getI18nFormat() );
 
         params = new EventQueryParams.Builder( params )
-            .withClusterField( eventDataQueryService.getClusterField( clusterField ) )
+            .withCoordinateField( eventDataQueryService.getCoordinateField( coordinateField ) )
             .build();
         
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -390,7 +390,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam Long clusterSize,
-        @RequestParam( required = false ) String clusterField,
+        @RequestParam( required = false ) String coordinateField,
         @RequestParam String bbox,
         @RequestParam( required = false ) boolean includeClusterPoints,
         Model model,
@@ -402,7 +402,7 @@ public class EventAnalyticsController
 
         params = new EventQueryParams.Builder( params )
             .withClusterSize( clusterSize )
-            .withClusterField( eventDataQueryService.getClusterField( clusterField ) )
+            .withCoordinateField( eventDataQueryService.getCoordinateField( coordinateField ) )
             .withBbox( bbox )
             .withIncludeClusterPoints( includeClusterPoints )
             .build();

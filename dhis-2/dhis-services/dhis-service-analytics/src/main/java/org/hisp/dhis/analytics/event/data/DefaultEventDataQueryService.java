@@ -297,38 +297,38 @@ public class DefaultEventDataQueryService
     }
     
     @Override
-    public String getClusterField( String clusterField )
+    public String getCoordinateField( String coordinateField )
     {
-        if ( clusterField == null || EventQueryParams.EVENT_CLUSTER_FIELD.equals( clusterField ) )
+        if ( coordinateField == null || EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
             return "geom";
         }
         
-        DataElement dataElement = dataElementService.getDataElement( clusterField );
+        DataElement dataElement = dataElementService.getDataElement( coordinateField );
         
         if ( dataElement != null )
         {
             if ( ValueType.COORDINATE != dataElement.getValueType() )
             {
-                throw new IllegalQueryException( "Data element must be of value type coordinate to be used as cluster field: " + clusterField );
+                throw new IllegalQueryException( "Data element must be of value type coordinate to be used as coordinate field: " + coordinateField );
             }
             
             return dataElement.getUid();
         }
                 
-        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( clusterField );
+        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
         
         if ( attribute != null )
         {
             if ( ValueType.COORDINATE != attribute.getValueType() )
             {
-                throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as cluster field: " + clusterField );
+                throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as coordinate field: " + coordinateField );
             }
             
             return attribute.getUid();
         }
         
-        throw new IllegalQueryException( "Cluster field not valid: " + clusterField );
+        throw new IllegalQueryException( "Cluster field not valid: " + coordinateField );
     }
 
     // -------------------------------------------------------------------------
