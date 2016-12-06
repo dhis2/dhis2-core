@@ -583,11 +583,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preCreateEntity( parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.CREATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
@@ -600,6 +600,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 + "/" + objectReport.getUid() );
             T entity = manager.get( objectReport.getUid() );
             postCreateEntity( entity );
+        }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
         }
 
         webMessageService.send( webMessage, response, request );
@@ -621,11 +625,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preCreateEntity( parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.CREATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
@@ -639,6 +643,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
             T entity = manager.get( objectReport.getUid() );
             postCreateEntity( entity );
+        }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
         }
 
         webMessageService.send( webMessage, response, request );
@@ -685,21 +693,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
+        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK )
         {
             T entity = manager.get( pvUid );
             postUpdateEntity( entity );
         }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
+        }
 
-        webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
+        webMessageService.send( webMessage, response, request );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
@@ -724,22 +737,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage objectReport = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK )
         {
             T entity = manager.get( pvUid );
             postUpdateEntity( entity );
         }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
+        }
 
-        webMessageService.send( objectReport, response, request );
+        webMessageService.send( webMessage, response, request );
     }
 
     //--------------------------------------------------------------------------
@@ -766,11 +783,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preDeleteEntity( objects.get( 0 ) );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.DELETE );
-        params.addObject( objects.get( 0 ) );
+        MetadataImportParams params = new MetadataImportParams()
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.DELETE )
+            .addObject( objects.get( 0 ) );
 
         ImportReport importReport = importService.importMetadata( params );
 
