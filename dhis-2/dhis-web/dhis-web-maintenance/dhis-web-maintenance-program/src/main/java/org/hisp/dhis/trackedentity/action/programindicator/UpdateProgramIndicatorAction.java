@@ -203,7 +203,7 @@ public class UpdateProgramIndicatorAction
         indicator.setFilter( StringUtils.trimToNull( filter ) );
         indicator.setAggregationType( AggregationType.valueOf( aggregationType ) );
         indicator.setDecimals( decimals );
-        indicator.setLegendSets( ImmutableList.<LegendSet>builder().add( legendSet ).build() );
+        indicator.setLegendSets( (legendSet != null ? ImmutableList.<LegendSet>builder().add( legendSet ).build() : ImmutableList.<LegendSet>builder().build()) );
         indicator.setDisplayInForm( displayInForm );
         indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
         indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
