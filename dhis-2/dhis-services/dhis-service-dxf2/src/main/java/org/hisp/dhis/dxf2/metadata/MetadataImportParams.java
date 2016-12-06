@@ -107,9 +107,10 @@ public class MetadataImportParams
         return user;
     }
 
-    public void setUser( User user )
+    public MetadataImportParams setUser( User user )
     {
         this.user = user;
+        return this;
     }
 
     @JsonProperty
@@ -119,9 +120,10 @@ public class MetadataImportParams
         return importMode;
     }
 
-    public void setImportMode( ObjectBundleMode importMode )
+    public MetadataImportParams setImportMode( ObjectBundleMode importMode )
     {
         this.importMode = importMode;
+        return this;
     }
 
     @JsonProperty
@@ -131,9 +133,10 @@ public class MetadataImportParams
         return identifier;
     }
 
-    public void setIdentifier( PreheatIdentifier identifier )
+    public MetadataImportParams setIdentifier( PreheatIdentifier identifier )
     {
         this.identifier = identifier;
+        return this;
     }
 
     @JsonProperty
@@ -143,9 +146,10 @@ public class MetadataImportParams
         return preheatMode;
     }
 
-    public void setPreheatMode( PreheatMode preheatMode )
+    public MetadataImportParams setPreheatMode( PreheatMode preheatMode )
     {
         this.preheatMode = preheatMode;
+        return this;
     }
 
     @JsonProperty
@@ -155,9 +159,10 @@ public class MetadataImportParams
         return importStrategy;
     }
 
-    public void setImportStrategy( ImportStrategy importStrategy )
+    public MetadataImportParams setImportStrategy( ImportStrategy importStrategy )
     {
         this.importStrategy = importStrategy;
+        return this;
     }
 
     @JsonProperty
@@ -167,9 +172,10 @@ public class MetadataImportParams
         return atomicMode;
     }
 
-    public void setAtomicMode( AtomicMode atomicMode )
+    public MetadataImportParams setAtomicMode( AtomicMode atomicMode )
     {
         this.atomicMode = atomicMode;
+        return this;
     }
 
     @JsonProperty
@@ -179,9 +185,10 @@ public class MetadataImportParams
         return mergeMode;
     }
 
-    public void setMergeMode( MergeMode mergeMode )
+    public MetadataImportParams setMergeMode( MergeMode mergeMode )
     {
         this.mergeMode = mergeMode;
+        return this;
     }
 
     @JsonProperty
@@ -191,9 +198,10 @@ public class MetadataImportParams
         return flushMode;
     }
 
-    public void setFlushMode( FlushMode flushMode )
+    public MetadataImportParams setFlushMode( FlushMode flushMode )
     {
         this.flushMode = flushMode;
+        return this;
     }
 
     public ImportReportMode getImportReportMode()
@@ -201,9 +209,10 @@ public class MetadataImportParams
         return importReportMode;
     }
 
-    public void setImportReportMode( ImportReportMode importReportMode )
+    public MetadataImportParams setImportReportMode( ImportReportMode importReportMode )
     {
         this.importReportMode = importReportMode;
+        return this;
     }
 
     @JsonProperty
@@ -213,9 +222,10 @@ public class MetadataImportParams
         return skipSharing;
     }
 
-    public void setSkipSharing( boolean skipSharing )
+    public MetadataImportParams setSkipSharing( boolean skipSharing )
     {
         this.skipSharing = skipSharing;
+        return this;
     }
 
     @JsonProperty
@@ -225,9 +235,10 @@ public class MetadataImportParams
         return skipValidation;
     }
 
-    public void setSkipValidation( boolean skipValidation )
+    public MetadataImportParams setSkipValidation( boolean skipValidation )
     {
         this.skipValidation = skipValidation;
+        return this;
     }
 
     @JsonProperty
@@ -237,9 +248,10 @@ public class MetadataImportParams
         return filename;
     }
 
-    public void setFilename( String filename )
+    public MetadataImportParams setFilename( String filename )
     {
         this.filename = filename;
+        return this;
     }
 
     public TaskId getTaskId()
@@ -247,9 +259,10 @@ public class MetadataImportParams
         return taskId;
     }
 
-    public void setTaskId( TaskId taskId )
+    public MetadataImportParams setTaskId( TaskId taskId )
     {
         this.taskId = taskId;
+        return this;
     }
 
     public boolean hasTaskId()
@@ -262,9 +275,10 @@ public class MetadataImportParams
         return objects;
     }
 
-    public void setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    public MetadataImportParams setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
         this.objects = objects;
+        return this;
     }
 
     public List<Class<? extends IdentifiableObject>> getClasses()

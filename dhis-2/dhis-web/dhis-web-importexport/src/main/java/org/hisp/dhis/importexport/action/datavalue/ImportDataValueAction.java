@@ -29,7 +29,6 @@ package org.hisp.dhis.importexport.action.datavalue;
  */
 
 import com.opensymphony.xwork2.Action;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,7 +66,7 @@ public class ImportDataValueAction
 
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private SessionFactory sessionFactory;
 
@@ -143,7 +142,7 @@ public class ImportDataValueAction
     {
         this.importFormat = importFormat;
     }
-    
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -168,11 +167,12 @@ public class ImportDataValueAction
             .setSkipExistingCheck( skipExistingCheck )
             .setIdScheme( StringUtils.trimToNull( idScheme ) )
             .setDataElementIdScheme( StringUtils.trimToNull( dataElementIdScheme ) )
-            .setOrgUnitIdScheme( StringUtils.trimToNull( orgUnitIdScheme ) );
+            .setOrgUnitIdScheme( StringUtils.trimToNull( orgUnitIdScheme ) )
+            .setFilename( upload.getName() );
 
         log.info( options );
 
-        scheduler.executeTask( new ImportDataValueTask( dataValueSetService, 
+        scheduler.executeTask( new ImportDataValueTask( dataValueSetService,
             adxDataService, sessionFactory, in, options, taskId, importFormat ) );
 
         return SUCCESS;

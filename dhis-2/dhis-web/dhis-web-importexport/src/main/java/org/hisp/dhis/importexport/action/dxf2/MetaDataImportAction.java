@@ -171,7 +171,8 @@ public class MetaDataImportAction
         InputStream in = new FileInputStream( upload );
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
 
-        MetadataImportParams importParams = createMetadataImportParams( taskId, strategy, atomicMode, dryRun );
+        MetadataImportParams importParams = createMetadataImportParams( taskId, strategy, atomicMode, dryRun )
+            .setFilename( upload.getName() );
 
         if ( "csv".equals( importFormat ) )
         {

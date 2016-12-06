@@ -134,9 +134,10 @@ public class ImportEventAction
         InputStream in = new FileInputStream( upload );
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
 
-        ImportOptions importOptions = new ImportOptions();
-        importOptions.setDryRun( dryRun );
-        importOptions.setOrgUnitIdScheme( orgUnitIdScheme.toString() );
+        ImportOptions importOptions = new ImportOptions()
+            .setDryRun( dryRun )
+            .setOrgUnitIdScheme( orgUnitIdScheme.toString() )
+            .setFilename( upload.getName() );
 
         if ( FORMAT_CSV.equals( payloadFormat ) )
         {

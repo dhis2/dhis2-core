@@ -396,9 +396,10 @@ public class ImportOptions
         return this;
     }
 
-    public void setFilename( String filename )
+    public ImportOptions setFilename( String filename )
     {
         this.filename = filename;
+        return this;
     }
 
     @Override public String toString()
