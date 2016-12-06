@@ -210,6 +210,19 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
+    public void analyzeTables( List<AnalyticsTable> tables )
+    {
+        for ( AnalyticsTable table : tables )
+        {
+            final String sql = "analyze " + table.getTempTableName() + ";";
+            
+            log.debug( "Analyze table SQL: " + sql );
+            
+            jdbcTemplate.execute( sql );
+        }
+    }
+    
+    @Override
     public void dropTable( String tableName )
     {
         final String realTable = tableName.replaceFirst( TABLE_TEMP_SUFFIX, "" );

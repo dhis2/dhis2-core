@@ -140,6 +140,11 @@ public class DefaultAnalyticsTableService
         createIndexes( tables );
         
         clock.logTime( "Created indexes" );
+        notifier.notify( taskId, "Analyzing analytics tables" );
+        
+        tableManager.analyzeTables( tables );
+        
+        clock.logTime( "Analyzed tables" );
         notifier.notify( taskId, "Swapping analytics tables" );
         
         swapTables( tables, clock, taskId );
