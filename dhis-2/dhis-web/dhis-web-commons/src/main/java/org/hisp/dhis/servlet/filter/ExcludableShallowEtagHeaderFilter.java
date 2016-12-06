@@ -41,14 +41,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 /**
- * Subclass of {@link org.springframework.web.filter.ShallowEtagHeaderFilter} 
+ * <p>Subclass of {@link org.springframework.web.filter.ShallowEtagHeaderFilter} 
  * which allows exclusion of URIs matching a regex.
  *
- * The regex is given as the init-param named 'excludeUriRegex' in the filter 
+ * <p>The regex is given as the init-param named 'excludeUriRegex' in the filter 
  * configuration.
  *
- * Example configuration:
+ * <p>Example configuration:
  * 
+ * <pre>
  * {@code
  * <filter>
  *     <filter-name>ShallowEtagHeaderFilter</filter-name>
@@ -59,9 +60,10 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
  *     </init-param>
  * </filter>
  * }
- *
- *  The example exactly matches and excludes any request to the '/api/dataValues' 
- *  and '/api/dataValues/files' from the filter.
+ * </pre>
+ * 
+ * <p>The example exactly matches and excludes any request to the '/api/dataValues' 
+ * and '/api/dataValues/files' from the filter.
  * 
  * @author Lars Helge Overland
  * @author Halvdan Hoem Grelland
