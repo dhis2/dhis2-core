@@ -47,7 +47,10 @@ public enum ValidationRuleTemplateVariable
     LEFT_SIDE_DESCRIPTION( "left_side_description" ),
     RIGHT_SIDE_DESCRIPTION( "right_side_description" ),
     LEFT_SIDE_VALUE( "left_side_value" ),
-    RIGHT_SIDE_VALUE( "right_side_value" );
+    RIGHT_SIDE_VALUE( "right_side_value" ),
+    ORG_UNIT_NAME( "org_unit_name" ),
+    PERIOD( "period" ),
+    CURRENT_DATE( "current_date" );
 
     private static final Map<String, ValidationRuleTemplateVariable> variableNameMap =
         EnumSet.allOf( ValidationRuleTemplateVariable.class ).stream()
