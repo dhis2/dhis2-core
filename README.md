@@ -5,6 +5,8 @@ DHIS 2 is a flexible information system for data capture, management, validation
 
 ## Overview
 
+Issues can be reported and browsed in [JIRA](https://jira.dhis2.org).
+
 The software is open source and released under the [BSD license](https://opensource.org/licenses/BSD-2-Clause).
 
 For documentation please visit the [doc page](https://www.dhis2.org/documentation/).
