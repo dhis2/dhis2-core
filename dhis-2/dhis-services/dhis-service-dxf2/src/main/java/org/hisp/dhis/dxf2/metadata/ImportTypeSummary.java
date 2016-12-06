@@ -89,9 +89,10 @@ public class ImportTypeSummary extends ImportSummary
     }
 
     @Override
-    public void setImportCount( ImportCount importCount )
+    public ImportSummary setImportCount( ImportCount importCount )
     {
         this.importCount = importCount;
+        return null;
     }
 
     @JsonProperty

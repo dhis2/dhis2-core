@@ -600,7 +600,9 @@ public class DefaultDataValueSetService
         Clock clock = new Clock( log ).startClock().logTime( "Starting data value import, options: " + importOptions );
         notifier.clear( id ).notify( id, "Process started" );
 
-        ImportSummary summary = new ImportSummary();
+        ImportSummary summary = new ImportSummary()
+            .setImportOptions( importOptions );
+
         boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
 
         I18n i18n = i18nManager.getI18n();
@@ -619,7 +621,7 @@ public class DefaultDataValueSetService
         IdScheme dvSetCategoryOptComboIdScheme = IdScheme.from( dataValueSet.getCategoryOptionComboIdSchemeProperty() );
         IdScheme dvSetDataSetIdScheme = IdScheme.from( dataValueSet.getDataSetIdSchemeProperty() );
 
-        log.info( "Data value set identifier scheme: " + dvSetIdScheme + ", data element: " + dvSetDataElementIdScheme + 
+        log.info( "Data value set identifier scheme: " + dvSetIdScheme + ", data element: " + dvSetDataElementIdScheme +
             ", org unit: " + dvSetOrgUnitIdScheme + ", category option combo: " + dvSetCategoryOptComboIdScheme + ", data set: " + dvSetDataSetIdScheme );
 
         IdScheme idScheme = dvSetIdScheme.isNotNull() ? dvSetIdScheme : importOptions.getIdSchemes().getIdScheme();
@@ -627,8 +629,8 @@ public class DefaultDataValueSetService
         IdScheme orgUnitIdScheme = dvSetOrgUnitIdScheme.isNotNull() ? dvSetOrgUnitIdScheme : importOptions.getIdSchemes().getOrgUnitIdScheme();
         IdScheme categoryOptComboIdScheme = dvSetCategoryOptComboIdScheme.isNotNull() ? dvSetCategoryOptComboIdScheme : importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
         IdScheme dataSetIdScheme = dvSetDataSetIdScheme.isNotNull() ? dvSetDataSetIdScheme : importOptions.getIdSchemes().getDataSetIdScheme();
-        
-        log.info( "Identifier scheme: " + idScheme + ", data element: " + dataElementIdScheme + 
+
+        log.info( "Identifier scheme: " + idScheme + ", data element: " + dataElementIdScheme +
             ", org unit: " + orgUnitIdScheme + ", category option combo: " + categoryOptComboIdScheme + ", data set: " + dataSetIdScheme );
 
         ImportStrategy strategy = dataValueSet.getStrategy() != null ?
@@ -674,9 +676,9 @@ public class DefaultDataValueSetService
             identifiableObjectManager, DataElement.class, dataElementIdScheme, null );
         IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable = new IdentifiableObjectCallable<>(
             identifiableObjectManager, OrganisationUnit.class, orgUnitIdScheme, trimToNull( dataValueSet.getOrgUnit() ) );
-        IdentifiableObjectCallable<DataElementCategoryOptionCombo> categoryOptionComboCallable = new CategoryOptionComboAclCallable( 
+        IdentifiableObjectCallable<DataElementCategoryOptionCombo> categoryOptionComboCallable = new CategoryOptionComboAclCallable(
             categoryService, categoryOptComboIdScheme, null );
-        IdentifiableObjectCallable<DataElementCategoryOptionCombo> attributeOptionComboCallable = new CategoryOptionComboAclCallable( 
+        IdentifiableObjectCallable<DataElementCategoryOptionCombo> attributeOptionComboCallable = new CategoryOptionComboAclCallable(
             categoryService, categoryOptComboIdScheme, null );
         IdentifiableObjectCallable<Period> periodCallable = new PeriodCallable( periodService, null, trimToNull( dataValueSet.getPeriod() ) );
 
@@ -788,7 +790,7 @@ public class DefaultDataValueSetService
                 periodMap.get( trimToNull( dataValue.getPeriod() ), periodCallable.setId( trimToNull( dataValue.getPeriod() ) ) );
             final OrganisationUnit orgUnit = outerOrgUnit != null ? outerOrgUnit :
                 orgUnitMap.get( trimToNull( dataValue.getOrgUnit() ), orgUnitCallable.setId( trimToNull( dataValue.getOrgUnit() ) ) );
-            DataElementCategoryOptionCombo categoryOptionCombo = 
+            DataElementCategoryOptionCombo categoryOptionCombo =
                 optionComboMap.get( trimToNull( dataValue.getCategoryOptionCombo() ), categoryOptionComboCallable.setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) );
             DataElementCategoryOptionCombo attrOptionCombo = outerAttrOptionCombo != null ? outerAttrOptionCombo :
                 optionComboMap.get( trimToNull( dataValue.getAttributeOptionCombo() ), attributeOptionComboCallable.setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
@@ -899,7 +901,7 @@ public class DefaultDataValueSetService
                     categoryOptionCombo = fallbackCategoryOptionCombo;
                 }
             }
-            
+
             if ( attrOptionCombo == null )
             {
                 if ( requireAttrOptionCombo )
@@ -1037,7 +1039,7 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            if( !periodOpenForDataElement.get(dataElement.getUid() + period.getIsoDate(), () -> dataElement.isPeriodInDataSetOpenPeriods( period ) ) )
+            if ( !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(), () -> dataElement.isPeriodInDataSetOpenPeriods( period ) ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data set(s)" ) );
                 continue;

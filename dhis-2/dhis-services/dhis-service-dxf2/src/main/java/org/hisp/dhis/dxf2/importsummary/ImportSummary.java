@@ -98,9 +98,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return status;
     }
 
-    public void setStatus( ImportStatus status )
+    public ImportSummary setStatus( ImportStatus status )
     {
         this.status = status;
+        return this;
     }
 
     @JsonProperty
@@ -110,9 +111,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return importOptions;
     }
 
-    public void setImportOptions( ImportOptions importOptions )
+    public ImportSummary setImportOptions( ImportOptions importOptions )
     {
         this.importOptions = importOptions;
+        return this;
     }
 
     @JsonProperty
@@ -122,9 +124,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return description;
     }
 
-    public void setDescription( String description )
+    public ImportSummary setDescription( String description )
     {
         this.description = description;
+        return this;
     }
 
     @JsonProperty
@@ -134,9 +137,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return importCount;
     }
 
-    public void setImportCount( ImportCount importCount )
+    public ImportSummary setImportCount( ImportCount importCount )
     {
         this.importCount = importCount;
+        return this;
     }
 
     @JsonProperty
@@ -147,9 +151,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return conflicts;
     }
 
-    public void setConflicts( Set<ImportConflict> conflicts )
+    public ImportSummary setConflicts( Set<ImportConflict> conflicts )
     {
         this.conflicts = conflicts;
+        return this;
     }
 
     @JsonProperty
@@ -159,9 +164,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return dataSetComplete;
     }
 
-    public void setDataSetComplete( String dataSetComplete )
+    public ImportSummary setDataSetComplete( String dataSetComplete )
     {
         this.dataSetComplete = dataSetComplete;
+        return this;
     }
 
     @JsonProperty
@@ -171,9 +177,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return reference;
     }
 
-    public void setReference( String reference )
+    public ImportSummary setReference( String reference )
     {
         this.reference = reference;
+        return this;
     }
 
     @JsonProperty
@@ -183,9 +190,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return href;
     }
 
-    public void setHref( String href )
+    public ImportSummary setHref( String href )
     {
         this.href = href;
+        return this;
     }
 
     @JsonProperty
@@ -195,9 +203,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return enrollments;
     }
 
-    public void setEnrollments( ImportSummaries enrollments )
+    public ImportSummary setEnrollments( ImportSummaries enrollments )
     {
         this.enrollments = enrollments;
+        return this;
     }
 
     public ImportSummary incrementImported()
