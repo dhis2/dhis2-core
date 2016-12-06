@@ -105,7 +105,7 @@ public class DefaultEventDataQueryService
         boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, I18nFormat format )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, relativePeriodDate, userOrgUnit, null, null, format );
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, relativePeriodDate, userOrgUnit, null, null, null, format );
 
         EventQueryParams params = new EventQueryParams.Builder( query )
             .withValue( getValueDimension( value ) )
@@ -127,7 +127,7 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
         boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
-        Date relativePeriodDate, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format )
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, I18nFormat format )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         
@@ -234,6 +234,7 @@ public class DefaultEventDataQueryService
             .withCoordinatesOnly( coordinatesOnly )
             .withEventStatus( eventStatus )
             .withDisplayProperty( displayProperty )
+            .withCoordinateField( getCoordinateField( coordinateField ) )
             .withPage( page )
             .withPageSize( pageSize )
             .withProgramStatus( programStatus ).build();
