@@ -267,6 +267,7 @@ public class JdbcEnrollmentAnalyticsTableManager
                              "JOIN programstageinstance psi " + 
                              "ON psi.programstageinstanceid = tedv.programstageinstanceid " + 
                              "WHERE psi.executiondate is not null " + 
+                             "AND psi.deleted is not true " + 
                              "AND psi.programinstanceid = pi.programinstanceid " +
                              dataClause + 
                              " AND tedv.dataelementid = " + dataElement.getId() + 
