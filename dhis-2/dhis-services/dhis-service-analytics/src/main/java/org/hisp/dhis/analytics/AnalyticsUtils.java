@@ -63,6 +63,7 @@ import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -362,11 +363,15 @@ public class AnalyticsUtils
      * Prepares the given grid to be converted to a data value set.
      * 
      * <ul>
+     * <li>Converts data values from double to integer based on the
+     * associated data item if required.</li>
      * <li>Adds a category option combo and a attribute option combo
      * column to the grid based on the aggregated export properties
      * of the associated data item.</li>
-     * <li>Converts data values from double to integer based on the
-     * associated data item if required.</li>
+     * <li>For data element operand data items, the operand identifier
+     * is split and the data element identifier is used for the data
+     * dimension column and the category option combo identifier is
+     * used for the category option combo column.</li>
      * </ul>
      * 
      * @param params the data query parameters.
@@ -399,18 +404,22 @@ public class AnalyticsUtils
             
             row.set( vlInx, value );
             
+            String coc = null, aoc = null;
+            
             if ( DataDimensionalItemObject.class.isAssignableFrom( item.getClass() ) )
             {
-                DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
-                
-                cocCol.add( dataItem.getAggregateExportCategoryOptionCombo() );
-                aocCol.add( dataItem.getAggregateExportAttributeOptionCombo() );
+                DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;                
+                coc = dataItem.getAggregateExportCategoryOptionCombo();
+                aoc = dataItem.getAggregateExportAttributeOptionCombo();
             }
-            else
+            else if ( DataElementOperand.class.isAssignableFrom( item.getClass() ) )
             {
-                cocCol.add( null );
-                aocCol.add( null );
+                row.set( dxInx, DimensionalObjectUtils.getFirstIdentifer( dx ) );
+                coc = DimensionalObjectUtils.getSecondIdentifer( dx );
             }
+            
+            cocCol.add( coc );
+            aocCol.add( aoc );
         }
 
         grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) )

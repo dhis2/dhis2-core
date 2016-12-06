@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -351,6 +352,32 @@ public class DimensionalObjectUtils
     public static boolean isCompositeDimensionalObject( String expression )
     {
         return expression != null && COMPOSITE_DIM_OBJECT_PATTERN.matcher( expression ).matches();
+    }
+    
+    /**
+     * Returns the first identifier in a composite dimension object identifier.
+     * 
+     * @param compositeItem the composite dimension object identifier.
+     * @return the first identifier, or null if not a valid composite identifier
+     *         or no match.
+     */
+    public static String getFirstIdentifer( String compositeItem )
+    {
+        Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher( compositeItem );
+        return matcher.matches() ? matcher.group( 1 ) : null;
+    }
+
+    /**
+     * Returns the second identifier in a composite dimension object identifier.
+     * 
+     * @param compositeItem the composite dimension object identifier.
+     * @return the second identifier, or null if not a valid composite identifier
+     *         or no match.
+     */
+    public static String getSecondIdentifer( String compositeItem )
+    {
+        Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher( compositeItem );
+        return matcher.matches() ? matcher.group( 2 ) : null;
     }
 
     /**

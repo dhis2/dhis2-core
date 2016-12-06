@@ -155,4 +155,18 @@ public class DimensionalObjectUtilsTest
         assertEquals( "AttributeValueB", map.get( "A123456789B" ) );
         assertEquals( null, map.get( "A123456789C" ) );
     }
+    
+    @Test
+    public void testGetFirstSecondIdentifier()
+    {
+        assertEquals( "A123456789A", DimensionalObjectUtils.getFirstIdentifer( "A123456789A.P123456789A" ) );        
+        assertNull( DimensionalObjectUtils.getFirstIdentifer( "123NotVald" ) );
+    }
+
+    @Test
+    public void testGetSecondIdentifier()
+    {
+        assertEquals( "P123456789A", DimensionalObjectUtils.getSecondIdentifer( "A123456789A.P123456789A" ) );
+        assertNull( DimensionalObjectUtils.getSecondIdentifer( "A123456789A.312" ) );
+    }
 }
