@@ -86,10 +86,6 @@ public class Validator
 
         reloadAttributeOptionCombos( context.getValidationResults(), categoryService );
 
-        System.out.println( "Handled all " + context.getRuleXMap().size() + " rules " +
-            "to get " + context.getValidationResults().size() + " violations " +
-            "in " + ((System.nanoTime()-startTime)/1000000.0) + " milliseconds.");
-
         return context.getValidationResults();
     }
 
