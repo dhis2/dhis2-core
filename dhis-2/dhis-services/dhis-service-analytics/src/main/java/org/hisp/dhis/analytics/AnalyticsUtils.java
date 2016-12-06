@@ -485,24 +485,22 @@ public class AnalyticsUtils
 
         for ( DimensionalObject dimension : dimensions )
         {
-            List<DimensionalItemObject> items = new ArrayList<>( dimension.getItems() );
-
-            for ( DimensionalItemObject object : items )
+            for ( DimensionalItemObject item : dimension.getItems() )
             {
                 if ( DimensionType.PERIOD.equals( dimension.getDimensionType() ) && !calendar.isIso8601() )
                 {
-                    Period period = (Period) object;
+                    Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
                     map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), period.getDisplayName() );
                 }
                 else
                 {
-                    map.put( object.getDimensionItem(), object.getDisplayProperty( params.getDisplayProperty() ) );
+                    map.put( item.getDimensionItem(), item.getDisplayProperty( params.getDisplayProperty() ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() ) && params.isHierarchyMeta() )
                 {
-                    OrganisationUnit unit = (OrganisationUnit) object;
+                    OrganisationUnit unit = (OrganisationUnit) item;
 
                     map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( unit.getAncestors(), params.getDisplayProperty() ) );
                 }
