@@ -168,11 +168,10 @@ public class MetaDataImportAction
 
         notifier.clear( taskId );
 
-        InputStream in = new FileInputStream( upload );
-        in = StreamUtils.wrapAndCheckCompressionFormat( in );
+        InputStream in = StreamUtils.wrapAndCheckCompressionFormat( new FileInputStream( upload ) );
 
         MetadataImportParams importParams = createMetadataImportParams( taskId, strategy, atomicMode, dryRun )
-            .setFilename( upload.getName() );
+            .setFilename( upload.getAbsolutePath() );
 
         if ( "csv".equals( importFormat ) )
         {
