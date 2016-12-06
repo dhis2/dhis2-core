@@ -32,6 +32,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.opengis.geometry.primitive.Point;
 
 import java.util.Date;
 import java.util.Set;
@@ -62,7 +63,7 @@ public enum ValueType
     TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
     USERNAME( String.class, false ),
     FILE_RESOURCE( String.class, false ),
-    COORDINATE( String.class, true ),
+    COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.<ValueType>builder().add(
