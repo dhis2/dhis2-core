@@ -63,21 +63,31 @@ jQuery( document ).ready( function()
 				</select>
 			</td>
 		</tr>
+                <tr>
+                    <td><label for="programIndicatorAnalyticsType">$i18n.getString( "analytics_type" )</label></td>
+                    <td>
+                        <select id="programIndicatorAnalyticsType" name="programIndicatorAnalyticsType">
+                            <option value="EVENT">$i18n.getString( "analytics_type_event" )</option>
+                            <option value="ENROLLMENT">$i18n.getString( "analytics_type_enrollment" )</option>
+                        </select>
+                    </td>
+                    <td></td>
+                </tr>
 		<tr>
-	        <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
-	        <td>
-	            <select id="aggregationType" name="aggregationType">
-	                <option value="AVERAGE">$i18n.getString( "average" )</option>
-	                <option value="SUM">$i18n.getString( "sum" )</option>
-	                <option value="COUNT">$i18n.getString( "count" )</option>
-	                <option value="STDDEV">$i18n.getString( "stddev" )</option>
-	                <option value="VARIANCE">$i18n.getString( "variance" )</option>
-	                <option value="MIN">$i18n.getString( "min" )</option>
-	                <option value="MAX">$i18n.getString( "max" )</option>
-	                <option value="CUSTOM">$i18n.getString( "custom" )</option>
-	            </select>
-	        </td>
-			<td></td>
+                    <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
+                    <td>
+                        <select id="aggregationType" name="aggregationType">
+                            <option value="AVERAGE">$i18n.getString( "average" )</option>
+                            <option value="SUM">$i18n.getString( "sum" )</option>
+                            <option value="COUNT">$i18n.getString( "count" )</option>
+                            <option value="STDDEV">$i18n.getString( "stddev" )</option>
+                            <option value="VARIANCE">$i18n.getString( "variance" )</option>
+                            <option value="MIN">$i18n.getString( "min" )</option>
+                            <option value="MAX">$i18n.getString( "max" )</option>
+                            <option value="CUSTOM">$i18n.getString( "custom" )</option>
+                        </select>
+                    </td>
+                    <td></td>
 	    </tr>
 	    <tr>
 	        <td><label>$i18n.getString( 'legend_set' )</label></td>            

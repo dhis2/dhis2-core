@@ -44,6 +44,7 @@ import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorAnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.system.predicate.ArithmeticValueTypeTrackedEntityAttributeFilter;
@@ -154,6 +155,13 @@ public class GetProgramIndicatorAction
     public List<LegendSet> getLegendSets()
     {
         return legendSets;
+    }
+    
+    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
+    
+    public ProgramIndicatorAnalyticsType getProgramIndicatorAnalyticsType()
+    {
+        return programIndicatorAnalyticsType;
     }
 
     private List<Attribute> attributes;

@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity.action.programindicator;
  */
 
 import com.google.common.collect.ImmutableList;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeService;
@@ -36,6 +37,7 @@ import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorAnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,6 +184,13 @@ public class AddProgramIndicatorAction
         this.jsonAttributeValues = jsonAttributeValues;
     }
     
+    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
+    
+    public void setProgramIndicatorAnalyticsType( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
+    {
+        this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
+    }
+    
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -208,6 +217,7 @@ public class AddProgramIndicatorAction
         indicator.setDisplayInForm( displayInForm );
         indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
         indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
+        indicator.setProgramIndicatorAnalyticsType( programIndicatorAnalyticsType );
 
         if ( jsonAttributeValues != null )
         {
