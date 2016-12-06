@@ -7,11 +7,11 @@
 var d2Directives = angular.module('d2Directives', [])
 
 
-.directive('selectedOrgUnit', function ($timeout) {
+.directive('selectedOrgUnit', function ($timeout, $location) {
     return {
         restrict: 'A',
         link: function (scope, element, attrs) {
-
+            var orgUnitFromUrl;
             $("#orgUnitTree").one("ouwtLoaded", function (event, ids, names) {
                 if (dhis2.tc && dhis2.tc.metaDataCached) {
                     $timeout(function () {
@@ -22,6 +22,7 @@ var d2Directives = angular.module('d2Directives', [])
                 }
                 else {
                     console.log('Finished loading orgunit tree');
+                    orgUnitFromUrl = ($location.search()).ou;
                     $("#orgUnitTree").addClass("disable-clicks"); //Disable ou selection until meta-data has downloaded
                     $timeout(function () {
                         scope.treeLoaded = true;
@@ -35,10 +36,15 @@ var d2Directives = angular.module('d2Directives', [])
             selection.setListenerFunction(setSelectedOu, true);
             function setSelectedOu(ids, names) {
                 var ou = {id: ids[0], displayName: names[0]};
-                $timeout(function () {
-                    scope.selectedOrgUnit = ou;
-                    scope.$apply();
-                });
+                if(orgUnitFromUrl && ou.id !== orgUnitFromUrl) {
+                    selection.setOrgUnitFromURL(orgUnitFromUrl);
+                    orgUnitFromUrl = null;
+                } else {
+                    $timeout(function () {
+                        scope.selectedOrgUnit = ou;
+                        scope.$apply();
+                    });
+                }
             }
         }
     };
