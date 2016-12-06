@@ -110,6 +110,13 @@ public interface AnalyticsTableManager
      * @param tables the analytics tables.
      */
     Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
+    
+    /**
+     * Performs analyze operations on analytics tables.
+     * 
+     * @param tables the analytics tables.
+     */
+    void analyzeTables( List<AnalyticsTable> tables );
 
     /**
      * Returns all years for which it exists data values.

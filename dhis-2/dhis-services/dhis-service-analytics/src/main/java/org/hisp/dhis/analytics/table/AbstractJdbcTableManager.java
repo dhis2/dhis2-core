@@ -193,7 +193,7 @@ public abstract class AbstractJdbcTableManager
         
         return null;
     }
-
+    
     @Override
     public void swapTable( AnalyticsTable table )
     {
@@ -243,7 +243,20 @@ public abstract class AbstractJdbcTableManager
      * @param table the analytics table to populate.
      */
     protected abstract void populateTable( AnalyticsTable table );
-    
+
+    @Override
+    public void analyzeTables( List<AnalyticsTable> tables )
+    {
+        for ( AnalyticsTable table : tables )
+        {
+            final String sql = "analyze " + table.getTempTableName() + ";";
+            
+            log.debug( "Analyze table SQL: " + sql );
+            
+            jdbcTemplate.execute( sql );
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
