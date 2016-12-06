@@ -74,6 +74,8 @@ public class DefaultProgramIndicatorService
         put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() ).
         put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).build();
 
+    private static final String SEPARATOR_DB = "_";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -277,14 +279,17 @@ public class DefaultProgramIndicatorService
 
         expression = getSubstitutedVariablesForAnalyticsSql( expression );
 
-        expression = getSubstitutedFunctionsAnalyticsSql( expression, false );
+        expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicatorAnalyticsType );
 
-        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues );
+        expression = getSubstitutedElementsAnalyticsSql( expression, ignoreMissingValues, programIndicatorAnalyticsType );
 
         return expression;
     }
 
-    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues )
+    private String getSubstitutedFunctionsAnalyticsSql( 
+        String expression, 
+        boolean ignoreMissingValues, 
+        ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
     {
         if ( expression == null )
         {
@@ -306,7 +311,7 @@ public class DefaultProgramIndicatorService
 
                 for ( int i = 0; i < args.length; i++ )
                 {
-                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false );
+                    String arg = getSubstitutedElementsAnalyticsSql( trim( args[i] ), false, programIndicatorAnalyticsType );
                     args[i] = arg;
                 }
 
@@ -352,7 +357,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues )
+    private String getSubstitutedElementsAnalyticsSql( String expression, boolean ignoreMissingValues, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType  )
     {
         if ( expression == null )
         {
@@ -370,8 +375,12 @@ public class DefaultProgramIndicatorService
             String el2 = matcher.group( 3 );
 
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
-            {
-                String de = ignoreMissingValues ? getIgnoreNullSql( statementBuilder.columnQuote( el2 ) ) : statementBuilder.columnQuote( el2 );
+            {                
+                String columnName = ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicatorAnalyticsType ) ? 
+                        statementBuilder.columnQuote( el1 ) + SEPARATOR_DB + statementBuilder.columnQuote( el2 )
+                        : statementBuilder.columnQuote( el2 );
+                
+                String de = ignoreMissingValues ? getIgnoreNullSql( columnName ) : columnName;
 
                 matcher.appendReplacement( buffer, de );
             }
