@@ -92,6 +92,13 @@ public class ImportEventAction
         this.upload = upload;
     }
 
+    private String uploadFileName;
+
+    public void setUploadFileName( String uploadFileName )
+    {
+        this.uploadFileName = uploadFileName;
+    }
+
     private boolean dryRun;
 
     public void setDryRun( boolean dryRun )
@@ -137,7 +144,7 @@ public class ImportEventAction
         ImportOptions importOptions = new ImportOptions()
             .setDryRun( dryRun )
             .setOrgUnitIdScheme( orgUnitIdScheme.toString() )
-            .setFilename( upload.getName() );
+            .setFilename( uploadFileName );
 
         if ( FORMAT_CSV.equals( payloadFormat ) )
         {

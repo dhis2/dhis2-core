@@ -3,7 +3,7 @@
 #if( $summary ) ## ImportSummary can be null on failed GML import (pre-processing fails)
 <h4>$i18n.getString( "import_count" )</h4>
 
-  $i18n.getString("filename") $summary.filename<br/><br/>
+  $i18n.getString("filename") $summary.importOptions.filename<br/><br/>
 
   $summary.importCount.imported Imported<br/>
   $summary.importCount.updated Updated<br/>

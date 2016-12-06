@@ -4,7 +4,7 @@
 <p>$i18n.getString( "data_set_completed_on" ) ${summary.dataSetComplete}</p>
 #end
 
-<p>$i18n.getString( "filename" ) ${summary.filename}</p>
+<p>$i18n.getString( "filename" ) ${summary.importOptions.filename}</p>
 
 <h4>$i18n.getString( "import_count" )</h4>
 #if( $summary.importCount )

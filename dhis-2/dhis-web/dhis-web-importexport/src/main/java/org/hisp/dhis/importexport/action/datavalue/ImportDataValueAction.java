@@ -87,6 +87,13 @@ public class ImportDataValueAction
         this.upload = upload;
     }
 
+    private String uploadFileName;
+
+    public void setUploadFileName( String uploadFileName )
+    {
+        this.uploadFileName = uploadFileName;
+    }
+
     private boolean dryRun;
 
     public void setDryRun( boolean dryRun )
@@ -168,7 +175,7 @@ public class ImportDataValueAction
             .setIdScheme( StringUtils.trimToNull( idScheme ) )
             .setDataElementIdScheme( StringUtils.trimToNull( dataElementIdScheme ) )
             .setOrgUnitIdScheme( StringUtils.trimToNull( orgUnitIdScheme ) )
-            .setFilename( upload.getName() );
+            .setFilename( uploadFileName );
 
         log.info( options );
 
