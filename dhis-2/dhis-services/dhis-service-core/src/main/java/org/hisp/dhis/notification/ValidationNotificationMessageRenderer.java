@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class ValidationRuleNotificationMessageRenderer
+public class ValidationNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ValidationResult>
 {
     private static final ImmutableMap<TemplateVariable, Function<ValidationResult, String>> VARIABLE_RESOLVERS =
@@ -70,7 +70,7 @@ public class ValidationRuleNotificationMessageRenderer
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ValidationRuleNotificationMessageRenderer()
+    public ValidationNotificationMessageRenderer()
     {
     }
 

@@ -47,7 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.validation.notification.ValidationRuleNotificationTemplate;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -103,7 +103,7 @@ public class ValidationRule
     /**
      * Notification templates for this ValidationRule
      */
-    private Set<ValidationRuleNotificationTemplate> notificationTemplates;
+    private Set<ValidationNotificationTemplate> notificationTemplates;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -346,12 +346,12 @@ public class ValidationRule
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlElementWrapper( localName = "notificationTemplates", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ValidationRuleNotificationTemplate> getNotificationTemplates()
+    public Set<ValidationNotificationTemplate> getNotificationTemplates()
     {
         return notificationTemplates;
     }
 
-    public void setNotificationTemplates( Set<ValidationRuleNotificationTemplate> notificationTemplates )
+    public void setNotificationTemplates( Set<ValidationNotificationTemplate> notificationTemplates )
     {
         this.notificationTemplates = notificationTemplates;
     }

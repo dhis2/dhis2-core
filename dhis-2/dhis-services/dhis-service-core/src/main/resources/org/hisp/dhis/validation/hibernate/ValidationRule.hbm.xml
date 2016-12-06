@@ -45,7 +45,7 @@
     <set name="notificationTemplates" table="validationrulenotificationtemplates">
       <cache usage="read-write" />
       <key column="validationruleid" foreign-key="fk_validationrule_validationrulenotificationtemplate" />
-      <many-to-many class="org.hisp.dhis.validation.notification.ValidationRuleNotificationTemplate"
+      <many-to-many class="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
         column="validationrulenotificationtemplateid" />
     </set>
 

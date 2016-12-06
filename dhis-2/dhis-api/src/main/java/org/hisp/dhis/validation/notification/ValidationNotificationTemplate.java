@@ -46,7 +46,7 @@ import java.util.Set;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class ValidationRuleNotificationTemplate
+public class ValidationNotificationTemplate
     extends BaseIdentifiableObject
     implements NotificationTemplate
 {
@@ -71,7 +71,7 @@ public class ValidationRuleNotificationTemplate
 
     private Set<ValidationRule> validationRules;
 
-    private ValidationRuleNotificationRecipient notificationRecipient;
+    private ValidationNotificationRecipient notificationRecipient;
 
     // -------------------------------------------------------------------------
     // Conditionally relevant properties
@@ -83,7 +83,7 @@ public class ValidationRuleNotificationTemplate
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ValidationRuleNotificationTemplate()
+    public ValidationNotificationTemplate()
     {
     }
 
@@ -138,12 +138,12 @@ public class ValidationRuleNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValidationRuleNotificationRecipient getNotificationRecipient()
+    public ValidationNotificationRecipient getNotificationRecipient()
     {
         return notificationRecipient;
     }
 
-    public void setNotificationRecipient( ValidationRuleNotificationRecipient notificationRecipient )
+    public void setNotificationRecipient( ValidationNotificationRecipient notificationRecipient )
     {
         this.notificationRecipient = notificationRecipient;
     }
@@ -171,7 +171,7 @@ public class ValidationRuleNotificationTemplate
 
         if ( other.getClass().isInstance( this ) )
         {
-            ValidationRuleNotificationTemplate that = (ValidationRuleNotificationTemplate) other;
+            ValidationNotificationTemplate that = (ValidationNotificationTemplate) other;
 
             if ( mergeMode.isReplace() )
             {

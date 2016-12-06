@@ -5,8 +5,8 @@
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 <hibernate-mapping>
-  <class name="org.hisp.dhis.validation.notification.ValidationRuleNotificationTemplate"
-    table="validationrulenotificationtemplate">
+  <class name="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
+    table="validationnotificationtemplate">
 
     <id name="id" column="validationrulenotificationtemplateid">
       <generator class="native" />
@@ -21,7 +21,7 @@
 
     <property name="notificationRecipient" column="notificationrecipienttype">
       <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.validation.notification.ValidationRuleNotificationRecipient</param>
+        <param name="enumClass">org.hisp.dhis.validation.notification.ValidationNotificationRecipient</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>

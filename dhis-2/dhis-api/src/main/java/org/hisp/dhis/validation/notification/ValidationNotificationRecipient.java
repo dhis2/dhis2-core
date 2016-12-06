@@ -31,7 +31,7 @@ package org.hisp.dhis.validation.notification;
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ValidationRuleNotificationRecipient
+public enum ValidationNotificationRecipient
 {
     USER_GROUP
 }

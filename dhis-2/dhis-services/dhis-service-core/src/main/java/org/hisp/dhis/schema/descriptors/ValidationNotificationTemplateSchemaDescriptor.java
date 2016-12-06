@@ -33,27 +33,28 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.validation.notification.ValidationRuleNotificationTemplate;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public class ValidationRuleNotificationTemplateSchemaDescriptor
+public class ValidationNotificationTemplateSchemaDescriptor
     implements SchemaDescriptor
 {
-    public static final String SINGULAR = "validationRuleNotificationTemplate";
+    public static final String SINGULAR = "validationNotificationTemplate";
 
-    public static final String PLURAL = "validationRuleNotificationTemplates";
+    public static final String PLURAL = "validationNotificationTemplates";
 
     public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( ValidationRuleNotificationTemplate.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( ValidationNotificationTemplate.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1410 );
 
+        // Inherits authorities from ValidationRule
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_VALIDATIONRULE_PUBLIC_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_VALIDATIONRULE_PRIVATE_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_VALIDATIONRULE_DELETE" ) ) );

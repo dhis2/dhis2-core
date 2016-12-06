@@ -144,7 +144,7 @@ public class DefaultSchemaService
         add( new ValidationCriteriaSchemaDescriptor() ).
         add( new ValidationRuleGroupSchemaDescriptor() ).
         add( new ValidationRuleSchemaDescriptor() ).
-        add( new ValidationRuleNotificationTemplateSchemaDescriptor() ).
+        add( new ValidationNotificationTemplateSchemaDescriptor() ).
         add( new PushAnalysisSchemaDescriptor() ).
         add( new ProgramIndicatorGroupSchemaDescriptor() ).
         add( new ExternalFileResourceSchemaDescriptor() ).
