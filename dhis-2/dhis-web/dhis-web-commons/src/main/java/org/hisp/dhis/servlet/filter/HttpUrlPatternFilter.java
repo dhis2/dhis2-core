@@ -57,8 +57,9 @@ import org.apache.commons.lang3.StringUtils;
  * that the regular expression only need to match a subsequence of the 
  * request URI, not the entire URI.
  * 
- * Example configuration:
+ * <p>Example configuration:
  * 
+ * <pre>
  * {@code
  * <filter>
  *     <filter-name>yourRegexFilter</filter-name>
@@ -69,6 +70,7 @@ import org.apache.commons.lang3.StringUtils;
  *     </init-param>
  * </filter>
  * }
+ * </pre>
  * 
  * @author Lars Helge Overland
  */
