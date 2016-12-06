@@ -343,7 +343,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 })
 
 /* service for common utils */
-.service('CommonUtils', function($timeout, DateUtils, OptionSetService, CurrentSelection, FileService){
+.service('CommonUtils', function($timeout, DateUtils, OptionSetService, CurrentSelection, FileService, OrgUnitFactory){
 
     return {
         formatDataValue: function(event, val, obj, optionSets, destination){
@@ -429,14 +429,29 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                 }
             }
             return false;            	
+        },        
+        checkAndSetOrgUnitName: function( id ){
+            var orgUnitNames = CurrentSelection.getOrgUnitNames();
+            if( !orgUnitNames[id] ){                
+                OrgUnitFactory.getFromStoreOrServer( id ).then(function (response) {                    
+                    if(response && response.n) {                                                        
+                        orgUnitNames[id] = response.n;
+                        CurrentSelection.setOrgUnitNames( orgUnitNames );
+                    }
+                });
+            }
         },
-        displayHeaderMessage: function( message ){
-            $timeout(function(){
-                setHeaderMessage( message );
-            }, 1000);
-        },
-        removeHeaderMessage: function( ){
-            hideHeaderMessage();
+        checkAndSetFileName: function(event, valueId, dataElementId ){
+            var fileNames = CurrentSelection.getFileNames();
+            FileService.get(valueId).then(function(response){
+                if(response && response.displayName){
+                    if(!fileNames[event.event]){
+                        fileNames[event.event] = {};
+                    }
+                    fileNames[event.event][dataElementId] = response.displayName;
+                    CurrentSelection.setFileNames( fileNames );
+                }
+            });
         }
     };
 })
@@ -1111,6 +1126,16 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
     this.showNotifcationWithOptions = function(dialogDefaults, dialogOptions){
         DialogService.showDialog(dialogDefaults, dialogOptions);
+    };
+    
+    this.displayHeaderMessage = function( message ){
+        $timeout(function(){
+            setHeaderMessage( message );
+        }, 1000);
+    };
+    
+    this.removeHeaderMessage = function(){
+        hideHeaderMessage();
     };
 
 })
@@ -2917,7 +2942,8 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     this.selectedTeiEvents = null;
     this.relationshipOwner = {};
     this.selectedTeiEvents = [];
-    this.fileNames = [];
+    this.fileNames = {};
+    this.orgUnitNames = {};
     this.location = null;
     this.advancedSearchOptions = null;
 	this.trackedEntities = null;
@@ -2983,6 +3009,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
     };
     this.getFileNames = function(){
         return this.fileNames;
+    };
+    
+    this.setOrgUnitNames = function(orgUnitNames){
+        this.orgUnitNames = orgUnitNames;
+    };
+    this.getOrgUnitNames = function(){
+        return this.orgUnitNames;
     };
     
     this.setLocation = function(location){
@@ -3051,7 +3084,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
 
 
 /* Factory for fetching OrgUnit */
-.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, CommonUtils, $translate, SessionStorageService, DateUtils) {
+.factory('OrgUnitFactory', function($http, DHIS2URL, $q, $window, NotificationService, $translate, SessionStorageService, DateUtils) {
     var orgUnit, orgUnitPromise, rootOrgUnitPromise,orgUnitTreePromise;
     var indexedDB = $window.indexedDB;
     var db = null;
@@ -3158,8 +3191,12 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             if( e.target.result ){
                                 deferred.resolve(e.target.result);
                             }
-                            else{                                
-                                deferred.resolve( $http.get( DHIS2URL + '/organisationUnits/'+ uid + '.json?fields=id,displayName|rename(n),closedDate|rename(cdate),openingDate|rename(odate)' ) );                                
+                            else{
+                                $http.get( DHIS2URL + '/organisationUnits/'+ uid + '.json?fields=id,displayName,closedDate,openingDate' ).then(function(response){
+                                    if( response && response.data ){
+                                        deferred.resolve( {id: response.data.id, n: response.data.displayName, cdate: response.data.closedDate, odate: response.data.openingDate});
+                                    }
+                                });
                             }
                         };
                         q.onerror = function(e){                            
@@ -3186,10 +3223,10 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     }
                 }                
                 if( closed ){
-                    CommonUtils.displayHeaderMessage( $translate.instant('orgunit_closed') );
+                    NotificationService.displayHeaderMessage( $translate.instant('orgunit_closed') );
                 }
                 else{
-                    CommonUtils.removeHeaderMessage();
+                    NotificationService.removeHeaderMessage();
                 }
                 deferred.resolve( closed );
             });
