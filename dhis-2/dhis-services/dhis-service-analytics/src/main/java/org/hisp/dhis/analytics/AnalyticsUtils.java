@@ -377,7 +377,7 @@ public class AnalyticsUtils
             
             Assert.notNull( dx );
             
-            DataDimensionalItemObject item = (DataDimensionalItemObject) dimItemObjectMap.get( dx );
+            DimensionalItemObject item = dimItemObjectMap.get( dx );
 
             Assert.notNull( item );
             
@@ -385,8 +385,13 @@ public class AnalyticsUtils
             
             row.set( vlInx, value );
             
-            cocCol.add( item.getAggregateExportCategoryOptionCombo() );
-            aocCol.add( item.getAggregateExportAttributeOptionCombo() );
+            if ( DataDimensionalItemObject.class.isAssignableFrom( item.getClass() ) )
+            {
+                DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
+                
+                cocCol.add( dataItem.getAggregateExportCategoryOptionCombo() );
+                aocCol.add( dataItem.getAggregateExportAttributeOptionCombo() );
+            }            
         }
 
         grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) );
@@ -406,7 +411,7 @@ public class AnalyticsUtils
      * @param item the dimensional item object.
      * @return an object, double or integer depending on the given arguments.
      */
-    public static Object getIntegerOrValue( Object value, DataDimensionalItemObject item )
+    public static Object getIntegerOrValue( Object value, DimensionalItemObject item )
     {
         boolean doubleValue = item != null && value != null && ( value instanceof Double );
         

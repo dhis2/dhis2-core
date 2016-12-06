@@ -244,16 +244,15 @@ public class AnalyticsUtilsTest
         DataElement dxA = createDataElement( 'A' );
         dxA.setUid( "dxA" );
         dxA.setValueType( ValueType.INTEGER );
-        dxA.setAggregateExportCategoryOptionCombo( "coA" );
                 
         DataElement dxB = createDataElement( 'B' );
         dxB.setUid( "dxB" );
         dxB.setValueType( ValueType.NUMBER );
-        dxB.setAggregateExportAttributeOptionCombo( "aoA" );
 
         Indicator dxC = createIndicator( 'C', itA );
         dxC.setUid( "dxC" );
         dxC.setDecimals( 0 );
+        dxC.setAggregateExportAttributeOptionCombo( "aoA" );
         
         Indicator dxD = createIndicator( 'D', itA );
         dxD.setUid( "dxD" );
@@ -285,18 +284,18 @@ public class AnalyticsUtilsTest
         assertEquals( 4, grid.getHeight() );
         
         assertEquals( "dxA", grid.getRow( 0 ).get( 0 ) );
-        assertEquals( "coA", grid.getRow( 0 ).get( 3 ) );
+        assertNull( grid.getRow( 0 ).get( 3 ) );
         assertNull( grid.getRow( 0 ).get( 4 ) );
         assertEquals( 1, grid.getRow( 0 ).get( 5 ) );
 
         assertEquals( "dxB", grid.getRow( 1 ).get( 0 ) );
         assertNull( grid.getRow( 1 ).get( 3 ) );
-        assertEquals( "aoA", grid.getRow( 1 ).get( 4 ) );
+        assertNull( grid.getRow( 1 ).get( 4 ) );
         assertEquals( 2d, (Double) grid.getRow( 1 ).get( 5 ), 0.01 );
 
         assertEquals( "dxC", grid.getRow( 2 ).get( 0 ) );
         assertNull( grid.getRow( 2 ).get( 3 ) );
-        assertNull( grid.getRow( 2 ).get( 4 ) );
+        assertEquals( "aoA", grid.getRow( 2 ).get( 4 ) );
         assertEquals( 3, grid.getRow( 2 ).get( 5 ) );
 
         assertEquals( "dxD", grid.getRow( 3 ).get( 0 ) );
