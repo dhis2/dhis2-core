@@ -99,6 +99,7 @@ public interface EventDataQueryService
      * @param coordinatesOnly whether to only return events which have coordinates.
      * @param displayProperty the display property to use for meta-data.
      * @param userOrgUnit the user organisation unit to use, overrides current user.
+     * @param coordinateField the coordinate field to use for spatial analytics.
      * @param page the page number.
      * @param pageSize the page size.
      * @param format the i18n format.
@@ -107,7 +108,7 @@ public interface EventDataQueryService
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc, 
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, 
         boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
-        Date relativePeriodDate, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format );
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, I18nFormat format );
     
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
     

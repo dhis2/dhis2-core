@@ -55,7 +55,6 @@ public class Validator
     public static Collection<ValidationResult> validate( ValidationRunContext context, 
         ApplicationContext applicationContext )
     {
-        long startTime = System.nanoTime();
         DataElementCategoryService categoryService = (DataElementCategoryService)
             applicationContext.getBean( DataElementCategoryService.class );
                 
