@@ -60,7 +60,7 @@ public class MapMap<T, U, V>
     }
     
     @SafeVarargs
-    public static final <T, U, V> MapMap<T, U, V> asMapMap( final AbstractMap.SimpleEntry<T, Map<U, V>>... entries )
+    public static <T, U, V> MapMap<T, U, V> asMapMap( final AbstractMap.SimpleEntry<T, Map<U, V>>... entries )
     {
         MapMap<T, U, V> map = new MapMap<>();
 

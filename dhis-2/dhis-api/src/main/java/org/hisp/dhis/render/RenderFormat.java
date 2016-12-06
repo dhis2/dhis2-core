@@ -34,5 +34,5 @@ package org.hisp.dhis.render;
 public enum RenderFormat
 {
     JSON,
-    XML;
+    XML
 }

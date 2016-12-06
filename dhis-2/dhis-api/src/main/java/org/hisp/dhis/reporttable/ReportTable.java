@@ -442,7 +442,7 @@ public class ReportTable
         {
             if ( object != null && object instanceof Period )
             {
-                buffer.append( object.getName() + SEPARATOR );
+                buffer.append( object.getName() ).append( SEPARATOR );
             }
             else
             {
@@ -628,7 +628,7 @@ public class ReportTable
 
                 grid.addValue( value );
 
-                hasValue = !hasValue ? value != null : true;
+                hasValue = hasValue || value != null;
             }
 
             if ( hideEmptyRows && !hasValue )

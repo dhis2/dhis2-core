@@ -244,10 +244,7 @@ public class ContextUtils
 
     public static String getRootPath( HttpServletRequest request )
     {
-        StringBuilder builder = new StringBuilder( getContextPath( request ) );
-        builder.append( request.getServletPath() );
-
-        return builder.toString();
+        return getContextPath( request ) + request.getServletPath();
     }
 
     /**

@@ -648,12 +648,12 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
-.directive('d2OrgUnitTree', function(){
+.directive('d2OrgUnitTree', function(OrgUnitFactory){
     return {
-        restrict: 'E',            
+        restrict: 'EA',            
         templateUrl: "../dhis-web-commons/angular-forms/orgunit-input.html",
         scope: {            
-        	selectedOrgUnitId: '@',
+            selectedOrgUnitId: '@',
             id: '@',
             d2Object: '=',
             d2Disabled: '=',
@@ -661,7 +661,21 @@ var d2Directives = angular.module('d2Directives', [])
             d2CallbackFunction: '&d2Function',
             d2OrgunitNames: '='
         },
+        link: function (scope, element, attrs) {
+        },
         controller: function($scope, $modal){
+            
+            if( !$scope.d2OrgUnitNames ){
+                $scope.d2OrgUnitNames = {};
+            }
+            
+            if( $scope.id && $scope.d2Object[$scope.id] ){                
+                OrgUnitFactory.getFromStoreOrServer($scope.d2Object[$scope.id]).then(function (response) {
+                    if(response && response.n) {
+                        $scope.d2OrgunitNames[$scope.d2Object[$scope.id]] = response.n;
+                    }
+                });
+            }
             
             $scope.showOrgUnitTree = function( dataElementId ){
                 
@@ -696,9 +710,8 @@ var d2Directives = angular.module('d2Directives', [])
                     $scope.d2CallbackFunction($scope.d2Object, dataElementId);
                 }
             };
-        },
-        link: function (scope, element, attrs) {
         }
+        
     };
 })
 

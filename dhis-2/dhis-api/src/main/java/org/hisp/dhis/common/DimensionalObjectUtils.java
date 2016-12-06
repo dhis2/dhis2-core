@@ -135,7 +135,7 @@ public class DimensionalObjectUtils
      * @return a map.
      */
     @SafeVarargs
-    public static final <T> Map<T, T> asMap( final T... elements )
+    public static <T> Map<T, T> asMap( final T... elements )
     {
         Map<T, T> map = new HashMap<>();
         

@@ -34,5 +34,5 @@ package org.hisp.dhis.legend;
 public enum LegendDisplayStyle
 {
     FILL,
-    TEXT;
+    TEXT
 }
