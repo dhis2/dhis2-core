@@ -80,6 +80,8 @@ public class MetadataImportParams
 
     private boolean skipValidation;
 
+    private String filename;
+
     private TaskId taskId;
 
     private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
@@ -226,6 +228,18 @@ public class MetadataImportParams
     public void setSkipValidation( boolean skipValidation )
     {
         this.skipValidation = skipValidation;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFilename()
+    {
+        return filename;
+    }
+
+    public void setFilename( String filename )
+    {
+        this.filename = filename;
     }
 
     public TaskId getTaskId()

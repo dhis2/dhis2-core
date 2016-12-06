@@ -79,6 +79,8 @@ public class ImportOptions
 
     private boolean requireAttributeOptionCombo;
 
+    private String filename;
+
     //--------------------------------------------------------------------------
     // Constructors
     //--------------------------------------------------------------------------
@@ -233,6 +235,13 @@ public class ImportOptions
         return requireAttributeOptionCombo;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFilename()
+    {
+        return filename;
+    }
+
     //--------------------------------------------------------------------------
     // Set methods
     //--------------------------------------------------------------------------
@@ -385,6 +394,11 @@ public class ImportOptions
     {
         this.requireAttributeOptionCombo = requireAttributeOptionCombo;
         return this;
+    }
+
+    public void setFilename( String filename )
+    {
+        this.filename = filename;
     }
 
     @Override public String toString()
