@@ -405,7 +405,12 @@ public class AnalyticsUtils
                 
                 cocCol.add( dataItem.getAggregateExportCategoryOptionCombo() );
                 aocCol.add( dataItem.getAggregateExportAttributeOptionCombo() );
-            }            
+            }
+            else
+            {
+                cocCol.add( null );
+                aocCol.add( null );
+            }
         }
 
         grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) )
