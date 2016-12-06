@@ -112,12 +112,12 @@ public interface EventDataQueryService
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
     
     /**
-     * Returns the cluster column field to use for the given cluster field. Cluster field
+     * Returns the coordinate column field to use for the given coordinate field. Coordinate field
      * must match EVENT, a data element identifier or an attribute identifier.
      * 
-     * @param clusterField the cluster field.
-     * @return the cluster column field.
-     * @throws IllegalQueryException if the cluster field is not valid.
+     * @param coordinate the coordinate field.
+     * @return the coordinate column field.
+     * @throws IllegalQueryException if the coordinate field is not valid.
      */
-    String getClusterField( String clusterField );
+    String getCoordinateField( String coordinate );
 }
