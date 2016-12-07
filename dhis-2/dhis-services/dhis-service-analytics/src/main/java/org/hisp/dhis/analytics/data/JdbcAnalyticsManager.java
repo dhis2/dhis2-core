@@ -363,7 +363,7 @@ public class JdbcAnalyticsManager
         // Data approval
         // ---------------------------------------------------------------------
 
-        if ( params.isDataApproval() )
+        if ( params.isDataApproval() && !params.isIgnoreApproval() )
         {
             sql += sqlHelper.whereAnd() + " ( ";
 
