@@ -40,6 +40,8 @@ import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 
@@ -155,7 +157,36 @@ public class DimensionalObjectUtilsTest
         assertEquals( "AttributeValueB", map.get( "A123456789B" ) );
         assertEquals( null, map.get( "A123456789C" ) );
     }
-    
+
+    @Test
+    public void testGetDataElementOperandIdSchemeCodeMap()
+    {        
+        DataElement deA = new DataElement( "NameA" );
+        DataElement deB = new DataElement( "NameB" );
+
+        deA.setUid( "D123456789A" );
+        deB.setUid( "D123456789B" );
+        
+        deA.setCode( "DCodeA" );
+        deB.setCode( "DCodeB" );
+        
+        DataElementCategoryOptionCombo ocA = new DataElementCategoryOptionCombo();
+        ocA.setUid( "C123456789A" );
+        ocA.setCode( "CCodeA" );
+        
+        DataElementOperand opA = new DataElementOperand( deA, ocA );
+        DataElementOperand opB = new DataElementOperand( deB, ocA );
+        
+        List<DataElementOperand> operands = Lists.newArrayList( opA, opB );
+        
+        Map<String, String> map = DimensionalObjectUtils.getDataElementOperandIdSchemeMap( operands, IdScheme.CODE );
+
+        assertEquals( 3, map.size() );
+        assertEquals( "DCodeA", map.get( "D123456789A" ) );
+        assertEquals( "DCodeB", map.get( "D123456789B" ) );
+        assertEquals( "CCodeA", map.get( "C123456789A" ) );
+    }
+
     @Test
     public void testGetFirstSecondIdentifier()
     {

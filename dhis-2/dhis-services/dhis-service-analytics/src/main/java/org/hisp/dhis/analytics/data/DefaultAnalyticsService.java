@@ -796,9 +796,12 @@ public class DefaultAnalyticsService
     {
         if ( !params.isSkipMeta() && params.hasNonUidOutputIdScheme() )
         {
-            List<DimensionalItemObject> items = params.getAllDimensionItems();
+            Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( params.getAllDimensionItems(), params.getOutputIdScheme() );
 
-            Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( items, params.getOutputIdScheme() );
+            if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) && !params.getDataElementOperands().isEmpty() )
+            {
+                map.putAll( DimensionalObjectUtils.getDataElementOperandIdSchemeMap( asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
+            }
 
             grid.substituteMetaData( map );
         }
