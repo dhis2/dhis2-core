@@ -367,6 +367,7 @@ public class DefaultQueryPlanner
                 {
                     DataQueryParams query = DataQueryParams.newBuilder( params )
                         .withPeriods( partitionPeriodMap.get( partitions ) )
+                        .withIgnoreApproval( systemSettingManager.ignoreHideUnapprovedDataInAnalyticsForPeriod( (Period) partitionPeriodMap.get( partitions ) ) )
                         .withPartitions( partitions ).build();
                     
                     queries.add( query );

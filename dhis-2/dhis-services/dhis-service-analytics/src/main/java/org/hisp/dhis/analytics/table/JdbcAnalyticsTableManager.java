@@ -160,7 +160,7 @@ public class JdbcAnalyticsTableManager
         final String dbl = statementBuilder.getDoubleColumnType();
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
 
-        final String approvalClause = getApprovalJoinClause();        
+        final String approvalClause = getApprovalJoinClause( table );
         final String numericClause = skipDataTypeValidation ? "" : ( "and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " );
 
         String intClause =
@@ -263,9 +263,9 @@ public class JdbcAnalyticsTableManager
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
      */
-    private String getApprovalJoinClause()
+    private String getApprovalJoinClause( AnalyticsTable table)
     {
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled() && !systemSettingManager.ignoreHideUnapprovedDataInAnalyticsForPeriod( table.getPeriod() ) )
         {
             String sql =
                 "left join _dataapprovalminlevel da " +
