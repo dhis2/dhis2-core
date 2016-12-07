@@ -69,6 +69,8 @@ public class ImportSummaries extends AbstractWebMessageResponse
 
     public ImportSummaries addImportSummary( ImportSummary importSummary )
     {
+        if ( importSummary == null ) return this;
+
         if ( importSummary.getImportCount() != null )
         {
             imported += importSummary.getImportCount().getImported();
