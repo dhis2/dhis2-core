@@ -34,15 +34,19 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable;
 
+import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.CURRENT_DATE;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.DESCRIPTION;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.IMPORTANCE;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.LEFT_SIDE_DESCRIPTION;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.LEFT_SIDE_VALUE;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.OPERATOR;
+import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.ORG_UNIT_NAME;
+import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.PERIOD;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.RIGHT_SIDE_DESCRIPTION;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.RIGHT_SIDE_VALUE;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.RULE_NAME;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -64,6 +68,9 @@ public class ValidationNotificationMessageRenderer
             .put( RIGHT_SIDE_DESCRIPTION, vr -> vr.getValidationRule().getRightSide().getDescription() )
             .put( LEFT_SIDE_VALUE, vr -> Double.toString( vr.getLeftsideValue() ) )
             .put( RIGHT_SIDE_VALUE, vr -> Double.toString( vr.getRightsideValue() ) )
+            .put( ORG_UNIT_NAME, vr -> vr.getOrgUnit().getDisplayName() )
+            .put( PERIOD, vr -> vr.getPeriod().getDisplayName() )
+            .put( CURRENT_DATE, vr -> formatDate( new Date() ) )
             .build();
 
     // -------------------------------------------------------------------------
