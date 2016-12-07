@@ -31,7 +31,7 @@ package org.hisp.dhis.common.cache;
 /**
  * CacheStrategies express web request caching settings.
  * Note that {@link #RESPECT_SYSTEM_SETTING} should only be used on a
- * per-object-basis (i.e. never as a system wide setting, for obvious reasons).
+ * per-object-basis (i.e. never as a system wide setting).
  *
  * @author Halvdan Hoem Grelland
  */
