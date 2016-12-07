@@ -1073,10 +1073,7 @@ public class DefaultAnalyticsService
             
             List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
             
-            for ( DataQueryParams query : queries )
-            {
-                rawAnalyticsManager.getRawDataValues( query, grid );
-            }
+            queries.forEach( query -> rawAnalyticsManager.getRawDataValues( query, grid ) );
         }
     }
 

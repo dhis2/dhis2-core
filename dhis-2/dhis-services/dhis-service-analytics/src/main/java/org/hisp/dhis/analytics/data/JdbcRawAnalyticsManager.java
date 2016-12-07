@@ -49,6 +49,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -108,8 +109,20 @@ public class JdbcRawAnalyticsManager
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
+    
     private String getStatement( DataQueryParams params )
+    {
+        String sql = StringUtils.EMPTY;
+        
+        for ( String partition : params.getPartitions().getPartitions() )
+        {
+            sql += getStatement( params, partition ) + "union all ";
+        }
+        
+        return TextUtils.removeLast( sql, "union all" );        
+    }
+    
+    private String getStatement( DataQueryParams params, String partition )
     {
         List<String> dimensionColumns = params.getDimensions()
             .stream().map( d -> statementBuilder.columnQuote( d.getDimensionName() ) )
@@ -119,7 +132,7 @@ public class JdbcRawAnalyticsManager
         
         String sql = 
             "select " + StringUtils.join( dimensionColumns, ", " ) + ", " + DIM_NAME_OU + ", value " +
-            "from " + params.getPartitions().getSinglePartition() + " ax " +
+            "from " + partition + " ax " +
             "inner join organisationunit ou on ax.ou = ou.uid " +
             "inner join _periodstructure ps on ax.pe = ps.iso ";
         
@@ -147,6 +160,13 @@ public class JdbcRawAnalyticsManager
                     sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
                 }                
             }
+        }
+        
+        if ( params.hasStartEndDate() )
+        {
+            sql += sqlHelper.whereAnd() + " " +
+                "ps.startdate >= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "' and " +
+                "ps.enddate <= '" + DateUtils.getMediumDateString( params.getEndDate() ) + "' ";
         }
         
         return sql;

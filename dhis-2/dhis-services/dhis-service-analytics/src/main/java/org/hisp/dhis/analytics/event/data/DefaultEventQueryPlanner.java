@@ -234,7 +234,7 @@ public class DefaultEventQueryPlanner
             Period queryPeriod = new Period();
             queryPeriod.setStartDate( params.getStartDate() );
             queryPeriod.setEndDate( params.getEndDate() );
-                        
+            
             EventQueryParams query = new EventQueryParams.Builder( params )
                 .withPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) ).build();
             

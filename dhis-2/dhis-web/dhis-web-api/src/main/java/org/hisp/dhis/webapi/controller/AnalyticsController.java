@@ -383,6 +383,10 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
             false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
 
+        params = DataQueryParams.newBuilder( params )
+            .withStartDate( startDate )
+            .withEndDate( endDate ).build();
+        
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getRawDataValues( params );
     }
@@ -406,6 +410,10 @@ public class AnalyticsController
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
             false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
 
+        params = DataQueryParams.newBuilder( params )
+            .withStartDate( startDate )
+            .withEndDate( endDate ).build();
+        
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
         Grid grid = analyticsService.getRawDataValues( params );
         GridUtils.toCsv( grid, response.getWriter() );
