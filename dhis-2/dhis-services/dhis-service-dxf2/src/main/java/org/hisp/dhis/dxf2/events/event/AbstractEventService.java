@@ -399,6 +399,13 @@ public abstract class AbstractEventService
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
 
+        program = programInstance.getProgram();
+
+        if ( programStageInstance != null )
+        {
+            programStage = programStageInstance.getProgramStage();
+        }
+
         if ( organisationUnit == null )
         {
             return new ImportSummary( ImportStatus.ERROR,
