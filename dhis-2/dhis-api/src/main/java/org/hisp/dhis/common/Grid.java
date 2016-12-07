@@ -88,12 +88,12 @@ public interface Grid
     /**
      * Sets map of meta-data.
      */
-    void setMetaData( Map<String, Object> metaData );
+    Grid setMetaData( Map<String, Object> metaData );
 
     /**
      * Adds a key-value pair to meta-data.
      */
-    void addMetaData( String key, Object value );
+    Grid addMetaData( String key, Object value );
 
     /**
      * Returns all visible headers, ie. headers which are not hidden.

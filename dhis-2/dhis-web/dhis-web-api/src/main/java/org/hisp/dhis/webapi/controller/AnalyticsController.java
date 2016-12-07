@@ -371,18 +371,15 @@ public class AnalyticsController
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
-        @RequestParam( required = false ) boolean hideEmptyRows,
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
         @RequestParam( required = false ) String userOrgUnit,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
-            ignoreLimit, hideEmptyRows, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit );
+            false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getRawDataValues( params );
@@ -393,18 +390,17 @@ public class AnalyticsController
         @RequestParam Set<String> dimension,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean hierarchyMeta,
-        @RequestParam( required = false ) boolean ignoreLimit,
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) IdScheme outputIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
         @RequestParam( required = false ) String userOrgUnit,
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, false, false, false, hierarchyMeta,
-            ignoreLimit, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit );
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
+            false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
         Grid grid = analyticsService.getRawDataValues( params );
