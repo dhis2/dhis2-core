@@ -536,6 +536,29 @@ public class DimensionalObjectUtils
     }
 
     /**
+     * Returns a mapping between the base dimension item identifier and the
+     * dimension item identifier defined by the given identifier scheme. For
+     * each operand, the data element and category option combo identifiers
+     * are included in the mapping, not the operand itself.
+     * 
+     * @param dataElementOperands the data element operands.
+     * @param idScheme the identifier scheme.
+     * @return a mapping between dimension item identifiers.
+     */
+    public static Map<String, String> getDataElementOperandIdSchemeMap( Collection<DataElementOperand> dataElementOperands, IdScheme idScheme )
+    {
+        Map<String, String> map = Maps.newHashMap();
+
+        for ( DataElementOperand operand : dataElementOperands )
+        {
+            map.put( operand.getDataElement().getDimensionItem(), operand.getDataElement().getDimensionItem( IdScheme.from( idScheme ) ) );
+            map.put( operand.getCategoryOptionCombo().getDimensionItem(), operand.getCategoryOptionCombo().getDimensionItem( IdScheme.from( idScheme ) ) );
+        }
+
+        return map;
+    }
+
+    /**
      * Returns a dimension item identifier for the given data set identifier and
      * reporting date metric.
      * 
