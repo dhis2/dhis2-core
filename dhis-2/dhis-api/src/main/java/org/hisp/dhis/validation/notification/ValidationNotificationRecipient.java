@@ -33,5 +33,5 @@ package org.hisp.dhis.validation.notification;
  */
 public enum ValidationNotificationRecipient
 {
-    USER_GROUP
+    USER_GROUPS
 }
