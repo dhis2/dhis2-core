@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
@@ -450,5 +451,23 @@ public class DefaultSystemSettingManager
     public boolean isConfidential( String name )
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
+    }
+
+    @Override
+    public boolean ignoreHideUnapprovedDataInAnalyticsForPeriod( Period period )
+    {
+        Integer maxYears = (Integer) getSystemSetting( SettingKey.MAX_YEARS_TO_HIDE_APPROVAL_IN_ANALYITCS );
+
+        if( maxYears == 0 )
+        {
+            return false;
+        }
+
+        Calendar periodDate = Calendar.getInstance();
+        Calendar now = Calendar.getInstance();
+
+        periodDate.setTime( period.getStartDate() );
+
+        return ( now.get( Calendar.YEAR ) - periodDate.get( Calendar.YEAR ) ) > maxYears;
     }
 }
