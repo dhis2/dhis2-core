@@ -102,10 +102,6 @@
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
       foreign-key="fk_dataset_legendset" />
 
-    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
-
-    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
-
     <!-- Dynamic attribute values -->
 
     <set name="attributeValues" table="datasetattributevalues" cascade="delete-orphan">

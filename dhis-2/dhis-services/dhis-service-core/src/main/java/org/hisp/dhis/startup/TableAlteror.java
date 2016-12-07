@@ -154,6 +154,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataelement DROP COLUMN alternativename" );
         executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportcategoryoptioncombo" );
         executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportattributeoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportcategoryoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportattributeoptioncombo" );
         executeSql( "ALTER TABLE indicator DROP COLUMN alternativename" );
         executeSql( "ALTER TABLE orgunitgroup DROP COLUMN image" );
         executeSql( "ALTER TABLE report DROP COLUMN usingorgunitgroupsets" );
