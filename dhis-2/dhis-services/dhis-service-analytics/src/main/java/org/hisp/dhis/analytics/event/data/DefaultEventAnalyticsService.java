@@ -323,9 +323,7 @@ public class DefaultEventAnalyticsService
             metaData.put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
         }
 
-        grid.setMetaData( metaData );
-
-        return grid;
+        return grid.setMetaData( metaData );
     }
 
     @Override

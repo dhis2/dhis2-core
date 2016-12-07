@@ -120,9 +120,14 @@ public class DefaultQueryPlanner
             violation = "Dimensions cannot be specified as dimension and filter simultaneously: " + params.getDimensionsAsFilters();
         }
 
-        if ( !params.hasPeriods() && !params.isSkipPartitioning() )
+        if ( !params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate() )
         {
             violation = "At least one period must be specified as dimension or filter";
+        }
+        
+        if ( params.hasPeriods() && params.hasStartEndDate() )
+        {
+            violation = "Periods and start and end dates cannot be specified simultaneously";
         }
 
         if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
@@ -385,6 +390,18 @@ public class DefaultQueryPlanner
                 queries.add( query );
             }
         }
+        else if ( params.hasStartEndDate() )
+        {
+            Partitions partitions = PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate(), tableName, tableSuffix, validPartitions );
+            
+            if ( partitions.hasAny() )
+            {
+                DataQueryParams query = DataQueryParams.newBuilder( params )
+                    .withPartitions( partitions ).build();
+                
+                queries.add( query );
+            }
+        }
         else
         {
             throw new IllegalQueryException( "Query does not contain any period dimension items" );
@@ -397,7 +414,7 @@ public class DefaultQueryPlanner
 
         return queries;
     }
-
+    
     /**
      * If periods appear as dimensions in the given query; groups the query into
      * sub queries based on the period type of the periods. Sets the period type

@@ -73,7 +73,7 @@ public interface EventDataQueryService
      * @param userOrgUnit the user organisation unit to use, overrides current user.
      * @param format the i18n format.
      */
-    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
+    EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
         SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus,
@@ -104,7 +104,7 @@ public interface EventDataQueryService
      * @param pageSize the page size.
      * @param format the i18n format.
      */
-    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
+    EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate, 
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc, 
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, 
         boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
