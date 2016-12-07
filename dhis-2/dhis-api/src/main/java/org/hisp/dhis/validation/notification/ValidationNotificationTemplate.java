@@ -77,7 +77,7 @@ public class ValidationNotificationTemplate
     // Conditionally relevant properties
     // -------------------------------------------------------------------------
 
-    private UserGroup recipientUserGroup;
+    private Set<UserGroup> recipientUserGroups;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -150,14 +150,14 @@ public class ValidationNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public UserGroup getRecipientUserGroup()
+    public Set<UserGroup> getRecipientUserGroups()
     {
-        return recipientUserGroup;
+        return recipientUserGroups;
     }
 
-    public void setRecipientUserGroup( UserGroup recipientUserGroup )
+    public void setRecipientUserGroup( Set<UserGroup> recipientUserGroups )
     {
-        this.recipientUserGroup = recipientUserGroup;
+        this.recipientUserGroups = recipientUserGroups;
     }
 
     // -------------------------------------------------------------------------
@@ -178,15 +178,16 @@ public class ValidationNotificationTemplate
                 subjectTemplate = that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate();
                 notificationRecipient = that.getNotificationRecipient();
-                recipientUserGroup = that.getRecipientUserGroup();
             }
             else if ( mergeMode.isMerge() )
             {
                 subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
                 notificationRecipient = that.getNotificationRecipient() == null ? notificationRecipient : that.getNotificationRecipient();
-                recipientUserGroup = that.getRecipientUserGroup() == null ? recipientUserGroup : that.getRecipientUserGroup();
             }
+
+            recipientUserGroups.clear();
+            recipientUserGroups.addAll( that.recipientUserGroups );
         }
     }
 }

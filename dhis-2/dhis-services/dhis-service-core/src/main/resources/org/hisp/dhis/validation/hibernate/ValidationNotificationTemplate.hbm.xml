@@ -8,7 +8,7 @@
   <class name="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
     table="validationnotificationtemplate">
 
-    <id name="id" column="validationrulenotificationtemplateid">
+    <id name="id" column="validationnotificationtemplateid">
       <generator class="native" />
     </id>
     &identifiableProperties;
@@ -27,10 +27,12 @@
       </type>
     </property>
 
-    <many-to-one name="recipientUserGroup" class="org.hisp.dhis.user.UserGroup" column="usergroupid"
-      foreign-key="fk_validationrulenotificationtemplate_usergroup" not-null="false" />
+    <set name="recipientUserGroups" cascade="all">
+      <key column="validationnotificationtemplateid" />
+      <one-to-many class="org.hisp.dhis.user.UserGroup" />
+    </set>
 
-    <set name="validationRules" table="validationrulevalidationrulenotificationtemplates" inverse="true">
+    <set name="validationRules" table="validationnotificationtemplatevalidationrules" inverse="true">
       <key column="validationrulenotificationtemplateid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid" />
     </set>
