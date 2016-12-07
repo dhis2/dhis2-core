@@ -119,6 +119,10 @@ public class ContextUtils
         {
             cacheControl = CacheControl.maxAge( 15, TimeUnit.MINUTES );
         }
+        else if ( CacheStrategy.CACHE_30_MINUTES.equals( cacheStrategy ) )
+        {
+            cacheControl = CacheControl.maxAge( 30, TimeUnit.MINUTES );
+        }
         else if ( CacheStrategy.CACHE_1_HOUR.equals( cacheStrategy ) )
         {
             cacheControl = CacheControl.maxAge( 1, TimeUnit.HOURS );
