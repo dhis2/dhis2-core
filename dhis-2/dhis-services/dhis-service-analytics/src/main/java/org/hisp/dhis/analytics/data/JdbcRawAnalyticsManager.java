@@ -121,7 +121,7 @@ public class JdbcRawAnalyticsManager
             "select " + StringUtils.join( dimensionColumns, ", " ) + ", " + DIM_NAME_OU + ", value " +
             "from " + params.getPartitions().getSinglePartition() + " ax " +
             "inner join organisationunit ou on ax.ou = ou.uid " +
-            "inner join _periodstructure ps on ax.pe = ps.iso";
+            "inner join _periodstructure ps on ax.pe = ps.iso ";
         
         for ( DimensionalObject dim : params.getDimensions() )
         {

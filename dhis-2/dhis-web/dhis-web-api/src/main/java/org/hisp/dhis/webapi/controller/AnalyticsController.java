@@ -368,6 +368,8 @@ public class AnalyticsController
     public @ResponseBody Grid getRawDataJson(
         @RequestParam Set<String> dimension,
         @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean hierarchyMeta,
@@ -389,6 +391,8 @@ public class AnalyticsController
     public void getRawDataCsv(
         @RequestParam Set<String> dimension,
         @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) boolean skipMeta,
         @RequestParam( required = false ) boolean skipData,
         @RequestParam( required = false ) boolean hierarchyMeta,

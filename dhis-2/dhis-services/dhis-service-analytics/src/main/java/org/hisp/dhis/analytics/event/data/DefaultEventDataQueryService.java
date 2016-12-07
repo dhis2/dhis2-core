@@ -48,7 +48,6 @@ import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +97,7 @@ public class DefaultEventDataQueryService
     private I18nManager i18nManager;
 
     @Override
-    public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
+    public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
         SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
@@ -123,7 +122,7 @@ public class DefaultEventDataQueryService
     }
 
     @Override
-    public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
+    public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
         boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
@@ -147,22 +146,6 @@ public class DefaultEventDataQueryService
         if ( StringUtils.isNotEmpty( stage ) && ps == null )
         {
             throw new IllegalQueryException( "Program stage is specified but does not exist: " + stage );
-        }
-
-        Date start = null;
-        Date end = null;
-
-        if ( startDate != null && endDate != null )
-        {
-            try
-            {
-                start = DateUtils.getMediumDate( startDate );
-                end = DateUtils.getMediumDate( endDate );
-            }
-            catch ( RuntimeException ex )
-            {
-                throw new IllegalQueryException( "Start date or end date is invalid: " + startDate + " - " + endDate );
-            }
         }
 
         if ( dimension != null )
@@ -224,8 +207,8 @@ public class DefaultEventDataQueryService
         return params
             .withProgram( pr )
             .withProgramStage( ps )
-            .withStartDate( start )
-            .withEndDate( end )
+            .withStartDate( startDate )
+            .withEndDate( endDate )
             .withOrganisationUnitMode( ouMode )
             .withSkipMeta( skipMeta )
             .withSkipData( skipData )
