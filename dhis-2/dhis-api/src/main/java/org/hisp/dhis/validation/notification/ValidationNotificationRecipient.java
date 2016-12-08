@@ -34,5 +34,10 @@ package org.hisp.dhis.validation.notification;
 public enum ValidationNotificationRecipient
 {
     USER_GROUPS,
-    ORGANISATION_UNIT_CONTACT
+    ORGANISATION_UNIT_CONTACT;
+
+    public boolean isExternalRecipient()
+    {
+        return this == ORGANISATION_UNIT_CONTACT;
+    }
 }
