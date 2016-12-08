@@ -152,6 +152,8 @@ public class MapView
     private String labelFontColor;
 
     private boolean eventClustering;
+    
+    private String eventCoordinateField;
 
     private String eventPointColor;
 
@@ -584,6 +586,18 @@ public class MapView
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getEventCoordinateField()
+    {
+        return eventCoordinateField;
+    }
+
+    public void setEventCoordinateField( String eventCoordinateField )
+    {
+        this.eventCoordinateField = eventCoordinateField;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getEventPointColor()
     {
         return eventPointColor;
@@ -672,6 +686,7 @@ public class MapView
                 labelFontStyle = mapView.getLabelFontStyle();
                 labelFontColor = mapView.getLabelFontColor();
                 eventClustering = mapView.isEventClustering();
+                eventCoordinateField = mapView.getEventCoordinateField();
                 eventPointColor = mapView.getEventPointColor();
                 eventPointRadius = mapView.getEventPointRadius();
                 config = mapView.getConfig();
@@ -697,6 +712,7 @@ public class MapView
                 labelFontStyle = mapView.getLabelFontStyle() == null ? labelFontStyle : mapView.getLabelFontStyle();
                 labelFontColor = mapView.getLabelFontColor() == null ? labelFontColor : mapView.getLabelFontColor();
                 eventClustering = mapView.isEventClustering();
+                eventCoordinateField = mapView.getEventCoordinateField();
                 eventPointColor = mapView.getEventPointColor() == null ? eventPointColor : mapView.getEventPointColor();
                 eventPointRadius = mapView.getEventPointRadius();
                 config = mapView.getConfig() == null ? config : mapView.getConfig();
