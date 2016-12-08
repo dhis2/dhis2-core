@@ -28,14 +28,15 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -47,17 +48,20 @@ public class DefaultMergeService implements MergeService
 
     @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public <T> void merge( T source, T target, MergeMode mergeMode )
+    public <T> void merge( MergeParams<T> mergeParams )
     {
-        if ( source == null || target == null )
-        {
-            return;
-        }
+        T source = mergeParams.getSource();
+        T target = mergeParams.getTarget();
 
         Schema schema = schemaService.getDynamicSchema( source.getClass() );
 
         for ( Property property : schema.getProperties() )
         {
+            if ( mergeParams.isSkipSharing() && isSharingProperty( property ) )
+            {
+                continue;
+            }
+
             if ( property.isCollection() )
             {
                 Collection sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
@@ -82,15 +86,23 @@ public class DefaultMergeService implements MergeService
             {
                 Object sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
 
-                if ( mergeMode.isReplace() )
+                if ( mergeParams.getMergeMode().isReplace() )
                 {
                     ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
                 }
-                else if ( mergeMode.isMerge() && sourceObject != null )
+                else if ( mergeParams.getMergeMode().isMerge() && sourceObject != null )
                 {
                     ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
                 }
             }
         }
+    }
+
+    private final static List<String> sharingProps = Arrays.asList(
+        "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
+
+    private boolean isSharingProperty( Property property )
+    {
+        return property.isPersisted() && (sharingProps.contains( property.getName() ) || sharingProps.contains( property.getCollectionName() ));
     }
 }
