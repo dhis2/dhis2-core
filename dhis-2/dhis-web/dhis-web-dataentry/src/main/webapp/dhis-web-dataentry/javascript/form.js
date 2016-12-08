@@ -1012,6 +1012,15 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
             dhis2.de.clearPeriod();
             dhis2.de.clearAttributes();
         }
+        
+        var dsl = document.getElementById( 'selectedDataSetId' );
+        
+        if ( dsl && dsl.options && dsl.options.length == 2 )
+        {
+            $( '#selectedDataSetId' ).val( dsl.options[1].value );
+            dataSetSelected();
+        }
+        
     });
 
 }
@@ -1522,8 +1531,8 @@ dhis2.de.getAttributesMarkup = function()
 		html += '<option value="-1">[ ' + i18n_select_option + ' ]</option>';
 
 		$.safeEach( category.options, function( idx, option ) {
-			if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {
-				var selected = ( $.inArray( option.id, options ) != -1 ) ? " selected" : "";
+			if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {				
+                                var selected = ( $.inArray( option.id, options ) != -1 ) || category.options.length == 1 ? " selected" : "";
 				html += '<option value="' + option.id + '"' + selected + '>' + option.name + '</option>';
 			}
 		} );
