@@ -2,35 +2,6 @@ package org.hisp.dhis.dxf2.events.enrollment;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-/*
- * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.common.IdSchemes;
@@ -76,6 +47,34 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+/*
+ * Copyright (c) 2004-2016, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -124,7 +123,7 @@ public abstract class AbstractEnrollmentService
     private CachingMap<String, Program> programCache = new CachingMap<>();
 
     private CachingMap<String, TrackedEntityAttribute> trackedEntityAttributeCache = new CachingMap<>();
-    
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // -------------------------------------------------------------------------
@@ -173,7 +172,7 @@ public abstract class AbstractEnrollmentService
             enrollment.setOrgUnit( programInstance.getOrganisationUnit().getUid() );
             enrollment.setOrgUnitName( programInstance.getOrganisationUnit().getName() );
         }
-        
+
         if ( programInstance.getProgram().getCaptureCoordinates() )
         {
             Coordinate coordinate = null;
@@ -184,7 +183,9 @@ public abstract class AbstractEnrollmentService
 
                 try
                 {
-                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(),  new TypeReference<List<Double>>() {} );
+                    List<Double> list = OBJECT_MAPPER.readValue( coordinate.getCoordinateString(), new TypeReference<List<Double>>()
+                    {
+                    } );
 
                     coordinate.setLongitude( list.get( 0 ) );
                     coordinate.setLatitude( list.get( 1 ) );
@@ -251,7 +252,7 @@ public abstract class AbstractEnrollmentService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -343,13 +344,13 @@ public abstract class AbstractEnrollmentService
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
         {
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null ");
+            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
             importSummary.incrementIgnored();
 
             return importSummary;
         }
-        
-        if( program.getCaptureCoordinates() )
+
+        if ( program.getCaptureCoordinates() )
         {
             if ( enrollment.getCoordinate() != null && enrollment.getCoordinate().isValid() )
             {
@@ -396,7 +397,7 @@ public abstract class AbstractEnrollmentService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -452,13 +453,13 @@ public abstract class AbstractEnrollmentService
         if ( program.getDisplayIncidentDate() && programInstance.getIncidentDate() == null )
         {
             importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null ");
+            importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
             importSummary.incrementIgnored();
 
             return importSummary;
         }
-        
-        if( program.getCaptureCoordinates() )
+
+        if ( program.getCaptureCoordinates() )
         {
             if ( enrollment.getCoordinate().isValid() )
             {
@@ -554,7 +555,7 @@ public abstract class AbstractEnrollmentService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -682,7 +683,8 @@ public abstract class AbstractEnrollmentService
 
         trackedEntityInstance.getTrackedEntityAttributeValues().stream().
             filter( value -> attributeValueMap.containsKey( value.getAttribute().getUid() ) ).
-            forEach( value -> {
+            forEach( value ->
+            {
                 String newValue = attributeValueMap.get( value.getAttribute().getUid() );
                 value.setValue( newValue );
 
@@ -773,5 +775,14 @@ public abstract class AbstractEnrollmentService
     private TrackedEntityAttribute getTrackedEntityAttribute( IdSchemes idSchemes, String id )
     {
         return trackedEntityAttributeCache.get( id, new IdentifiableObjectCallable<>( manager, TrackedEntityAttribute.class, idSchemes.getTrackedEntityAttributeIdScheme(), id ) );
+    }
+
+    private void clearSession()
+    {
+        organisationUnitCache.clear();
+        programCache.clear();
+        trackedEntityAttributeCache.clear();
+
+        dbmsManager.clearSession();
     }
 }
