@@ -150,10 +150,10 @@
                 <!--  Dashboard -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-app-dashboard</artifactId>
+                  <artifactId>dhis-web-dashboard-integration</artifactId>
                   <version>${apps.version}</version>
                   <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-app-dashboard</outputDirectory>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-dashboard-integration</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
               </artifactItems>

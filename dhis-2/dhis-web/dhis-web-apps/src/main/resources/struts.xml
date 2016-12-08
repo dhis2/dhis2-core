@@ -89,7 +89,7 @@
 		</action>
 	</package>
 
-	<package name="dhis-app-dashboard" extends="dhis-web-commons" namespace="/dhis-app-dashboard">
+	<package name="dhis-web-dashboard-integration" extends="dhis-web-commons" namespace="/dhis-web-dashboard-integration">
 		<action name="index" class="org.hisp.dhis.commons.action.NoAction">
 			<result name="success" type="redirect">index.html</result>
 		</action>

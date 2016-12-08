@@ -682,6 +682,9 @@ public class TableAlteror
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_PROGRAM_ATTRIBUTE_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_PATIENT_DATAVALUE_UPDATE'" );
 
+        executeSql( "insert into userroleauthorities" +
+                         "select userroleid, 'M_dhis-web-messaging' FROM userroleauthorities WHERE authority = 'M_dhis-web-dashboard-integration'");
+
         // remove unused configurations
         executeSql( "delete from systemsetting where name='keySmsConfig'" );
         executeSql( "delete from systemsetting where name='keySmsConfiguration'" );

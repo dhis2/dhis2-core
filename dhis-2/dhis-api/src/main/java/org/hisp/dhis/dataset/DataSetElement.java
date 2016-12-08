@@ -31,6 +31,7 @@ package org.hisp.dhis.dataset;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -42,6 +43,7 @@ import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 /**
  * @author Lars Helge Overland
  */
+@JacksonXmlRootElement( localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0 )
 public class DataSetElement
     extends BaseIdentifiableObject
 {
@@ -164,7 +166,7 @@ public class DataSetElement
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
     public DataSet getDataSet()
     {
         return dataSet;
@@ -177,7 +179,7 @@ public class DataSetElement
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
     public DataElement getDataElement()
     {
         return dataElement;
