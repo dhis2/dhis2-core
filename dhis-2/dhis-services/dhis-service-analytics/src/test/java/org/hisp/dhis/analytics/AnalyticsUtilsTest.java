@@ -314,7 +314,7 @@ public class AnalyticsUtilsTest
         assertEquals( "deabcdefghA", grid.getRow( 4 ).get( 0 ) );
         assertEquals( "ceabcdefghA", grid.getRow( 4 ).get( 3 ) );
         assertNull( grid.getRow( 4 ).get( 4 ) );
-        assertEquals( 5d, (Double) grid.getRow( 4 ).get( 5 ), 0.01 );
+        assertEquals( 5, grid.getRow( 4 ).get( 5 ) );
 
         assertEquals( "deabcdefghB", grid.getRow( 5 ).get( 0 ) );
         assertEquals( "ceabcdefghA", grid.getRow( 5 ).get( 3 ) );

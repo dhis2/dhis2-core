@@ -435,6 +435,10 @@ public class AnalyticsUtils
             {
                 value = ((Double) value).intValue();
             }
+            else if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() && ((DataElementOperand) item).getDataElement().getValueType().isInteger() )
+            {
+                value = ((Double) value).intValue();
+            }
             else if ( DimensionItemType.INDICATOR == item.getDimensionItemType() && ((Indicator) item).hasZeroDecimals() )
             {
                 value = ((Double) value).intValue();
