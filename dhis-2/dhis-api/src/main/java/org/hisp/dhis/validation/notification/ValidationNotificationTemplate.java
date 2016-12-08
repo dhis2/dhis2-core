@@ -75,7 +75,7 @@ public class ValidationNotificationTemplate
      * Should act like a filter on the configured user groups.
      * In the case of non User recipients, this is not applicable.
      */
-    private boolean notifyUsersInHierarchyOnly;
+    private Boolean notifyUsersInHierarchyOnly;
 
     private Set<UserGroup> recipientUserGroups;
 
@@ -155,12 +155,12 @@ public class ValidationNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isNotifyUsersInHierarchyOnly()
+    public Boolean getNotifyUsersInHierarchyOnly()
     {
         return notifyUsersInHierarchyOnly;
     }
 
-    public void setNotifyUsersInHierarchyOnly( boolean notifyUsersInHierarchyOnly )
+    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
     {
         this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
     }
@@ -202,8 +202,7 @@ public class ValidationNotificationTemplate
                 subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
                 notificationRecipient = that.getNotificationRecipient() == null ? notificationRecipient : that.getNotificationRecipient();
-                notifyUsersInHierarchyOnly =
-                    that.isNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.isNotifyUsersInHierarchyOnly();
+                notifyUsersInHierarchyOnly = that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
             }
 
             recipientUserGroups.clear();
