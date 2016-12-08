@@ -85,7 +85,6 @@ public class ValidationNotificationTemplate
      * Should act like a filter on the configured user groups.
      * In the case of non User recipients, this is not applicable.
      */
-
     private boolean notifyUsersInHierarchyOnly;
 
     private Set<UserGroup> recipientUserGroups;
