@@ -168,6 +168,14 @@ public class DefaultAnalyticsTableService
     }
 
     @Override
+    public void analyzeAnalyticsTables()
+    {
+        List<AnalyticsTable> tables = tableManager.getAllTables();
+        
+        tableManager.analyzeTables( tables );
+    }
+    
+    @Override
     public void generateResourceTables()
     {
         resourceTableService.dropAllSqlViews();

@@ -245,9 +245,9 @@ public abstract class AbstractJdbcTableManager
         {
             final String sql = "analyze " + table.getTempTableName() + ";";
             
-            log.debug( "Analyze table SQL: " + sql );
+            log.info( "Analyze table SQL: " + sql );
             
-            jdbcTemplate.execute( sql );
+            executeSilently( sql );
         }
     }
 

@@ -105,6 +105,14 @@ public class MaintenanceController
         analyticsTableService.forEach( AnalyticsTableService::dropTables );
     }
 
+    @RequestMapping( value = "/analyticsTablesAnalyze", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void analyzeAnalyticsTables()
+    {
+        analyticsTableService.forEach( AnalyticsTableService::analyzeAnalyticsTables );
+    }
+
     @RequestMapping( value = "/expiredInvitationsClear", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -248,6 +256,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void performMaintenance(
         @RequestParam( required = false ) boolean analyticsTableClear,
+        @RequestParam( required = false ) boolean analyticsTableAnalyze,
         @RequestParam( required = false ) boolean expiredInvitationsClear,
         @RequestParam( required = false ) boolean ouPathsUpdate,
         @RequestParam( required = false ) boolean periodPruning,
@@ -263,6 +272,11 @@ public class MaintenanceController
         if ( analyticsTableClear )
         {
             clearAnalyticsTables();
+        }
+        
+        if ( analyticsTableAnalyze )
+        {
+            analyzeAnalyticsTables();
         }
 
         if ( expiredInvitationsClear )

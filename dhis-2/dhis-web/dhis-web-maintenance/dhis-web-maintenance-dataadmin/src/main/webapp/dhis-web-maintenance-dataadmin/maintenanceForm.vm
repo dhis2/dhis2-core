@@ -12,6 +12,11 @@
 </p>
 
 <p>
+    <input type="checkbox" id="analyzeAnalytics"/>
+    <label for="analyzeAnalytics">$i18n.getString( "analyze_analytics_tables" )</label>
+</p>
+
+<p>
 	<input type="checkbox" id="zeroValues"/>
 	<label for="zeroValues">$i18n.getString( "remove_zero_data_values" )</label>
 </p>
