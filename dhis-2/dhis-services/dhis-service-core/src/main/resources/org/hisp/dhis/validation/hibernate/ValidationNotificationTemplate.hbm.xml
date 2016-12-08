@@ -29,6 +29,17 @@
       </type>
     </property>
 
+    <set name="deliveryChannels" fetch="select">
+      <key column="validationnotificationtemplate_deliverychannelid" />
+      <element column="deliverychannels">
+        <type name="org.hibernate.type.EnumType">
+          <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>
+          <param name="useNamed">true</param>
+          <param name="type">12</param>
+        </type>
+      </element>
+    </set>
+
     <set name="recipientUserGroups" cascade="all">
       <key column="validationnotificationtemplateid" />
       <one-to-many class="org.hisp.dhis.user.UserGroup" />

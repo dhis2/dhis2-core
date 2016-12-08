@@ -30,7 +30,6 @@ package org.hisp.dhis.validation.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -50,17 +49,6 @@ public class ValidationNotificationTemplate
     extends BaseIdentifiableObject
     implements NotificationTemplate
 {
-    /**
-     * We're not directly supporting delivery channels for validation rule notifications.
-     * Therefore, all delivery channels are set (but not exposed), to comply with
-     * the {@link NotificationTemplate} contract.
-     *
-     * Note:
-     *  The fact that we include 'SMS' (instead of just an empty Set, for example)
-     *  has the side-effect of limiting max message length on the rendering side.
-     */
-    private static final Set<DeliveryChannel> deliveryChannels = Sets.newHashSet( DeliveryChannel.values() );
-
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
@@ -70,6 +58,8 @@ public class ValidationNotificationTemplate
     private String messageTemplate;
 
     private Set<ValidationRule> validationRules;
+
+    private Set<DeliveryChannel> deliveryChannels;
 
     private ValidationNotificationRecipient notificationRecipient;
 
@@ -129,6 +119,11 @@ public class ValidationNotificationTemplate
         return deliveryChannels;
     }
 
+    public void setDeliveryChannels( Set<DeliveryChannel> deliveryChannels )
+    {
+        this.deliveryChannels = deliveryChannels;
+    }
+
     public void setMessageTemplate( String messageTemplate )
     {
         this.messageTemplate = messageTemplate;
@@ -160,12 +155,12 @@ public class ValidationNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isNotifyUsersInHierarchyOnly()
+    public boolean isNotifyUsersInHierarchyOnly()
     {
         return notifyUsersInHierarchyOnly;
     }
 
-    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
+    public void setNotifyUsersInHierarchyOnly( boolean notifyUsersInHierarchyOnly )
     {
         this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
     }
