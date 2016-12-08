@@ -104,7 +104,7 @@
 			</tr>	
 			<tr>
 				<td>$i18n.getString( "authToken" ) <em title="$i18n.getString( 'required' )" class="required">*</em>:</td>
-				<td><input type="password" name="authToken" id="authToken" style="width: 28em" value="$!encoder.htmlEncode( $!clickatellGateway.authToken )"/></td>
+				<td><input type="password" name="authToken" id="authToken" style="width: 28em" value=""/></td>
 			</tr>
 			
 		</tbody>
