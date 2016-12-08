@@ -206,10 +206,8 @@ public class DefaultEventAnalyticsService
         if ( !params.isSkipMeta() )
         {
             Map<String, Object> metaData = new HashMap<>();
-
-            Map<String, String> uidNameMap = getUidNameMap( params );
             
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), getUidNameMap( params ) );
             metaData.put( PERIOD_DIM_ID, getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) );
             metaData.put( ORGUNIT_DIM_ID, getDimensionalItemIds( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) );
 
@@ -260,8 +258,8 @@ public class DefaultEventAnalyticsService
         grid.addHeader( new GridHeader( ITEM_EVENT, "Event", String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, "Program stage", String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_EXECUTION_DATE, "Event date", String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, "Organisation unit name", String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, "Organisation unit code", String.class.getName(), false, true ) );
 
@@ -305,9 +303,7 @@ public class DefaultEventAnalyticsService
 
         Map<String, Object> metaData = new HashMap<>();
 
-        Map<String, String> uidNameMap = getUidNameMap( params );
-
-        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), getUidNameMap( params ) );
 
         User user = securityManager.getCurrentUser( params );
 
@@ -315,8 +311,9 @@ public class DefaultEventAnalyticsService
         
         if ( params.isHierarchyMeta() )
         {
-            metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( asTypedList( 
-                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ), roots ) );
+            Map<String, String> parentMap = getParentGraphMap( asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ), roots );
+            
+            metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), parentMap );
         }
 
         if ( params.isPaging() )
@@ -326,9 +323,7 @@ public class DefaultEventAnalyticsService
             metaData.put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
         }
 
-        grid.setMetaData( metaData );
-
-        return grid;
+        return grid.setMetaData( metaData );
     }
 
     @Override
@@ -405,7 +400,7 @@ public class DefaultEventAnalyticsService
         Program program = params.getProgram();
         ProgramStage stage = params.getProgramStage();
 
-        map.put( program.getUid(), program.getName() );
+        map.put( program.getUid(), program.getDisplayProperty( params.getDisplayProperty() ) );
 
         if ( stage != null )
         {

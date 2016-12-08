@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -352,6 +353,32 @@ public class DimensionalObjectUtils
     {
         return expression != null && COMPOSITE_DIM_OBJECT_PATTERN.matcher( expression ).matches();
     }
+    
+    /**
+     * Returns the first identifier in a composite dimension object identifier.
+     * 
+     * @param compositeItem the composite dimension object identifier.
+     * @return the first identifier, or null if not a valid composite identifier
+     *         or no match.
+     */
+    public static String getFirstIdentifer( String compositeItem )
+    {
+        Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher( compositeItem );
+        return matcher.matches() ? matcher.group( 1 ) : null;
+    }
+
+    /**
+     * Returns the second identifier in a composite dimension object identifier.
+     * 
+     * @param compositeItem the composite dimension object identifier.
+     * @return the second identifier, or null if not a valid composite identifier
+     *         or no match.
+     */
+    public static String getSecondIdentifer( String compositeItem )
+    {
+        Matcher matcher = COMPOSITE_DIM_OBJECT_PATTERN.matcher( compositeItem );
+        return matcher.matches() ? matcher.group( 2 ) : null;
+    }
 
     /**
      * Returns a list of DimensionalItemObjects.
@@ -504,6 +531,29 @@ public class DimensionalObjectUtils
         Map<String, String> map = Maps.newHashMap();
 
         objects.forEach( obj -> map.put( obj.getDimensionItem(), obj.getDimensionItem( IdScheme.from( idScheme ) ) ) );
+
+        return map;
+    }
+
+    /**
+     * Returns a mapping between the base dimension item identifier and the
+     * dimension item identifier defined by the given identifier scheme. For
+     * each operand, the data element and category option combo identifiers
+     * are included in the mapping, not the operand itself.
+     * 
+     * @param dataElementOperands the data element operands.
+     * @param idScheme the identifier scheme.
+     * @return a mapping between dimension item identifiers.
+     */
+    public static Map<String, String> getDataElementOperandIdSchemeMap( Collection<DataElementOperand> dataElementOperands, IdScheme idScheme )
+    {
+        Map<String, String> map = Maps.newHashMap();
+
+        for ( DataElementOperand operand : dataElementOperands )
+        {
+            map.put( operand.getDataElement().getDimensionItem(), operand.getDataElement().getDimensionItem( IdScheme.from( idScheme ) ) );
+            map.put( operand.getCategoryOptionCombo().getDimensionItem(), operand.getCategoryOptionCombo().getDimensionItem( IdScheme.from( idScheme ) ) );
+        }
 
         return map;
     }

@@ -44,7 +44,7 @@ dhis2.availability._availableTimeoutHandler = -1;
  *            default is 1000.
  */
 dhis2.availability.startAvailabilityCheck = function( onlineInterval, offlineInterval ) {
-  onlineInterval = onlineInterval ? onlineInterval : 30000;
+  onlineInterval = onlineInterval ? onlineInterval : 15000;
   offlineInterval = offlineInterval ? offlineInterval : 1000;
 
   function _checkAvailability() {

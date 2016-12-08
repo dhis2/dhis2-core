@@ -181,10 +181,12 @@ public class DefaultAnalyticsService
     }
     
     public Grid getRawDataValues( DataQueryParams params )
-    {
-        //TODO constraints
-        
+    {        
         securityManager.decideAccess( params );
+
+        params = securityManager.withDataApprovalConstraints( params );
+        params = securityManager.withDimensionConstraints( params );
+
         queryPlanner.validate( params );
         
         return getRawDataGrid( params );
@@ -479,7 +481,6 @@ public class DefaultAnalyticsService
             List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
 
             //TODO check if data was dim or filter
-            //TODO move add/remove to builder
 
             DataQueryParams operandParams = DataQueryParams.newBuilder( dataSourceParams )
                 .removeDimension( DATA_X_DIM_ID )
@@ -796,9 +797,12 @@ public class DefaultAnalyticsService
     {
         if ( !params.isSkipMeta() && params.hasNonUidOutputIdScheme() )
         {
-            List<DimensionalItemObject> items = params.getAllDimensionItems();
+            Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( params.getAllDimensionItems(), params.getOutputIdScheme() );
 
-            Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( items, params.getOutputIdScheme() );
+            if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) && !params.getDataElementOperands().isEmpty() )
+            {
+                map.putAll( DimensionalObjectUtils.getDataElementOperandIdSchemeMap( asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
+            }
 
             grid.substituteMetaData( map );
         }
@@ -1060,16 +1064,16 @@ public class DefaultAnalyticsService
      * @param params the data query parameters.
      * @param grid the grid.
      */
-    private void addRawData(DataQueryParams params, Grid grid )
+    private void addRawData( DataQueryParams params, Grid grid )
     {
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
-            .withTableName( ANALYTICS_TABLE_NAME ).build();
-        
-        List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
-        
-        for ( DataQueryParams query : queries )
+        if ( !params.isSkipData() )
         {
-            rawAnalyticsManager.getRawDataValues( query, grid );
+            QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+                .withTableName( ANALYTICS_TABLE_NAME ).build();
+            
+            List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+            
+            queries.forEach( query -> rawAnalyticsManager.getRawDataValues( query, grid ) );
         }
     }
 

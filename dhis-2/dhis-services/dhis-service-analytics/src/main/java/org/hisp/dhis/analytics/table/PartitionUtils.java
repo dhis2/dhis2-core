@@ -83,6 +83,15 @@ public class PartitionUtils
 
     //TODO optimize by including required filter periods only
 
+    public static Partitions getPartitions( Date startDate, Date endDate, String tablePrefix, String tableSuffix, Set<String> validPartitions )
+    {
+        Period period = new Period();
+        period.setStartDate( startDate );
+        period.setEndDate( endDate );
+        
+        return getPartitions( period, tablePrefix, tableSuffix, validPartitions );        
+    }
+    
     public static Partitions getPartitions( Period period, String tablePrefix, String tableSuffix, Set<String> validPartitions )
     {
         tablePrefix = StringUtils.trimToEmpty( tablePrefix );

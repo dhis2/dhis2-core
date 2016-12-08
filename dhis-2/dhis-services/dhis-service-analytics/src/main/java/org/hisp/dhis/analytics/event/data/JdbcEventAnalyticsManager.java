@@ -314,7 +314,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String clusterField = statementBuilder.columnQuote( params.getClusterField() );
+        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
             "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
@@ -371,7 +371,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Rectangle getRectangle( EventQueryParams params )
     {
-        String clusterField = statementBuilder.columnQuote( params.getClusterField() );
+        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
                 
         String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
         
@@ -734,7 +734,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getClusterField() ) + " is not null ";
+            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -744,7 +744,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += "and " + statementBuilder.columnQuote( params.getClusterField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
+            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
         
         return sql;
