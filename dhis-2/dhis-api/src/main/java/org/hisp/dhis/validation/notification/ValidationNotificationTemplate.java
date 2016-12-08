@@ -200,12 +200,15 @@ public class ValidationNotificationTemplate
                 subjectTemplate = that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate();
                 notificationRecipient = that.getNotificationRecipient();
+                notifyUsersInHierarchyOnly = that.notifyUsersInHierarchyOnly;
             }
             else if ( mergeMode.isMerge() )
             {
                 subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
                 notificationRecipient = that.getNotificationRecipient() == null ? notificationRecipient : that.getNotificationRecipient();
+                notifyUsersInHierarchyOnly =
+                    that.isNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.isNotifyUsersInHierarchyOnly();
             }
 
             recipientUserGroups.clear();
