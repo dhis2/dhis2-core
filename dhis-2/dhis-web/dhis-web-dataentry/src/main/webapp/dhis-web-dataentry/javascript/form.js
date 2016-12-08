@@ -1012,6 +1012,15 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
             dhis2.de.clearPeriod();
             dhis2.de.clearAttributes();
         }
+        
+        var dsl = document.getElementById( 'selectedDataSetId' );
+        
+        if ( dsl && dsl.options && dsl.options.length == 2 )
+        {
+            $( '#selectedDataSetId' ).val( dsl.options[1].value );
+            dataSetSelected();
+        }
+        
     });
 
 }
