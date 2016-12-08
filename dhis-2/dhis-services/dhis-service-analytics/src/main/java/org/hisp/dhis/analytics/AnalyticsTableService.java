@@ -44,7 +44,7 @@ public interface AnalyticsTableService
     void update( Integer lastYears, TaskId id );
     
     /**
-     * Drops analytics and and temporary analytics tables between 1900 and 2100.
+     * Drops main and temporary analytics tables.
      */
     void dropTables();
     

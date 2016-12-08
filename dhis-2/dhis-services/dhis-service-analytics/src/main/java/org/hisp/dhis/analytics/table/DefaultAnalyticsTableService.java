@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -161,13 +162,9 @@ public class DefaultAnalyticsTableService
     @Override
     public void dropTables()
     {
-        List<AnalyticsTable> tables = tableManager.getAllTables();
+        Set<String> tables = tableManager.getExistingDatabaseTables();
         
-        for ( AnalyticsTable table : tables )   
-        {
-            tableManager.dropTable( table.getTableName() );
-            tableManager.dropTable( table.getTempTableName() );            
-        }
+        tables.forEach( table -> tableManager.dropTable( table ) );
     }
 
     @Override
