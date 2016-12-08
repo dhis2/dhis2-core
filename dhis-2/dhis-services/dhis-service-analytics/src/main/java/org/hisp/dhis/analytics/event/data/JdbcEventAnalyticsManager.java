@@ -503,9 +503,9 @@ public class JdbcEventAnalyticsManager
             {
                 String colName = statementBuilder.columnQuote( queryItem.getItemName() );
                 
-                String coordinateSql =  "'[' || ST_X(" + colName + ") || ',' || ST_Y(" + colName + ") || ']'";
+                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
                 
-                columns.add( coordinateSql );
+                columns.add( coordSql );
             }
             else
             {
