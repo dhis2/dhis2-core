@@ -77,6 +77,17 @@ public class ValidationNotificationTemplate
     // Conditionally relevant properties
     // -------------------------------------------------------------------------
 
+    /**
+     * Limit notifications to only users which are in the direct hierarchy of the
+     * orgunit. This includes any orgunit in the direct path from the root to the
+     * orgunit, as well all children (recursive).
+     *
+     * Should act like a filter on the configured user groups.
+     * In the case of non User recipients, this is not applicable.
+     */
+
+    private boolean notifyUsersInHierarchyOnly;
+
     private Set<UserGroup> recipientUserGroups;
 
     // -------------------------------------------------------------------------
@@ -150,12 +161,24 @@ public class ValidationNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isNotifyUsersInHierarchyOnly()
+    {
+        return notifyUsersInHierarchyOnly;
+    }
+
+    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
+    {
+        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<UserGroup> getRecipientUserGroups()
     {
         return recipientUserGroups;
     }
 
-    public void setRecipientUserGroup( Set<UserGroup> recipientUserGroups )
+    public void setRecipientUserGroups( Set<UserGroup> recipientUserGroups )
     {
         this.recipientUserGroups = recipientUserGroups;
     }

@@ -19,6 +19,8 @@
 
     <property name="messageTemplate" column="messagetemplate" not-null="false" type="text" />
 
+    <property name="notifyUsersInHierarchyOnly" column="notifyusersinhierarchyonly" not-null="true" />
+
     <property name="notificationRecipient" column="notificationrecipienttype">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.validation.notification.ValidationNotificationRecipient</param>
