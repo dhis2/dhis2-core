@@ -131,9 +131,16 @@ public interface AnalyticsTableManager
     /**
      * Drops the given table.
      * 
-     * @param tableName the name of the table to drop.
+     * @param tableName the table name.
      */
     void dropTable( String tableName );
+    
+    /**
+     * Performs an analyze operation on the given table.
+     * 
+     * @param tableName the table name.
+     */
+    void analyzeTable( String tableName );
     
     /**
      * Applies aggregation level logic to the analytics table by setting the

@@ -211,6 +211,12 @@ public abstract class AbstractJdbcTableManager
     {        
         executeSilently( "drop table " + tableName );
     }
+    
+    @Override
+    public void analyzeTable( String tableName )
+    {
+        executeSilently( "analyze " + tableName );
+    }
 
     @Override
     @Async
@@ -241,14 +247,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void analyzeTables( List<AnalyticsTable> tables )
     {
-        for ( AnalyticsTable table : tables )
-        {
-            final String sql = "analyze " + table.getTempTableName() + ";";
-            
-            log.info( "Analyze table SQL: " + sql );
-            
-            executeSilently( sql );
-        }
+        tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
     }
 
     // -------------------------------------------------------------------------

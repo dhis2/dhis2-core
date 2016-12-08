@@ -165,14 +165,18 @@ public class DefaultAnalyticsTableService
         Set<String> tables = tableManager.getExistingDatabaseTables();
         
         tables.forEach( table -> tableManager.dropTable( table ) );
+        
+        log.info( "Analytics tables dropped" );
     }
 
     @Override
     public void analyzeAnalyticsTables()
     {
-        List<AnalyticsTable> tables = tableManager.getAllTables();
+        Set<String> tables = tableManager.getExistingDatabaseTables();
         
-        tableManager.analyzeTables( tables );
+        tables.forEach( table -> tableManager.analyzeTable( table ) );
+        
+        log.info( "Analytics tables analyzed" );
     }
     
     @Override
