@@ -31,10 +31,7 @@ package org.hisp.dhis.analytics.table;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
@@ -101,7 +98,7 @@ public class JdbcAnalyticsTableManager
             return "No organisation unit levels exist, not updating aggregate analytics tables";
         }
 
-        log.info( "Approval enabled: " + isApprovalEnabled() );
+        log.info( "Approval enabled: " + isApprovalEnabled( null ) );
 
         return null;
     }
@@ -115,7 +112,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public void preCreateTables()
     {
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( null ) )
         {
             resourceTableService.generateDataApprovalMinLevelTable();
         }
@@ -265,7 +262,7 @@ public class JdbcAnalyticsTableManager
      */
     private String getApprovalJoinClause( AnalyticsTable table)
     {
-        if ( isApprovalEnabled() && !systemSettingManager.ignoreHideUnapprovedDataInAnalyticsForPeriod( table.getPeriod() ) )
+        if ( isApprovalEnabled( table ) )
         {
             String sql =
                 "left join _dataapprovalminlevel da " +
@@ -364,7 +361,7 @@ public class JdbcAnalyticsTableManager
 
         columns.addAll( Lists.newArrayList( de, co, ao, pe, ou, level ) );
 
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( table ) )
         {
             String col = "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel ";
 
@@ -457,11 +454,22 @@ public class JdbcAnalyticsTableManager
      * Indicates whether the system should ignore data which has not been approved
      * in analytics tables.
      */
-    private boolean isApprovalEnabled()
+    private boolean isApprovalEnabled( AnalyticsTable table )
     {
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
+        Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
 
-        return setting && levels;
+        if( table != null )
+        {
+            boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( table.getPeriod(), maxYears );
+
+            return setting && levels && !periodOverMaxYears;
+        }
+        else
+        {
+            return setting && levels && maxYears == 0;
+        }
+
     }
 }

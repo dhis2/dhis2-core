@@ -28,8 +28,6 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.period.Period;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -107,6 +105,4 @@ public interface SystemSettingManager
     Integer credentialsExpires();
 
     boolean isConfidential( String name );
-
-    boolean ignoreHideUnapprovedDataInAnalyticsForPeriod( Period period );
 }
