@@ -47,6 +47,11 @@ public interface AnalyticsTableService
      * Drops analytics and and temporary analytics tables between 1900 and 2100.
      */
     void dropTables();
+
+    /**
+     * Performs an <code>analyze</code> operation on all analytics tables.
+     */
+    void analyzeAnalyticsTables();
     
     /**
      * Generate required resource tables.
