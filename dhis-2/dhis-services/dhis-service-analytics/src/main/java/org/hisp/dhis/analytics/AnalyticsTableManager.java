@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -49,7 +50,7 @@ public interface AnalyticsTableManager
     public static final String EVENT_ANALYTICS_TABLE_NAME = "analytics_event";
     
     /**
-     * Returns analytics tables which are yearly partitions.
+     * Returns a list of generated analytics tables for yearly partitions.
      * 
      * @param earliest the start date for the first year to generate table partitions.
      * @param latest the end date for the last year to generate table partitions.
@@ -57,9 +58,9 @@ public interface AnalyticsTableManager
     List<AnalyticsTable> getTables( Date earliest );
     
     /**
-     * Returns all potential analytics tables which are yearly partitions.
+     * Returns a list of existing analytics database table names.
      */
-    List<AnalyticsTable> getAllTables();
+    Set<String> getExistingDatabaseTables();
     
     /**
      * Checks if the database content is in valid state for analytics table generation.
