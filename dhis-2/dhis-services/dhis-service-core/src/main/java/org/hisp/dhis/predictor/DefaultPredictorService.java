@@ -36,6 +36,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
@@ -184,6 +185,7 @@ public class DefaultPredictorService
         Expression generator = predictor.getGenerator();
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement output = predictor.getOutput();
+        DataElementCategoryOptionCombo outputCombo = predictor.getOutputCombo();
         Set<BaseDimensionalItemObject> datarefs = getExpressionInputs( generator.getExpression() );
         Set<BaseDimensionalItemObject> skiprefs = skipTest == null ? new HashSet<BaseDimensionalItemObject>()
             : getExpressionInputs( skipTest.getExpression() );
@@ -197,6 +199,9 @@ public class DefaultPredictorService
 
         Set<Period> basePeriods = periodMaps.keySet();
         Set<Period> samplePeriods = periodMaps.uniqueValues();
+
+        if ( outputCombo == null ) outputCombo=
+            categoryService.getDefaultDataElementCategoryOptionCombo();
 
         for ( String aggregate : aggregates )
         {
@@ -249,8 +254,7 @@ public class DefaultPredictorService
 
                         if ( value != null && !value.isNaN() && !value.isInfinite() )
                         {
-                            DataValue dv = new DataValue( output, period, source,
-                                categoryService.getDefaultDataElementCategoryOptionCombo(),
+                            DataValue dv = new DataValue( output, period, source, outputCombo,
                                 categoryService.getDataElementCategoryOptionCombo( aoc ) );
 
                             dv.setValue( value.toString() );
