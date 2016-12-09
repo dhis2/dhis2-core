@@ -292,10 +292,14 @@ public class Predictor
                 description = predictor.getDescription() == null ? description : predictor.getDescription();
                 periodType = predictor.getPeriodType() == null ? periodType : predictor.getPeriodType();
                 output = predictor.getOutput() == null ? output : predictor.getOutput();
-                sequentialSampleCount = predictor.getSequentialSampleCount() == null ? sequentialSampleCount : predictor.getSequentialSampleCount();
-                sequentialSkipCount = predictor.getSequentialSkipCount() == null ? sequentialSkipCount : predictor.getSequentialSkipCount();
-                annualSampleCount = predictor.getAnnualSampleCount() == null ? annualSampleCount : predictor.getAnnualSampleCount();
-                organisationUnitLevels = predictor.getOrganisationUnitLevels() == null ? organisationUnitLevels : predictor.getOrganisationUnitLevels();
+                sequentialSampleCount = ( predictor.getSequentialSampleCount() == null ) ?
+		    sequentialSampleCount : predictor.getSequentialSampleCount();
+                sequentialSkipCount = ( predictor.getSequentialSkipCount() == null ) ?
+		    sequentialSkipCount : predictor.getSequentialSkipCount();
+                annualSampleCount = ( predictor.getAnnualSampleCount() == null ) ? 
+		    annualSampleCount : predictor.getAnnualSampleCount();
+                organisationUnitLevels = ( predictor.getOrganisationUnitLevels() == null ) ?
+		    organisationUnitLevels : predictor.getOrganisationUnitLevels();
             }
 
             if ( generator != null && predictor.getGenerator() != null )
