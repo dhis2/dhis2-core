@@ -28,7 +28,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Sets;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.validation.notification.ValidationNotificationRecipient;
@@ -43,7 +43,11 @@ public class ValidationNotificationTemplateObjectBundleHook
 
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !ValidationNotificationTemplate.class.isInstance( object ) ) return;
+        if ( !ValidationNotificationTemplate.class.isInstance( object ) )
+        {
+            return;
+        }
+
         ValidationNotificationTemplate template = (ValidationNotificationTemplate) object;
 
         preProcess( template );
@@ -52,7 +56,11 @@ public class ValidationNotificationTemplateObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if ( !ValidationNotificationTemplate.class.isInstance( object ) ) return;
+        if ( !ValidationNotificationTemplate.class.isInstance( object ) )
+        {
+            return;
+        }
+
         ValidationNotificationTemplate template = (ValidationNotificationTemplate) object;
 
         preProcess( template );
@@ -68,7 +76,7 @@ public class ValidationNotificationTemplateObjectBundleHook
             template.setRecipientUserGroups( Sets.newHashSet() );
         }
 
-        if ( !( template.getNotificationRecipient().isExternalRecipient() ) )
+        if ( !template.getNotificationRecipient().isExternalRecipient() )
         {
             template.setDeliveryChannels( Sets.newHashSet() );
         }
