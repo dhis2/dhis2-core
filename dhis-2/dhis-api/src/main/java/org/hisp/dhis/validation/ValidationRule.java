@@ -103,7 +103,7 @@ public class ValidationRule
     /**
      * Notification templates for this ValidationRule
      */
-    private Set<ValidationNotificationTemplate> notificationTemplates;
+    private Set<ValidationNotificationTemplate> notificationTemplates = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
