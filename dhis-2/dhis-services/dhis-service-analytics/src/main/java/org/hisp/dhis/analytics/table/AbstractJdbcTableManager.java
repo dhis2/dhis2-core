@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
+import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -93,6 +94,9 @@ public abstract class AbstractJdbcTableManager
     
     @Autowired
     protected ResourceTableService resourceTableService;
+    
+    @Autowired
+    protected PartitionManager partitionManager;
    
     @Autowired
     protected StatementBuilder statementBuilder;
@@ -131,13 +135,6 @@ public abstract class AbstractJdbcTableManager
         log.info( "Get tables using earliest: " + earliest );
 
         return getTables( getDataYears( earliest ) );
-    }
-
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAllTables()
-    {
-        return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
     }
     
     private List<AnalyticsTable> getTables( List<Integer> dataYears )
@@ -211,11 +208,14 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     public void dropTable( String tableName )
-    {
-        final String realTable = tableName.replaceFirst( TABLE_TEMP_SUFFIX, "" );
-        
+    {        
         executeSilently( "drop table " + tableName );
-        executeSilently( "drop table " + realTable );
+    }
+    
+    @Override
+    public void analyzeTable( String tableName )
+    {
+        executeSilently( "analyze " + tableName );
     }
 
     @Override
@@ -247,14 +247,7 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void analyzeTables( List<AnalyticsTable> tables )
     {
-        for ( AnalyticsTable table : tables )
-        {
-            final String sql = "analyze " + table.getTempTableName() + ";";
-            
-            log.debug( "Analyze table SQL: " + sql );
-            
-            jdbcTemplate.execute( sql );
-        }
+        tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
     }
 
     // -------------------------------------------------------------------------

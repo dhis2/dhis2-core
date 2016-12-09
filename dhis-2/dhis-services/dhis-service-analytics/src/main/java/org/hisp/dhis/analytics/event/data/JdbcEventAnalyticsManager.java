@@ -490,7 +490,7 @@ public class JdbcEventAnalyticsManager
         }
         
         for ( QueryItem queryItem : params.getItems() )
-        {
+        {            
             if ( queryItem.isProgramIndicator() )
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
@@ -498,6 +498,14 @@ public class JdbcEventAnalyticsManager
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
                 
                 columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression() ) + ")" + asClause );
+            }
+            else if ( ValueType.COORDINATE == queryItem.getValueType() )
+            {
+                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
+                
+                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
+                
+                columns.add( coordSql );
             }
             else
             {

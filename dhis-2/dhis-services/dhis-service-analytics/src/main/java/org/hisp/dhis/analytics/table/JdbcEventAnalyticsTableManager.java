@@ -34,7 +34,6 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
@@ -75,10 +74,9 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    @Transactional
-    public List<AnalyticsTable> getAllTables()
+    public Set<String> getExistingDatabaseTables()
     {
-        return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
+        return partitionManager.getEventAnalyticsPartitions();
     }
     
     private List<AnalyticsTable> getTables( List<Integer> dataYears )

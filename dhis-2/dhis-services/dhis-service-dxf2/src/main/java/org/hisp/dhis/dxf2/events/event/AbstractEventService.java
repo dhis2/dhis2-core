@@ -193,7 +193,7 @@ public abstract class AbstractEventService
     @Autowired
     protected FileResourceService fileResourceService;
 
-    protected static final int FLUSH_FREQUENCY = 20;
+    protected static final int FLUSH_FREQUENCY = 50;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -229,7 +229,7 @@ public abstract class AbstractEventService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -758,7 +758,7 @@ public abstract class AbstractEventService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -1040,7 +1040,7 @@ public abstract class AbstractEventService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -1461,7 +1461,7 @@ public abstract class AbstractEventService
             programStageInstance.setCompletedDate( new Date() );
             programStageInstance.setCompletedBy( completedBy );
 
-            programStageInstanceService.completeProgramStageInstance( programStageInstance,importOptions.isSkipNotifications(),
+            programStageInstanceService.completeProgramStageInstance( programStageInstance, importOptions.isSkipNotifications(),
                 i18nManager.getI18nFormat() );
         }
     }
@@ -1696,5 +1696,16 @@ public abstract class AbstractEventService
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
+    }
+
+    private void clearSession()
+    {
+        organisationUnitCache.clear();
+        programCache.clear();
+        programStageCache.clear();
+        dataElementCache.clear();
+        accessibleProgramsCache.clear();
+
+        dbmsManager.clearSession();
     }
 }
