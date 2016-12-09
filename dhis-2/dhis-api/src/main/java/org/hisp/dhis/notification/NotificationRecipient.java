@@ -1,4 +1,4 @@
-package org.hisp.dhis.validation.notification;
+package org.hisp.dhis.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,27 +28,17 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.notification.NotificationRecipient;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ValidationNotificationRecipient
-    implements NotificationRecipient
+public interface NotificationRecipient
 {
-    USER_GROUPS( false ),
-    ORGANISATION_UNIT_CONTACT( true );
-
-    private boolean external;
-
-    ValidationNotificationRecipient( boolean external )
-    {
-        this.external = external;
-    }
-
-    @Override
-    public boolean isExternalRecipient()
-    {
-        return external;
-    }
+    /**
+     * Does the NotificationRecipient represent an 'external' recipient?
+     *
+     * Specifically:
+     *  Does the recipient ultimately resolve to a DHIS2 ("internal") message recipient
+     *  (User, UserGroup) or a piece of external contact information (phone number, e-mail address).
+     */
+    boolean isExternalRecipient();
 }
