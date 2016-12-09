@@ -263,6 +263,13 @@
     <property name="cacheable" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore"
+    class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+    <property name="clazz" value="org.hisp.dhis.validation.notification.ValidationNotificationTemplate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.validation.ValidationRuleGroupStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.validation.ValidationRuleGroup" />
     <property name="sessionFactory" ref="sessionFactory" />

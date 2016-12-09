@@ -68,7 +68,7 @@ public class ValidationNotificationTemplateObjectBundleHook
             template.setRecipientUserGroups( Sets.newHashSet() );
         }
 
-        if ( !(template.getNotificationRecipient().isExternalRecipient() ) )
+        if ( !( template.getNotificationRecipient().isExternalRecipient() ) )
         {
             template.setDeliveryChannels( Sets.newHashSet() );
         }

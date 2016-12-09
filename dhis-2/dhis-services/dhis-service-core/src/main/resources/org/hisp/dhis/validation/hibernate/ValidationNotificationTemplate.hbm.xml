@@ -40,7 +40,7 @@
       </element>
     </set>
 
-    <set name="recipientUserGroups" cascade="all">
+    <set name="recipientUserGroups">
       <key column="validationnotificationtemplateid" />
       <one-to-many class="org.hisp.dhis.user.UserGroup" />
     </set>

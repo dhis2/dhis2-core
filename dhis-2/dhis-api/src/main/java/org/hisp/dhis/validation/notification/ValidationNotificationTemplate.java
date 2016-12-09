@@ -30,6 +30,7 @@ package org.hisp.dhis.validation.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -57,9 +58,9 @@ public class ValidationNotificationTemplate
 
     private String messageTemplate;
 
-    private Set<ValidationRule> validationRules;
+    private Set<ValidationRule> validationRules = Sets.newHashSet();
 
-    private Set<DeliveryChannel> deliveryChannels;
+    private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
 
     private ValidationNotificationRecipient notificationRecipient;
 
@@ -77,7 +78,7 @@ public class ValidationNotificationTemplate
      */
     private Boolean notifyUsersInHierarchyOnly;
 
-    private Set<UserGroup> recipientUserGroups;
+    private Set<UserGroup> recipientUserGroups = Sets.newHashSet();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -205,8 +206,14 @@ public class ValidationNotificationTemplate
                 notifyUsersInHierarchyOnly = that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
             }
 
+            deliveryChannels.clear();
+            deliveryChannels.addAll( that.getDeliveryChannels() );
+
+            validationRules.clear();
+            validationRules.addAll( that.getValidationRules() );
+
             recipientUserGroups.clear();
-            recipientUserGroups.addAll( that.recipientUserGroups );
+            recipientUserGroups.addAll( that.getRecipientUserGroups() );
         }
     }
 }
