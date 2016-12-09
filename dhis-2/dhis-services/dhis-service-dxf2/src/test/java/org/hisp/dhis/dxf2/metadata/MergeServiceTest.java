@@ -62,7 +62,7 @@ public class MergeServiceTest
         Simple source = new Simple( "string", 10, date, false, 123, 2.5f );
         Simple target = new Simple();
 
-        mergeService.merge( source, target, MergeMode.REPLACE );
+        mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.REPLACE ) );
 
         assertEquals( "string", target.getString() );
         assertEquals( 10, (int) target.getInteger() );
@@ -78,7 +78,7 @@ public class MergeServiceTest
         Simple source = new Simple( null, 10, date, null, 123, 2.5f );
         Simple target = new Simple( "hello", 20, date, true, 123, 2.5f );
 
-        mergeService.merge( source, target, MergeMode.MERGE );
+        mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.MERGE ) );
 
         assertEquals( "hello", target.getString() );
         assertEquals( 10, (int) target.getInteger() );
@@ -98,7 +98,7 @@ public class MergeServiceTest
 
         SimpleCollection target = new SimpleCollection( "target" );
 
-        mergeService.merge( source, target, MergeMode.MERGE );
+        mergeService.merge( new MergeParams<>( source, target ).setMergeMode( MergeMode.MERGE ) );
 
         assertEquals( "name", target.getName() );
         assertEquals( 3, target.getSimples().size() );

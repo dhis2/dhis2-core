@@ -32,7 +32,6 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,8 +42,15 @@ import java.util.List;
  */
 public class DefaultMergeService implements MergeService
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final static List<String> sharingProps = Arrays.asList(
+        "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
+
+    private final SchemaService schemaService;
+
+    public DefaultMergeService( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
@@ -57,10 +63,12 @@ public class DefaultMergeService implements MergeService
 
         for ( Property property : schema.getProperties() )
         {
-            if ( mergeParams.isSkipSharing() && isSharingProperty( property ) )
+            if ( schema.isIdentifiableObject() && mergeParams.isSkipSharing() && isSharingProperty( property ) )
             {
                 continue;
             }
+
+            System.err.println( "P: " + property.getName() );
 
             if ( property.isCollection() )
             {
@@ -97,9 +105,6 @@ public class DefaultMergeService implements MergeService
             }
         }
     }
-
-    private final static List<String> sharingProps = Arrays.asList(
-        "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
 
     private boolean isSharingProperty( Property property )
     {
