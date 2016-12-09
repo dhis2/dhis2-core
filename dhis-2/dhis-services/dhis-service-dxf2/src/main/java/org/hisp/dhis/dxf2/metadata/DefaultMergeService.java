@@ -68,8 +68,6 @@ public class DefaultMergeService implements MergeService
                 continue;
             }
 
-            System.err.println( "P: " + property.getName() );
-
             if ( property.isCollection() )
             {
                 Collection sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
@@ -108,6 +106,6 @@ public class DefaultMergeService implements MergeService
 
     private boolean isSharingProperty( Property property )
     {
-        return property.isPersisted() && (sharingProps.contains( property.getName() ) || sharingProps.contains( property.getCollectionName() ));
+        return sharingProps.contains( property.getName() ) || sharingProps.contains( property.getCollectionName() );
     }
 }
