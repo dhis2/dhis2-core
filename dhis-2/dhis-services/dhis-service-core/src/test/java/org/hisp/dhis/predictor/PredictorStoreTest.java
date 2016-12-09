@@ -84,6 +84,8 @@ public class PredictorStoreTest
 
     private Set<DataElementCategoryOptionCombo> optionCombos;
 
+    private DataElementCategoryOptionCombo defaultCombo;
+
     private Expression expressionA;
 
     private Expression expressionB;
@@ -122,6 +124,7 @@ public class PredictorStoreTest
         dataElements.add( dataElementD );
 
         DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        defaultCombo = categoryOptionCombo;
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
@@ -140,37 +143,58 @@ public class PredictorStoreTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testSavepredictor()
+    public void testSavePredictor()
     {
-        Predictor predictor = createPredictor( dataElementX, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
-        int id = predictorStore.save( predictor );
+        int idA = predictorStore.save( predictorA );
+        Set<OrganisationUnitLevel> levelsA = predictorA.getOrganisationUnitLevels();
+        Set<OrganisationUnitLevel> expectedLevelsA = new HashSet<OrganisationUnitLevel>();
+        expectedLevelsA.add( orgUnitLevel1 );
 
-        Set<OrganisationUnitLevel> levels = predictor.getOrganisationUnitLevels();
-        Set<OrganisationUnitLevel> expectedLevels = new HashSet<OrganisationUnitLevel>();
-        expectedLevels.add( orgUnitLevel1 );
+        predictorA = predictorStore.get( idA );
 
-        predictor = predictorStore.get( id );
+        levelsA = predictorA.getOrganisationUnitLevels();
 
-        levels = predictor.getOrganisationUnitLevels();
-
-        assertEquals( predictor.getName(), "PredictorA" );
-        assertEquals( predictor.getDescription(), "DescriptionA" );
-        assertNotNull( predictor.getGenerator().getExpression() );
+        assertEquals( predictorA.getName(), "PredictorA" );
+        assertEquals( predictorA.getDescription(), "DescriptionA" );
+        assertNotNull( predictorA.getGenerator().getExpression() );
         // TODO Need a good skipTest test
-        assertEquals( predictor.getPeriodType(), periodType );
-        assertEquals( predictor.getOutput(), dataElementX );
-        assertEquals( predictor.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictor.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 1 ) );
-        assertEquals( levels.size(), 1 );
-        assertEquals( levels, expectedLevels );
+        assertEquals( predictorA.getPeriodType(), periodType );
+        assertEquals( predictorA.getOutput(), dataElementX );
+        assertEquals( predictorA.getAnnualSampleCount(), new Integer( 0 ) );
+        assertEquals( predictorA.getSequentialSampleCount(), new Integer( 6 ) );
+        assertEquals( predictorA.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( levelsA.size(), 1 );
+        assertEquals( levelsA, expectedLevelsA );
+
+        int idB = predictorStore.save( predictorB );
+        Set<OrganisationUnitLevel> levelsB = predictorB.getOrganisationUnitLevels();
+        Set<OrganisationUnitLevel> expectedLevelsB = new HashSet<OrganisationUnitLevel>();
+        expectedLevelsB.add( orgUnitLevel1 );
+
+        predictorB = predictorStore.get( idB );
+
+        levelsB = predictorB.getOrganisationUnitLevels();
+
+        assertEquals( predictorA.getName(), "PredictorA" );
+        assertEquals( predictorA.getDescription(), "DescriptionA" );
+        assertNotNull( predictorA.getGenerator().getExpression() );
+        // TODO Need a good skipTest test
+        assertEquals( predictorA.getPeriodType(), periodType );
+        assertEquals( predictorA.getOutput(), dataElementX );
+        assertEquals( predictorA.getAnnualSampleCount(), new Integer( 0 ) );
+        assertEquals( predictorA.getSequentialSampleCount(), new Integer( 6 ) );
+        assertEquals( predictorA.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( levelsB.size(), 1 );
+        assertEquals( levelsB, expectedLevelsB );
     }
 
     @Test
     public void testUpdatePredictor()
     {
-        Predictor predictor = createPredictor( dataElementX, "A", expressionA, expressionB, periodType, orgUnitLevel1,
+        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1,
             6, 1, 0 );
 
         int id = predictorStore.save( predictor );
@@ -198,8 +222,8 @@ public class PredictorStoreTest
     @Test
     public void testDeletePredictor()
     {
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
         int idA = predictorStore.save( predictorA );
         int idB = predictorStore.save( predictorB );
@@ -225,8 +249,8 @@ public class PredictorStoreTest
     @Test
     public void testGetAllPredictors()
     {
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
         predictorStore.save( predictorB );
@@ -241,8 +265,8 @@ public class PredictorStoreTest
     @Test
     public void testGetPredictorByName()
     {
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
         int id = predictorStore.save( predictorA );
         predictorStore.save( predictorB );
@@ -278,9 +302,9 @@ public class PredictorStoreTest
         expressionService.addExpression( expression2 );
         expressionService.addExpression( expression3 );
 
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorC = createPredictor( dataElementX, "C", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorC = createPredictor( dataElementX, defaultCombo, "C", expressionA, expressionB, periodType, orgUnitLevel1, 6, 1, 0 );
 
         predictorStore.save( predictorA );
         predictorStore.save( predictorB );
