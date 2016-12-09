@@ -28,18 +28,29 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.notification.NotificationRecipient;
+
 /**
  * @author Halvdan Hoem Grelland
  */
 public enum ProgramNotificationRecipient
+    implements NotificationRecipient
 {
-    TRACKED_ENTITY_INSTANCE,
-    ORGANISATION_UNIT_CONTACT,
-    USERS_AT_ORGANISATION_UNIT,
-    USER_GROUP;
+    TRACKED_ENTITY_INSTANCE( true ),
+    ORGANISATION_UNIT_CONTACT( true ),
+    USERS_AT_ORGANISATION_UNIT( false ),
+    USER_GROUP( false );
 
+    private boolean external;
+
+    ProgramNotificationRecipient( boolean external )
+    {
+        this.external = external;
+    }
+
+    @Override
     public boolean isExternalRecipient()
     {
-        return this == TRACKED_ENTITY_INSTANCE || this == ORGANISATION_UNIT_CONTACT;
+        return external;
     }
 }
