@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.webapi.controller.validation;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,18 +28,20 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.schema.descriptors.ValidationNotificationTemplateSchemaDescriptor;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient
+@Controller
+@RequestMapping( value = ValidationNotificationTemplateSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( include = { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+public class ValidationNotificationTemplateController
+    extends AbstractCrudController<ValidationNotificationTemplate>
 {
-    TRACKED_ENTITY_INSTANCE,
-    ORGANISATION_UNIT_CONTACT,
-    USERS_AT_ORGANISATION_UNIT,
-    USER_GROUP;
-
-    public boolean isExternalRecipient()
-    {
-        return this == TRACKED_ENTITY_INSTANCE || this == ORGANISATION_UNIT_CONTACT;
-    }
 }

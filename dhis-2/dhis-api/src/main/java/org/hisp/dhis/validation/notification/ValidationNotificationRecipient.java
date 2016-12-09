@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.validation.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -31,15 +31,13 @@ package org.hisp.dhis.program.notification;
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient
+public enum ValidationNotificationRecipient
 {
-    TRACKED_ENTITY_INSTANCE,
-    ORGANISATION_UNIT_CONTACT,
-    USERS_AT_ORGANISATION_UNIT,
-    USER_GROUP;
+    USER_GROUPS,
+    ORGANISATION_UNIT_CONTACT;
 
     public boolean isExternalRecipient()
     {
-        return this == TRACKED_ENTITY_INSTANCE || this == ORGANISATION_UNIT_CONTACT;
+        return this == ORGANISATION_UNIT_CONTACT;
     }
 }

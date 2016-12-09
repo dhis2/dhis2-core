@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,18 +28,37 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient
+public class ValidationNotificationTemplateSchemaDescriptor
+    implements SchemaDescriptor
 {
-    TRACKED_ENTITY_INSTANCE,
-    ORGANISATION_UNIT_CONTACT,
-    USERS_AT_ORGANISATION_UNIT,
-    USER_GROUP;
+    public static final String SINGULAR = "validationNotificationTemplate";
 
-    public boolean isExternalRecipient()
+    public static final String PLURAL = "validationNotificationTemplates";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        return this == TRACKED_ENTITY_INSTANCE || this == ORGANISATION_UNIT_CONTACT;
+        Schema schema = new Schema( ValidationNotificationTemplate.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setOrder( 1410 );
+
+        // Inherits authorities from ValidationRule
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_VALIDATIONRULE_PUBLIC_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_VALIDATIONRULE_PRIVATE_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_VALIDATIONRULE_DELETE" ) ) );
+
+        return schema;
     }
 }

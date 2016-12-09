@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.validation.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,18 +28,54 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.notification.TemplateVariable;
+
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient
+public enum ValidationRuleTemplateVariable
+    implements TemplateVariable
 {
-    TRACKED_ENTITY_INSTANCE,
-    ORGANISATION_UNIT_CONTACT,
-    USERS_AT_ORGANISATION_UNIT,
-    USER_GROUP;
+    RULE_NAME( "rule_name" ),
+    DESCRIPTION( "rule_description" ),
+    OPERATOR( "operator" ),
+    IMPORTANCE( "importance" ),
+    LEFT_SIDE_DESCRIPTION( "left_side_description" ),
+    RIGHT_SIDE_DESCRIPTION( "right_side_description" ),
+    LEFT_SIDE_VALUE( "left_side_value" ),
+    RIGHT_SIDE_VALUE( "right_side_value" ),
+    ORG_UNIT_NAME( "org_unit_name" ),
+    PERIOD( "period" ),
+    CURRENT_DATE( "current_date" );
 
-    public boolean isExternalRecipient()
+    private static final Map<String, ValidationRuleTemplateVariable> variableNameMap =
+        EnumSet.allOf( ValidationRuleTemplateVariable.class ).stream()
+            .collect( Collectors.toMap( ValidationRuleTemplateVariable::getVariableName, e -> e ) );
+
+    private final String variableName;
+
+    ValidationRuleTemplateVariable( String variableName )
     {
-        return this == TRACKED_ENTITY_INSTANCE || this == ORGANISATION_UNIT_CONTACT;
+        this.variableName = variableName;
+    }
+
+    @Override
+    public String getVariableName()
+    {
+        return variableName;
+    }
+
+    public static boolean isValidVariableName( String expressionName )
+    {
+        return variableNameMap.keySet().contains( expressionName );
+    }
+
+    public static ValidationRuleTemplateVariable fromVariableName( String variableName )
+    {
+        return variableNameMap.get( variableName );
     }
 }
