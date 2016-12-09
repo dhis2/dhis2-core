@@ -35,6 +35,7 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.DefaultRenderService;
@@ -44,7 +45,6 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -209,7 +209,7 @@ public class AppController
             return;
         }
 
-        if ( new ServletWebRequest( request ).checkNotModified( resource.lastModified() ) )
+        if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
         {
             response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
             return;
