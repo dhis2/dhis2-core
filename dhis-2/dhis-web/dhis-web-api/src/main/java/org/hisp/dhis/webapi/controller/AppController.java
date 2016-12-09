@@ -209,7 +209,7 @@ public class AppController
             return;
         }
 
-        if ( new ServletWebRequest( request ).checkNotModified( resource.lastModified() ) )
+        if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
         {
             response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
             return;
