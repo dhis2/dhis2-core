@@ -253,12 +253,12 @@ table.pivot {
 	border-spacing: 0px;
 	border: 0 none;
 
-	-webkit-touch-callout: all;
-	-webkit-user-select: all;
-	-khtml-user-select: all;
-	-moz-user-select: all;
-	-ms-user-select: all;
-	user-select: all;
+	-webkit-touch-callout: text;
+	-webkit-user-select: text;
+	-khtml-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	user-select: text;
 }
 
 table.pivot.displaydensity-COMFORTABLE td {
@@ -1228,11 +1228,11 @@ table.pivot.fontsize-SMALL td {
 	/* accordion title dock outer, default */
 .ns-accordion .x-accordion-item {
 	border: 1px solid #c5c5c5;
-	border-bottom: 0 none;
+	border-top: 0 none;
 }
 	/* accordion title dock outer, last */
-.ns-accordion .ns-accordion-last {
-	border: 1px solid #c5c5c5;
+.ns-accordion .ns-accordion-first {
+	border-top: 1px solid #c5c5c5;
 }
 
 	/* accordion title dock text, shared */

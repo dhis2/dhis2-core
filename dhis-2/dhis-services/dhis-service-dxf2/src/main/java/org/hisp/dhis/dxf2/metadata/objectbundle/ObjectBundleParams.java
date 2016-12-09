@@ -75,6 +75,8 @@ public class ObjectBundleParams
 
     private boolean skipValidation;
 
+    private String filename;
+
     private TaskId taskId;
 
     public ObjectBundleParams()
@@ -87,9 +89,10 @@ public class ObjectBundleParams
         return user;
     }
 
-    public void setUser( User user )
+    public ObjectBundleParams setUser( User user )
     {
         this.user = user;
+        return this;
     }
 
     public ObjectBundleMode getObjectBundleMode()
@@ -119,9 +122,10 @@ public class ObjectBundleParams
         return preheatMode;
     }
 
-    public void setPreheatMode( PreheatMode preheatMode )
+    public ObjectBundleParams setPreheatMode( PreheatMode preheatMode )
     {
         this.preheatMode = preheatMode;
+        return this;
     }
 
     public ImportStrategy getImportStrategy()
@@ -129,9 +133,10 @@ public class ObjectBundleParams
         return importStrategy;
     }
 
-    public void setImportStrategy( ImportStrategy importStrategy )
+    public ObjectBundleParams setImportStrategy( ImportStrategy importStrategy )
     {
         this.importStrategy = importStrategy;
+        return this;
     }
 
     public AtomicMode getAtomicMode()
@@ -139,9 +144,10 @@ public class ObjectBundleParams
         return atomicMode;
     }
 
-    public void setAtomicMode( AtomicMode atomicMode )
+    public ObjectBundleParams setAtomicMode( AtomicMode atomicMode )
     {
         this.atomicMode = atomicMode;
+        return this;
     }
 
     public MergeMode getMergeMode()
@@ -149,9 +155,10 @@ public class ObjectBundleParams
         return mergeMode;
     }
 
-    public void setMergeMode( MergeMode mergeMode )
+    public ObjectBundleParams setMergeMode( MergeMode mergeMode )
     {
         this.mergeMode = mergeMode;
+        return this;
     }
 
     public FlushMode getFlushMode()
@@ -159,9 +166,10 @@ public class ObjectBundleParams
         return flushMode;
     }
 
-    public void setFlushMode( FlushMode flushMode )
+    public ObjectBundleParams setFlushMode( FlushMode flushMode )
     {
         this.flushMode = flushMode;
+        return this;
     }
 
     public ImportReportMode getImportReportMode()
@@ -169,9 +177,10 @@ public class ObjectBundleParams
         return importReportMode;
     }
 
-    public void setImportReportMode( ImportReportMode importReportMode )
+    public ObjectBundleParams setImportReportMode( ImportReportMode importReportMode )
     {
         this.importReportMode = importReportMode;
+        return this;
     }
 
     public boolean isSkipSharing()
@@ -179,9 +188,10 @@ public class ObjectBundleParams
         return skipSharing;
     }
 
-    public void setSkipSharing( boolean skipSharing )
+    public ObjectBundleParams setSkipSharing( boolean skipSharing )
     {
         this.skipSharing = skipSharing;
+        return this;
     }
 
     public boolean isSkipValidation()
@@ -189,9 +199,10 @@ public class ObjectBundleParams
         return skipValidation;
     }
 
-    public void setSkipValidation( boolean skipValidation )
+    public ObjectBundleParams setSkipValidation( boolean skipValidation )
     {
         this.skipValidation = skipValidation;
+        return this;
     }
 
     public TaskId getTaskId()
@@ -199,9 +210,10 @@ public class ObjectBundleParams
         return taskId;
     }
 
-    public void setTaskId( TaskId taskId )
+    public ObjectBundleParams setTaskId( TaskId taskId )
     {
         this.taskId = taskId;
+        return this;
     }
 
     public boolean haveTaskId()
@@ -214,16 +226,17 @@ public class ObjectBundleParams
         return objects;
     }
 
-    public void setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    public ObjectBundleParams setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
         this.objects = objects;
+        return this;
     }
 
-    public void addObject( Class<? extends IdentifiableObject> klass, IdentifiableObject object )
+    public ObjectBundleParams addObject( Class<? extends IdentifiableObject> klass, IdentifiableObject object )
     {
         if ( object == null )
         {
-            return;
+            return this;
         }
 
         if ( !objects.containsKey( klass ) )
@@ -232,13 +245,15 @@ public class ObjectBundleParams
         }
 
         objects.get( klass ).add( object );
+
+        return this;
     }
 
-    public void addObject( IdentifiableObject object )
+    public ObjectBundleParams addObject( IdentifiableObject object )
     {
         if ( object == null )
         {
-            return;
+            return this;
         }
 
         if ( !objects.containsKey( object.getClass() ) )
@@ -247,6 +262,8 @@ public class ObjectBundleParams
         }
 
         objects.get( object.getClass() ).add( object );
+
+        return this;
     }
 
     public PreheatParams getPreheatParams()

@@ -105,5 +105,5 @@ public class IdentifiableObjectUtilsTest
         assertEquals( "CodeA", map.get( "A123456789A" ) );
         assertEquals( "CodeB", map.get( "A123456789B" ) );
         assertEquals( null, map.get( "A123456789C" ) );
-    }    
+    }
 }

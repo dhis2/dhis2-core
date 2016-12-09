@@ -251,7 +251,8 @@ public class DataApprovalServiceCategoryOptionGroupTest
     {
         Set<User> users = new HashSet<>();
 
-        for ( CurrentUserService mock : mockServices ) {
+        for ( CurrentUserService mock : mockServices ) 
+        {
             users.add( mock.getCurrentUser() );
         }
 

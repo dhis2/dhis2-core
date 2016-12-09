@@ -263,7 +263,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -346,7 +346,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -455,7 +455,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -663,5 +663,14 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return importConflicts;
+    }
+
+    private void clearSession()
+    {
+        organisationUnitCache.clear();
+        trackedEntityCache.clear();
+        trackedEntityAttributeCache.clear();
+
+        dbmsManager.clearSession();
     }
 }

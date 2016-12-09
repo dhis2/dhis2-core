@@ -399,6 +399,12 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
+    public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
+    {
+        return organisationUnitStore.getOrganisationUnitHierarchyMemberCount( parent, member, collectionName );
+    }
+
+    @Override
     public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxLevels )
     {
         Map<String, Set<String>> associationSet = Maps.newHashMap( organisationUnitStore.getOrganisationUnitDataSetAssocationMap() );

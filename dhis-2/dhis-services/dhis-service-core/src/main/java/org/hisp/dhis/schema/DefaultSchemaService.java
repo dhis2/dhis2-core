@@ -36,6 +36,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.schema.descriptors.*;
+import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -45,11 +46,15 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.StringUtils;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com> descriptors
@@ -139,11 +144,13 @@ public class DefaultSchemaService
         add( new ValidationCriteriaSchemaDescriptor() ).
         add( new ValidationRuleGroupSchemaDescriptor() ).
         add( new ValidationRuleSchemaDescriptor() ).
+        add( new ValidationNotificationTemplateSchemaDescriptor() ).
         add( new PushAnalysisSchemaDescriptor() ).
         add( new ProgramIndicatorGroupSchemaDescriptor() ).
         add( new ExternalFileResourceSchemaDescriptor() ).
         add( new OptionGroupSchemaDescriptor() ).
-        add( new OptionGroupSetSchemaDescriptor()).
+        add( new OptionGroupSetSchemaDescriptor() ).
+        add( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -303,6 +310,15 @@ public class DefaultSchemaService
         Collections.sort( schemas, OrderComparator.INSTANCE );
 
         return schemas;
+    }
+
+    @Override
+    public Set<String> collectAuthorities()
+    {
+        return getSchemas().stream()
+            .map( Schema::getAuthorities ).flatMap( Collection::stream )
+            .map( Authority::getAuthorities ).flatMap( Collection::stream )
+            .collect( toSet() );
     }
 
     private void updateSelf( Schema schema )

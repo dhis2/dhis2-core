@@ -9,7 +9,10 @@ var d2Controllers = angular.module('d2Controllers', [])
             $modalInstance,
             hiddenGridColumns,
             gridColumns,
-            saveGridColumns){
+            gridColumnDomainKey,
+            gridColumnKey,
+            gridColumnsInUserStore,
+            GridColumnService){
     
     $scope.gridColumns = gridColumns;
     $scope.hiddenGridColumns = hiddenGridColumns;
@@ -26,7 +29,9 @@ var d2Controllers = angular.module('d2Controllers', [])
         else{
             $scope.hiddenGridColumns++;            
         }
-        saveGridColumns($scope.gridColumns);
+        
+        gridColumnsInUserStore[gridColumnKey] = angular.copy($scope.gridColumns);
+        GridColumnService.set(gridColumnsInUserStore, gridColumnDomainKey);
     };    
 })
 
@@ -480,9 +485,10 @@ var d2Controllers = angular.module('d2Controllers', [])
     });
 })
 
-.controller('OrgUnitTreeController', function($scope, $modalInstance, OrgUnitFactory, orgUnitId) {
-
+.controller('OrgUnitTreeController', function($scope, $modalInstance, OrgUnitFactory, orgUnitId, orgUnitNames) {
+    
     $scope.model = {selectedOrgUnitId: orgUnitId ? orgUnitId : null};
+    $scope.orgUnitNames = orgUnitNames;
 
     function expandOrgUnit( orgUnit, ou ){
         if( ou.path.indexOf( orgUnit.path ) !== -1 ){
@@ -588,15 +594,17 @@ var d2Controllers = angular.module('d2Controllers', [])
         }
     };
 
-    $scope.setSelectedOrgUnit = function( orgUnitId ){
-        $scope.model.selectedOrgUnitId = orgUnitId;
+    $scope.setSelectedOrgUnit = function( orgUnit ){
+    	$scope.model.selectedOrgUnit = {id: orgUnit.id, displayName: orgUnit.displayName};
+        $scope.model.selectedOrgUnitId = orgUnit.id;
+        $scope.orgUnitNames[orgUnit.id] = orgUnit.displayName;
     };
 
     $scope.select = function () {
-        $modalInstance.close( $scope.model.selectedOrgUnitId );
+        $modalInstance.close( {selected: $scope.model.selectedOrgUnit, names: $scope.orgUnitNames} );
     };
 
-    $scope.close = function(){
+    $scope.close = function(){        
         $modalInstance.close();
     };
 });

@@ -31,10 +31,13 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 /**
+ * Interface for management of the analytics database tables.
+ * 
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableManager
@@ -47,7 +50,7 @@ public interface AnalyticsTableManager
     public static final String EVENT_ANALYTICS_TABLE_NAME = "analytics_event";
     
     /**
-     * Returns analytics tables which are yearly partitions.
+     * Returns a list of generated analytics tables for yearly partitions.
      * 
      * @param earliest the start date for the first year to generate table partitions.
      * @param latest the end date for the last year to generate table partitions.
@@ -55,9 +58,9 @@ public interface AnalyticsTableManager
     List<AnalyticsTable> getTables( Date earliest );
     
     /**
-     * Returns all potential analytics tables which are yearly partitions.
+     * Returns a list of existing analytics database table names.
      */
-    List<AnalyticsTable> getAllTables();
+    Set<String> getExistingDatabaseTables();
     
     /**
      * Checks if the database content is in valid state for analytics table generation.
@@ -109,7 +112,14 @@ public interface AnalyticsTableManager
      * 
      * @param tables the analytics tables.
      */
-    Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );    
+    Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables );
+    
+    /**
+     * Performs analyze operations on analytics tables.
+     * 
+     * @param tables the analytics tables.
+     */
+    void analyzeTables( List<AnalyticsTable> tables );
 
     /**
      * Returns all years for which it exists data values.
@@ -121,9 +131,16 @@ public interface AnalyticsTableManager
     /**
      * Drops the given table.
      * 
-     * @param tableName the name of the table to drop.
+     * @param tableName the table name.
      */
     void dropTable( String tableName );
+    
+    /**
+     * Performs an analyze operation on the given table.
+     * 
+     * @param tableName the table name.
+     */
+    void analyzeTable( String tableName );
     
     /**
      * Applies aggregation level logic to the analytics table by setting the

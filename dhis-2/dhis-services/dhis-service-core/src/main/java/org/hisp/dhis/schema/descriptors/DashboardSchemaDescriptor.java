@@ -51,7 +51,6 @@ public class DashboardSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( Dashboard.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 3501 );
         schema.setDefaultPrivate( true );
         schema.setImplicitPrivateAuthority( true );

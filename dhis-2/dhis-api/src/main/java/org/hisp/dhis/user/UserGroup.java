@@ -143,12 +143,6 @@ public class UserGroup
     // -------------------------------------------------------------------------
 
     @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
-    @Override
     @JsonIgnore
     public User getUser()
     {

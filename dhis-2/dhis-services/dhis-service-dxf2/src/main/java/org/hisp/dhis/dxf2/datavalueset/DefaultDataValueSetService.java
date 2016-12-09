@@ -29,13 +29,11 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import com.csvreader.CsvReader;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.quick.BatchHandler;
-import org.hisp.quick.BatchHandlerFactory;
 import org.amplecode.staxwax.factory.XMLFactory;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -77,6 +75,7 @@ import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -93,6 +92,8 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.InputStream;
@@ -113,7 +114,7 @@ import static org.hisp.dhis.system.util.DateUtils.parseDate;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DefaultDataValueSetService
@@ -165,6 +166,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     protected InputUtils inputUtils;
+
+    @Autowired
+    private CalendarService calendarService;
 
     // Set methods for test purposes
 
@@ -596,7 +600,10 @@ public class DefaultDataValueSetService
         Clock clock = new Clock( log ).startClock().logTime( "Starting data value import, options: " + importOptions );
         notifier.clear( id ).notify( id, "Process started" );
 
-        ImportSummary summary = new ImportSummary();
+        ImportSummary summary = new ImportSummary()
+            .setImportOptions( importOptions );
+
+        boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
 
         I18n i18n = i18nManager.getI18n();
 
@@ -611,14 +618,20 @@ public class DefaultDataValueSetService
         IdScheme dvSetIdScheme = IdScheme.from( dataValueSet.getIdSchemeProperty() );
         IdScheme dvSetDataElementIdScheme = IdScheme.from( dataValueSet.getDataElementIdSchemeProperty() );
         IdScheme dvSetOrgUnitIdScheme = IdScheme.from( dataValueSet.getOrgUnitIdSchemeProperty() );
+        IdScheme dvSetCategoryOptComboIdScheme = IdScheme.from( dataValueSet.getCategoryOptionComboIdSchemeProperty() );
+        IdScheme dvSetDataSetIdScheme = IdScheme.from( dataValueSet.getDataSetIdSchemeProperty() );
 
-        log.info( "Data value set scheme: " + dvSetIdScheme + ", data element scheme: " + dvSetDataElementIdScheme + ", org unit scheme: " + dvSetOrgUnitIdScheme );
+        log.info( "Data value set identifier scheme: " + dvSetIdScheme + ", data element: " + dvSetDataElementIdScheme +
+            ", org unit: " + dvSetOrgUnitIdScheme + ", category option combo: " + dvSetCategoryOptComboIdScheme + ", data set: " + dvSetDataSetIdScheme );
 
         IdScheme idScheme = dvSetIdScheme.isNotNull() ? dvSetIdScheme : importOptions.getIdSchemes().getIdScheme();
         IdScheme dataElementIdScheme = dvSetDataElementIdScheme.isNotNull() ? dvSetDataElementIdScheme : importOptions.getIdSchemes().getDataElementIdScheme();
         IdScheme orgUnitIdScheme = dvSetOrgUnitIdScheme.isNotNull() ? dvSetOrgUnitIdScheme : importOptions.getIdSchemes().getOrgUnitIdScheme();
+        IdScheme categoryOptComboIdScheme = dvSetCategoryOptComboIdScheme.isNotNull() ? dvSetCategoryOptComboIdScheme : importOptions.getIdSchemes().getCategoryOptionComboIdScheme();
+        IdScheme dataSetIdScheme = dvSetDataSetIdScheme.isNotNull() ? dvSetDataSetIdScheme : importOptions.getIdSchemes().getDataSetIdScheme();
 
-        log.info( "Scheme: " + idScheme + ", data element scheme: " + dataElementIdScheme + ", org unit scheme: " + orgUnitIdScheme );
+        log.info( "Identifier scheme: " + idScheme + ", data element: " + dataElementIdScheme +
+            ", org unit: " + orgUnitIdScheme + ", category option combo: " + categoryOptComboIdScheme + ", data set: " + dataSetIdScheme );
 
         ImportStrategy strategy = dataValueSet.getStrategy() != null ?
             ImportStrategy.valueOf( dataValueSet.getStrategy() ) : importOptions.getImportStrategy();
@@ -653,6 +666,7 @@ public class DefaultDataValueSetService
         CachingMap<String, Optional<Set<String>>> dataElementOptionsMap = new CachingMap<>();
         CachingMap<String, Boolean> approvalMap = new CachingMap<>();
         CachingMap<String, Boolean> lowestApprovalLevelMap = new CachingMap<>();
+        CachingMap<String, Boolean> periodOpenForDataElement = new CachingMap<>();
 
         // ---------------------------------------------------------------------
         // Get meta-data maps
@@ -662,7 +676,10 @@ public class DefaultDataValueSetService
             identifiableObjectManager, DataElement.class, dataElementIdScheme, null );
         IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable = new IdentifiableObjectCallable<>(
             identifiableObjectManager, OrganisationUnit.class, orgUnitIdScheme, trimToNull( dataValueSet.getOrgUnit() ) );
-        IdentifiableObjectCallable<DataElementCategoryOptionCombo> optionComboCallable = new CategoryOptionComboAclCallable( categoryService, idScheme, null );
+        IdentifiableObjectCallable<DataElementCategoryOptionCombo> categoryOptionComboCallable = new CategoryOptionComboAclCallable(
+            categoryService, categoryOptComboIdScheme, null );
+        IdentifiableObjectCallable<DataElementCategoryOptionCombo> attributeOptionComboCallable = new CategoryOptionComboAclCallable(
+            categoryService, categoryOptComboIdScheme, null );
         IdentifiableObjectCallable<Period> periodCallable = new PeriodCallable( periodService, null, trimToNull( dataValueSet.getPeriod() ) );
 
         // ---------------------------------------------------------------------
@@ -673,14 +690,14 @@ public class DefaultDataValueSetService
         {
             dataElementMap.load( identifiableObjectManager.getAll( DataElement.class ), o -> o.getPropertyValue( dataElementIdScheme ) );
             orgUnitMap.load( identifiableObjectManager.getAll( OrganisationUnit.class ), o -> o.getPropertyValue( orgUnitIdScheme ) );
-            optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o.getPropertyValue( idScheme ) );
+            optionComboMap.load( identifiableObjectManager.getAll( DataElementCategoryOptionCombo.class ), o -> o.getPropertyValue( categoryOptComboIdScheme ) );
         }
 
         // ---------------------------------------------------------------------
         // Get outer meta-data
         // ---------------------------------------------------------------------
 
-        DataSet dataSet = dataValueSet.getDataSet() != null ? identifiableObjectManager.getObject( DataSet.class, idScheme, dataValueSet.getDataSet() ) : null;
+        DataSet dataSet = dataValueSet.getDataSet() != null ? identifiableObjectManager.getObject( DataSet.class, dataSetIdScheme, dataValueSet.getDataSet() ) : null;
 
         Date completeDate = parseDate( dataValueSet.getCompleteDate() );
 
@@ -694,7 +711,7 @@ public class DefaultDataValueSetService
 
         if ( dataValueSet.getAttributeOptionCombo() != null )
         {
-            outerAttrOptionCombo = optionComboMap.get( trimToNull( dataValueSet.getAttributeOptionCombo() ), optionComboCallable.setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
+            outerAttrOptionCombo = optionComboMap.get( trimToNull( dataValueSet.getAttributeOptionCombo() ), attributeOptionComboCallable.setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
         }
         else if ( dataValueSet.getAttributeCategoryOptions() != null )
         {
@@ -773,10 +790,10 @@ public class DefaultDataValueSetService
                 periodMap.get( trimToNull( dataValue.getPeriod() ), periodCallable.setId( trimToNull( dataValue.getPeriod() ) ) );
             final OrganisationUnit orgUnit = outerOrgUnit != null ? outerOrgUnit :
                 orgUnitMap.get( trimToNull( dataValue.getOrgUnit() ), orgUnitCallable.setId( trimToNull( dataValue.getOrgUnit() ) ) );
-            DataElementCategoryOptionCombo categoryOptionCombo = optionComboMap.get( trimToNull( dataValue.getCategoryOptionCombo() ),
-                optionComboCallable.setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) );
+            DataElementCategoryOptionCombo categoryOptionCombo =
+                optionComboMap.get( trimToNull( dataValue.getCategoryOptionCombo() ), categoryOptionComboCallable.setId( trimToNull( dataValue.getCategoryOptionCombo() ) ) );
             DataElementCategoryOptionCombo attrOptionCombo = outerAttrOptionCombo != null ? outerAttrOptionCombo :
-                optionComboMap.get( trimToNull( dataValue.getAttributeOptionCombo() ), optionComboCallable.setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
+                optionComboMap.get( trimToNull( dataValue.getAttributeOptionCombo() ), attributeOptionComboCallable.setId( trimToNull( dataValue.getAttributeOptionCombo() ) ) );
 
             // -----------------------------------------------------------------
             // Potentially heat caches
@@ -986,7 +1003,7 @@ public class DefaultDataValueSetService
 
                 Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), () -> dataElement.getLatestOpenFuturePeriod() );
 
-                if ( period.isAfter( latestFuturePeriod ) )
+                if ( period.isAfter( latestFuturePeriod ) && isIso8601 )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Period: " +
                         period.getIsoDate() + " is after latest open future period: " + latestFuturePeriod.getIsoDate() + " for data element: " + dataElement.getUid() ) );
@@ -1022,6 +1039,12 @@ public class DefaultDataValueSetService
                 continue;
             }
 
+            if ( !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(), () -> dataElement.isPeriodInDataSetOpenPeriods( period ) ) )
+            {
+                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data set(s)" ) );
+                continue;
+            }
+
             // -----------------------------------------------------------------
             // Create data value
             // -----------------------------------------------------------------
@@ -1040,7 +1063,7 @@ public class DefaultDataValueSetService
             internalValue.setComment( trimToNull( dataValue.getComment() ) );
             internalValue.setFollowup( dataValue.getFollowup() );
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
-            
+
             // -----------------------------------------------------------------
             // Save, update or delete data value
             // -----------------------------------------------------------------
@@ -1056,39 +1079,39 @@ public class DefaultDataValueSetService
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
                     DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
-                    
+
                     if ( internalValue.isNullValue() || internalValue.isDeleted() )
                     {
                         internalValue.setDeleted( true );
-                        
+
                         auditValue.setAuditType( AuditType.DELETE );
-                        
+
                         deleteCount++;
                     }
                     else
                     {
                         updateCount++;
                     }
-                    
+
                     if ( !dryRun )
                     {
                         dataValueBatchHandler.updateObject( internalValue );
-                    
+
                         auditBatchHandler.addObject( auditValue );
-                    }                    
+                    }
                 }
                 else if ( strategy.isDelete() )
-                {                    
+                {
                     DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
-                    
+
                     internalValue.setDeleted( true );
-                    
+
                     deleteCount++;
-                    
+
                     if ( !dryRun )
                     {
                         dataValueBatchHandler.updateObject( internalValue );
-                    
+
                         auditBatchHandler.addObject( auditValue );
                     }
                 }
@@ -1102,21 +1125,21 @@ public class DefaultDataValueSetService
                         if ( existingValue != null && existingValue.isDeleted() )
                         {
                             importCount++;
-                            
+
                             if ( !dryRun )
                             {
                                 dataValueBatchHandler.updateObject( internalValue );
                             }
                         }
-                        else 
+                        else
                         {
                             boolean added = false;
-                            
+
                             if ( !dryRun )
                             {
                                 added = dataValueBatchHandler.addObject( internalValue );
                             }
-                            
+
                             if ( dryRun || added )
                             {
                                 importCount++;

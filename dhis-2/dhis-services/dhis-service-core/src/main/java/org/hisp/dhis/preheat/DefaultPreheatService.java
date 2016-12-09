@@ -529,19 +529,22 @@ public class DefaultPreheatService implements PreheatService
                 {
                     ValidationRule validationRule = (ValidationRule) object;
 
-                    if ( validationRule.getLeftSide() != null && !validationRule.getLeftSide().getDataElementsInExpression().isEmpty() )
+                    if ( validationRule.getLeftSide() != null )
                     {
                         validationRule.getLeftSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
+                        validationRule.getLeftSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
 
-                    if ( validationRule.getRightSide() != null && !validationRule.getRightSide().getDataElementsInExpression().isEmpty() )
+                    if ( validationRule.getRightSide() != null )
                     {
                         validationRule.getRightSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
+                        validationRule.getRightSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
                 }
 
                 object.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                 object.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                object.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
                 addIdentifiers( map, object );
             }
@@ -694,9 +697,9 @@ public class DefaultPreheatService implements PreheatService
                     IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
                     IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
 
-                    if ( Preheat.isDefaultClass( refObject ) && (ref == null || "default".equals( refObject.getName() )) )
+                    if ( Preheat.isDefaultClass( p.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() )) )
                     {
-                        ref = defaults.get( refObject.getClass() );
+                        ref = defaults.get( p.getKlass() );
                     }
 
                     if ( ref != null && ref.getId() == 0 )

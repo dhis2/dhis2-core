@@ -28,10 +28,16 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.validation.ValidationRule;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,15 +54,13 @@ public class ValidationRuleObjectBundleHook
         }
 
         ValidationRule validationRule = (ValidationRule) object;
+        Session session = sessionFactory.getCurrentSession();
 
-        preheatService.connectReferences( validationRule.getLeftSide(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
+        connectExpression( bundle, validationRule.getLeftSide() );
+        connectExpression( bundle, validationRule.getRightSide() );
 
-        preheatService.connectReferences( validationRule.getRightSide(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
-
-        sessionFactory.getCurrentSession().save( validationRule.getLeftSide() );
-        sessionFactory.getCurrentSession().save( validationRule.getRightSide() );
+        session.save( validationRule.getLeftSide() );
+        session.save( validationRule.getRightSide() );
 
         if ( validationRule.getPeriodType() != null )
         {
@@ -75,15 +79,13 @@ public class ValidationRuleObjectBundleHook
         }
 
         ValidationRule validationRule = (ValidationRule) object;
+        Session session = sessionFactory.getCurrentSession();
 
-        preheatService.connectReferences( validationRule.getLeftSide(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
+        connectExpression( bundle, validationRule.getLeftSide() );
+        connectExpression( bundle, validationRule.getRightSide() );
 
-        preheatService.connectReferences( validationRule.getRightSide(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
-
-        sessionFactory.getCurrentSession().save( validationRule.getLeftSide() );
-        sessionFactory.getCurrentSession().save( validationRule.getRightSide() );
+        session.save( validationRule.getLeftSide() );
+        session.save( validationRule.getRightSide() );
 
         if ( validationRule.getPeriodType() != null )
         {
@@ -91,5 +93,17 @@ public class ValidationRuleObjectBundleHook
                 .get( validationRule.getPeriodType().getName() );
             validationRule.setPeriodType( periodType );
         }
+    }
+
+    private void connectExpression( ObjectBundle bundle, Expression expression )
+    {
+        Set<DataElement> dataElementsInExpression = new HashSet<>();
+        Set<DataElement> sampleElementsInExpression = new HashSet<>();
+
+        expression.getDataElementsInExpression().forEach( de -> dataElementsInExpression.add( bundle.getPreheat().get( bundle.getPreheatIdentifier(), de ) ) );
+        expression.getSampleElementsInExpression().forEach( de -> dataElementsInExpression.add( bundle.getPreheat().get( bundle.getPreheatIdentifier(), de ) ) );
+
+        expression.setDataElementsInExpression( dataElementsInExpression );
+        expression.setSampleElementsInExpression( sampleElementsInExpression );
     }
 }

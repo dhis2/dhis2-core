@@ -519,12 +519,6 @@ public class UserCredentials
         return username.equals( other.getUsername() );
     }
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

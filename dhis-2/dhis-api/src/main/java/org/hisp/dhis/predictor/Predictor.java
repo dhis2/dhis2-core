@@ -230,7 +230,7 @@ public class Predictor
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 0, max = 10 )
+    @PropertyRange( max = 10 )
     public Integer getAnnualSampleCount()
     {
         return annualSampleCount;

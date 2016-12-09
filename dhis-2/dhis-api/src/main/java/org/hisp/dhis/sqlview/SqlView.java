@@ -159,7 +159,7 @@ public class SqlView
     /**
      * Indicates whether the given query parameter is valid.
      */
-    public static final boolean isValidQueryParam( String param )
+    public static boolean isValidQueryParam( String param )
     {
         return StringUtils.isAlphanumeric( param );
     }
@@ -182,7 +182,7 @@ public class SqlView
     /**
      * Indicates whether the given query value is valid.
      */
-    public static final boolean isValidQueryValue( String value )
+    public static boolean isValidQueryValue( String value )
     {
         return value != null && value.matches( QUERY_VALUE_REGEX );
     }

@@ -46,5 +46,5 @@ public enum PreheatMode
     /**
      * Preheating is disabled.
      */
-    NONE;
+    NONE
 }

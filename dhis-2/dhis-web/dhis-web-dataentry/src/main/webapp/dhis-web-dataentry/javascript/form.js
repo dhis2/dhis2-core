@@ -816,16 +816,22 @@ dhis2.de.filterInSection = function( $this )
         $trTargetChildren.each( function( idx, item ) 
         {
             var text1 = $this.val().toUpperCase();
-            var text2 = $( item ).find( 'span' ).html().toUpperCase();
+            var text2 = $( item ).find( 'span' ).html();
+            
+            if( text2 && text2 != "")
+            {
+                text2 = text2.toUpperCase();
 
-            if ( text2.indexOf( text1 ) >= 0 )
-            {
-                $( item ).parent().show();
+                if ( text2.indexOf( text1 ) >= 0 )
+                {
+                    $( item ).parent().show();
+                }
+                else
+                {
+                    $( item ).parent().hide();
+                }
             }
-            else
-            {
-                $( item ).parent().hide();
-            }
+            
         } );
     }
 
@@ -834,6 +840,8 @@ dhis2.de.filterInSection = function( $this )
         if(table == thisTable) return;
         $(table).trigger( 'reflow' );
     });
+    
+    dhis2.de.populateColumnTotals();
 }
 
 //------------------------------------------------------------------------------
@@ -1004,6 +1012,15 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
             dhis2.de.clearPeriod();
             dhis2.de.clearAttributes();
         }
+        
+        var dsl = document.getElementById( 'selectedDataSetId' );
+        
+        if ( dsl && dsl.options && dsl.options.length == 2 )
+        {
+            $( '#selectedDataSetId' ).val( dsl.options[1].value );
+            dataSetSelected();
+        }
+        
     });
 
 }
@@ -1299,10 +1316,15 @@ function displayPeriods()
 
     dhis2.de.periodChoices = [];
 
+    dhis2.de.openPeriodsWhitelist = dhis2.de.dataSets[dataSetId].openPeriods.map(function(_period) { return _period.isoPeriod; });
+
     $.safeEach( periods, function( idx, item ) 
     {
-        addOptionById( 'selectedPeriodId', item.iso, item.name );
-        dhis2.de.periodChoices[ item.iso ] = item;
+        if ( dhis2.de.openPeriodsWhitelist.length == 0 || dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 )
+        {
+            addOptionById( 'selectedPeriodId', item.iso, item.name );
+            dhis2.de.periodChoices[ item.iso ] = item;
+        }
     } );
 }
 
@@ -1509,8 +1531,8 @@ dhis2.de.getAttributesMarkup = function()
 		html += '<option value="-1">[ ' + i18n_select_option + ' ]</option>';
 
 		$.safeEach( category.options, function( idx, option ) {
-			if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {
-				var selected = ( $.inArray( option.id, options ) != -1 ) ? " selected" : "";
+			if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {				
+                                var selected = ( $.inArray( option.id, options ) != -1 ) || category.options.length == 1 ? " selected" : "";
 				html += '<option value="' + option.id + '"' + selected + '>' + option.name + '</option>';
 			}
 		} );
@@ -1695,10 +1717,7 @@ function insertDataValues( json )
     
 	if ( json.locked )
 	{
-        $( '#contentDiv input').attr( 'readonly', 'readonly' );
-        $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
-        $( '.sectionFilter').removeAttr( 'disabled' );
-        $( '#completenessDiv' ).hide();
+		dhis2.de.lockForm();
 		setHeaderDelayMessage( i18n_dataset_is_locked );
 	}
 	else
@@ -1712,7 +1731,48 @@ function insertDataValues( json )
     $( '#contentDiv .entryfileresource' ).data( 'disabled', json.locked );
 
     // Set data values, works for selects too as data value=select value
+    
+    var period = dhis2.de.getSelectedPeriod();
+    
+    if ( !dhis2.de.multiOrganisationUnit  )
+    {	
+    	if ( period )
+		{    
+    		if ( dhis2.de.validateOrgUnitOpening( organisationUnits[dhis2.de.getCurrentOrganisationUnit()], period ) )
+    		{
+    			dhis2.de.lockForm();
+    	        setHeaderMessage( i18n_orgunit_is_closed );
+    	        return;
+    		}
+    	}
+    }
+    
+    else{
+    	
+    	var orgUnitClosed = false;
+    	
+    	$.each( organisationUnitList, function( idx, item )
+        {    		
+    		orgUnitClosed = dhis2.de.validateOrgUnitOpening( organisationUnits[item.uid], period ) ;
+    		
+    		if( orgUnitClosed )
+    		{    			  	        
+    			return false;
+    		}            
+        } );
+    	
+    	if ( orgUnitClosed )
+		{
+    		dhis2.de.lockForm();
+	        setHeaderMessage( i18n_orgunit_is_closed );
+	        return;
+		}
 
+    }
+    
+    // Hide i18n_orgunit_is_closed message
+    hideHeaderMessage();
+    
     $.safeEach( json.dataValues, function( i, value )
     {
         var fieldId = '#' + value.id + '-val';
@@ -1783,7 +1843,7 @@ function insertDataValues( json )
                 $field.find( '.upload-fileinfo-size' ).text( size );
             }
             else 
-            {
+            {                
                 $( fieldId ).val( value.val );
             }
         }
@@ -1803,6 +1863,10 @@ function insertDataValues( json )
         dataValueMap[value.id] = value.val;
 
         dhis2.period.picker.updateDate(fieldId);
+        
+        dhis2.de.populateRowTotals();
+        dhis2.de.populateColumnTotals();
+        
     } );
 
     // Set min-max values and colorize violation fields
@@ -2251,6 +2315,25 @@ dhis2.de.validateCompulsoryCombinations = function()
     }
 	
 	return true;
+}
+
+dhis2.de.validateOrgUnitOpening = function( organisationUnit, period )
+{
+	if ( organisationUnit.odate && moment( organisationUnit.odate ).isAfter( period.startDate ) )
+	{
+		$( '#contentDiv input').attr( 'readonly', 'readonly' );
+        $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
+        return true;
+	}
+	
+	if ( organisationUnit.cdate && moment( organisationUnit.cdate ).isBefore( period.endDate ) )
+	{
+		$( '#contentDiv input').attr( 'readonly', 'readonly' );
+        $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
+        return true;
+	}	
+	
+	return false
 }
 
 // -----------------------------------------------------------------------------
@@ -3217,6 +3300,101 @@ dhis2.de.autocompleteOptionSetField = function( idField, optionSetUid )
             input.autocomplete( 'search', '' );
             input.focus();
         } );
+};
+
+/*
+ * get selected period - full object - with start and end dates
+ */
+dhis2.de.getSelectedPeriod = function()
+{
+    
+    var periodId = $( '#selectedPeriodId').val();
+    
+    var period = null;
+    
+    if( periodId && periodId != "" )
+    {
+        period = dhis2.de.periodChoices[ periodId ];        
+    }
+    
+    return period;
+}
+
+/*
+ * lock all input filed in data entry form
+ */
+dhis2.de.lockForm = function()
+{
+    $( '#contentDiv input').attr( 'readonly', 'readonly' );
+    $( '#contentDiv textarea').attr( 'readonly', 'readonly' );
+    $( '.sectionFilter').removeAttr( 'disabled' );
+    $( '#completenessDiv' ).hide();
+}
+
+/*
+ * populate section row totals
+ */
+dhis2.de.populateRowTotals = function(){
+    
+    if( !dhis2.de.multiOrganisationUnit )
+    {
+        $("input[id^='row-']").each(function(i, el){
+            var ids = this.id.split('-');
+            if( ids.length > 2 )
+            {
+                var de = ids[1], total = new Number();
+                for( var i=2; i<ids.length; i++ )
+                {
+                    var val = $( '#' + de + "-" + ids[i] + "-val" ).val();
+                    if( dhis2.validation.isNumber( val ) )
+                    {                        
+                        total += new Number( val );
+                    }                    
+                }
+                $(this).val( total );
+            }            
+        });
+    }
+};
+
+/*
+ * populate section column totals
+ */
+dhis2.de.populateColumnTotals = function(){
+    
+    if( !dhis2.de.multiOrganisationUnit )
+    {
+        $("input[id^='col-']").each(function(i, el){            
+            
+            var $tbody = $(this).closest('.sectionTable').find("tbody");
+            var $trTarget = $tbody.find( 'tr');
+            
+            var ids = this.id.split('-');
+            
+            if( ids.length > 1 )
+            {
+                var total = new Number();
+                for( var i=1; i<ids.length; i++ )
+                {                    
+                    $trTarget.each( function( idx, item ) 
+                    {
+                        var inputs = $( item ).find( '.entryfield' );                        
+                        inputs.each( function(k, e){
+                            if( this.id.indexOf( ids[i] ) !== -1 && $(this).is(':visible') )
+                            {
+                                var val = $( this ).val();
+                                if( dhis2.validation.isNumber( val ) )
+                                {                        
+                                    total += new Number( val );
+                                }
+                            }
+                        });
+                    } );
+                }                
+                $(this).val( total );
+            }            
+        });
+    }
 };
 
 // -----------------------------------------------------------------------------

@@ -64,6 +64,7 @@ import java.util.Set;
 
 import static junit.framework.TestCase.*;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.expression.Operator.*;
 
 /**
@@ -112,6 +113,10 @@ public class ValidationRuleServiceTest
     private Expression expressionF;
     private Expression expressionG;
     private Expression expressionH;
+    private Expression expressionI;
+    private Expression expressionJ;
+    private Expression expressionK;
+    private Expression expressionL;
 
     private DataSet dataSetWeekly;
 
@@ -138,6 +143,9 @@ public class ValidationRuleServiceTest
     private ValidationRule validationRuleB;
     private ValidationRule validationRuleC;
     private ValidationRule validationRuleD;
+    private ValidationRule validationRuleE;
+    private ValidationRule validationRuleF;
+    private ValidationRule validationRuleG;
     private ValidationRule validationRuleX;
 
     private ValidationRuleGroup group;
@@ -201,6 +209,10 @@ public class ValidationRuleServiceTest
         expressionH = new Expression(
             "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
             "expressionH", Sets.newHashSet(), Sets.newHashSet( dataElementB ) );
+        expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI", Sets.newHashSet( dataElementA ) );
+        expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ", Sets.newHashSet( dataElementB ) );
+        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", Sets.newHashSet( dataElementC ), new HashSet<>(), NEVER_SKIP );
+        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", Sets.newHashSet( dataElementD ), new HashSet<>(), NEVER_SKIP );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -210,6 +222,10 @@ public class ValidationRuleServiceTest
         expressionService.addExpression( expressionF );
         expressionService.addExpression( expressionG );
         expressionService.addExpression( expressionH );
+        expressionService.addExpression( expressionI );
+        expressionService.addExpression( expressionJ );
+        expressionService.addExpression( expressionK );
+        expressionService.addExpression( expressionL );
 
         periodA = createPeriod( periodTypeMonthly, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
         periodB = createPeriod( periodTypeMonthly, getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
@@ -288,6 +304,9 @@ public class ValidationRuleServiceTest
         validationRuleB = createValidationRule( "B", greater_than, expressionB, expressionC, periodTypeMonthly ); // deC - deD > deB * 2
         validationRuleC = createValidationRule( "C", less_than_or_equal_to, expressionB, expressionA, periodTypeMonthly ); // deC - deD <= deA + deB
         validationRuleD = createValidationRule( "D", less_than, expressionA, expressionC, periodTypeMonthly ); // deA + deB < deB * 2
+        validationRuleE = createValidationRule( "E", compulsory_pair, expressionI, expressionJ, periodTypeMonthly ); // deA [Compulsory pair] deB
+        validationRuleF = createValidationRule( "F", exclusive_pair, expressionI, expressionJ, periodTypeMonthly ); // deA [Exclusive pair] deB
+        validationRuleG = createValidationRule( "G", equal_to, expressionK, expressionL, periodTypeMonthly ); // deC = deD
         validationRuleX = createValidationRule( "X", equal_to, expressionA, expressionC, periodTypeMonthly ); // deA + deB = deB * 2
         group = createValidationRuleGroup( 'A' );
 
@@ -517,6 +536,249 @@ public class ValidationRuleServiceTest
         }
 
         assertEquals( 2, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateMissingValues00()
+    {
+        validationRuleService.saveValidationRule( validationRuleG );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testValidateMissingValues01()
+    {
+        useDataValue( dataElementD, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleG );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 0.0, 1.0 ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateMissingValues10()
+    {
+        useDataValue( dataElementC, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleG );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 1.0, 0.0 ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateMissingValues11()
+    {
+        useDataValue( dataElementC, periodA, sourceA, "1" );
+        useDataValue( dataElementD, periodA, sourceA, "1" );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testValidateCompulsoryPair00()
+    {
+        validationRuleService.saveValidationRule( validationRuleE );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testValidateCompulsoryPair01()
+    {
+        useDataValue( dataElementB, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleE );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleE, 0.0, 1.0 ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateCompulsoryPair10()
+    {
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleE );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleE, 1.0, 0.0 ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateCompulsoryPair11()
+    {
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+        useDataValue( dataElementB, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleE );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testValidateExclusivePairWithOtherData00()
+    {
+        useDataValue( dataElementC, periodA, sourceA, "99" );
+        validationRuleService.saveValidationRule( validationRuleG );
+
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateExclusivePairWithOtherData01()
+    {
+        useDataValue( dataElementC, periodA, sourceA, "99" );
+        validationRuleService.saveValidationRule( validationRuleG );
+
+        useDataValue( dataElementB, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateExclusivePairWithOtherData10()
+    {
+        useDataValue( dataElementC, periodA, sourceA, "99" );
+        validationRuleService.saveValidationRule( validationRuleG );
+
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+
+        assertEquals( 1, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+
+    @Test
+    public void testValidateExclusivePairWithOtherData11()
+    {
+        useDataValue( dataElementC, periodA, sourceA, "99" );
+        validationRuleService.saveValidationRule( validationRuleG );
+
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+        useDataValue( dataElementB, periodA, sourceA, "2" );
+
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleF, 1.0, 2.0 ) );
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleG, 99.0, 0.0 ) );
+
+        assertEquals( 2, results.size() );
+        assertEquals( orderedList( reference ), orderedList( results ) );
+    }
+    @Test
+    public void testValidateExclusivePair00()
+    {
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testValidateExclusivePair01()
+    {
+        useDataValue( dataElementB, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testValidateExclusivePair10()
+    {
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testValidateExclusivePair11()
+    {
+        useDataValue( dataElementA, periodA, sourceA, "1" );
+        useDataValue( dataElementB, periodA, sourceA, "2" );
+
+        validationRuleService.saveValidationRule( validationRuleF );
+
+        Collection<ValidationResult> results = validationRuleService.validate( dataSetMonthly, periodA, sourceA, null );
+
+        Collection<ValidationResult> reference = new HashSet<>();
+
+        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleF, 1.0, 2.0 ) );
+
+        assertEquals( 1, results.size() );
         assertEquals( orderedList( reference ), orderedList( results ) );
     }
 

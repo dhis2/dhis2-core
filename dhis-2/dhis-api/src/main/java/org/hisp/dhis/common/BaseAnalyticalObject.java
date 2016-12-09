@@ -140,9 +140,9 @@ public abstract class BaseAnalyticalObject
     protected AggregationType aggregationType;
 
     protected boolean completedOnly;
-    
+
     protected String title;
-    
+
     protected Set<Interpretation> interpretations = new HashSet<>();
 
     // -------------------------------------------------------------------------
@@ -203,7 +203,7 @@ public abstract class BaseAnalyticalObject
     {
         return sortOrder != 0;
     }
-    
+
     public boolean hasTitle()
     {
         return title != null && !title.isEmpty();
@@ -595,7 +595,7 @@ public abstract class BaseAnalyticalObject
         }
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<DimensionalItemObject>() );
+            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() );
         }
         else if ( categoryDims.contains( dimension ) )
         {

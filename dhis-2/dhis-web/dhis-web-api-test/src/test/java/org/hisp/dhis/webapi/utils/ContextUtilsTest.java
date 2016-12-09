@@ -31,7 +31,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,12 +91,6 @@ public class ContextUtilsTest
         response.reset();
         contextUtils.configureResponse( response, null, CacheStrategy.CACHE_TWO_WEEKS, null, false );
         assertEquals( "max-age=1209600, public", response.getHeader( "Cache-Control" ) );
-
-        long seconds = DateUtils.getSecondsUntilTomorrow( 6 );
-
-        response.reset();
-        contextUtils.configureResponse( response, null, CacheStrategy.CACHE_6AM_TOMORROW, null, false );
-        assertEquals( "max-age=" + seconds + ", public", response.getHeader( "Cache-Control" ) );
 
         systemSettingManager.saveSystemSetting( SettingKey.CACHE_STRATEGY, CacheStrategy.CACHE_1_HOUR.toString() );
 

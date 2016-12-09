@@ -29,6 +29,7 @@ package org.hisp.dhis.schema;
  */
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -93,4 +94,11 @@ public interface SchemaService
      * @return List of all available metadata schemas
      */
     List<Schema> getMetadataSchemas();
+
+    /**
+     * Collect all authorities from schema descriptors.
+     *
+     * @return
+     */
+    Set<String> collectAuthorities();
 }

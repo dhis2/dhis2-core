@@ -24,6 +24,13 @@
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
+    <set name="openPeriods" table="datasetopenperiods">
+      <cache usage="read-write" />
+      <key column="datasetid" foreign-key="fk_datasetopenperiods_datasetid" />
+      <many-to-many class="org.hisp.dhis.period.Period" column="periodid"
+        foreign-key="fk_dataset_periodid" />
+    </set>
+
     <set name="dataSetElements" table="datasetelement" cascade="all-delete-orphan">
       <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
@@ -99,12 +106,12 @@
 
     <property name="renderHorizontally" />
 
-    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
-      foreign-key="fk_dataset_legendset" />
-
-    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
-
-    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
+    <list name="legendSets" table="datasetlegendsets">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataset_legendsetid"></many-to-many>
+    </list>
 
     <!-- Dynamic attribute values -->
 
@@ -130,6 +137,12 @@
       <cache usage="read-write" />
       <key column="datasetid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="datasetuseraccesses">
+      <cache usage="read-write" />
+      <key column="datasetid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

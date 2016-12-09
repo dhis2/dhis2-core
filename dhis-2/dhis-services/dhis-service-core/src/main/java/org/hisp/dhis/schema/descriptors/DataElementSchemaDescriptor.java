@@ -51,7 +51,6 @@ public class DataElementSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataElement.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1200 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DATAELEMENT_PUBLIC_ADD" ) ) );

@@ -88,8 +88,8 @@ public interface StatementBuilder
     String getAutoIncrementValue();
     
     /**
-     * Returns statement for vacuum and analyze operations for a table. Returns
-     * null if such statement is not relevant.
+     * Returns statement for vacuum operations for a table. Returns null if 
+     * such statement is not relevant.
      * 
      * @param table the table to vacuum.
      * @return vacuum and analyze operations for a table.

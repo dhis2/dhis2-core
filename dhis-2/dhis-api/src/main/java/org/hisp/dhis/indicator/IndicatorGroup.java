@@ -112,13 +112,6 @@ public class IndicatorGroup
     // Getters and setters
     // -------------------------------------------------------------------------
 
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty( "indicators" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "indicators", namespace = DxfNamespaces.DXF_2_0 )

@@ -48,7 +48,6 @@ public class DataEntryFormSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataEntryForm.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( false );
         schema.setOrder( 1300 );
 
         return schema;

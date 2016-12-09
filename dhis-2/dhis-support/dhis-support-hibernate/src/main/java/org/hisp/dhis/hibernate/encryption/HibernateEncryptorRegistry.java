@@ -46,7 +46,9 @@ public final class HibernateEncryptorRegistry
 
     private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
 
-    private HibernateEncryptorRegistry() {} // Private constructor
+    private HibernateEncryptorRegistry()
+    {   
+    }
 
     /**
      * Returns the (singleton) instance of the registry.

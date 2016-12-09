@@ -31,7 +31,7 @@ package org.hisp.dhis.email;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.sms.MessageBatchCreatorService;
 import org.hisp.dhis.sms.OutBoundMessage;

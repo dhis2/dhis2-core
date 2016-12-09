@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.TypeReport;
@@ -50,6 +51,8 @@ import java.util.Map;
 @JacksonXmlRootElement( localName = "importReport", namespace = DxfNamespaces.DXF_2_0 )
 public class ImportReport
 {
+    private MetadataImportParams importParams;
+
     private Status status = Status.OK;
 
     private Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
@@ -91,6 +94,18 @@ public class ImportReport
     //-----------------------------------------------------------------------------------
     // Getters and Setters
     //-----------------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MetadataImportParams getImportParams()
+    {
+        return importParams;
+    }
+
+    public void setImportParams( MetadataImportParams importParams )
+    {
+        this.importParams = importParams;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

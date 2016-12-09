@@ -241,7 +241,7 @@ public class TextUtils
      * Removes the last occurrence of the the given string, including potential 
      * trailing spaces.
      * 
-     * @param string the string.
+     * @param string the string, without potential trailing spaces.
      * @param remove the text to remove.
      * @return the chopped string.
      */

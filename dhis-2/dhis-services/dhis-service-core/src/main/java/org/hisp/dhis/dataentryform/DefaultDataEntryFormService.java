@@ -400,7 +400,8 @@ public class DefaultDataEntryFormService
                                     "<input type=\"file\" style=\"display: none;\">" +
                                 "</div>";
                 }
-                else if ( ValueType.TIME == valueType ) {
+                else if ( ValueType.TIME == valueType ) 
+                {
                     appendCode += " type=\"text\" name=\"entrytime\" class=\"entrytime\" tabindex=\"" + i++ + "\" id=\""+ dataElementId + "-" + optionComboId + "\">";
                 }
                 else

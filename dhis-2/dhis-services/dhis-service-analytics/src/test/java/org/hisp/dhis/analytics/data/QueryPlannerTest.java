@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
@@ -1084,8 +1085,35 @@ public class QueryPlannerTest
             .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
         
         queryPlanner.validate( params );
-    }    
+    }
     
+    @Test
+    public void testGroupByPartition()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withStartDate( getDate( 2014, 4, 1 ) )
+            .withEndDate( getDate( 2016, 8, 1 ) ).build();
+        
+        assertTrue( params.hasStartEndDate() );
+        
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withTableName( AnalyticsTableManager.ANALYTICS_TABLE_NAME ).build();
+        
+        List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+        
+        assertEquals( 1, queries.size() );
+        
+        DataQueryParams query = queries.get( 0 );
+        
+        List<String> partitions = query.getPartitions().getPartitions();
+        
+        assertNotNull( partitions );
+        assertEquals( 3, partitions.size() );
+        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
+        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
+        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
+    }
+        
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

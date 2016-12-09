@@ -77,12 +77,12 @@ public class BulkSmsGatewayConfig
         return super.getName();
     }
 
-    @JsonProperty( value = "password" )
     public String getPassword()
     {
         return password;
     }
 
+    @JsonProperty
     public void setPassword( String password )
     {
         this.password = password;

@@ -35,6 +35,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.legend.LegendSet;
 
+import java.util.List;
+
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
 /**
@@ -42,7 +44,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "reportingRate", namespace = DxfNamespaces.DXF_2_0 )
 public class ReportingRate
-    extends BaseDataDimensionalItemObject
+    extends BaseDimensionalItemObject
 {
     private DataSet dataSet;
 
@@ -103,23 +105,11 @@ public class ReportingRate
     }
 
     @Override
-    public LegendSet getLegendSet()
+    public List<LegendSet> getLegendSets()
     {
-        return dataSet.getLegendSet();
+        return dataSet.getLegendSets();
     }
     
-    @Override
-    public String getAggregateExportCategoryOptionCombo()
-    {
-        return dataSet.getAggregateExportCategoryOptionCombo();
-    }
-
-    @Override
-    public boolean hasAggregateExportCategoryOptionCombo()
-    {
-        return dataSet.hasAggregateExportCategoryOptionCombo();
-    }    
-
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

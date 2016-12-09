@@ -47,6 +47,10 @@
     </set>
 
     <property name="sortOrder" column="sortorder" not-null="true" />
+    
+    <property name="showRowTotals" />
+    
+    <property name="showColumnTotals" />
 
     <!-- Dynamic attribute values -->
 

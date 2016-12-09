@@ -32,7 +32,7 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.planner.QueryPath;
 
 import java.util.Collection;
 import java.util.Date;
@@ -44,13 +44,13 @@ public class BetweenOperator extends Operator
 {
     public BetweenOperator( Object arg0, Object arg1 )
     {
-        super( Typed.from( String.class, Number.class, Date.class ), arg0, arg1 );
+        super( "between", Typed.from( String.class, Number.class, Date.class ), arg0, arg1 );
     }
 
     @Override
-    public Criterion getHibernateCriterion( Property property )
+    public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.between( property.getFieldName(), args.get( 0 ), args.get( 1 ) );
+        return Restrictions.between( queryPath.getPath(), args.get( 0 ), args.get( 1 ) );
     }
 
     @Override

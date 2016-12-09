@@ -152,6 +152,10 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataset DROP COLUMN skipaggregation" );
         executeSql( "ALTER TABLE configuration DROP COLUMN completenessrecipientsid" );
         executeSql( "ALTER TABLE dataelement DROP COLUMN alternativename" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportcategoryoptioncombo" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportattributeoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportcategoryoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportattributeoptioncombo" );
         executeSql( "ALTER TABLE indicator DROP COLUMN alternativename" );
         executeSql( "ALTER TABLE orgunitgroup DROP COLUMN image" );
         executeSql( "ALTER TABLE report DROP COLUMN usingorgunitgroupsets" );
@@ -283,6 +287,8 @@ public class TableAlteror
         executeSql( "ALTER TABLE organisationunit DROP CONSTRAINT organisationunit_shortname_key" );
 
         executeSql( "ALTER TABLE section DROP CONSTRAINT section_name_key" );
+        executeSql( "UPDATE section SET showrowtotals = false WHERE showrowtotals IS NULL" );
+        executeSql( "UPDATE section SET showcolumntotals = false WHERE showcolumntotals IS NULL" );
         executeSql( "UPDATE dataelement SET aggregationtype='avg_sum_org_unit' where aggregationtype='average'" );
 
         // revert prepare aggregate*Value tables for offline diffs
@@ -489,6 +495,7 @@ public class TableAlteror
         executeSql( "update reporttable set sortorder = 0 where sortorder is null" );
         executeSql( "update reporttable set toplimit = 0 where toplimit is null" );
         executeSql( "update reporttable set showhierarchy = false where showhierarchy is null" );
+        executeSql( "update reporttable set legenddisplaystyle = 'FILL' where legenddisplaystyle is null" );
 
         // reporttable col/row totals = keep existing || copy from totals || true
         executeSql( "update reporttable set totals = true where totals is null" );
@@ -644,6 +651,8 @@ public class TableAlteror
 
         executeSql( "UPDATE userroleauthorities SET authority='F_LEGEND_SET_PUBLIC_ADD' WHERE authority='F_LEGEND_SET_ADD'" );
 
+        executeSql( "UPDATE userroleauthorities SET authority='F_VALIDATIONRULE_PUBLIC_ADD' WHERE authority='F_VALIDATIONRULE_ADD'" );
+
         // remove unused authorities
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONCEPT_UPDATE'" );
         executeSql( "DELETE FROM userroleauthorities WHERE authority='F_CONSTANT_UPDATE'" );
@@ -780,6 +789,7 @@ public class TableAlteror
         executeSql( "UPDATE attribute SET programIndicatorAttribute=false WHERE programIndicatorAttribute IS NULL" );
         executeSql( "UPDATE attribute SET sqlViewAttribute=false WHERE sqlViewAttribute IS NULL" );
         executeSql( "UPDATE attribute SET sectionAttribute=false WHERE sectionAttribute IS NULL" );
+        executeSql( "UPDATE attribute SET categoryoptioncomboattribute=false WHERE categoryoptioncomboattribute IS NULL" );
 
         executeSql( "update attribute set isunique=false where isunique is null" );
 
@@ -966,6 +976,8 @@ public class TableAlteror
         upgradeDataSetElements();
 
         removeOutdatedTranslationProperties();
+
+        updateLegendRelationship();
 
         log.info( "Tables updated" );
     }
@@ -1612,5 +1624,14 @@ public class TableAlteror
             executeSql( sql );
 
         }
+    }
+
+    private void updateLegendRelationship()
+    {
+        String sql = " update maplegend l set  maplegendsetid = ( select legendsetid from maplegendsetmaplegend m where m.maplegendid = l.maplegendid );";
+        executeSql( sql );
+
+        sql = " drop table maplegendsetmaplegend";
+        executeSql( sql );
     }
 }

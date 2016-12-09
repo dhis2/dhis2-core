@@ -24,6 +24,8 @@
     <property name="color" column="color" />
 
     <property name="image" column="image" />
+    
+    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="maplegendsetid" foreign-key="fk_maplegend_maplegendsetid" />
 
     <!-- Object Translation -->
     <set name="translations" table="maplegendtranslations" cascade="delete-orphan">

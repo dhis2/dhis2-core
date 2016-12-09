@@ -93,8 +93,10 @@ public class UpdateSqlViewAction
 
     private List<String> jsonAttributeValues;
 
-    public void setJsonAttributeValues( List<String> jsonAttributeValues ) { this.jsonAttributeValues = jsonAttributeValues; }
-
+    public void setJsonAttributeValues( List<String> jsonAttributeValues )
+    {
+        this.jsonAttributeValues = jsonAttributeValues;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation

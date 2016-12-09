@@ -95,8 +95,8 @@ public class DefaultDataQueryService
     public DataQueryParams getFromUrl( Set<String> dimensionParams, Set<String> filterParams, AggregationType aggregationType,
         String measureCriteria, String preAggregationMeasureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy,
-        boolean includeNumDen, DisplayProperty displayProperty, IdentifiableProperty outputIdScheme, IdScheme inputIdScheme,
-        String approvalLevel, Date relativePeriodDate, String userOrgUnit )
+        boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
+        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         
@@ -138,6 +138,7 @@ public class DefaultDataQueryService
             .withDisplayProperty( displayProperty )
             .withOutputIdScheme( outputIdScheme )
             .withOutputFormat( OutputFormat.ANALYTICS )
+            .withDuplicatesOnly( duplicatesOnly )
             .withApprovalLevel( approvalLevel ).build();
     }
 

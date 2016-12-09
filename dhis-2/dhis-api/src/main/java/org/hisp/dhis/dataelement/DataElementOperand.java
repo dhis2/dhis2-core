@@ -39,6 +39,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
@@ -173,6 +174,19 @@ public class DataElementOperand
     }
 
     @Override
+    public String getDimensionItem( IdScheme idScheme )
+    {
+        String item = null;
+
+        if ( dataElement != null )
+        {
+            item = dataElement.getPropertyValue( idScheme ) + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme )) : StringUtils.EMPTY);
+        }
+
+        return item;
+    }
+
+    @Override
     public DimensionItemType getDimensionItemType()
     {
         return DimensionItemType.DATA_ELEMENT_OPERAND;
@@ -181,12 +195,6 @@ public class DataElementOperand
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @Override
     public String getName()
@@ -375,7 +383,7 @@ public class DataElementOperand
         this.optionComboId = categoryOptionCombo.getUid();
         this.operandId = dataElementId + SEPARATOR + optionComboId;
         this.operandName = getPrettyName( dataElement, categoryOptionCombo );
-        this.legendSet = dataElement.getLegendSet();
+        this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
         this.frequencyOrder = dataElement.getFrequencyOrder();
@@ -395,7 +403,7 @@ public class DataElementOperand
         this.dataElementId = dataElement.getUid();
         this.operandId = String.valueOf( dataElementId );
         this.operandName = getPrettyName( dataElement, null );
-        this.legendSet = dataElement.getLegendSet();
+        this.legendSets = dataElement.getLegendSets();
         this.aggregationType = dataElement.getAggregationType();
         this.valueType = dataElement.getValueType();
         this.frequencyOrder = dataElement.getFrequencyOrder();

@@ -49,7 +49,6 @@ public class TrackedEntityDataElementDimensionSchemaDescriptor implements Schema
         Schema schema = new Schema( TrackedEntityDataElementDimension.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setMetadata( false );
-        schema.setShareable( false );
         schema.setOrder( 1490 );
 
         return schema;

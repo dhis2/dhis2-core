@@ -43,9 +43,12 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.*;
@@ -74,10 +77,19 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return partitionManager.getAnalyticsPartitions();
+    }
+    
     @Override
     public String validState()
     {
@@ -149,41 +161,27 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    protected void populateTable( AnalyticsTable table )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
+        final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
 
-        final String approvalClause = getApprovalJoinClause();
+        final String approvalClause = getApprovalJoinClause();        
+        final String numericClause = skipDataTypeValidation ? "" : ( "and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " );
 
-        taskLoop: while ( true )
-        {
-            AnalyticsTable table = tables.poll();
+        String intClause =
+            "( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') or de.zeroissignificant = true ) " +
+            numericClause;
 
-            if ( table == null )
-            {
-                break taskLoop;
-            }
+        populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
-            String intClause =
-                "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
-                    "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
-                    "or de.zeroissignificant = true ) ";
+        populateTable( table, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
 
-            populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+        populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
 
-            populateTable( table, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
-
-            populateTable( table, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
-
-            // Both TEXT_TYPES and DATE_TYPES are populated in the same way
-            populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
-
-        }
-
-        return null;
+        populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
-
+    
     /**
      * Populates the given analytics table.
      *
@@ -200,6 +198,7 @@ public class JdbcAnalyticsTableManager
         final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
         final String tableName = table.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
+        final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
 
         String sql = "insert into " + table.getTempTableName() + " (";
 
@@ -225,19 +224,21 @@ public class JdbcAnalyticsTableManager
                 valueExpression + " as value, " +
                 textValueExpression + " as textvalue " +
                 "from datavalue dv " +
-                "left join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
-                "left join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
-                "left join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
-                "left join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
+                "inner join _dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid " +
+                "inner join _organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid " +
+                "inner join _categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid " +
+                "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
                 "left join _orgunitstructure ous on dv.sourceid=ous.organisationunitid " +
-                "left join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
+                "inner join _dataelementstructure des on dv.dataelementid = des.dataelementid " +
                 "inner join dataelement de on dv.dataelementid=de.dataelementid " +
                 "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
                 "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
-                "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
                 "inner join period pe on dv.periodid=pe.periodid " +
                 "inner join _periodstructure ps on dv.periodid=ps.periodid " +
                 "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
+                "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
+                "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
+
                 approvalClause +
                 "where de.valuetype in (" + valTypes + ") " +
                 "and de.domaintype = 'AGGREGATE' " +
@@ -245,6 +246,15 @@ public class JdbcAnalyticsTableManager
                 "and pe.startdate <= '" + end + "' " +
                 "and dv.value is not null " +
                 "and dv.deleted is false ";
+
+        if ( respectStartEndDates )
+        {
+            sql +=
+                "and (aon.startdate is null or aon.startdate <= pe.startdate) " +
+                "and (aon.enddate is null or aon.enddate >= pe.enddate) " +
+                "and (con.startdate is null or con.startdate <= pe.startdate) " +
+                "and (con.enddate is null or con.enddate >= pe.enddate) ";
+        }
 
         if ( whereClause != null )
         {
@@ -265,8 +275,8 @@ public class JdbcAnalyticsTableManager
         {
             String sql =
                 "left join _dataapprovalminlevel da " +
-                    "on des.workflowid=da.workflowid and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid " +
-                    "and (";
+                "on des.workflowid=da.workflowid and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid " +
+                "and (";
 
             Set<OrganisationUnitLevel> levels = dataApprovalLevelService.getOrganisationUnitApprovalLevels();
 
@@ -354,10 +364,11 @@ public class JdbcAnalyticsTableManager
         AnalyticsTableColumn de = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" );
         AnalyticsTableColumn co = new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" );
         AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
+        AnalyticsTableColumn pe = new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
         AnalyticsTableColumn level = new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" );
 
-        columns.addAll( Lists.newArrayList( de, co, ao, ou, level ) );
+        columns.addAll( Lists.newArrayList( de, co, ao, pe, ou, level ) );
 
         if ( isApprovalEnabled() )
         {
@@ -374,9 +385,9 @@ public class JdbcAnalyticsTableManager
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
-                "from datavalue dv " +
-                "inner join period pe on dv.periodid=pe.periodid " +
-                "where pe.startdate is not null ";
+            "from datavalue dv " +
+            "inner join period pe on dv.periodid=pe.periodid " +
+            "where pe.startdate is not null ";
 
         if ( earliest != null )
         {

@@ -38,7 +38,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
-import org.hisp.dhis.commons.util.SqlHelper;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -54,8 +53,6 @@ public class HibernateSqlViewStore
 {
     private static final Log log = LogFactory.getLog( HibernateSqlViewStore.class );
 
-    private static final String PREFIX_SELECT_QUERY = "SELECT * FROM ";
-    
     private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = 
         ImmutableMap.of( SqlViewType.VIEW, "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 
@@ -104,35 +101,17 @@ public class HibernateSqlViewStore
         try
         {
             jdbcTemplate.execute( sql );
+
+            return null;
         }
         catch ( BadSqlGrammarException ex )
         {
             return ex.getCause().getMessage();
         }
-
-        return null;
     }
 
     @Override
-    public void setUpDataSqlViewTable( Grid grid, String viewTableName, Map<String, String> criteria )
-    {
-        String sql = PREFIX_SELECT_QUERY + statementBuilder.columnQuote( viewTableName );
-
-        if ( criteria != null && !criteria.isEmpty() )
-        {
-            SqlHelper helper = new SqlHelper();
-
-            for ( String filter : criteria.keySet() )
-            {
-                sql += " " + helper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "'";
-            }
-        }
-
-        executeQuery( grid, sql );
-    }
-
-    @Override
-    public void executeQuery( Grid grid, String sql )
+    public void populateSqlViewGrid( Grid grid, String sql )
     {
         SqlRowSet rs = jdbcTemplate.queryForRowSet( sql );
 
