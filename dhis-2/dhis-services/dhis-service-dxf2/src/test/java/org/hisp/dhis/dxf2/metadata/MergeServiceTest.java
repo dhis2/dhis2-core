@@ -111,6 +111,32 @@ public class MergeServiceTest
     }
 
     @Test
+    public void mergeOrgUnitGroup()
+    {
+        OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
+        OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
+        OrganisationUnit organisationUnitC = createOrganisationUnit( 'C' );
+        OrganisationUnit organisationUnitD = createOrganisationUnit( 'D' );
+
+        OrganisationUnitGroup organisationUnitGroupA = createOrganisationUnitGroup( 'A' );
+        OrganisationUnitGroup organisationUnitGroupB = createOrganisationUnitGroup( 'B' );
+
+        organisationUnitGroupA.getMembers().add( organisationUnitA );
+        organisationUnitGroupA.getMembers().add( organisationUnitB );
+        organisationUnitGroupA.getMembers().add( organisationUnitC );
+        organisationUnitGroupA.getMembers().add( organisationUnitD );
+
+        OrganisationUnitGroupSet organisationUnitGroupSetA = createOrganisationUnitGroupSet( 'A' );
+        organisationUnitGroupSetA.addOrganisationUnitGroup( organisationUnitGroupA );
+
+        mergeService.merge( new MergeParams<>( organisationUnitGroupA, organisationUnitGroupB ).setMergeMode( MergeMode.REPLACE ) );
+
+        assertFalse( organisationUnitGroupB.getMembers().isEmpty() );
+        assertEquals( 4, organisationUnitGroupB.getMembers().size() );
+        assertNotNull( organisationUnitGroupB.getGroupSet() );
+    }
+
+    @Test
     public void mergeOrgUnitGroupSet()
     {
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
