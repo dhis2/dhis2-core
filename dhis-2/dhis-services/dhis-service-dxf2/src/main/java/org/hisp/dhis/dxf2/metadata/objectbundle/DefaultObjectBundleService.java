@@ -40,6 +40,8 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.dxf2.metadata.MergeParams;
+import org.hisp.dhis.dxf2.metadata.MergeService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ObjectBundleHook;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -92,6 +94,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     @Autowired
     private Notifier notifier;
+
+    @Autowired
+    private MergeService mergeService;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
@@ -267,12 +272,9 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( bundle.getMergeMode() != MergeMode.NONE )
             {
-                persistedObject.mergeWith( object, bundle.getMergeMode() );
-            }
-
-            if ( !bundle.isSkipSharing() && bundle.getMergeMode() != MergeMode.NONE )
-            {
-                persistedObject.mergeSharingWith( object );
+                mergeService.merge( new MergeParams<>( object, persistedObject )
+                    .setMergeMode( bundle.getMergeMode() )
+                    .setSkipSharing( bundle.isSkipSharing() ) );
             }
 
             prepare( persistedObject, bundle );
