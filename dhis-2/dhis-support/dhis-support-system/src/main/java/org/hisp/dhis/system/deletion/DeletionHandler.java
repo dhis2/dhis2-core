@@ -390,12 +390,12 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteValidationRuleNotificationTemplate( ValidationNotificationTemplate vrnt )
+    public String allowDeleteValidationNotificationTemplate( ValidationNotificationTemplate vrnt )
     {
         return null;
     }
 
-    public void deleteValidationRuleNotificationTemplate( ValidationNotificationTemplate vrnt )
+    public void deleteValidationNotificationTemplate( ValidationNotificationTemplate vrnt )
     {
     }
 
