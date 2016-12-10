@@ -54,6 +54,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.legend.LegendDisplayStyle;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -174,6 +175,11 @@ public class ReportTable
      * The legend set in the table.
      */
     private LegendSet legendSet;
+
+    /**
+     * The legend set display type.
+     */
+    private LegendDisplayStyle legendDisplayStyle;
 
     /**
      * Indicates showing organisation unit hierarchy names.
@@ -436,7 +442,7 @@ public class ReportTable
         {
             if ( object != null && object instanceof Period )
             {
-                buffer.append( object.getName() + SEPARATOR );
+                buffer.append( object.getName() ).append( SEPARATOR );
             }
             else
             {
@@ -622,7 +628,7 @@ public class ReportTable
 
                 grid.addValue( value );
 
-                hasValue = !hasValue ? value != null : true;
+                hasValue = hasValue || value != null;
             }
 
             if ( hideEmptyRows && !hasValue )
@@ -719,12 +725,6 @@ public class ReportTable
     // -------------------------------------------------------------------------
     // Get- and set-methods for persisted properties
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -928,6 +928,18 @@ public class ReportTable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public LegendDisplayStyle getLegendDisplayStyle()
+    {
+        return legendDisplayStyle;
+    }
+
+    public void setLegendDisplayStyle( LegendDisplayStyle legendDisplayStyle )
+    {
+        this.legendDisplayStyle = legendDisplayStyle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isShowHierarchy()
     {
         return showHierarchy;
@@ -974,9 +986,10 @@ public class ReportTable
     }
 
     @JsonIgnore
-    public void setReportingPeriodName( String reportingPeriodName )
+    public ReportTable setReportingPeriodName( String reportingPeriodName )
     {
         this.reportingPeriodName = reportingPeriodName;
+        return this;
     }
 
     @JsonIgnore
@@ -985,9 +998,10 @@ public class ReportTable
         return gridColumns;
     }
 
-    public void setGridColumns( List<List<DimensionalItemObject>> gridColumns )
+    public ReportTable setGridColumns( List<List<DimensionalItemObject>> gridColumns )
     {
         this.gridColumns = gridColumns;
+        return this;
     }
 
     @JsonIgnore
@@ -996,9 +1010,10 @@ public class ReportTable
         return gridRows;
     }
 
-    public void setGridRows( List<List<DimensionalItemObject>> gridRows )
+    public ReportTable setGridRows( List<List<DimensionalItemObject>> gridRows )
     {
         this.gridRows = gridRows;
+        return this;
     }
 
     @JsonIgnore
@@ -1007,11 +1022,12 @@ public class ReportTable
         return gridTitle;
     }
 
-    public void setGridTitle( String gridTitle )
+    public ReportTable setGridTitle( String gridTitle )
     {
         this.gridTitle = gridTitle;
+        return this;
     }
-    
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -1034,6 +1050,7 @@ public class ReportTable
             hideEmptyRows = reportTable.isHideEmptyRows();
             topLimit = reportTable.getTopLimit();
             sortOrder = reportTable.getSortOrder();
+            legendDisplayStyle = reportTable.getLegendDisplayStyle();
 
             if ( mergeMode.isReplace() )
             {

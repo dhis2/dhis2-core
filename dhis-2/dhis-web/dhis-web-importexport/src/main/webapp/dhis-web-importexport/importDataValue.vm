@@ -14,8 +14,8 @@
     <td>$i18n.getString( "format" )</td>
     <td>
         <select id="importFormat" name="importFormat" style="width: 190px;">
-            <option value="xml">XML</option>
             <option value="json">JSON</option>
+						<option value="xml">XML</option>
             <option value="csv">CSV</option>
             <option value="pdf">PDF</option>
             <option value="adx">ADX</option>

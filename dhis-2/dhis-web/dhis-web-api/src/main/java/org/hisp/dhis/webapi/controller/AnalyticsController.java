@@ -65,6 +65,7 @@ public class AnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics";
     private static final String DATA_VALUE_SET_PATH = "/dataValueSet";
+    private static final String RAW_DATA_PATH = "/rawData";
 
     @Autowired
     private DataQueryService dataQueryService;
@@ -359,6 +360,65 @@ public class AnalyticsController
         return AnalyticsUtils.getDebugDataSql( params );
     }
 
+    // -------------------------------------------------------------------------
+    // Raw data
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".json", method = RequestMethod.GET )
+    public @ResponseBody Grid getRawDataJson(
+        @RequestParam Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
+        @RequestParam( required = false ) boolean hierarchyMeta,
+        @RequestParam( required = false ) boolean showHierarchy,
+        @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) IdScheme inputIdScheme,
+        @RequestParam( required = false ) String userOrgUnit,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
+            false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
+
+        params = DataQueryParams.newBuilder( params )
+            .withStartDate( startDate )
+            .withEndDate( endDate ).build();
+        
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        return analyticsService.getRawDataValues( params );
+    }
+    
+    @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".csv", method = RequestMethod.GET )
+    public void getRawDataCsv(
+        @RequestParam Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
+        @RequestParam( required = false ) boolean hierarchyMeta,
+        @RequestParam( required = false ) boolean showHierarchy,
+        @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) IdScheme inputIdScheme,
+        @RequestParam( required = false ) String userOrgUnit,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
+            false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
+
+        params = DataQueryParams.newBuilder( params )
+            .withStartDate( startDate )
+            .withEndDate( endDate ).build();
+        
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        Grid grid = analyticsService.getRawDataValues( params );
+        GridUtils.toCsv( grid, response.getWriter() );
+    }
+    
     // -------------------------------------------------------------------------
     // Data value set
     // -------------------------------------------------------------------------

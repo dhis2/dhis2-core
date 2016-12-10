@@ -94,6 +94,15 @@ public class HibernateDataValueAuditStore
     }
 
     @Override
+    public void deleteDataValueAudits( DataElement dataElement )
+    {
+        String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
+
+        sessionFactory.getCurrentSession().createQuery( hql )
+            .setEntity( "dataElement", dataElement ).executeUpdate();
+    }
+
+    @Override
     public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
     {
         return getDataValueAudits( Lists.newArrayList( dataValue.getDataElement() ), Lists.newArrayList( dataValue.getPeriod() ),

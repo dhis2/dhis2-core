@@ -28,14 +28,13 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.sms.config.SmsConfiguration;
-
-import com.google.common.collect.Sets;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -59,7 +58,7 @@ public enum SettingKey
     AUTO_SAVE_TRACKED_ENTITY_REGISTRATION_ENTRY_FORM( "keyAutoSavetTrackedEntityForm", Boolean.FALSE, Boolean.class ),
     AUTO_SAVE_DATA_ENTRY_FORM( "keyAutoSaveDataEntryForm", Boolean.FALSE, Boolean.class ),
     TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" ),
-    APPLICATION_TITLE( "applicationTitle", "DHIS 2", String.class ), 
+    APPLICATION_TITLE( "applicationTitle", "DHIS 2", String.class ),
     APPLICATION_INTRO( "keyApplicationIntro" ),
     APPLICATION_NOTIFICATION( "keyApplicationNotification" ),
     APPLICATION_FOOTER( "keyApplicationFooter" ),
@@ -92,6 +91,7 @@ public enum SettingKey
     HIDE_UNAPPROVED_DATA_IN_ANALYTICS( "keyHideUnapprovedDataInAnalytics", Boolean.FALSE, Boolean.class ),
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
     RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT( "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
+    SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT( "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
     CUSTOM_LOGIN_PAGE_LOGO( "keyCustomLoginPageLogo", Boolean.FALSE, Boolean.class ),
     CUSTOM_TOP_MENU_LOGO( "keyCustomTopMenuLogo", Boolean.FALSE, Boolean.class ),
     ANALYTICS_MAINTENANCE_MODE( "keyAnalyticsMaintenanceMode", Boolean.FALSE, Boolean.class ),
@@ -99,7 +99,7 @@ public enum SettingKey
     LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME( "keyLastSuccessfulAnalyticsTablesRuntime" ),
     LAST_MONITORING_RUN( "keyLastMonitoringRun", Date.class ),
     LAST_SUCCESSFUL_DATA_SYNC( "keyLastSuccessfulDataSynch", Date.class ),
-    LAST_SUCCESSFUL_EVENT_DATA_SYNC("keyLastSuccessfulEventsDataSynch", Date.class  ),
+    LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_MONITORING( "keyLastSuccessfulMonitoring", Date.class ),
@@ -132,37 +132,37 @@ public enum SettingKey
     MAPZEN_SEARCH_API_KEY( "keyMapzenSearchApiKey", "search-Se1CFzK", String.class ),
     GOOGLE_MAPS_API_KEY( "keyGoogleMapsApiKey", "AIzaSyBjlDmwuON9lJbPMDlh_LI3zGpGtpK9erc", String.class ),
     LAST_SUCCESSFUL_METADATA_SYNC( "keyLastMetaDataSyncSuccess", Date.class ),
-    METADATAVERSION_ENABLED( "keyVersionEnabled",Boolean.FALSE, Boolean.class),
+    METADATAVERSION_ENABLED( "keyVersionEnabled", Boolean.FALSE, Boolean.class ),
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
-    METADATA_LAST_FAILED_TIME("keyMetadataLastFailedTime", Date.class ),
-    METADATA_SYNC_CRON( "metaDataSyncCron",String.class ),
+    METADATA_LAST_FAILED_TIME( "keyMetadataLastFailedTime", Date.class ),
+    METADATA_SYNC_CRON( "metaDataSyncCron", String.class ),
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
-    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class),
-    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class);
+    REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
+    SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class );
 
     private final String name;
-    
+
     private final Serializable defaultValue;
-    
+
     private final Class<?> clazz;
 
     private boolean confidential;
-    
+
     private static final Set<String> NAMES = getNameSet();
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    private SettingKey( String name )
+    SettingKey( String name )
     {
         this.name = name;
         this.defaultValue = null;
         this.clazz = String.class;
         this.confidential = false;
     }
-    
-    private SettingKey( String name, Class<?> clazz )
+
+    SettingKey( String name, Class<?> clazz )
     {
         this.name = name;
         this.defaultValue = null;
@@ -170,7 +170,7 @@ public enum SettingKey
         this.confidential = false;
     }
 
-    private SettingKey( String name, Serializable defaultValue, Class<?> clazz )
+    SettingKey( String name, Serializable defaultValue, Class<?> clazz )
     {
         this.name = name;
         this.defaultValue = defaultValue;
@@ -178,7 +178,7 @@ public enum SettingKey
         this.confidential = false;
     }
 
-    private SettingKey( String name, Serializable defaultValue, Class<?> clazz, boolean confidential )
+    SettingKey( String name, Serializable defaultValue, Class<?> clazz, boolean confidential )
     {
         this.name = name;
         this.defaultValue = defaultValue;
@@ -206,11 +206,11 @@ public enum SettingKey
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<SettingKey> setting = getByName( name );
-                
+
         if ( setting.isPresent() )
-        {            
+        {
             Class<?> settingClazz = setting.get().getClazz();
-            
+
             if ( Double.class.isAssignableFrom( settingClazz ) )
             {
                 return Double.valueOf( value );
@@ -231,13 +231,13 @@ public enum SettingKey
             {
                 return DigitGroupSeparator.valueOf( value );
             }
-            
+
             //TODO handle Dates
         }
-        
+
         return value;
     }
-    
+
     public boolean hasDefaultValue()
     {
         return defaultValue != null;
@@ -251,10 +251,10 @@ public enum SettingKey
     private static Set<String> getNameSet()
     {
         Set<String> names = Sets.newHashSet();
-        Sets.newHashSet( SettingKey.values() ).stream().forEach( s -> names.add( s.getName() ) );
+        Sets.newHashSet( SettingKey.values() ).forEach( s -> names.add( s.getName() ) );
         return names;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters
     // -------------------------------------------------------------------------
@@ -268,7 +268,7 @@ public enum SettingKey
     {
         return defaultValue;
     }
-    
+
     public Class<?> getClazz()
     {
         return clazz;

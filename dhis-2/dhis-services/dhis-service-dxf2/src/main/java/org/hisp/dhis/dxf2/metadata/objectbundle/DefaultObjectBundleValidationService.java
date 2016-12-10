@@ -595,6 +595,14 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     identifier.getIdentifiersWithName( userGroupAccesses.getUserGroup() ), identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
         }
 
+        if ( schema.havePersistedProperty( "userAccesses" ) )
+        {
+            object.getUserAccesses().stream()
+                .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUser() != null && preheat.get( identifier, userGroupAccess.getUser() ) == null )
+                .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
+                    identifier.getIdentifiersWithName( userAccesses.getUser() ), identifier.getIdentifiersWithName( object ), "userAccesses" ) ) );
+        }
+
         return preheatErrorReports;
     }
 

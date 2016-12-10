@@ -62,13 +62,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorAnalyticsType;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -77,6 +71,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class EventQueryParams
     extends DataQueryParams
 {
+    public static final String EVENT_COORDINATE_FIELD = "EVENT";
+    
     /**
      * The query items.
      */
@@ -173,6 +169,11 @@ public class EventQueryParams
      * Size of cluster in meter.
      */
     private Long clusterSize;
+    
+    /**
+     * The coordinate field to use as basis for spatial event analytics.
+     */
+    private String coordinateField;
 
     /**
      * Bounding box for events to include in clustering.
@@ -236,6 +237,7 @@ public class EventQueryParams
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
+        params.coordinateField = this.coordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
         params.programStatus = this.programStatus;
@@ -700,11 +702,6 @@ public class EventQueryParams
         return geometryOnly;
     }
 
-    public void setGeometryOnly( boolean geometryOnly )
-    {
-        this.geometryOnly = geometryOnly; //TODO builder
-    }
-
     public boolean isAggregateData()
     {
         return aggregateData;
@@ -713,6 +710,11 @@ public class EventQueryParams
     public Long getClusterSize()
     {
         return clusterSize;
+    }
+
+    public String getCoordinateField()
+    {
+        return coordinateField;
     }
 
     public String getBbox()
@@ -878,6 +880,12 @@ public class EventQueryParams
             this.params.coordinatesOnly = coordinatesOnly;
             return this;
         }
+        
+        public Builder withGeometryOnly( boolean geometryOnly )
+        {
+            this.params.geometryOnly = geometryOnly;
+            return this;
+        }
 
         public Builder withDisplayProperty( DisplayProperty displayProperty )
         {
@@ -972,6 +980,12 @@ public class EventQueryParams
         public Builder withClusterSize( Long clusterSize )
         {
             this.params.clusterSize = clusterSize;
+            return this;
+        }
+        
+        public Builder withCoordinateField( String coordinateField )
+        {
+            this.params.coordinateField = coordinateField;
             return this;
         }
         

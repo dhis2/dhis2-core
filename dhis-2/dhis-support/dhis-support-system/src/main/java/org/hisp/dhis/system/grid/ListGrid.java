@@ -264,15 +264,17 @@ public class ListGrid
     }
 
     @Override
-    public void setMetaData( Map<String, Object> metaData )
+    public Grid setMetaData( Map<String, Object> metaData )
     {
         this.metaData = metaData;
+        return this;
     }
 
     @Override
-    public void addMetaData( String key, Object value )
+    public Grid addMetaData( String key, Object value )
     {
         this.metaData.put( key, value );
+        return this;
     }
 
     @Override

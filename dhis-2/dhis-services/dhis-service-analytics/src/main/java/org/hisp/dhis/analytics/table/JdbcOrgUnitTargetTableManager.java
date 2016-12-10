@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -40,6 +41,8 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -57,9 +60,9 @@ public class JdbcOrgUnitTargetTableManager
     }
 
     @Override
-    public List<AnalyticsTable> getAllTables()
+    public Set<String> getExistingDatabaseTables()
     {
-        return getTables( null );
+        return Sets.newHashSet( getTableName() );
     }
     
     @Override
@@ -106,49 +109,36 @@ public class JdbcOrgUnitTargetTableManager
     }
 
     @Override
-    @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    protected void populateTable( AnalyticsTable table )
     {
-        taskLoop: while ( true )
+        final String tableName = table.getTempTableName();
+
+        String sql = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+        
+        for ( AnalyticsTableColumn col : columns )
         {
-            AnalyticsTable table = tables.poll();
-                
-            if ( table == null )
-            {
-                break taskLoop;
-            }
+            sql += col.getName() + ",";
+        }
 
-            final String tableName = table.getTempTableName();
+        sql += "value) select ";
 
-            String sql = "insert into " + table.getTempTableName() + " (";
-    
-            List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-            
-            validateDimensionColumns( columns );
-            
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getName() + ",";
-            }
-    
-            sql += "value) select ";
-    
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getAlias() + ",";
-            }
-            
-            sql +=
-                "1 as value " +
-                "from orgunitgroupmembers ougm " +
-                "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
-                "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
-                "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";            
-
-            populateAndLog( sql, tableName );
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
         }
         
-        return null;
+        sql +=
+            "1 as value " +
+            "from orgunitgroupmembers ougm " +
+            "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
+            "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";            
+
+        populateAndLog( sql, tableName );
     }
 
     @Override

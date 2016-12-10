@@ -469,6 +469,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     validateHasMatchingPeriodTypes( mdProps );
                 }
 
+                if ( config.strictOrgUnits )
+                {
+                    validateDataSetIsAssignedToOrgUnit( mdProps);
+                }
+
                 storedBy = cdsr.getStoredBy();
                 validateStoredBy( storedBy, i18n );
                 storedBy = StringUtils.isBlank( storedBy ) ? currentUser : storedBy;
@@ -690,6 +695,18 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
+    private static void validateDataSetIsAssignedToOrgUnit( MetaDataProperties props )
+        throws ImportConflictException
+    {
+        if ( !props.orgUnit.getDataSets().contains( props.dataSet ) )
+        {
+            throw new ImportConflictException(
+                new ImportConflict(
+                    props.dataSet.getUid(), String.format( "Data set %s is not assigned to organisation unit %s",
+                    props.dataSet.getUid(), props.orgUnit.getUid() ) ) );
+        }
+    }
+
     private void heatCaches( MetaDataCaches caches, ImportConfig config )
     {
         if ( !caches.dataSets.isCacheLoaded() && exceedsThreshold( caches.dataSets ) )
@@ -738,7 +755,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         );
     }
 
-    private static boolean exceedsThreshold( CachingMap cachingMap )
+    private static boolean exceedsThreshold( CachingMap<?, ?> cachingMap )
     {
         return cachingMap.getCacheMissCount() > CACHE_MISS_THRESHOLD;
     }

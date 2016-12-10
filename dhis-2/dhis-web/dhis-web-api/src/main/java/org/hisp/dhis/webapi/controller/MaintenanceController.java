@@ -32,8 +32,11 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -41,16 +44,11 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -91,6 +89,9 @@ public class MaintenanceController
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
     private List<AnalyticsTableService> analyticsTableService;
 
     @Autowired
@@ -102,6 +103,14 @@ public class MaintenanceController
     public void clearAnalyticsTables()
     {
         analyticsTableService.forEach( AnalyticsTableService::dropTables );
+    }
+
+    @RequestMapping( value = "/analyticsTablesAnalyze", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void analyzeAnalyticsTables()
+    {
+        analyticsTableService.forEach( AnalyticsTableService::analyzeAnalyticsTables );
     }
 
     @RequestMapping( value = "/expiredInvitationsClear", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -142,6 +151,14 @@ public class MaintenanceController
     public void deleteSoftDeletedDataValues()
     {
         maintenanceService.deleteSoftDeletedDataValues();
+    }
+
+    @RequestMapping( value = "/softDeletedProgramStageInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedProgramStageInstances()
+    {
+        maintenanceService.deleteSoftDeletedProgramStageInstances();
     }
     
     @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -201,6 +218,30 @@ public class MaintenanceController
         webMessageService.sendJson( message, response );
     }
 
+    @RequestMapping( value = "/dataPruning/dataElements/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void pruneDataByDataElement( @PathVariable String uid, HttpServletResponse response )
+        throws Exception
+    {
+        DataElement dataElement = dataElementService.getDataElement( uid );
+
+        if ( dataElement == null )
+        {
+            webMessageService
+                .sendJson( WebMessageUtils.conflict( "Data element does not exist: " + uid ), response );
+            return;
+        }
+
+        boolean result = maintenanceService.pruneData( dataElement );
+
+        WebMessage message = result ?
+            WebMessageUtils.ok( "Data was pruned successfully" ) :
+            WebMessageUtils.conflict( "Data could not be pruned" );
+
+        webMessageService.sendJson( message, response );
+    }
+
     @RequestMapping( value = "/appReload", method = RequestMethod.GET )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void appReload( HttpServletResponse response )
@@ -215,11 +256,13 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void performMaintenance(
         @RequestParam( required = false ) boolean analyticsTableClear,
+        @RequestParam( required = false ) boolean analyticsTableAnalyze,
         @RequestParam( required = false ) boolean expiredInvitationsClear,
         @RequestParam( required = false ) boolean ouPathsUpdate,
         @RequestParam( required = false ) boolean periodPruning,
         @RequestParam( required = false ) boolean zeroDataValueRemoval,
         @RequestParam( required = false ) boolean softDeletedDataValueRemoval,
+        @RequestParam( required = false ) boolean softDeletedEventRemoval,
         @RequestParam( required = false ) boolean sqlViewsDrop,
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
@@ -229,6 +272,11 @@ public class MaintenanceController
         if ( analyticsTableClear )
         {
             clearAnalyticsTables();
+        }
+        
+        if ( analyticsTableAnalyze )
+        {
+            analyzeAnalyticsTables();
         }
 
         if ( expiredInvitationsClear )
@@ -250,10 +298,15 @@ public class MaintenanceController
         {
             deleteZeroDataValues();
         }
-        
+
         if ( softDeletedDataValueRemoval )
         {
             deleteSoftDeletedDataValues();
+        }
+
+        if ( softDeletedEventRemoval )
+        {
+            deleteSoftDeletedProgramStageInstances();
         }
 
         if ( sqlViewsDrop )

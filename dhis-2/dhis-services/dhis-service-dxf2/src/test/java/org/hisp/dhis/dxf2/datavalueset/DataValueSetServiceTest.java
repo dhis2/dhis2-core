@@ -172,7 +172,10 @@ public class DataValueSetServiceTest
         categoryA = createDataElementCategory( 'A', categoryOptionA, categoryOptionB );
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryComboDef = categoryService.getDefaultDataElementCategoryCombo();
+        
         ocDef = categoryService.getDefaultDataElementCategoryOptionCombo();
+        ocDef.setCode( "OC_DEF_CODE" );
+        categoryService.updateDataElementCategoryOptionCombo( ocDef );
 
         osA = new OptionSet( "OptionSetA", ValueType.INTEGER );
         osA.getOptions().add( new Option( "Blue", "1" ) );
@@ -590,6 +593,29 @@ public class DataValueSetServiceTest
     }
 
     @Test
+    public void testImportDataValuesWithCategoryOptionComboIdScheme()
+        throws Exception
+    {
+        in = new ClassPathResource( "datavalueset/dataValueSetCCode.xml" ).getInputStream();
+
+        ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme( "CODE" );
+        
+        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        
+        assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
+        assertEquals( 3, summary.getImportCount().getImported() );
+        assertEquals( 0, summary.getImportCount().getUpdated() );
+        assertEquals( 0, summary.getImportCount().getDeleted() );
+        assertEquals( 0, summary.getImportCount().getIgnored() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+
+        Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
+
+        assertNotNull( dataValues );
+        assertEquals( 3, dataValues.size() );
+    }
+
+    @Test
     public void testImportDataValuesWithAttributeOptionCombo()
         throws Exception
     {
@@ -887,7 +913,7 @@ public class DataValueSetServiceTest
     }
     
     @Test
-    public void testImportDataValuesWithDatasetAllowsPeriods()
+    public void testImportDataValuesWithDataSetAllowsPeriods()
         throws Exception
     {
         Date thisMonth = DateUtils.truncate( new Date(), Calendar.MONTH );
@@ -912,12 +938,12 @@ public class DataValueSetServiceTest
 
         String importData =
             "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\" idScheme=\"code\" dataSet=\"DS_A\" orgUnit=\"OU_A\">\n" +
-                "  <dataValue dataElement=\"DE_A\" period=\"" + tooEarly.getIsoDate() + "\" value=\"10001\" />\n" +
-                "  <dataValue dataElement=\"DE_B\" period=\"" + okBefore.getIsoDate() + "\" value=\"10002\" />\n" +
-                "  <dataValue dataElement=\"DE_C\" period=\"" + okAfter.getIsoDate() + "\" value=\"10003\" />\n" +
-                "  <dataValue dataElement=\"DE_D\" period=\"" + tooLate.getIsoDate() + "\" value=\"10004\" />\n" +
-                "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n" +
-                "</dataValueSet>\n";
+            "  <dataValue dataElement=\"DE_A\" period=\"" + tooEarly.getIsoDate() + "\" value=\"10001\" />\n" +
+            "  <dataValue dataElement=\"DE_B\" period=\"" + okBefore.getIsoDate() + "\" value=\"10002\" />\n" +
+            "  <dataValue dataElement=\"DE_C\" period=\"" + okAfter.getIsoDate() + "\" value=\"10003\" />\n" +
+            "  <dataValue dataElement=\"DE_D\" period=\"" + tooLate.getIsoDate() + "\" value=\"10004\" />\n" +
+            "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n" +
+            "</dataValueSet>\n";
 
         in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
 

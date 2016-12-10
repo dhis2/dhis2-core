@@ -44,14 +44,14 @@ public enum DataStatisticsEventType
     DASHBOARD_VIEW( "dashboard" ),
     DATA_SET_REPORT_VIEW( "dataset" ),
     TOTAL_VIEW( null );
-    
+
     private String table;
-    
-    private DataStatisticsEventType( String table )
+
+    DataStatisticsEventType( String table )
     {
         this.table = table;
     }
-    
+
     public String getTable()
     {
         return table;

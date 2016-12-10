@@ -166,11 +166,17 @@ public class GetProgramIndicatorAction
 
     private List<Attribute> attributes;
 
-    public List<Attribute> getAttributes() { return attributes;  }
+    public List<Attribute> getAttributes()
+    {
+        return attributes;
+    }
 
     private Map<Integer, String> attributeValues = new HashMap<>();
 
-    public Map<Integer, String> getAttributeValues() { return attributeValues; }
+    public Map<Integer, String> getAttributeValues()
+    {
+        return attributeValues;
+    }
 
     // -------------------------------------------------------------------------
     // Action implementation

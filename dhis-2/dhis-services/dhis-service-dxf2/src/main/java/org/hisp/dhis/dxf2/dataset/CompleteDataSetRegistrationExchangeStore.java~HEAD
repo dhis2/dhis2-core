@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.dxf2.dataset;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,27 +28,26 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.OutputStream;
+
 /**
  * @author Halvdan Hoem Grelland
  */
-public class NotificationMessage
+public interface CompleteDataSetRegistrationExchangeStore
 {
-    private String subject = "";
-    private String message = "";
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as XML.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the XML result to.
+     */
+    void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
 
-    public NotificationMessage( String subject, String message )
-    {
-        this.subject = subject;
-        this.message = message;
-    }
-
-    public String getSubject()
-    {
-        return subject;
-    }
-
-    public String getMessage()
-    {
-        return message;
-    }
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the JSON result to.
+     */
+    void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 }

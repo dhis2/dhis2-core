@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -240,28 +241,32 @@ public class AnalyticsUtilsTest
     public void testHandleGridForDataValueSet()
     {
         IndicatorType itA = new IndicatorType();
+        DataElementCategoryOptionCombo ocA = createCategoryOptionCombo( 'A' );
+        ocA.setUid( "ceabcdefghA" );
 
         DataElement dxA = createDataElement( 'A' );
-        dxA.setUid( "dxA" );
+        dxA.setUid( "deabcdefghA" );
         dxA.setValueType( ValueType.INTEGER );
-        dxA.setAggregateExportCategoryOptionCombo( "coA" );
                 
         DataElement dxB = createDataElement( 'B' );
-        dxB.setUid( "dxB" );
+        dxB.setUid( "deabcdefghB" );
         dxB.setValueType( ValueType.NUMBER );
-        dxB.setAggregateExportAttributeOptionCombo( "aoA" );
 
         Indicator dxC = createIndicator( 'C', itA );
-        dxC.setUid( "dxC" );
+        dxC.setUid( "deabcdefghC" );
         dxC.setDecimals( 0 );
+        dxC.setAggregateExportAttributeOptionCombo( "ceabcdefghA" );
         
         Indicator dxD = createIndicator( 'D', itA );
-        dxD.setUid( "dxD" );
+        dxD.setUid( "deabcdefghD" );
         dxD.setDecimals( 2 );
-        dxD.setAggregateExportCategoryOptionCombo( "coB" );
+        dxD.setAggregateExportCategoryOptionCombo( "ceabcdefghB" );
+        
+        DataElementOperand dxE = new DataElementOperand( dxA, ocA );
+        DataElementOperand dxF = new DataElementOperand( dxB, ocA );
         
         DataQueryParams params = DataQueryParams.newBuilder().
-            addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( dxA, dxB, dxC, dxD ) ) )
+            addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, Lists.newArrayList( dxA, dxB, dxC, dxD, dxE, dxF ) ) )
             .build();
         
         Grid grid = new ListGrid();
@@ -271,38 +276,50 @@ public class AnalyticsUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, Double.class.getName(), false, false ) );
             
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", 1d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxB", "ouA", "peA", 2d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxC", "ouA", "peA", 3d ) );
-        grid.addRow().addValuesAsList( Lists.newArrayList( "dxD", "ouA", "peA", 4d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghA", "ouA", "peA", 1d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghB", "ouA", "peA", 2d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghC", "ouA", "peA", 3d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghD", "ouA", "peA", 4d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghA.ceabcdefghA", "ouA", "peA", 5d ) );
+        grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghB.ceabcdefghA", "ouA", "peA", 6d ) );
         
         assertEquals( 4, grid.getWidth() );
-        assertEquals( 4, grid.getHeight() );
+        assertEquals( 6, grid.getHeight() );
         
         AnalyticsUtils.handleGridForDataValueSet( params, grid );
 
         assertEquals( 6, grid.getWidth() );
-        assertEquals( 4, grid.getHeight() );
+        assertEquals( 6, grid.getHeight() );
         
-        assertEquals( "dxA", grid.getRow( 0 ).get( 0 ) );
-        assertEquals( "coA", grid.getRow( 0 ).get( 3 ) );
+        assertEquals( "deabcdefghA", grid.getRow( 0 ).get( 0 ) );
+        assertNull( grid.getRow( 0 ).get( 3 ) );
         assertNull( grid.getRow( 0 ).get( 4 ) );
         assertEquals( 1, grid.getRow( 0 ).get( 5 ) );
 
-        assertEquals( "dxB", grid.getRow( 1 ).get( 0 ) );
+        assertEquals( "deabcdefghB", grid.getRow( 1 ).get( 0 ) );
         assertNull( grid.getRow( 1 ).get( 3 ) );
-        assertEquals( "aoA", grid.getRow( 1 ).get( 4 ) );
+        assertNull( grid.getRow( 1 ).get( 4 ) );
         assertEquals( 2d, (Double) grid.getRow( 1 ).get( 5 ), 0.01 );
 
-        assertEquals( "dxC", grid.getRow( 2 ).get( 0 ) );
+        assertEquals( "deabcdefghC", grid.getRow( 2 ).get( 0 ) );
         assertNull( grid.getRow( 2 ).get( 3 ) );
-        assertNull( grid.getRow( 2 ).get( 4 ) );
+        assertEquals( "ceabcdefghA", grid.getRow( 2 ).get( 4 ) );
         assertEquals( 3, grid.getRow( 2 ).get( 5 ) );
 
-        assertEquals( "dxD", grid.getRow( 3 ).get( 0 ) );
-        assertEquals( "coB", grid.getRow( 3 ).get( 3 ) );
+        assertEquals( "deabcdefghD", grid.getRow( 3 ).get( 0 ) );
+        assertEquals( "ceabcdefghB", grid.getRow( 3 ).get( 3 ) );
         assertNull( grid.getRow( 3 ).get( 4 ) );
         assertEquals( 4d, (Double) grid.getRow( 3 ).get( 5 ), 0.01 );
+        
+        assertEquals( "deabcdefghA", grid.getRow( 4 ).get( 0 ) );
+        assertEquals( "ceabcdefghA", grid.getRow( 4 ).get( 3 ) );
+        assertNull( grid.getRow( 4 ).get( 4 ) );
+        assertEquals( 5, grid.getRow( 4 ).get( 5 ) );
+
+        assertEquals( "deabcdefghB", grid.getRow( 5 ).get( 0 ) );
+        assertEquals( "ceabcdefghA", grid.getRow( 5 ).get( 3 ) );
+        assertNull( grid.getRow( 5 ).get( 4 ) );
+        assertEquals( 6d, (Double) grid.getRow( 5 ).get( 5 ), 0.01 );
     }
     
     @Test

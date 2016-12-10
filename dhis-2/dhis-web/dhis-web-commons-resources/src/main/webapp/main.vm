@@ -8,6 +8,7 @@
     <meta name="description" content="DHIS 2">
     <meta name="keywords" content="DHIS 2">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link type="text/css" rel="stylesheet" href="../dhis-web-commons/font-awesome/css/font-awesome.min.css?_rev=$!{buildRevision}" />
     <link type="text/css" rel="stylesheet" media="screen" href="../dhis-web-commons/javascripts/jQuery/ui/css/redmond/jquery-ui.css?_rev=$!{buildRevision}" />
     <link type="text/css" rel="stylesheet" media="screen,print" href="../dhis-web-commons/css/$encoder.htmlEncode( ${keyStyle} )?_rev=$!{buildRevision}" />
@@ -50,10 +51,16 @@
     <script type="text/javascript" src="../dhis-web-commons/javascripts/header-bar/header-bar.js?_rev=$!{buildRevision}"></script>
     <script>
         // Needs to be wrapped in jQuery to be sure the DOM is parsed as the script is not at the bottom.
-        jQuery(function () {        	
-        	if( Dhis2HeaderBar ){
-        		Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), undefined, { noLoadingIndicator: true });
-        	}            
+        jQuery(function () {
+            try {
+                if ('Dhis2HeaderBar' in window) {
+                    Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), undefined, {noLoadingIndicator: true});
+                }
+            } catch (e) {
+                if ('console' in window ) {
+                    console.error(e);
+                }
+            }
         });
     </script>
     <!-- // End menu -->

@@ -177,12 +177,12 @@ public class DataElementOperand
     public String getDimensionItem( IdScheme idScheme )
     {
         String item = null;
-        
+
         if ( dataElement != null )
         {
-            item = dataElement.getPropertyValue( idScheme ) + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme ) ) : StringUtils.EMPTY );
+            item = dataElement.getPropertyValue( idScheme ) + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme )) : StringUtils.EMPTY);
         }
-        
+
         return item;
     }
 
@@ -195,12 +195,6 @@ public class DataElementOperand
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @Override
     public String getName()

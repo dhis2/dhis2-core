@@ -28,7 +28,11 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
@@ -51,6 +55,7 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "metadataImportParams", namespace = DxfNamespaces.DXF_2_0 )
 public class MetadataImportParams
 {
     private User user;
@@ -75,6 +80,8 @@ public class MetadataImportParams
 
     private boolean skipValidation;
 
+    private String filename;
+
     private TaskId taskId;
 
     private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
@@ -88,6 +95,8 @@ public class MetadataImportParams
         addObjects( objects );
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
     {
         return user != null ? user.getUsername() : "system-process";
@@ -98,79 +107,101 @@ public class MetadataImportParams
         return user;
     }
 
-    public void setUser( User user )
+    public MetadataImportParams setUser( User user )
     {
         this.user = user;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ObjectBundleMode getImportMode()
     {
         return importMode;
     }
 
-    public void setImportMode( ObjectBundleMode importMode )
+    public MetadataImportParams setImportMode( ObjectBundleMode importMode )
     {
         this.importMode = importMode;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public PreheatIdentifier getIdentifier()
     {
         return identifier;
     }
 
-    public void setIdentifier( PreheatIdentifier identifier )
+    public MetadataImportParams setIdentifier( PreheatIdentifier identifier )
     {
         this.identifier = identifier;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public PreheatMode getPreheatMode()
     {
         return preheatMode;
     }
 
-    public void setPreheatMode( PreheatMode preheatMode )
+    public MetadataImportParams setPreheatMode( PreheatMode preheatMode )
     {
         this.preheatMode = preheatMode;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ImportStrategy getImportStrategy()
     {
         return importStrategy;
     }
 
-    public void setImportStrategy( ImportStrategy importStrategy )
+    public MetadataImportParams setImportStrategy( ImportStrategy importStrategy )
     {
         this.importStrategy = importStrategy;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AtomicMode getAtomicMode()
     {
         return atomicMode;
     }
 
-    public void setAtomicMode( AtomicMode atomicMode )
+    public MetadataImportParams setAtomicMode( AtomicMode atomicMode )
     {
         this.atomicMode = atomicMode;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public MergeMode getMergeMode()
     {
         return mergeMode;
     }
 
-    public void setMergeMode( MergeMode mergeMode )
+    public MetadataImportParams setMergeMode( MergeMode mergeMode )
     {
         this.mergeMode = mergeMode;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FlushMode getFlushMode()
     {
         return flushMode;
     }
 
-    public void setFlushMode( FlushMode flushMode )
+    public MetadataImportParams setFlushMode( FlushMode flushMode )
     {
         this.flushMode = flushMode;
+        return this;
     }
 
     public ImportReportMode getImportReportMode()
@@ -178,29 +209,49 @@ public class MetadataImportParams
         return importReportMode;
     }
 
-    public void setImportReportMode( ImportReportMode importReportMode )
+    public MetadataImportParams setImportReportMode( ImportReportMode importReportMode )
     {
         this.importReportMode = importReportMode;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipSharing()
     {
         return skipSharing;
     }
 
-    public void setSkipSharing( boolean skipSharing )
+    public MetadataImportParams setSkipSharing( boolean skipSharing )
     {
         this.skipSharing = skipSharing;
+        return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipValidation()
     {
         return skipValidation;
     }
 
-    public void setSkipValidation( boolean skipValidation )
+    public MetadataImportParams setSkipValidation( boolean skipValidation )
     {
         this.skipValidation = skipValidation;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFilename()
+    {
+        return filename;
+    }
+
+    public MetadataImportParams setFilename( String filename )
+    {
+        this.filename = filename;
+        return this;
     }
 
     public TaskId getTaskId()
@@ -208,9 +259,10 @@ public class MetadataImportParams
         return taskId;
     }
 
-    public void setTaskId( TaskId taskId )
+    public MetadataImportParams setTaskId( TaskId taskId )
     {
         this.taskId = taskId;
+        return this;
     }
 
     public boolean hasTaskId()
@@ -223,9 +275,10 @@ public class MetadataImportParams
         return objects;
     }
 
-    public void setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    public MetadataImportParams setObjects( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
         this.objects = objects;
+        return this;
     }
 
     public List<Class<? extends IdentifiableObject>> getClasses()

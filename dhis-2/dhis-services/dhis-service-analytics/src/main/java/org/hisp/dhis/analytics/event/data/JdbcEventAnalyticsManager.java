@@ -314,20 +314,20 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
-        params.setGeometryOnly( true );
+        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
-            "ST_AsText(ST_Centroid(ST_Collect(geom))) as center", "ST_Extent(geom) as extent" );
- 
+            "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
+
         columns.add( params.isIncludeClusterPoints() ?
             "array_to_string(array_agg(psi), ',') as points" :
             "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
         
         String sql = "select " + StringUtils.join( columns, "," ) + " ";
         
-        sql += getFromWhereClause( params, Lists.newArrayList( "psi", "geom" ) );
+        sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
         
-        sql += "group by ST_SnapToGrid(ST_Transform(geom, 3785), " + params.getClusterSize() + ") ";
+        sql += "group by ST_SnapToGrid(ST_Transform(" + clusterField + ", 3785), " + params.getClusterSize() + ") ";
 
         log.debug( "Analytics event cluster SQL: " + sql );
         
@@ -335,12 +335,11 @@ public class JdbcEventAnalyticsManager
 
         while ( rowSet.next() )
         {
-            grid.addRow();
-            
-            grid.addValue( rowSet.getLong( "count" ) );
-            grid.addValue( rowSet.getString( "center" ) );
-            grid.addValue( rowSet.getString( "extent" ) );
-            grid.addValue( rowSet.getString( "points" ) );         
+            grid.addRow()
+                .addValue( rowSet.getLong( "count" ) )
+                .addValue( rowSet.getString( "center" ) )
+                .addValue( rowSet.getString( "extent" ) )
+                .addValue( rowSet.getString( "points" ) );         
         }
         
         return grid;
@@ -371,12 +370,12 @@ public class JdbcEventAnalyticsManager
     
     @Override
     public Rectangle getRectangle( EventQueryParams params )
-    {        
-        params.setGeometryOnly( true );
+    {
+        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+                
+        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
         
-        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(geom) AS " + COL_EXTENT + " ";
-        
-        sql += getFromWhereClause( params, Lists.newArrayList( "psi", "geom" ) );
+        sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
 
         log.debug( "Analytics event count and extent SQL: " + sql );
         
@@ -492,7 +491,7 @@ public class JdbcEventAnalyticsManager
         }
         
         for ( QueryItem queryItem : params.getItems() )
-        {
+        {            
             if ( queryItem.isProgramIndicator() )
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
@@ -500,6 +499,14 @@ public class JdbcEventAnalyticsManager
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
                 //TODO: Will this support program indicators of enrollment type?
                 columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getProgramIndicatorAnalyticsType() ) + ")" + asClause );
+            }
+            else if ( ValueType.COORDINATE == queryItem.getValueType() )
+            {
+                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
+                
+                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
+                
+                columns.add( coordSql );
             }
             else
             {
@@ -738,7 +745,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and geom is not null ";
+            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -748,7 +755,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += "and geom && ST_MakeEnvelope(" + params.getBbox() + ",4326)";
+            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
         
         return sql;

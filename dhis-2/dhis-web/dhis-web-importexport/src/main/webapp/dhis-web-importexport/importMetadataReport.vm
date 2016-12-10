@@ -3,6 +3,8 @@
 #if( $importReport ) ## ImportSummary can be null on failed GML import (pre-processing fails)
 <h4>$i18n.getString( "import_count" )</h4>
 
+  $i18n.getString("filename") $importReport.importParams.filename<br/><br/>
+
   $importReport.stats.created Created<br/>
   $importReport.stats.updated Updated<br/>
   $importReport.stats.ignored Ignored<br/>

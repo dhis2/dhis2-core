@@ -36,7 +36,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
@@ -67,7 +73,7 @@ import java.util.stream.Collectors;
  */
 @JacksonXmlRootElement( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
 public class DataSet
-    extends BaseDataDimensionalItemObject
+    extends BaseDimensionalItemObject
     implements VersionedObject
 {
     public static final int NO_EXPIRY = 0;
@@ -277,8 +283,8 @@ public class DataSet
         Set<OrganisationUnit> toRemove = Sets.difference( sources, updates );
         Set<OrganisationUnit> toAdd = Sets.difference( updates, sources );
 
-        toRemove.stream().forEach( u -> u.getDataSets().remove( this ) );
-        toAdd.stream().forEach( u -> u.getDataSets().add( this ) );
+        toRemove.forEach( u -> u.getDataSets().remove( this ) );
+        toAdd.forEach( u -> u.getDataSets().add( this ) );
 
         sources.clear();
         sources.addAll( updates );
@@ -294,16 +300,16 @@ public class DataSet
         element.getDataElement().getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
-    
+
     /**
      * Adds a data set element using this data set, the given data element and
      * no category combo.
-     * 
+     *
      * @param dataElement the data element.
      */
     public boolean addDataSetElement( DataElement dataElement )
     {
-        DataSetElement element = new DataSetElement( this, dataElement, null );      
+        DataSetElement element = new DataSetElement( this, dataElement, null );
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
@@ -311,8 +317,8 @@ public class DataSet
     /**
      * Adds a data set element using this data set, the given data element and
      * the given category combo.
-     * 
-     * @param dataElement the data element.
+     *
+     * @param dataElement   the data element.
      * @param categoryCombo the category combination.
      */
     public boolean addDataSetElement( DataElement dataElement, DataElementCategoryCombo categoryCombo )
@@ -321,23 +327,23 @@ public class DataSet
         dataElement.getDataSetElements().add( element );
         return dataSetElements.add( element );
     }
-        
+
     public boolean removeDataSetElement( DataSetElement element )
     {
         dataSetElements.remove( element );
         return element.getDataElement().getDataSetElements().remove( element );
     }
-    
+
     public void removeDataSetElement( DataElement dataElement )
     {
         Iterator<DataSetElement> elements = dataSetElements.iterator();
-        
+
         while ( elements.hasNext() )
         {
             DataSetElement element = elements.next();
-            
+
             DataSetElement other = new DataSetElement( this, dataElement );
-            
+
             if ( element.objectEquals( other ) )
             {
                 elements.remove();
@@ -345,17 +351,17 @@ public class DataSet
             }
         }
     }
-    
+
     public void removeAllDataSetElements()
     {
         for ( DataSetElement element : dataSetElements )
         {
             element.getDataElement().getDataSetElements().remove( element );
         }
-        
+
         dataSetElements.clear();
     }
-    
+
     public void addIndicator( Indicator indicator )
     {
         indicators.add( indicator );
@@ -413,17 +419,17 @@ public class DataSet
 
         return FormType.DEFAULT;
     }
-    
+
     /**
      * Note that this method returns an immutable set and can not be used to
-     * modify the model. Returns an immutable set of data sets associated with 
+     * modify the model. Returns an immutable set of data sets associated with
      * this data element.
      */
     public Set<DataElement> getDataElements()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
     }
-    
+
     public Set<DataElement> getDataElementsInSections()
     {
         Set<DataElement> dataElements = new HashSet<>();
@@ -515,12 +521,6 @@ public class DataSet
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @JsonProperty
     @JsonSerialize( using = JacksonPeriodTypeSerializer.class )

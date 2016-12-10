@@ -148,6 +148,11 @@ public class DefaultEventQueryPlanner
             violation = "Bbox is invalid: " + params.getBbox() + ", must be on format: 'min-lng,min-lat,max-lng,max-lat'";
         }
         
+        if ( ( params.hasBbox() || params.hasClusterSize() ) && params.getCoordinateField() == null )
+        {
+            violation = "Cluster field must be specified when bbox or cluster size are specified";
+        }
+        
         if ( violation != null )
         {
             log.warn( "Event analytics validation failed: " + violation );
@@ -245,7 +250,7 @@ public class DefaultEventQueryPlanner
             Period queryPeriod = new Period();
             queryPeriod.setStartDate( params.getStartDate() );
             queryPeriod.setEndDate( params.getEndDate() );
-                        
+            
             EventQueryParams query = new EventQueryParams.Builder( params )
                 .withPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) ).build();
             

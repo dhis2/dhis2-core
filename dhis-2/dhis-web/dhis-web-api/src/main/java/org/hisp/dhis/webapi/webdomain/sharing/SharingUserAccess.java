@@ -1,8 +1,8 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.webapi.webdomain.sharing;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,11 +28,73 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
+
 /**
- * @author Halvdan Hoem Grelland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TemplateVariable
+public class SharingUserAccess
 {
-    String name();
-    String getVariableName();
+    @JsonProperty
+    private String id;
+
+    @JsonProperty
+    private String name;
+
+    @JsonProperty
+    private String displayName;
+
+    @JsonProperty
+    private String access;
+
+    public SharingUserAccess()
+    {
+    }
+
+    public String getId()
+    {
+        return id;
+    }
+
+    public void setId( String id )
+    {
+        this.id = id;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
+    }
+
+    public String getAccess()
+    {
+        return access;
+    }
+
+    public void setAccess( String access )
+    {
+        this.access = access;
+    }
+
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).
+            add( "id", id ).add( "name", name ).add( "access", access ).toString();
+    }
 }

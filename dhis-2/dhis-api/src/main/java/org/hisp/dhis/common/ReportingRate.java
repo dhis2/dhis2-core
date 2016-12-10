@@ -44,7 +44,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "reportingRate", namespace = DxfNamespaces.DXF_2_0 )
 public class ReportingRate
-    extends BaseDataDimensionalItemObject
+    extends BaseDimensionalItemObject
 {
     private DataSet dataSet;
 
@@ -110,18 +110,6 @@ public class ReportingRate
         return dataSet.getLegendSets();
     }
     
-    @Override
-    public String getAggregateExportCategoryOptionCombo()
-    {
-        return dataSet.getAggregateExportCategoryOptionCombo();
-    }
-
-    @Override
-    public boolean hasAggregateExportCategoryOptionCombo()
-    {
-        return dataSet.hasAggregateExportCategoryOptionCombo();
-    }    
-
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

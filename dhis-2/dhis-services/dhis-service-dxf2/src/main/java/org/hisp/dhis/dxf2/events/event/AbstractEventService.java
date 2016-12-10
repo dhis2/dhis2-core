@@ -37,6 +37,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -74,6 +76,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
@@ -82,6 +85,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.DateUtils;
@@ -101,14 +105,17 @@ import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
@@ -119,6 +126,11 @@ public abstract class AbstractEventService
     implements EventService
 {
     private static final Log log = LogFactory.getLog( AbstractEventService.class );
+
+    public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_CREATED_ID,
+        EVENT_LAST_UPDATED_ID, EVENT_STORED_BY_ID, EVENT_COMPLETED_BY_ID, EVENT_COMPLETED_DATE_ID,
+        EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME, EVENT_STATUS_ID,
+        EVENT_LONGITUDE_ID, EVENT_LATITUDE_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID, EVENT_ATTRIBUTE_OPTION_COMBO_ID );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -181,7 +193,7 @@ public abstract class AbstractEventService
     @Autowired
     protected FileResourceService fileResourceService;
 
-    protected static final int FLUSH_FREQUENCY = 20;
+    protected static final int FLUSH_FREQUENCY = 50;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -217,7 +229,7 @@ public abstract class AbstractEventService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -289,7 +301,6 @@ public abstract class AbstractEventService
             programStage = program.getProgramStageByStage( 1 );
         }
 
-        Assert.notNull( program );
         Assert.notNull( programStage );
 
         if ( !canAccess( program, user ) )
@@ -403,13 +414,20 @@ public abstract class AbstractEventService
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
 
+        program = programInstance.getProgram();
+
+        if ( programStageInstance != null )
+        {
+            programStage = programStageInstance.getProgramStage();
+        }
+
         if ( organisationUnit == null )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Event.orgUnit does not point to a valid organisation unit: " + event.getOrgUnit() ).incrementIgnored();
         }
 
-        if ( !program.hasOrganisationUnit( organisationUnit ) )
+        if ( !programInstance.getProgram().hasOrganisationUnit( organisationUnit ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Program is not assigned to this organisation unit: " + event.getOrgUnit() ).incrementIgnored();
@@ -430,27 +448,7 @@ public abstract class AbstractEventService
     {
         validate( params );
 
-        List<OrganisationUnit> organisationUnits = new ArrayList<>();
-
-        OrganisationUnit orgUnit = params.getOrgUnit();
-        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-        if ( params.getOrgUnit() != null )
-        {
-            if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
-            }
-            else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.add( orgUnit );
-                organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
-            }
-        }
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -492,6 +490,85 @@ public abstract class AbstractEventService
     }
 
     @Override
+    public Grid getEventsGrid( EventSearchParams params )
+    {
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
+
+        // ---------------------------------------------------------------------
+        // If no data element is specified, use those configured for 
+        // display in report
+        // ---------------------------------------------------------------------
+        if ( params.getDataElements().isEmpty() && params.getProgramStage() != null && params.getProgramStage().getProgramStageDataElements() != null )
+        {
+            for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
+            {
+                if ( pde.getDisplayInReports() )
+                {
+                    QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(), pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(), pde.getDataElement().hasOptionSet() ? pde.getDataElement()
+                        .getOptionSet() : null );
+                    params.getDataElements().add( qi );
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // Grid headers
+        // ---------------------------------------------------------------------
+
+        Grid grid = new ListGrid();
+
+        for ( String col : STATIC_EVENT_COLUMNS )
+        {
+            grid.addHeader( new GridHeader( col, col ) );
+        }
+
+        for ( QueryItem item : params.getDataElements() )
+        {
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
+        }
+
+        List<Map<String, String>> events = eventStore.getEventsGrid( params, organisationUnits );
+
+        // ---------------------------------------------------------------------
+        // Grid rows
+        // ---------------------------------------------------------------------
+
+        for ( Map<String, String> event : events )
+        {
+            grid.addRow();
+
+            for ( String col : STATIC_EVENT_COLUMNS )
+            {
+                grid.addValue( event.get( col ) );
+            }
+
+            for ( QueryItem item : params.getDataElements() )
+            {
+                grid.addValue( event.get( item.getItemId() ) );
+            }
+        }
+
+        Map<String, Object> metaData = new HashMap<>();
+
+        if ( params.isPaging() )
+        {
+            int count = 0;
+
+            if ( params.isTotalPages() )
+            {
+                count = eventStore.getEventCount( params, organisationUnits );
+            }
+
+            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            metaData.put( PAGER_META_KEY, pager );
+        }
+
+        grid.setMetaData( metaData );
+
+        return grid;
+    }
+
+    @Override
     public int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime )
     {
         EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
@@ -512,34 +589,14 @@ public abstract class AbstractEventService
     {
         EventSearchParams params = new EventSearchParams();
         params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        params.setLastUpdated( lastSuccessTime );
+        params.setLastUpdatedStartDate( lastSuccessTime );
         return params;
     }
 
     @Override
     public EventRows getEventRows( EventSearchParams params )
     {
-        List<OrganisationUnit> organisationUnits = new ArrayList<>();
-
-        OrganisationUnit orgUnit = params.getOrgUnit();
-        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-        if ( params.getOrgUnit() != null )
-        {
-            if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
-            }
-            else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.add( orgUnit );
-                organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
-            }
-        }
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
 
         EventRows eventRows = new EventRows();
 
@@ -553,10 +610,10 @@ public abstract class AbstractEventService
     @Override
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
-        String trackedEntityInstance, Date startDate, Date endDate, EventStatus status, Date lastUpdated,
+        String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
         DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page, Integer pageSize,
-        boolean totalPages, boolean skipPaging, List<Order> orders, boolean includeAttributes, Set<String> events,
-        Set<String> filters )
+        boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
+        Set<String> filters, Set<String> dataElements, boolean includeDeleted )
     {
         UserCredentials userCredentials = currentUserService.getCurrentUser().getUserCredentials();
 
@@ -617,12 +674,28 @@ public abstract class AbstractEventService
 
         if ( filters != null )
         {
+            if ( StringUtils.isNotEmpty( programStage ) && ps == null )
+            {
+                throw new IllegalQueryException( "ProgramStage needs to be specified for event filtering to work" );
+            }
+
             for ( String filter : filters )
             {
                 QueryItem item = getQueryItem( filter );
                 params.getFilters().add( item );
             }
         }
+
+        if ( dataElements != null )
+        {
+            for ( String de : dataElements )
+            {
+                QueryItem dataElement = getQueryItem( de );
+
+                params.getDataElements().add( dataElement );
+            }
+        }
+
 
         params.setProgram( pr );
         params.setProgramStage( ps );
@@ -633,8 +706,11 @@ public abstract class AbstractEventService
         params.setOrgUnitSelectionMode( orgUnitSelectionMode );
         params.setStartDate( startDate );
         params.setEndDate( endDate );
+        params.setDueDateStart( dueDateStart );
+        params.setDueDateEnd( dueDateEnd );
+        params.setLastUpdatedStartDate( lastUpdatedStartDate );
+        params.setLastUpdatedEndDate( lastUpdatedEndDate );
         params.setEventStatus( status );
-        params.setLastUpdated( lastUpdated );
         params.setCategoryOptionCombo( attributeCoc );
         params.setIdSchemes( idSchemes );
         params.setPage( page );
@@ -643,7 +719,9 @@ public abstract class AbstractEventService
         params.setSkipPaging( skipPaging );
         params.setIncludeAttributes( includeAttributes );
         params.setOrders( orders );
+        params.setGridOrders( gridOrders );
         params.setEvents( events );
+        params.setIncludeDeleted( includeDeleted );
 
         return params;
     }
@@ -680,7 +758,7 @@ public abstract class AbstractEventService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -962,7 +1040,7 @@ public abstract class AbstractEventService
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
-                dbmsManager.clearSession();
+                clearSession();
             }
 
             counter++;
@@ -974,6 +1052,33 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
+    {
+        List<OrganisationUnit> organisationUnits = new ArrayList<>();
+
+        OrganisationUnit orgUnit = params.getOrgUnit();
+        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
+
+        if ( params.getOrgUnit() != null )
+        {
+            if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
+            {
+                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
+            }
+            else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
+            {
+                organisationUnits.add( orgUnit );
+                organisationUnits.addAll( orgUnit.getChildren() );
+            }
+            else // SELECTED
+            {
+                organisationUnits.add( orgUnit );
+            }
+        }
+
+        return organisationUnits;
+    }
 
     private Event convertProgramStageInstance( ProgramStageInstance programStageInstance )
     {
@@ -1356,8 +1461,8 @@ public abstract class AbstractEventService
             programStageInstance.setCompletedDate( new Date() );
             programStageInstance.setCompletedBy( completedBy );
 
-            programStageInstanceService.completeProgramStageInstance( programStageInstance,
-                importOptions.isSkipNotifications(), i18nManager.getI18nFormat() );
+            programStageInstanceService.completeProgramStageInstance( programStageInstance, importOptions.isSkipNotifications(),
+                i18nManager.getI18nFormat() );
         }
     }
 
@@ -1591,5 +1696,16 @@ public abstract class AbstractEventService
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
+    }
+
+    private void clearSession()
+    {
+        organisationUnitCache.clear();
+        programCache.clear();
+        programStageCache.clear();
+        dataElementCache.clear();
+        accessibleProgramsCache.clear();
+
+        dbmsManager.clearSession();
     }
 }

@@ -593,6 +593,8 @@ public class DefaultPdfDataEntryFormService
 
         tableButton.setHorizontalAlignment( Element.ALIGN_CENTER );
 
+        //FIXME
+        
         String jsAction = "var newFileName = this.getField(\"" + PdfDataEntryFormUtil.LABELCODE_PERIODID + "\").value + ' ' + "
             + "  this.getField(\"" + PdfDataEntryFormUtil.LABELCODE_ORGID + "\").value + ' ' + "
             + "  \"" + dataSetName + ".pdf\";"

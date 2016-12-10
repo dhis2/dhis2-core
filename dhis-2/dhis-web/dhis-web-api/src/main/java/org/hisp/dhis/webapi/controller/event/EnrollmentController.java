@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
@@ -52,7 +53,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -149,7 +149,7 @@ public class EnrollmentController
         else
         {
             Set<String> enrollmentIds = TextUtils.splitToArray( enrollment, TextUtils.SEMICOLON );
-            enrollments = enrollmentIds != null ?  enrollmentIds.stream().map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() ) : null;
+            enrollments = enrollmentIds != null ? enrollmentIds.stream().map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() ) : null;
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -176,6 +176,7 @@ public class EnrollmentController
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
+        importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
         if ( importSummaries.getImportSummaries().size() > 1 )
@@ -187,6 +188,7 @@ public class EnrollmentController
         {
             response.setStatus( HttpServletResponse.SC_CREATED );
             ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+            importSummaries.setImportOptions( importOptions );
 
             if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
             {
@@ -205,6 +207,7 @@ public class EnrollmentController
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = enrollmentService.addEnrollmentsJson( inputStream, importOptions );
+        importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         if ( importSummaries.getImportSummaries().isEmpty() || importSummaries.getImportSummaries().size() > 1 )
@@ -216,6 +219,7 @@ public class EnrollmentController
         {
             response.setStatus( HttpServletResponse.SC_CREATED );
             ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+            importSummaries.setImportOptions( importOptions );
 
             if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
             {
@@ -245,6 +249,7 @@ public class EnrollmentController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentXml( id, inputStream, importOptions );
+        importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
@@ -254,6 +259,7 @@ public class EnrollmentController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentJson( id, inputStream, importOptions );
+        importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 

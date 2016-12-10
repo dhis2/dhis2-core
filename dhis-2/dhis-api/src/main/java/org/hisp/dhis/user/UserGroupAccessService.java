@@ -30,6 +30,9 @@ package org.hisp.dhis.user;
 
 import java.util.List;
 
+/**
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
 public interface UserGroupAccessService
 {
     String ID = UserGroupAccessService.class.getName();

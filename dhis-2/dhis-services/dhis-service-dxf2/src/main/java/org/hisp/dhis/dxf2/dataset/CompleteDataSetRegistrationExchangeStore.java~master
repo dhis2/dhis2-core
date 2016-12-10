@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.dxf2.dataset;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,18 +28,26 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.OutputStream;
+
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum NotificationRecipient
+public interface CompleteDataSetRegistrationExchangeStore
 {
-    TRACKED_ENTITY_INSTANCE,
-    ORGANISATION_UNIT_CONTACT,
-    USERS_AT_ORGANISATION_UNIT,
-    USER_GROUP;
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as XML.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the XML result to.
+     */
+    void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
 
-    public boolean isExternalRecipient()
-    {
-        return this == TRACKED_ENTITY_INSTANCE || this == ORGANISATION_UNIT_CONTACT;
-    }
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the JSON result to.
+     */
+    void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 }

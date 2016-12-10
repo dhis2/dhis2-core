@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity.action.programindicator;
 
 import com.google.common.collect.ImmutableList;
 import com.opensymphony.xwork2.Action;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeService;
@@ -175,14 +174,7 @@ public class UpdateProgramIndicatorAction
     {
         this.jsonAttributeValues = jsonAttributeValues;
     }
-    
-    private ProgramIndicatorAnalyticsType programIndicatorAnalyticsType;
-    
-    public void setProgramIndicatorAnalyticsType( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
-    {
-        this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
-    }
-    
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -207,8 +199,7 @@ public class UpdateProgramIndicatorAction
         indicator.setDisplayInForm( displayInForm );
         indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
         indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );
-        indicator.setProgramIndicatorAnalyticsType( programIndicatorAnalyticsType );
-        
+
         if ( jsonAttributeValues != null )
         {
             attributeService.updateAttributeValues( indicator, jsonAttributeValues );

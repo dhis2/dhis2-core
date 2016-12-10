@@ -8,6 +8,7 @@
       <select id="objectType" style="width:280px" onchange="mde.displayObjectList()">
         <option value="dataSets" selected="selected">$i18n.getString( "data_sets" )</option>
         <option value="programs">$i18n.getString( "programs" )</option>
+        <option value="categoryCombos">$i18n.getString( "category_combo" )</option>
       </select>
     </td>
   </tr>

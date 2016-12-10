@@ -43,8 +43,8 @@ public interface MetadataVersionService
     // ------------------------------------------------------------------------
     //   Constants
     //-------------------------------------------------------------------------
-    public static String METADATASTORE = "METADATASTORE";
-    public static String METADATAVERSION_NAME_PREFIX = "Version_";
+    String METADATASTORE = "METADATASTORE";
+    String METADATAVERSION_NAME_PREFIX = "Version_";
 
     /**
      * @param version Version object to add.

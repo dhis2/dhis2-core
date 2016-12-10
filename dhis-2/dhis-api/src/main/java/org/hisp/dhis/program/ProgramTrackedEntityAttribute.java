@@ -45,9 +45,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import java.util.List;
-
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -97,7 +96,7 @@ public class ProgramTrackedEntityAttribute
     }
 
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
-            Boolean mandatory, Integer sortOrder )
+        Boolean mandatory, Integer sortOrder )
     {
         this( program, attribute );
         this.displayInList = displayInList;
@@ -139,12 +138,6 @@ public class ProgramTrackedEntityAttribute
         }
 
         updates.forEach( this::addGroup );
-    }
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
     }
 
     @Override
@@ -195,7 +188,7 @@ public class ProgramTrackedEntityAttribute
     {
         return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + attribute.getPropertyValue( idScheme );
     }
-    
+
     @Override
     public DimensionItemType getDimensionItemType()
     {

@@ -31,7 +31,7 @@ package org.hisp.dhis.sms.outbound;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.sms.OutBoundMessage;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;

@@ -37,7 +37,7 @@ public enum AuditType
 
     private final String value;
 
-    private AuditType( String value )
+    AuditType( String value )
     {
         this.value = value;
     }

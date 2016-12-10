@@ -52,13 +52,10 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
 {
     private final SchemaService schemaService;
 
-    private final QueryPlanner queryPlanner;
-
     @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService, QueryPlanner queryPlanner )
+    public InMemoryQueryEngine( SchemaService schemaService )
     {
         this.schemaService = schemaService;
-        this.queryPlanner = queryPlanner;
     }
 
     @Override

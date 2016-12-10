@@ -70,7 +70,6 @@ public class ClickatellGatewayConfig
         this.username = username;
     }
 
-    @JsonProperty( value = "password" )
     public String getPassword()
     {
         return password;
@@ -82,6 +81,7 @@ public class ClickatellGatewayConfig
         return super.isDefault();
     }
 
+    @JsonProperty
     public void setPassword( String password )
     {
         this.password = password;

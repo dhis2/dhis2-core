@@ -83,6 +83,15 @@ public class PartitionUtils
 
     //TODO optimize by including required filter periods only
 
+    public static Partitions getPartitions( Date startDate, Date endDate, String tablePrefix, String tableSuffix, Set<String> validPartitions )
+    {
+        Period period = new Period();
+        period.setStartDate( startDate );
+        period.setEndDate( endDate );
+        
+        return getPartitions( period, tablePrefix, tableSuffix, validPartitions );        
+    }
+    
     public static Partitions getPartitions( Period period, String tablePrefix, String tableSuffix, Set<String> validPartitions )
     {
         tablePrefix = StringUtils.trimToEmpty( tablePrefix );
@@ -126,7 +135,7 @@ public class PartitionUtils
 
         for ( DimensionalItemObject period : periods )
         {
-            partitions.addAll( getPartitions( (Period) period, tablePrefix, tableSuffix, null ).getPartitions() );
+            partitions.addAll( getPartitions( (Period) period, tablePrefix, tableSuffix, validPartitions ).getPartitions() );
         }
 
         return new Partitions( new ArrayList<>( partitions ) ).prunePartitions( validPartitions );
@@ -139,7 +148,7 @@ public class PartitionUtils
 
         for ( DimensionalItemObject period : periods )
         {
-            map.putValue( getPartitions( (Period) period, tablePrefix, tableSuffix, null ).prunePartitions( validPartitions ), period );
+            map.putValue( getPartitions( (Period) period, tablePrefix, tableSuffix, validPartitions ).prunePartitions( validPartitions ), period );
         }
 
         return map;

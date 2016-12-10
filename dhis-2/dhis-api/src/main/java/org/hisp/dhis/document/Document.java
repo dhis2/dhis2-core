@@ -63,12 +63,6 @@ public class Document
         this.contentType = contentType;
     }
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     // @Property( PropertyType.URL )

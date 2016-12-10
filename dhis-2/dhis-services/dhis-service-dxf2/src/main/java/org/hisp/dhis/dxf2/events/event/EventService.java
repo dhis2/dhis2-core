@@ -1,5 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
+import org.hisp.dhis.common.Grid;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -64,9 +66,10 @@ public interface EventService
     EventRows getEventRows( EventSearchParams params );
 
     EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp, String orgUnit,
-        OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate,
-        EventStatus status, Date lastUpdated, DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
-        Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, boolean includeAttributes, Set<String> events, Set<String> filters );
+        OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
+        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, DataElementCategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
+        Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
+        Set<String> filters, Set<String> dataElements, boolean includeDeleted );
 
     Event getEvent( String uid );
 
@@ -75,6 +78,8 @@ public interface EventService
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
     List<Event> getEventsJson( InputStream inputStream ) throws IOException;
+    
+    Grid getEventsGrid( EventSearchParams params );
 
     int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
 

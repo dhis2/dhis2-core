@@ -38,6 +38,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.program.ProgramStatus;
 
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -72,11 +73,12 @@ public interface EventDataQueryService
      * @param userOrgUnit the user organisation unit to use, overrides current user.
      * @param format the i18n format.
      */
-    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
+    EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, String userOrgUnit, I18nFormat format );
+        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus,
+        boolean collapseDataDimensions, boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate,
+        String userOrgUnit, I18nFormat format );
 
     /**
      * Used for event query.
@@ -97,15 +99,26 @@ public interface EventDataQueryService
      * @param coordinatesOnly whether to only return events which have coordinates.
      * @param displayProperty the display property to use for meta-data.
      * @param userOrgUnit the user organisation unit to use, overrides current user.
+     * @param coordinateField the coordinate field to use for spatial analytics.
      * @param page the page number.
      * @param pageSize the page size.
      * @param format the i18n format.
      */
-    EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate, 
+    EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate, 
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc, 
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta, 
-        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty, String userOrgUnit,
-        Integer page, Integer pageSize, I18nFormat format );
+        boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, I18nFormat format );
     
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
+    
+    /**
+     * Returns the coordinate column field to use for the given coordinate field. Coordinate field
+     * must match EVENT, a data element identifier or an attribute identifier.
+     * 
+     * @param coordinate the coordinate field.
+     * @return the coordinate column field.
+     * @throws IllegalQueryException if the coordinate field is not valid.
+     */
+    String getCoordinateField( String coordinate );
 }

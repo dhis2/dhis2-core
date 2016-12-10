@@ -77,10 +77,6 @@
       <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_dataelement_legendsetid" ></many-to-many>
     </list>
     
-    <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
-
-    <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
-
     <!-- Dynamic attribute values -->
     <set name="attributeValues" table="dataelementattributevalues" cascade="delete-orphan">
       <cache usage="read-write" />
@@ -104,6 +100,12 @@
       <cache usage="read-write" />
       <key column="dataelementid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="dataelementuseraccesses">
+      <cache usage="read-write" />
+      <key column="dataelementid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>
