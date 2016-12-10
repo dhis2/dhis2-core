@@ -1581,6 +1581,8 @@ public class TableAlteror
         addTranslationTable( listTables, "ValidationRule", "validationruletranslations", "validationrule", "validationruleid" );
         addTranslationTable( listTables, "ValidationRuleGroup", "validationrulegrouptranslations", "validationrulegroup", "validationrulegroupid" );
 
+        executeSql( "alter table translation add column objectid integer;" );
+
         String sql;
 
         for ( Map<String, String> table : listTables )
