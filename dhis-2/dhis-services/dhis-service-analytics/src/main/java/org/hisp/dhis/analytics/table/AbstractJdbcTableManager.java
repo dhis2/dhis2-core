@@ -359,14 +359,4 @@ public abstract class AbstractJdbcTableManager
         
         log.info( "Populated table in " + timer.stop().toString() + ": " + tableName );
     }
-    
-
-    /**
-     * The default is that table managers use aggregation levels
-     */
-    @Override
-    public boolean useAggregationLevels()
-    {
-        return true;
-    }
 }

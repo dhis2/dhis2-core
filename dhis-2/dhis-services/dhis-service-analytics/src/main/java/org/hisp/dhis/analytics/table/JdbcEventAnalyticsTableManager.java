@@ -371,15 +371,6 @@ public class JdbcEventAnalyticsTableManager
         
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
-    
-    /**
-     * Individual records do not use aggregation levels.
-     */
-    @Override
-    public boolean useAggregationLevels()
-    {
-        return false;
-    }
         
     @Override
     @Async

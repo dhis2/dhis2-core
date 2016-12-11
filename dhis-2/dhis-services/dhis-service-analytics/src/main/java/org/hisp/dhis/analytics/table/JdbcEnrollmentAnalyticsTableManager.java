@@ -69,13 +69,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         return getTables();
     }
-
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAllTables()
-    {
-        return getTables();
-    }
     
     private List<AnalyticsTable> getTables() {
         List<AnalyticsTable> tables = new UniqueArrayList<>();
@@ -131,64 +124,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         jdbcTemplate.execute( sqlCreate );
     }
 
-    @Async
-    @Override
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        taskLoop: while ( true )
-        {
-            AnalyticsTable table = tables.poll();
-
-            if ( table == null )
-            {
-                break taskLoop;
-            }
-
-            final String start = DateUtils.getMediumDateString( DateUtils.getMinimumDate() );
-            final String end = DateUtils.getMediumDateString( DateUtils.getMaximumDate() );
-            final String tableName = table.getTempTableName();
-            //Changed to evaluate programinstance enrollmentdate
-            final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
-
-            String sql = "insert into " + table.getTempTableName() + " (";
-
-            List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-            
-            validateDimensionColumns( columns );
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getName() + ",";
-            }
-
-            sql = removeLast( sql, 1 ) + ") select ";
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getAlias() + ",";
-            }
-
-            sql = removeLast( sql, 1 ) + " ";
-
-            sql += "from programinstance pi " +
-                "inner join program pr on pi.programid=pr.programid " +
-                "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
-                "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
-                "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
-                "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
-                //"left join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
-                "where pi.incidentdate >= '" + start + "' " + 
-                "and pi.incidentdate <= '" + end + "' " +
-                "and pr.programid=" + table.getProgram().getId() + " " + 
-                "and pi.organisationunitid is not null " +
-                "and pi.incidentdate is not null";
-
-            populateAndLog( sql, tableName );
-        }
-
-        return null;
-    }
 
     @Override
     public List<Integer> getDataYears( Date earliest )
@@ -321,13 +256,18 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
         }*/
 
-        //PSI not a column in enrollment analytics:
-        //AnalyticsTableColumn psi = new AnalyticsTableColumn( quote( "psi" ), "character(11) not null", "psi.uid" );
         AnalyticsTableColumn pi = new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" );
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
-        //PSI columns npt present in enrollment analytics
-        //AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", "psi.executiondate" );
+        //PSI columns fallback in enrollment analytics
+        String executionDateSql = "( SELECT psi.executionDate FROM programstageinstance psi " + 
+            "JOIN programinstance pi " + 
+            "ON psi.programinstanceid = pi.programinstanceid " + 
+            "WHERE psi.executiondate is not null " + 
+            "AND psi.deleted is not true " +
+            "ORDER BY psi.executiondate desc " +
+            "LIMIT 1 ) as " + quote( "executiondate" );
+        AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
         //AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", "psi.duedate" );
         //AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "psi.completeddate" );
         //AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" );
@@ -338,7 +278,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
         //columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, es, longitude, latitude, ou, oun, ouc ) );
-        columns.addAll( Lists.newArrayList( pi, erd, id, ou, oun, ouc ) );
+        columns.addAll( Lists.newArrayList( pi, erd, id, ed, ou, oun, ouc ) );
 
         /* Not available in enrollment analytics
         if ( databaseInfo.isSpatialSupport() )
@@ -357,15 +297,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     
     // ***************************************************************************************
     //UNCHANGED HELPERS COPIED FORM EVENT ANALYTICS BELOW HERE - can be moved into central codes.
-    
-    /**
-     * Individual records do not use aggregation levels.
-     */
-    @Override
-    public boolean useAggregationLevels()
-    {
-        return false;
-    }
     
     @Override
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
@@ -439,6 +370,60 @@ public class JdbcEnrollmentAnalyticsTableManager
         {
             return "value";
         }
+    }
+
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    protected void populateTable( AnalyticsTable table )
+    {
+
+        final String start = DateUtils.getMediumDateString( DateUtils.getMinimumDate() );
+        final String end = DateUtils.getMediumDateString( DateUtils.getMaximumDate() );
+        final String tableName = table.getTempTableName();
+        //Changed to evaluate programinstance enrollmentdate
+        final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
+
+        String sql = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getName() + ",";
+        }
+
+        sql = removeLast( sql, 1 ) + ") select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
+        }
+
+        sql = removeLast( sql, 1 ) + " ";
+
+        sql += "from programinstance pi " +
+            "inner join program pr on pi.programid=pr.programid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
+            //"left join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
+            "where pi.incidentdate >= '" + start + "' " + 
+            "and pi.incidentdate <= '" + end + "' " +
+            "and pr.programid=" + table.getProgram().getId() + " " + 
+            "and pi.organisationunitid is not null " +
+            "and pi.incidentdate is not null";
+
+        populateAndLog( sql, tableName );
     }
 
 }

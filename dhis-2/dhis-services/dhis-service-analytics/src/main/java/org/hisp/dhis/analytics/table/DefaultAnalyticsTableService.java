@@ -132,13 +132,6 @@ public class DefaultAnalyticsTableService
         
         clock.logTime( "Populated analytics tables" );
         
-        if ( tableManager.useAggregationLevels() )
-        {
-            notifier.notify( taskId, "Applying aggregation levels" );
-            applyAggregationLevels( tables );
-            clock.logTime( "Applied aggregation levels" );
-        } 
-        
         notifier.notify( taskId, "Creating indexes" );
         
         createIndexes( tables );
