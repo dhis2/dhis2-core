@@ -700,6 +700,4 @@ public class DefaultProgramIndicatorService
     {
         return programIndicatorGroupStore.getAllLikeName( name, first, max );
     }
-
-
 }
