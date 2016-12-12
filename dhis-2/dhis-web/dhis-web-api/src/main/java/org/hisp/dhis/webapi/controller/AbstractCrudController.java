@@ -97,6 +97,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -595,9 +596,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
+            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
+            
             webMessage.setHttpStatus( HttpStatus.CREATED );
-            response.setHeader( "Location", contextService.getApiPath() + getSchema().getRelativeApiEndpoint()
-                + "/" + objectReport.getUid() );
+            response.setHeader( ContextUtils.HEADER_LOCATION, location );
             T entity = manager.get( objectReport.getUid() );
             postCreateEntity( entity );
         }
@@ -637,10 +639,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
+            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
+            
             webMessage.setHttpStatus( HttpStatus.CREATED );
-            response.setHeader( "Location", contextService.getApiPath() + getSchema().getRelativeApiEndpoint()
-                + "/" + objectReport.getUid() );
-
+            response.setHeader( ContextUtils.HEADER_LOCATION, location );
             T entity = manager.get( objectReport.getUid() );
             postCreateEntity( entity );
         }
