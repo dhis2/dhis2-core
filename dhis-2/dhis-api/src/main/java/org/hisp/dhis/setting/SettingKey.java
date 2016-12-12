@@ -71,7 +71,7 @@ public enum SettingKey
     EMAIL_PORT( "keyEmailPort", 587, Integer.class ),
     EMAIL_USERNAME( "keyEmailUsername" ),
     EMAIL_TLS( "keyEmailTls", Boolean.TRUE, Boolean.class ),
-    EMAIL_SENDER( "keyEmailSender" ),
+    EMAIL_SENDER( "keyEmailSender", "no-reply@dhis2.org", String.class ),
     EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
