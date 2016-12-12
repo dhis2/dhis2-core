@@ -32,6 +32,8 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
 import org.hisp.dhis.dxf2.metadata.merge.SimpleCollection;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -162,5 +164,18 @@ public class MergeServiceTest
         assertEquals( organisationUnitGroupSetA.isCompulsory(), organisationUnitGroupSetB.isCompulsory() );
         assertEquals( organisationUnitGroupSetA.isIncludeSubhierarchyInAnalytics(), organisationUnitGroupSetB.isIncludeSubhierarchyInAnalytics() );
         assertEquals( 1, organisationUnitGroupSetB.getOrganisationUnitGroups().size() );
+    }
+
+    @Test
+    public void testIndicatorClone()
+    {
+        IndicatorType indicatorType = createIndicatorType( 'A' );
+        Indicator indicator = createIndicator( 'A', indicatorType );
+        Indicator clone = mergeService.merge( new MergeParams<>( indicator, new Indicator() ).setMergeMode( MergeMode.REPLACE ) );
+
+        assertEquals( indicator.getName(), clone.getName() );
+        assertEquals( indicator.getUid(), clone.getUid() );
+        assertEquals( indicator.getCode(), clone.getCode() );
+        assertEquals( indicator.getIndicatorType(), clone.getIndicatorType() );
     }
 }

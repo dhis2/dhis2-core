@@ -54,7 +54,7 @@ public class DefaultMergeService implements MergeService
 
     @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public <T> void merge( MergeParams<T> mergeParams )
+    public <T> T merge( MergeParams<T> mergeParams )
     {
         T source = mergeParams.getSource();
         T target = mergeParams.getTarget();
@@ -102,6 +102,8 @@ public class DefaultMergeService implements MergeService
                 }
             }
         }
+
+        return target;
     }
 
     private boolean isSharingProperty( Property property )

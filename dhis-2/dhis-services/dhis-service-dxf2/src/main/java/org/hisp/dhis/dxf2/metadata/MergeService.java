@@ -36,5 +36,5 @@ public interface MergeService
     /**
      * Merges source object into target object, requires a "schema friendly" class.
      */
-    <T> void merge( MergeParams<T> mergeParams );
+    <T> T merge( MergeParams<T> mergeParams );
 }
