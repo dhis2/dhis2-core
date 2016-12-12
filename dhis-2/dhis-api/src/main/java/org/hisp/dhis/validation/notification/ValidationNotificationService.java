@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.validation.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,29 +28,10 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.notification.NotificationRecipient;
-
 /**
+ * TODO
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient
-    implements NotificationRecipient
+public interface ValidationNotificationService
 {
-    TRACKED_ENTITY_INSTANCE( true ),
-    ORGANISATION_UNIT_CONTACT( true ),
-    USERS_AT_ORGANISATION_UNIT( false ),
-    USER_GROUP( false );
-
-    private boolean external;
-
-    ProgramNotificationRecipient( boolean external )
-    {
-        this.external = external;
-    }
-
-    @Override
-    public boolean isExternalRecipient()
-    {
-        return external;
-    }
 }

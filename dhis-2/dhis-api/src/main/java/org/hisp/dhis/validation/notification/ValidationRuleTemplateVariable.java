@@ -1,6 +1,4 @@
-package org.hisp.dhis.sms.config;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.validation.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -30,85 +28,54 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.notification.TemplateVariable;
+
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author Halvdan Hoem Grelland
  */
-public class ClickatellGatewayConfig
-    extends SmsGatewayConfig
+public enum ValidationRuleTemplateVariable
+    implements TemplateVariable
 {
-    private static final long serialVersionUID = -4286107769356591957L;
-    
-    private final String TOKEN_PREFIX = "Bearer ";
-    
-    private final String URL_TEMPLATE = "https://api.clickatell.com/rest/message";
+    RULE_NAME( "rule_name" ),
+    DESCRIPTION( "rule_description" ),
+    OPERATOR( "operator" ),
+    IMPORTANCE( "importance" ),
+    LEFT_SIDE_DESCRIPTION( "left_side_description" ),
+    RIGHT_SIDE_DESCRIPTION( "right_side_description" ),
+    LEFT_SIDE_VALUE( "left_side_value" ),
+    RIGHT_SIDE_VALUE( "right_side_value" ),
+    ORG_UNIT_NAME( "org_unit_name" ),
+    PERIOD( "period" ),
+    CURRENT_DATE( "current_date" );
 
-    private String username;
+    private static final Map<String, ValidationRuleTemplateVariable> variableNameMap =
+        EnumSet.allOf( ValidationRuleTemplateVariable.class ).stream()
+            .collect( Collectors.toMap( ValidationRuleTemplateVariable::getVariableName, e -> e ) );
 
-    private String password;
-    
-    private String authToken;
+    private final String variableName;
 
-    @JsonProperty( value = "authtoken" )
-    public String getAuthToken()
+    ValidationRuleTemplateVariable( String variableName )
     {
-        return authToken;
-    }
-
-    public void setAuthToken( String authToken )
-    {
-        this.authToken = TOKEN_PREFIX + authToken;
-    }
-
-    @JsonProperty( value = "username" )
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
-    public String getPassword()
-    {
-        return password;
-    }
-
-    @JsonProperty( value = "default" )
-    public boolean getStatus()
-    {
-        return super.isDefault();
-    }
-
-    @JsonProperty
-    public void setPassword( String password )
-    {
-        this.password = password;
-    }
-
-    @JsonProperty( value = "name" )
-    public String getName()
-    {
-        return super.getName();
+        this.variableName = variableName;
     }
 
     @Override
-    public boolean isInbound()
+    public String getVariableName()
     {
-        return false;
+        return variableName;
     }
 
-    @Override
-    public boolean isOutbound()
+    public static boolean isValidVariableName( String expressionName )
     {
-        return true;
+        return variableNameMap.keySet().contains( expressionName );
     }
-    
-    @Override
-    @JsonProperty( value = "urlTemplate" )
-    public String getUrlTemplate()
+
+    public static ValidationRuleTemplateVariable fromVariableName( String variableName )
     {
-        return this.URL_TEMPLATE;
+        return variableNameMap.get( variableName );
     }
 }

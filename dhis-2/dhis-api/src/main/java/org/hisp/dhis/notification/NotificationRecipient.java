@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.notification;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,29 +28,17 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.notification.NotificationRecipient;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient
-    implements NotificationRecipient
+public interface NotificationRecipient
 {
-    TRACKED_ENTITY_INSTANCE( true ),
-    ORGANISATION_UNIT_CONTACT( true ),
-    USERS_AT_ORGANISATION_UNIT( false ),
-    USER_GROUP( false );
-
-    private boolean external;
-
-    ProgramNotificationRecipient( boolean external )
-    {
-        this.external = external;
-    }
-
-    @Override
-    public boolean isExternalRecipient()
-    {
-        return external;
-    }
+    /**
+     * Does the NotificationRecipient represent an 'external' recipient?
+     *
+     * Specifically:
+     *  Does the recipient ultimately resolve to a DHIS2 ("internal") message recipient
+     *  (User, UserGroup) or a piece of external contact information (phone number, e-mail address).
+     */
+    boolean isExternalRecipient();
 }

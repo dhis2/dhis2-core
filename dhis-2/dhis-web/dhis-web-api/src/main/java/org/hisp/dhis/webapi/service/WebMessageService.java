@@ -89,7 +89,6 @@ public class WebMessageService
 
         if ( httpStatus.is4xxClientError() || httpStatus.is5xxServerError() )
         {
-            System.err.println( "Setting cache control: " + CacheControl.noCache().cachePrivate().getHeaderValue() );
             response.setHeader( "Cache-Control", CacheControl.noCache().cachePrivate().getHeaderValue() );
         }
 
