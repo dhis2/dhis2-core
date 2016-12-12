@@ -64,14 +64,16 @@ public class ProgramIndicator
     public static final String VAR_EVENT_DATE = "event_date";
     public static final String VAR_EXECUTION_DATE = "execution_date";
     public static final String VAR_DUE_DATE = "due_date";
-    public static final String VAR_INCIDENT_DATE = "incident_date";
     public static final String VAR_ENROLLMENT_DATE = "enrollment_date";
+    public static final String VAR_INCIDENT_DATE = "incident_date";
+    public static final String VAR_ENROLLMENT_STATUS = "enrollment_status";
     public static final String VAR_CURRENT_DATE = "current_date";
     public static final String VAR_VALUE_COUNT = "value_count";
     public static final String VAR_ZERO_POS_VALUE_COUNT = "zero_pos_value_count";
     public static final String VAR_EVENT_COUNT = "event_count";
     public static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
     public static final String VAR_TEI_COUNT = "tei_count";
+    public static final String VAR_COMPLETED_DATE = "completed_date";
 
     public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";

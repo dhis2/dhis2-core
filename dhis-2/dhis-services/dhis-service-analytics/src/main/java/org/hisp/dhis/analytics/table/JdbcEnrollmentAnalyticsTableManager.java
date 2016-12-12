@@ -283,7 +283,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "ORDER BY psi.completeddate desc " +
             "LIMIT 1 ) as " + quote( "completeddate" );
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "CASE status WHEN 'COMPLETED' THEN enddate END" );
-        //AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" );
+        AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" );
         String longitudeSql = "( SELECT psi.longitude FROM programstageinstance psi " + 
             "JOIN programinstance pi " + 
             "ON psi.programinstanceid = pi.programinstanceid " + 

@@ -573,6 +573,10 @@ public class DefaultProgramIndicatorService
         {
             return "incidentdate";
         }
+        else if ( ProgramIndicator.VAR_ENROLLMENT_STATUS.equals( var ) )
+        {
+            return "enrollmentstatus";
+        }
         else if ( ProgramIndicator.VAR_CURRENT_DATE.equals( var ) )
         {
             return "'" + DateUtils.getLongDateString() + "'";
@@ -610,6 +614,10 @@ public class DefaultProgramIndicatorService
         else if ( ProgramIndicator.VAR_TEI_COUNT.equals( var ) )
         {
             return "distinct tei";
+        }
+        else if ( ProgramIndicator.VAR_COMPLETED_DATE.equals( var ) )
+        {
+            return "completeddate";
         }
 
         return null;
