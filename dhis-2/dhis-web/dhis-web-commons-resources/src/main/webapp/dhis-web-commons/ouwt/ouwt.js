@@ -144,9 +144,17 @@ function Selection()
     this.setOrgUnitFromURL = function (selected) {
         selection.setSelected(selected);
         subtree.reloadTree();
-        setTimeout(function () {
-            selection.select(selected);
-        },100);
+        function setSelectedOrgUnit() {
+            /*When the selected orgunit is loaded in the tree, selection.select() is called*/
+            setTimeout(function () {
+                if(organisationUnits[selected]) {
+                    selection.select(selected);
+                } else {
+                    setSelectedOrgUnit();
+                }
+            }, 100);
+        }
+        setSelectedOrgUnit();
     };
 
     this.selectedExists = function() {
