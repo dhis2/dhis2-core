@@ -299,11 +299,6 @@ public class DataQueryParams
      * Hints for the aggregation process.
      */
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
-
-    /**
-     * Ignores the approvallevel field if set to true.
-     */
-    protected transient boolean ignoreApproval = false;
     
     // -------------------------------------------------------------------------
     // Constructors
@@ -1730,11 +1725,6 @@ public class DataQueryParams
         this.dataApprovalLevels = dataApprovalLevels;
     }
 
-    public boolean isIgnoreApproval()
-    {
-        return ignoreApproval;
-    }
-
     // -------------------------------------------------------------------------
     // Get helpers for dimensions and filters
     // -------------------------------------------------------------------------
@@ -2324,12 +2314,6 @@ public class DataQueryParams
         public Builder withEndDate( Date endDate )
         {
             this.params.endDate = endDate;
-            return this;
-        }
-
-        public Builder withIgnoreApproval( boolean ignoreApproval )
-        {
-            this.params.ignoreApproval = ignoreApproval;
             return this;
         }
         

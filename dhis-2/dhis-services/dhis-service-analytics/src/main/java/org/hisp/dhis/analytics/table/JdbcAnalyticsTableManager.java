@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -367,6 +368,12 @@ public class JdbcAnalyticsTableManager
 
             columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", col ) );
         }
+        else
+        {
+            String col = DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
+
+            columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", col ) );
+        }
 
         return columns;
     }
@@ -468,7 +475,7 @@ public class JdbcAnalyticsTableManager
         }
         else
         {
-            return setting && levels && maxYears == 0;
+            return setting && levels;
         }
 
     }

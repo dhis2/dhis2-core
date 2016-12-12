@@ -363,14 +363,8 @@ public class DefaultQueryPlanner
             {
                 if ( partitions.hasAny() )
                 {
-                    boolean ignoreApproval = AnalyticsUtils.periodIsOutsideApprovalMaxYears(
-                        (Period) partitionPeriodMap.get( partitions ).get( 0 ),
-                        (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD )
-                    );
-
                     DataQueryParams query = DataQueryParams.newBuilder( params )
                         .withPeriods( partitionPeriodMap.get( partitions ) )
-                        .withIgnoreApproval( ignoreApproval )
                         .withPartitions( partitions ).build();
                     
                     queries.add( query );
