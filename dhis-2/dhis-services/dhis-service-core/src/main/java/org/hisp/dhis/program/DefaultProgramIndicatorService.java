@@ -553,7 +553,11 @@ public class DefaultProgramIndicatorService
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
-        if ( ProgramIndicator.VAR_EXECUTION_DATE.equals( var ) )
+        if ( ProgramIndicator.VAR_EVENT_DATE.equals( var ) )
+        {
+            return "executiondate";
+        }
+        else if ( ProgramIndicator.VAR_EXECUTION_DATE.equals( var ) )
         {
             return "executiondate";
         }

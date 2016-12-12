@@ -61,6 +61,7 @@ public class ProgramIndicator
     public static final String KEY_PROGRAM_VARIABLE = "V";
     public static final String KEY_CONSTANT = "C";
 
+    public static final String VAR_EVENT_DATE = "event_date";
     public static final String VAR_EXECUTION_DATE = "execution_date";
     public static final String VAR_DUE_DATE = "due_date";
     public static final String VAR_INCIDENT_DATE = "incident_date";
