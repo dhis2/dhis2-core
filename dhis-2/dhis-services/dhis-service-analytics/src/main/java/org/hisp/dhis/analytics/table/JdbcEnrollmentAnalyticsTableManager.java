@@ -140,25 +140,11 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        /* TODO: must figure out categorystructure
-        if ( table.getProgram().hasCategoryCombo() )
-        {
-            List<DataElementCategory> categories = table.getProgram().getCategoryCombo().getCategories();
-            
-            for ( DataElementCategory category : categories )
-            {
-                columns.add( new AnalyticsTableColumn( quote( category.getUid() ), "character(11)", "acs." + quote( category.getUid() ) ) );
-            }
-        }*/
-
         List<OrganisationUnitLevel> levels = 
             organisationUnitService.getFilledOrganisationUnitLevels();
 
         List<OrganisationUnitGroupSet> orgUnitGroupSets = 
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
-
-        //List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
-        //    categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
 
         for ( OrganisationUnitLevel level : levels )
         {
@@ -170,12 +156,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         {
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "ougs." + quote( groupSet.getUid() ) ) );
         }
-
-        /* TODO: must figure out category structure
-        for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
-        {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), "character(11)", "acs." + quote( groupSet.getUid() ) ) );
-        }*/
 
         for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
         {
@@ -304,7 +284,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
-        //columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, es, longitude, latitude, ou, oun, ouc ) );
         columns.addAll( Lists.newArrayList( pi, erd, id, ed, dd, cd, longitude, latitude, ou, oun, ouc ) );
 
         if ( databaseInfo.isSpatialSupport() )
@@ -440,7 +419,6 @@ public class JdbcEnrollmentAnalyticsTableManager
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
-            //"left join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
             "where pi.incidentdate >= '" + start + "' " + 
             "and pi.incidentdate <= '" + end + "' " +
