@@ -171,7 +171,7 @@ public class MergeServiceTest
     {
         IndicatorType indicatorType = createIndicatorType( 'A' );
         Indicator indicator = createIndicator( 'A', indicatorType );
-        Indicator clone = mergeService.merge( new MergeParams<>( indicator, new Indicator() ).setMergeMode( MergeMode.REPLACE ) );
+        Indicator clone = mergeService.clone( indicator );
 
         assertEquals( indicator.getName(), clone.getName() );
         assertEquals( indicator.getUid(), clone.getUid() );

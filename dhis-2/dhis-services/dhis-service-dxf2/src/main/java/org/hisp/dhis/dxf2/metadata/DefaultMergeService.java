@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -104,6 +105,23 @@ public class DefaultMergeService implements MergeService
         }
 
         return target;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T> T clone( T source )
+    {
+        if ( source == null ) return null;
+
+        try
+        {
+            return merge( new MergeParams<>( source, (T) source.getClass().newInstance() ).setMergeMode( MergeMode.REPLACE ) );
+        }
+        catch ( InstantiationException | IllegalAccessException ignored )
+        {
+        }
+
+        return null;
     }
 
     private boolean isSharingProperty( Property property )

@@ -37,4 +37,9 @@ public interface MergeService
      * Merges source object into target object, requires a "schema friendly" class.
      */
     <T> T merge( MergeParams<T> mergeParams );
+
+    /**
+     * Clones source into target, using REPLACE mode.
+     */
+    <T> T clone( T source );
 }
