@@ -451,5 +451,4 @@ public class DefaultSystemSettingManager
     {
         return NAME_KEY_MAP.containsKey( name ) && NAME_KEY_MAP.get( name ).isConfidential();
     }
-
 }
