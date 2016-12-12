@@ -13,7 +13,7 @@
 
     <action name="index" class="org.hisp.dhis.dashboard.message.action.GetMessagesAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/message.vm</param>
+      <param name="page">/dhis-web-messaging/message.vm</param>
       <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
       <param name="javascripts">javascript/message.js,../dhis-web-commons/javascripts/jQuery/jquery.dhisMessagesMenu.js</param>
       <param name="stylesheets">style/dashboard.css</param>
