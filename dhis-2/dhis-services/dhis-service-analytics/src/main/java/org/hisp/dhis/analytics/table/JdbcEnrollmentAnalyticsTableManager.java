@@ -128,15 +128,13 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     public List<Integer> getDataYears( Date earliest )
     {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     protected List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table )
     {
-        //dbl not needed when lat and lon is not present
-        //final String dbl = statementBuilder.getDoubleColumnType();
+        final String dbl = statementBuilder.getDoubleColumnType();
         final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
         final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
 
@@ -268,24 +266,52 @@ public class JdbcEnrollmentAnalyticsTableManager
             "ORDER BY psi.executiondate desc " +
             "LIMIT 1 ) as " + quote( "executiondate" );
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
-        //AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", "psi.duedate" );
-        //AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "psi.completeddate" );
+        String dueDateSql = "( SELECT psi.duedate FROM programstageinstance psi " + 
+            "JOIN programinstance pi " + 
+            "ON psi.programinstanceid = pi.programinstanceid " + 
+            "WHERE psi.duedate is not null " + 
+            "AND psi.deleted is not true " +
+            "ORDER BY psi.duedate desc " +
+            "LIMIT 1 ) as " + quote( "duedate" );
+        AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
+        //Completed date is interpreted as enrollment completed date
+        String completedDateSql = "( SELECT psi.completeddate FROM programstageinstance psi " + 
+            "JOIN programinstance pi " + 
+            "ON psi.programinstanceid = pi.programinstanceid " + 
+            "WHERE psi.completeddate is not null " + 
+            "AND psi.deleted is not true " +
+            "ORDER BY psi.completeddate desc " +
+            "LIMIT 1 ) as " + quote( "completeddate" );
+        AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "CASE status WHEN 'COMPLETED' THEN enddate END" );
         //AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" );
-        //AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, "psi.longitude" );
-        //AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, "psi.latitude" );
+        String longitudeSql = "( SELECT psi.longitude FROM programstageinstance psi " + 
+            "JOIN programinstance pi " + 
+            "ON psi.programinstanceid = pi.programinstanceid " + 
+            "WHERE psi.executiondate is not null " + 
+            "AND psi.deleted is not true " +
+            "ORDER BY psi.executiondate desc " +
+            "LIMIT 1 ) as " + quote( "longitude" );
+        AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, longitudeSql );
+        String latitudeSql = "( SELECT psi.latitude FROM programstageinstance psi " + 
+            "JOIN programinstance pi " + 
+            "ON psi.programinstanceid = pi.programinstanceid " + 
+            "WHERE psi.executiondate is not null " + 
+            "AND psi.deleted is not true " +
+            "ORDER BY psi.executiondate desc " +
+            "LIMIT 1 ) as " + quote( "latitude" );
+        AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, latitudeSql );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
         //columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, es, longitude, latitude, ou, oun, ouc ) );
-        columns.addAll( Lists.newArrayList( pi, erd, id, ed, ou, oun, ouc ) );
+        columns.addAll( Lists.newArrayList( pi, erd, id, ed, dd, cd, longitude, latitude, ou, oun, ouc ) );
 
-        /* Not available in enrollment analytics
         if ( databaseInfo.isSpatialSupport() )
         {
-            String alias = "(select ST_SetSRID(ST_MakePoint(psi.longitude, psi.latitude), 4326)) as geom";
+            String alias = "(select ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)) as geom";
             columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
-        }*/
+        }
         
         if ( table.hasProgram() && table.getProgram().isRegistration() )
         {
@@ -386,7 +412,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         final String start = DateUtils.getMediumDateString( DateUtils.getMinimumDate() );
         final String end = DateUtils.getMediumDateString( DateUtils.getMaximumDate() );
         final String tableName = table.getTempTableName();
-        //Changed to evaluate programinstance enrollmentdate
         final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
 
         String sql = "insert into " + table.getTempTableName() + " (";
