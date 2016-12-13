@@ -173,7 +173,7 @@ public class JdbcAnalyticsTableManager
 
         populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
-    
+
     /**
      * Populates the given analytics table.
      *
@@ -261,7 +261,7 @@ public class JdbcAnalyticsTableManager
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
      */
-    private String getApprovalJoinClause( AnalyticsTable table)
+    private String getApprovalJoinClause( AnalyticsTable table )
     {
         if ( isApprovalEnabled( table ) )
         {
