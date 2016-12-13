@@ -539,7 +539,7 @@ public class AnalyticsUtils
      * @param maxYears amount of years back to check
      * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
      */
-    public static boolean periodIsOutsideApprovalMaxYears( Period period, Integer maxYears)
+    public static boolean periodIsOutsideApprovalMaxYears( Period period, Integer maxYears )
     {
         if ( maxYears == 0 )
         {
