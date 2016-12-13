@@ -70,7 +70,7 @@ public class AnalyticsUtilsTest
     extends DhisSpringTest
 {
     @Autowired
-    PeriodService periodService;
+    private PeriodService periodService;
 
     @Test
     public void testGetByDataDimensionType()

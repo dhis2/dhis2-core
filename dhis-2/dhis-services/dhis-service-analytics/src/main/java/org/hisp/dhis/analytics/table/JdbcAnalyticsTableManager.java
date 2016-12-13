@@ -467,7 +467,7 @@ public class JdbcAnalyticsTableManager
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
         Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
 
-        if( table != null )
+        if ( table != null )
         {
             boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( table.getPeriod(), maxYears );
 

@@ -541,7 +541,7 @@ public class AnalyticsUtils
      */
     public static boolean periodIsOutsideApprovalMaxYears( Period period, Integer maxYears)
     {
-        if( maxYears == 0 )
+        if ( maxYears == 0 )
         {
             return false;
         }
