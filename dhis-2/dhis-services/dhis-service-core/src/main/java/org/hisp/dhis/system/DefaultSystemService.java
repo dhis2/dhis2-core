@@ -138,29 +138,6 @@ public class DefaultSystemService
         return info;
     }
 
-    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
-    {
-
-        if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
-        {
-            return null;
-        }
-        else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
-        {
-            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
-        }
-
-        if ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 )
-        {
-            return lastFailedMetadataSyncTime;
-        }
-        else
-        {
-            return lastSuccessfulMetadataSyncTime;
-        }
-
-    }
-
     private SystemInfo getFixedSystemInfo()
     {
         SystemInfo info = new SystemInfo();
@@ -275,5 +252,19 @@ public class DefaultSystemService
         info.setSystemMetadataVersion( systemMetadataVersion );
         info.setIsMetadataSyncEnabled( !StringUtils.isEmpty( metadataSyncCron ) );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
+    }
+
+    private Date getLastMetadataVersionSyncAttempt( Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime )
+    {
+        if ( lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null )
+        {
+            return null;
+        }
+        else if ( lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null )
+        {
+            return (lastFailedMetadataSyncTime != null ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime);
+        }
+
+        return ( lastSuccessfulMetadataSyncTime.compareTo( lastFailedMetadataSyncTime ) < 0 ) ? lastFailedMetadataSyncTime : lastSuccessfulMetadataSyncTime;
     }
 }
