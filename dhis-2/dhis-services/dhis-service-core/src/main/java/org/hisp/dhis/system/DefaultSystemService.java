@@ -262,7 +262,7 @@ public class DefaultSystemService
         return info;
     }
 
-    private void setSystemMetadataVersionInfo(SystemInfo info)
+    private void setSystemMetadataVersionInfo( SystemInfo info )
     {
         Boolean isMetadataVersionEnabled = (boolean) systemSettingManager.getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
         Date lastSuccessfulMetadataSync = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
@@ -272,18 +272,8 @@ public class DefaultSystemService
         Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync, metadataLastFailedTime );
 
         info.setIsMetadataVersionEnabled( isMetadataVersionEnabled );
-
         info.setSystemMetadataVersion( systemMetadataVersion );
-
-        if ( metadataSyncCron == null || metadataSyncCron.isEmpty() )
-        {
-            info.setIsMetadataSyncEnabled( false );
-        }
-        else
-        {
-            info.setIsMetadataSyncEnabled( true );
-        }
-
+        info.setIsMetadataSyncEnabled( !StringUtils.isEmpty( metadataSyncCron ) );
         info.setLastMetadataVersionSyncAttempt( lastMetadataVersionSyncAttempt );
     }
 }
