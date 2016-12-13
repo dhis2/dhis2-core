@@ -413,7 +413,7 @@ public class JdbcEnrollmentAnalyticsManager
             
             return function + "(" + expression + ")";
         }
-        else if ( params.hasEventProgramIndicatorDimension() )
+        else if ( params.hasEnrollmentProgramIndicatorDimension() )
         {
             String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
             
@@ -495,7 +495,6 @@ public class JdbcEnrollmentAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
-                //TODO: Will this support program indicators of enrollment type?
                 columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getProgramIndicatorAnalyticsType() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )

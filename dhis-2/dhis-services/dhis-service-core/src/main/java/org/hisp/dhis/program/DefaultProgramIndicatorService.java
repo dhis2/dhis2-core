@@ -377,7 +377,7 @@ public class DefaultProgramIndicatorService
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
             {                
                 String columnName = ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicatorAnalyticsType ) ? 
-                        statementBuilder.columnQuote( el1 ) + SEPARATOR_DB + statementBuilder.columnQuote( el2 )
+                        statementBuilder.columnQuote( el1 + SEPARATOR_DB + el2 )
                         : statementBuilder.columnQuote( el2 );
                 
                 String de = ignoreMissingValues ? getIgnoreNullSql( columnName ) : columnName;
