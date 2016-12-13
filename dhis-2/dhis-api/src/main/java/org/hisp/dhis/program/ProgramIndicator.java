@@ -251,7 +251,6 @@ public class ProgramIndicator
         this.displayInForm = displayInForm;
     }
 
-
     @JsonProperty( "programIndicatorGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programIndicatorGroups", namespace = DxfNamespaces.DXF_2_0 )

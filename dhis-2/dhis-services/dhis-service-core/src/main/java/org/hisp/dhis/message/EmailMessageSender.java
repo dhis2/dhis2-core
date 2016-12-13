@@ -58,8 +58,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-
 /**
  * @author Lars Helge Overland
  */
@@ -67,8 +65,6 @@ public class EmailMessageSender
     implements MessageSender
 {
     private static final Log log = LogFactory.getLog( EmailMessageSender.class );
-
-    private static final String FROM_ADDRESS = "noreply@dhis2.org";
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
 
@@ -312,7 +308,7 @@ public class EmailMessageSender
     {
         HtmlEmail email = new HtmlEmail();
         email.setHostName( hostName );
-        email.setFrom( defaultIfEmpty( sender, FROM_ADDRESS ), customizeTitle( DEFAULT_FROM_NAME ) );
+        email.setFrom( sender, customizeTitle( DEFAULT_FROM_NAME ) );
         email.setSmtpPort( port );
         email.setStartTLSEnabled( tls );
 

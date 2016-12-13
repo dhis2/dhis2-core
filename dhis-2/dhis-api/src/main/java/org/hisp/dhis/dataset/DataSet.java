@@ -92,7 +92,7 @@ public class DataSet
     /**
      * The openPeriods is a set of periods in which data sets are open for entry
      */
-    private Set<Period> openPeriods = new java.util.HashSet<>();
+    private Set<Period> openPeriods = new HashSet<>();
 
     /**
      * All DataElements associated with this DataSet.

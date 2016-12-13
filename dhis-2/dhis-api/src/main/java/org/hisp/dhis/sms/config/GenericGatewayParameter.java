@@ -31,7 +31,6 @@ package org.hisp.dhis.sms.config;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>

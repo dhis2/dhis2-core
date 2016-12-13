@@ -947,7 +947,7 @@ public class ObjectBundleServiceTest
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
 
-        ObjectBundle bundle = objectBundleService.create( params );
+        objectBundleService.create( params );
 
         /*
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
