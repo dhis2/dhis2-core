@@ -33,31 +33,42 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DefaultMergeService implements MergeService
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final static List<String> sharingProps = Arrays.asList(
+        "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
+
+    private final SchemaService schemaService;
+
+    public DefaultMergeService( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public <T> void merge( T source, T target, MergeMode mergeMode )
+    public <T> T merge( MergeParams<T> mergeParams )
     {
-        if ( source == null || target == null )
-        {
-            return;
-        }
+        T source = mergeParams.getSource();
+        T target = mergeParams.getTarget();
 
         Schema schema = schemaService.getDynamicSchema( source.getClass() );
 
         for ( Property property : schema.getProperties() )
         {
+            if ( schema.isIdentifiableObject() && mergeParams.isSkipSharing() && isSharingProperty( property ) )
+            {
+                continue;
+            }
+
             if ( property.isCollection() )
             {
                 Collection sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
@@ -82,15 +93,39 @@ public class DefaultMergeService implements MergeService
             {
                 Object sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
 
-                if ( mergeMode.isReplace() )
+                if ( mergeParams.getMergeMode().isReplace() )
                 {
                     ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
                 }
-                else if ( mergeMode.isMerge() && sourceObject != null )
+                else if ( mergeParams.getMergeMode().isMerge() && sourceObject != null )
                 {
                     ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
                 }
             }
         }
+
+        return target;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T> T clone( T source )
+    {
+        if ( source == null ) return null;
+
+        try
+        {
+            return merge( new MergeParams<>( source, (T) source.getClass().newInstance() ).setMergeMode( MergeMode.REPLACE ) );
+        }
+        catch ( InstantiationException | IllegalAccessException ignored )
+        {
+        }
+
+        return null;
+    }
+
+    private boolean isSharingProperty( Property property )
+    {
+        return sharingProps.contains( property.getName() ) || sharingProps.contains( property.getCollectionName() );
     }
 }
