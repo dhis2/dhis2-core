@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -62,7 +63,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,7 +192,7 @@ public class UserController
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), createUser( user, response ) );
+        renderService.toXml( response.getOutputStream(), createUser( user, currentUserService.getCurrentUser() ) );
     }
 
     @Override
@@ -206,7 +206,7 @@ public class UserController
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), createUser( user, response ) );
+        renderService.toJson( response.getOutputStream(), createUser( user, currentUserService.getCurrentUser() ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -219,7 +219,7 @@ public class UserController
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), inviteUser( user, request, response ) );
+        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUserService.getCurrentUser(), request ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -232,7 +232,7 @@ public class UserController
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), inviteUser( user, request, response ) );
+        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUserService.getCurrentUser(), request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -251,7 +251,7 @@ public class UserController
 
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response );
+            inviteUser( user, currentUserService.getCurrentUser(), request );
         }
     }
 
@@ -301,7 +301,7 @@ public class UserController
 
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response );
+            inviteUser( user, currentUserService.getCurrentUser(), request );
         }
     }
 
@@ -516,16 +516,15 @@ public class UserController
     /**
      * Creates a user.
      *
-     * @param user     user object parsed from the POST request.
-     * @param response the response.
+     * @param user user object parsed from the POST request.
      */
-    private ImportReport createUser( User user, HttpServletResponse response ) throws Exception
+    private ImportReport createUser( User user, User currentUser ) throws Exception
     {
         user.getUserCredentials().getCogsDimensionConstraints().addAll(
-            currentUserService.getCurrentUser().getUserCredentials().getCogsDimensionConstraints() );
+            currentUser.getUserCredentials().getCogsDimensionConstraints() );
 
         user.getUserCredentials().getCatDimensionConstraints().addAll(
-            currentUserService.getCurrentUser().getUserCredentials().getCatDimensionConstraints() );
+            currentUser.getUserCredentials().getCatDimensionConstraints() );
 
         MetadataImportParams importParams = new MetadataImportParams();
         importParams.setImportStrategy( ImportStrategy.CREATE );
@@ -576,17 +575,16 @@ public class UserController
     /**
      * Creates a user invitation and invites the user.
      *
-     * @param user     user object parsed from the POST request.
-     * @param response the response.
+     * @param user user object parsed from the POST request.
      */
-    private ImportReport inviteUser( User user, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    private ImportReport inviteUser( User user, User currentUser, HttpServletRequest request ) throws Exception
     {
         RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty() ?
             RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
         securityService.prepareUserForInvite( user );
 
-        ImportReport importReport = createUser( user, response );
+        ImportReport importReport = createUser( user, currentUser );
 
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
