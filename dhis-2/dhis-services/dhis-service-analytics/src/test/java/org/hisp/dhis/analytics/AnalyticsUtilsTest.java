@@ -28,20 +28,9 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-
 import com.google.common.collect.Lists;
-
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
@@ -52,20 +41,27 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.sql.Date;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -73,6 +69,9 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 public class AnalyticsUtilsTest 
     extends DhisSpringTest
 {
+    @Autowired
+    private PeriodService periodService;
+
     @Test
     public void testGetByDataDimensionType()
     {
@@ -417,5 +416,44 @@ public class AnalyticsUtilsTest
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
         assertEquals( 3, dvs.getDataValues().size() );
+    }
+
+    @Test
+    public void testIsPeriodOverApprovalThreshold()
+    {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        int currentYear = calendar.get( Calendar.YEAR );
+
+        YearlyPeriodType pt = new YearlyPeriodType();
+
+        calendar.set( currentYear, 1, 1 );
+        Period thisYear = pt.createPeriod( Date.from( calendar.toInstant() ), pt.getCalendar() );
+
+        calendar.set( currentYear-1, 1, 1 );
+        Period oneYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ), pt.getCalendar() );
+
+        calendar.set( currentYear-2, 1, 1 );
+        Period twoYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ), pt.getCalendar() );
+
+        calendar.set( currentYear-3, 1, 1 );
+        Period threeYearAgo = pt.createPeriod( Date.from( calendar.toInstant() ), pt.getCalendar() );
+
+        // maxYears = 0 should always return false
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 0 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 0 ) );
+
+        // maxYears = 1 should only return true for years other than thisYear
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 1 ) );
+        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 1 ) );
+
+        // maxYears = 4 should only return false for all three years defined
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearAgo, 5 ) );
+        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearAgo, 5 ) );
     }
 }
