@@ -5,9 +5,17 @@ addons:
   apt:
     packages:
     - oracle-java8-installer
-script:
-- mvn clean install -DskipTests=true -f ./dhis-2/pom-full.xml
+before_script:
+- "echo $JAVA_OPTS"
+- "export JAVA_OPTS=-Xmx2048m"
 
+script:
+- mvn clean install -DskipTests=false -f ./dhis-2/pom-full.xml
+
+cache:
+  directories:
+  - $HOME/.m2
+  
 branches:
   only:
   - master
