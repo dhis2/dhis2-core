@@ -458,7 +458,7 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasProgramIndicatorDimension() )
         {
-            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression() );
+            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             return uids.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
         }
@@ -497,7 +497,7 @@ public class JdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
-                //TODO: Will this support program indicators of enrollment type?
+                
                 columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getProgramIndicatorAnalyticsType() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
@@ -537,7 +537,7 @@ public class JdbcEventAnalyticsManager
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
-                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression() );
+                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getProgramIndicatorAnalyticsType() );
                 
                 for ( String uid : uids )
                 {
@@ -615,7 +615,6 @@ public class JdbcEventAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        //Need to handle the enrollment analytics with enrollmentdate
         if ( params.hasStartEndDate() )
         {        
             sql += "where executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
@@ -716,7 +715,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasProgramIndicatorDimension() )
         {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression() );
+            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             if ( anyValueFilter != null )
             {

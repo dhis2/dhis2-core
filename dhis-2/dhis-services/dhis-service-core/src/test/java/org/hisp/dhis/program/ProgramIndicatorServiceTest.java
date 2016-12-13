@@ -383,12 +383,21 @@ public class ProgramIndicatorServiceTest
     }
 
     @Test
-    public void testGetAnyValueExistsFilterAnalyticsSQl()
+    public void testGetAnyValueExistsFilterEventAnalyticsSQl()
     {
         String expected = "\"GCyeKSqlpdk\" is not null or \"gAyeKSqlpdk\" is not null";
         String expression = "#{OXXcwl6aPCQ.GCyeKSqlpdk} - A{gAyeKSqlpdk}";
 
-        assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression ) );
+        assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, ProgramIndicatorAnalyticsType.EVENT ) );
+    }
+    
+    @Test
+    public void testGetAnyValueExistsFilterEnrollmentAnalyticsSQl()
+    {
+        String expected = "\"OXXcwl6aPCQ_GCyeKSqlpdk\" is not null or \"gAyeKSqlpdk\" is not null";
+        String expression = "#{OXXcwl6aPCQ.GCyeKSqlpdk} - A{gAyeKSqlpdk}";
+
+        assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, ProgramIndicatorAnalyticsType.ENROLLMENT ) );
     }
     
     @Test

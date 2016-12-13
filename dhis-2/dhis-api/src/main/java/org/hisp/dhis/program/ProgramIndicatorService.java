@@ -131,7 +131,7 @@ public interface ProgramIndicatorService
      * @param expression the expression.
      * @return the SQL string.
      */
-    String getAnyValueExistsClauseAnalyticsSql( String expression );
+    String getAnyValueExistsClauseAnalyticsSql( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType );
 
     /**
      * Indicates whether the given program indicator expression is valid.

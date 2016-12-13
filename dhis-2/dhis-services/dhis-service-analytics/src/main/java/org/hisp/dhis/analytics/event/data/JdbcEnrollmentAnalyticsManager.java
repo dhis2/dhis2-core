@@ -37,8 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.event.EventAnalyticsManager;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -50,13 +49,13 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import javax.annotation.Resource;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,15 +74,13 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
  * @author Markus Bekken
  */
 public class JdbcEnrollmentAnalyticsManager
-    implements EventAnalyticsManager
+    implements EnrollmentAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
     
     private static final String QUERY_ERR_MSG = "Query failed, likely because the requested analytics table does not exist";
     private static final String ITEM_NAME_SEP = ": ";
     private static final String NA = "[N/A]";
-    private static final String COL_COUNT = "count";
-    private static final String COL_EXTENT = "extent";
 
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
@@ -459,7 +456,7 @@ public class JdbcEnrollmentAnalyticsManager
         }
         else if ( params.hasProgramIndicatorDimension() )
         {
-            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression() );
+            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             return uids.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
         }
@@ -538,7 +535,7 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
-                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression() );
+                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getProgramIndicatorAnalyticsType() );
                 
                 for ( String uid : uids )
                 {
@@ -562,65 +559,18 @@ public class JdbcEnrollmentAnalyticsManager
      */
     private String getFromWhereClause( EventQueryParams params, List<String> fixedColumns )
     {
-        if ( params.spansMultiplePartitions() )
-        {
-            return getFromWhereMultiplePartitionsClause( params, fixedColumns );
-        }
-        else
-        {
-            return getFromWhereSinglePartitionClause( params, params.getPartitions().getSinglePartition() );
-        }
-    }
-
-    /**
-     * Returns a from and where SQL clause for all partitions part of the given
-     * query parameters.
-     * 
-     * @param params the event query parameters.
-     * @param fixedColumns the list of fixed column names to include.
-     */
-    private String getFromWhereMultiplePartitionsClause( EventQueryParams params, List<String> fixedColumns )
-    {
-        List<String> cols = ListUtils.distinctUnion( fixedColumns, getAggregateColumns( params ), getPartitionSelectColumns( params ) );
+        String partition = params.getPartitions().getSinglePartition();
         
-        String selectCols = StringUtils.join( cols, "," );
-        
-        String sql = "from (";
-        
-        for ( String partition : params.getPartitions().getPartitions() )
-        {
-            sql += "select " + selectCols + " ";
-            
-            sql += getFromWhereSinglePartitionClause( params, partition );
-            
-            sql += "union all ";
-        }
-
-        sql = trimEnd( sql, "union all ".length() ) + ") as data ";
-        
-        return sql;
-    }
-
-    /**
-     * Returns a from and where SQL clause for the given analytics table 
-     * partition.
-     * 
-     * @param params the event query parameters.
-     * @param partition the partition name.
-     */
-    private String getFromWhereSinglePartitionClause( EventQueryParams params, String partition )
-    {
         String sql = "from " + partition + " ";
 
         // ---------------------------------------------------------------------
         // Periods
         // ---------------------------------------------------------------------
-
-        //Need to handle the enrollment analytics with enrollmentdate
+        
         if ( params.hasStartEndDate() )
         {        
-            sql += "where executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += "and executiondate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql += "where enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
         }
         else // Periods
         {
@@ -717,7 +667,7 @@ public class JdbcEnrollmentAnalyticsManager
         
         if ( params.hasProgramIndicatorDimension() )
         {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression() );
+            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             if ( anyValueFilter != null )
             {
@@ -761,7 +711,6 @@ public class JdbcEnrollmentAnalyticsManager
         
         return sql;
     }
-    
     /**
      * Returns an encoded column name wrapped in lower directive if not numeric
      * or boolean.

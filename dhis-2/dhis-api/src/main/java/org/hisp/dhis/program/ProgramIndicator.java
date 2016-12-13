@@ -83,6 +83,7 @@ public class ProgramIndicator
     public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
     public static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
     public static final Pattern DATAELEMENT_PATTERN = Pattern.compile( KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}" );
+    public static final Pattern PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN = Pattern.compile( KEY_DATAELEMENT + "\\{(\\w{11}" + SEPARATOR_ID + "\\w{11})\\}" );
     public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( KEY_ATTRIBUTE + "\\{(\\w{11})\\}" );
     public static final Pattern VARIABLE_PATTERN = Pattern.compile( KEY_PROGRAM_VARIABLE + "\\{([\\w\\_]+)}" );
     public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( "V\\{(" + VAR_VALUE_COUNT + "|" + VAR_ZERO_POS_VALUE_COUNT + ")\\}" );
@@ -146,11 +147,27 @@ public class ProgramIndicator
      * @param input the expression.
      * @return a set of UIDs.
      */
-    public static Set<String> getDataElementAndAttributeIdentifiers( String input )
+    public static Set<String> getDataElementAndAttributeIdentifiers( String input, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
     {
-        return Sets.union(
-            RegexUtils.getMatches( DATAELEMENT_PATTERN, input, 2 ),
-            RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 ) );
+        if ( ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicatorAnalyticsType ) )
+        {
+            Set<String> allElementsAndAttributes = RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 );
+            
+            Set<String> programStagesAndDataElements =
+                RegexUtils.getMatches( PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN, input, 1 );
+            for ( String programStageAndDataElement : programStagesAndDataElements )
+            {
+                allElementsAndAttributes.add( programStageAndDataElement.replace( '.', '_' ) );
+            }
+            
+            return allElementsAndAttributes;
+        }
+        else
+        {
+            return Sets.union(
+                RegexUtils.getMatches( DATAELEMENT_PATTERN, input, 2 ),
+                RegexUtils.getMatches( ATTRIBUTE_PATTERN, input, 1 ) );
+        }
     }
 
     public void addProgramIndicatorGroup( ProgramIndicatorGroup group )

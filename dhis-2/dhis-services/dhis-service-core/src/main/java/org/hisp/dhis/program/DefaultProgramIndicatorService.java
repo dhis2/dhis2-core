@@ -277,7 +277,7 @@ public class DefaultProgramIndicatorService
 
         expression = TextUtils.removeNewlines( expression );
 
-        expression = getSubstitutedVariablesForAnalyticsSql( expression );
+        expression = getSubstitutedVariablesForAnalyticsSql( expression, programIndicatorAnalyticsType );
 
         expression = getSubstitutedFunctionsAnalyticsSql( expression, false, programIndicatorAnalyticsType );
 
@@ -331,7 +331,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
-    private String getSubstitutedVariablesForAnalyticsSql( String expression )
+    private String getSubstitutedVariablesForAnalyticsSql( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
     {
         if ( expression == null )
         {
@@ -346,7 +346,7 @@ public class DefaultProgramIndicatorService
         {
             String var = matcher.group( 1 );
 
-            String sql = getVariableAsSql( var, expression );
+            String sql = getVariableAsSql( var, expression, programIndicatorAnalyticsType );
 
             if ( sql != null )
             {
@@ -405,9 +405,9 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    public String getAnyValueExistsClauseAnalyticsSql( String expression )
+    public String getAnyValueExistsClauseAnalyticsSql( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
     {
-        Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression );
+        Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, programIndicatorAnalyticsType );
 
         if ( uids.isEmpty() )
         {
@@ -549,7 +549,7 @@ public class DefaultProgramIndicatorService
      * @param expression the program indicator expression.
      * @return a SQL select clause.
      */
-    private String getVariableAsSql( String var, String expression )
+    private String getVariableAsSql( String var, String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
 
@@ -585,7 +585,7 @@ public class DefaultProgramIndicatorService
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, programIndicatorAnalyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " is not null then 1 else 0 end + ";
             }
@@ -596,7 +596,7 @@ public class DefaultProgramIndicatorService
         {
             String sql = "nullif(cast((";
 
-            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression ) )
+            for ( String uid : ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, programIndicatorAnalyticsType ) )
             {
                 sql += "case when " + statementBuilder.columnQuote( uid ) + " >= 0 then 1 else 0 end + ";
             }

@@ -60,6 +60,8 @@
 
   <bean id="org.hisp.dhis.analytics.event.EventAnalyticsManager" class="org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager" />
 
+  <bean id="org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" class="org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager" />
+
   <bean id="org.hisp.dhis.analytics.event.EventDataQueryService" class="org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService" />
 
   <bean id="org.hisp.dhis.analytics.event.EventAnalyticsService" class="org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService" />
