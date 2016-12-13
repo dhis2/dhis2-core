@@ -84,17 +84,6 @@ public class GridHeader
     }
 
     /**
-     * @param name   name
-     * @param column column
-     * @param type   type
-     */
-    public GridHeader( String name, String column, String type )
-    {
-        this( name, column );
-        this.type = type;
-    }
-
-    /**
      * Sets the column property to the name value. Sets the type property to String.
      *
      * @param name   name
@@ -118,7 +107,8 @@ public class GridHeader
      */
     public GridHeader( String name, String column, String type, boolean hidden, boolean meta )
     {
-        this( name, column, type );
+        this( name, column );
+        this.type = type;
         this.hidden = hidden;
         this.meta = meta;
     }
