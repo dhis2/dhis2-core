@@ -164,8 +164,8 @@
                 <!--  Dashboard -->
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
-                  <artifactId>dhis-web-dashboard-integration</artifactId>
-                  <version>${apps.version}</version>
+                  <artifactId>dhis-app-dashboard</artifactId>
+                  <version>2.26-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-dashboard-integration</outputDirectory>
                   <includes>**/*.*</includes>
