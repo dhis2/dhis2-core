@@ -114,12 +114,12 @@ public class DataQueryParams
     public static final int DX_INDEX = 0;
     public static final int CO_INDEX = 1;
 
-    public static final Set<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of( 
+    public static final ImmutableSet<Class<? extends IdentifiableObject>> DYNAMIC_DIM_CLASSES = ImmutableSet.of( 
         OrganisationUnitGroupSet.class, DataElementGroupSet.class, CategoryOptionGroupSet.class, DataElementCategory.class );
     
-    private static final List<String> DIMENSION_PERMUTATION_IGNORE_DIMS = ImmutableList.of( 
+    private static final ImmutableSet<String> DIMENSION_PERMUTATION_IGNORE_DIMS = ImmutableSet.of( 
         DATA_X_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID );
-    public static final List<DimensionType> COMPLETENESS_DIMENSION_TYPES = ImmutableList.of( 
+    public static final ImmutableSet<DimensionType> COMPLETENESS_DIMENSION_TYPES = ImmutableSet.of( 
         DATA_X, PERIOD, ORGANISATION_UNIT, ORGANISATION_UNIT_GROUP_SET, CATEGORY_OPTION_GROUP_SET, CATEGORY );
     
     private static final DimensionItem[] DIM_OPT_ARR = new DimensionItem[0];

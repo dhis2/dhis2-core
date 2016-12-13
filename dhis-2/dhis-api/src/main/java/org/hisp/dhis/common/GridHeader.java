@@ -29,16 +29,15 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
  */
 public class GridHeader
 {
-    private static final List<String> NUMERIC_TYPES = Arrays.asList( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
+    private static final ImmutableSet<String> NUMERIC_TYPES = 
+        ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
     private String name;
 

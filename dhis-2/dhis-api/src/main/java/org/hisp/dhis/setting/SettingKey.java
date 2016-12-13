@@ -1,5 +1,7 @@
 package org.hisp.dhis.setting;
 
+import com.google.common.collect.ImmutableSet;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -149,7 +151,7 @@ public enum SettingKey
 
     private boolean confidential;
 
-    private static final Set<String> NAMES = getNameSet();
+    private static final ImmutableSet<String> NAMES = getNameSet();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -249,11 +251,11 @@ public enum SettingKey
         return NAMES;
     }
 
-    private static Set<String> getNameSet()
+    private static ImmutableSet<String> getNameSet()
     {
         Set<String> names = Sets.newHashSet();
         Sets.newHashSet( SettingKey.values() ).forEach( s -> names.add( s.getName() ) );
-        return names;
+        return ImmutableSet.copyOf( names );
     }
 
     // -------------------------------------------------------------------------
