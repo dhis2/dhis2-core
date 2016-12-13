@@ -43,7 +43,7 @@ import java.util.List;
  */
 public class DefaultMergeService implements MergeService
 {
-    private final static List<String> sharingProps = Arrays.asList(
+    private static final List<String> sharingProps = Arrays.asList(
         "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
 
     private final SchemaService schemaService;

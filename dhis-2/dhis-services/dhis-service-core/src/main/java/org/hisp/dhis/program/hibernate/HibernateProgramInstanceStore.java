@@ -62,7 +62,7 @@ public class HibernateProgramInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
-    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
+    private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
         Sets.intersection(
             NotificationTrigger.getAllApplicableToProgramInstance(),
             NotificationTrigger.getAllScheduledTriggers()
