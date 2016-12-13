@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.ImportTypeSummary;
+import org.hisp.dhis.dxf2.utils.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -63,7 +64,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +94,16 @@ public class UserController
 
     private static final String KEY_USERNAME = "username";
     private static final String KEY_PASSWORD = "password";
+
+    private static ImportOptions IMPORT_NO_PREHEAT = new ImportOptions()
+        .setStrategy( ImportStrategy.CREATE )
+        .setMergeMode( MergeMode.MERGE )
+        .setPreheatCache( false );
+
+    private static ImportOptions IMPORT_PREHEAT = new ImportOptions()
+        .setStrategy( ImportStrategy.CREATE )
+        .setMergeMode( MergeMode.MERGE )
+        .setPreheatCache( true );
 
     @Autowired
     private UserService userService;
@@ -191,7 +201,7 @@ public class UserController
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), createUser( user, response ) );
+        renderService.toXml( response.getOutputStream(), createUser( user, IMPORT_PREHEAT ) );
     }
 
     @Override
@@ -205,7 +215,7 @@ public class UserController
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), createUser( user, response ) );
+        renderService.toJson( response.getOutputStream(), createUser( user, IMPORT_PREHEAT ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -218,7 +228,7 @@ public class UserController
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), inviteUser( user, request, response ) );
+        renderService.toXml( response.getOutputStream(), inviteUser( user, request, response, IMPORT_PREHEAT ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -231,7 +241,7 @@ public class UserController
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), inviteUser( user, request, response ) );
+        renderService.toJson( response.getOutputStream(), inviteUser( user, request, response, IMPORT_PREHEAT ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -249,7 +259,7 @@ public class UserController
 
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response );
+            inviteUser( user, request, response, IMPORT_PREHEAT );
         }
     }
 
@@ -297,7 +307,7 @@ public class UserController
 
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response );
+            inviteUser( user, request, response, IMPORT_PREHEAT );
         }
     }
 
@@ -504,10 +514,9 @@ public class UserController
     /**
      * Creates a user.
      *
-     * @param user     user object parsed from the POST request.
-     * @param response the response.
+     * @param user user object parsed from the POST request.
      */
-    private ImportSummary createUser( User user, HttpServletResponse response ) throws Exception
+    private ImportSummary createUser( User user, ImportOptions importOptions ) throws Exception
     {
         user.getUserCredentials().getCogsDimensionConstraints().addAll(
             currentUserService.getCurrentUser().getUserCredentials().getCogsDimensionConstraints() );
@@ -515,9 +524,6 @@ public class UserController
         user.getUserCredentials().getCatDimensionConstraints().addAll(
             currentUserService.getCurrentUser().getUserCredentials().getCatDimensionConstraints() );
 
-        ImportOptions importOptions = new ImportOptions();
-        importOptions.setStrategy( ImportStrategy.CREATE );
-        importOptions.setMergeMode( MergeMode.MERGE );
         ImportTypeSummary importTypeSummary = importService.importObject( currentUserService.getCurrentUser().getUid(), user, importOptions );
 
         if ( importTypeSummary.isStatus( ImportStatus.SUCCESS ) && importTypeSummary.getImportCount().getImported() == 1 )
@@ -566,14 +572,14 @@ public class UserController
      * @param user     user object parsed from the POST request.
      * @param response the response.
      */
-    private ImportSummary inviteUser( User user, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    private ImportSummary inviteUser( User user, HttpServletRequest request, HttpServletResponse response, ImportOptions importOptions ) throws Exception
     {
         RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty() ?
             RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
         securityService.prepareUserForInvite( user );
 
-        ImportSummary summary = createUser( user, response );
+        ImportSummary summary = createUser( user, importOptions );
 
         if ( summary.isStatus( ImportStatus.SUCCESS ) && summary.getImportCount().getImported() == 1 )
         {
