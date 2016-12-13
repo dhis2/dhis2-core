@@ -108,7 +108,8 @@ public class DefaultEventAnalyticsService
     // -------------------------------------------------------------------------
 
     // TODO use ValueType for type in grid headers
-    // TODO order event analytics tables on execution date to avoid default
+    // TODO use [longitude/latitude] format for event points
+    // TODO order event analytics tables on execution date to avoid default sort
     // TODO sorting in queries
 
     @Override
@@ -258,8 +259,8 @@ public class DefaultEventAnalyticsService
         grid.addHeader( new GridHeader( ITEM_EVENT, "Event", String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, "Program stage", String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_EXECUTION_DATE, "Event date", String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, "Organisation unit name", String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, "Organisation unit code", String.class.getName(), false, true ) );
 

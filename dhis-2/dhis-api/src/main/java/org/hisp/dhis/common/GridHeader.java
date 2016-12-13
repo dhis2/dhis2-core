@@ -130,6 +130,7 @@ public class GridHeader
      * @param hidden    hidden
      * @param meta      meta
      * @param optionSet optionSet
+     * @param legendSet legendSet
      */
     public GridHeader( String name, String column, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
     {
