@@ -1124,6 +1124,7 @@ public abstract class AbstractEventService
             }
 
             event.setOrgUnit( ou.getUid() );
+            event.setOrgUnitName( ou.getName() );
         }
 
         Program program = programStageInstance.getProgramInstance().getProgram();
