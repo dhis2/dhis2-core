@@ -228,7 +228,7 @@ public class UserController
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), inviteUser( user, request, response, IMPORT_PREHEAT ) );
+        renderService.toXml( response.getOutputStream(), inviteUser( user, request, response, IMPORT_NO_PREHEAT ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -241,7 +241,7 @@ public class UserController
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), inviteUser( user, request, response, IMPORT_PREHEAT ) );
+        renderService.toJson( response.getOutputStream(), inviteUser( user, request, response, IMPORT_NO_PREHEAT ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -257,9 +257,16 @@ public class UserController
             }
         }
 
+        ImportOptions importOptions = IMPORT_NO_PREHEAT;
+
+        if ( users.getUsers().size() > 20 )
+        {
+            importOptions = IMPORT_PREHEAT;
+        }
+
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response, IMPORT_PREHEAT );
+            inviteUser( user, request, response, importOptions );
         }
     }
 
@@ -305,9 +312,16 @@ public class UserController
             }
         }
 
+        ImportOptions importOptions = IMPORT_NO_PREHEAT;
+
+        if ( users.getUsers().size() > 20 )
+        {
+            importOptions = IMPORT_PREHEAT;
+        }
+
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response, IMPORT_PREHEAT );
+            inviteUser( user, request, response, importOptions );
         }
     }
 
