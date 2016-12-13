@@ -16,7 +16,7 @@
     &identifiableProperties;
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
-    
+
     <property name="description" type="text" />
 
     <list name="organisationUnits" table="eventreport_organisationunits">
@@ -115,7 +115,7 @@
     <property name="completedOnly" column="completedonly" />
 
     <property name="title" />
-    
+
     <set name="interpretations" inverse="true">
       <key column="eventreportid" />
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
@@ -215,6 +215,12 @@
       <cache usage="read-write" />
       <key column="eventreportid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="eventreportuseraccesses">
+      <cache usage="read-write" />
+      <key column="eventreportid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Object Translation -->

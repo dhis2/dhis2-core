@@ -28,15 +28,6 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,6 +35,7 @@ import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
+import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -65,6 +57,11 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -97,6 +94,9 @@ public abstract class AbstractJdbcTableManager
     
     @Autowired
     protected ResourceTableService resourceTableService;
+    
+    @Autowired
+    protected PartitionManager partitionManager;
    
     @Autowired
     protected StatementBuilder statementBuilder;
@@ -135,13 +135,6 @@ public abstract class AbstractJdbcTableManager
         log.info( "Get tables using earliest: " + earliest );
 
         return getTables( getDataYears( earliest ) );
-    }
-
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAllTables()
-    {
-        return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
     }
     
     private List<AnalyticsTable> getTables( List<Integer> dataYears )
@@ -197,7 +190,7 @@ public abstract class AbstractJdbcTableManager
         
         return null;
     }
-
+    
     @Override
     public void swapTable( AnalyticsTable table )
     {
@@ -215,13 +208,48 @@ public abstract class AbstractJdbcTableManager
 
     @Override
     public void dropTable( String tableName )
-    {
-        final String realTable = tableName.replaceFirst( TABLE_TEMP_SUFFIX, "" );
-        
+    {        
         executeSilently( "drop table " + tableName );
-        executeSilently( "drop table " + realTable );
     }
     
+    @Override
+    public void analyzeTable( String tableName )
+    {
+        executeSilently( "analyze " + tableName );
+    }
+
+    @Override
+    @Async
+    public Future<?> populateTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    {
+        taskLoop: while ( true )
+        {
+            AnalyticsTable table = tables.poll();
+
+            if ( table == null )
+            {
+                break taskLoop;
+            }
+
+            populateTable( table );
+        }
+
+        return null;
+    }
+
+    /**
+     * Populates the given analytics table.
+     * 
+     * @param table the analytics table to populate.
+     */
+    protected abstract void populateTable( AnalyticsTable table );
+
+    @Override
+    public void analyzeTables( List<AnalyticsTable> tables )
+    {
+        tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -329,6 +357,6 @@ public abstract class AbstractJdbcTableManager
         
         jdbcTemplate.execute( sql );
         
-        log.info( "Populated " + tableName + ": " + timer.stop().toString() );
+        log.info( "Populated table in " + timer.stop().toString() + ": " + tableName );
     }
 }

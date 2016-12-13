@@ -1,8 +1,4 @@
-package org.hisp.dhis.program.message;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+package org.hisp.dhis.dxf2.dataset;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -32,12 +28,26 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
+import java.io.OutputStream;
 
-@JacksonXmlRootElement( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
-public enum DeliveryChannel
+/**
+ * @author Halvdan Hoem Grelland
+ */
+public interface CompleteDataSetRegistrationExchangeStore
 {
-    SMS, EMAIL
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as XML.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the XML result to.
+     */
+    void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
+
+    /**
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
+     *
+     * @param params the export query parameters.
+     * @param outputStream the stream to write the JSON result to.
+     */
+    void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 }

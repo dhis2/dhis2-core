@@ -47,12 +47,15 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -94,7 +97,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,12 +114,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -164,6 +164,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected MetadataImportService importService;
 
     @Autowired
+    protected MetadataExportService exportService;
+
+    @Autowired
     protected ContextService contextService;
 
     @Autowired
@@ -188,7 +191,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected DbmsManager dbmsManager;
 
     @Autowired
-    protected HibernateCacheManager cacheManager;
+    protected CollectionService collectionService;
 
     //--------------------------------------------------------------------------
     // GET
@@ -432,7 +435,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         manager.update( persistedObject );
-
         postPatchEntity( persistedObject );
     }
 
@@ -502,8 +504,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         property.getSetterMethod().invoke( persistedObject, value );
 
-        preheatService.refresh( persistedObject );
         manager.update( persistedObject );
+        postPatchEntity( persistedObject );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -581,11 +583,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preCreateEntity( parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.CREATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
@@ -598,6 +600,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 + "/" + objectReport.getUid() );
             T entity = manager.get( objectReport.getUid() );
             postCreateEntity( entity );
+        }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
         }
 
         webMessageService.send( webMessage, response, request );
@@ -619,11 +625,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preCreateEntity( parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.CREATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
         ObjectReport objectReport = getObjectReport( importReport );
@@ -637,6 +643,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
             T entity = manager.get( objectReport.getUid() );
             postCreateEntity( entity );
+        }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
         }
 
         webMessageService.send( webMessage, response, request );
@@ -683,21 +693,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
+        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK )
         {
             T entity = manager.get( pvUid );
             postUpdateEntity( entity );
         }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
+        }
 
-        webMessageService.send( WebMessageUtils.objectReport( importReport ), response, request );
+        webMessageService.send( webMessage, response, request );
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
@@ -722,22 +737,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preUpdateEntity( objects.get( 0 ), parsed );
 
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsed );
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage objectReport = WebMessageUtils.objectReport( importReport );
+        WebMessage webMessage = WebMessageUtils.objectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK )
         {
             T entity = manager.get( pvUid );
             postUpdateEntity( entity );
         }
+        else
+        {
+            webMessage.setStatus( Status.ERROR );
+        }
 
-        webMessageService.send( objectReport, response, request );
+        webMessageService.send( webMessage, response, request );
     }
 
     //--------------------------------------------------------------------------
@@ -764,11 +783,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         preDeleteEntity( objects.get( 0 ) );
 
-        MetadataImportParams params = new MetadataImportParams();
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setUser( user );
-        params.setImportStrategy( ImportStrategy.DELETE );
-        params.addObject( objects.get( 0 ) );
+        MetadataImportParams params = new MetadataImportParams()
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.DELETE )
+            .addObject( objects.get( 0 ) );
 
         ImportReport importReport = importService.importMetadata( params );
 
@@ -828,8 +847,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
 
-        delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getDeletions() ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -841,8 +860,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
 
-        delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getDeletions() ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -854,8 +873,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
 
-        clearCollectionItems( pvUid, pvProperty );
-        addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -867,8 +886,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
 
-        clearCollectionItems( pvUid, pvProperty );
-        addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
@@ -886,7 +905,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -898,7 +917,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
 
-        delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -910,7 +929,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         List<T> objects = getEntity( pvUid );
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
 
-        delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
@@ -928,201 +947,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
-    {
-        List<IdentifiableObject> items = new ArrayList<>();
-
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !getSchema().haveProperty( propertyName ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + propertyName + " does not exist on " + getEntityName() ) );
-        }
-
-        Property property = getSchema().getProperty( propertyName );
-
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
-        }
-
-        for ( IdentifiableObject o : objects )
-        {
-            IdentifiableObject item = manager.getNoAcl( (Class<? extends IdentifiableObject>) property.getItemKlass(), o.getUid() );
-
-            if ( item != null )
-            {
-                items.add( item );
-            }
-            else
-            {
-                throw new WebMessageException( WebMessageUtils.notFound( "Collection " + propertyName + " does not have an item with ID: " + o.getUid() ) );
-            }
-        }
-
-        if ( property.isOwner() )
-        {
-            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
-
-            items.forEach( item ->
-            {
-                if ( !collection.contains( item ) ) collection.add( item );
-            } );
-
-            manager.update( object );
-        }
-        else
-        {
-            Schema owningSchema = getSchema( property.getItemKlass() );
-            Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
-
-            items.forEach( item ->
-            {
-                try
-                {
-                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty.getGetterMethod().invoke( item );
-
-                    if ( !collection.contains( object ) )
-                    {
-                        collection.add( object );
-                        manager.update( item );
-                    }
-                }
-                catch ( Exception ex )
-                {
-                }
-            } );
-        }
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
-    {
-        List<IdentifiableObject> items = new ArrayList<>();
-
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !getSchema().haveProperty( propertyName ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + propertyName + " does not exist on " + getEntityName() ) );
-        }
-
-        Property property = getSchema().getProperty( propertyName );
-
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
-        }
-
-        for ( IdentifiableObject o : objects )
-        {
-            IdentifiableObject item = manager.getNoAcl( (Class<? extends IdentifiableObject>) property.getItemKlass(), o.getUid() );
-
-            if ( item != null )
-            {
-                items.add( item );
-            }
-            else
-            {
-                throw new WebMessageException( WebMessageUtils.notFound( "Collection " + propertyName + " does not have an item with ID: " + o.getUid() ) );
-            }
-        }
-
-        if ( property.isOwner() )
-        {
-            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
-
-            items.forEach( item ->
-            {
-                if ( collection.contains( item ) ) collection.remove( item );
-            } );
-        }
-        else
-        {
-            Schema owningSchema = getSchema( property.getItemKlass() );
-            Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
-
-            items.forEach( item ->
-            {
-                try
-                {
-                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty.getGetterMethod().invoke( item );
-
-                    if ( collection.contains( object ) )
-                    {
-                        collection.remove( object );
-                        manager.update( item );
-                    }
-                }
-                catch ( Exception ex )
-                {
-                }
-            } );
-        }
-
-        manager.update( object );
-
-        dbmsManager.clearSession();
-        cacheManager.clearCache();
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private void clearCollectionItems( String pvUid, String pvProperty ) throws WebMessageException, InvocationTargetException, IllegalAccessException
-    {
-        List<T> objects = getEntity( pvUid );
-
-        if ( objects.isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
-        }
-
-        if ( !getSchema().haveProperty( pvProperty ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
-        }
-
-        Property property = getSchema().getProperty( pvProperty );
-
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only adds within identifiable collection are allowed." ) );
-        }
-
-        IdentifiableObject persistedObject = objects.get( 0 );
-        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( persistedObject );
-
-        if ( property.isOwner() )
-        {
-            collection.clear();
-            manager.update( persistedObject );
-            manager.refresh( persistedObject );
-        }
-        else
-        {
-            for ( IdentifiableObject itemObject : collection )
-            {
-                Schema itemSchema = getSchema( property.getItemKlass() );
-                Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
-                Collection<IdentifiableObject> itemCollection = (Collection<IdentifiableObject>) itemProperty.getGetterMethod().invoke( itemObject );
-                itemCollection.remove( persistedObject );
-
-                manager.update( itemObject );
-                manager.refresh( itemObject );
-            }
-        }
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
     //--------------------------------------------------------------------------
@@ -1253,12 +1078,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected List<T> getEntity( String uid, WebOptions options )
     {
         ArrayList<T> list = new ArrayList<>();
-        Optional<T> identifiableObject = Optional.fromNullable( manager.getNoAcl( getEntityClass(), uid ) );
+        java.util.Optional<T> identifiableObject = java.util.Optional.ofNullable( manager.getNoAcl( getEntityClass(), uid ) );
 
-        if ( identifiableObject.isPresent() )
-        {
-            list.add( identifiableObject.get() );
-        }
+        identifiableObject.ifPresent( list::add );
 
         return list; //TODO consider ACL
     }

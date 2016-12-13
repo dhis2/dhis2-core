@@ -40,6 +40,8 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.InvalidMediaTypeException;
+import org.springframework.http.MediaType;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -117,6 +119,10 @@ public class ContextUtils
         {
             cacheControl = CacheControl.maxAge( 15, TimeUnit.MINUTES );
         }
+        else if ( CacheStrategy.CACHE_30_MINUTES.equals( cacheStrategy ) )
+        {
+            cacheControl = CacheControl.maxAge( 30, TimeUnit.MINUTES );
+        }
         else if ( CacheStrategy.CACHE_1_HOUR.equals( cacheStrategy ) )
         {
             cacheControl = CacheControl.maxAge( 1, TimeUnit.HOURS );
@@ -133,7 +139,6 @@ public class ContextUtils
         {
             cacheControl = CacheControl.noCache();
         }
-
 
         if ( cacheStrategy != null && cacheStrategy != CacheStrategy.NO_CACHE )
         {
@@ -243,12 +248,30 @@ public class ContextUtils
 
     public static String getRootPath( HttpServletRequest request )
     {
-        StringBuilder builder = new StringBuilder( getContextPath( request ) );
-        builder.append( request.getServletPath() );
-
-        return builder.toString();
+        return getContextPath( request ) + request.getServletPath();
     }
 
+    /**
+     * Indicates whether the media type (content type) of the
+     * given HTTP request is compatible with the given media type.
+     * 
+     * @param request the HTTP response.
+     * @param mediaType the media type.
+     */
+    public static boolean isCompatibleWith( HttpServletResponse response, MediaType mediaType )
+    {                
+        try
+        {
+            String contentType = response.getContentType();
+            
+            return contentType != null && MediaType.parseMediaType( contentType ).isCompatibleWith( mediaType );
+        }
+        catch ( InvalidMediaTypeException ex )
+        {
+            return false;
+        }
+    }
+        
     /**
      * Returns a mapping of dimension identifiers and dimension option identifiers
      * based on the given set of dimension strings. Splits the strings using : as

@@ -62,11 +62,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -75,6 +71,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class EventQueryParams
     extends DataQueryParams
 {
+    public static final String EVENT_COORDINATE_FIELD = "EVENT";
+    
     /**
      * The query items.
      */
@@ -171,6 +169,11 @@ public class EventQueryParams
      * Size of cluster in meter.
      */
     private Long clusterSize;
+    
+    /**
+     * The coordinate field to use as basis for spatial event analytics.
+     */
+    private String coordinateField;
 
     /**
      * Bounding box for events to include in clustering.
@@ -181,7 +184,12 @@ public class EventQueryParams
      * Indicates whether to include underlying points for each cluster.
      */
     private boolean includeClusterPoints;
-    
+
+    /**
+     * Indicates the program status
+     */
+    private ProgramStatus programStatus;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -229,8 +237,10 @@ public class EventQueryParams
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
+        params.coordinateField = this.coordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
+        params.programStatus = this.programStatus;
 
         params.periodType = this.periodType;
 
@@ -403,6 +413,14 @@ public class EventQueryParams
     }
 
     /**
+     * Gets program status
+     */
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    /**
      * Removes items and item filters of type program indicators.
      */
     public EventQueryParams removeProgramIndicatorItems()
@@ -535,6 +553,11 @@ public class EventQueryParams
     {
         return clusterSize != null;
     }
+
+    public boolean hasProgramStatus()
+    {
+        return programStatus != null;
+    }
     
     public boolean hasBbox()
     {
@@ -666,11 +689,6 @@ public class EventQueryParams
         return geometryOnly;
     }
 
-    public void setGeometryOnly( boolean geometryOnly )
-    {
-        this.geometryOnly = geometryOnly; //TODO builder
-    }
-
     public boolean isAggregateData()
     {
         return aggregateData;
@@ -679,6 +697,11 @@ public class EventQueryParams
     public Long getClusterSize()
     {
         return clusterSize;
+    }
+
+    public String getCoordinateField()
+    {
+        return coordinateField;
     }
 
     public String getBbox()
@@ -844,6 +867,12 @@ public class EventQueryParams
             this.params.coordinatesOnly = coordinatesOnly;
             return this;
         }
+        
+        public Builder withGeometryOnly( boolean geometryOnly )
+        {
+            this.params.geometryOnly = geometryOnly;
+            return this;
+        }
 
         public Builder withDisplayProperty( DisplayProperty displayProperty )
         {
@@ -941,6 +970,12 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withCoordinateField( String coordinateField )
+        {
+            this.params.coordinateField = coordinateField;
+            return this;
+        }
+        
         public Builder withBbox( String bbox )
         {
             this.params.bbox = bbox;
@@ -950,6 +985,12 @@ public class EventQueryParams
         public Builder withIncludeClusterPoints( boolean includeClusterPoints )
         {
             this.params.includeClusterPoints = includeClusterPoints;
+            return this;
+        }
+
+        public Builder withProgramStatus( ProgramStatus programStatus )
+        {
+            this.params.programStatus = programStatus;
             return this;
         }
 

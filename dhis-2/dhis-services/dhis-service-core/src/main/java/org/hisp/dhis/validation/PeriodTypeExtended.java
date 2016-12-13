@@ -54,8 +54,8 @@ import org.hisp.dhis.period.PeriodType;
  * 
  * @author Jim Grace
  */
-public class PeriodTypeExtended {
-	
+public class PeriodTypeExtended
+{	
     private PeriodType periodType;
 
     private Collection<Period> periods;
@@ -93,48 +93,58 @@ public class PeriodTypeExtended {
     // Set and get methods
     // -------------------------------------------------------------------------  
 
-    public PeriodType getPeriodType() {
-		return periodType;
-	}
+    public PeriodType getPeriodType()
+    {
+        return periodType;
+    }
 
-	public Collection<Period> getPeriods() {
-		return periods;
-	}
+    public Collection<Period> getPeriods()
+    {
+        return periods;
+    }
 
-	public void setPeriods(Collection<Period> periods) {
-		this.periods = periods;
-	}
+    public void setPeriods( Collection<Period> periods )
+    {
+        this.periods = periods;
+    }
 
-	public Collection<ValidationRule> getRules() {
-		return rules;
-	}
+    public Collection<ValidationRule> getRules()
+    {
+        return rules;
+    }
 
-	public void setRules(Collection<ValidationRule> rules) {
-		this.rules = rules;
-	}
+    public void setRules( Collection<ValidationRule> rules )
+    {
+        this.rules = rules;
+    }
 
-	public Collection<DataElement> getDataElements() {
-		return dataElements;
-	}
+    public Collection<DataElement> getDataElements()
+    {
+        return dataElements;
+    }
 
-	public void setDataElements(Collection<DataElement> dataElements) {
-		this.dataElements = dataElements;
-	}
+    public void setDataElements( Collection<DataElement> dataElements )
+    {
+        this.dataElements = dataElements;
+    }
 
-	public Collection<PeriodType> getAllowedPeriodTypes() {
-		return allowedPeriodTypes;
-	}
+    public Collection<PeriodType> getAllowedPeriodTypes()
+    {
+        return allowedPeriodTypes;
+    }
 
-	public void setAllowedPeriodTypes(Collection<PeriodType> allowedPeriodTypes) {
-		this.allowedPeriodTypes = allowedPeriodTypes;
-	}
+    public void setAllowedPeriodTypes( Collection<PeriodType> allowedPeriodTypes )
+    {
+        this.allowedPeriodTypes = allowedPeriodTypes;
+    }
 
-	public Map<OrganisationUnit, Collection<DataElement>> getSourceDataElements() {
-		return sourceDataElements;
-	}
+    public Map<OrganisationUnit, Collection<DataElement>> getSourceDataElements()
+    {
+        return sourceDataElements;
+    }
 
-	public void setSourceDataElements(
-			Map<OrganisationUnit, Collection<DataElement>> sourceDataElements) {
-		this.sourceDataElements = sourceDataElements;
-	}
+    public void setSourceDataElements( Map<OrganisationUnit, Collection<DataElement>> sourceDataElements )
+    {
+        this.sourceDataElements = sourceDataElements;
+    }
 }

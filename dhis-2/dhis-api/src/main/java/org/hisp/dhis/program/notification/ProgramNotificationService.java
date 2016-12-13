@@ -59,14 +59,6 @@ public interface ProgramNotificationService
     void sendScheduledNotificationsForDay( Date day );
 
     /**
-     * Send immediate notifications for the {@link ProgramStageInstance }, if any.
-     *
-     * @param programStageInstance the ProgramStageInstance.
-     * @param immediateTrigger the NotificationTrigger for which to send notifications.
-     *                         Example: 'COMPLETION'. Non-applicable triggers will be ignored.
-     */
-
-    /**
      * Send completion notifications for the ProgramStageInstance.
      * If the ProgramStage is not configured with suitable
      * {@link ProgramNotificationTemplate templates}, nothing will happen.

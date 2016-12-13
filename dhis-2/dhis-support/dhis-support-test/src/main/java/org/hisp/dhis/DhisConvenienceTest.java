@@ -32,6 +32,8 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -79,12 +81,14 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.message.DeliveryChannel;
+import org.hisp.dhis.program.UniqunessType;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
-import org.hisp.dhis.program.notification.NotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -627,6 +631,25 @@ public abstract class DhisConvenienceTest
         }
 
         return categoryOptionGroupSet;
+    }
+
+    /**
+     * @param uniqueCharacter A unique character to identify the object.
+     */
+    public static Attribute createAttribute( char uniqueCharacter )
+    {
+        Attribute attribute = new Attribute( "Attribute" + uniqueCharacter, ValueType.TEXT );
+        attribute.setAutoFields();
+        
+        return attribute;
+    }
+    
+    public static AttributeValue createAttributeValue( Attribute attribute, String value )
+    {
+        AttributeValue attributeValue = new AttributeValue( value, attribute );
+        attributeValue.setAutoFields();
+        
+        return attributeValue;
     }
 
     /**
@@ -1507,6 +1530,17 @@ public abstract class DhisConvenienceTest
         return attribute;
     }
 
+    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( char uniqueChar )
+    {
+        ProgramTrackedEntityAttribute attribute = new ProgramTrackedEntityAttribute();
+        attribute.setAutoFields();
+
+        attribute.setName( "Attribute" + uniqueChar );
+        attribute.setDescription( "Attribute" + uniqueChar );
+
+        return attribute;
+    }
+
     /**
      * @param uniqueChar A unique character to identify the object.
      * @return TrackedEntityAttribute
@@ -1535,6 +1569,31 @@ public abstract class DhisConvenienceTest
         attributeGroup.setName( "TrackedEntityAttributeGroup" + uniqueChar );
         attributeGroup.setDescription( "TrackedEntityAttributeGroup" + uniqueChar );
         attributeGroup.setAttributes( attributes );
+
+        return attributeGroup;
+    }
+
+    public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar, Set<ProgramTrackedEntityAttribute> attributes )
+    {
+        ProgramTrackedEntityAttributeGroup attributeGroup = new ProgramTrackedEntityAttributeGroup();
+        attributeGroup.setAutoFields();
+
+        attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributes.forEach( attributeGroup::addAttribute );
+        attributeGroup.setUniqunessType( UniqunessType.NONE );
+
+        return attributeGroup;
+    }
+
+    public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar )
+    {
+        ProgramTrackedEntityAttributeGroup attributeGroup = new ProgramTrackedEntityAttributeGroup();
+        attributeGroup.setAutoFields();
+
+        attributeGroup.setName( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setDescription( "ProgramTrackedEntityAttributeGroup" + uniqueChar );
+        attributeGroup.setUniqunessType( UniqunessType.NONE );
 
         return attributeGroup;
     }
@@ -1617,7 +1676,7 @@ public abstract class DhisConvenienceTest
             "Subject",
             "Message",
             trigger,
-            NotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
             Sets.newHashSet(),
             days,
             null

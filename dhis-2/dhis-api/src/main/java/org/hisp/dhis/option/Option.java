@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -66,30 +65,13 @@ public class Option
         this.code = code;
     }
 
-    public Option( String name, String code,Integer sortOrder )
+    public Option( String name, String code, Integer sortOrder )
     {
         this();
         this.name = name;
         this.code = code;
         this.sortOrder = sortOrder;
     }
-    
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean haveUniqueCode()
-    {
-        return false;
-    }
-
 
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -116,7 +98,7 @@ public class Option
     {
         this.optionSet = optionSet;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Integer getSortOrder()
@@ -128,7 +110,7 @@ public class Option
     {
         this.sortOrder = sortOrder;
     }
-    
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -140,7 +122,7 @@ public class Option
 
             if ( mergeMode.isReplace() )
             {
-            	optionSet = programStageDataElement.getOptionSet();
+                optionSet = programStageDataElement.getOptionSet();
                 sortOrder = programStageDataElement.getSortOrder();
             }
             else if ( mergeMode.isMerge() )

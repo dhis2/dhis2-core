@@ -8,7 +8,7 @@
   <class name="org.hisp.dhis.dataapproval.DataApprovalLevel" table="dataapprovallevel">
 
     <cache usage="read-write" />
-    
+
     <id name="id" column="dataapprovallevelid">
       <generator class="native" />
     </id>
@@ -42,6 +42,12 @@
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>
 
-    </class>
+    <set name="userAccesses" table="dataapprovalleveluseraccesses">
+      <cache usage="read-write" />
+      <key column="dataapprovallevelid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+  </class>
 
 </hibernate-mapping>

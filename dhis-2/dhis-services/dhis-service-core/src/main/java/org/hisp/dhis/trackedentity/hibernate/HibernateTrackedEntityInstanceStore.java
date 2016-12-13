@@ -413,7 +413,7 @@ public class HibernateTrackedEntityInstanceStore
 
             if ( params.hasEventStatus() )
             {
-                sql += "left join programstageinstance psi " + "on pi.programinstanceid = psi.programinstanceid ";
+                sql += "left join programstageinstance psi " + "on pi.programinstanceid = psi.programinstanceid and psi.deleted is false ";
             }
 
             sql += "where pi.trackedentityinstanceid = tei.trackedentityinstanceid " + "and pi.programid = "

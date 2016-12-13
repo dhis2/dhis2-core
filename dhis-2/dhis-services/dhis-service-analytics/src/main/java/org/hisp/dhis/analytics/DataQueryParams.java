@@ -73,6 +73,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
+import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -184,12 +185,6 @@ public class DataQueryParams
     protected boolean hierarchyMeta;
     
     /**
-     * Indicates whether a identifier to dimension item object mapping should be
-     * part of the meta data reponse.
-     */
-    protected boolean dimensionItemMeta;
-    
-    /**
      * Indicates whether the maximum number of records to include the response
      * should be ignored.
      */
@@ -227,6 +222,12 @@ public class DataQueryParams
      * The output format, default is OutputFormat.ANALYTICS.
      */
     protected OutputFormat outputFormat;
+    
+    /**
+     * Indicates whether to return duplicate data values only. Applicable to
+     * {@link OutputFormat} DATA_VALUE_SET only. 
+     */
+    protected boolean duplicatesOnly;
     
     /**
      * The required approval level identifier for data to be included in query response.
@@ -375,7 +376,6 @@ public class DataQueryParams
         params.skipRounding = this.skipRounding;
         params.completedOnly = this.completedOnly;
         params.hierarchyMeta = this.hierarchyMeta;
-        params.dimensionItemMeta = this.dimensionItemMeta;
         params.ignoreLimit = this.ignoreLimit;
         params.hideEmptyRows = this.hideEmptyRows;
         params.showHierarchy = this.showHierarchy;
@@ -383,6 +383,7 @@ public class DataQueryParams
         params.displayProperty = this.displayProperty;
         params.outputIdScheme = this.outputIdScheme;
         params.outputFormat = this.outputFormat;
+        params.duplicatesOnly = this.duplicatesOnly;
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
@@ -819,6 +820,24 @@ public class DataQueryParams
     }
 
     /**
+     * Returns a list of dimensions and filters of the given set of dimension types.
+     */
+    public List<DimensionalObject> getDimensionsAndFilters( Set<DimensionType> dimensionTypes )
+    {
+        List<DimensionalObject> list = new ArrayList<>();
+        
+        for ( DimensionalObject dimension : getDimensionsAndFilters() )
+        {
+            if ( dimensionTypes.contains( dimension.getDimensionType() ) )
+            {
+                list.add( dimension );
+            }
+        }
+        
+        return list;
+    }
+
+    /**
      * Retrieves the options for the the dimension or filter with the given 
      * identifier. Returns an empty list if the dimension or filter is not present.
      */
@@ -875,14 +894,6 @@ public class DataQueryParams
     }
 
     /**
-     * Indicates whether a dimension or filter with the given identifier exists.
-     */
-    public boolean hasDimension( String key )
-    {
-        return dimensions.indexOf( new BaseDimensionalObject( key ) ) != -1;
-    }
-
-    /**
      * Indicates whether a dimension or filter which specifies dimension items 
      * with the given identifier exists.
      */
@@ -891,6 +902,22 @@ public class DataQueryParams
         return !getDimensionOrFilterItems( key ).isEmpty();
     }
 
+    /**
+     * Indicates whether a dimension with the given identifier exists.
+     */
+    public boolean hasDimension( String key )
+    {
+        return dimensions.indexOf( new BaseDimensionalObject( key ) ) != -1;
+    }
+    
+    /**
+     * Indicates whether a filter with the given identifier exists.
+     */
+    public boolean hasFilter( String key )
+    {
+        return filters.indexOf( new BaseDimensionalObject( key ) ) != -1;
+    }
+    
     /**
      * Retrieves the set of dimension types which are present in dimensions and
      * filters.
@@ -908,19 +935,39 @@ public class DataQueryParams
     }
     
     /**
-     * Returns the number of days in the first dimension period in this query.
-     * If no dimension periods exist, the frequency order of the period type of
-     * the query is returned. If no period type exists, -1 is returned.
-     * @return
+     * Returns the number of days to use as denominator when aggregating
+     * "average sum in hierarchy" aggregate values. If period is dimension,
+     * use the number of days in the first period. In these cases, queries
+     * should contain periods with the same number of days only. If period
+     * is filter, use the sum of days in all periods.
      */
-    public int getDaysInFirstPeriod()
-    {
-        List<DimensionalItemObject> periods = getPeriods();
-        
-        Period period = !periods.isEmpty() ? (Period) periods.get( 0 ) : null;
-        
-        return period != null ? period.getDaysInPeriod() : periodType != null ? 
-            PeriodType.getPeriodTypeByName( periodType ).getFrequencyOrder() : -1;
+    public int getDaysForAvgSumIntAggregation()
+    {        
+        if ( hasDimension( PERIOD_DIM_ID ) )
+        {
+            List<DimensionalItemObject> periods = getPeriods();
+
+            Assert.isTrue( !periods.isEmpty()  );
+            
+            Period period = (Period) periods.get( 0 );
+            
+            return period.getDaysInPeriod();
+        }
+        else
+        {
+            List<DimensionalItemObject> periods = getFilterPeriods();
+            
+            int totalDays = 0;
+            
+            for ( DimensionalItemObject item : periods )
+            {
+                Period period = (Period) item;
+                
+                totalDays += period.getDaysInPeriod();
+            }
+            
+            return totalDays;
+        }
     }
     
     /**
@@ -1566,11 +1613,6 @@ public class DataQueryParams
         return hierarchyMeta;
     }
 
-    public boolean isDimensionItemMeta()
-    {
-        return dimensionItemMeta;
-    }
-
     public boolean isIgnoreLimit()
     {
         return ignoreLimit;
@@ -1604,6 +1646,11 @@ public class DataQueryParams
     public OutputFormat getOutputFormat()
     {
         return outputFormat;
+    }
+    
+    public boolean isDuplicatesOnly()
+    {
+        return duplicatesOnly;
     }
 
     public String getApprovalLevel()
@@ -1704,31 +1751,49 @@ public class DataQueryParams
     // Get helpers for dimensions and filters
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns all indicators part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllIndicators()
     {
         return ImmutableList.copyOf( ListUtils.union( getIndicators(), getFilterIndicators() ) );
     }
-    
+
+    /**
+     * Returns all data elements part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllDataElements()
     {
         return ImmutableList.copyOf( ListUtils.union( getDataElements(), getFilterDataElements() ) );
     }
 
+    /**
+     * Returns all reporting rates part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllReportingRates()
     {
         return ImmutableList.copyOf( ListUtils.union( getReportingRates(), getFilterReportingRates() ) );
     }
-    
+
+    /**
+     * Returns all program attributes part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllProgramAttributes()
     {
         return ImmutableList.copyOf( ListUtils.union( getProgramAttributes(), getFilterProgramAttributes() ) );
     }
 
+    /**
+     * Returns all program data elements part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllProgramDataElements()
     {
         return ImmutableList.copyOf( ListUtils.union( getProgramDataElements(), getFilterProgramDataElements() ) );
     }
 
+    /**
+     * Returns all program attributes part of a dimension or filter.
+     */
     public List<DimensionalItemObject> getAllProgramDataElementsAndAttributes()
     {
         return ListUtils.union( getAllProgramAttributes(), getAllProgramDataElements() );
@@ -1737,52 +1802,82 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
-  
+
+    /**
+     * Returns all indicators part of the data dimension.
+     */
     public List<DimensionalItemObject> getIndicators()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.INDICATOR, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-        
+
+    /**
+     * Returns all data elements part of the data dimension.
+     */
     public List<DimensionalItemObject> getDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all data element operands part of the data dimension.
+     */
     public List<DimensionalItemObject> getDataElementOperands()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT_OPERAND, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-        
+
+    /**
+     * Returns all reporting rates part of the data dimension.
+     */
     public List<DimensionalItemObject> getReportingRates()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.REPORTING_RATE, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
 
+    /**
+     * Returns all program indicators part of the data dimension.
+     */
     public List<DimensionalItemObject> getProgramIndicators()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all program data elements part of the data dimension.
+     */
     public List<DimensionalItemObject> getProgramDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_DATA_ELEMENT, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-        
+
+    /**
+     * Returns all indicators part of the data dimension.
+     */
     public List<DimensionalItemObject> getProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, getDimensionOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all periods part of the period dimension.
+     */
     public List<DimensionalItemObject> getPeriods()
     {
         return ImmutableList.copyOf( getDimensionOptions( PERIOD_DIM_ID ) );
     }
-    
+
+    /**
+     * Returns all organisation units part of the organisation unit dimension.
+     */
     public List<DimensionalItemObject> getOrganisationUnits()
     {
         return ImmutableList.copyOf( getDimensionOptions( ORGUNIT_DIM_ID ) );
     }
-    
+
+    /**
+     * Returns all data element group sets specified as dimensions.
+     */
     public List<DimensionalObject> getDataElementGroupSets()
     {
         return ListUtils.union( dimensions, filters ).stream().
@@ -1793,41 +1888,62 @@ public class DataQueryParams
     // Get helpers for filters
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns all indicators part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterIndicators()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.INDICATOR, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all data elements part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.DATA_ELEMENT, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
+    /**
+     * Returns all reporting rates part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterReportingRates()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.REPORTING_RATE, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
-    public List<DimensionalItemObject> getFilterPeriods()
-    {
-        return ImmutableList.copyOf( getFilterOptions( PERIOD_DIM_ID ) );
-    }
-    
-    public List<DimensionalItemObject> getFilterOrganisationUnits()
-    {
-        return ImmutableList.copyOf( getFilterOptions( ORGUNIT_DIM_ID ) );
-    }
-    
+
+    /**
+     * Returns all program data elements part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterProgramDataElements()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_DATA_ELEMENT, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all program attributes part of the data filter.
+     */
     public List<DimensionalItemObject> getFilterProgramAttributes()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_ATTRIBUTE, getFilterOptions( DATA_X_DIM_ID ) ) );
     }
-    
+
+    /**
+     * Returns all periods part of the period filter.
+     */
+    public List<DimensionalItemObject> getFilterPeriods()
+    {
+        return ImmutableList.copyOf( getFilterOptions( PERIOD_DIM_ID ) );
+    }
+
+    /**
+     * Returns all organisation units part of the organisation unit filter.
+     */
+    public List<DimensionalItemObject> getFilterOrganisationUnits()
+    {
+        return ImmutableList.copyOf( getFilterOptions( ORGUNIT_DIM_ID ) );
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
@@ -2091,12 +2207,6 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withDimensionItemMeta( boolean dimensionItemMeta )
-        {
-            this.params.dimensionItemMeta = dimensionItemMeta;
-            return this;
-        }
-
         public Builder withHideEmptyRows( boolean hideEmptyRows )
         {
             this.params.hideEmptyRows = hideEmptyRows;
@@ -2130,6 +2240,12 @@ public class DataQueryParams
         public Builder withOutputFormat( OutputFormat outputFormat )
         {
             this.params.outputFormat = outputFormat;
+            return this;
+        }
+        
+        public Builder withDuplicatesOnly( boolean duplicatesOnly )
+        {
+            this.params.duplicatesOnly = duplicatesOnly;
             return this;
         }
         

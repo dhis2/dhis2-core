@@ -763,8 +763,6 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender) {
             url: '..',
             el: 'plugin-' + dashboardItem.id,
             id: dashboardItem.reportTable.id,
-            displayDensity: 'COMPACT',
-            fontSize: 'SMALL',
             userOrgUnit: userOrgUnit
         };
 

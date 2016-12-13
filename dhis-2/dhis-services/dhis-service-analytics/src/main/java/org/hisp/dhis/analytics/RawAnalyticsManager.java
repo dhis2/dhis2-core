@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,11 +28,12 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.Grid;
+
 /**
- * @author Halvdan Hoem Grelland
- */
-public interface TemplateVariable
+* @author Lars Helge Overland
+*/
+public interface RawAnalyticsManager
 {
-    String name();
-    String getVariableName();
+    Grid getRawDataValues( DataQueryParams params, Grid grid );    
 }

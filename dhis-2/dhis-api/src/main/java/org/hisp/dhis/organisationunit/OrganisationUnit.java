@@ -134,6 +134,8 @@ public class OrganisationUnit
 
     private transient Double value;
 
+    private transient Integer memberCount;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -246,8 +248,8 @@ public class OrganisationUnit
         Set<DataSet> toRemove = Sets.difference( dataSets, updates );
         Set<DataSet> toAdd = Sets.difference( updates, dataSets );
 
-        toRemove.stream().forEach( d -> d.getSources().remove( this ) );
-        toAdd.stream().forEach( d -> d.getSources().add( this ) );
+        toRemove.forEach( d -> d.getSources().remove( this ) );
+        toAdd.forEach( d -> d.getSources().add( this ) );
 
         dataSets.clear();
         dataSets.addAll( updates );
@@ -349,6 +351,8 @@ public class OrganisationUnit
         return !this.children.isEmpty();
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
     public boolean isLeaf()
     {
         return children == null || children.isEmpty();
@@ -477,7 +481,7 @@ public class OrganisationUnit
 
                     for ( String coordinates : tuple.getCoordinatesTuple() )
                     {
-                        builder.append( "[" + coordinates + "]," );
+                        builder.append( "[" ).append( coordinates ).append( "]," );
                     }
 
                     builder.deleteCharAt( builder.lastIndexOf( "," ) );
@@ -502,7 +506,7 @@ public class OrganisationUnit
             {
                 for ( String coordinates : tuple.getCoordinatesTuple() )
                 {
-                    builder.append( "[" + coordinates + "]" );
+                    builder.append( "[" ).append( coordinates ).append( "]" );
                 }
             }
         }
@@ -815,12 +819,6 @@ public class OrganisationUnit
         return categoryOptions != null && !categoryOptions.isEmpty();
     }
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     public boolean isRoot()
     {
         return parent == null;
@@ -875,7 +873,7 @@ public class OrganisationUnit
     }
 
     /**
-     * Do not set directly.
+     * Do not set directly, managed by persistence layer.
      */
     public void setPath( String path )
     {
@@ -1174,6 +1172,22 @@ public class OrganisationUnit
     {
         this.currentParent = currentParent;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getMemberCount()
+    {
+        return memberCount;
+    }
+
+    public void setMemberCount( Integer memberCount )
+    {
+        this.memberCount = memberCount;
+    }
+
+    // -------------------------------------------------------------------------
+    // Merge
+    // -------------------------------------------------------------------------
 
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )

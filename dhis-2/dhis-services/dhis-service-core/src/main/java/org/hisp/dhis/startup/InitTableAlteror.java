@@ -99,6 +99,14 @@ public class InitTableAlteror
 
         updateMessageConversationMessageCount();
 
+        // Set OrganisationUnitGroupSet includeSubhierarchyInAnalytics to false where IS NULL
+        executeSql( "UPDATE orgunitgroupset SET includesubhierarchyinanalytics = FALSE WHERE includesubhierarchyinanalytics IS NULL" );
+
+        // Update programstageinstance set deleted = false where deleted = null
+        executeSql( "UPDATE programstageinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table programstageinstance alter column deleted set not null" );
+        executeSql( "create index in_programstageinstance_deleted on programstageinstace(deleted)" );
+
         updateLegendSetAssociationAndDeleteOldAssociation();
     }
 
@@ -135,15 +143,13 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
     }
 
-    private void updateMessageConversationMessageCount() {
-
+    private void updateMessageConversationMessageCount()
+    {
         Integer nullCounts = statementManager.getHolder().queryForInteger( "SELECT count(*) from messageconversation WHERE messagecount IS NULL" );
 
-        if(nullCounts > 0)
+        if ( nullCounts > 0 )
         {
-            // Count messages in messageConversations
-            executeSql(
-                "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid) " );
+            executeSql( "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid)" );
         }
     }
 

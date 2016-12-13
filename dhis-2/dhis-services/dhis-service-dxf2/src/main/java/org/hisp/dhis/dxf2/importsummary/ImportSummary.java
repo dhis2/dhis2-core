@@ -33,6 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 
 import java.util.HashSet;
@@ -42,6 +43,8 @@ import java.util.Set;
 public class ImportSummary extends AbstractWebMessageResponse
 {
     private ImportStatus status = ImportStatus.SUCCESS;
+
+    private ImportOptions importOptions;
 
     private String description;
 
@@ -95,9 +98,23 @@ public class ImportSummary extends AbstractWebMessageResponse
         return status;
     }
 
-    public void setStatus( ImportStatus status )
+    public ImportSummary setStatus( ImportStatus status )
     {
         this.status = status;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ImportOptions getImportOptions()
+    {
+        return importOptions;
+    }
+
+    public ImportSummary setImportOptions( ImportOptions importOptions )
+    {
+        this.importOptions = importOptions;
+        return this;
     }
 
     @JsonProperty
@@ -107,9 +124,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return description;
     }
 
-    public void setDescription( String description )
+    public ImportSummary setDescription( String description )
     {
         this.description = description;
+        return this;
     }
 
     @JsonProperty
@@ -119,9 +137,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return importCount;
     }
 
-    public void setImportCount( ImportCount importCount )
+    public ImportSummary setImportCount( ImportCount importCount )
     {
         this.importCount = importCount;
+        return this;
     }
 
     @JsonProperty
@@ -132,9 +151,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return conflicts;
     }
 
-    public void setConflicts( Set<ImportConflict> conflicts )
+    public ImportSummary setConflicts( Set<ImportConflict> conflicts )
     {
         this.conflicts = conflicts;
+        return this;
     }
 
     @JsonProperty
@@ -144,9 +164,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return dataSetComplete;
     }
 
-    public void setDataSetComplete( String dataSetComplete )
+    public ImportSummary setDataSetComplete( String dataSetComplete )
     {
         this.dataSetComplete = dataSetComplete;
+        return this;
     }
 
     @JsonProperty
@@ -156,9 +177,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return reference;
     }
 
-    public void setReference( String reference )
+    public ImportSummary setReference( String reference )
     {
         this.reference = reference;
+        return this;
     }
 
     @JsonProperty
@@ -168,9 +190,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return href;
     }
 
-    public void setHref( String href )
+    public ImportSummary setHref( String href )
     {
         this.href = href;
+        return this;
     }
 
     @JsonProperty
@@ -180,9 +203,10 @@ public class ImportSummary extends AbstractWebMessageResponse
         return enrollments;
     }
 
-    public void setEnrollments( ImportSummaries enrollments )
+    public ImportSummary setEnrollments( ImportSummaries enrollments )
     {
         this.enrollments = enrollments;
+        return this;
     }
 
     public ImportSummary incrementImported()

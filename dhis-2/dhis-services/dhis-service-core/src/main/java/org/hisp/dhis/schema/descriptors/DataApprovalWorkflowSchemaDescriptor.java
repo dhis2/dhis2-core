@@ -48,7 +48,6 @@ public class DataApprovalWorkflowSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( DataApprovalWorkflow.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( false );
         schema.setOrder( 1380 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_SYSTEM_SETTING" ) ) );

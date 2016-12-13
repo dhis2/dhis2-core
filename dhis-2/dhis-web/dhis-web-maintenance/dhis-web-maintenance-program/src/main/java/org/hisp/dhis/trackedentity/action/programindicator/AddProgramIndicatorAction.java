@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity.action.programindicator;
  */
 
 import com.google.common.collect.ImmutableList;
+import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeService;
@@ -39,8 +40,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.opensymphony.xwork2.Action;
 
 import java.util.List;
 
@@ -204,7 +203,7 @@ public class AddProgramIndicatorAction
         indicator.setFilter( StringUtils.trimToNull( filter ) );
         indicator.setAggregationType( AggregationType.valueOf( aggregationType ) );
         indicator.setDecimals( decimals );
-        indicator.setLegendSets( ImmutableList.<LegendSet>builder().add( legendSet ).build() );
+        indicator.setLegendSets( (legendSet != null ? ImmutableList.<LegendSet>builder().add( legendSet ).build() : ImmutableList.<LegendSet>builder().build()) );
         indicator.setDisplayInForm( displayInForm );
         indicator.setAggregateExportCategoryOptionCombo( aggregateExportCategoryOptionCombo );
         indicator.setAggregateExportAttributeOptionCombo( aggregateExportAttributeOptionCombo );

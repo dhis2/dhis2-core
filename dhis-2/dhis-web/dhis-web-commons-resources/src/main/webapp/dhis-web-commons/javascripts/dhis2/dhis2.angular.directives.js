@@ -7,11 +7,11 @@
 var d2Directives = angular.module('d2Directives', [])
 
 
-.directive('selectedOrgUnit', function ($timeout) {
+.directive('selectedOrgUnit', function ($timeout, $location) {
     return {
         restrict: 'A',
         link: function (scope, element, attrs) {
-
+            var orgUnitFromUrl;
             $("#orgUnitTree").one("ouwtLoaded", function (event, ids, names) {
                 if (dhis2.tc && dhis2.tc.metaDataCached) {
                     $timeout(function () {
@@ -22,6 +22,7 @@ var d2Directives = angular.module('d2Directives', [])
                 }
                 else {
                     console.log('Finished loading orgunit tree');
+                    orgUnitFromUrl = ($location.search()).ou;
                     $("#orgUnitTree").addClass("disable-clicks"); //Disable ou selection until meta-data has downloaded
                     $timeout(function () {
                         scope.treeLoaded = true;
@@ -35,10 +36,15 @@ var d2Directives = angular.module('d2Directives', [])
             selection.setListenerFunction(setSelectedOu, true);
             function setSelectedOu(ids, names) {
                 var ou = {id: ids[0], displayName: names[0]};
-                $timeout(function () {
-                    scope.selectedOrgUnit = ou;
-                    scope.$apply();
-                });
+                if(orgUnitFromUrl && ou.id !== orgUnitFromUrl) {
+                    selection.setOrgUnitFromURL(orgUnitFromUrl);
+                    orgUnitFromUrl = null;
+                } else {
+                    $timeout(function () {
+                        scope.selectedOrgUnit = ou;
+                        scope.$apply();
+                    });
+                }
             }
         }
     };
@@ -121,24 +127,27 @@ var d2Directives = angular.module('d2Directives', [])
             placement: "@placement",
             trigger: "@trigger"
         },
-        link: function (scope, element, attrs) {
-            var content = $templateCache.get(scope.template);
-            content = $compile(content)(scope);
-            scope.content.heading = scope.content.value && scope.content.value.length > 20 ? scope.content.value.substring(0,20).concat('...') : scope.content.value;
-            var options = {
-                content: content,
-                placement: scope.placement ? scope.placement : 'auto',
-                trigger: scope.trigger ? scope.trigger : 'hover',
-                html: true,
-                title: $translate.instant('_details')
-            };
-            element.popover(options);
+        link: function (scope, element) {
+            var content;
+            if (scope.content) {
+                content = $templateCache.get(scope.template);
+                content = $compile(content)(scope);
+                scope.content.heading = scope.content.value && scope.content.value.length > 20 ? scope.content.value.substring(0, 20).concat('...') : scope.content.value;
+                var options = {
+                    content: content,
+                    placement: scope.placement ? scope.placement : 'auto',
+                    trigger: scope.trigger ? scope.trigger : 'hover',
+                    html: true,
+                    title: $translate.instant('_details')
+                };
+                element.popover(options);
 
-            $('body').on('click', function (e) {
-                if( !element[0].contains(e.target) ) {
-                    element.popover('hide');
-                }
-            });
+                $('body').on('click', function (e) {
+                    if (!element[0].contains(e.target)) {
+                        element.popover('hide');
+                    }
+                });
+            }
         }
     };
 })
@@ -645,19 +654,34 @@ var d2Directives = angular.module('d2Directives', [])
     };
 })
 
-.directive('d2OrgUnitTree', function(){
+.directive('d2OrgUnitTree', function(OrgUnitFactory){
     return {
-        restrict: 'E',            
+        restrict: 'EA',            
         templateUrl: "../dhis-web-commons/angular-forms/orgunit-input.html",
         scope: {            
-            selectedOrgUnit: '=',
+            selectedOrgUnitId: '@',
             id: '@',
             d2Object: '=',
             d2Disabled: '=',
             d2Required: '=',
-            d2CallbackFunction: '&d2Function'
+            d2CallbackFunction: '&d2Function',
+            d2OrgunitNames: '='
+        },
+        link: function (scope, element, attrs) {
         },
         controller: function($scope, $modal){
+            
+            if( !$scope.d2OrgUnitNames ){
+                $scope.d2OrgUnitNames = {};
+            }
+            
+            if( $scope.id && $scope.d2Object[$scope.id] ){                
+                OrgUnitFactory.getFromStoreOrServer($scope.d2Object[$scope.id]).then(function (response) {
+                    if(response && response.n) {
+                        $scope.d2OrgunitNames[$scope.d2Object[$scope.id]] = response.n;
+                    }
+                });
+            }
             
             $scope.showOrgUnitTree = function( dataElementId ){
                 
@@ -666,18 +690,22 @@ var d2Directives = angular.module('d2Directives', [])
                     controller: 'OrgUnitTreeController',
                     resolve: {
                         orgUnitId: function(){
-                            return $scope.d2Object[dataElementId] ? $scope.d2Object[dataElementId] : $scope.selectedOrgUnit.id;
+                            return $scope.d2Object[dataElementId] ? $scope.d2Object[dataElementId] : $scope.selectedOrgUnitId;
+                        },
+                        orgUnitNames: function(){
+                            return $scope.d2OrgunitNames;
                         }
                     }
                 });
 
-                modalInstance.result.then(function (orgUnitId) {
-                    if( orgUnitId ){
-                        $scope.d2Object[dataElementId] = orgUnitId;
+                modalInstance.result.then(function ( res ) {
+                    if( res && res.selected && res.selected.id ){
+                        $scope.d2Object[dataElementId] = res.selected.id;
+                        $scope.d2OrgunitNames = res.names;
                         if( angular.isDefined( $scope.d2CallbackFunction ) ){
                             $scope.d2CallbackFunction($scope.d2Object, dataElementId);
                         }                            
-                    }
+                    }                    
                 }, function () {
                 });
             };
@@ -688,9 +716,8 @@ var d2Directives = angular.module('d2Directives', [])
                     $scope.d2CallbackFunction($scope.d2Object, dataElementId);
                 }
             };
-        },
-        link: function (scope, element, attrs) {
         }
+        
     };
 })
 
@@ -710,35 +737,37 @@ var d2Directives = angular.module('d2Directives', [])
             d2LngSaved: '=',
             d2CoordinateFormat: '='
         },
-        controller: function($scope, $modal, $filter, DHIS2COORDINATESIZE){            
-            $scope.coordinateObject = angular.copy( $scope.d2Object );                        
-            if( $scope.d2CoordinateFormat === 'TEXT' ){        
-                if( $scope.d2Object[$scope.id] && $scope.d2Object[$scope.id] !== ''){                    
-                    var coordinates = $scope.d2Object[$scope.id].split(",");
-                    $scope.coordinateObject.coordinate = {latitude: parseFloat(coordinates[1]), longitude: parseFloat(coordinates[0])};
-                }
-                else{
-                    $scope.coordinateObject.coordinate = {};
-                }
-            }            
-            if( !$scope.coordinateObject.coordinate ){
-                $scope.coordinateObject.coordinate = {};
-            }
+        controller: function($scope, $modal, $filter, $translate, DHIS2COORDINATESIZE, NotificationService){            
+            $scope.coordinateObject = angular.copy( $scope.d2Object );
             
-            $scope.showMap = function(){                
-                if( $scope.d2CoordinateFormat === 'TEXT' ){        
+            function processCoordinate(){
+            	if( $scope.d2CoordinateFormat === 'TEXT' ){        
                     if( $scope.d2Object[$scope.id] && $scope.d2Object[$scope.id] !== ''){                        
-                        var coordinates = $scope.d2Object[$scope.id].split(",");
+                        var coordinatePattern = /^\[\d+\.?\d+\,\d+\.?\d+\]$/;
+                        if( !coordinatePattern.test( $scope.d2Object[$scope.id] ) ){
+                            NotificationService.showNotifcationDialog($translate.instant('error'), $translate.instant('invalid_coordinate_format') + ":  " + $scope.d2Object[$scope.id] );
+                        }
+                        
+                    	var coordinates = $scope.d2Object[$scope.id].slice(1,-1).split( ",");                        
+                    	if( !dhis2.validation.isNumber( coordinates[0] ) || !dhis2.validation.isNumber( coordinates[0] ) ){
+                            NotificationService.showNotifcationDialog($translate.instant('error'), $translate.instant('invalid_coordinate_format') + ":  " + $scope.d2Object[$scope.id] );
+                    	}
                         $scope.coordinateObject.coordinate = {latitude: parseFloat(coordinates[1]), longitude: parseFloat(coordinates[0])};
-                    }                    
+                    }
                     else{
                         $scope.coordinateObject.coordinate = {};
                     }
-                }
-                
+                }            
                 if( !$scope.coordinateObject.coordinate ){
                     $scope.coordinateObject.coordinate = {};
                 }
+            };
+            
+            processCoordinate();
+            
+            $scope.showMap = function(){                
+                
+            	processCoordinate();            	
                             
                 var modalInstance = $modal.open({
                     templateUrl: '../dhis-web-commons/angular-forms/map.html',
@@ -766,7 +795,7 @@ var d2Directives = angular.module('d2Directives', [])
                         $scope.coordinateObject.coordinate.longitude = location.lng;                        
 
                         if( $scope.d2CoordinateFormat === 'TEXT' ){                        
-                            $scope.d2Object[$scope.id] = location.lng + ',' + location.lat;
+                            $scope.d2Object[$scope.id] = '[' + location.lng + ',' + location.lat + ']';
                             if( angular.isDefined( $scope.d2CallbackFunction ) ){
                                 $scope.d2CallbackFunction( {arg1: $scope.d2CallbackFunctionParamText} );
                             }
@@ -826,7 +855,7 @@ var d2Directives = angular.module('d2Directives', [])
                 	}
                 	
                     if( $scope.d2CoordinateFormat === 'TEXT' ){                    
-                        $scope.d2Object[$scope.id] = $scope.coordinateObject.coordinate.longitude + ',' + $scope.coordinateObject.coordinate.latitude;                        
+                        $scope.d2Object[$scope.id] = '[' + $scope.coordinateObject.coordinate.longitude + ',' + $scope.coordinateObject.coordinate.latitude + ']';                        
                         saveCoordinate( 'TEXT',  $scope.prStDe);
                     }
                     else{

@@ -369,5 +369,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         if ( identifiableObject.getUser() == null ) identifiableObject.setUser( bundle.getUser() );
         if ( identifiableObject.getUserGroupAccesses() == null ) identifiableObject.setUserGroupAccesses( new HashSet<>() );
+        if ( identifiableObject.getUserAccesses() == null ) identifiableObject.setUserAccesses( new HashSet<>() );
     }
 }

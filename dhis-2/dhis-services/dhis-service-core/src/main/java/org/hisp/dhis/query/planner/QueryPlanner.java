@@ -1,8 +1,8 @@
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.query.planner;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,30 +28,14 @@ package org.hisp.dhis.webapi.webdomain.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.query.Query;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SharingUserGroups
+public interface QueryPlanner
 {
-    @JsonProperty
-    private List<SharingUserGroupAccess> userGroups = new ArrayList<>();
+    QueryPlan planQuery( Query query );
 
-    public SharingUserGroups()
-    {
-    }
-
-    public List<SharingUserGroupAccess> getUserGroups()
-    {
-        return userGroups;
-    }
-
-    public void setUserGroups( List<SharingUserGroupAccess> userGroups )
-    {
-        this.userGroups = userGroups;
-    }
+    QueryPlan planQuery( Query query, boolean persistedOnly );
 }

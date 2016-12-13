@@ -51,7 +51,6 @@ public class OrganisationUnitGroupSetSchemaDescriptor implements SchemaDescripto
     {
         Schema schema = new Schema( OrganisationUnitGroupSet.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1130 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_ORGUNITGROUPSET_PUBLIC_ADD" ) ) );

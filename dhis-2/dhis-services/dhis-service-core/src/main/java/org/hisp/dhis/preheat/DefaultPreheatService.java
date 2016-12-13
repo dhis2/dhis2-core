@@ -529,19 +529,22 @@ public class DefaultPreheatService implements PreheatService
                 {
                     ValidationRule validationRule = (ValidationRule) object;
 
-                    if ( validationRule.getLeftSide() != null && !validationRule.getLeftSide().getDataElementsInExpression().isEmpty() )
+                    if ( validationRule.getLeftSide() != null )
                     {
                         validationRule.getLeftSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
+                        validationRule.getLeftSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
 
-                    if ( validationRule.getRightSide() != null && !validationRule.getRightSide().getDataElementsInExpression().isEmpty() )
+                    if ( validationRule.getRightSide() != null )
                     {
                         validationRule.getRightSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
+                        validationRule.getRightSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
                 }
 
                 object.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                 object.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                object.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
                 addIdentifiers( map, object );
             }

@@ -46,6 +46,7 @@ import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.ProcessingHint;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.calendar.Calendar;
@@ -78,7 +79,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
-import org.hisp.dhis.system.util.SystemUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,6 +120,9 @@ public class DefaultAnalyticsService
 
     @Autowired
     private AnalyticsManager analyticsManager;
+    
+    @Autowired
+    private RawAnalyticsManager rawAnalyticsManager;
 
     @Autowired
     private AnalyticsSecurityManager securityManager;
@@ -142,9 +146,11 @@ public class DefaultAnalyticsService
     private DataQueryService dataQueryService;
 
     // -------------------------------------------------------------------------
-    // Methods for retrieving aggregated data
+    // AnalyticsService implementation
     // -------------------------------------------------------------------------
 
+    //TODO use immutable maps for meta data
+    
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
     {
@@ -173,6 +179,18 @@ public class DefaultAnalyticsService
             getAggregatedDataValuesTableLayout( params, columns, rows ) :
             getAggregatedDataValues( params );
     }
+    
+    public Grid getRawDataValues( DataQueryParams params )
+    {        
+        securityManager.decideAccess( params );
+
+        params = securityManager.withDataApprovalConstraints( params );
+        params = securityManager.withDimensionConstraints( params );
+
+        queryPlanner.validate( params );
+        
+        return getRawDataGrid( params );
+    }
 
     @Override
     public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
@@ -180,16 +198,15 @@ public class DefaultAnalyticsService
         DataQueryParams query = DataQueryParams.newBuilder( params )
             .withSkipMeta( false )
             .withSkipData( false )
-            .withDimensionItemMeta( true )
             .withIncludeNumDen( false )
             .withOutputFormat( OutputFormat.DATA_VALUE_SET )
             .build();
         
         Grid grid = getAggregatedDataValueGridInternal( query );
                 
-        return AnalyticsUtils.getDataValueSetFromGrid( grid );
+        return AnalyticsUtils.getDataValueSetFromGrid( params, grid );
     }
-    
+        
     @Override
     public Grid getAggregatedDataValues( AnalyticalObject object )
     {
@@ -258,6 +275,8 @@ public class DefaultAnalyticsService
         // ---------------------------------------------------------------------
 
         addMetaData( params, grid );
+        
+        handleDataValueSet( params, grid );
 
         applyIdScheme( params, grid );
 
@@ -322,9 +341,9 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, Double.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, Double.class.getName(), false, false ) );
             }
         }
     }
@@ -389,15 +408,15 @@ public class DefaultAnalyticsService
 
                         row.add( DX_INDEX, new DimensionItem( DATA_X_DIM_ID, indicator ) );
 
-                        grid.addRow();
-                        grid.addValues( DimensionItem.getItemIdentifiers( row ) );
-                        grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
+                        grid.addRow()
+                            .addValues( DimensionItem.getItemIdentifiers( row ) )
+                            .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getValue() ) );
 
                         if ( params.isIncludeNumDen() )
                         {
-                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getNumeratorValue() ) );
-                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getDenominatorValue() ) );
-                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getFactorAnnualizedValue() ) );
+                            grid.addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getNumeratorValue() ) )
+                                .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getDenominatorValue() ) )
+                                .addValue( AnalyticsUtils.getRoundedValue( dataSourceParams, indicator.getDecimals(), value.getFactorAnnualizedValue() ) );
                         }
                     }
                 }
@@ -426,9 +445,9 @@ public class DefaultAnalyticsService
             {
                 Object value = AnalyticsUtils.getRoundedValueObject( params, entry.getValue() );
 
-                grid.addRow();
-                grid.addValues( entry.getKey().split( DIMENSION_SEP ) );
-                grid.addValue( value );
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( value );
 
                 if ( params.isIncludeNumDen() )
                 {
@@ -462,7 +481,6 @@ public class DefaultAnalyticsService
             List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
 
             //TODO check if data was dim or filter
-            //TODO move add/remove to builder
 
             DataQueryParams operandParams = DataQueryParams.newBuilder( dataSourceParams )
                 .removeDimension( DATA_X_DIM_ID )
@@ -477,9 +495,9 @@ public class DefaultAnalyticsService
             {
                 Object value = AnalyticsUtils.getRoundedValueObject( operandParams, entry.getValue() );
 
-                grid.addRow();
-                grid.addValues( entry.getKey().split( DIMENSION_SEP ) );
-                grid.addValue( value );
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( value );
 
                 if ( params.isIncludeNumDen() )
                 {
@@ -616,15 +634,15 @@ public class DefaultAnalyticsService
                     String reportingRate = DimensionalObjectUtils.getDimensionItem( dataRow.get( DX_INDEX ), metric );
                     dataRow.set( DX_INDEX, reportingRate );
 
-                    grid.addRow();
-                    grid.addValues( dataRow.toArray() );
-                    grid.addValue( dataSourceParams.isSkipRounding() ? value : MathUtils.getRounded( value ) );
+                    grid.addRow()
+                        .addValues( dataRow.toArray() )
+                        .addValue( dataSourceParams.isSkipRounding() ? value : MathUtils.getRounded( value ) );
 
                     if ( includeNumDen )
                     {
-                        grid.addValue( actual );
-                        grid.addValue( target );
-                        grid.addValue( PERCENT );
+                        grid.addValue( actual )
+                            .addValue( target )
+                            .addValue( PERCENT );
                     }
                 }
             }
@@ -673,9 +691,9 @@ public class DefaultAnalyticsService
             {
                 Double value = params.isSkipRounding() ? entry.getValue() : MathUtils.getRounded( entry.getValue() );
 
-                grid.addRow();
-                grid.addValues( entry.getKey().split( DIMENSION_SEP ) );
-                grid.addValue( value );
+                grid.addRow()
+                    .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                    .addValue( value );
 
                 if ( params.isIncludeNumDen() )
                 {
@@ -749,16 +767,22 @@ public class DefaultAnalyticsService
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
-            // -----------------------------------------------------------------
-            // Dimension item meta data
-            // -----------------------------------------------------------------
-
-            if ( params.isDimensionItemMeta() )
-            {
-                metaData.put( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey(), AnalyticsUtils.getDimensionalItemObjectMap( params ) );
-            }
-
             grid.setMetaData( metaData );
+        }
+    }
+
+    /**
+     * Prepares the given grid to be converted to a data value set, given
+     * that the output format is of type DATA_VALUE_SET.
+     * 
+     * @param params the data query parameters.
+     * @param grid   the grid.
+     */
+    private void handleDataValueSet( DataQueryParams params, Grid grid )
+    {
+        if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) && !params.isSkipHeaders() )
+        {
+            AnalyticsUtils.handleGridForDataValueSet( params, grid );
         }
     }
 
@@ -773,9 +797,12 @@ public class DefaultAnalyticsService
     {
         if ( !params.isSkipMeta() && params.hasNonUidOutputIdScheme() )
         {
-            List<DimensionalItemObject> items = params.getAllDimensionItems();
+            Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( params.getAllDimensionItems(), params.getOutputIdScheme() );
 
-            Map<String, String> map = DimensionalObjectUtils.getDimensionItemIdSchemeMap( items, params.getOutputIdScheme() );
+            if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) && !params.getDataElementOperands().isEmpty() )
+            {
+                map.putAll( DimensionalObjectUtils.getDataElementOperandIdSchemeMap( asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
+            }
 
             grid.substituteMetaData( map );
         }
@@ -829,13 +856,13 @@ public class DefaultAnalyticsService
             }
         }
 
-        reportTable.setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() );
-        reportTable.setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() );
+        reportTable.setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() )
+            .setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() )
+            .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
 
         addIfEmpty( reportTable.getGridColumns() );
         addIfEmpty( reportTable.getGridRows() );
-
-        reportTable.setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) );
+        
         reportTable.setHideEmptyRows( params.isHideEmptyRows() );
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
@@ -966,10 +993,10 @@ public class DefaultAnalyticsService
 
         Timer timer = new Timer().start().disablePrint();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( optimalQueries ).
-            withTableName( tableName ).
-            withQueryGroupers( queryGroupers ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+            .withOptimalQueries( optimalQueries )
+            .withTableName( tableName )
+            .withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1010,6 +1037,44 @@ public class DefaultAnalyticsService
         timer.getTime( "Got analytics values" );
 
         return map;
+    }
+    
+    /**
+     * Returns headers, raw data and meta data as a grid.
+     * 
+     * @param params the data query parameters.
+     * @return a grid.
+     */
+    private Grid getRawDataGrid( DataQueryParams params )
+    {
+        Grid grid = new ListGrid();
+        
+        addHeaders( params, grid );
+        
+        addRawData( params, grid );
+        
+        addMetaData( params, grid );
+        
+        return grid;
+    }
+    
+    /**
+     * Adds raw data to the grid for the given data query parameters.
+     * 
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    private void addRawData( DataQueryParams params, Grid grid )
+    {
+        if ( !params.isSkipData() )
+        {
+            QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
+                .withTableName( ANALYTICS_TABLE_NAME ).build();
+            
+            List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
+            
+            queries.forEach( query -> rawAnalyticsManager.getRawDataValues( query, grid ) );
+        }
     }
 
     // -------------------------------------------------------------------------

@@ -95,11 +95,11 @@ jQuery( document ).ready( function()
 	</tr>
     <tr>
         <td><label for="aggregateExportCategoryOptionCombo">$i18n.getString( "aggregate_export_category_option_combo" )</label></td>
-        <td><input type="text" id="aggregateExportCategoryOptionCombo" name="aggregateExportCategoryOptionCombo" value='$encoder.htmlEncode($programIndicator.aggregateExportCategoryOptionCombo)'></td>
+        <td><input type="text" id="aggregateExportCategoryOptionCombo" name="aggregateExportCategoryOptionCombo" value='$!encoder.htmlEncode($programIndicator.aggregateExportCategoryOptionCombo)'></td>
     </tr>
     <tr>
         <td><label for="aggregateExportAttributeOptionCombo">$i18n.getString( "aggregate_export_attribute_option_combo" )</label></td>
-        <td><input type="text" id="aggregateExportAttributeOptionCombo" name="aggregateExportAttributeOptionCombo" value='$encoder.htmlEncode($programIndicator.aggregateExportAttributeOptionCombo)'></td>
+        <td><input type="text" id="aggregateExportAttributeOptionCombo" name="aggregateExportAttributeOptionCombo" value='$!encoder.htmlEncode($programIndicator.aggregateExportAttributeOptionCombo)'></td>
     </tr>
 </table>
 <br>

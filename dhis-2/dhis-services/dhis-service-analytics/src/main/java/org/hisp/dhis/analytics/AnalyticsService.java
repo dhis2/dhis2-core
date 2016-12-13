@@ -128,6 +128,8 @@ public interface AnalyticsService
      */
     Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows );
     
+    Grid getRawDataValues( DataQueryParams params );
+    
     /**
      * Generates a data value set for the given query. The query must contain
      * a data, period and organisation unit dimension.

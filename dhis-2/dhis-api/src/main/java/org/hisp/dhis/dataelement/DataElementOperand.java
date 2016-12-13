@@ -35,7 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.BaseDataDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -64,7 +64,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
  */
 @JacksonXmlRootElement( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementOperand
-    extends BaseDataDimensionalItemObject
+    extends BaseDimensionalItemObject
 {
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
     public static final String NAME_TOTAL = "(Total)";
@@ -163,11 +163,11 @@ public class DataElementOperand
 
         if ( dataElement != null )
         {
-            item = dataElement.getUid() + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getUid() ) : StringUtils.EMPTY );
+            item = dataElement.getUid() + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getUid()) : StringUtils.EMPTY);
         }
         else if ( dataElementId != null )
         {
-            item = dataElementId + ( optionComboId != null ? ( SEPARATOR + optionComboId ) : StringUtils.EMPTY );
+            item = dataElementId + (optionComboId != null ? (SEPARATOR + optionComboId) : StringUtils.EMPTY);
         }
 
         return item;
@@ -177,12 +177,12 @@ public class DataElementOperand
     public String getDimensionItem( IdScheme idScheme )
     {
         String item = null;
-        
+
         if ( dataElement != null )
         {
-            item = dataElement.getPropertyValue( idScheme ) + ( categoryOptionCombo != null ? ( SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme ) ) : StringUtils.EMPTY );
+            item = dataElement.getPropertyValue( idScheme ) + (categoryOptionCombo != null ? (SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme )) : StringUtils.EMPTY);
         }
-        
+
         return item;
     }
 
@@ -195,12 +195,6 @@ public class DataElementOperand
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @Override
     public String getName()

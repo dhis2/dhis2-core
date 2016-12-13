@@ -59,6 +59,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,6 +91,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     @Autowired
     private AclService aclService;
+
+    @Autowired
+    private UserService userService;
 
     @Override
     public ObjectBundleValidationReport validate( ObjectBundle bundle )
@@ -263,6 +267,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     typeReport.getStats().incIgnored();
 
                     iterator.remove();
+                    continue;
                 }
             }
             else
@@ -280,6 +285,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                         typeReport.getStats().incIgnored();
 
                         iterator.remove();
+                        continue;
                     }
                 }
                 else if ( importMode.isDelete() )
@@ -295,7 +301,27 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                         typeReport.getStats().incIgnored();
 
                         iterator.remove();
+                        continue;
                     }
+                }
+            }
+
+            if ( User.class.isInstance( object ) )
+            {
+                User user = (User) object;
+                List<ErrorReport> errorReports = userService.validateUser( bundle.getUser(), user );
+
+                if ( !errorReports.isEmpty() )
+                {
+                    ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                    objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
+                    objectReport.addErrorReports( errorReports );
+
+                    typeReport.addObjectReport( objectReport );
+                    typeReport.getStats().incIgnored();
+
+                    iterator.remove();
+                    continue;
                 }
             }
 
@@ -567,6 +593,14 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUserGroup() != null && preheat.get( identifier, userGroupAccess.getUserGroup() ) == null )
                 .forEach( userGroupAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
                     identifier.getIdentifiersWithName( userGroupAccesses.getUserGroup() ), identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
+        }
+
+        if ( schema.havePersistedProperty( "userAccesses" ) )
+        {
+            object.getUserAccesses().stream()
+                .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUser() != null && preheat.get( identifier, userGroupAccess.getUser() ) == null )
+                .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
+                    identifier.getIdentifiersWithName( userAccesses.getUser() ), identifier.getIdentifiersWithName( object ), "userAccesses" ) ) );
         }
 
         return preheatErrorReports;
