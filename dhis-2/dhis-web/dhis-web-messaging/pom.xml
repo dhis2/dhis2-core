@@ -9,12 +9,12 @@
     <version>2.26-SNAPSHOT</version>
   </parent>
   
-  <artifactId>dhis-web-dashboard-integration</artifactId>
+  <artifactId>dhis-web-messaging</artifactId>
   <packaging>war</packaging>
-  <name>DHIS Web Dashboard Integration module</name>
+  <name>DHIS Web Messages module</name>
   
   <build>
-    <finalName>dhis-web-dashboard-integration</finalName>
+    <finalName>dhis-web-messaging</finalName>
   </build>
   
   <dependencies>

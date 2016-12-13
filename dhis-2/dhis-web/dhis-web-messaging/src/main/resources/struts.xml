@@ -6,16 +6,17 @@
 
   <include file="dhis-web-commons.xml" />
 
-  <package name="dhis-web-dashboard-integration" extends="dhis-web-commons"
-    namespace="/dhis-web-dashboard-integration">
+  <package name="dhis-web-messaging" extends="dhis-web-commons"
+    namespace="/dhis-web-messaging">
 
     <!-- Dashboard -->
 
-    <action name="index" class="org.hisp.dhis.dashboard.action.InitAction">
+    <action name="index" class="org.hisp.dhis.dashboard.message.action.GetMessagesAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/dashboard.vm</param>
-      <param name="hideMenu">true</param>
-      <param name="stylesheets">style/dashboard.css,../dhis-web-commons/material-design-icons/material-icons.css</param>
+      <param name="page">/dhis-web-messaging/message.vm</param>
+      <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
+      <param name="javascripts">javascript/message.js,../dhis-web-commons/javascripts/jQuery/jquery.dhisMessagesMenu.js</param>
+      <param name="stylesheets">style/dashboard.css</param>
     </action>
 
     <!-- Message -->
@@ -23,7 +24,7 @@
     <action name="message"
       class="org.hisp.dhis.dashboard.message.action.GetMessagesAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/message.vm</param>
+      <param name="page">/dhis-web-messaging/message.vm</param>
       <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
       <param name="javascripts">javascript/message.js,../dhis-web-commons/javascripts/jQuery/jquery.dhisMessagesMenu.js</param>
       <param name="stylesheets">style/dashboard.css</param>
@@ -41,7 +42,7 @@
 
     <action name="sendReply"
       class="org.hisp.dhis.dashboard.message.action.SendReplyAction">
-      <result name="success" type="velocity-xml">/dhis-web-dashboard-integration/responseSuccess.vm
+      <result name="success" type="velocity-xml">/dhis-web-messaging/responseSuccess.vm
       </result>
       <param name="onExceptionReturn">plainTextError</param>
     </action>
@@ -49,7 +50,7 @@
     <action name="showSendMessage"
       class="org.hisp.dhis.dashboard.message.action.GetMessageOptionsAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/sendMessage.vm</param>
+      <param name="page">/dhis-web-messaging/sendMessage.vm</param>
       <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
       <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/message.js,../dhis-web-commons/select2/select2.min.js</param>
       <param name="stylesheets">style/dashboard.css,../dhis-web-commons/select2/select2.css</param>
@@ -57,7 +58,7 @@
 
     <action name="showSendFeedback" class="org.hisp.dhis.dashboard.action.NoAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/sendFeedback.vm</param>
+      <param name="page">/dhis-web-messaging/sendFeedback.vm</param>
       <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
       <param name="javascripts">../dhis-web-commons/oust/oust.js,javascript/message.js</param>
       <param name="stylesheets">style/dashboard.css</param>
@@ -66,7 +67,7 @@
     <action name="readMessage"
       class="org.hisp.dhis.dashboard.message.action.ReadMessageAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/readMessage.vm</param>
+      <param name="page">/dhis-web-messaging/readMessage.vm</param>
       <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
       <param name="javascripts">javascript/message.js,../dhis-web-commons/javascripts/jQuery/jquery.dhisMessagesMenu.js</param>
       <param name="stylesheets">style/dashboard.css</param>
@@ -95,7 +96,7 @@
 
     <action name="getMessageRecipients"
       class="org.hisp.dhis.dashboard.message.action.GetMessageRecipientsAction">
-      <result name="success" type="velocity-json">/dhis-web-dashboard-integration/jsonMessageRecipients.vm
+      <result name="success" type="velocity-json">/dhis-web-messaging/jsonMessageRecipients.vm
       </result>
       <result name="error" type="velocity-json">/dhis-web-commons/ajax/jsonResponseError.vm
       </result>
@@ -111,7 +112,7 @@
     </action>
 
     <action name="userCount" class="org.hisp.dhis.dashboard.message.action.UserCountAction">
-      <result name="success" type="velocity-json">/dhis-web-dashboard-integration/jsonUserCount.vm</result>
+      <result name="success" type="velocity-json">/dhis-web-messaging/jsonUserCount.vm</result>
       <param name="onExceptionReturn">plainTextError</param>
     </action>
 
@@ -119,7 +120,7 @@
 
     <action name="interpretation" class="org.hisp.dhis.dashboard.action.NoAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/interpretation.vm</param>
+      <param name="page">/dhis-web-messaging/interpretation.vm</param>
       <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
       <param name="javascripts">javascript/interpretation.js</param>
       <param name="stylesheets">style/dashboard.css</param>
@@ -127,7 +128,7 @@
 
     <action name="getInterpretations"
       class="org.hisp.dhis.dashboard.interpretation.action.GetInterpretationsAction">
-      <result name="success" type="velocity">/dhis-web-dashboard-integration/interpretationFeed.vm
+      <result name="success" type="velocity">/dhis-web-messaging/interpretationFeed.vm
       </result>
     </action>
 
@@ -136,7 +137,7 @@
     <action name="profile"
       class="org.hisp.dhis.dashboard.profile.action.GetUserAction">
       <result name="success" type="velocity">/main.vm</result>
-      <param name="page">/dhis-web-dashboard-integration/profile.vm</param>
+      <param name="page">/dhis-web-messaging/profile.vm</param>
       <param name="menu">/dhis-web-commons/about/menuDashboard.vm</param>
       <param name="javascripts">javascript/profile.js,javascript/interpretation.js</param>
       <param name="stylesheets">style/dashboard.css</param>
