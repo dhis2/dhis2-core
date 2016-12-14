@@ -138,6 +138,18 @@ public class DefaultSystemService
         return info;
     }
 
+    @Override
+    public SystemInfo getMinimalSystemInfo()
+    {
+        SystemInfo fixedInfo = systemInfo.instance();
+        
+        SystemInfo minimalInfo = new SystemInfo();
+        minimalInfo.setVersion( fixedInfo.getVersion() );
+        minimalInfo.setRevision( fixedInfo.getRevision() );
+        
+        return fixedInfo;
+    }
+
     private SystemInfo getFixedSystemInfo()
     {
         SystemInfo info = new SystemInfo();
