@@ -72,6 +72,16 @@ public final class SchemaUtils
                 {
                     property.setRequired( pAnnotation.required() == org.hisp.dhis.schema.annotation.Property.Required.TRUE );
                 }
+
+                if ( org.hisp.dhis.schema.annotation.Property.Access.READ_ONLY == pAnnotation.access() )
+                {
+                    property.setWritable( false );
+                }
+
+                if ( org.hisp.dhis.schema.annotation.Property.Access.WRITE_ONLY == pAnnotation.access() )
+                {
+                    property.setReadable( false );
+                }
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyRange.class ) )

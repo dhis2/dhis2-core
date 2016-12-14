@@ -42,10 +42,29 @@ public @interface Property
 {
     org.hisp.dhis.schema.PropertyType value() default org.hisp.dhis.schema.PropertyType.TEXT;
 
-    Required required() default Required.DEFAULT;
+    Value persisted() default Value.DEFAULT;
 
-    enum Required
+    Value owner() default Value.DEFAULT;
+
+    Access access() default Access.READ_WRITE;
+
+    enum Value
     {
         TRUE, FALSE, DEFAULT
+    }
+
+    enum Access
+    {
+        READ_ONLY, WRITE_ONLY, READ_WRITE;
+
+        public boolean isReadable()
+        {
+            return READ_ONLY == this || READ_WRITE == this;
+        }
+
+        public boolean isWritable()
+        {
+            return WRITE_ONLY == this || READ_WRITE == this;
+        }
     }
 }

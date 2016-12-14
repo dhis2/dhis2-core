@@ -279,5 +279,6 @@ public class ObjectBundleServiceUserTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertEquals( 1, validate.getErrorReportsByCode( User.class, ErrorCode.E4005 ).size() );
     }
 }
