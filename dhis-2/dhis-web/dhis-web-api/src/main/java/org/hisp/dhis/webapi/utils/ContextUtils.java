@@ -81,6 +81,7 @@ public class ContextUtils
 
     public static final String HEADER_USER_AGENT = "User-Agent";
     public static final String HEADER_CACHE_CONTROL = "Cache-Control";
+    public static final String HEADER_LOCATION = "Location";
     public static final String HEADER_EXPIRES = "Expires";
     public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";

@@ -161,6 +161,15 @@
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-translations</outputDirectory>
                   <includes>**/*.*</includes>
                 </artifactItem>
+                <!--  Dashboard -->
+                <artifactItem>
+                  <groupId>org.hisp.dhis</groupId>
+                  <artifactId>dhis-app-dashboard</artifactId>
+                  <version>2.26-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-dashboard-integration</outputDirectory>
+                  <includes>**/*.*</includes>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>

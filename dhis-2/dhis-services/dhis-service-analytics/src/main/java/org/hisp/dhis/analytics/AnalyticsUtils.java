@@ -28,38 +28,14 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
-import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DataDimensionalItemObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.NameableObjectUtils;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -75,9 +51,12 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * @author Lars Helge Overland
@@ -422,8 +401,8 @@ public class AnalyticsUtils
             aocCol.add( aoc );
         }
 
-        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) )
-            .addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, String.class.getName(), false, true ) )
+        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, ValueType.TEXT, String.class.getName(), false, true ) )
             .addColumn( vlInx, aocCol )
             .addColumn( vlInx, cocCol );
     }
@@ -552,5 +531,26 @@ public class AnalyticsUtils
         }
 
         return metaData;
+    }
+
+    /**
+     * returns true if the given period occurs less than maxYears before the current date.
+     * @param period periods to check
+     * @param maxYears amount of years back to check
+     * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
+     */
+    public static boolean periodIsOutsideApprovalMaxYears( Period period, Integer maxYears )
+    {
+        if ( maxYears == 0 )
+        {
+            return false;
+        }
+
+        java.util.Calendar periodDate = java.util.Calendar.getInstance();
+        java.util.Calendar now = java.util.Calendar.getInstance();
+
+        periodDate.setTime( period.getStartDate() );
+
+        return ( now.get( java.util.Calendar.YEAR ) - periodDate.get( java.util.Calendar.YEAR ) ) >= maxYears;
     }
 }

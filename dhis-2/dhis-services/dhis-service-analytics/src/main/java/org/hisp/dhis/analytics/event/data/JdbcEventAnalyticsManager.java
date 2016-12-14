@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -68,6 +69,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -84,6 +87,7 @@ public class JdbcEventAnalyticsManager
     private static final String NA = "[N/A]";
     private static final String COL_COUNT = "count";
     private static final String COL_EXTENT = "extent";
+    private static final int COORD_DEC = 6;
 
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
@@ -296,7 +300,12 @@ public class JdbcEventAnalyticsManager
             
             for ( GridHeader header : grid.getHeaders() )
             {
-                if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
+                if ( ITEM_LONGITUDE.equals( header.getName() ) || ITEM_LATITUDE.equals( header.getName() ) )
+                {
+                    double val = rowSet.getDouble( index );
+                    grid.addValue( Precision.round( val, COORD_DEC ) );
+                }
+                else if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
                 {
                     double val = rowSet.getDouble( index );
                     grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
@@ -504,7 +513,9 @@ public class JdbcEventAnalyticsManager
             {
                 String colName = statementBuilder.columnQuote( queryItem.getItemName() );
                 
-                String coordSql =  "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName + ")::numeric, 6) || ']' as " + colName;
+                String coordSql =  
+                    "'[' || round(ST_X(" + colName + ")::numeric, " + COORD_DEC + ") ||" +
+                    "',' || round(ST_Y(" + colName + ")::numeric, " + COORD_DEC + ") || ']' as " + colName;
                 
                 columns.add( coordSql );
             }

@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.MergeParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
@@ -101,7 +102,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             userService.encodeAndSetPassword( userCredentials, userCredentials.getPassword() );
         }
 
-        persistedUserCredentials.mergeWith( userCredentials, bundle.getMergeMode() );
+        mergeService.merge( new MergeParams<>( userCredentials, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );
         preheatService.connectReferences( persistedUserCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
         persistedUserCredentials.setUserInfo( user );

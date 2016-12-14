@@ -57,6 +57,7 @@
     </set>
 
     <list name="aggregationLevels" table="dataelementaggregationlevels">
+      <cache usage="read-write" />
       <key column="dataelementid" foreign-key="fk_dataelementaggregationlevels_dataelementid" />
       <list-index column="sort_order" base="0" />
       <element column="aggregationlevel" type="integer" />

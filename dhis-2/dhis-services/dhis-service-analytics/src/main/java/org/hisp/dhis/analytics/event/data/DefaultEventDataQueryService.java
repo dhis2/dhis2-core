@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -69,8 +69,8 @@ public class DefaultEventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
-    private static final List<String> SORTABLE_ITEMS = Lists.newArrayList( ITEM_EXECUTION_DATE, ITEM_ORG_UNIT_NAME,
-        ITEM_ORG_UNIT_CODE );
+    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of( 
+        ITEM_EXECUTION_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     @Autowired
     private ProgramService programService;

@@ -235,6 +235,12 @@ public class SystemController
         return info;
     }
 
+    @RequestMapping( value = "/info/minimal", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody SystemInfo getMinialSystemInfo( Model model, HttpServletRequest request )
+    {
+        return systemService.getMinimalSystemInfo();
+    }
+    
     @RequestMapping( value = "/objectCounts", method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectCounts()
     {

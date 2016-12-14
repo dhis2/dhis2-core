@@ -399,7 +399,7 @@ dhis2.de.uploadLocalData = function()
         console.log( 'Uploaded complete data set: ' + key + ', with value: ' + value );
 
         $.ajax( {
-            url: '../api/completeDataSetRegistrations',
+            url: '../api/25/completeDataSetRegistrations',
             data: value,
             dataType: 'json',
             success: function( data, textStatus, jqXHR )
@@ -2050,7 +2050,7 @@ function registerCompleteDataSet()
         dhis2.de.storageManager.saveCompleteDataSet( params );
 	
 	    $.ajax( {
-	    	url: '../api/completeDataSetRegistrations',
+	    	url: '../api/25/completeDataSetRegistrations',
 	    	data: params,
 	        dataType: 'json',
 	        type: 'post',
@@ -2102,7 +2102,7 @@ function undoCompleteDataSet()
     }
         
     $.ajax( {
-    	url: '../api/completeDataSetRegistrations' + params,
+    	url: '../api/25/completeDataSetRegistrations' + params,
     	dataType: 'json',
     	type: 'delete',
     	success: function( data, textStatus, xhr )

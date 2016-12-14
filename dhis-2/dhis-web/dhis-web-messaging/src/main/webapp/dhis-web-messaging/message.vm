@@ -3,7 +3,7 @@
 <div class="horizontalMenu" style="padding: 8px 0 40px 0;">
     <ul style="display: inline-block">
 
-        #if( $auth.hasAccess( "dhis-web-dashboard-integration", "sendMessage" ) )
+        #if( $auth.hasAccess( "dhis-web-messaging", "sendMessage" ) )
         <li><a class="blueButtonLink" href="showSendMessage.action">$i18n.getString( 'write_message' )</a></li>
         #end
         <li><a class="blueButtonLink" href="showSendFeedback.action">$i18n.getString( "write_feedback" )</a></li>

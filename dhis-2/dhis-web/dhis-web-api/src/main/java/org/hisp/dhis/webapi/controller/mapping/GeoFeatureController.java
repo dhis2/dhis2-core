@@ -50,6 +50,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Lars Helge Overland
@@ -77,6 +79,8 @@ public class GeoFeatureController
 {
     public static final String RESOURCE_PATH = "/geoFeatures";
 
+    private static final CacheControl GEOFEATURE_CACHE = CacheControl.maxAge( 1, TimeUnit.HOURS ).cachePrivate();
+    
     private static final Map<FeatureType, Integer> FEATURE_TYPE_MAP = ImmutableMap.<FeatureType, Integer>builder().
         put( FeatureType.POINT, GeoFeature.TYPE_POINT ).
         put( FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON ).
@@ -118,6 +122,7 @@ public class GeoFeatureController
             return;
         }
 
+        ContextUtils.setCacheControl( response, GEOFEATURE_CACHE );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), features );
     }
@@ -143,6 +148,7 @@ public class GeoFeatureController
             return;
         }
 
+        ContextUtils.setCacheControl( response, GEOFEATURE_CACHE );
         response.setContentType( "application/javascript" );
         renderService.toJsonP( response.getOutputStream(), features, callback );
     }

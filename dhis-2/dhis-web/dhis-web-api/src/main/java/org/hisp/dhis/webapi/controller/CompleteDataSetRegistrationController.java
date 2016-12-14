@@ -459,6 +459,7 @@ public class CompleteDataSetRegistrationController
     // DELETE
     // -------------------------------------------------------------------------
 
+    @ApiVersion( { ApiVersion.Version.ALL, ApiVersion.Version.DEFAULT } )
     @RequestMapping( method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCompleteDataSetRegistration(

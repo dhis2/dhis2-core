@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.metadata.MergeService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.schema.SchemaService;
@@ -58,6 +59,9 @@ public class AbstractObjectBundleHook implements ObjectBundleHook
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    protected MergeService mergeService;
 
     @Override
     public void preImport( ObjectBundle bundle )

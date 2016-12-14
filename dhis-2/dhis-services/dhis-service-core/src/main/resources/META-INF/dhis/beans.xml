@@ -1099,7 +1099,7 @@
         <value>africare</value>
         <value>akros</value>
         <value>algeria</value>
-	<value>angola</value>
+	    <value>angola</value>
         <value>armenia</value>
         <value>bangladesh</value>
         <value>benin</value>
@@ -1116,6 +1116,7 @@
         <value>congo_brazzaville</value>
         <value>congo_kinshasa</value>
         <value>demoland</value>
+        <value>denmark</value>
         <value>ecowas</value>
         <value>ecuador</value>
         <value>east_africa_community</value>

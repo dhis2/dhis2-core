@@ -1,5 +1,7 @@
 package org.hisp.dhis.setting;
 
+import com.google.common.collect.ImmutableSet;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -71,7 +73,7 @@ public enum SettingKey
     EMAIL_PORT( "keyEmailPort", 587, Integer.class ),
     EMAIL_USERNAME( "keyEmailUsername" ),
     EMAIL_TLS( "keyEmailTls", Boolean.TRUE, Boolean.class ),
-    EMAIL_SENDER( "keyEmailSender" ),
+    EMAIL_SENDER( "keyEmailSender", "no-reply@dhis2.org", String.class ),
     EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true ),
     INSTANCE_BASE_URL( "keyInstanceBaseUrl" ),
     SCHEDULED_TASKS( "keySchedTasks", ListMap.class ),
@@ -89,6 +91,7 @@ public enum SettingKey
     OPENID_PROVIDER_LABEL( "keyOpenIdProviderLabel" ),
     CAN_GRANT_OWN_USER_AUTHORITY_GROUPS( "keyCanGrantOwnUserAuthorityGroups", Boolean.FALSE, Boolean.class ),
     HIDE_UNAPPROVED_DATA_IN_ANALYTICS( "keyHideUnapprovedDataInAnalytics", Boolean.FALSE, Boolean.class ),
+    IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD( "keyIgnoreAnalyticsApprovalYearThreshold", 0, Integer.class ),
     ANALYTICS_MAX_LIMIT( "keyAnalyticsMaxLimit", 100000, Integer.class ),
     RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT( "keyRespectMetaDataStartEndDatesInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
     SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT( "keySkipDataTypeValidationInAnalyticsTableExport", Boolean.FALSE, Boolean.class ),
@@ -148,7 +151,7 @@ public enum SettingKey
 
     private boolean confidential;
 
-    private static final Set<String> NAMES = getNameSet();
+    private static final ImmutableSet<String> NAMES = getNameSet();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -248,11 +251,11 @@ public enum SettingKey
         return NAMES;
     }
 
-    private static Set<String> getNameSet()
+    private static ImmutableSet<String> getNameSet()
     {
         Set<String> names = Sets.newHashSet();
         Sets.newHashSet( SettingKey.values() ).forEach( s -> names.add( s.getName() ) );
-        return names;
+        return ImmutableSet.copyOf( names );
     }
 
     // -------------------------------------------------------------------------

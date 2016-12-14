@@ -109,7 +109,7 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-web-dashboard-integration</artifactId>
+      <artifactId>dhis-web-messaging</artifactId>
       <version>${project.version}</version>
       <type>war</type>
     </dependency>

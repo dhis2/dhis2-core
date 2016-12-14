@@ -1,8 +1,8 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.dxf2.metadata;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,49 +28,58 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Locale;
+import org.hisp.dhis.common.MergeMode;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.i18n.locale.I18nLocale;
-import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.ImmutableSet;
+import java.util.Objects;
 
 /**
- * Populates default I18nLocales if none exists.
- * 
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class I18nLocalePopulator
-    extends TransactionContextStartupRoutine
+public final class MergeParams<T>
 {
-    private static final Log log = LogFactory.getLog( I18nLocalePopulator.class );
-    
-    @Autowired
-    private I18nLocaleService localeService;
-    
-    private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of( 
-        "af","ar","bi","am","de","dz","en","es","fa","fr","gu","hi","id","it",
-        "km","lo","my","ne","nl","no","ps","pt","ru","rw","sw","tg","vi","zh" );
+    private final T source;
 
-    @Override
-    public void executeInTransaction()
+    private final T target;
+
+    private MergeMode mergeMode = MergeMode.REPLACE;
+
+    private boolean skipSharing;
+
+    public MergeParams( T source, T target )
     {
-        int count = localeService.getI18nLocaleCount();
-        
-        if ( count > 0 )
-        {
-            return;
-        }
-        
-        for ( String locale : DEFAULT_LOCALES )
-        {
-            localeService.saveI18nLocale( new I18nLocale( new Locale( locale ) ) );
-        }
+        this.source = Objects.requireNonNull( source );
+        this.target = Objects.requireNonNull( target );
+    }
 
-        log.info( "Populated default locales" );
+    public T getSource()
+    {
+        return source;
+    }
+
+    public T getTarget()
+    {
+        return target;
+    }
+
+    public MergeMode getMergeMode()
+    {
+        return mergeMode;
+    }
+
+    public MergeParams<T> setMergeMode( MergeMode mergeMode )
+    {
+        this.mergeMode = mergeMode;
+        return this;
+    }
+
+    public boolean isSkipSharing()
+    {
+        return skipSharing;
+    }
+
+    public MergeParams<T> setSkipSharing( boolean skipSharing )
+    {
+        this.skipSharing = skipSharing;
+        return this;
     }
 }

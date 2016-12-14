@@ -396,6 +396,7 @@
         <value>F_TRACKED_ENTITY_INSTANCE_DELETE</value>
         <value>F_PROGRAM_ENROLLMENT</value>
         <value>F_PROGRAM_UNENROLLMENT</value>
+        <value>F_ORGANISATIONUNIT_MOVE</value>
       </set>
     </property>
   </bean>

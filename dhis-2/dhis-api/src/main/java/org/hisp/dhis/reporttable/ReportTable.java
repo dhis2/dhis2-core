@@ -50,6 +50,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -562,20 +563,20 @@ public class ReportTable
             String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
 
-            grid.addHeader( new GridHeader( name + " ID", col + "id", String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name, col + "name", String.class.getName(), false, true ) );
-            grid.addHeader( new GridHeader( name + " code", col + "code", String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name + " description", col + "description", String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name + " ID", col + "id", ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
+            grid.addHeader( new GridHeader( name + " code", col + "code", ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name + " description", col + "description", ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
         if ( paramColumns )
         {
             grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
-                String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit parameter",
-                PARAM_ORGANISATIONUNIT_COLUMN_NAME, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit is parent",
-                ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, String.class.getName(), true, true ) );
+                ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME, 
+                ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, 
+                ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
         final int startColumnIndex = grid.getHeaders().size();
@@ -583,8 +584,8 @@ public class ReportTable
 
         for ( List<DimensionalItemObject> column : gridColumns )
         {
-            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ), Double.class
-                .getName(), false, false ) );
+            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ), 
+                ValueType.NUMBER, Double.class.getName(), false, false ) );
         }
 
         // ---------------------------------------------------------------------

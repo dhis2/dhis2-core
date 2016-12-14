@@ -31,12 +31,10 @@ package org.hisp.dhis.analytics.table;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -107,7 +105,7 @@ public class JdbcAnalyticsTableManager
             return "No organisation unit levels exist, not updating aggregate analytics tables";
         }
 
-        log.info( "Approval enabled: " + isApprovalEnabled() );
+        log.info( "Approval enabled: " + isApprovalEnabled( null ) );
 
         return null;
     }
@@ -121,7 +119,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public void preCreateTables()
     {
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( null ) )
         {
             resourceTableService.generateDataApprovalMinLevelTable();
         }
@@ -166,7 +164,7 @@ public class JdbcAnalyticsTableManager
         final String dbl = statementBuilder.getDoubleColumnType();
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
 
-        final String approvalClause = getApprovalJoinClause();        
+        final String approvalClause = getApprovalJoinClause( table );
         final String numericClause = skipDataTypeValidation ? "" : ( "and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " );
 
         String intClause =
@@ -181,7 +179,7 @@ public class JdbcAnalyticsTableManager
 
         populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
-    
+
     /**
      * Populates the given analytics table.
      *
@@ -269,9 +267,9 @@ public class JdbcAnalyticsTableManager
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
      */
-    private String getApprovalJoinClause()
+    private String getApprovalJoinClause( AnalyticsTable table )
     {
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( table ) )
         {
             String sql =
                 "left join _dataapprovalminlevel da " +
@@ -370,9 +368,15 @@ public class JdbcAnalyticsTableManager
 
         columns.addAll( Lists.newArrayList( de, co, ao, pe, ou, level ) );
 
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( table ) )
         {
             String col = "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel ";
+
+            columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", col ) );
+        }
+        else
+        {
+            String col = DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
             columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", col ) );
         }
@@ -463,11 +467,22 @@ public class JdbcAnalyticsTableManager
      * Indicates whether the system should ignore data which has not been approved
      * in analytics tables.
      */
-    private boolean isApprovalEnabled()
+    private boolean isApprovalEnabled( AnalyticsTable table )
     {
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
+        Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
 
-        return setting && levels;
+        if ( table != null )
+        {
+            boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( table.getPeriod(), maxYears );
+
+            return setting && levels && !periodOverMaxYears;
+        }
+        else
+        {
+            return setting && levels;
+        }
+
     }
 }
