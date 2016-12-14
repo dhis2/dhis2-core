@@ -42,15 +42,11 @@ public @interface Property
 {
     org.hisp.dhis.schema.PropertyType value() default org.hisp.dhis.schema.PropertyType.TEXT;
 
-    Value required() default Value.DEFAULT;
-
-    Value persisted() default Value.DEFAULT;
-
-    Value owner() default Value.DEFAULT;
+    Required required() default Required.DEFAULT;
 
     Access access() default Access.READ_WRITE;
 
-    enum Value
+    enum Required
     {
         TRUE, FALSE, DEFAULT
     }
