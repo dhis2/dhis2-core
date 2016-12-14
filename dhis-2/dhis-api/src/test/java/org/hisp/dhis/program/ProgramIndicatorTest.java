@@ -54,7 +54,7 @@ public class ProgramIndicatorTest
     {
         String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
         
-        Set<String> expected = Sets.newHashSet( "chG8sINMf11_yD5mUKAm3aK", "chG8sINMf11_UaGD9u0kaur", "chG8sINMf11_y1Bhi6xHtVk" );
+        Set<String> expected = Sets.newHashSet( "chG8sINMf11_yD5mUKAm3aK", "chG8sINMf11_UaGD9u0kaur", "y1Bhi6xHtVk" );
         
         assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, ProgramIndicatorAnalyticsType.ENROLLMENT ) );
     }

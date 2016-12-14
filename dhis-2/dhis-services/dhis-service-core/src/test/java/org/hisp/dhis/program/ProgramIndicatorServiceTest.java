@@ -394,7 +394,7 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testGetAnyValueExistsFilterEnrollmentAnalyticsSQl()
     {
-        String expected = "\"OXXcwl6aPCQ_GCyeKSqlpdk\" is not null or \"gAyeKSqlpdk\" is not null";
+        String expected = "\"gAyeKSqlpdk\" is not null or \"OXXcwl6aPCQ_GCyeKSqlpdk\" is not null";
         String expression = "#{OXXcwl6aPCQ.GCyeKSqlpdk} - A{gAyeKSqlpdk}";
 
         assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, ProgramIndicatorAnalyticsType.ENROLLMENT ) );
