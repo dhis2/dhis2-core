@@ -37,6 +37,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
@@ -61,16 +62,21 @@ public class DefaultSchemaValidator implements SchemaValidator
     @Override
     public List<ErrorReport> validate( Object object, boolean persisted )
     {
-        if ( object == null || schemaService.getSchema( object.getClass() ) == null )
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        if ( object == null )
         {
-            return new ArrayList<>();
+            return errorReports;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return errorReports;
         }
 
         Class<?> klass = object.getClass();
-
-        Schema schema = schemaService.getSchema( klass );
-
-        List<ErrorReport> errorReports = new ArrayList<>();
 
         for ( Property property : schema.getProperties() )
         {
@@ -96,6 +102,16 @@ public class DefaultSchemaValidator implements SchemaValidator
             errorReports.addAll( validateInteger( klass, value, property ) );
             errorReports.addAll( validateFloat( klass, value, property ) );
             errorReports.addAll( validateDouble( klass, value, property ) );
+        }
+
+        if ( User.class.isInstance( object ) )
+        {
+            User user = (User) object;
+
+            if ( user.getUserCredentials() != null )
+            {
+                errorReports.addAll( validate( user.getUserCredentials(), persisted ) );
+            }
         }
 
         return errorReports;
