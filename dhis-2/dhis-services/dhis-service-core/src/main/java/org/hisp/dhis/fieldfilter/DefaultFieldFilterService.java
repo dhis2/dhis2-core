@@ -188,7 +188,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : fieldMap.keySet() )
         {
-            AbstractNode child;
+            AbstractNode child = null;
             Property property = schema.getProperty( fieldKey );
 
             if ( property == null || !property.isReadable() )
