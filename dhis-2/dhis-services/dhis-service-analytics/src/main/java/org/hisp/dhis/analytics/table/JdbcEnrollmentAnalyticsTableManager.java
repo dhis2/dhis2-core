@@ -31,12 +31,9 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLast;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -51,14 +48,13 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 public class JdbcEnrollmentAnalyticsTableManager
-    extends AbstractJdbcTableManager
+    extends AbstractEventJdbcTableManager
 {
     private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     public static final String SEP = "_";
@@ -68,6 +64,13 @@ public class JdbcEnrollmentAnalyticsTableManager
     public List<AnalyticsTable> getTables( Date earliest )
     {
         return getTables();
+    }
+    
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
     
     private List<AnalyticsTable> getTables() {
@@ -254,14 +257,6 @@ public class JdbcEnrollmentAnalyticsTableManager
             "ORDER BY psi.duedate desc " +
             "LIMIT 1 ) as " + quote( "duedate" );
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
-        //Completed date is interpreted as enrollment completed date
-        String completedDateSql = "( SELECT psi.completeddate FROM programstageinstance psi " + 
-            "JOIN programinstance pi " + 
-            "ON psi.programinstanceid = pi.programinstanceid " + 
-            "WHERE psi.completeddate is not null " + 
-            "AND psi.deleted is not true " +
-            "ORDER BY psi.completeddate desc " +
-            "LIMIT 1 ) as " + quote( "completeddate" );
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "CASE status WHEN 'COMPLETED' THEN enddate END" );
         AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" );
         String longitudeSql = "( SELECT psi.longitude FROM programstageinstance psi " + 
@@ -284,7 +279,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
-        columns.addAll( Lists.newArrayList( pi, erd, id, ed, dd, cd, longitude, latitude, ou, oun, ouc ) );
+        columns.addAll( Lists.newArrayList( pi, erd, id, ed, es, dd, cd, longitude, latitude, ou, oun, ouc ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {
@@ -300,90 +295,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         return columns;
     }
     
-    // ***************************************************************************************
-    //UNCHANGED HELPERS COPIED FORM EVENT ANALYTICS BELOW HERE - can be moved into central codes.
     
-    @Override
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
-        Collection<String> dataElements, int aggregationLevel )
-    {
-        return null; // Not relevant
-    }
-
-    @Override
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        return null; // Not relevant
-    }
-    
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from trackedentitydatavalue limit 1" ).next();
-        
-        if ( !hasData )
-        {
-            return "No events exist, not updating event analytics tables";
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Returns the database column type based on the given value type. For boolean
-     * values, 1 means true, 0 means false and null means no value.
-     */
-    private String getColumnType( ValueType valueType )
-    {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
-        {
-            return statementBuilder.getDoubleColumnType();
-        }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
-        {
-            return "integer";
-        }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
-        {
-            return "timestamp";
-        }
-        else
-        {
-            return "text";
-        }
-    }
-    
-    /**
-     * Returns the select clause, potentially with a cast statement, based on the
-     * given value type.
-     */
-    private String getSelectClause( ValueType valueType )
-    {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
-        {
-            return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
-        }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
-        {
-            return "case when value = 'true' then 1 when value = 'false' then 0 else null end";
-        }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
-        {
-            return "cast(value as timestamp)";
-        }
-        else
-        {
-            return "value";
-        }
-    }
-
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     @Override
     protected void populateTable( AnalyticsTable table )
     {
@@ -428,5 +340,4 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         populateAndLog( sql, tableName );
     }
-
 }
