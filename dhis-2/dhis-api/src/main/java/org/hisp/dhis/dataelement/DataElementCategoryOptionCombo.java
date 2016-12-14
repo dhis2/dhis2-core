@@ -46,7 +46,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -147,32 +146,19 @@ public class DataElementCategoryOptionCombo
 
         return true;
     }
-
     @Override
     public String toString()
     {
-        StringBuilder builder = new StringBuilder( "[" + categoryCombo + ", [" );
-
-        Iterator<DataElementCategoryOption> iterator = categoryOptions.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            DataElementCategoryOption dataElementCategoryOption = iterator.next();
-
-            if ( dataElementCategoryOption != null )
-            {
-                builder.append( dataElementCategoryOption.toString() );
-            }
-
-            if ( iterator.hasNext() )
-            {
-                builder.append( ", " );
-            }
-        }
-
-        return builder.append( "]]" ).toString();
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"id\":\"" + getId() + "\", " +
+            "\"uid\":\"" + getUid() + "\", " +
+            "\"code\":\"" + getCode() + "\", " +
+            "\"categoryCombo\":" + categoryCombo + ", " +
+            "\"categoryOptions\":" + categoryOptions +
+            "}";
     }
-
+    
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
