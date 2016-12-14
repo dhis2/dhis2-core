@@ -42,6 +42,8 @@ public @interface Property
 {
     org.hisp.dhis.schema.PropertyType value() default org.hisp.dhis.schema.PropertyType.TEXT;
 
+    Value required() default Value.DEFAULT;
+
     Value persisted() default Value.DEFAULT;
 
     Value owner() default Value.DEFAULT;
