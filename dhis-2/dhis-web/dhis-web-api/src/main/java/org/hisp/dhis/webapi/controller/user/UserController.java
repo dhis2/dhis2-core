@@ -132,10 +132,12 @@ public class UserController
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
 
         String ou = options.get( "ou" );
+        boolean includeOrgUnitChildren = Boolean.valueOf( options.get( "includeChildren" ) );
 
         if ( ou != null )
         {
             params.setOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) );
+            params.setIncludeOrgUnitChildren( includeOrgUnitChildren );
         }
 
         if ( options.isManage() )
