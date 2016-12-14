@@ -50,6 +50,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.springframework.util.StringUtils;
 
@@ -550,15 +551,15 @@ public class UserCredentials
         this.userInfo = userInfo;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
+    @PropertyRange( min = 8, max = 35 )
     public String getPassword()
     {
         return password;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.PASSWORD )
-    @PropertyRange( min = 8, max = 35 )
     public void setPassword( String password )
     {
         this.password = password;
