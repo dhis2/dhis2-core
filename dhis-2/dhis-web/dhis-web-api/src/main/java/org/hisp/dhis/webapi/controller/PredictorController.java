@@ -48,7 +48,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -89,19 +88,19 @@ public class PredictorController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public void testPredictor(
         @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) String sourceId,
+        @RequestParam( required = false ) String ou,
         @RequestParam Date startDate,
         @RequestParam( required = false ) Date endDate,
         TranslateParams translateParams,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         Predictor predictor = predictorService.getPredictor( uid );
-        Collection<OrganisationUnit> sources = (sourceId == null) ? (null) :
-            Lists.newArrayList( organisationUnitService.getOrganisationUnit( sourceId ) );
+        List<OrganisationUnit> sources = ou == null ? null :
+            Lists.newArrayList( organisationUnitService.getOrganisationUnit( ou ) );
 
-        Collection<DataValue> results = (sources == null) ?
-            (predictorService.getPredictions( predictor, startDate, endDate )) :
-            (predictorService.getPredictions( predictor, sources, startDate, endDate ));
+        List<DataValue> results = (sources == null) ?
+            predictorService.getPredictions( predictor, startDate, endDate ) :
+            predictorService.getPredictions( predictor, sources, startDate, endDate );
 
         webMessageService.send( WebMessageUtils.ok( "Generated " + results.size() + " predictions" ), response, request );
     }

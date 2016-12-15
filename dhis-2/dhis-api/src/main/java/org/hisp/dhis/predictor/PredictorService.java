@@ -61,11 +61,11 @@ public interface PredictorService
 
     int getPredictorCount();
 
-    Collection<DataValue> getPredictions( Predictor predictor, Collection<OrganisationUnit> sources, Collection<Period> periods );
+    List<DataValue> getPredictions( Predictor predictor, Collection<OrganisationUnit> sources, Collection<Period> periods );
 
-    Collection<DataValue> getPredictions( Predictor predictor, Collection<OrganisationUnit> sources, Date start, Date end );
+    List<DataValue> getPredictions( Predictor predictor, Collection<OrganisationUnit> sources, Date start, Date end );
 
-    Collection<DataValue> getPredictions( Predictor predictor, Date start, Date end );
+    List<DataValue> getPredictions( Predictor predictor, Date start, Date end );
 
     int predict( Predictor prediector, Collection<OrganisationUnit> sources, Collection<Period> periods );
 
