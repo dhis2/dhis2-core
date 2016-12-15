@@ -28,10 +28,6 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import org.hibernate.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -40,6 +36,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Nguyen Hong Duc
@@ -72,6 +72,22 @@ public class HibernateUserStore
             "from User u " +
             "inner join u.userCredentials uc " +
             "left join u.groups g ";
+
+        if ( params.getOrganisationUnit() != null )
+        {
+            hql += "left join u.organisationUnits ou ";
+
+
+            if ( params.getIncludeOrgUnitChildren() )
+            {
+                hql += hlp.whereAnd() + " ou.path like :organisationUnitUid ";
+            }
+            else
+            {
+                hql += hlp.whereAnd() + " ou = :organisationUnit ";
+            }
+
+        }
 
         if ( params.getQuery() != null )
         {
@@ -141,11 +157,6 @@ public class HibernateUserStore
                 "and uc.restoreExpiry is not null " +
                 "and uc.restoreExpiry < current_timestamp() ";
         }
-                
-        if ( params.getOrganisationUnit() != null )
-        {
-            hql += hlp.whereAnd() + " :organisationUnit in elements(u.organisationUnits) ";
-        }
         
         if ( !count )
         {
@@ -197,7 +208,15 @@ public class HibernateUserStore
         
         if ( params.getOrganisationUnit() != null )
         {
-            query.setEntity( "organisationUnit", params.getOrganisationUnit() );
+            if ( params.getIncludeOrgUnitChildren() )
+            {
+                // Match self and all children of selv in the path column.
+                query.setString( "organisationUnitUid", "%/" + params.getOrganisationUnit().getUid() + "%" );
+            }
+            else
+            {
+                query.setEntity( "organisationUnit", params.getOrganisationUnit() );
+            }
         }
         
         if ( params.getFirst() != null )
