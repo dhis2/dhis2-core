@@ -309,7 +309,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             if ( User.class.isInstance( object ) )
             {
                 User user = (User) object;
-                List<ErrorReport> errorReports = userService.validateUser( bundle.getUser(), user );
+                List<ErrorReport> errorReports = userService.validateUser( user, bundle.getUser() );
 
                 if ( !errorReports.isEmpty() )
                 {
