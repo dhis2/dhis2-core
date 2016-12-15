@@ -44,12 +44,15 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DefaultSchemaValidator implements SchemaValidator
 {
+    private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2a?\\$\\d\\d\\$[./0-9A-Za-z]{53}" );
+
     @Autowired
     private SchemaService schemaService;
 
@@ -153,7 +156,7 @@ public class DefaultSchemaValidator implements SchemaValidator
             errorReports.add( new ErrorReport( klass, ErrorCode.E4004, property.getName(), value )
                 .setErrorKlass( property.getKlass() ) );
         }
-        else if ( PropertyType.PASSWORD == property.getPropertyType() && !ValidationUtils.passwordIsValid( value ) )
+        else if ( !BCRYPT_PATTERN.matcher( value ).matches() && PropertyType.PASSWORD == property.getPropertyType() && !ValidationUtils.passwordIsValid( value ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4005, property.getName(), value )
                 .setErrorKlass( property.getKlass() ) );
