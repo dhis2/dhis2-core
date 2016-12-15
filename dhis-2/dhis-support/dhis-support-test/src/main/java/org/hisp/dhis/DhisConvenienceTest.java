@@ -913,7 +913,6 @@ public abstract class DhisConvenienceTest
     /**
      * @param type      The PeriodType.
      * @param startDate The start date.
-     * @param endDate   The end date.
      */
     public static Period createPeriod( PeriodType type, Date startDate )
     {
@@ -1120,6 +1119,8 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
+     * @param writes the data element where the predictor stores its predictions
+     * @param combo the category option combo (or null) under which the predictors are stored
      * @param uniqueCharacter A unique character to identify the object.
      * @param expr The right side expression.
      * @param skipTest The skiptest expression
@@ -1130,7 +1131,8 @@ public abstract class DhisConvenienceTest
      * @param annualSampleCount How many years of past periods to sample.
      * @param sequentialSkipCount How many periods in the current year to skip
      */
-    public static Predictor createPredictor( DataElement writes, String uniqueCharacter, Expression expr,
+    public static Predictor createPredictor( DataElement writes, DataElementCategoryOptionCombo combo,
+        String uniqueCharacter, Expression expr,
         Expression skipTest, PeriodType periodType, OrganisationUnitLevel organisationUnitLevel, int sequentialSampleCount,
         int sequentialSkipCount, int annualSampleCount )
     {
@@ -1139,6 +1141,7 @@ public abstract class DhisConvenienceTest
         predictor.setAutoFields();
 
         predictor.setOutput( writes );
+        predictor.setOutputCombo( combo );
         predictor.setName( "Predictor" + uniqueCharacter );
         predictor.setDescription( "Description" + uniqueCharacter );
         predictor.setGenerator( expr );

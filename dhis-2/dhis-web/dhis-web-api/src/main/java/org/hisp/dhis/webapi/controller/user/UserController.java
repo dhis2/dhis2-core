@@ -249,9 +249,11 @@ public class UserController
             }
         }
 
+        User currentUser = currentUserService.getCurrentUser();
+
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, currentUserService.getCurrentUser(), request );
+            inviteUser( user, currentUser, request );
         }
     }
 
@@ -299,9 +301,11 @@ public class UserController
             }
         }
 
+        User currentUser = currentUserService.getCurrentUser();
+
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, currentUserService.getCurrentUser(), request );
+            inviteUser( user, currentUser, request );
         }
     }
 

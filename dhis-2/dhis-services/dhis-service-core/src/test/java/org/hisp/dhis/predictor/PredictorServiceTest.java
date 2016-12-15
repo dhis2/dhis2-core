@@ -28,11 +28,16 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.dataelement.DataElementCategoryCombo;
+import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -51,9 +56,6 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import java.util.Collection;
 import java.util.Date;
@@ -103,6 +105,12 @@ public class PredictorServiceTest
     private DataElement dataElementX;
 
     private DataElementCategoryOptionCombo defaultCombo;
+
+    private DataElementCategoryOptionCombo altCombo;
+
+    DataElementCategoryOption altCategoryOption;
+    DataElementCategory altDataElementCategory;
+    DataElementCategoryCombo altDataElementCategoryCombo;
 
     private Set<DataElement> dataElements;
 
@@ -177,7 +185,6 @@ public class PredictorServiceTest
         dataSetMonthly.addOrganisationUnit( sourceC );
         dataSetMonthly.addOrganisationUnit( sourceD );
         dataSetMonthly.addOrganisationUnit( sourceE );
-        dataSetMonthly.addOrganisationUnit( sourceF );
         dataSetMonthly.addOrganisationUnit( sourceG );
         
         dataSetService.addDataSet( dataSetMonthly );
@@ -186,8 +193,21 @@ public class PredictorServiceTest
 
         defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
+        altCategoryOption = new DataElementCategoryOption( "AltCategoryOption" );
+        categoryService.addDataElementCategoryOption( altCategoryOption );
+        altDataElementCategory = createDataElementCategory( 'A', altCategoryOption );
+        categoryService.addDataElementCategory( altDataElementCategory );
+
+        altDataElementCategoryCombo = createCategoryCombo( 'Y', altDataElementCategory );
+        categoryService.addDataElementCategoryCombo( altDataElementCategoryCombo );
+
+        altCombo = createCategoryOptionCombo( 'Z', altDataElementCategoryCombo, altCategoryOption );
+
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
+        optionCombos.add( altCombo );
+
+        categoryService.addDataElementCategoryOptionCombo( altCombo );
 
         expressionA = createExpression(
             "AVG(#{" + dataElementA.getUid() + "})+" + "1.5*STDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
@@ -236,19 +256,46 @@ public class PredictorServiceTest
                 return Double.valueOf( dv.getValue() );
             }
         }
-        
+
+        return null;
+    }
+
+
+    private Double getPredictionAt( Collection<DataValue> predictions, DataElementCategoryOptionCombo combo, OrganisationUnit unit, Period period )
+    {
+        for ( DataValue dv : predictions )
+        {
+            if ( ( unit == dv.getSource() ) && ( period.equals( dv.getPeriod() ) &&
+                ( combo == dv.getCategoryOptionCombo() )))
+            {
+                return Double.valueOf( dv.getValue() );
+            }
+        }
+
         return null;
     }
 
     private Double getDataValue( DataElement dataElement, OrganisationUnit source, Period period )
     {
         Collection<DataValue> results = dataValueService.getDataValues( Sets.newHashSet( dataElement ), Sets.newHashSet( period ), Sets.newHashSet( source ) );
-        
+
         for ( DataValue v : results )
         {
             return Double.valueOf( v.getValue() );
         }
-        
+
+        return null;
+    }
+
+    private Double getDataValue( DataElement dataElement, DataElementCategoryOptionCombo combo, OrganisationUnit source, Period period )
+    {
+        Collection<DataValue> results = dataValueService.getDataValues( source, period, Sets.newHashSet( dataElement ), combo );
+
+        for ( DataValue v : results )
+        {
+            return Double.valueOf( v.getValue() );
+        }
+
         return null;
     }
 
@@ -384,7 +431,8 @@ public class PredictorServiceTest
     @Test
     public void testSaveGetPredictor()
     {
-        Predictor predictor = createPredictor( dataElementX, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1,
+            6, 1, 0 );
         Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
         levels.add( orgUnitLevel1 );
 
@@ -405,9 +453,33 @@ public class PredictorServiceTest
     }
 
     @Test
+    public void testSaveGetPredictorAlt()
+    {
+        Predictor predictor = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1,
+            6, 1, 0 );
+        Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
+        levels.add( orgUnitLevel1 );
+
+        int id = predictorService.addPredictor( predictor );
+
+        predictor = predictorService.getPredictor( id );
+
+        assertEquals( predictor.getName(), "PredictorB" );
+        assertEquals( predictor.getDescription(), "DescriptionB" );
+        assertNotNull( predictor.getGenerator().getExpression() );
+        // TODO Need a good skipTest test
+        assertEquals( predictor.getPeriodType(), periodTypeMonthly );
+        assertEquals( predictor.getOutput(), dataElementX );
+        assertEquals( predictor.getAnnualSampleCount(), new Integer( 0 ) );
+        assertEquals( predictor.getSequentialSampleCount(), new Integer( 6 ) );
+        assertEquals( predictor.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictor.getOrganisationUnitLevels(), levels );
+    }
+
+    @Test
     public void testUpdatePredictor()
     {
-        Predictor predictor = createPredictor( dataElementX, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictor = createPredictor( dataElementX, altCombo, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         int id = predictorService.addPredictor( predictor );
 
@@ -435,8 +507,10 @@ public class PredictorServiceTest
     @Test
     public void testDeletePredictor()
     {
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         int idA = predictorService.addPredictor( predictorA );
         int idB = predictorService.addPredictor( predictorB );
@@ -462,8 +536,10 @@ public class PredictorServiceTest
     @Test
     public void testGetAllPredictors()
     {
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorB );
@@ -478,8 +554,10 @@ public class PredictorServiceTest
     @Test
     public void testGetPredictorByName()
     {
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, altCombo, "B", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         int id = predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorB );
@@ -517,9 +595,12 @@ public class PredictorServiceTest
         expressionService.addExpression( expression2 );
         expressionService.addExpression( expression3 );
 
-        Predictor predictorA = createPredictor( dataElementX, "A", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorB = createPredictor( dataElementX, "B", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
-        Predictor predictorC = createPredictor( dataElementX, "C", expressionA, expressionB, periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorA = createPredictor( dataElementX, altCombo, "A", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorB = createPredictor( dataElementX, defaultCombo, "B", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
+        Predictor predictorC = createPredictor( dataElementX, altCombo, "C", expressionA, expressionB,
+            periodTypeMonthly, orgUnitLevel1, 6, 1, 0 );
 
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorB );
@@ -536,7 +617,7 @@ public class PredictorServiceTest
         setupTestData();
         
         String auid = dataElementA.getUid();
-        Predictor p = createPredictor( dataElementX, "GetPredictionsSequential",
+        Predictor p = createPredictor( dataElementX, defaultCombo, "GetPredictionsSequential",
             new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
                 Sets.newHashSet( dataElementA ) ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
@@ -550,6 +631,7 @@ public class PredictorServiceTest
         assertEquals( 8, predictions.size() );
         assertEquals( new Double( 5.0 ), getPredictionAt( predictions, sourceA, makeMonth( 2001, 8 ) ) );
         assertEquals( new Double( 5.5 ), getPredictionAt( predictions, sourceA, makeMonth( 2001, 9 ) ) );
+        assertNull( getPredictionAt( predictions, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
     }
 
     @Test
@@ -559,7 +641,7 @@ public class PredictorServiceTest
         setupTestData();
         
         String auid = dataElementA.getUid();
-        Predictor p = createPredictor( dataElementX, "GetPredictionsSeasonal",
+        Predictor p = createPredictor( dataElementX, altCombo, "GetPredictionsSeasonal",
             new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
                 Sets.newHashSet( dataElementA ) ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
@@ -576,6 +658,8 @@ public class PredictorServiceTest
         assertEquals( new Double( 10.846601043114951 ), getPredictionAt( predictions, sourceA, makeMonth( 2004, 8 ) ) );
         // This value is derived from organisation units beneath the actual *sourceB*.
         assertEquals( new Double( 18.143692420072007 ), getPredictionAt( predictions, sourceB, makeMonth( 2004, 7 ) ) );
+
+        assertNull( getPredictionAt( predictions, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
     }
 
     @Test
@@ -585,7 +669,7 @@ public class PredictorServiceTest
         setupTestData();
         
         String auid = dataElementA.getUid();
-        Predictor p = createPredictor( dataElementX, "GetPredictionsSeasonalWithOutbreak",
+        Predictor p = createPredictor( dataElementX, altCombo, "GetPredictionsSeasonalWithOutbreak",
             createExpression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA" ),
             createExpression( "#{" + dataElementB.getUid() + "}", "outbreak" ), periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 
@@ -607,9 +691,9 @@ public class PredictorServiceTest
     public void testPredictSequential()
     {
         setupTestData();
-        
+
         String auid = dataElementA.getUid();
-        Predictor p = createPredictor( dataElementX, "PredictSequential",
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
             new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
                 Sets.newHashSet( dataElementA ) ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
@@ -618,6 +702,32 @@ public class PredictorServiceTest
 
         assertEquals( new Double( 5.5 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
         assertEquals( new Double( 5.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+        assertNull( getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
+    }
+
+    @Test
+    @Category( IntegrationTest.class )
+    public void testPredictSequentialAltCombo()
+    {
+        setupTestData();
+
+        String auid = dataElementA.getUid();
+        Predictor p = createPredictor( dataElementX, altCombo, "PredictSequential",
+            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
+                Sets.newHashSet( dataElementA ) ),
+            null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
+
+        predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) );
+
+        assertEquals( new Double( 5.5 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, sourceA, makeMonth( 2001, 8 ) ) );
+
+        assertEquals( new Double( 5.5 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( new Double( 5.0 ), getDataValue( dataElementX, altCombo, sourceA, makeMonth( 2001, 8 ) ) );
+
+        assertNull( getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+
     }
 }
+
 
