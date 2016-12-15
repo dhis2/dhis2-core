@@ -154,7 +154,7 @@ public class DefaultPredictorService
     }
 
     @Override
-    public Collection<DataValue> getPredictions( Predictor p, Date start, Date end )
+    public List<DataValue> getPredictions( Predictor p, Date start, Date end )
     {
         // Gets predictions in a date range
         List<OrganisationUnit> sources = new ArrayList<OrganisationUnit>();
@@ -170,7 +170,7 @@ public class DefaultPredictorService
     }
 
     @Override
-    public Collection<DataValue> getPredictions( Predictor p, Collection<OrganisationUnit> sources, Date start, Date end )
+    public List<DataValue> getPredictions( Predictor p, Collection<OrganisationUnit> sources, Date start, Date end )
     {
         Collection<Period> basePeriods = getPeriodsBetween( p.getPeriodType(), start, end );
 
@@ -178,7 +178,7 @@ public class DefaultPredictorService
     }
 
     @Override
-    public Collection<DataValue> getPredictions( Predictor predictor,
+    public List<DataValue> getPredictions( Predictor predictor,
         Collection<OrganisationUnit> sources,
         Collection<Period> periods )
     {
@@ -266,14 +266,6 @@ public class DefaultPredictorService
     {
         return expressionService.getExpressionValue
             ( expression, valueMap, constantMap, orgUnitCountMap, days, incompleteValues, aggregateMap );
-    }
-
-    private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues )
-    {
-        return expressionService.getExpressionValue
-            ( expression, valueMap, constantMap, orgUnitCountMap, days, incompleteValues );
     }
 
     private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,
