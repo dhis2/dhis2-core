@@ -94,6 +94,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
@@ -940,6 +941,15 @@ public abstract class DeletionHandler
     }
 
     public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup color )
+    {
+    }
+
+    public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
+    {
+        return null;
+    }
+
+    public void deletePushAnalysis( PushAnalysis pushAnalysis )
     {
     }
 }
