@@ -231,7 +231,7 @@ public class UserController
     {
         User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        if ( !validateInviteUser( user, response ) )
+        if ( !validateInviteUser( user ) )
         {
             return;
         }
@@ -244,7 +244,7 @@ public class UserController
     {
         User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        if ( !validateInviteUser( user, response ) )
+        if ( !validateInviteUser( user ) )
         {
             return;
         }
@@ -254,13 +254,13 @@ public class UserController
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postXmlInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postXmlInvites( HttpServletRequest request ) throws Exception
     {
         Users users = renderService.fromXml( request.getInputStream(), Users.class );
 
         for ( User user : users.getUsers() )
         {
-            if ( !validateInviteUser( user, response ) )
+            if ( !validateInviteUser( user ) )
             {
                 return;
             }
@@ -275,7 +275,7 @@ public class UserController
     }
 
     @RequestMapping( value = "/{id}" + INVITE_PATH, method = RequestMethod.POST )
-    public void resendInvite( @PathVariable String id, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void resendInvite( @PathVariable String id, HttpServletRequest request ) throws Exception
     {
         User user = userService.getUser( id );
 
@@ -305,13 +305,13 @@ public class UserController
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postJsonInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postJsonInvites( HttpServletRequest request ) throws Exception
     {
         Users users = renderService.fromJson( request.getInputStream(), Users.class );
 
         for ( User user : users.getUsers() )
         {
-            if ( !validateInviteUser( user, response ) )
+            if ( !validateInviteUser( user ) )
             {
                 return;
             }
@@ -554,10 +554,9 @@ public class UserController
     /**
      * Validates whether a user can be invited / created.
      *
-     * @param user     the user.
-     * @param response the response.
+     * @param user the user.
      */
-    private boolean validateInviteUser( User user, HttpServletResponse response ) throws WebMessageException
+    private boolean validateInviteUser( User user ) throws WebMessageException
     {
         if ( !validateCreateUser( user ) )
         {
