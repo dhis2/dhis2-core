@@ -36,7 +36,10 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,6 +66,12 @@ public class DefaultValidationNotificationService
 
     @Autowired
     private MessageService messageService;
+
+    @Autowired
+    private UserGroupService userGroupService;
+
+    @Autowired
+    private OrganisationUnitService orgUnitService;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -113,11 +122,19 @@ public class DefaultValidationNotificationService
 
         if ( recipient.isExternalRecipient() )
         {
-            return new Recipients( Sets.newHashSet() ); // TODO
+            final boolean isLimitToHierarchy = template.getNotifyUsersInHierarchyOnly();
+
+            Set<User> users = template.getRecipientUserGroups().stream()
+                .flatMap( ug -> ug.getMembers().stream() )
+                .distinct()
+                .filter( user -> isLimitToHierarchy ? orgUnitService.isInUserHierarchy(  ) )
+
+            return new Recipients( Maps.newHashMap() ); // TODO
         }
         else
         {
-            return new Recipients( Maps.newHashMap() ); // TODO
+
+            return new Recipients( Sets.newHashSet() ); // TODO
         }
     }
 
