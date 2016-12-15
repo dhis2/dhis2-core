@@ -35,10 +35,13 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.ImportTypeSummary;
+import org.hisp.dhis.dxf2.metadata2.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata2.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata2.feedback.ImportReport;
 import org.hisp.dhis.dxf2.utils.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
@@ -67,11 +70,13 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -119,6 +124,9 @@ public class UserController
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    private MetadataImportService metadataImportService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -196,12 +204,12 @@ public class UserController
     {
         User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        if ( !validateCreateUser( user, response ) )
+        if ( !validateCreateUser( user ) )
         {
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), createUser( user, IMPORT_PREHEAT ) );
+        renderService.toXml( response.getOutputStream(), createUser( user, currentUserService.getCurrentUser() ) );
     }
 
     @Override
@@ -210,12 +218,12 @@ public class UserController
     {
         User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        if ( !validateCreateUser( user, response ) )
+        if ( !validateCreateUser( user ) )
         {
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), createUser( user, IMPORT_PREHEAT ) );
+        renderService.toJson( response.getOutputStream(), createUser( user, currentUserService.getCurrentUser() ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -228,7 +236,7 @@ public class UserController
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), inviteUser( user, request, response, IMPORT_NO_PREHEAT ) );
+        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUserService.getCurrentUser(), request ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -241,10 +249,11 @@ public class UserController
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), inviteUser( user, request, response, IMPORT_NO_PREHEAT ) );
+        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUserService.getCurrentUser(), request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void postXmlInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         Users users = renderService.fromXml( request.getInputStream(), Users.class );
@@ -257,16 +266,11 @@ public class UserController
             }
         }
 
-        ImportOptions importOptions = IMPORT_NO_PREHEAT;
-
-        if ( users.getUsers().size() > 20 )
-        {
-            importOptions = IMPORT_PREHEAT;
-        }
+        User currentUser = currentUserService.getCurrentUser();
 
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response, importOptions );
+            inviteUser( user, currentUser, request );
         }
     }
 
@@ -300,6 +304,7 @@ public class UserController
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void postJsonInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         Users users = renderService.fromJson( request.getInputStream(), Users.class );
@@ -312,16 +317,11 @@ public class UserController
             }
         }
 
-        ImportOptions importOptions = IMPORT_NO_PREHEAT;
-
-        if ( users.getUsers().size() > 20 )
-        {
-            importOptions = IMPORT_PREHEAT;
-        }
+        User currentUser = currentUserService.getCurrentUser();
 
         for ( User user : users.getUsers() )
         {
-            inviteUser( user, request, response, importOptions );
+            inviteUser( user, currentUser, request );
         }
     }
 
@@ -338,7 +338,7 @@ public class UserController
             throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + uid ) );
         }
 
-        if ( !validateCreateUser( existingUser, response ) )
+        if ( !validateCreateUser( existingUser ) )
         {
             return;
         }
@@ -497,10 +497,9 @@ public class UserController
     /**
      * Validates whether the given user can be created.
      *
-     * @param user     the user.
-     * @param response the response.
+     * @param user the user.
      */
-    private boolean validateCreateUser( User user, HttpServletResponse response ) throws WebMessageException
+    private boolean validateCreateUser( User user ) throws WebMessageException
     {
         if ( !aclService.canCreate( currentUserService.getCurrentUser(), getEntityClass() ) )
         {
@@ -530,22 +529,26 @@ public class UserController
      *
      * @param user user object parsed from the POST request.
      */
-    private ImportSummary createUser( User user, ImportOptions importOptions ) throws Exception
+    private ImportReport createUser( User user, User currentUser ) throws Exception
     {
         user.getUserCredentials().getCogsDimensionConstraints().addAll(
-            currentUserService.getCurrentUser().getUserCredentials().getCogsDimensionConstraints() );
+            currentUser.getUserCredentials().getCogsDimensionConstraints() );
 
         user.getUserCredentials().getCatDimensionConstraints().addAll(
-            currentUserService.getCurrentUser().getUserCredentials().getCatDimensionConstraints() );
+            currentUser.getUserCredentials().getCatDimensionConstraints() );
 
-        ImportTypeSummary importTypeSummary = importService.importObject( currentUserService.getCurrentUser().getUid(), user, importOptions );
+        MetadataImportParams importParams = new MetadataImportParams();
+        importParams.setImportStrategy( ImportStrategy.CREATE );
+        importParams.addObject( user );
 
-        if ( importTypeSummary.isStatus( ImportStatus.SUCCESS ) && importTypeSummary.getImportCount().getImported() == 1 )
+        ImportReport importReport = metadataImportService.importMetadata( importParams );
+
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
             userGroupService.addUserToGroups( user, IdentifiableObjectUtils.getUids( user.getGroups() ) );
         }
 
-        return importTypeSummary;
+        return importReport;
     }
 
     /**
@@ -556,7 +559,7 @@ public class UserController
      */
     private boolean validateInviteUser( User user, HttpServletResponse response ) throws WebMessageException
     {
-        if ( !validateCreateUser( user, response ) )
+        if ( !validateCreateUser( user ) )
         {
             return false;
         }
@@ -583,23 +586,22 @@ public class UserController
     /**
      * Creates a user invitation and invites the user.
      *
-     * @param user     user object parsed from the POST request.
-     * @param response the response.
+     * @param user user object parsed from the POST request.
      */
-    private ImportSummary inviteUser( User user, HttpServletRequest request, HttpServletResponse response, ImportOptions importOptions ) throws Exception
+    private ImportReport inviteUser( User user, User currentUser, HttpServletRequest request ) throws Exception
     {
         RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty() ?
             RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
         securityService.prepareUserForInvite( user );
 
-        ImportSummary summary = createUser( user, importOptions );
+        ImportReport importReport = createUser( user, currentUser );
 
-        if ( summary.isStatus( ImportStatus.SUCCESS ) && summary.getImportCount().getImported() == 1 )
+        if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
             securityService.sendRestoreMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions );
         }
 
-        return summary;
+        return importReport;
     }
 }
