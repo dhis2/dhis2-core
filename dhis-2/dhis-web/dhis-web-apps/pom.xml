@@ -36,7 +36,7 @@
                 <artifactItem>
                   <groupId>org.hisp.dhis</groupId>
                   <artifactId>dhis-app-core-resource</artifactId>
-                  <version>2.25-SNAPSHOT</version>
+                  <version>2.26-SNAPSHOT</version>
                   <overWrite>true</overWrite>
                   <outputDirectory>${project.build.directory}/${project.artifactId}/dhis-web-core-resource</outputDirectory>
                   <includes>**/*.*</includes>
