@@ -48,7 +48,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -70,7 +69,7 @@ public class PredictorController
     private OrganisationUnitService organisationUnitService;
 
     @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_ADD')" )
     public void runPredictor(
         @PathVariable( "uid" ) String uid,
         @RequestParam Date startDate,
@@ -86,28 +85,28 @@ public class PredictorController
     }
 
     @RequestMapping( value = "/{uid}/dryRun", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void testPredictor(
         @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) String sourceId,
+        @RequestParam( required = false ) String ou,
         @RequestParam Date startDate,
         @RequestParam( required = false ) Date endDate,
         TranslateParams translateParams,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         Predictor predictor = predictorService.getPredictor( uid );
-        Collection<OrganisationUnit> sources = (sourceId == null) ? (null) :
-            Lists.newArrayList( organisationUnitService.getOrganisationUnit( sourceId ) );
+        List<OrganisationUnit> sources = ou == null ? null :
+            Lists.newArrayList( organisationUnitService.getOrganisationUnit( ou ) );
 
-        Collection<DataValue> results = (sources == null) ?
-            (predictorService.getPredictions( predictor, startDate, endDate )) :
-            (predictorService.getPredictions( predictor, sources, startDate, endDate ));
+        List<DataValue> results = sources == null ?
+            predictorService.getPredictions( predictor, startDate, endDate ) :
+            predictorService.getPredictions( predictor, sources, startDate, endDate );
 
         webMessageService.send( WebMessageUtils.ok( "Generated " + results.size() + " predictions" ), response, request );
     }
 
     @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictors(
         @RequestParam Date startDate,
         @RequestParam Date endDate,
