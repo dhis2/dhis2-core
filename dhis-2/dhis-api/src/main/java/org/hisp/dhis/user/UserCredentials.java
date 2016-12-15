@@ -546,7 +546,7 @@ public class UserCredentials
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
-    @PropertyRange( min = 8, max = 35 )
+    @PropertyRange( min = 8, max = 60 )
     public String getPassword()
     {
         return password;
