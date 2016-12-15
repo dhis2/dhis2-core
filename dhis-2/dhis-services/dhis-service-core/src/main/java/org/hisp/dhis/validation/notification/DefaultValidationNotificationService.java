@@ -28,7 +28,8 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import com.google.api.client.util.Maps;
+import com.google.api.client.util.Sets;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -43,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.function.Function.identity;
 
@@ -77,7 +79,7 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> results )
     {
-        Set<ValidationResult> validationResults = retainNotifiable( results );
+        Set<ValidationResult> validationResults = retainApplicableValidationResults( results );
 
         Map<ValidationResult, Map<ValidationNotificationTemplate, NotificationMessage>> resultsWithNotifications =
             validationResults.stream()
@@ -89,64 +91,41 @@ public class DefaultValidationNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Set<MessageBatch> createBatches( Map<ValidationResult, Map<ValidationNotificationTemplate, NotificationMessage>> resultsWithNotifications )
+    private Set<Message> createMessages( Map<ValidationResult, Map<ValidationNotificationTemplate, NotificationMessage>> resultsWithNotifications )
     {
-        for ( Map.Entry<ValidationResult, Map<ValidationNotificationTemplate, NotificationMessage>> entry : resultsWithNotifications.entrySet() )
+        return resultsWithNotifications.entrySet().stream()
+            .map( entry -> toMessageStream( entry.getKey(), entry.getValue() ) )
+            .flatMap( identity() )
+            .collect( Collectors.toSet() );
+    }
+
+    private Stream<Message> toMessageStream(
+        final ValidationResult validationResult, Map<ValidationNotificationTemplate, NotificationMessage> templateToNotificationMap )
+    {
+        return templateToNotificationMap.entrySet().stream()
+            .map( entry -> new Message( entry.getValue(), resolveRecipients( validationResult, entry.getKey() ) ) );
+    }
+
+    // TODO Implement actual resolving...
+    private Recipients resolveRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
+    {
+        ValidationNotificationRecipient recipient = template.getNotificationRecipient();
+
+        if ( recipient.isExternalRecipient() )
         {
-            // Unwrap... This is complicated
-            ValidationResult result = entry.getKey();
-            Map<ValidationNotificationTemplate, NotificationMessage> templateToMessageMap = entry.getValue();
-            Set<ValidationNotificationTemplate> templates = templateToMessageMap.keySet();
-
-            //templates.stream().forEach(  );
+            return new Recipients( Sets.newHashSet() ); // TODO
         }
-
-        return null;
-    }
-
-    private MessageBatch createBatch( final ValidationResult validationResult, Map<ValidationNotificationTemplate, NotificationMessage> templateToNotificationMap )
-    {
-        MessageBatch batch = new MessageBatch();
-
-        templateToNotificationMap.entrySet().forEach( entry -> {
-            ValidationNotificationTemplate template = entry.getKey();
-            NotificationMessage message = entry.getValue();
-
-            if ( template.getNotificationRecipient().isExternalRecipient() )
-            {
-                Pair<Set<String>, Set<String>> recipients = resolveExternalRecipients( validationResult, template );
-                batch.messages.add(new Message( message, recipients.getLeft(), recipients.getRight() ) );
-            }
-            else
-            {
-                Set<User> recipients = resolveUserRecipients( validationResult, template );
-                batch.dhisMessages.add( new DhisMessage( message, recipients ) );
-            }
-        } );
-
-        return batch;
-    }
-
-    private Recipients resolveRecipents( ValidationResult validationResult, ValidationNotificationTemplate template )
-    {
-        return new Recipients( resolveUserRecipients( template ), resolveExternalRecipients( validationResult, template ) );
-    }
-
-    private Set<User> resolveUserRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
-    {
-        template.getNotificationRecipient().isExternalRecipient()
-    }
-
-    private Pair<Set<String>, Set<String>> resolveExternalRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
-    {
-
+        else
+        {
+            return new Recipients( Maps.newHashMap() ); // TODO
+        }
     }
 
     /**
      * Retains all ValidationResults which are non-null, have a non-null ValidationRule and
      * have at least one ValidationNotificationTemplate.
      */
-    private static Set<ValidationResult> retainNotifiable( Set<ValidationResult> results )
+    private static Set<ValidationResult> retainApplicableValidationResults( Set<ValidationResult> results )
     {
         return results.stream()
             .filter( Objects::nonNull )
@@ -180,58 +159,28 @@ public class DefaultValidationNotificationService
         final Set<User> userRecipients;
         final Map<DeliveryChannel, String> externalRecipients;
 
-        Recipients( Set<User> userRecipients, Map<DeliveryChannel, String> externalRecipients )
+        Recipients( Set<User> userRecipients )
         {
             this.userRecipients = userRecipients;
+            this.externalRecipients = null;
+        }
+
+        Recipients( Map<DeliveryChannel, String> externalRecipients )
+        {
+            this.userRecipients = null;
             this.externalRecipients = externalRecipients;
-        }
-    }
-
-    private static class MessageBatch
-    {
-        Set<DhisMessage> dhisMessages = Sets.newHashSet();
-        Set<Message> messages = Sets.newHashSet();
-
-        MessageBatch() {}
-
-        MessageBatch( MessageBatch ...batches )
-        {
-            for ( MessageBatch batch : batches )
-            {
-                dhisMessages.addAll( batch.dhisMessages );
-                messages.addAll( batch.messages);
-            }
-        }
-
-        int messageCount()
-        {
-            return dhisMessages.size() + messages.size();
-        }
-    }
-
-    private static class DhisMessage
-    {
-        final NotificationMessage notification;
-        final Set<User> recipients;
-
-        public DhisMessage( NotificationMessage notification, Set<User> recipients )
-        {
-            this.notification = notification;
-            this.recipients = recipients;
         }
     }
 
     private static class Message
     {
-        final NotificationMessage notification;
-        final Set<String> phoneNumbers;
-        final Set<String> emailAddresses;
+        final NotificationMessage message;
+        final Recipients recipients;
 
-        public Message( NotificationMessage notification, Set<String> phoneNumbers, Set<String> emailAddresses )
+        public Message( NotificationMessage message, Recipients recipients )
         {
-            this.notification = notification;
-            this.phoneNumbers = phoneNumbers;
-            this.emailAddresses = emailAddresses;
+            this.message = message;
+            this.recipients = recipients;
         }
     }
 }
