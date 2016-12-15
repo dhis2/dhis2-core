@@ -187,12 +187,14 @@ public class UserController
     {
         User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        if ( !validateCreateUser( user, response ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !validateCreateUser( user, currentUser ) )
         {
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), createUser( user, currentUserService.getCurrentUser() ) );
+        renderService.toXml( response.getOutputStream(), createUser( user, currentUser ) );
     }
 
     @Override
@@ -201,12 +203,14 @@ public class UserController
     {
         User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        if ( !validateCreateUser( user, response ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !validateCreateUser( user, currentUser ) )
         {
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), createUser( user, currentUserService.getCurrentUser() ) );
+        renderService.toJson( response.getOutputStream(), createUser( user, currentUser ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -214,12 +218,14 @@ public class UserController
     {
         User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
-        if ( !validateInviteUser( user, response ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !validateInviteUser( user, currentUser ) )
         {
             return;
         }
 
-        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUserService.getCurrentUser(), request ) );
+        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -227,12 +233,14 @@ public class UserController
     {
         User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        if ( !validateInviteUser( user, response ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !validateInviteUser( user, currentUser ) )
         {
             return;
         }
 
-        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUserService.getCurrentUser(), request ) );
+        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -241,15 +249,15 @@ public class UserController
     {
         Users users = renderService.fromXml( request.getInputStream(), Users.class );
 
+        User currentUser = currentUserService.getCurrentUser();
+
         for ( User user : users.getUsers() )
         {
-            if ( !validateInviteUser( user, response ) )
+            if ( !validateInviteUser( user, currentUser ) )
             {
                 return;
             }
         }
-
-        User currentUser = currentUserService.getCurrentUser();
 
         for ( User user : users.getUsers() )
         {
@@ -259,7 +267,7 @@ public class UserController
 
     @RequestMapping( value = "/{id}" + INVITE_PATH, method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void resendInvite( @PathVariable String id, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void resendInvite( @PathVariable String id, HttpServletRequest request ) throws Exception
     {
         User user = userService.getUser( id );
 
@@ -293,15 +301,15 @@ public class UserController
     {
         Users users = renderService.fromJson( request.getInputStream(), Users.class );
 
+        User currentUser = currentUserService.getCurrentUser();
+
         for ( User user : users.getUsers() )
         {
-            if ( !validateInviteUser( user, response ) )
+            if ( !validateInviteUser( user, currentUser ) )
             {
                 return;
             }
         }
-
-        User currentUser = currentUserService.getCurrentUser();
 
         for ( User user : users.getUsers() )
         {
@@ -322,7 +330,9 @@ public class UserController
             throw new WebMessageException( WebMessageUtils.conflict( "User not found: " + uid ) );
         }
 
-        if ( !validateCreateUser( existingUser, response ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !validateCreateUser( existingUser, currentUser ) )
         {
             return;
         }
@@ -374,7 +384,7 @@ public class UserController
 
         userService.addUser( userReplica );
         userService.addUserCredentials( credentialsReplica );
-        userGroupService.addUserToGroups( userReplica, IdentifiableObjectUtils.getUids( existingUser.getGroups() ) );
+        userGroupService.addUserToGroups( userReplica, IdentifiableObjectUtils.getUids( existingUser.getGroups() ), currentUser );
 
         // ---------------------------------------------------------------------
         // Replicate user settings
@@ -411,7 +421,9 @@ public class UserController
             throw new WebMessageException( WebMessageUtils.conflict( getEntityName() + " does not exist: " + pvUid ) );
         }
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), users.get( 0 ) ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
@@ -419,7 +431,7 @@ public class UserController
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ) ) )
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
@@ -434,8 +446,7 @@ public class UserController
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
         {
             User user = userService.getUser( pvUid );
-
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ) );
+            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
 
         renderService.toXml( response.getOutputStream(), importReport );
@@ -452,7 +463,9 @@ public class UserController
             throw new WebMessageException( WebMessageUtils.conflict( getEntityName() + " does not exist: " + pvUid ) );
         }
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), users.get( 0 ) ) )
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
@@ -460,7 +473,7 @@ public class UserController
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ) ) )
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
@@ -476,7 +489,7 @@ public class UserController
         {
             User user = userService.getUser( pvUid );
 
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ) );
+            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
 
         renderService.toJson( response.getOutputStream(), importReport );
@@ -492,14 +505,14 @@ public class UserController
      * @param user     the user.
      * @param response the response.
      */
-    private boolean validateCreateUser( User user, HttpServletResponse response ) throws WebMessageException
+    private boolean validateCreateUser( User user, User currentUser ) throws WebMessageException
     {
-        if ( !aclService.canCreate( currentUserService.getCurrentUser(), getEntityClass() ) )
+        if ( !aclService.canCreate( currentUser, getEntityClass() ) )
         {
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( user.getGroups() ) ) )
+        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( user.getGroups() ), currentUser ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
@@ -508,7 +521,7 @@ public class UserController
 
         for ( String uid : uids )
         {
-            if ( !userGroupService.canAddOrRemoveMember( uid ) )
+            if ( !userGroupService.canAddOrRemoveMember( uid, currentUser ) )
             {
                 throw new WebMessageException( WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
             }
@@ -538,7 +551,7 @@ public class UserController
 
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
-            userGroupService.addUserToGroups( user, IdentifiableObjectUtils.getUids( user.getGroups() ) );
+            userGroupService.addUserToGroups( user, IdentifiableObjectUtils.getUids( user.getGroups() ), currentUser );
         }
 
         return importReport;
@@ -547,12 +560,11 @@ public class UserController
     /**
      * Validates whether a user can be invited / created.
      *
-     * @param user     the user.
-     * @param response the response.
+     * @param user the user.
      */
-    private boolean validateInviteUser( User user, HttpServletResponse response ) throws WebMessageException
+    private boolean validateInviteUser( User user, User currentUser ) throws WebMessageException
     {
-        if ( !validateCreateUser( user, response ) )
+        if ( !validateCreateUser( user, currentUser ) )
         {
             return false;
         }
