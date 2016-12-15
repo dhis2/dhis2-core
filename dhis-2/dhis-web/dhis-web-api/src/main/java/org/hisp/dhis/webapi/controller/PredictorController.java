@@ -69,7 +69,7 @@ public class PredictorController
     private OrganisationUnitService organisationUnitService;
 
     @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_ADD')" )
     public void runPredictor(
         @PathVariable( "uid" ) String uid,
         @RequestParam Date startDate,
@@ -85,7 +85,7 @@ public class PredictorController
     }
 
     @RequestMapping( value = "/{uid}/dryRun", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void testPredictor(
         @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) String ou,
@@ -98,7 +98,7 @@ public class PredictorController
         List<OrganisationUnit> sources = ou == null ? null :
             Lists.newArrayList( organisationUnitService.getOrganisationUnit( ou ) );
 
-        List<DataValue> results = (sources == null) ?
+        List<DataValue> results = sources == null ?
             predictorService.getPredictions( predictor, startDate, endDate ) :
             predictorService.getPredictions( predictor, sources, startDate, endDate );
 
@@ -106,7 +106,7 @@ public class PredictorController
     }
 
     @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictors(
         @RequestParam Date startDate,
         @RequestParam Date endDate,
