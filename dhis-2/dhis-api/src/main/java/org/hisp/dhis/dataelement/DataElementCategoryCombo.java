@@ -200,7 +200,9 @@ public class DataElementCategoryCombo
 
             for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
-                if ( optionCombo.getCategoryOptions() != null && optionCombo.getCategoryOptions().equals( categoryOptionSet ) )
+                Set<DataElementCategoryOption> persistedCategoryOptions = new HashSet<>( optionCombo.getCategoryOptions() );
+                
+                if ( categoryOptionSet.equals( persistedCategoryOptions ) )
                 {
                     list.add( optionCombo );
                     continue;

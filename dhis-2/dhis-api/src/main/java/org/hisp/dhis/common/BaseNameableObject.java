@@ -119,7 +119,7 @@ public class BaseNameableObject
     }
 
     // -------------------------------------------------------------------------
-    // hashCode and equals
+    // hashCode, equals and toString
     // -------------------------------------------------------------------------
 
     @Override
@@ -170,6 +170,23 @@ public class BaseNameableObject
         }
 
         return true;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "{" +
+            "\"class\":\"" + getClass() + "\", " +
+            "\"hashCode\":\"" + hashCode() + "\", " +            
+            "\"id\":\"" + getId() + "\", " +
+            "\"uid\":\"" + getUid() + "\", " +
+            "\"code\":\"" + getCode() + "\", " +
+            "\"name\":\"" + getName() + "\", " +
+            "\"shortName\":\"" + getShortName() + "\", " +
+            "\"description\":\"" + getDescription() + "\", " +
+            "\"created\":\"" + getCreated() + "\", " +
+            "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
+            "}";
     }
 
     // -------------------------------------------------------------------------
