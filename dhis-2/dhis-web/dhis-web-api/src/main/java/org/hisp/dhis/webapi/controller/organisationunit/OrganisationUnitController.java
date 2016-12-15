@@ -89,7 +89,7 @@ public class OrganisationUnitController
     {
         List<OrganisationUnit> objects = Lists.newArrayList();
 
-        User user = currentUserService.getCurrentUser();
+        User currentUser = currentUserService.getCurrentUser();
 
         boolean anySpecialPropertySet = ObjectUtils.anyIsTrue( options.isTrue( "userOnly" ),
             options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ), options.isTrue( "levelSorted" ) );
@@ -104,17 +104,17 @@ public class OrganisationUnitController
 
         if ( options.isTrue( "userOnly" ) )
         {
-            objects = new ArrayList<>( user.getOrganisationUnits() );
+            objects = new ArrayList<>( currentUser.getOrganisationUnits() );
         }
         else if ( options.isTrue( "userDataViewOnly" ) )
         {
-            objects = new ArrayList<>( user.getDataViewOrganisationUnits() );
+            objects = new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
         }
         else if ( options.isTrue( "userDataViewFallback" ) )
         {
-            if ( user.hasDataViewOrganisationUnit() )
+            if ( currentUser.hasDataViewOrganisationUnit() )
             {
-                objects = new ArrayList<>( user.getDataViewOrganisationUnits() );
+                objects = new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
             }
             else
             {
@@ -137,7 +137,7 @@ public class OrganisationUnitController
             params.setQuery( options.get( "query" ) );
             params.setLevel( options.getInt( "level" ) );
             params.setMaxLevels( options.getInt( "maxLevel" ) );
-            params.setParents( options.isTrue( "withinUserHierarchy" ) ? user.getOrganisationUnits() : Sets.newHashSet() );
+            params.setParents( options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits() : Sets.newHashSet() );
 
             objects = organisationUnitService.getOrganisationUnitsByQuery( params );
         }
@@ -147,6 +147,7 @@ public class OrganisationUnitController
         // ---------------------------------------------------------------------
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
+        query.setUser( currentUser );
         query.setDefaultOrder();
 
         if ( anySpecialPropertySet || anyQueryPropertySet )
@@ -302,8 +303,8 @@ public class OrganisationUnitController
         FeatureType featureType = organisationUnit.getFeatureType();
 
         // If featureType is anything other than Point, just assume MultiPolygon
-        
-        if ( !( featureType == FeatureType.POINT ) )
+
+        if ( !(featureType == FeatureType.POINT) )
         {
             featureType = FeatureType.MULTI_POLYGON;
         }
