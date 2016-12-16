@@ -19,7 +19,7 @@
 
     <property name="messageTemplate" column="messagetemplate" not-null="false" type="text" />
 
-    <property name="notifyUsersInHierarchyOnly" column="notifyusersinhierarchyonly" not-null="true" />
+    <property name="notifyUsersInHierarchyOnly" column="notifyusersinhierarchyonly" />
 
     <property name="notificationRecipient" column="notificationrecipienttype">
       <type name="org.hibernate.type.EnumType">
