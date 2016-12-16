@@ -229,11 +229,6 @@ public class Configuration
         this.selfRegistrationOrgUnit = selfRegistrationOrgUnit;
     }
 
-
-    /**
-     * Do not serialize.
-     */
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<String> getCorsWhitelist()

@@ -75,8 +75,6 @@ public class ObjectBundleParams
 
     private boolean skipValidation;
 
-    private String filename;
-
     private TaskId taskId;
 
     public ObjectBundleParams()
