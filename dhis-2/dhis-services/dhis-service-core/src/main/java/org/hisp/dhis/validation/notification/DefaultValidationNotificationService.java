@@ -28,23 +28,24 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Maps;
-import com.google.api.client.util.Sets;
-import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.email.Email;
+import org.hisp.dhis.email.EmailService;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.sms.SmsMessageBatchCreatorService;
+import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -52,10 +53,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.function.Function.identity;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -63,6 +63,9 @@ import static java.util.function.Function.identity;
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
+    private static final Predicate<ValidationResult> APPLICABLE_VALIDATION_RESULT_PREDICATE =
+        v -> Objects.nonNull( v ) && Objects.nonNull( v.getValidationRule() ) && !v.getValidationRule().getNotificationTemplates().isEmpty();
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -73,11 +76,11 @@ public class DefaultValidationNotificationService
     @Autowired
     private MessageService messageService;
 
-    @Autowired
-    private UserGroupService userGroupService;
+    @Autowired @Qualifier( "org.hisp.dhis.sms.config.SmsMessageSender" )
+    private MessageSender smsMessageSender;
 
-    @Autowired
-    private OrganisationUnitService orgUnitService;
+    @Autowired @Qualifier( "org.hisp.dhis.message.EmailMessageSender" )
+    private MessageSender emailMessageSender;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -94,25 +97,19 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> results )
     {
-        Set<ValidationResult> validationResults = retainApplicableValidationResults( results );
+        Set<Message> message =
+            results.stream()
+                .filter( APPLICABLE_VALIDATION_RESULT_PREDICATE )
+                .map( vr -> ImmutablePair.of( vr, renderNotificationMessages( vr ) ) )
+                .flatMap( pair -> toMessageStream( pair.getLeft(), pair.getRight() ) )
+                .collect( Collectors.toSet() );
 
-        Map<ValidationResult, Map<ValidationNotificationTemplate, NotificationMessage>> resultsWithNotifications =
-            validationResults.stream()
-                .map( validationResult -> ImmutablePair.of( validationResult, renderNotificationsForValidationResult( validationResult ) ) )
-                .collect( Collectors.toMap( Pair::getLeft, Pair::getRight ) );
+        dispatchMessages( message );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private Set<Message> createMessages( Map<ValidationResult, Map<ValidationNotificationTemplate, NotificationMessage>> resultsWithNotifications )
-    {
-        return resultsWithNotifications.entrySet().stream()
-            .map( entry -> toMessageStream( entry.getKey(), entry.getValue() ) )
-            .flatMap( identity() )
-            .collect( Collectors.toSet() );
-    }
 
     private Stream<Message> toMessageStream(
         final ValidationResult validationResult, Map<ValidationNotificationTemplate, NotificationMessage> templateToNotificationMap )
@@ -173,33 +170,70 @@ public class DefaultValidationNotificationService
                 .collect( Collectors.toSet() );
     }
 
-    /**
-     * Retains all ValidationResults which are non-null, have a non-null ValidationRule and
-     * have at least one ValidationNotificationTemplate.
-     */
-    private static Set<ValidationResult> retainApplicableValidationResults( Set<ValidationResult> results )
-    {
-        return results.stream()
-            .filter( Objects::nonNull )
-            .filter( vr -> Objects.nonNull( vr.getValidationRule() ) )
-            .filter( vr -> !vr.getValidationRule().getNotificationTemplates().isEmpty() )
-            .collect( Collectors.toSet() );
-    }
-
-    private Map<ValidationNotificationTemplate, NotificationMessage> renderNotificationsForValidationResult( ValidationResult validationResult )
+    private Map<ValidationNotificationTemplate, NotificationMessage> renderNotificationMessages( ValidationResult validationResult )
     {
         return validationResult.getValidationRule().getNotificationTemplates().stream()
-                .collect(
-                    Collectors.toMap(
-                        identity(),
-                        template -> render( validationResult, template )
-                    )
-                );
+                .collect( Collectors.toMap( t -> t, t -> notificationRenderer.render( validationResult, t ) ) );
     }
 
-    private NotificationMessage render( ValidationResult validationResult, ValidationNotificationTemplate template )
+    private void dispatchMessages( Set<Message> messages )
     {
-        return notificationRenderer.render( validationResult, template );
+        messages.forEach( this::sendMessage );
+    }
+
+    private void sendMessage( Message message )
+    {
+        if ( message.recipients.isExternal() )
+        {
+            sendExternalMessage( message );
+        }
+        else
+        {
+            sendDhisMessage( message );
+        }
+    }
+
+    private void sendDhisMessage( Message message )
+    {
+        messageService.sendMessage( message.message.getSubject(), message.message.getMessage(), null, message.recipients.userRecipients );
+    }
+
+    private void sendExternalMessage( Message message )
+    {
+        Map<DeliveryChannel, String> recipients = message.recipients.externalRecipients;
+
+        recipients.entrySet().forEach( entry -> {
+            if ( entry.getKey() == DeliveryChannel.EMAIL )
+            {
+                sendEmail( message );
+            }
+            else if ( entry.getKey() == DeliveryChannel.SMS )
+            {
+                sendSms( message );
+            }
+        });
+    }
+
+    // TODO Generify the two below methods into one.
+
+    // TODO Make sure email is valid etc.
+    private void sendEmail( Message notification )
+    {
+        emailMessageSender.sendMessage(
+            notification.message.getSubject(),
+            notification.message.getMessage(),
+            notification.recipients.externalRecipients.get( DeliveryChannel.EMAIL )
+        );
+    }
+
+    // TODO Make sure number is valid etc.
+    private void sendSms( Message notfication )
+    {
+        smsMessageSender.sendMessage(
+            "",
+            notfication.message.getMessage(),
+            notfication.recipients.externalRecipients.get( DeliveryChannel.SMS )
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -221,6 +255,11 @@ public class DefaultValidationNotificationService
         {
             this.userRecipients = null;
             this.externalRecipients = externalRecipients;
+        }
+
+        boolean isExternal()
+        {
+            return externalRecipients != null;
         }
     }
 
