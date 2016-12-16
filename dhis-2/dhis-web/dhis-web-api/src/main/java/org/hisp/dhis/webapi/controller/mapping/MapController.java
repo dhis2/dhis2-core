@@ -294,8 +294,6 @@ public class MapController
         {
             contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "map.png", attachment );
 
-
-
             ImageIO.write( image, "PNG", response.getOutputStream() );
         }
         else
