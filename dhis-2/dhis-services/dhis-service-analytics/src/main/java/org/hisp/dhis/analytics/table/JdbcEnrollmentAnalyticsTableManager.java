@@ -259,21 +259,23 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "CASE status WHEN 'COMPLETED' THEN enddate END" );
         AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" );
-        String longitudeSql = "( SELECT psi.longitude FROM programstageinstance psi " + 
+        String longitudeBaseSql = "( SELECT psi.longitude FROM programstageinstance psi " + 
             "JOIN programinstance pi " + 
             "ON psi.programinstanceid = pi.programinstanceid " + 
             "WHERE psi.executiondate is not null " + 
             "AND psi.deleted is not true " +
             "ORDER BY psi.executiondate desc " +
-            "LIMIT 1 ) as " + quote( "longitude" );
+            "LIMIT 1 )";
+        String longitudeSql = longitudeBaseSql + " as " + quote( "longitude" );
         AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, longitudeSql );
-        String latitudeSql = "( SELECT psi.latitude FROM programstageinstance psi " + 
+        String latitudeBaseSql = "( SELECT psi.latitude FROM programstageinstance psi " + 
             "JOIN programinstance pi " + 
             "ON psi.programinstanceid = pi.programinstanceid " + 
             "WHERE psi.executiondate is not null " + 
             "AND psi.deleted is not true " +
             "ORDER BY psi.executiondate desc " +
-            "LIMIT 1 ) as " + quote( "latitude" );
+            "LIMIT 1 )";
+        String latitudeSql = latitudeBaseSql + " as " + quote( "latitude" );
         AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, latitudeSql );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
@@ -283,7 +285,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         if ( databaseInfo.isSpatialSupport() )
         {
-            String alias = "(select ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)) as geom";
+            String alias = "(select ST_SetSRID(ST_MakePoint(" + longitudeBaseSql + ", " + latitudeBaseSql + "), 4326)) as geom";
             columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
         }
         
