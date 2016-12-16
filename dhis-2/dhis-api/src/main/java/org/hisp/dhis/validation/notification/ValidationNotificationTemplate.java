@@ -37,6 +37,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
@@ -115,6 +116,8 @@ public class ValidationNotificationTemplate
     }
 
     @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<DeliveryChannel> getDeliveryChannels()
     {
         return deliveryChannels;
@@ -142,6 +145,7 @@ public class ValidationNotificationTemplate
         this.validationRules = validationRules;
     }
 
+    @Property( required = Property.Value.TRUE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValidationNotificationRecipient getNotificationRecipient()
@@ -154,6 +158,7 @@ public class ValidationNotificationTemplate
         this.notificationRecipient = notificationRecipient;
     }
 
+    @Property( required = Property.Value.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getNotifyUsersInHierarchyOnly()
