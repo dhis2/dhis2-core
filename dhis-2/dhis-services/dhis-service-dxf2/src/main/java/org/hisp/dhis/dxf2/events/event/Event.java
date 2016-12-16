@@ -79,6 +79,8 @@ public class Event
 
     private Boolean followup;
 
+    private boolean deleted;
+
     private String created;
 
     private String lastUpdated;
@@ -347,6 +349,18 @@ public class Event
         this.completedDate = completedDate;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
+    {
+        this.deleted = deleted;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -384,6 +398,7 @@ public class Event
             ", attributeCategoryOptions=" + attributeCategoryOptions +
             ", completedBy=" + completedBy +
             ", completedDate=" + completedDate +
+            ", deleted=" + deleted +
             '}';
     }
 }
