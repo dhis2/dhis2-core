@@ -40,7 +40,6 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -57,8 +56,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import javax.annotation.Resource;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
