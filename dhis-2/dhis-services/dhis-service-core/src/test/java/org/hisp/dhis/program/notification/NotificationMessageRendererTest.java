@@ -179,8 +179,7 @@ public class NotificationMessageRendererTest
                 ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
                 Collections.singleton( DeliveryChannel.EMAIL ),
                 -2,
-                null
-            );
+                null );
     }
 
     @Test
