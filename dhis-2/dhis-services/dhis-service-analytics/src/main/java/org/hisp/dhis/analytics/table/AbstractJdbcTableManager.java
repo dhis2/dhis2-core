@@ -351,7 +351,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected void populateAndLog( String sql, String tableName )
     {
-        log.info( "Populate table: " + tableName + " SQL: " + sql );
+        log.debug( "Populate table: " + tableName + " SQL: " + sql );
 
         Timer timer = new SystemTimer().start();
         
