@@ -31,6 +31,7 @@ package org.hisp.dhis.validation.notification;
 import com.google.api.client.util.Maps;
 import com.google.api.client.util.Sets;
 import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -120,45 +121,52 @@ public class DefaultValidationNotificationService
             .map( entry -> new Message( entry.getValue(), resolveRecipients( validationResult, entry.getKey() ) ) );
     }
 
-    // TODO Implement actual resolving...
     private Recipients resolveRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
     {
         ValidationNotificationRecipient recipient = template.getNotificationRecipient();
 
         if ( recipient.isExternalRecipient() )
         {
-            return new Recipients( Sets.newHashSet() ); // TODO
+            return new Recipients( recipientsFromOrgUnit( validationResult, template ) );
         }
         else
         {
-            boolean isNotifyUserInHierarchyOnly = template.getNotifyUsersInHierarchyOnly();
-            Set<UserGroup> groups = template.getRecipientUserGroups();
-
-            return new Recipients( recipientsFromUserGroups( validationResult, groups, isNotifyUserInHierarchyOnly ) );
+            return new Recipients( recipientsFromUserGroups( validationResult, template ) );
         }
     }
 
-    private Map<DeliveryChannel, String> externalRecipients( final ValidationResult validationResult, ValidationNotificationTemplate template )
+    private static Map<DeliveryChannel, String> recipientsFromOrgUnit( final ValidationResult validationResult, ValidationNotificationTemplate template )
     {
         Map<DeliveryChannel, String> channelPrincipalMap = new EnumMap<>( DeliveryChannel.class );
+        Set<DeliveryChannel> channels = template.getDeliveryChannels();
 
         OrganisationUnit organisationUnit = validationResult.getOrgUnit();
 
         String email = organisationUnit.getEmail();
+
+        if ( StringUtils.isNotBlank( email ) && channels.contains( DeliveryChannel.EMAIL ) )
+        {
+            channelPrincipalMap.put( DeliveryChannel.EMAIL, email );
+        }
+
         String phone = organisationUnit.getPhoneNumber();
 
-        channelPrincipalMap.put( DeliveryChannel.EMAIL,  );
-        channelPrincipalMap.put( DeliveryChannel.SMS, null );
+        if ( StringUtils.isNotBlank( phone ) && channels.contains( DeliveryChannel.SMS ) )
+        {
+            channelPrincipalMap.put( DeliveryChannel.SMS, null );
+        }
 
         return channelPrincipalMap;
     }
 
-    private static Set<User> recipientsFromUserGroups( final ValidationResult validationResult, Set<UserGroup> userGroups, boolean limitToHierarchy )
+    private static Set<User> recipientsFromUserGroups( final ValidationResult validationResult, ValidationNotificationTemplate template )
     {
+        final boolean limitToHierarchy = template.getNotifyUsersInHierarchyOnly();
+
         final List<OrganisationUnit> ancestors =
             limitToHierarchy ? validationResult.getOrgUnit().getAncestors() : Collections.emptyList();
 
-        return userGroups.stream()
+        return template.getRecipientUserGroups().stream()
                 .flatMap( ug -> ug.getMembers().stream() )
                 .distinct()
                 .filter( user -> !limitToHierarchy || ancestors.contains( user.getOrganisationUnit() ) )
