@@ -82,6 +82,7 @@
 							<option value="due_date">$i18n.getString( "due_date" )</option>
 							<option value="incident_date">$i18n.getString( "incident_date" )</option>
 							<option value="enrollment_date">$i18n.getString( "enrollment_date" )</option>
+							<option value="enrollment_status">$i18n.getString( "enrollment_status" )</option>
 							<option value="current_date">$i18n.getString( "current_date" )</option>
 							<option value="completed_date">$i18n.getString( "completed_date" )</option>
 							<option value="value_count">$i18n.getString( "value_count" )</option>
@@ -232,11 +233,13 @@
 				<tr>
 					<td>
 						<select multiple id="filter-variables" name="filter-variables" size="7" style="width:100%" ondblclick="insertVariable('filter');" >
-							<option value="execution_date">$i18n.getString( "execution_date" )</option>
+							<option value="event_date">$i18n.getString( "event_date" )</option>
 							<option value="due_date">$i18n.getString( "due_date" )</option>
 							<option value="incident_date">$i18n.getString( "incident_date" )</option>
 							<option value="enrollment_date">$i18n.getString( "enrollment_date" )</option>
+							<option value="enrollment_status">$i18n.getString( "enrollment_status" )</option>
 							<option value="current_date">$i18n.getString( "current_date" )</option>
+							<option value="completed_date">$i18n.getString( "completed_date" )</option>
 							<option value="value_count">$i18n.getString( "value_count" )</option>
 							<option value="zero_pos_value_count">$i18n.getString( "zero_pos_value_count" )</option>
 						</select>
