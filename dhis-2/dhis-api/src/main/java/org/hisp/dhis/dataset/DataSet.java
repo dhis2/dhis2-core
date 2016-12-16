@@ -891,6 +891,7 @@ public class DataSet
                 notificationRecipients = dataSet.getNotificationRecipients();
                 startDate = dataSet.getStartDate();
                 endDate = dataSet.getEndDate();
+                workflow = dataSet.getWorkflow();
             }
             else if ( mergeMode.isMerge() )
             {
@@ -900,6 +901,7 @@ public class DataSet
                 notificationRecipients = dataSet.getNotificationRecipients() == null ? notificationRecipients : dataSet.getNotificationRecipients();
                 startDate = dataSet.getStartDate() == null ? startDate : dataSet.getStartDate();
                 endDate = dataSet.getEndDate() == null ? endDate : dataSet.getEndDate();
+                workflow = dataSet.getWorkflow() == null ? workflow : dataSet.getWorkflow();
             }
 
             openPeriods.clear();
