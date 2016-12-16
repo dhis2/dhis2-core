@@ -632,7 +632,8 @@ public class DateUtils
      * Creates a {@link java.util.Date} with the lowest available date
      * @return a Date
      */
-    public static Date getMinimumDate () {
+    public static Date getMinimumDate() 
+    {
         Calendar cal = Calendar.getInstance();
         cal.set( 1500, 0, 0 );
         return cal.getTime();
@@ -642,7 +643,8 @@ public class DateUtils
      * Creates a {@link java.util.Date} with the lowest available date
      * @return a Date
      */
-    public static Date getMaximumDate () {
+    public static Date getMaximumDate() 
+    {
         Calendar cal = Calendar.getInstance();
         cal.set( 2100, 0, 0 );
         return cal.getTime();
