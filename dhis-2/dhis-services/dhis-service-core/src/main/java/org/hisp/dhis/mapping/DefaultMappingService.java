@@ -121,6 +121,8 @@ public class DefaultMappingService
     @Override
     public void updateMap( Map map )
     {
+        map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
+        
         mapStore.update( map );
     }
 
