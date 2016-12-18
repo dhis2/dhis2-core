@@ -64,7 +64,8 @@ public enum ValueType
     USERNAME( String.class, false ),
     FILE_RESOURCE( String.class, false ),
     COORDINATE( Point.class, true ),
-    ORGANISATION_UNIT( OrganisationUnit.class, false );
+    ORGANISATION_UNIT( OrganisationUnit.class, false ),
+    AGE( Date.class, false );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.<ValueType>builder().add(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ).build();
