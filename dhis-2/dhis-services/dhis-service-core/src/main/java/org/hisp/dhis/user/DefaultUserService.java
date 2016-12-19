@@ -630,7 +630,7 @@ public class DefaultUserService
 
         user.getGroups().forEach( ug ->
         {
-            if ( !currentUser.canManage( ug ) )
+            if ( ! ( currentUser.canManage( ug ) || userGroupService.canAddOrRemoveMember( ug.getUid() ) ) )
             {
                 errors.add( new ErrorReport( UserGroup.class, ErrorCode.E3005, currentUser, ug ) );
             }
