@@ -189,12 +189,12 @@ dhis2.db.tmpl = {
     "<iframe id='plugin-${itemId}' style='width:100%;height:${dhis2.db.itemContentHeight-4}px;border:0' allowfullscreen src='${app.launchUrl}?dashboardItemId=${itemId}'></iframe>" +
     "</div></div></li>",
     
-    favoriteDescription : "<div id='favoriteDescription'>${description}</div>",
+    favoriteDescription : "<div id='favoriteDescription' style='white-space: pre-wrap;'>${description}</div>",
 
 	interpretation : "<a href='javascript:dhis2.db.${exploreFunction}( \"${favoriteId}\", \"${interpretationId}\" )'><div id='interpretationContainer'><div>" +
 	"<label class='interpretationUser'>${userDisplayName}</label>" +
-	"<label>${formatDate(lastUpdated, 'yy-MM-dd')}</label></div>" +
-	"<div><label>${text}</label></div>" +
+	"<label>${formatDate(lastUpdated, 'yyyy-MM-dd')}</label></div>" +
+	"<div><label style='white-space: pre-wrap;'>${ text }</label></div>" +
 	"<div class='likeComment'><label>" +
 	"<div style='padding:5px 0;'><i class='fa fa-thumbs-o-up'></i><span style='color:#3162C5;'>${numberLikes} people</span> like this. <span style='color:#3162C5;'>${numberComments} people</span> commented.</div>" +
 	"</label></div></div></a>",
@@ -1551,39 +1551,6 @@ dhis2.db.clearSelectedOrgUnits = function () {
 //------------------------------------------------------------------------------
 //Interpretation
 //------------------------------------------------------------------------------
-// dhis2.db.initInterpretationPopupEvents = function(){
-// 	var interpretationPopup = $('#interpretationPopup');
-	
-// 	// On mouse leave pop up wait 800 ms and hide panel. If mouse comes back into the panel, pop up will not be hidden 
-// 	interpretationPopup.mouseleave(function(){
-// 		dhis2.db.timer = setTimeout(function(){
-// 			dhis2.db.hideInterpretationPopup();
-// 	    }, 800);
-// 	});
-	
-// 	// Clear timeout so that pop up is not hidden if user comes back to the pop up
-// 	interpretationPopup.mouseover(function(){
-// 	    clearTimeout(dhis2.db.timer);
-// 	});
-// }
-
-// dhis2.db.verticalOffscreen = function(element, elementTop) {
-// 	var pageTop = $(window).scrollTop();
-// 	var pageBottom = pageTop + $(window).height();
-//   var elementBottom = elementTop + element.height();
-
-//   return !((pageTop < elementTop) && (pageBottom > elementBottom));
-// };
-// dhis2.db.horizontalOffscreen = function(element, elementLeft) {
-// 	var elementWidth = element.width();
-// 	var pageWidth = $(window).width();
-// 	return !(elementLeft + elementWidth < pageWidth);
-// };
-
-// dhis2.db.hideInterpretationPopup = function(){
-// 	$('#interpretationPopup').hide();
-// }
-
 dhis2.db.viewInterpretationPopup = function (itemId, id, type) {
 	// Set api url path and explore function depending on dashboard item type
 	var urlPath = '';
@@ -1615,7 +1582,6 @@ dhis2.db.viewInterpretationPopup = function (itemId, id, type) {
         var interpretationContainer = $('#interpretationContainer');
 		
 		// Remove any previous content
-		//interpretationPopup.empty();
 		dashboardItemInterpretationContainer.empty();
         interpretationContainer.empty();
 
@@ -1646,23 +1612,6 @@ dhis2.db.viewInterpretationPopup = function (itemId, id, type) {
 			dhis2.db.preOrAppend(interpretationContainer, interpretationContent, false);
 		}
 
-		// Check interpretation pop up is on screen
-		// interpretationPopup.css('top',event.pageY + 'px').css('left',event.pageX + 'px');
-		// if (dhis2.db.verticalOffscreen(interpretationPopup, event.pageY)){
-		// 	interpretationPopup.css('top',event.pageY - interpretationPopup.height() + 'px');
-		// }
-		// if (dhis2.db.horizontalOffscreen(interpretationPopup, event.pageX)){
-		// 	interpretationPopup.css('left',event.pageX - interpretationPopup.width() + 'px');
-		// }
-		
-		// If user does not enter pop up hide dialog after 4s
-		// dhis2.db.timer = setTimeout(function(){
-		// 	dhis2.db.hideInterpretationPopup();
-		// }, 4000);
-		
-		// Show interpretation pop up 
-		//interpretationPopup.show();
-
         dhis2.db.currentShareId = id;
         dhis2.db.currentShareType = type;
 
@@ -1670,7 +1619,6 @@ dhis2.db.viewInterpretationPopup = function (itemId, id, type) {
 
         $("#interpretationPopup").dialog({
             modal: true,
-            // width: dhis2.db.widthDouble,
             width: dhis2.db.getFullWidth(),
             resizable: false,
             title: title

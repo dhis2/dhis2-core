@@ -842,6 +842,7 @@ div#selectionTree
 #favoriteDescription {
   border-bottom: 1px solid grey;
   padding-bottom: 18px;
+  cursor: initial;
 }
 
 
@@ -857,10 +858,10 @@ div#selectionTree
 }
 
 #interpretationContainer,
-#interpretationContainer div,
+#interpretationContainer div:not(#favoriteDescription),
 #interpretationContainer label
 {
-  cursor:pointer !important;	
+  cursor:pointer !important;
 }
 
 #interpretationContainer.div{
