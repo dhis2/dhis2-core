@@ -2475,14 +2475,17 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     });
                 });
             },
-            processRuleEffectsForTrackedEntityAttributes: function(context, currentTei, teiOriginalValues, attributesById, optionSets ) {
+            processRuleEffectsForTrackedEntityAttributes: function(context, $translate, currentTei, teiOriginalValues, attributesById, optionSets ) {
                 var hiddenFields = {};
                 var assignedFields = {};
                 var hiddenSections = {};
                 var warningMessages = [];
+                var errorMessages = [];
+                var errorMessagesOnComplete = [];
+                var warningMessagesOnComplete = [];
 
                 angular.forEach($rootScope.ruleeffects[context], function (effect) {
-                    if (effect.ineffect) {
+                    if (effect.ineffect && (effect.trackedEntityAttribute || !effect.dataElement)) {
                         if (effect.action === "HIDEFIELD" && effect.trackedEntityAttribute) {
                             if (currentTei[effect.trackedEntityAttribute.id]) {
                                 //If a field is going to be hidden, but contains a value, we need to take action;
@@ -2500,26 +2503,41 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             }
 
                             hiddenFields[effect.trackedEntityAttribute.id] = true;
-                        } else if (effect.action === "SHOWERROR" && effect.trackedEntityAttribute) {
-                            if(effect.ineffect) {
+                        } else if (effect.action === "SHOWERROR") {
+                            var message = effect.content + (effect.data ? effect.data : "");
+                            if(effect.trackedEntityAttribute) {
                                 var dialogOptions = {
                                     headerText: $translate.instant('validation_error'),
-                                    bodyText: effect.content + (effect.data ? effect.data : "")
+                                    bodyText: message
                                 };
                                 DialogService.showDialog({}, dialogOptions);
                                 if( effect.trackedEntityAttribute ) {
                                     currentTei[effect.trackedEntityAttribute.id] = teiOriginalValues[effect.trackedEntityAttribute.id];
                                 }
                             }
-                        } else if (effect.action === "SHOWWARNING" && effect.trackedEntityAttribute) {
-                            if(effect.ineffect) {
-                                var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
-                                warningMessages.push(message);
-
-                                if( effect.trackedEntityAttribute ) {
-                                    warningMessages[effect.trackedEntityAttribute.id] = message;
-                                }
+                            else {
+                                errorMessages.push(message);
                             }
+                        } else if (effect.action === "SHOWWARNING") {
+                            var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
+                            warningMessages.push(message);
+
+                            if( effect.trackedEntityAttribute ) {
+                                warningMessages[effect.trackedEntityAttribute.id] = message;
+                            }
+                        }
+                        else if (effect.action === "ERRORONCOMPLETE") {
+                            var message = effect.content + (effect.data ? effect.data : "");
+                            if(effect.trackedEntityAttribute && angular.isDefined(attributesById[effect.trackedEntityAttribute.id])) {
+                               message = $translate.instant(attributesById[effect.trackedEntityAttribute.id].trackedEntityAttribute.displayName) + ": " + message;
+                            }
+                            errorMessagesOnComplete.push(message);
+                        } else if (effect.action === "WARNINGONCOMPLETE" ) {
+                            var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
+                            if(effect.trackedEntityAttribute && angular.isDefined(attributesById[effect.trackedEntityAttribute.id])) {
+                               message = $translate.instant(attributesById[effect.trackedEntityAttribute.id].trackedEntityAttribute.displayName) + ": " + message;
+                            }
+                            warningMessagesOnComplete.push(message);
                         }
                         else if (effect.action === "ASSIGN" && effect.trackedEntityAttribute) {
                             var processedValue = $filter('trimquotes')(effect.data);
@@ -2539,7 +2557,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         }
                     }
                 });
-                return {currentTei: currentTei, hiddenFields: hiddenFields, hiddenSections: hiddenSections, warningMessages: warningMessages, assignedFields: assignedFields};
+                return {currentTei: currentTei, hiddenFields: hiddenFields, hiddenSections: hiddenSections, warningMessages: warningMessages,warningMessagesOnComplete: warningMessagesOnComplete, assignedFields: assignedFields, errorMessages:errorMessages,errorMessagesOnComplete:errorMessagesOnComplete};
             },
             processRuleEffectsForEvent: function(eventId, currentEvent, currentEventOriginalValues, prStDes, optionSets ) {
                 var hiddenFields = {};
