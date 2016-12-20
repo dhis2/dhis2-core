@@ -28,17 +28,22 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -337,5 +342,81 @@ public class DefaultAclService implements AclService
         access.setDelete( canDelete( user, object ) );
 
         return access;
+    }
+
+    @Override
+    public <T extends BaseIdentifiableObject> void resetSharing( T object, User user )
+    {
+        if ( object == null )
+        {
+            return;
+        }
+
+        object.setPublicAccess( AccessStringHelper.DEFAULT );
+        object.setExternalAccess( false );
+
+        if ( object.getUser() == null )
+        {
+            object.setUser( user );
+        }
+
+        if ( canCreatePublic( user, object.getClass() ) )
+        {
+            if ( defaultPublic( object.getClass() ) )
+            {
+                object.setPublicAccess( AccessStringHelper.READ_WRITE );
+            }
+        }
+
+        object.getUserGroupAccesses().clear();
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> verifySharing( T object, User user )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        if ( object == null || !isShareable( object.getClass() ) )
+        {
+            return errorReports;
+        }
+
+        boolean canMakePublic = canCreatePublic( user, object.getClass() );
+        boolean canMakePrivate = canCreatePrivate( user, object.getClass() );
+        boolean canExternalize = canExternalize( user, object.getClass() );
+
+        if ( object.getExternalAccess() )
+        {
+            if ( !canExternalize )
+            {
+                errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
+            }
+
+            if ( !AccessStringHelper.isEnabled( object.getPublicAccess(), Permission.READ ) )
+            {
+                errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3007, user.getUsername(), object.getClass() ) );
+            }
+        }
+
+        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        {
+            if ( canMakePublic || canMakePrivate )
+            {
+                return errorReports;
+            }
+
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3009, user.getUsername(), object.getClass() ) );
+        }
+        else
+        {
+            if ( canMakePublic )
+            {
+                return errorReports;
+            }
+
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3008, user.getUsername(), object.getClass() ) );
+        }
+
+        return errorReports;
     }
 }

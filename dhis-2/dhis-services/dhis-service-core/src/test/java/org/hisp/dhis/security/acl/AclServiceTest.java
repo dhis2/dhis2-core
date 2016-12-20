@@ -278,4 +278,125 @@ public class AclServiceTest
 
         assertTrue( aclService.canUpdate( user, legendSet ) );
     }
+
+    @Test
+    public void testVerifyDataElementPrivateRW()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+
+        assertFalse( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyDataElementPrivate()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyDataElementPublicRW()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+
+        assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyDataElementPublic()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyReportTableCanExternalize()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD", "F_REPORTTABLE_EXTERNAL" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyReportTableCantExternalize()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyReportTableCanExternalizeNoExplicitAdd()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_EXTERNAL" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+    }
+
+    @Test
+    public void testResetSharingPropsPrivate()
+    {
+        User user = createAdminUser();
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+
+        aclService.resetSharing( reportTable, user );
+
+        assertTrue( AccessStringHelper.DEFAULT.equals( reportTable.getPublicAccess() ) );
+        assertFalse( reportTable.getExternalAccess() );
+        assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
+    }
+
+    @Test
+    public void testResetSharingPropsPublic()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+
+        aclService.resetSharing( reportTable, user );
+
+        assertTrue( AccessStringHelper.READ_WRITE.equals( reportTable.getPublicAccess() ) );
+        assertFalse( reportTable.getExternalAccess() );
+        assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
+    }
 }
