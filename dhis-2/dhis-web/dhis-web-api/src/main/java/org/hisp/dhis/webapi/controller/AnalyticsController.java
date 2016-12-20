@@ -375,13 +375,14 @@ public class AnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) IdScheme outputIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
         @RequestParam( required = false ) String userOrgUnit,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
-            false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
+            false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit );
 
         params = DataQueryParams.newBuilder( params )
             .withStartDate( startDate )
@@ -402,13 +403,14 @@ public class AnalyticsController
         @RequestParam( required = false ) boolean hierarchyMeta,
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) IdScheme outputIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
         @RequestParam( required = false ) String userOrgUnit,
         Model model,
         HttpServletResponse response ) throws Exception
     {
         DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
-            false, false, showHierarchy, false, displayProperty, null, inputIdScheme, false, null, null, userOrgUnit );
+            false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit );
 
         params = DataQueryParams.newBuilder( params )
             .withStartDate( startDate )
