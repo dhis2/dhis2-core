@@ -368,7 +368,6 @@ public class DefaultAclService implements AclService
             }
         }
 
-        object.getUserAccesses().clear();
         object.getUserGroupAccesses().clear();
     }
 
