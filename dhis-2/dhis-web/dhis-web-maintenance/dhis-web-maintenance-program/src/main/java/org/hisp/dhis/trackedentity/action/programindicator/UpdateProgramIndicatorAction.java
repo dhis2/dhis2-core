@@ -182,7 +182,6 @@ public class UpdateProgramIndicatorAction
         this.programIndicatorAnalyticsType = programIndicatorAnalyticsType;
     }
     
-
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------

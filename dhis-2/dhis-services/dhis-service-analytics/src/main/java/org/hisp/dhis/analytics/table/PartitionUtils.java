@@ -112,9 +112,6 @@ public class PartitionUtils
         return partitions.prunePartitions( validPartitions );
     }
     
-    /*
-     * Get Partitions, used for tables that does not have partitioning by year
-     */
     public static Partitions getPartitions( String tablePrefix, String tableSuffix, Set<String> validPartitions )
     {
         tablePrefix = StringUtils.trimToEmpty( tablePrefix );

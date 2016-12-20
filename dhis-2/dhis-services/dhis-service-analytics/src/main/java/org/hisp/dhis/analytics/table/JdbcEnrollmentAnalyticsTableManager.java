@@ -1,4 +1,5 @@
 package org.hisp.dhis.analytics.table;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -46,7 +47,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,6 +127,45 @@ public class JdbcEnrollmentAnalyticsTableManager
         jdbcTemplate.execute( sqlCreate );
     }
 
+    @Override
+    protected void populateTable( AnalyticsTable table )
+    {
+        final String tableName = table.getTempTableName();
+        final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
+
+        String sql = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getName() + ",";
+        }
+
+        sql = removeLast( sql, 1 ) + ") select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
+        }
+
+        sql = removeLast( sql, 1 ) + " ";
+
+        sql += "from programinstance pi " +
+            "inner join program pr on pi.programid=pr.programid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
+            "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
+            "where pr.programid=" + table.getProgram().getId() + " " + 
+            "and pi.organisationunitid is not null " +
+            "and pi.incidentdate is not null";
+
+        populateAndLog( sql, tableName );
+    }
 
     @Override
     public List<Integer> getDataYears( Date earliest )
@@ -179,38 +218,22 @@ public class JdbcEnrollmentAnalyticsTableManager
                 boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
                 //Only this has been changed so far:
-                String sql = "( SELECT " + select + " FROM trackedentitydatavalue tedv " + 
-                             "JOIN programstageinstance psi " + 
-                             "ON psi.programstageinstanceid = tedv.programstageinstanceid " + 
-                             "WHERE psi.executiondate is not null " + 
-                             "AND psi.deleted is not true " + 
-                             "AND psi.programinstanceid = pi.programinstanceid " +
-                             dataClause + 
-                             " AND tedv.dataelementid = " + dataElement.getId() + 
-                             " AND psi.programStageId = " + programStage.getId() +
-                             " ORDER BY psi.executiondate desc " +
-                             "LIMIT 1 ) as " + quote( programStage.getUid() + SEP + dataElement.getUid() );
-
+                String sql = "(select " + select + " FROM trackedentitydatavalue tedv " + 
+                     "JOIN programstageinstance psi " + 
+                     "ON psi.programstageinstanceid = tedv.programstageinstanceid " + 
+                     "WHERE psi.executiondate is not null " + 
+                     "AND psi.deleted is not true " + 
+                     "AND psi.programinstanceid = pi.programinstanceid " +
+                     dataClause + 
+                     " AND tedv.dataelementid = " + dataElement.getId() + 
+                     " AND psi.programStageId = " + programStage.getId() +
+                     " ORDER BY psi.executiondate desc " +
+                     "LIMIT 1) as " + quote( programStage.getUid() + SEP + dataElement.getUid() );
 
                 columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + SEP + dataElement.getUid() ), dataType, sql, skipIndex ) ); 
             }
         }
 
-        /* TODO: REIMPLEMENT
-        for ( DataElement dataElement : table.getProgram().getDataElementsWithLegendSet() )
-        {
-            String column = quote( dataElement.getUid() + PartitionUtils.SEP + dataElement.getLegendSet().getUid() );
-            String select = getSelectClause( dataElement.getValueType() );
-            
-            String sql = "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
-                "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " and l.endvalue > " + select + " " +
-                "and lsl.legendsetid=" + dataElement.getLegendSet().getId() + " and dv.programstageinstanceid=psi.programstageinstanceid " + 
-                "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
-                
-            columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
-        }*/
-
-        //Unchanged
         for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributes() )
         {
             String dataType = getColumnType( attribute.getValueType() );
@@ -223,60 +246,34 @@ public class JdbcEnrollmentAnalyticsTableManager
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
         }
-/*      TODO: REIMPLEMENT
-        for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributesWithLegendSet() )
-        {
-            String column = quote( attribute.getUid() + PartitionUtils.SEP + attribute.getLegendSet().getUid() );
-            String select = getSelectClause( attribute.getValueType() );
-            
-            String sql = "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
-                "inner join trackedentityattributevalue av on l.startvalue <= " + select + " and l.endvalue > " + select + " " +
-                "and lsl.legendsetid=" + attribute.getLegendSet().getId() + " and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
-            
-            columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
-        }*/
-
+        
         AnalyticsTableColumn pi = new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" );
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
-        //PSI columns fallback in enrollment analytics
+        
+        // PSI columns fallback in enrollment analytics
+        
         String executionDateSql = "( SELECT psi.executionDate FROM programstageinstance psi " + 
             "JOIN programinstance pi " + 
             "ON psi.programinstanceid = pi.programinstanceid " + 
             "WHERE psi.executiondate is not null " + 
             "AND psi.deleted is not true " +
             "ORDER BY psi.executiondate desc " +
-            "LIMIT 1 ) as " + quote( "executiondate" );
+            "LIMIT 1 ) as " + quote( "executiondate" );        
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
+        
         String dueDateSql = "( SELECT psi.duedate FROM programstageinstance psi " + 
             "JOIN programinstance pi " + 
             "ON psi.programinstanceid = pi.programinstanceid " + 
             "WHERE psi.duedate is not null " + 
             "AND psi.deleted is not true " +
             "ORDER BY psi.duedate desc " +
-            "LIMIT 1 ) as " + quote( "duedate" );
+            "LIMIT 1 ) as " + quote( "duedate" );        
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "CASE status WHEN 'COMPLETED' THEN enddate END" );
         AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" );
-        String longitudeBaseSql = "( SELECT psi.longitude FROM programstageinstance psi " + 
-            "JOIN programinstance pi " + 
-            "ON psi.programinstanceid = pi.programinstanceid " + 
-            "WHERE psi.executiondate is not null " + 
-            "AND psi.deleted is not true " +
-            "ORDER BY psi.executiondate desc " +
-            "LIMIT 1 )";
-        String longitudeSql = longitudeBaseSql + " as " + quote( "longitude" );
-        AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, longitudeSql );
-        String latitudeBaseSql = "( SELECT psi.latitude FROM programstageinstance psi " + 
-            "JOIN programinstance pi " + 
-            "ON psi.programinstanceid = pi.programinstanceid " + 
-            "WHERE psi.executiondate is not null " + 
-            "AND psi.deleted is not true " +
-            "ORDER BY psi.executiondate desc " +
-            "LIMIT 1 )";
-        String latitudeSql = latitudeBaseSql + " as " + quote( "latitude" );
-        AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, latitudeSql );
+        AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" );
+        AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
@@ -285,7 +282,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         if ( databaseInfo.isSpatialSupport() )
         {
-            String alias = "(select ST_SetSRID(ST_MakePoint(" + longitudeBaseSql + ", " + latitudeBaseSql + "), 4326)) as geom";
+            String alias = "(select ST_SetSRID(ST_MakePoint(pi.longitude, pi.latitude), 4326)) as geom";
             columns.add( new AnalyticsTableColumn( quote( "geom" ), "geometry(Point, 4326)", alias, false, "gist" ) );
         }
         
@@ -295,51 +292,5 @@ public class JdbcEnrollmentAnalyticsTableManager
         }
                 
         return columns;
-    }
-    
-    
-    @Override
-    protected void populateTable( AnalyticsTable table )
-    {
-
-        final String start = DateUtils.getMediumDateString( DateUtils.getMinimumDate() );
-        final String end = DateUtils.getMediumDateString( DateUtils.getMaximumDate() );
-        final String tableName = table.getTempTableName();
-        final String piEnrollmentDate = statementBuilder.getCastToDate( "pi.enrollmentdate" );
-
-        String sql = "insert into " + table.getTempTableName() + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getName() + ",";
-        }
-
-        sql = removeLast( sql, 1 ) + ") select ";
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getAlias() + ",";
-        }
-
-        sql = removeLast( sql, 1 ) + " ";
-
-        sql += "from programinstance pi " +
-            "inner join program pr on pi.programid=pr.programid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
-            "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
-            "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
-            "left join _dateperiodstructure dps on " + piEnrollmentDate + "=dps.dateperiod " +
-            "where pi.incidentdate >= '" + start + "' " + 
-            "and pi.incidentdate <= '" + end + "' " +
-            "and pr.programid=" + table.getProgram().getId() + " " + 
-            "and pi.organisationunitid is not null " +
-            "and pi.incidentdate is not null";
-
-        populateAndLog( sql, tableName );
-    }
+    }    
 }

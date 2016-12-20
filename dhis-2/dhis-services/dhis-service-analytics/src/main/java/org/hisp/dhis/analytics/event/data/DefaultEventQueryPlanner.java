@@ -161,6 +161,8 @@ public class DefaultEventQueryPlanner
         }
     }
     
+    // TODO use list of functional groupers and single loop
+    
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {

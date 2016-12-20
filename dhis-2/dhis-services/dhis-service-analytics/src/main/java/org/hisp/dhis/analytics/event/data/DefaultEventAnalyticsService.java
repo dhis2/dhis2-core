@@ -180,8 +180,7 @@ public class DefaultEventAnalyticsService
     
             for ( EventQueryParams query : queries )
             {
-                if( query.getProgramIndicator() != null && 
-                    ProgramIndicatorAnalyticsType.ENROLLMENT.equals( query.getProgramIndicator().getProgramIndicatorAnalyticsType() ) )
+                if ( query.hasEnrollmentProgramIndicatorDimension() )
                 {
                     enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
                 }

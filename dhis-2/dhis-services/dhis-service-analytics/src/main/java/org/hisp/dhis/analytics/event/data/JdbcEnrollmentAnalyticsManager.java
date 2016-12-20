@@ -251,10 +251,6 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 return "count(distinct tei)";
             }
-            else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
-            {
-                return "count(distinct pi)";
-            }
             else // EVENT
             {
                 return "count(pi)";

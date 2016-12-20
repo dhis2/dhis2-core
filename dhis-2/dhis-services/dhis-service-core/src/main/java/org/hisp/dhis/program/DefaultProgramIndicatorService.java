@@ -286,9 +286,7 @@ public class DefaultProgramIndicatorService
         return expression;
     }
 
-    private String getSubstitutedFunctionsAnalyticsSql( 
-        String expression, 
-        boolean ignoreMissingValues, 
+    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues, 
         ProgramIndicatorAnalyticsType programIndicatorAnalyticsType )
     {
         if ( expression == null )
@@ -376,9 +374,8 @@ public class DefaultProgramIndicatorService
 
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
             {                
-                String columnName = ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicatorAnalyticsType ) ? 
-                        statementBuilder.columnQuote( el1 + SEPARATOR_DB + el2 )
-                        : statementBuilder.columnQuote( el2 );
+                String columnName = ProgramIndicatorAnalyticsType.ENROLLMENT == programIndicatorAnalyticsType ? 
+                    statementBuilder.columnQuote( el1 + SEPARATOR_DB + el2 ) : statementBuilder.columnQuote( el2 );
                 
                 String de = ignoreMissingValues ? getIgnoreNullSql( columnName ) : columnName;
 

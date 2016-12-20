@@ -629,28 +629,6 @@ public class DateUtils
     }
     
     /**
-     * Creates a {@link java.util.Date} with the lowest available date
-     * @return a Date
-     */
-    public static Date getMinimumDate() 
-    {
-        Calendar cal = Calendar.getInstance();
-        cal.set( 1500, 0, 0 );
-        return cal.getTime();
-    }
-    
-    /**
-     * Creates a {@link java.util.Date} with the lowest available date
-     * @return a Date
-     */
-    public static Date getMaximumDate() 
-    {
-        Calendar cal = Calendar.getInstance();
-        cal.set( 2100, 0, 0 );
-        return cal.getTime();
-    }
-
-    /**
      * Return the current date minus the duration specified by the given string.
      *
      * @param duration the duration string, see {@link DateUtils.getDuration}.
