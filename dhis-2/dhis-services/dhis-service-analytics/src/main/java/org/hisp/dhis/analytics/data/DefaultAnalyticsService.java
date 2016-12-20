@@ -1056,6 +1056,8 @@ public class DefaultAnalyticsService
         
         addMetaData( params, grid );
         
+        applyIdScheme( params, grid );
+        
         return grid;
     }
     
