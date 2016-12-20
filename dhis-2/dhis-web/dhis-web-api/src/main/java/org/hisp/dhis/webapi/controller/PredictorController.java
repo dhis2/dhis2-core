@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -59,6 +61,8 @@ import java.util.List;
 public class PredictorController
     extends AbstractCrudController<Predictor>
 {
+    private static final Log log = LogFactory.getLog( PredictorController.class );
+
     @Autowired
     private PredictorService predictorService;
 
@@ -79,9 +83,18 @@ public class PredictorController
     {
         Predictor predictor = predictorService.getPredictor( uid );
 
-        int count = predictorService.predict( predictor, startDate, endDate );
+        try
+        {
+            int count = predictorService.predict( predictor, startDate, endDate );
 
-        webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
+            webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Unable to predict " + predictor.getName(), ex );
+
+            webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+        }
     }
 
     @RequestMapping( value = "/{uid}/dryRun", method = { RequestMethod.POST, RequestMethod.PUT } )
@@ -98,11 +111,19 @@ public class PredictorController
         List<OrganisationUnit> sources = ou == null ? null :
             Lists.newArrayList( organisationUnitService.getOrganisationUnit( ou ) );
 
-        List<DataValue> results = (sources == null) ?
-            predictorService.getPredictions( predictor, startDate, endDate ) :
-            predictorService.getPredictions( predictor, sources, startDate, endDate );
+        try
+        {
+            List<DataValue> results = (sources == null) ?
+                (predictorService.getPredictions( predictor, startDate, endDate )) :
+                (predictorService.getPredictions( predictor, sources, startDate, endDate ));
 
-        webMessageService.send( WebMessageUtils.ok( "Generated " + results.size() + " predictions" ), response, request );
+            webMessageService.send( WebMessageUtils.ok( "Generated " + results.size() + " predictions" ), response, request );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Unable to predict " + predictor.getName(), ex );
+            webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+        }
     }
 
     @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
@@ -119,7 +140,18 @@ public class PredictorController
 
         for ( Predictor predictor : allPredictors )
         {
-            count += predictorService.predict( predictor, startDate, endDate );
+            try
+            {
+                count += predictorService.predict( predictor, startDate, endDate );
+            }
+            catch ( Exception ex )
+            {
+                log.error( "Unable to predict " + predictor.getName(), ex );
+
+                webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+
+                return;
+            }
         }
 
         webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
