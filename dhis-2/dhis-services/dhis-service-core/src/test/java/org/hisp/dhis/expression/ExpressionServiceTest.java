@@ -468,8 +468,8 @@ public class ExpressionServiceTest
         assertNotNull( operands );
         assertEquals( 2, operands.size() );
 
-        DataElementOperand operandA = new DataElementOperand( deA.getUid(), coc.getUid() );
-        DataElementOperand operandB = new DataElementOperand( deB.getUid(), coc.getUid() );
+        DataElementOperand operandA = new DataElementOperand( deA, deA.getUid(), coc.getUid() );
+        DataElementOperand operandB = new DataElementOperand( deB, deB.getUid(), coc.getUid() );
 
         assertTrue( operands.contains( operandA ) );
         assertTrue( operands.contains( operandB ) );
