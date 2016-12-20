@@ -106,17 +106,6 @@ public class ValidationNotificationMessageRenderer
         return ValidationRuleTemplateVariable.fromVariableName( name );
     }
 
-//    @Override
-//    protected boolean isValidExpression( String expression, ExpressionType expressionType )
-//    {
-//        if ( ExpressionType.VARIABLE == expressionType )
-//        {
-//            return ValidationRuleTemplateVariable.isValidVariableName( expression );
-//        }
-//
-//        return isValidAttributeExpression( expression );
-//    }
-
     @Override
     protected Set<ExpressionType> getSupportedExpressionTypes()
     {

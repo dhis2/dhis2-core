@@ -89,24 +89,26 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected enum ExpressionType
     {
-        VARIABLE( VARIABLE_PATTERN ),
-        ATTRIBUTE( ATTRIBUTE_PATTERN );
+        VARIABLE( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
+        ATTRIBUTE( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
 
-        private final Pattern pattern;
+        private final Pattern expressionPattern;
+        private final Pattern contentPattern;
 
-        ExpressionType( Pattern pattern )
+        ExpressionType( Pattern expressionPattern, Pattern contentPattern )
         {
-            this.pattern = pattern;
+            this.expressionPattern = expressionPattern;
+            this.contentPattern = contentPattern;
         }
 
-        public Pattern getPattern()
+        public Pattern getExpressionPattern()
         {
-            return pattern;
+            return expressionPattern;
         }
 
-        boolean isValidExpression( String candidate )
+        boolean isValidExpressionContent( String content )
         {
-            return candidate != null && pattern.matcher( candidate ).matches();
+            return content != null && contentPattern.matcher( content ).matches();
         }
     }
 
@@ -130,9 +132,9 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Overrideable logic
     // -------------------------------------------------------------------------
 
-    protected boolean isValidExpression( String expression, ExpressionType expressionType )
+    protected boolean isValidExpressionContent( String content, ExpressionType type )
     {
-        return getSupportedExpressionTypes().contains( expressionType ) && expressionType.isValidExpression( expression );
+        return content != null && getSupportedExpressionTypes().contains( type ) && type.isValidExpressionContent( content );
     }
 
     // -------------------------------------------------------------------------
@@ -210,7 +212,7 @@ public abstract class BaseNotificationMessageRenderer<T>
     private static String replaceWithValues( String input, final Map<String, String> expressionToValueMap )
     {
         return Stream.of( ExpressionType.values() )
-            .map( ExpressionType::getPattern )
+            .map( ExpressionType::getExpressionPattern )
             .reduce(
                 input,
                 ( str, pattern ) -> {
@@ -239,8 +241,8 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     private Set<String> extractExpressions( String template, ExpressionType type )
     {
-        Map<Boolean, Set<String>> groupedExpressions = RegexUtils.getMatches( type.getPattern(), template, 1 )
-            .stream().collect( Collectors.groupingBy( expr -> isValidExpression( expr, type ), Collectors.toSet() ) );
+        Map<Boolean, Set<String>> groupedExpressions = RegexUtils.getMatches( type.getExpressionPattern(), template, 1 )
+            .stream().collect( Collectors.groupingBy( expr -> isValidExpressionContent( expr, type ), Collectors.toSet() ) );
 
         warnOfUnrecognizedExpressions( groupedExpressions.get( false ), type );
 
