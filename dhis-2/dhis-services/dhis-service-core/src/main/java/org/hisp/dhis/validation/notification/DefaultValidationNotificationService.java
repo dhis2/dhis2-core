@@ -225,12 +225,12 @@ public class DefaultValidationNotificationService
     }
 
     // TODO Make sure number is valid etc.
-    private void sendSms( Message notfication )
+    private void sendSms( Message notification )
     {
         smsMessageSender.sendMessage(
             "",
-            notfication.message.getMessage(),
-            notfication.recipients.externalRecipients.get( DeliveryChannel.SMS )
+            notification.message.getMessage(),
+            notification.recipients.externalRecipients.get( DeliveryChannel.SMS )
         );
     }
 
