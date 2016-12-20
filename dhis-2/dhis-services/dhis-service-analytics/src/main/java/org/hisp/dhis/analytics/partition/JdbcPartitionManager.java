@@ -50,9 +50,7 @@ public class JdbcPartitionManager
     
     private Set<String> analyticsPartitions = null;
     private Set<String> analyticsEventPartitions = null;
-    private Set<String> analyticsEnrollmentPartitions = null;
     
-
     @Autowired
     private JdbcTemplate jdbcTemplate;
   
