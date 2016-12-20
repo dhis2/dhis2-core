@@ -41,7 +41,7 @@
     </set>
 
     <set name="recipientUserGroups">
-      <key column="validationnotificationtemplateid" />
+      <key column="validationnotificationtemplateid" foreign-key="fk_validationnotificationtemplate_usergroup" not-null="false" />
       <one-to-many class="org.hisp.dhis.user.UserGroup" />
     </set>
 
