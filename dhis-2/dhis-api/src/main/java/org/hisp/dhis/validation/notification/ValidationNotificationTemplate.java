@@ -115,6 +115,7 @@ public class ValidationNotificationTemplate
         return messageTemplate;
     }
 
+    @PropertyRange( min = 1 )
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
