@@ -31,18 +31,12 @@ package org.hisp.dhis.validation.notification;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.email.Email;
-import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.sms.SmsMessageBatchCreatorService;
-import org.hisp.dhis.sms.config.SmsMessageSender;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,9 +57,6 @@ import java.util.stream.Stream;
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
-    private static final Predicate<ValidationResult> APPLICABLE_VALIDATION_RESULT_PREDICATE =
-        v -> Objects.nonNull( v ) && Objects.nonNull( v.getValidationRule() ) && !v.getValidationRule().getNotificationTemplates().isEmpty();
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -99,7 +90,9 @@ public class DefaultValidationNotificationService
     {
         Set<Message> message =
             results.stream()
-                .filter( APPLICABLE_VALIDATION_RESULT_PREDICATE )
+                .filter( Objects::nonNull )
+                .filter( v -> Objects.nonNull( v.getValidationRule() ) )
+                .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() )
                 .map( vr -> ImmutablePair.of( vr, renderNotificationMessages( vr ) ) )
                 .flatMap( pair -> toMessageStream( pair.getLeft(), pair.getRight() ) )
                 .collect( Collectors.toSet() );
