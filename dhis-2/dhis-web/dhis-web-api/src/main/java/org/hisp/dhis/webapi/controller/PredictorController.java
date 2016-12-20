@@ -113,7 +113,7 @@ public class PredictorController
 
         try
         {
-            Collection<DataValue> results = (sources == null) ?
+            List<DataValue> results = (sources == null) ?
                 (predictorService.getPredictions( predictor, startDate, endDate )) :
                 (predictorService.getPredictions( predictor, sources, startDate, endDate ));
 
