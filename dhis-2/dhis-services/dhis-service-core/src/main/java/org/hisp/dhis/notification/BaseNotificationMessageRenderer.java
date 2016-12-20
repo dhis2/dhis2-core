@@ -260,8 +260,8 @@ public abstract class BaseNotificationMessageRenderer<T>
     {
         if ( unrecognized != null && !unrecognized.isEmpty() )
         {
-            log.warn( String.format( "%d unrecognized expressions were ignored: %s",
-                unrecognized.size(), Arrays.toString( unrecognized.toArray() ) ) );
+            log.warn( String.format( "%d unrecognized expressions of type %s were ignored: %s",
+                unrecognized.size(), type.name(), Arrays.toString( unrecognized.toArray() ) ) );
         }
     }
 

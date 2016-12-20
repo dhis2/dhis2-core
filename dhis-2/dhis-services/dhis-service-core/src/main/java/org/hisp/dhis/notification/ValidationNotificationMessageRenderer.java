@@ -96,7 +96,7 @@ public class ValidationNotificationMessageRenderer
     @Override
     protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, ValidationResult result )
     {
-        // Attributes are not supported for ValidationRule...
+        // Attributes are not supported for validation notifications
         return Collections.emptyMap();
     }
 
