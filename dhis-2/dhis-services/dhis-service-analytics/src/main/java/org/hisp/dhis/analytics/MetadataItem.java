@@ -28,28 +28,49 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
- * Represents keys for the meta data part of analytics responses.
- *
- * @author Lars Helge Overland
- */
-public enum AnalyticsMetaDataKey
-{
-    ITEMS( "items" ),
-    NAMES( "names" ),
-    PAGER( "pager" ),
-    ORG_UNIT_HIERARCHY( "ouHierarchy" ),
-    ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" );
+ * Item part of meta data analytics response.
+ * 
+* @author Lars Helge Overland
+*/
+public class MetadataItem
+{    
+    private String name;
+    
+    private String legendSet;
 
-    private String key;
-
-    AnalyticsMetaDataKey( String key )
+    public MetadataItem( String name )
     {
-        this.key = key;
+        this.name = name;
+    }
+    
+    public MetadataItem( String name, String legendSet )
+    {
+        this.name = name;
+        this.legendSet = legendSet;
+    }
+    
+    @JsonProperty
+    public String getName()
+    {
+        return name;
     }
 
-    public String getKey()
+    public void setName( String name )
     {
-        return key;
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getLegendSet()
+    {
+        return legendSet;
+    }
+
+    public void setLegendSet( String legendSet )
+    {
+        this.legendSet = legendSet;
     }
 }

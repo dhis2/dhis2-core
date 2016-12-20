@@ -718,6 +718,12 @@ public class DefaultAnalyticsService
             Map<String, Object> metaData = new HashMap<>();
 
             // -----------------------------------------------------------------
+            // Items element
+            // -----------------------------------------------------------------
+
+            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );
+            
+            // -----------------------------------------------------------------
             // Names element
             // -----------------------------------------------------------------
 
