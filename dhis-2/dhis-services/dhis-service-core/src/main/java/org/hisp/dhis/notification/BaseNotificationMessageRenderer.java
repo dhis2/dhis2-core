@@ -35,7 +35,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -82,10 +81,10 @@ public abstract class BaseNotificationMessageRenderer<T>
     private static final Pattern VARIABLE_PATTERN  = Pattern.compile( "V\\{([a-z_]*)}" ); // Matches the variable in group 1
     private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( "A\\{([A-Za-z][A-Za-z0-9]{10})}" ); // Matches the uid in group 1
 
-    private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPR_TO_VALUE_RESOLVERS =
+    private ImmutableMap<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>> EXPRESSION_TO_VALUE_RESOLVERS =
         new ImmutableMap.Builder<ExpressionType, BiFunction<T, Set<String>, Map<String, String>>>()
-            .put( ExpressionType.VARIABLE, (entity, vars) -> resolveVariableValues( vars, entity ) )
-            .put( ExpressionType.ATTRIBUTE, (entity, vars) -> resolveAttributeValues( vars, entity ) )
+            .put( ExpressionType.VARIABLE, (entity, keys) -> resolveVariableValues( keys, entity ) )
+            .put( ExpressionType.ATTRIBUTE, (entity, keys) -> resolveAttributeValues( keys, entity ) )
             .build();
 
     protected enum ExpressionType
@@ -119,17 +118,9 @@ public abstract class BaseNotificationMessageRenderer<T>
     {
         final String collatedTemplate = template.getSubjectTemplate() + " " + template.getMessageTemplate();
 
-        Map<ExpressionType, Set<String>> expressionsByType =
-            Arrays.stream( ExpressionType.values() )
-                .collect( Collectors.toMap(
-                        Function.identity(),
-                        type -> extractExpressions( collatedTemplate, type )
-                    )
-                );
-
         Map<String, String> expressionToValueMap =
-            expressionsByType.entrySet().stream()
-                .map( entry -> resolveFromExpressions( entry.getValue(), entry.getKey(), entity ) )
+            extractExpressionsByType( collatedTemplate ).entrySet().stream()
+                .map( entry -> resolveValuesFromExpressions( entry.getValue(), entry.getKey(), entity ) )
                 .collect( HashMap::new, Map::putAll, Map::putAll );
 
         return createNotificationMessage( template, expressionToValueMap );
@@ -139,36 +130,46 @@ public abstract class BaseNotificationMessageRenderer<T>
     // Overrideable logic
     // -------------------------------------------------------------------------
 
-    protected boolean isValidAttributeExpression( String expression )
-    {
-        return expression != null && ATTR_CONTENT_PATTERN.matcher( expression ).matches();
-    }
-
     protected boolean isValidExpression( String expression, ExpressionType expressionType )
     {
         return getSupportedExpressionTypes().contains( expressionType ) && expressionType.isValidExpression( expression );
     }
 
-
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Gets a Map of variable resolver functions, keyed by the Template Variable.
+     */
     protected abstract ImmutableMap<TemplateVariable, Function<T, String>> getVariableResolvers();
 
+    /**
+     * Resolves values for the given attribute UIDs.
+     *
+     * @param attributeKeys the Set of attribute UIDs.
+     * @param entity the entity to resolve the values from/for.
+     * @return a Map of values, keyed by the corresponding attribute UID.
+     */
     protected abstract Map<String, String> resolveAttributeValues( Set<String> attributeKeys, T entity );
 
+    /**
+     * Converts a string to the TemplateVariable supported by the implementor.
+     */
     protected abstract TemplateVariable fromVariableName( String name );
 
+    /**
+     * Returns the set of ExpressionTypes supported by the implementor.
+     */
     protected abstract Set<ExpressionType> getSupportedExpressionTypes();
 
     // -------------------------------------------------------------------------
     // Internal methods
     // -------------------------------------------------------------------------
 
-    private Map<String, String> resolveFromExpressions( Set<String> expressions, ExpressionType type, T entity )
+    private Map<String, String> resolveValuesFromExpressions( Set<String> expressions, ExpressionType type, T entity )
     {
-        return EXPR_TO_VALUE_RESOLVERS.getOrDefault( type, (e, s) -> Maps.newHashMap() ).apply( entity, expressions );
+        return EXPRESSION_TO_VALUE_RESOLVERS.getOrDefault( type, (e, s) -> Maps.newHashMap() ).apply( entity, expressions );
     }
 
     private Map<String, String> resolveVariableValues( Set<String> variables, T entity )
@@ -176,7 +177,10 @@ public abstract class BaseNotificationMessageRenderer<T>
         return variables.stream()
             .collect( Collectors.toMap(
                 v -> v,
-                v -> getVariableResolvers().get( fromVariableName( v ) ).apply( entity )
+                v -> {
+                    Function<T, String> resolver = getVariableResolvers().get( fromVariableName( v ) );
+                    return resolver != null ? resolver.apply( entity ) : "";
+                }
             ) );
     }
 
@@ -225,6 +229,12 @@ public abstract class BaseNotificationMessageRenderer<T>
                 },
                 ( oldStr, newStr ) -> newStr
             );
+    }
+
+    private Map<ExpressionType, Set<String>> extractExpressionsByType( String template )
+    {
+        return Arrays.stream( ExpressionType.values() )
+            .collect( Collectors.toMap( Function.identity(), type -> extractExpressions( template, type ) ) );
     }
 
     private Set<String> extractExpressions( String template, ExpressionType type )
