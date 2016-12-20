@@ -367,7 +367,6 @@ public class AnalyticsController
     @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".json", method = RequestMethod.GET )
     public @ResponseBody Grid getRawDataJson(
         @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) boolean skipMeta,
@@ -381,7 +380,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, null, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
             false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit );
 
         params = DataQueryParams.newBuilder( params )
@@ -395,7 +394,6 @@ public class AnalyticsController
     @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".csv", method = RequestMethod.GET )
     public void getRawDataCsv(
         @RequestParam Set<String> dimension,
-        @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) boolean skipMeta,
@@ -409,7 +407,7 @@ public class AnalyticsController
         Model model,
         HttpServletResponse response ) throws Exception
     {
-        DataQueryParams params = dataQueryService.getFromUrl( dimension, filter, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
+        DataQueryParams params = dataQueryService.getFromUrl( dimension, null, null, null, null, skipMeta, skipData, false, false, hierarchyMeta,
             false, false, showHierarchy, false, displayProperty, outputIdScheme, inputIdScheme, false, null, null, userOrgUnit );
 
         params = DataQueryParams.newBuilder( params )
