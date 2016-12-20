@@ -45,6 +45,10 @@ public enum ErrorCode
     E3003( "User {0} is not allowed to grant users access to user role {1}." ),
     E3004( "User {0} is not allowed to grant users access to user groups." ),
     E3005( "User {0} is not allowed to grant users access to user group {1}." ),
+    E3006( "User {0} is not allowed to externalize objects of type {1}." ),
+    E3007( "User {0} is not allowed to externalize private objects of type {1}." ),
+    E3008( "User {0} is not allowed to make public objects of type {1}." ),
+    E3009( "User {0} is not allowed to make private objects of type {1}." ),
 
     /* Metadata Validation Errors */
     E4000( "Missing required property `{0}`." ),
