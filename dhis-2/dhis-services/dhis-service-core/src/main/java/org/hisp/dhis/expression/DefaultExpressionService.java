@@ -268,7 +268,7 @@ public class DefaultExpressionService
         if ( aggregateMap == null )
         {
             Matcher simpleMatch = OPERAND_PATTERN.matcher( expression.getExpression() );
-            
+
             if ( simpleMatch.matches() )
             {
                 return getSimpleExpressionValue( expression, simpleMatch, valueMap );
@@ -332,8 +332,25 @@ public class DefaultExpressionService
         {
             DataElementOperand deo = new DataElementOperand( elementId, comboId );
 
-            return valueMap.get( deo );
+            return getDeoValueFromValueMap( valueMap, deo );
         }
+    }
+
+    private Double getDeoValueFromValueMap( Map<? extends DimensionalItemObject, Double> valueMap, DataElementOperand match )
+    {
+        for ( DimensionalItemObject d : valueMap.keySet() )
+        {
+            if ( d instanceof DataElementOperand )
+            {
+                DataElementOperand deo = (DataElementOperand) d;
+
+                if ( deo.getOperandId().compareTo( match.getOperandId() ) == 0 )
+                {
+                    return valueMap.get( deo );
+                }
+            }
+        }
+        return null;
     }
 
     @Override
@@ -417,6 +434,8 @@ public class DefaultExpressionService
             {
                 DataElementOperand operand = DataElementOperand.getOperand( matcher.group() );
 
+                operand.setDataElement( dataElementService.getDataElement( operand.getDataElementId() ) );
+
                 if ( operand.getOptionComboId() != null )
                 {
                     operandsInExpression.add( operand );
@@ -433,7 +452,7 @@ public class DefaultExpressionService
     {
         Set<BaseDimensionalItemObject> results=new HashSet<BaseDimensionalItemObject>();
 
-        results.addAll( getDataElementsInExpression( expression ) );
+        results.addAll( getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, expression ) );
         results.addAll( getOperandsInExpression( expression ) );
 
         return results;

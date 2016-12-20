@@ -355,6 +355,8 @@ public class HibernateDataValueStore
             }
         }
 
+        log.debug("sumRecursiveDeflatedDataValues: " + result.size() + " results from \"" + sql + "\"");
+
         return result;
     }
 
