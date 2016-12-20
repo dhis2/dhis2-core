@@ -36,13 +36,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 * @author Lars Helge Overland
 */
 public class MetadataItem
-{
-    public static final String KEY = "items";
-    
+{    
     private String name;
     
     private String legendSet;
 
+    public MetadataItem( String name )
+    {
+        this.name = name;
+    }
+    
+    public MetadataItem( String name, String legendSet )
+    {
+        this.name = name;
+        this.legendSet = legendSet;
+    }
+    
     @JsonProperty
     public String getName()
     {
