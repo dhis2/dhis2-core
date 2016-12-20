@@ -195,6 +195,11 @@ public class DefaultValidationNotificationService
     {
         Map<DeliveryChannel, String> recipients = message.recipients.externalRecipients;
 
+        if ( recipients == null || recipients.isEmpty() )
+        {
+            return;
+        }
+
         recipients.entrySet().forEach( entry -> {
             if ( entry.getKey() == DeliveryChannel.EMAIL )
             {
