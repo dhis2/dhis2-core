@@ -378,7 +378,6 @@ public class AclServiceTest
 
         assertTrue( AccessStringHelper.DEFAULT.equals( reportTable.getPublicAccess() ) );
         assertFalse( reportTable.getExternalAccess() );
-        assertTrue( reportTable.getUserAccesses().isEmpty() );
         assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
     }
 
@@ -398,7 +397,6 @@ public class AclServiceTest
 
         assertTrue( AccessStringHelper.READ_WRITE.equals( reportTable.getPublicAccess() ) );
         assertFalse( reportTable.getExternalAccess() );
-        assertTrue( reportTable.getUserAccesses().isEmpty() );
         assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
     }
 }
