@@ -2500,15 +2500,21 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                             }
 
                             hiddenFields[effect.trackedEntityAttribute.id] = true;
-                        } else if (effect.action === "SHOWERROR" && effect.trackedEntityAttribute) {
+                        } else if (effect.action === "SHOWERROR") {
                             if(effect.ineffect) {
-                                var dialogOptions = {
-                                    headerText: $translate.instant('validation_error'),
-                                    bodyText: effect.content + (effect.data ? effect.data : "")
-                                };
-                                DialogService.showDialog({}, dialogOptions);
-                                if( effect.trackedEntityAttribute ) {
-                                    currentTei[effect.trackedEntityAttribute.id] = teiOriginalValues[effect.trackedEntityAttribute.id];
+                                var message = effect.content + (effect.data ? effect.data : "");
+                                if(effect.trackedEntityAttribute) {
+                                    var dialogOptions = {
+                                        headerText: $translate.instant('validation_error'),
+                                        bodyText: message
+                                    };
+                                    DialogService.showDialog({}, dialogOptions);
+                                    if( effect.trackedEntityAttribute ) {
+                                        currentTei[effect.trackedEntityAttribute.id] = teiOriginalValues[effect.trackedEntityAttribute.id];
+                                    }
+                                }
+                                else if(context === "REGISTRATION"){
+                                    errorMessages.push(message);
                                 }
                             }
                         } else if (effect.action === "SHOWWARNING" && effect.trackedEntityAttribute) {
@@ -2539,7 +2545,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         }
                     }
                 });
-                return {currentTei: currentTei, hiddenFields: hiddenFields, hiddenSections: hiddenSections, warningMessages: warningMessages, assignedFields: assignedFields};
+                return {currentTei: currentTei, hiddenFields: hiddenFields, hiddenSections: hiddenSections, warningMessages: warningMessages, assignedFields: assignedFields, errorMessages:errorMessages};
             },
             processRuleEffectsForEvent: function(eventId, currentEvent, currentEventOriginalValues, prStDes, optionSets ) {
                 var hiddenFields = {};
