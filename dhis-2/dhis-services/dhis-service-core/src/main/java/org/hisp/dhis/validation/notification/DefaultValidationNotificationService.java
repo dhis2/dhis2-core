@@ -93,8 +93,7 @@ public class DefaultValidationNotificationService
                 .filter( Objects::nonNull )
                 .filter( v -> Objects.nonNull( v.getValidationRule() ) )
                 .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() )
-                .map( vr -> ImmutablePair.of( vr, renderNotificationMessages( vr ) ) )
-                .flatMap( pair -> toMessageStream( pair.getLeft(), pair.getRight() ) )
+                .flatMap( v -> toMessageStream( v, renderNotificationMessages( v ) ) )
                 .collect( Collectors.toSet() );
 
         dispatchMessages( message );
