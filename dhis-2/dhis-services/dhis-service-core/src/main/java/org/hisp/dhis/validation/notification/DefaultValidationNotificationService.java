@@ -29,7 +29,6 @@ package org.hisp.dhis.validation.notification;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
@@ -47,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -88,14 +86,7 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> results )
     {
-        Set<Message> message =
-            results.stream()
-                .filter( Objects::nonNull )
-                .filter( v -> Objects.nonNull( v.getValidationRule() ) )
-                .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() )
-                .flatMap( v -> toMessageStream( v, renderNotificationMessages( v ) ) )
-                .collect( Collectors.toSet() );
-
+        Set<Message> message = createMessagesForValidationResults( results );
         dispatchMessages( message );
     }
 
@@ -103,11 +94,20 @@ public class DefaultValidationNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Stream<Message> toMessageStream(
-        final ValidationResult validationResult, Map<ValidationNotificationTemplate, NotificationMessage> templateToNotificationMap )
+    private Set<Message> createMessagesForValidationResults( Set<ValidationResult> results )
     {
-        return templateToNotificationMap.entrySet().stream()
-            .map( entry -> new Message( entry.getValue(), resolveRecipients( validationResult, entry.getKey() ) ) );
+        return results.stream()
+                .filter( Objects::nonNull )
+                .filter( v -> Objects.nonNull( v.getValidationRule() ) )
+                .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() )
+                .flatMap( this::renderNotificationMessages )
+                .collect( Collectors.toSet() );
+    }
+
+    private Stream<Message> renderNotificationMessages( final ValidationResult validationResult )
+    {
+        return validationResult.getValidationRule().getNotificationTemplates().stream()
+                .map( t -> new Message( notificationRenderer.render( validationResult, t ), resolveRecipients( validationResult, t ) ) );
     }
 
     private Recipients resolveRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
@@ -160,12 +160,6 @@ public class DefaultValidationNotificationService
                 .distinct()
                 .filter( user -> !limitToHierarchy || ancestors.contains( user.getOrganisationUnit() ) )
                 .collect( Collectors.toSet() );
-    }
-
-    private Map<ValidationNotificationTemplate, NotificationMessage> renderNotificationMessages( ValidationResult validationResult )
-    {
-        return validationResult.getValidationRule().getNotificationTemplates().stream()
-                .collect( Collectors.toMap( t -> t, t -> notificationRenderer.render( validationResult, t ) ) );
     }
 
     private void dispatchMessages( Set<Message> messages )
