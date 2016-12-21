@@ -2475,7 +2475,7 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                     });
                 });
             },
-            processRuleEffectsForTrackedEntityAttributes: function(context, $translate, currentTei, teiOriginalValues, attributesById, optionSets ) {
+            processRuleEffectsForTrackedEntityAttributes: function(context, currentTei, teiOriginalValues, attributesById, optionSets ) {
                 var hiddenFields = {};
                 var assignedFields = {};
                 var hiddenSections = {};
@@ -2529,13 +2529,13 @@ var d2Services = angular.module('d2Services', ['ngResource'])
                         else if (effect.action === "ERRORONCOMPLETE") {
                             var message = effect.content + (effect.data ? effect.data : "");
                             if(effect.trackedEntityAttribute && angular.isDefined(attributesById[effect.trackedEntityAttribute.id])) {
-                               message = $translate.instant(attributesById[effect.trackedEntityAttribute.id].trackedEntityAttribute.displayName) + ": " + message;
+                               message = $translate.instant(attributesById[effect.trackedEntityAttribute.id].displayName) + ": " + message;
                             }
                             errorMessagesOnComplete.push(message);
                         } else if (effect.action === "WARNINGONCOMPLETE" ) {
                             var message = effect.content + (angular.isDefined(effect.data) ? effect.data : "");
                             if(effect.trackedEntityAttribute && angular.isDefined(attributesById[effect.trackedEntityAttribute.id])) {
-                               message = $translate.instant(attributesById[effect.trackedEntityAttribute.id].trackedEntityAttribute.displayName) + ": " + message;
+                               message = $translate.instant(attributesById[effect.trackedEntityAttribute.id].displayName) + ": " + message;
                             }
                             warningMessagesOnComplete.push(message);
                         }
