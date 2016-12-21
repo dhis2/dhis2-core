@@ -122,9 +122,10 @@ public class MetadataImportParams
         return importStrategy;
     }
 
-    public void setImportStrategy( ImportStrategy importStrategy )
+    public MetadataImportParams setImportStrategy( ImportStrategy importStrategy )
     {
         this.importStrategy = importStrategy;
+        return this;
     }
 
     public AtomicMode getAtomicMode()
@@ -162,9 +163,10 @@ public class MetadataImportParams
         return importReportMode;
     }
 
-    public void setImportReportMode( ImportReportMode importReportMode )
+    public MetadataImportParams setImportReportMode( ImportReportMode importReportMode )
     {
         this.importReportMode = importReportMode;
+        return this;
     }
 
     public boolean isSkipSharing()
