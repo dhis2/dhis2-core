@@ -201,13 +201,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, HttpServletRequest request ) throws QueryParserException
+        HttpServletResponse response, HttpServletRequest request, User currentUser ) throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<Order> orders = orderParams.getOrders( getSchema() );
-
-        User user = currentUserService.getCurrentUser();
 
         if ( fields.isEmpty() )
         {
@@ -217,7 +215,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         WebOptions options = new WebOptions( rpParameters );
         WebMetadata metadata = new WebMetadata();
 
-        if ( !aclService.canRead( user, getEntityClass() ) )
+        if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
@@ -234,7 +232,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         postProcessEntities( entities );
         postProcessEntities( entities, options, rpParameters );
 
-        handleLinksAndAccess( entities, fields, false, user );
+        handleLinksAndAccess( entities, fields, false, currentUser );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -597,7 +595,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
             String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
-            
+
             webMessage.setHttpStatus( HttpStatus.CREATED );
             response.setHeader( ContextUtils.HEADER_LOCATION, location );
             T entity = manager.get( objectReport.getUid() );
@@ -640,7 +638,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
             String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
-            
+
             webMessage.setHttpStatus( HttpStatus.CREATED );
             response.setHeader( ContextUtils.HEADER_LOCATION, location );
             T entity = manager.get( objectReport.getUid() );
