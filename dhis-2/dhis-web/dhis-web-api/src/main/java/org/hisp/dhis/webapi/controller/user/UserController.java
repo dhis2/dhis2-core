@@ -240,7 +240,7 @@ public class UserController
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postJsonInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void postJsonInvites( HttpServletRequest request ) throws Exception
     {
         Users users = renderService.fromJson( request.getInputStream(), Users.class );
 
@@ -325,28 +325,6 @@ public class UserController
         RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
         securityService.sendRestoreMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions );
-    }
-
-    @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postJsonInvites( HttpServletRequest request ) throws Exception
-    {
-        Users users = renderService.fromJson( request.getInputStream(), Users.class );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        for ( User user : users.getUsers() )
-        {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
-        }
-
-        for ( User user : users.getUsers() )
-        {
-            inviteUser( user, currentUser, request );
-        }
     }
 
     @SuppressWarnings( "unchecked" )
