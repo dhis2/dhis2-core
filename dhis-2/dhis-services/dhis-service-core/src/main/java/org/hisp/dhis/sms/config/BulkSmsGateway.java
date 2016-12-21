@@ -33,10 +33,10 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.OutBoundMessage;
+import org.hisp.dhis.messagebatch.MessageResponseStatus;
+import org.hisp.dhis.messagebatch.OutBoundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 import org.hisp.dhis.sms.outbound.SubmissionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -83,7 +83,7 @@ public class BulkSmsGateway
     // -------------------------------------------------------------------------
 
     @Override
-    public List<MessageResponseStatus> sendBatch( MessageBatch smsBatch, SmsGatewayConfig config )
+    public List<MessageResponseStatus> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
         BulkSmsGatewayConfig bulkSmsConfig = (BulkSmsGatewayConfig) config;
 

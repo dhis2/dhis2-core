@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.outbound;
+package org.hisp.dhis.messagebatch;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -29,46 +29,13 @@ package org.hisp.dhis.sms.outbound;
  */
 
 import java.util.List;
-import java.util.ArrayList;
 
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.sms.OutBoundMessage;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.program.message.ProgramMessage;
 
 /**
- * Zubair <rajazubair.asghar@gmail.com>
- */
-
-@JacksonXmlRootElement( localName = "messageBatch" )
-public class MessageBatch
+* @author Zubair <rajazubair.asghar@gmail.com>
+*/
+public interface MessageBatchCreatorService
 {
-    private List<OutBoundMessage> Batch = new ArrayList<>();
-    
-    private DeliveryChannel deliveryChannel = DeliveryChannel.EMAIL;
-
-    public MessageBatch()
-    {
-        super();
-    }
-    
-    public List<OutBoundMessage> getBatch()
-    {
-        return Batch;
-    }
-
-    public void setBatch( List<OutBoundMessage> batch )
-    {
-        Batch = batch;
-    }
-
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return deliveryChannel;
-    }
-
-    public void setDeliveryChannel( DeliveryChannel deliveryChannel )
-    {
-        this.deliveryChannel = deliveryChannel;
-    }
+    OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages );
 }

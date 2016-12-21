@@ -33,10 +33,10 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.OutBoundMessage;
+import org.hisp.dhis.messagebatch.MessageResponseStatus;
+import org.hisp.dhis.messagebatch.OutBoundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.BufferedReader;
@@ -90,7 +90,7 @@ public class SimplisticHttpGetGateWay
         HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
 
     @Override
-    public List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig gatewayConfig )
+    public List<MessageResponseStatus> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         List<MessageResponseStatus> statuses = new ArrayList<>();
 

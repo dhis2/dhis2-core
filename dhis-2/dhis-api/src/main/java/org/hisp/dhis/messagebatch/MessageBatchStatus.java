@@ -1,4 +1,4 @@
-package org.hisp.dhis.message;
+package org.hisp.dhis.messagebatch;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,63 +28,11 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.messagebatch.MessageResponseStatus;
-import org.hisp.dhis.messagebatch.MessageResponseSummary;
-import org.hisp.dhis.messagebatch.OutboundMessageBatch;
-import org.hisp.dhis.user.User;
-
-import java.util.Set;
-
 /**
- * Mock implementation of MessageSender.
- *
- * TODO Implement methods.
+ * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class MockMessageSender
-    implements MessageSender
+
+public enum MessageBatchStatus
 {
-    @Override
-    public MessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
-        boolean forceSend )
-    {
-        // Do nothing
-        return null;
-    }
-
-    @Override
-    public boolean accept( Set<DeliveryChannel> channels )
-    {
-        return false;
-    }
-
-    @Override
-    public boolean isServiceReady()
-    {
-        return false;
-    }
-
-    @Override
-    public  MessageResponseStatus  sendMessage( String subject, String text, Set<String> recipient )
-    {
-        return null;
-    }
-
-    @Override
-    public  MessageResponseStatus  sendMessage( String subject, String text, String recipient )
-    {
-        return null;
-    }
-
-    @Override
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return null;
-    }
-
-    @Override
-    public MessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
-    {
-        return null;
-    }
+    COMPLETED, FAILED, PENDING
 }

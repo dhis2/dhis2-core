@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.messagebatch;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,67 +28,59 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Set;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
+* @author Zubair <rajazubair.asghar@gmail.com>
+*/
 
-@JacksonXmlRootElement( localName = "messageResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class MessageResponseStatus
+public class OutBoundMessage
 {
-    private String description;
+    private String text;
     
-    private boolean ok;
+    private Set<String> recipients;
+    
+    private String subject;
 
-    private Enum<?> responseObject;
-
-    public MessageResponseStatus()
+    public OutBoundMessage()
     {
     }
-
-    public MessageResponseStatus( String description, Enum<?> response, boolean ok )
+   
+    public OutBoundMessage( String text, Set<String> recipients, String subject )
     {
-        this.ok = ok;
-        this.responseObject = response;
-        this.description = description;
+        super();
+        this.text = text;
+        this.recipients = recipients;
+        this.subject = subject;
     }
 
-    @JsonProperty( value = "status" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Enum<?> getResponseObject()
+    public String getText()
     {
-        return responseObject;
+        return text;
     }
 
-    public void setResponseObject( Enum<?> response )
+    public void setText( String text )
     {
-        this.responseObject = response;
+        this.text = text;
     }
 
-    @JsonProperty( value = "description" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
+    public Set<String> getRecipients()
     {
-        return description;
+        return recipients;
     }
 
-    public void setDescription( String description )
+    public void setRecipients( Set<String> recipients )
     {
-        this.description = description;
+        this.recipients = recipients;
     }
 
-    public boolean isOk()
+    public String getSubject()
     {
-        return ok;
+        return subject;
     }
 
-    public void setOk( boolean ok )
+    public void setSubject( String subject )
     {
-        this.ok = ok;
+        this.subject = subject;
     }
 }

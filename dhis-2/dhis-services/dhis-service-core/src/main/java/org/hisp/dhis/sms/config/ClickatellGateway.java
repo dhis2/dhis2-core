@@ -3,11 +3,11 @@ package org.hisp.dhis.sms.config;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.sms.MessageResponseStatus;
+import org.hisp.dhis.messagebatch.MessageResponseStatus;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -97,7 +97,7 @@ public class ClickatellGateway
         return gatewayConfig != null && gatewayConfig instanceof ClickatellGatewayConfig;
     }
 
-    public List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig config )
+    public List<MessageResponseStatus> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
         return null;
     }

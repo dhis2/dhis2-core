@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.messagebatch;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo

@@ -32,7 +32,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.sms.MessageResponseStatus;
+import org.hisp.dhis.messagebatch.MessageResponseStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;

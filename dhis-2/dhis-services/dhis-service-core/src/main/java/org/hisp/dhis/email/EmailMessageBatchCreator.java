@@ -33,9 +33,9 @@ import java.util.List;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.sms.MessageBatchCreatorService;
-import org.hisp.dhis.sms.OutBoundMessage;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.MessageBatchCreatorService;
+import org.hisp.dhis.messagebatch.OutBoundMessage;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>
@@ -45,9 +45,9 @@ public class EmailMessageBatchCreator
     implements MessageBatchCreatorService
 {
     @Override
-    public MessageBatch getMessageBatch( List<ProgramMessage> programMessages )
+    public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
-        MessageBatch messageBatch = new MessageBatch();
+        OutboundMessageBatch messageBatch = new OutboundMessageBatch();
 
         List<OutBoundMessage> smsBatch = new ArrayList<>();
 

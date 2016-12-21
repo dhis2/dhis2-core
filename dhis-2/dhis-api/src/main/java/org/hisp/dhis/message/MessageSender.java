@@ -31,9 +31,9 @@ package org.hisp.dhis.message;
 import java.util.Set;
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.MessageResponseSummary;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.MessageResponseStatus;
+import org.hisp.dhis.messagebatch.MessageResponseSummary;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
 
 /**
@@ -59,7 +59,7 @@ public interface MessageSender
 
     MessageResponseStatus sendMessage( String subject, String text, String recipient );
    
-    MessageResponseSummary sendMessageBatch( MessageBatch batch );
+    MessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
 
     boolean accept( Set<DeliveryChannel> channels );
 

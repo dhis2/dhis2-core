@@ -39,11 +39,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.sms.MessageBatchStatus;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.MessageResponseSummary;
+import org.hisp.dhis.messagebatch.MessageBatchStatus;
+import org.hisp.dhis.messagebatch.MessageResponseStatus;
+import org.hisp.dhis.messagebatch.MessageResponseSummary;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -137,7 +137,7 @@ public class SmsMessageSender
     }
 
     @Override
-    public MessageResponseSummary sendMessageBatch( MessageBatch batch )
+    public MessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
@@ -259,7 +259,7 @@ public class SmsMessageSender
         }
     }
 
-    private MessageResponseSummary generateSummary( List<MessageResponseStatus> statuses, MessageBatch batch,
+    private MessageResponseSummary generateSummary( List<MessageResponseStatus> statuses, OutboundMessageBatch batch,
         SmsGateway smsGateway )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
@@ -313,7 +313,7 @@ public class SmsMessageSender
     }
 
     private MessageResponseSummary createMessageResponseSummary( String responseMessage, DeliveryChannel channel,
-        MessageBatchStatus batchStatus, MessageBatch batch )
+        MessageBatchStatus batchStatus, OutboundMessageBatch batch )
     {
         MessageResponseSummary summary = new MessageResponseSummary( responseMessage, channel, batchStatus );
         summary.setTotal( batch.getBatch().size() );

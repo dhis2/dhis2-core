@@ -41,11 +41,11 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.sms.MessageBatchStatus;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.MessageResponseSummary;
-import org.hisp.dhis.sms.OutBoundMessage;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.MessageBatchStatus;
+import org.hisp.dhis.messagebatch.MessageResponseStatus;
+import org.hisp.dhis.messagebatch.MessageResponseSummary;
+import org.hisp.dhis.messagebatch.OutBoundMessage;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.User;
@@ -267,7 +267,7 @@ public class EmailMessageSender
     }
 
     @Override
-    public MessageResponseSummary sendMessageBatch( MessageBatch batch )
+    public MessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
         List<MessageResponseStatus> statuses = new ArrayList<>();
 

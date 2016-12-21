@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.messagebatch.OutboundMessageBatchService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -42,11 +43,11 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.sms.BatchResponseStatus;
-import org.hisp.dhis.sms.MessageBatchCreatorService;
-import org.hisp.dhis.sms.MessageBatchStatus;
-import org.hisp.dhis.sms.MessageResponseSummary;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.messagebatch.BatchResponseStatus;
+import org.hisp.dhis.messagebatch.MessageBatchCreatorService;
+import org.hisp.dhis.messagebatch.MessageBatchStatus;
+import org.hisp.dhis.messagebatch.MessageResponseSummary;
+import org.hisp.dhis.messagebatch.OutboundMessageBatch;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -212,9 +213,9 @@ public class DefaultProgramMessageService
             populatedProgramMessages.add( setAttributesBasedOnStrategy( message ) );
         }
 
-        List<MessageBatch> batches = createBatches( populatedProgramMessages );
+        List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
-        for ( MessageBatch batch : batches )
+        for ( OutboundMessageBatch batch : batches )
         {
             for ( MessageSender messageSender : messageSenders )
             {
@@ -350,13 +351,13 @@ public class DefaultProgramMessageService
         }
     }
 
-    private List<MessageBatch> createBatches( List<ProgramMessage> programMessages )
+    private List<OutboundMessageBatch> createBatches( List<ProgramMessage> programMessages )
     {
-        List<MessageBatch> batches = new ArrayList<>();
+        List<OutboundMessageBatch> batches = new ArrayList<>();
 
         for ( MessageBatchCreatorService batchCreator : batchCreators )
         {
-            MessageBatch tmpBatch = batchCreator.getMessageBatch( programMessages );
+            OutboundMessageBatch tmpBatch = batchCreator.getMessageBatch( programMessages );
 
             if ( !tmpBatch.getBatch().isEmpty() )
             {

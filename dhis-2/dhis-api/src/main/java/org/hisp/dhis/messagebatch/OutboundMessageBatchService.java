@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.messagebatch;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,15 +28,10 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.sms.outbound.MessageBatch;
-
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
-public interface MessageBatchCreatorService
+ * @author Halvdan Hoem Grelland
+ */
+public interface OutboundMessageBatchService
 {
-    MessageBatch getMessageBatch( List<ProgramMessage> programMessages );
+    MessageResponseSummary sendBatch( OutboundMessageBatch outboundBatch );
 }

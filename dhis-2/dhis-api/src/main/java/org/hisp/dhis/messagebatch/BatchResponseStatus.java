@@ -1,11 +1,11 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.messagebatch;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * modification, are permi      tted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
@@ -28,59 +28,43 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.List;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
 
-public class OutBoundMessage
+@JacksonXmlRootElement( localName = "batchResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
+public class BatchResponseStatus
 {
-    private String text;
+    private List<MessageResponseSummary> summaries;
     
-    private Set<String> recipients;
-    
-    private String subject;
-
-    public OutBoundMessage()
+    public BatchResponseStatus( List<MessageResponseSummary> summaries )
     {
-    }
-   
-    public OutBoundMessage( String text, Set<String> recipients, String subject )
-    {
-        super();
-        this.text = text;
-        this.recipients = recipients;
-        this.subject = subject;
+        this.summaries = summaries;
     }
 
-    public String getText()
+    public boolean isOk()
     {
-        return text;
+        return summaries.stream().noneMatch( s -> s.getBatchStatus() != MessageBatchStatus.COMPLETED );
     }
 
-    public void setText( String text )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonProperty( value = "summaries" )
+    public List<MessageResponseSummary> getSummaries()
     {
-        this.text = text;
+        return summaries;
     }
 
-    public Set<String> getRecipients()
+    @Override
+    public String toString()
     {
-        return recipients;
-    }
-
-    public void setRecipients( Set<String> recipients )
-    {
-        this.recipients = recipients;
-    }
-
-    public String getSubject()
-    {
-        return subject;
-    }
-
-    public void setSubject( String subject )
-    {
-        this.subject = subject;
+        return MoreObjects.toStringHelper( this ).add( "summaries", summaries ).toString();
     }
 }
