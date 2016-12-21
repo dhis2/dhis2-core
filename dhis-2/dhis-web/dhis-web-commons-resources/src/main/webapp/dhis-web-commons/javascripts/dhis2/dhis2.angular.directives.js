@@ -131,7 +131,6 @@ var d2Directives = angular.module('d2Directives', [])
         link: function (scope, element, attrs) {
             var content = $templateCache.get(scope.template);
             content = $compile(content)(scope);
-            scope.content.heading = scope.content.value && scope.content.value.length > 20 ? scope.content.value.substring(0,20).concat('...') : scope.content.value;
             var options = {
                 content: content,
                 placement: scope.placement ? scope.placement : 'auto',
