@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics;
 import com.google.common.collect.Lists;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -47,6 +48,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElement;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Test;
 
@@ -61,6 +63,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.junit.Assert.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
 
 /**
  * @author Lars Helge Overland
@@ -412,6 +415,36 @@ public class AnalyticsUtilsTest
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
         assertEquals( 3, dvs.getDataValues().size() );
+    }
+    
+    @Test
+    public void testGetUidNameMapEventQuery()
+    {
+        ProgramStage psA = createProgramStage( 'A', 0 );
+        ProgramStage psB = createProgramStage( 'B', 0 );
+        Program prA = createProgram( 'A' );
+        prA.getProgramStages().add( psA );
+        prA.getProgramStages().add( psB );
+        DataElement deA = createDataElement( 'A' );
+        DataElement deB = createDataElement( 'A' );
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .addItem( new QueryItem( deA ) )
+            .addItem( new QueryItem( deB ) )
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) ) )
+            .withDisplayProperty( DisplayProperty.NAME )
+            .build();
+        
+        Map<String, String> map = AnalyticsUtils.getUidNameMap( params );
+        
+        assertEquals( psA.getName(), map.get( psA.getUid() ) );
+        assertEquals( psB.getName(), map.get( psB.getUid() ) );
+        assertEquals( prA.getName(), map.get( prA.getUid() ) );
+        assertEquals( deA.getName(), map.get( deA.getUid() ) );
+        assertEquals( deB.getName(), map.get( deB.getUid() ) );
+        assertEquals( ouA.getName(), map.get( ouA.getUid() ) );
     }
 
     @Test

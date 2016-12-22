@@ -33,6 +33,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.*;
@@ -46,6 +47,8 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -589,7 +592,104 @@ public class AnalyticsUtils
 
         return metaData;
     }
+    
+    /**
+     * Returns a mapping of identifiers and names for the given event query.
+     * 
+     * @param params the event query.
+     * @return a mapping of identifiers and names for the given event query.
+     */
+    public static Map<String, String> getUidNameMap( EventQueryParams params )
+    {
+        Map<String, String> map = new HashMap<>();
 
+        Program program = params.getProgram();
+        ProgramStage stage = params.getProgramStage();
+
+        map.put( program.getUid(), program.getDisplayProperty( params.getDisplayProperty() ) );
+
+        if ( stage != null )
+        {
+            map.put( stage.getUid(), stage.getName() );
+        }
+        else
+        {
+            for ( ProgramStage st : program.getProgramStages() )
+            {
+                map.put( st.getUid(), st.getName() );
+            }
+        }
+
+        if ( params.hasValueDimension() )
+        {
+            map.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
+        }
+        
+        map.putAll( getUidDisplayPropertyMap( params.getItems(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getItemFilters(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
+        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
+        
+        return map;
+    }
+    /**
+     * Returns a mapping between identifiers and display properties for the given 
+     * list of query items.
+     * 
+     * @param queryItems the list of query items.
+     * @param displayProperty the display property to use.
+     * @return a mapping between identifiers and display properties.
+     */
+    public static Map<String, String> getUidDisplayPropertyMap( List<QueryItem> queryItems, DisplayProperty displayProperty )
+    {
+        Map<String, String> map = new HashMap<>();
+        
+        for ( QueryItem item : queryItems )
+        {
+            map.put( item.getItem().getUid(), item.getItem().getDisplayProperty( displayProperty ) );
+        }
+        
+        return map;
+    }
+
+    /**
+     * Returns a mapping between identifiers and display properties for the given 
+     * list of dimensions.
+     * 
+     * @param dimensions the dimensions.
+     * @param hierarchyMeta indicates whether to include meta data about the
+     *        organisation unit hierarchy.
+     * @return a mapping between identifiers and display properties.
+     */
+    public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
+    {
+        Map<String, String> map = new HashMap<>();
+
+        for ( DimensionalObject dimension : dimensions )
+        {
+            boolean hierarchy = hierarchyMeta && DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() );
+
+            for ( DimensionalItemObject object : dimension.getItems() )
+            {
+                Set<DimensionalItemObject> objects = Sets.newHashSet( object );
+                                
+                if ( hierarchy )
+                {
+                    OrganisationUnit unit = (OrganisationUnit) object;
+                    
+                    objects.addAll( unit.getAncestors() );
+                }
+                
+                map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( objects, displayProperty ) );
+            }
+            
+            map.put( dimension.getDimension(), dimension.getDisplayProperty( displayProperty ) );
+        }
+
+        return map;
+    }
+    
     /**
      * returns true if the given period occurs less than maxYears before the current date.
      * @param period periods to check
