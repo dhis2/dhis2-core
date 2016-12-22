@@ -1,4 +1,4 @@
-package org.hisp.dhis.outboundmessage;
+package org.hisp.dhis.program.message;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -30,7 +30,7 @@ package org.hisp.dhis.outboundmessage;
 
 import java.util.List;
 
-import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>

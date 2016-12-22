@@ -43,7 +43,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.outboundmessage.MessageBatchCreatorService;
 import org.hisp.dhis.outboundmessage.MessageBatchStatus;
 import org.hisp.dhis.outboundmessage.MessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
