@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.io.Serializable;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -133,7 +134,7 @@ public class SmsMessageSender
             return new MessageResponseStatus( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
         }
 
-        return sendMessage( subject, text, normalizePhoneNumber( recipients ), defaultGateway );
+        return sendMessage( subject, text, normalizePhoneNumbers( recipients ), defaultGateway );
     }
 
     @Override
@@ -146,7 +147,7 @@ public class SmsMessageSender
             return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch );
         }
 
-        batch.getBatch().stream().forEach( item -> item.setRecipients( normalizePhoneNumber( item.getRecipients() ) ) );
+        batch.getBatch().stream().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
 
         for ( SmsGateway smsGateway : smsGateways )
         {
@@ -208,26 +209,9 @@ public class SmsMessageSender
         return new MessageResponseStatus( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
     }
 
-    private Set<String> normalizePhoneNumber( Set<String> to )
+    private Set<String> normalizePhoneNumbers( Set<String> to )
     {
-        Set<String> sendTo = new HashSet<>();
-
-        for ( String phoneNumber : to )
-        {
-            if ( phoneNumber.startsWith( "00" ) )
-            {
-                phoneNumber = phoneNumber.substring( 2, phoneNumber.length() );
-            }
-
-            if ( phoneNumber.startsWith( "+" ) )
-            {
-                phoneNumber = phoneNumber.substring( 1, phoneNumber.length() );
-            }
-
-            sendTo.add( phoneNumber );
-        }
-
-        return sendTo;
+        return to.stream().map( SmsUtils::removePhoneNumberPrefix ).collect( Collectors.toSet() );
     }
 
     private MessageResponseStatus handleResponse( MessageResponseStatus status )
