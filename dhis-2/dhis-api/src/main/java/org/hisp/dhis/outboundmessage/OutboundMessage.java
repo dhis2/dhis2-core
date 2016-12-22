@@ -41,10 +41,6 @@ public class OutboundMessage
     private Set<String> recipients;
     
     private String subject;
-
-    public OutboundMessage()
-    {
-    }
    
     public OutboundMessage( String text, Set<String> recipients, String subject )
     {
