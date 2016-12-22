@@ -209,29 +209,6 @@ public class DefaultProgramMessageService
 
         List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
-//        for ( OutboundMessageBatch batch : batches )
-//        {
-//            for ( MessageSender messageSender : messageSenders )
-//            {
-//                if ( messageSender.getDeliveryChannel() == batch.getDeliveryChannel() )
-//                {
-//                    if ( messageSender.isConfigured() )
-//                    {
-//                        log.info( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
-//
-//                        summaries.add( messageSender.sendMessageBatch( batch ) );
-//                    }
-//                    else
-//                    {
-//                        log.error( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel() );
-//
-//                        summaries.add( new OutboundMessageResponseSummary( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel(),
-//                            messageSender.getDeliveryChannel(), OutboundMessageBatchStatus.FAILED ) );
-//                    }
-//                }
-//            }
-//        }
-
         List<OutboundMessageResponseSummary> summaries = messageBatchService.sendBatches( batches );
 
         BatchResponseStatus status = new BatchResponseStatus( summaries );
