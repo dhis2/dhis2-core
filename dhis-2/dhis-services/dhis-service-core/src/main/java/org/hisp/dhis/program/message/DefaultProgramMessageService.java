@@ -30,21 +30,20 @@ package org.hisp.dhis.program.message;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -90,9 +89,12 @@ public class DefaultProgramMessageService
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
+//
+//    @Autowired
+//    private List<MessageSender> messageSenders;
 
     @Autowired
-    private List<MessageSender> messageSenders;
+    private OutboundMessageBatchService messageBatchService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -201,8 +203,6 @@ public class DefaultProgramMessageService
     @Override
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
-        List<OutboundMessageResponseSummary> summaries = new ArrayList<>();
-
         List<ProgramMessage> populatedProgramMessages = new ArrayList<>();
 
         for ( ProgramMessage message : programMessages )
@@ -212,28 +212,30 @@ public class DefaultProgramMessageService
 
         List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
-        for ( OutboundMessageBatch batch : batches )
-        {
-            for ( MessageSender messageSender : messageSenders )
-            {
-                if ( messageSender.getDeliveryChannel() == batch.getDeliveryChannel() )
-                {
-                    if ( messageSender.isConfigured() )
-                    {
-                        log.info( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
+//        for ( OutboundMessageBatch batch : batches )
+//        {
+//            for ( MessageSender messageSender : messageSenders )
+//            {
+//                if ( messageSender.getDeliveryChannel() == batch.getDeliveryChannel() )
+//                {
+//                    if ( messageSender.isConfigured() )
+//                    {
+//                        log.info( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
+//
+//                        summaries.add( messageSender.sendMessageBatch( batch ) );
+//                    }
+//                    else
+//                    {
+//                        log.error( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel() );
+//
+//                        summaries.add( new OutboundMessageResponseSummary( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel(),
+//                            messageSender.getDeliveryChannel(), OutboundMessageBatchStatus.FAILED ) );
+//                    }
+//                }
+//            }
+//        }
 
-                        summaries.add( messageSender.sendMessageBatch( batch ) );
-                    }
-                    else
-                    {
-                        log.error( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel() );
-
-                        summaries.add( new OutboundMessageResponseSummary( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel(),
-                            messageSender.getDeliveryChannel(), OutboundMessageBatchStatus.FAILED ) );
-                    }
-                }
-            }
-        }
+        List<OutboundMessageResponseSummary> summaries = messageBatchService.sendBatches( batches );
 
         BatchResponseStatus status = new BatchResponseStatus( summaries );
         
