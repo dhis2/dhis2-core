@@ -49,11 +49,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -366,6 +368,9 @@ public class DefaultEventAnalyticsService
     /**
      * Adds meta data values to the given grid based on the given data query
      * parameters.
+     * 
+     * TODO handle legend sets for ITEMS.
+     * TODO version for ITEMS / NAMES.
      *
      * @param params the data query parameters.
      * @param grid the grid.
@@ -382,7 +387,11 @@ public class DefaultEventAnalyticsService
 
             Map<String, Object> metaData = new HashMap<>();
             
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), AnalyticsUtils.getUidNameMap( params ) );
+            Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+            
+            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
+                Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
+            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
             metaData.put( PERIOD_DIM_ID, periodUids );
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )

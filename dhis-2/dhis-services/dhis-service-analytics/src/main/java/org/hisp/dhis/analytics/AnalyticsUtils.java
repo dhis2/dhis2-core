@@ -592,7 +592,7 @@ public class AnalyticsUtils
 
         return metaData;
     }
-
+    
     /**
      * Returns a mapping of identifiers and names for the given event query.
      * 
