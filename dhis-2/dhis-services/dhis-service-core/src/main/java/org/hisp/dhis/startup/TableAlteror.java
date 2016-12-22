@@ -978,6 +978,9 @@ public class TableAlteror
         removeOutdatedTranslationProperties();
 
         updateLegendRelationship();
+        
+        executeSql( "update programindicator set programindicatoranalyticstype = 'EVENT' where programindicatoranalyticstype is null" );
+        executeSql( "alter table programindicator alter column programindicatoranalyticstype set not null" );
 
         log.info( "Tables updated" );
     }

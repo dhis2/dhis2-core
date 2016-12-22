@@ -543,8 +543,7 @@ public class EventQueryParams
     public boolean hasEventProgramIndicatorDimension()
     {
         return programIndicator != null &&
-            ( ProgramIndicatorAnalyticsType.EVENT.equals( programIndicator.getProgramIndicatorAnalyticsType() ) ||
-                programIndicator.getProgramIndicatorAnalyticsType() == null );
+            ProgramIndicatorAnalyticsType.EVENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
     }
     
     public boolean hasEnrollmentProgramIndicatorDimension()
