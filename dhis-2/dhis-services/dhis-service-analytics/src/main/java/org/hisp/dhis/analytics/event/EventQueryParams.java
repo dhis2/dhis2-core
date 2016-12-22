@@ -539,6 +539,19 @@ public class EventQueryParams
     {
         return programIndicator != null;
     }
+    
+    public boolean hasEventProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            ( ProgramIndicatorAnalyticsType.EVENT.equals( programIndicator.getProgramIndicatorAnalyticsType() ) ||
+                programIndicator.getProgramIndicatorAnalyticsType() == null );
+    }
+    
+    public boolean hasEnrollmentProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
+    }
 
     /**
      * Indicates whether the program of this query requires registration of

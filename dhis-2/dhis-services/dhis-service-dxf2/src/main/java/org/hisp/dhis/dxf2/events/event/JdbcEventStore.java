@@ -228,7 +228,7 @@ public class JdbcEventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
-        }
+        }        
 
         return events;
     }

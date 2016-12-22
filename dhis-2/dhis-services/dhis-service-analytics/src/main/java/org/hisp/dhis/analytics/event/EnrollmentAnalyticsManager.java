@@ -1,4 +1,4 @@
-package org.hisp.dhis.program;
+package org.hisp.dhis.analytics.event;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,34 +28,13 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Set;
-import org.junit.Test;
-import com.google.common.collect.Sets;
+import org.hisp.dhis.common.Grid;
 
 /**
-* @author Lars Helge Overland
-*/
-public class ProgramIndicatorTest
+ * @author Markus Bekken
+ */
+public interface EnrollmentAnalyticsManager
 {
-    @Test
-    public void testGetIdentifiersEvent()
-    {
-        String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
-        
-        Set<String> expected = Sets.newHashSet( "yD5mUKAm3aK", "UaGD9u0kaur", "y1Bhi6xHtVk" );
-        
-        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, ProgramIndicatorAnalyticsType.EVENT ) );
-    }
-    
-    @Test
-    public void testGetIdentifiersEnrollment()
-    {
-        String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
-        
-        Set<String> expected = Sets.newHashSet( "chG8sINMf11_yD5mUKAm3aK", "chG8sINMf11_UaGD9u0kaur", "y1Bhi6xHtVk" );
-        
-        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, ProgramIndicatorAnalyticsType.ENROLLMENT ) );
-    }
+    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
 }
+    

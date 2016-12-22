@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import static org.hisp.dhis.analytics.AnalyticsTableManager.EVENT_ANALYTICS_TABLE_NAME;
+import static org.hisp.dhis.analytics.AnalyticsTableManager.ENROLLMENT_ANALYTICS_TABLE_NAME;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -164,7 +165,7 @@ public class DefaultEventQueryPlanner
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
         Set<String> validPartitions = partitionManager.getEventAnalyticsPartitions();
-
+        
         List<EventQueryParams> queries = new ArrayList<>();
         
         List<EventQueryParams> groupedByQueryItems = groupByQueryItems( params );
@@ -198,7 +199,7 @@ public class DefaultEventQueryPlanner
         {
             Period queryPeriod = new Period();
             queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );            
+            queryPeriod.setEndDate( params.getEndDate() );    
             params.setPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) );
         }
                 
@@ -227,7 +228,22 @@ public class DefaultEventQueryPlanner
     {
         String tableSuffix = PartitionUtils.SEP + params.getProgram().getUid();
         
-        if ( params.hasStartEndDate() )
+        if ( params.hasEnrollmentProgramIndicatorDimension() ) 
+        {
+            //TODO: Check - can we end up here with both program indicators and other elements in the params?
+            List<EventQueryParams> indicatorQueries = new ArrayList<>();
+            
+            EventQueryParams query = new EventQueryParams.Builder( params )
+                .withPartitions( PartitionUtils.getPartitions( ENROLLMENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) ).build();
+        
+            if ( query.getPartitions().hasAny() )
+            {
+                indicatorQueries.add( query );
+            }
+            
+            return indicatorQueries;
+        }
+        else if ( params.hasStartEndDate() )
         {
             List<EventQueryParams> queries = new ArrayList<>();
             

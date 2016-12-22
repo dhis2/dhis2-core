@@ -14,6 +14,8 @@
   
   <bean id="org.hisp.dhis.analytics.EventAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager" />
   
+  <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" class="org.hisp.dhis.analytics.table.JdbcEnrollmentAnalyticsTableManager" />
+  
   <bean id="org.hisp.dhis.analytics.AnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
     <property name="tableManager" ref="org.hisp.dhis.analytics.AnalyticsTableManager" />
   </bean>
@@ -32,6 +34,10 @@
   
   <bean id="org.hisp.dhis.analytics.EventAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
     <property name="tableManager" ref="org.hisp.dhis.analytics.EventAnalyticsTableManager" />
+  </bean>
+  
+  <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
+    <property name="tableManager" ref="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" />
   </bean>
   
   <bean id="org.hisp.dhis.analytics.partition.PartitionManager" class="org.hisp.dhis.analytics.partition.JdbcPartitionManager" />
@@ -53,6 +59,8 @@
   <!-- Event analytics -->
 
   <bean id="org.hisp.dhis.analytics.event.EventAnalyticsManager" class="org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager" />
+
+  <bean id="org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" class="org.hisp.dhis.analytics.event.data.JdbcEnrollmentAnalyticsManager" />
 
   <bean id="org.hisp.dhis.analytics.event.EventDataQueryService" class="org.hisp.dhis.analytics.event.data.DefaultEventDataQueryService" />
 

@@ -34,7 +34,8 @@ function showProgramIndicatorDetails( context ) {
     setInnerHTML('expressionField', json.programIndicator.expression);
     setInnerHTML('filterField', json.programIndicator.filter);
     setInnerHTML('idField', json.programIndicator.uid);
-
+    setInnerHTML('programIndicatorAnalayticsTypeField', json.programIndicator.programIndicatorAnalayticsType);
+    
     showDetails();
   });
 }
