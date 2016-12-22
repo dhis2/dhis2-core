@@ -39,9 +39,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.outboundmessage.MessageBatchStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.MessageResponseStatus;
-import org.hisp.dhis.outboundmessage.MessageResponseSummary;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.system.util.SmsUtils;
@@ -137,13 +137,13 @@ public class SmsMessageSender
     }
 
     @Override
-    public MessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
+    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
         if ( defaultGateway == null )
         {
-            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, MessageBatchStatus.FAILED, batch );
+            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch );
         }
 
         batch.getBatch().stream().forEach( item -> item.setRecipients( normalizePhoneNumber( item.getRecipients() ) ) );
@@ -158,7 +158,7 @@ public class SmsMessageSender
             }
         }
 
-        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, MessageBatchStatus.FAILED, batch );
+        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch );
     }
 
     @Override
@@ -259,13 +259,13 @@ public class SmsMessageSender
         }
     }
 
-    private MessageResponseSummary generateSummary( List<MessageResponseStatus> statuses, OutboundMessageBatch batch,
+    private OutboundMessageResponseSummary generateSummary( List<MessageResponseStatus> statuses, OutboundMessageBatch batch,
         SmsGateway smsGateway )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
             GatewayResponse.RESULT_CODE_202 );
 
-        MessageResponseSummary summary = new MessageResponseSummary();
+        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
 
         int total, sent = 0;
 
@@ -296,14 +296,14 @@ public class SmsMessageSender
 
         if ( !ok )
         {
-            summary.setBatchStatus( MessageBatchStatus.FAILED );
+            summary.setBatchStatus( OutboundMessageBatchStatus.FAILED );
             summary.setErrorMessage( errorMessage );
 
             log.error( errorMessage );
         }
         else
         {
-            summary.setBatchStatus( MessageBatchStatus.COMPLETED );
+            summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
             summary.setResposneMessage( "SENT" );
 
             log.info( "SMS batch processed successfully" );
@@ -312,10 +312,10 @@ public class SmsMessageSender
         return summary;
     }
 
-    private MessageResponseSummary createMessageResponseSummary( String responseMessage, DeliveryChannel channel,
-        MessageBatchStatus batchStatus, OutboundMessageBatch batch )
+    private OutboundMessageResponseSummary createMessageResponseSummary( String responseMessage, DeliveryChannel channel,
+        OutboundMessageBatchStatus batchStatus, OutboundMessageBatch batch )
     {
-        MessageResponseSummary summary = new MessageResponseSummary( responseMessage, channel, batchStatus );
+        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel, batchStatus );
         summary.setTotal( batch.getBatch().size() );
 
         log.warn( responseMessage );

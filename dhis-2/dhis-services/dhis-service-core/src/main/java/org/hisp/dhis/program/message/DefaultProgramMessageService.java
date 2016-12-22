@@ -43,8 +43,8 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.outboundmessage.MessageBatchStatus;
-import org.hisp.dhis.outboundmessage.MessageResponseSummary;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -202,7 +202,7 @@ public class DefaultProgramMessageService
     @Override
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
-        List<MessageResponseSummary> summaries = new ArrayList<>();
+        List<OutboundMessageResponseSummary> summaries = new ArrayList<>();
 
         List<ProgramMessage> populatedProgramMessages = new ArrayList<>();
 
@@ -229,8 +229,8 @@ public class DefaultProgramMessageService
                     {
                         log.error( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel() );
 
-                        summaries.add( new MessageResponseSummary( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel(),
-                            messageSender.getDeliveryChannel(), MessageBatchStatus.FAILED ) );
+                        summaries.add( new OutboundMessageResponseSummary( "No server/gateway configuration found for delivery channel: " + messageSender.getDeliveryChannel(),
+                            messageSender.getDeliveryChannel(), OutboundMessageBatchStatus.FAILED ) );
                     }
                 }
             }

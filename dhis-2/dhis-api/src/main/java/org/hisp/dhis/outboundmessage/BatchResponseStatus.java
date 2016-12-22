@@ -43,21 +43,21 @@ import java.util.List;
 @JacksonXmlRootElement( localName = "batchResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
 public class BatchResponseStatus
 {
-    private List<MessageResponseSummary> summaries;
+    private List<OutboundMessageResponseSummary> summaries;
     
-    public BatchResponseStatus( List<MessageResponseSummary> summaries )
+    public BatchResponseStatus( List<OutboundMessageResponseSummary> summaries )
     {
         this.summaries = summaries;
     }
 
     public boolean isOk()
     {
-        return summaries.stream().noneMatch( s -> s.getBatchStatus() != MessageBatchStatus.COMPLETED );
+        return summaries.stream().noneMatch( s -> s.getBatchStatus() != OutboundMessageBatchStatus.COMPLETED );
     }
 
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @JsonProperty( value = "summaries" )
-    public List<MessageResponseSummary> getSummaries()
+    public List<OutboundMessageResponseSummary> getSummaries()
     {
         return summaries;
     }

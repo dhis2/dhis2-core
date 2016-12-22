@@ -32,7 +32,7 @@ package org.hisp.dhis.outboundmessage;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 
-public enum MessageBatchStatus
+public enum OutboundMessageBatchStatus
 {
     COMPLETED, FAILED, PENDING
 }

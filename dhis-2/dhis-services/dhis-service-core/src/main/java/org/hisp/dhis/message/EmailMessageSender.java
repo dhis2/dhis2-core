@@ -41,9 +41,9 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.outboundmessage.MessageBatchStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.MessageResponseStatus;
-import org.hisp.dhis.outboundmessage.MessageResponseSummary;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutBoundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -267,7 +267,7 @@ public class EmailMessageSender
     }
 
     @Override
-    public MessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
+    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
         List<MessageResponseStatus> statuses = new ArrayList<>();
 
@@ -384,9 +384,9 @@ public class EmailMessageSender
         return ValidationUtils.emailIsValid( email );
     }
 
-    private MessageResponseSummary generateSummary( List<MessageResponseStatus> statuses )
+    private OutboundMessageResponseSummary generateSummary( List<MessageResponseStatus> statuses )
     {
-        MessageResponseSummary summary = new MessageResponseSummary();
+        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
 
         int total, sent = 0;
 
@@ -417,14 +417,14 @@ public class EmailMessageSender
 
         if ( !ok )
         {
-            summary.setBatchStatus( MessageBatchStatus.FAILED );
+            summary.setBatchStatus( OutboundMessageBatchStatus.FAILED );
             summary.setErrorMessage( errorMessage );
 
             log.error( errorMessage );
         }
         else
         {
-            summary.setBatchStatus( MessageBatchStatus.COMPLETED );
+            summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
             summary.setResposneMessage( "SENT" );
 
             log.info( "EMAIL batch processed successfully" );

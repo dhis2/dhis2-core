@@ -30,7 +30,7 @@ package org.hisp.dhis.message;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.MessageResponseStatus;
-import org.hisp.dhis.outboundmessage.MessageResponseSummary;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
 
@@ -83,7 +83,7 @@ public class MockMessageSender
     }
 
     @Override
-    public MessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
+    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
         return null;
     }

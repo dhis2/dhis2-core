@@ -33,5 +33,5 @@ package org.hisp.dhis.outboundmessage;
  */
 public interface OutboundMessageBatchService
 {
-    MessageResponseSummary sendBatch( OutboundMessageBatch outboundBatch );
+    OutboundMessageResponseSummary sendBatch( OutboundMessageBatch outboundBatch );
 }
