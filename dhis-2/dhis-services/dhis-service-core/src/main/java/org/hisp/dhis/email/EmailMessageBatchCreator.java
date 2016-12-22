@@ -34,7 +34,7 @@ import java.util.List;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.MessageBatchCreatorService;
-import org.hisp.dhis.outboundmessage.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
@@ -47,27 +47,19 @@ public class EmailMessageBatchCreator
     @Override
     public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
-        OutboundMessageBatch messageBatch = new OutboundMessageBatch();
-
-        List<OutBoundMessage> smsBatch = new ArrayList<>();
+        List<OutboundMessage> messages = new ArrayList<>();
 
         for ( ProgramMessage programMessage : programMessages )
         {
             if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
             {
-                OutBoundMessage email = new OutBoundMessage( programMessage.getText(),
+                OutboundMessage email = new OutboundMessage( programMessage.getText(),
                     programMessage.getRecipients().getEmailAddresses(), programMessage.getSubject() );
 
-                smsBatch.add( email );
+                messages.add( email );
             }
         }
-
-        if ( !smsBatch.isEmpty() )
-        {
-            messageBatch.setBatch( smsBatch );
-            messageBatch.setDeliveryChannel( DeliveryChannel.EMAIL );
-        }
         
-        return messageBatch;
+        return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );
     }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.outboundmessage;
  */
 
 import java.util.List;
-import java.util.ArrayList;
 
 import org.hisp.dhis.common.DeliveryChannel;
 
@@ -39,32 +38,23 @@ import org.hisp.dhis.common.DeliveryChannel;
 
 public class OutboundMessageBatch
 {
-    private List<OutBoundMessage> batch = new ArrayList<>();
+    private final List<OutboundMessage> messages;
     
-    private DeliveryChannel deliveryChannel = DeliveryChannel.EMAIL;
+    private final DeliveryChannel deliveryChannel;
 
-    public OutboundMessageBatch()
+    public OutboundMessageBatch( List<OutboundMessage> messages, DeliveryChannel deliveryChannel )
     {
-        super();
+        this.messages = messages;
+        this.deliveryChannel = deliveryChannel;
     }
     
-    public List<OutBoundMessage> getBatch()
+    public List<OutboundMessage> getMessages()
     {
-        return batch;
-    }
-
-    public void setBatch( List<OutBoundMessage> batch )
-    {
-        this.batch = batch;
+        return messages;
     }
 
     public DeliveryChannel getDeliveryChannel()
     {
         return deliveryChannel;
-    }
-
-    public void setDeliveryChannel( DeliveryChannel deliveryChannel )
-    {
-        this.deliveryChannel = deliveryChannel;
     }
 }

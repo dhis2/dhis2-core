@@ -146,7 +146,7 @@ public class SmsMessageSender
             return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch );
         }
 
-        batch.getBatch().stream().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
+        batch.getMessages().stream().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
 
         for ( SmsGateway smsGateway : smsGateways )
         {
@@ -248,7 +248,7 @@ public class SmsMessageSender
 
         String errorMessage = StringUtils.EMPTY;
 
-        total = batch.getBatch().size();
+        total = batch.getMessages().size();
 
         for ( MessageResponseStatus status : statuses )
         {
@@ -291,7 +291,7 @@ public class SmsMessageSender
         OutboundMessageBatchStatus batchStatus, OutboundMessageBatch batch )
     {
         OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel, batchStatus );
-        summary.setTotal( batch.getBatch().size() );
+        summary.setTotal( batch.getMessages().size() );
 
         log.warn( responseMessage );
 

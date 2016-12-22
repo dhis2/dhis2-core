@@ -44,7 +44,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.MessageResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.outboundmessage.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
@@ -271,7 +271,7 @@ public class EmailMessageSender
     {
         List<MessageResponseStatus> statuses = new ArrayList<>();
 
-        for ( OutBoundMessage email : batch.getBatch() )
+        for ( OutboundMessage email : batch.getMessages() )
         {
             statuses.add( sendMessage( email.getSubject(), email.getText(), email.getRecipients() ) );
         }

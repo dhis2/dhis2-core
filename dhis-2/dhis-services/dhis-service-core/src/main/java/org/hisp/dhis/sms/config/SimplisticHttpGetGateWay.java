@@ -34,7 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
 import org.hisp.dhis.outboundmessage.MessageResponseStatus;
-import org.hisp.dhis.outboundmessage.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -94,7 +94,7 @@ public class SimplisticHttpGetGateWay
     {
         List<MessageResponseStatus> statuses = new ArrayList<>();
 
-        for ( OutBoundMessage message : batch.getBatch() )
+        for ( OutboundMessage message : batch.getMessages() )
         {
             statuses.add( send( message.getSubject(), message.getText(), message.getRecipients(), gatewayConfig ) );
         }

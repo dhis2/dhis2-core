@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.MessageBatchCreatorService;
-import org.hisp.dhis.outboundmessage.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
@@ -46,27 +46,19 @@ public class SmsMessageBatchCreatorService
     @Override
     public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
-        OutboundMessageBatch messageBatch = new OutboundMessageBatch();
-
-        List<OutBoundMessage> smsBatch = new ArrayList<>();
+        List<OutboundMessage> messages = new ArrayList<>();
 
         for ( ProgramMessage programMessage : programMessages )
         {
             if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
-                OutBoundMessage sms = new OutBoundMessage( programMessage.getText(),
+                OutboundMessage sms = new OutboundMessage( programMessage.getText(),
                     programMessage.getRecipients().getPhoneNumbers(), programMessage.getSubject() );
 
-                smsBatch.add( sms );
+                messages.add( sms );
             }
         }
 
-        if ( !smsBatch.isEmpty() )
-        {
-            messageBatch.setBatch( smsBatch );
-            messageBatch.setDeliveryChannel( DeliveryChannel.SMS );
-        }
-
-        return messageBatch;
+        return new OutboundMessageBatch( messages, DeliveryChannel.SMS );
     }
 }

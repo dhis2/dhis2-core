@@ -34,7 +34,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.MessageResponseStatus;
-import org.hisp.dhis.outboundmessage.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.sms.outbound.SubmissionType;
@@ -88,7 +88,7 @@ public class BulkSmsGateway
         BulkSmsGatewayConfig bulkSmsConfig = (BulkSmsGatewayConfig) config;
 
         UriComponentsBuilder uriBuilder = buildBaseUrl( bulkSmsConfig, SubmissionType.BATCH );
-        uriBuilder.queryParam( "batch_data", buildCsvUrl( smsBatch.getBatch() ) );
+        uriBuilder.queryParam( "batch_data", buildCsvUrl( smsBatch.getMessages() ) );
 
         return Lists.newArrayList( send( uriBuilder ) );
     }
@@ -147,11 +147,11 @@ public class BulkSmsGateway
         return getResponse( responseEntity );
     }
 
-    private String buildCsvUrl( List<OutBoundMessage> smsBatch )
+    private String buildCsvUrl( List<OutboundMessage> smsBatch )
     {
         String csvData = "msisdn,message\n";
 
-        for ( OutBoundMessage sms : smsBatch )
+        for ( OutboundMessage sms : smsBatch )
         {
             csvData += getRecipients( sms.getRecipients() );
             csvData += "," + sms.getText() + "\n";

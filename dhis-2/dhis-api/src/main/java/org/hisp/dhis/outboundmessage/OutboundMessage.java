@@ -34,7 +34,7 @@ import java.util.Set;
 * @author Zubair <rajazubair.asghar@gmail.com>
 */
 
-public class OutBoundMessage
+public class OutboundMessage
 {
     private String text;
     
@@ -42,13 +42,12 @@ public class OutBoundMessage
     
     private String subject;
 
-    public OutBoundMessage()
+    public OutboundMessage()
     {
     }
    
-    public OutBoundMessage( String text, Set<String> recipients, String subject )
+    public OutboundMessage( String text, Set<String> recipients, String subject )
     {
-        super();
         this.text = text;
         this.recipients = recipients;
         this.subject = subject;

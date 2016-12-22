@@ -327,7 +327,7 @@ public class DefaultProgramMessageService
         {
             OutboundMessageBatch tmpBatch = batchCreator.getMessageBatch( programMessages );
 
-            if ( !tmpBatch.getBatch().isEmpty() )
+            if ( !tmpBatch.getMessages().isEmpty() )
             {
                 batches.add( tmpBatch );
             }
