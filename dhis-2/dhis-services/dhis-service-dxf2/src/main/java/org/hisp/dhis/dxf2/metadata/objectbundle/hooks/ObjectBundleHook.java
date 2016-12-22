@@ -34,25 +34,72 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import java.util.List;
 
 /**
+ * Contains hooks for object bundle commit phase.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface ObjectBundleHook
 {
+    /**
+     * Run before commit phase has started.
+     *
+     * @param bundle Current commit phase bundle
+     */
     void preImport( ObjectBundle bundle );
 
+    /**
+     * Run after commit phase has finished.
+     *
+     * @param bundle Current commit phase bundle
+     */
     void postImport( ObjectBundle bundle );
 
+    /**
+     * Run before a type import has started. I.e. run before importing orgUnits, dataElements, etc.
+     *
+     * @param bundle Current commit phase bundle
+     */
     <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
 
+    /**
+     * Run after a type import has finished. I.e. run before importing orgUnits, dataElements, etc.
+     *
+     * @param bundle Current commit phase bundle
+     */
     <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle );
-    
+
+    /**
+     * Run before object has been created.
+     *
+     * @param bundle Current commit phase bundle
+     */
     <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle );
 
+    /**
+     * Run after object has been created.
+     *
+     * @param bundle Current commit phase bundle
+     */
     <T extends IdentifiableObject> void postCreate( T persistedObject, ObjectBundle bundle );
 
+    /**
+     * Run before object has been updated.
+     *
+     * @param bundle Current commit phase bundle
+     */
     <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle );
 
+    /**
+     * Run after object has been updated.
+     *
+     * @param bundle Current commit phase bundle
+     */
     <T extends IdentifiableObject> void postUpdate( T persistedObject, ObjectBundle bundle );
 
+    /**
+     * Run before object has been deleted.
+     *
+     * @param bundle Current commit phase bundle
+     */
     <T extends IdentifiableObject> void preDelete( T persistedObject, ObjectBundle bundle );
 }

@@ -33,7 +33,18 @@ package org.hisp.dhis.dxf2.metadata.feedback;
  */
 public enum ImportReportMode
 {
-    DEBUG,
+    /**
+     * Gives full import report, including object reports for valid objects.
+     */
     FULL,
-    ERRORS
+
+    /**
+     * Returns import report where valid object report has been filtered out.
+     */
+    ERRORS,
+
+    /**
+     * Gives full import report, including object reports for valid objects and names (if available).
+     */
+    DEBUG
 }
