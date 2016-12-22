@@ -89,9 +89,6 @@ public class DefaultProgramMessageService
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
-//
-//    @Autowired
-//    private List<MessageSender> messageSenders;
 
     @Autowired
     private OutboundMessageBatchService messageBatchService;
