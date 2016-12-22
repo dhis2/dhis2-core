@@ -47,13 +47,12 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentif
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -63,23 +62,17 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
@@ -280,7 +273,7 @@ public class DefaultEventAnalyticsService
 
         Map<String, Object> metaData = new HashMap<>();
 
-        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), getUidNameMap( params ) );
+        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), AnalyticsUtils.getUidNameMap( params ) );
 
         User user = securityManager.getCurrentUser( params );
 
@@ -389,7 +382,7 @@ public class DefaultEventAnalyticsService
 
             Map<String, Object> metaData = new HashMap<>();
             
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), getUidNameMap( params ) );
+            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), AnalyticsUtils.getUidNameMap( params ) );
             metaData.put( PERIOD_DIM_ID, periodUids );
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
@@ -425,80 +418,5 @@ public class DefaultEventAnalyticsService
 
             grid.setMetaData( metaData );
         }
-    }
-    
-    private Map<String, String> getUidNameMap( EventQueryParams params )
-    {
-        Map<String, String> map = new HashMap<>();
-
-        Program program = params.getProgram();
-        ProgramStage stage = params.getProgramStage();
-
-        map.put( program.getUid(), program.getDisplayProperty( params.getDisplayProperty() ) );
-
-        if ( stage != null )
-        {
-            map.put( stage.getUid(), stage.getName() );
-        }
-        else
-        {
-            for ( ProgramStage st : program.getProgramStages() )
-            {
-                map.put( st.getUid(), st.getName() );
-            }
-        }
-
-        if ( params.hasValueDimension() )
-        {
-            map.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
-        }
-        
-        map.putAll( getUidNameMap( params.getItems(), params.getDisplayProperty() ) );
-        map.putAll( getUidNameMap( params.getItemFilters(), params.getDisplayProperty() ) );
-        map.putAll( getUidNameMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
-        map.putAll( getUidNameMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
-        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
-        
-        return map;
-    }
-    
-    private Map<String, String> getUidNameMap( List<QueryItem> queryItems, DisplayProperty displayProperty )
-    {
-        Map<String, String> map = new HashMap<>();
-        
-        for ( QueryItem item : queryItems )
-        {
-            map.put( item.getItem().getUid(), item.getItem().getDisplayProperty( displayProperty ) );
-        }
-        
-        return map;
-    }
-
-    private Map<String, String> getUidNameMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
-    {
-        Map<String, String> map = new HashMap<>();
-
-        for ( DimensionalObject dimension : dimensions )
-        {
-            boolean hierarchy = hierarchyMeta && DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() );
-
-            for ( DimensionalItemObject object : dimension.getItems() )
-            {
-                Set<DimensionalItemObject> objects = new HashSet<>();
-                objects.add( object );
-                
-                if ( hierarchy )
-                {
-                    OrganisationUnit unit = (OrganisationUnit) object;
-                    objects.addAll( unit.getAncestors() );
-                }
-                
-                map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( objects, displayProperty ) );
-            }
-            
-            map.put( dimension.getDimension(), dimension.getDisplayProperty( displayProperty ) );
-        }
-
-        return map;
     }
 }
