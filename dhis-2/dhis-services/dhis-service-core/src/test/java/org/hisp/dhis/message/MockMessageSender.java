@@ -29,9 +29,9 @@ package org.hisp.dhis.message;
  */
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.messagebatch.MessageResponseStatus;
-import org.hisp.dhis.messagebatch.MessageResponseSummary;
-import org.hisp.dhis.messagebatch.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.MessageResponseSummary;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
 
 import java.util.Set;

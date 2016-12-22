@@ -31,8 +31,8 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.messagebatch.MessageResponseStatus;
-import org.hisp.dhis.messagebatch.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>

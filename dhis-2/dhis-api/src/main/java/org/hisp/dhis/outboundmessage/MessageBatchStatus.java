@@ -1,4 +1,4 @@
-package org.hisp.dhis.messagebatch;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,14 +28,11 @@ package org.hisp.dhis.messagebatch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.program.message.ProgramMessage;
-
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
-public interface MessageBatchCreatorService
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
+
+public enum MessageBatchStatus
 {
-    OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages );
+    COMPLETED, FAILED, PENDING
 }

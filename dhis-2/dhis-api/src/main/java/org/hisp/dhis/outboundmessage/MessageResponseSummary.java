@@ -1,4 +1,4 @@
-package org.hisp.dhis.messagebatch;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo

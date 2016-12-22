@@ -33,10 +33,10 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
-import org.hisp.dhis.messagebatch.MessageResponseStatus;
-import org.hisp.dhis.messagebatch.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutBoundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.messagebatch.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.BufferedReader;

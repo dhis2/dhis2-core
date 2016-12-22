@@ -35,7 +35,7 @@ import javax.annotation.Resource;
 
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.messagebatch.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.MessageResponseStatus;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;

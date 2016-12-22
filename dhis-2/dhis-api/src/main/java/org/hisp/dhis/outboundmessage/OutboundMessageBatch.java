@@ -1,11 +1,11 @@
-package org.hisp.dhis.messagebatch;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permi      tted provided that the following conditions are met:
+ * modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
@@ -28,43 +28,43 @@ package org.hisp.dhis.messagebatch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import java.util.List;
+import java.util.ArrayList;
+
+import org.hisp.dhis.common.DeliveryChannel;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * Zubair <rajazubair.asghar@gmail.com>
  */
 
-@JacksonXmlRootElement( localName = "batchResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class BatchResponseStatus
+public class OutboundMessageBatch
 {
-    private List<MessageResponseSummary> summaries;
+    private List<OutBoundMessage> Batch = new ArrayList<>();
     
-    public BatchResponseStatus( List<MessageResponseSummary> summaries )
+    private DeliveryChannel deliveryChannel = DeliveryChannel.EMAIL;
+
+    public OutboundMessageBatch()
     {
-        this.summaries = summaries;
+        super();
+    }
+    
+    public List<OutBoundMessage> getBatch()
+    {
+        return Batch;
     }
 
-    public boolean isOk()
+    public void setBatch( List<OutBoundMessage> batch )
     {
-        return summaries.stream().noneMatch( s -> s.getBatchStatus() != MessageBatchStatus.COMPLETED );
+        Batch = batch;
     }
 
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonProperty( value = "summaries" )
-    public List<MessageResponseSummary> getSummaries()
+    public DeliveryChannel getDeliveryChannel()
     {
-        return summaries;
+        return deliveryChannel;
     }
 
-    @Override
-    public String toString()
+    public void setDeliveryChannel( DeliveryChannel deliveryChannel )
     {
-        return MoreObjects.toStringHelper( this ).add( "summaries", summaries ).toString();
+        this.deliveryChannel = deliveryChannel;
     }
 }

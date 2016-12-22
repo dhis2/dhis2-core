@@ -32,10 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.messagebatch.MessageBatchCreatorService;
-import org.hisp.dhis.messagebatch.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.MessageBatchCreatorService;
+import org.hisp.dhis.outboundmessage.OutBoundMessage;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.messagebatch.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
