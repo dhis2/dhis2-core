@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 @Component
 public class DhisApiVersionHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    private Pattern API_VERSION_PATTERN = Pattern.compile( "^/api/(?<version>[0-9]{2})/" );
+    private Pattern API_VERSION_PATTERN = Pattern.compile( "/api/(?<version>[0-9]{2})/" );
 
     @Override
     public boolean supportsParameter( MethodParameter parameter )
