@@ -164,9 +164,7 @@ public class SmsMessageSender
     @Override
     public boolean isConfigured()
     {
-        Map<String, SmsGatewayConfig> gatewayMap = gatewayAdminService.getGatewayConfigurationMap();
-
-        return !gatewayMap.isEmpty();
+        return !gatewayAdminService.getGatewayConfigurationMap().isEmpty();
     }
 
     @Override
