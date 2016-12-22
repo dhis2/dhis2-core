@@ -1,8 +1,8 @@
-package org.hisp.dhis.webapi.mvc.annotation;
+package org.hisp.dhis.webapi.mvc;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,25 +29,42 @@ package org.hisp.dhis.webapi.mvc.annotation;
  */
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.springframework.core.annotation.AliasFor;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import javax.servlet.http.HttpServletRequest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Target( { ElementType.TYPE, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface ApiVersion
+@Component
+public class DhisApiVersionHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    @AliasFor( "include" )
-    DhisApiVersion[] value() default DhisApiVersion.ALL;
+    private Pattern API_VERSION_PATTERN = Pattern.compile( "^/api/(?<version>[0-9]{2})/" );
 
-    @AliasFor( "value" )
-    DhisApiVersion[] include() default DhisApiVersion.ALL;
+    @Override
+    public boolean supportsParameter( MethodParameter parameter )
+    {
+        return DhisApiVersion.class.isAssignableFrom( parameter.getParameterType() );
+    }
 
-    DhisApiVersion[] exclude() default {};
+    @Override
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
+    {
+        String requestURI = ((HttpServletRequest) webRequest.getNativeRequest()).getRequestURI();
+        Matcher matcher = API_VERSION_PATTERN.matcher( requestURI );
+
+        if ( matcher.find() )
+        {
+            return DhisApiVersion.getVersion( matcher.group( "version" ) );
+        }
+
+        return DhisApiVersion.getVersion( "" );
+    }
 }

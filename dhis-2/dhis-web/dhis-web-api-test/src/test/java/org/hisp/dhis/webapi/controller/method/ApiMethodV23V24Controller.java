@@ -28,8 +28,8 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,28 +45,28 @@ import java.io.IOException;
 public class ApiMethodV23V24Controller
 {
     @RequestMapping( "a" )
-    @ApiVersion( Version.V23 )
+    @ApiVersion( DhisApiVersion.V23 )
     public void testV23( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( value = "a", method = RequestMethod.POST )
-    @ApiVersion( Version.V23 )
+    @ApiVersion( DhisApiVersion.V23 )
     public void testPostV23( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
-    @ApiVersion( Version.V24 )
+    @ApiVersion( DhisApiVersion.V24 )
     public void testV24( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( value = "b", method = RequestMethod.PUT )
-    @ApiVersion( Version.V24 )
+    @ApiVersion( DhisApiVersion.V24 )
     public void testPutV24( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
