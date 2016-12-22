@@ -29,6 +29,7 @@ package org.hisp.dhis.notification;
  */
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
@@ -55,6 +56,9 @@ public class ProgramNotificationMessageRenderer
             .put( ProgramTemplateVariable.INCIDENT_DATE,                pi -> formatDate( pi.getIncidentDate() ) )
             .put( ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE,   pi -> daysSince( pi.getEnrollmentDate() ) )
             .build();
+
+    private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
+        ImmutableSet.of( ExpressionType.ATTRIBUTE, ExpressionType.VARIABLE );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -94,9 +98,9 @@ public class ProgramNotificationMessageRenderer
     }
 
     @Override
-    protected boolean isValidVariableName( String variableName )
+    protected Set<ExpressionType> getSupportedExpressionTypes()
     {
-        return ProgramTemplateVariable.isValidVariableName( variableName );
+        return SUPPORTED_EXPRESSION_TYPES;
     }
 
     // -------------------------------------------------------------------------

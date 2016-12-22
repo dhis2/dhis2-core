@@ -41,6 +41,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.omg.PortableServer.CurrentPackage.NoContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,7 @@ import java.util.zip.GZIPOutputStream;
  * @author aamerm
  */
 @Controller
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataVersionController
     extends CrudControllerAdvice
 {

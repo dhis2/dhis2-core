@@ -28,8 +28,8 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.schema.descriptors.OAuth2ClientSchemaDescriptor;
+import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 

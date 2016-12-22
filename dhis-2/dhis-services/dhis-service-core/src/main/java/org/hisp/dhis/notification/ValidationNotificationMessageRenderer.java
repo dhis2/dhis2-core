@@ -28,11 +28,17 @@ package org.hisp.dhis.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Maps;
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.attribute.AttributeValue;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.CURRENT_DATE;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.DESCRIPTION;
@@ -45,12 +51,6 @@ import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariab
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.RIGHT_SIDE_DESCRIPTION;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.RIGHT_SIDE_VALUE;
 import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable.RULE_NAME;
-
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -73,6 +73,8 @@ public class ValidationNotificationMessageRenderer
             .put( CURRENT_DATE, vr -> formatDate( new Date() ) )
             .build();
 
+    private static final ImmutableSet<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet.of( ExpressionType.VARIABLE );
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -94,14 +96,8 @@ public class ValidationNotificationMessageRenderer
     @Override
     protected Map<String, String> resolveAttributeValues( Set<String> attributeKeys, ValidationResult result )
     {
-        if ( attributeKeys.isEmpty() )
-        {
-            return Maps.newHashMap();
-        }
-
-        return result.getValidationRule().getAttributeValues().stream()
-            .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> filterValue( av ) ) );
+        // Attributes are not supported for validation notifications
+        return Collections.emptyMap();
     }
 
     @Override
@@ -111,24 +107,8 @@ public class ValidationNotificationMessageRenderer
     }
 
     @Override
-    protected boolean isValidVariableName( String variableName )
+    protected Set<ExpressionType> getSupportedExpressionTypes()
     {
-        return ValidationRuleTemplateVariable.isValidVariableName( variableName );
-    }
-
-    // -------------------------------------------------------------------------
-    // Internal methods
-    // -------------------------------------------------------------------------
-
-    private static String filterValue( AttributeValue av )
-    {
-        String value = av.getValue();
-
-        if ( av.getAttribute().isOptionSetAttribute() )
-        {
-            value = av.getAttribute().getOptionSet().getOptionByCode( value ).getName();
-        }
-
-        return value != null ? value : MISSING_VALUE_REPLACEMENT;
+        return SUPPORTED_EXPRESSION_TYPES;
     }
 }

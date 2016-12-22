@@ -35,6 +35,7 @@ package org.hisp.dhis.analytics;
  */
 public enum AnalyticsMetaDataKey
 {
+    ITEMS( "items" ),
     NAMES( "names" ),
     PAGER( "pager" ),
     ORG_UNIT_HIERARCHY( "ouHierarchy" ),

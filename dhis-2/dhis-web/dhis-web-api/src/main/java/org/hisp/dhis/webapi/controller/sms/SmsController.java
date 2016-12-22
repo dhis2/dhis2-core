@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.sms;
  */
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.MessageResponseStatus;
@@ -39,10 +40,10 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +64,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping( value = "/sms" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SmsController
 {
     @Autowired

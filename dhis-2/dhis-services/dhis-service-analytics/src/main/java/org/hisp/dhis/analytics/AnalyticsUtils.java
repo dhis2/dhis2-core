@@ -505,6 +505,63 @@ public class AnalyticsUtils
     }
 
     /**
+     * Returns a mapping between identifiers and meta data items for the given query.
+     *
+     * @param params the data query parameters.
+     * @return a mapping between identifiers and meta data items.
+     */
+    public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
+    {
+        List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
+
+        Map<String, MetadataItem> map = new HashMap<>();
+
+        Calendar calendar = PeriodType.getCalendar();
+
+        for ( DimensionalObject dimension : dimensions )
+        {
+            for ( DimensionalItemObject item : dimension.getItems() )
+            {
+                if ( DimensionType.PERIOD == dimension.getDimensionType() && !calendar.isIso8601() )
+                {
+                    Period period = (Period) item;
+                    DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName() ) );
+                }
+                else
+                {
+                    String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet ) );
+                }
+
+                if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
+                {
+                    OrganisationUnit unit = (OrganisationUnit) item;
+                    
+                    for ( OrganisationUnit ancestor : unit.getAncestors() )
+                    {
+                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ) ) );
+                    }
+                }
+                
+                if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() )
+                {
+                    DataElement dataElement = (DataElement) item;
+                    
+                    for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+                    {
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ) ) );
+                    }
+                }
+            }
+
+            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ) ) );
+        }
+
+        return map;
+    }
+
+    /**
      * Returns a mapping between the category option combo identifiers and names
      * for the given query.
      *

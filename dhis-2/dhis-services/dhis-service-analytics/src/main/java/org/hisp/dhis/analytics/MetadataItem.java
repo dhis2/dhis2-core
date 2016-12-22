@@ -1,4 +1,4 @@
-package org.hisp.dhis.webapi.mvc.annotation;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,26 +28,49 @@ package org.hisp.dhis.webapi.mvc.annotation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.springframework.core.annotation.AliasFor;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Target( { ElementType.TYPE, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface ApiVersion
-{
-    @AliasFor( "include" )
-    DhisApiVersion[] value() default DhisApiVersion.ALL;
+ * Item part of meta data analytics response.
+ * 
+* @author Lars Helge Overland
+*/
+public class MetadataItem
+{    
+    private String name;
+    
+    private String legendSet;
 
-    @AliasFor( "value" )
-    DhisApiVersion[] include() default DhisApiVersion.ALL;
+    public MetadataItem( String name )
+    {
+        this.name = name;
+    }
+    
+    public MetadataItem( String name, String legendSet )
+    {
+        this.name = name;
+        this.legendSet = legendSet;
+    }
+    
+    @JsonProperty
+    public String getName()
+    {
+        return name;
+    }
 
-    DhisApiVersion[] exclude() default {};
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    @JsonProperty
+    public String getLegendSet()
+    {
+        return legendSet;
+    }
+
+    public void setLegendSet( String legendSet )
+    {
+        this.legendSet = legendSet;
+    }
 }

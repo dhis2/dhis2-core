@@ -1,8 +1,8 @@
-package org.hisp.dhis.dxf2.metadata;
+package org.hisp.dhis.webapi.mvc;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,50 +28,38 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.node.types.RootNode;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface MetadataExportService
+@Component
+public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    /**
-     * Exports metadata using provided params.
-     *
-     * @param params Export parameters
-     * @return Map of all exported objects
-     */
-    Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> getMetadata( MetadataExportParams params );
+    private final CurrentUserService currentUserService;
 
-    /**
-     * Returns same result as getMetadata, but metadata is returned as Node objects instead.
-     *
-     * @param params Export parameters
-     * @return RootNode instance with children containing all exported objects
-     */
-    RootNode getMetadataAsNode( MetadataExportParams params );
+    public CurrentUserHandlerMethodArgumentResolver( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
-    /**
-     * Validates the import params. Not currently implemented.
-     *
-     * @param params Export parameters to validate
-     */
-    void validate( MetadataExportParams params );
+    @Override
+    public boolean supportsParameter( MethodParameter parameter )
+    {
+        return "currentUser".equals( parameter.getParameterName() )
+            && User.class.isAssignableFrom( parameter.getParameterType() );
+    }
 
-    /**
-     * Parses, and creates a MetadataExportParams instance based on given map of parameters.
-     *
-     * @param parameters Key-Value map of wanted parameters
-     * @return MetadataExportParams instance created based on input parameters
-     */
-    MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters );
-
-    Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies( IdentifiableObject object );
-
-    RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object );
+    @Override
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
+    {
+        return currentUserService.getCurrentUser();
+    }
 }
