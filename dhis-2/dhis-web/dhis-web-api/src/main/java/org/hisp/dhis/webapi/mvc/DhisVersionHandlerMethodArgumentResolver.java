@@ -1,8 +1,8 @@
-package org.hisp.dhis.webapi.controller.type;
+package org.hisp.dhis.webapi.mvc;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,24 +29,42 @@ package org.hisp.dhis.webapi.controller.type;
  */
 
 import org.hisp.dhis.common.DhisVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.servlet.http.HttpServletRequest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( "/type/testDefaultAll" )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
-public class ApiTypeDefaultAllController
+@Component
+public class DhisVersionHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    @RequestMapping
-    public void test( HttpServletResponse response ) throws IOException
+    private Pattern API_VERSION_PATTERN = Pattern.compile( "^/api/(?<version>[0-9]{2})/" );
+
+    @Override
+    public boolean supportsParameter( MethodParameter parameter )
     {
-        response.getWriter().println( "TEST" );
+        return DhisVersion.class.isAssignableFrom( parameter.getParameterType() );
+    }
+
+    @Override
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
+    {
+        String requestURI = ((HttpServletRequest) webRequest.getNativeRequest()).getRequestURI();
+        Matcher matcher = API_VERSION_PATTERN.matcher( requestURI );
+
+        if ( matcher.find() )
+        {
+            return DhisVersion.getVersion( matcher.group( "version" ) );
+        }
+
+        return DhisVersion.getVersion( "" );
     }
 }

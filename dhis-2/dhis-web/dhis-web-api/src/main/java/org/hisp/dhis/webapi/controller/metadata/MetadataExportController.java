@@ -38,6 +38,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -48,14 +49,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Locale;
 
-import static org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
 @RequestMapping( "/metadata" )
-@ApiVersion( { Version.DEFAULT, Version.ALL } )
+@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
 public class MetadataExportController
 {
     @Autowired

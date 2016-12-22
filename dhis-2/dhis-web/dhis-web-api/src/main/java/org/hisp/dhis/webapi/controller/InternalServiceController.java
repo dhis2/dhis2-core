@@ -34,6 +34,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,14 +48,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping( value = InternalServiceController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
 public class InternalServiceController
 {
     public static final String RESOURCE_PATH = "/internalServices";
-    
+
     @Autowired
     private DhisConfigurationProvider config;
-    
+
     @Autowired
     private DbmsManager dbmsManager;
 
@@ -67,7 +68,7 @@ public class InternalServiceController
     public void emptyDatabase()
     {
         boolean hasAllAuth = currentUserService.getCurrentUser().isAuthorized( UserAuthorityGroup.AUTHORITY_ALL );
-        
+
         if ( config.isEnabled( ConfigurationKey.INTERNAL_SERVICE_API ) && hasAllAuth )
         {
             dbmsManager.emptyDatabase();

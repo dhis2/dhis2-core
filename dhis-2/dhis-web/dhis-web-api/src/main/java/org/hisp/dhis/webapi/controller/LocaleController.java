@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.hisp.dhis.webapi.webdomain.WebLocale;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping( value = "/locales" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
 public class LocaleController
 {
     @Autowired

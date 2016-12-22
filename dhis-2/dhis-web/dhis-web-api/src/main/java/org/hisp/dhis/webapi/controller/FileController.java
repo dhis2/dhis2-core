@@ -30,12 +30,13 @@ package org.hisp.dhis.webapi.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,7 +56,7 @@ import java.io.Writer;
  */
 @Controller
 @RequestMapping( value = FileController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
 public class FileController
 {
     public static final String RESOURCE_PATH = "/files";

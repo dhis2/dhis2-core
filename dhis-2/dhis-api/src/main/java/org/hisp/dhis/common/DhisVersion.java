@@ -1,8 +1,8 @@
-package org.hisp.dhis.webapi.controller.type;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,25 +28,91 @@ package org.hisp.dhis.webapi.controller.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( "/type/testDefaultAll" )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
-public class ApiTypeDefaultAllController
+public enum DhisVersion
 {
-    @RequestMapping
-    public void test( HttpServletResponse response ) throws IOException
+    /**
+     * Default mapping /api/name
+     */
+    DEFAULT( "" ),
+
+    /**
+     * Default mapping /api/name
+     */
+    TEST( "test" ),
+
+    /**
+     * /api/23/name
+     */
+    V23( "23" ),
+
+    /**
+     * /api/24/name
+     */
+    V24( "24" ),
+
+    /**
+     * /api/25/name
+     */
+    V25( "25" ),
+
+    /**
+     * /api/26/name
+     */
+    V26( "26" ),
+
+    /**
+     * Map to all versions, not including default.
+     */
+    ALL( "*", true );
+
+    final String path;
+
+    final boolean ignore;
+
+    DhisVersion( String path )
     {
-        response.getWriter().println( "TEST" );
+        this.path = path;
+        this.ignore = false;
+    }
+
+    DhisVersion( String path, boolean ignore )
+    {
+        this.path = path;
+        this.ignore = ignore;
+    }
+
+    public String getPath()
+    {
+        return path;
+    }
+
+    public boolean isIgnore()
+    {
+        return ignore;
+    }
+
+    public static DhisVersion getVersion( String version )
+    {
+        if ( StringUtils.isEmpty( version ) )
+        {
+            return DhisVersion.DEFAULT;
+        }
+
+        for ( int i = 0; i < DhisVersion.values().length; i++ )
+        {
+            DhisVersion v = DhisVersion.values()[i];
+
+            if ( version.equals( v.getPath() ) )
+            {
+                return v;
+            }
+        }
+
+        throw new RuntimeException( "Invalid value `" + version + "` for enum ApiVersion.Version" );
     }
 }

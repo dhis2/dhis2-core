@@ -46,6 +46,7 @@ import org.hisp.dhis.system.filter.OrganisationUnitWithValidCoordinatesFilter;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -74,13 +75,13 @@ import java.util.concurrent.TimeUnit;
  */
 @Controller
 @RequestMapping( value = GeoFeatureController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
 public class GeoFeatureController
 {
     public static final String RESOURCE_PATH = "/geoFeatures";
 
     private static final CacheControl GEOFEATURE_CACHE = CacheControl.maxAge( 1, TimeUnit.HOURS ).cachePrivate();
-    
+
     private static final Map<FeatureType, Integer> FEATURE_TYPE_MAP = ImmutableMap.<FeatureType, Integer>builder().
         put( FeatureType.POINT, GeoFeature.TYPE_POINT ).
         put( FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON ).
@@ -201,9 +202,9 @@ public class GeoFeatureController
         for ( OrganisationUnit unit : organisationUnits )
         {
             GeoFeature feature = new GeoFeature();
-            
+
             Integer ty = unit.getFeatureType() != null ? FEATURE_TYPE_MAP.get( unit.getFeatureType() ) : null;
-            
+
             feature.setId( unit.getUid() );
             feature.setCode( unit.getCode() );
             feature.setHcd( unit.hasChildrenWithCoordinates() );

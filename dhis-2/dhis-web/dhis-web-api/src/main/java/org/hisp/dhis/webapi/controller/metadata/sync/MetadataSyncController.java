@@ -37,6 +37,7 @@ import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping( "/metadata/sync" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
 public class MetadataSyncController
     extends CrudControllerAdvice
 {
@@ -70,7 +71,7 @@ public class MetadataSyncController
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary;
 
-        synchronized( metadataSyncService )
+        synchronized ( metadataSyncService )
         {
             try
             {

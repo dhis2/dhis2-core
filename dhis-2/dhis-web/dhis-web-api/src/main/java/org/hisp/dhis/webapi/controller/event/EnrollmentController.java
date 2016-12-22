@@ -50,6 +50,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -82,7 +83,7 @@ import java.util.stream.Collectors;
  */
 @Controller
 @RequestMapping( value = EnrollmentController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
 public class EnrollmentController
 {
     public static final String RESOURCE_PATH = "/enrollments";

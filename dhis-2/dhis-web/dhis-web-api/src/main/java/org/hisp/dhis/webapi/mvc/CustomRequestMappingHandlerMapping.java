@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.mvc;
  */
 
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisVersion;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
@@ -40,8 +41,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,13 +76,14 @@ public class CustomRequestMappingHandlerMapping
         Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
         Set<String> patterns = new HashSet<>();
 
-        Set<Version> versions = getVersions( typeApiVersion, methodApiVersion );
+        Set<DhisVersion> versions = getVersions( typeApiVersion, methodApiVersion );
 
         for ( String pattern : rqmPatterns )
         {
             versions.stream()
                 .filter( version -> !version.isIgnore() )
-                .forEach( version -> {
+                .forEach( version ->
+                {
                     if ( !pattern.startsWith( version.getPath() ) )
                     {
                         if ( pattern.startsWith( "/" ) ) patterns.add( "/" + version.getPath() + pattern );
@@ -105,10 +105,10 @@ public class CustomRequestMappingHandlerMapping
         );
     }
 
-    private Set<Version> getVersions( ApiVersion typeApiVersion, ApiVersion methodApiVersion )
+    private Set<DhisVersion> getVersions( ApiVersion typeApiVersion, ApiVersion methodApiVersion )
     {
-        Set<Version> includes = new HashSet<>();
-        Set<Version> excludes = new HashSet<>();
+        Set<DhisVersion> includes = new HashSet<>();
+        Set<DhisVersion> excludes = new HashSet<>();
 
         if ( typeApiVersion != null )
         {
@@ -122,20 +122,20 @@ public class CustomRequestMappingHandlerMapping
             excludes.addAll( Arrays.asList( methodApiVersion.exclude() ) );
         }
 
-        if ( includes.contains( Version.ALL ) )
+        if ( includes.contains( DhisVersion.ALL ) )
         {
-            boolean includeDefault = includes.contains( Version.DEFAULT );
-            boolean includeTest = includes.contains( Version.TEST );
-            includes = new HashSet<>( Arrays.asList( Version.values() ) );
+            boolean includeDefault = includes.contains( DhisVersion.DEFAULT );
+            boolean includeTest = includes.contains( DhisVersion.TEST );
+            includes = new HashSet<>( Arrays.asList( DhisVersion.values() ) );
 
             if ( !includeDefault )
             {
-                includes.remove( Version.DEFAULT );
+                includes.remove( DhisVersion.DEFAULT );
             }
 
             if ( !includeTest )
             {
-                includes.remove( Version.TEST );
+                includes.remove( DhisVersion.TEST );
             }
         }
 
