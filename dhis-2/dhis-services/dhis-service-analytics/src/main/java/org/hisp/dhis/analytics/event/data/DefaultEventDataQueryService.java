@@ -101,10 +101,11 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
         SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, I18nFormat format )
+        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion, I18nFormat format )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, relativePeriodDate, userOrgUnit, null, null, null, format );
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, 
+            relativePeriodDate, userOrgUnit, null, null, null, apiVersion, format );
 
         EventQueryParams params = new EventQueryParams.Builder( query )
             .withValue( getValueDimension( value ) )
@@ -116,7 +117,9 @@ public class DefaultEventDataQueryService
             .withOutputType( MoreObjects.firstNonNull( outputType, EventOutputType.EVENT ) )
             .withCollapseDataDimensions( collapseDataDimensions )
             .withAggregateData( aggregateData )
-            .withProgramStatus( programStatus ).build();
+            .withProgramStatus( programStatus )
+            .withApiVersion( apiVersion )
+            .build();
 
         return params;
     }
@@ -126,7 +129,7 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
         boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
-        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, I18nFormat format )
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, DhisApiVersion apiVersion, I18nFormat format )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         
@@ -220,7 +223,9 @@ public class DefaultEventDataQueryService
             .withCoordinateField( getCoordinateField( coordinateField ) )
             .withPage( page )
             .withPageSize( pageSize )
-            .withProgramStatus( programStatus ).build();
+            .withProgramStatus( programStatus )
+            .withApiVersion( apiVersion )
+            .build();
     }
 
     @Override
