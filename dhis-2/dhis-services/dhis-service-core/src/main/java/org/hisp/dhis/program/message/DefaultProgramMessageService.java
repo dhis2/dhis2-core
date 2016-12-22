@@ -55,6 +55,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -200,18 +201,13 @@ public class DefaultProgramMessageService
     @Override
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
-        List<ProgramMessage> populatedProgramMessages = new ArrayList<>();
-
-        for ( ProgramMessage message : programMessages )
-        {
-            populatedProgramMessages.add( setAttributesBasedOnStrategy( message ) );
-        }
+        List<ProgramMessage> populatedProgramMessages = programMessages.stream()
+            .map( this::setAttributesBasedOnStrategy )
+            .collect( Collectors.toList() );
 
         List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
-        List<OutboundMessageResponseSummary> summaries = messageBatchService.sendBatches( batches );
-
-        BatchResponseStatus status = new BatchResponseStatus( summaries );
+        BatchResponseStatus status = new BatchResponseStatus( messageBatchService.sendBatches( batches ) );
         
         saveProgramMessages( programMessages, status );
         
