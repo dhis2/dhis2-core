@@ -39,7 +39,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 
 public class OutboundMessageBatch
 {
-    private List<OutBoundMessage> Batch = new ArrayList<>();
+    private List<OutBoundMessage> batch = new ArrayList<>();
     
     private DeliveryChannel deliveryChannel = DeliveryChannel.EMAIL;
 
@@ -50,12 +50,12 @@ public class OutboundMessageBatch
     
     public List<OutBoundMessage> getBatch()
     {
-        return Batch;
+        return batch;
     }
 
     public void setBatch( List<OutBoundMessage> batch )
     {
-        Batch = batch;
+        this.batch = batch;
     }
 
     public DeliveryChannel getDeliveryChannel()
