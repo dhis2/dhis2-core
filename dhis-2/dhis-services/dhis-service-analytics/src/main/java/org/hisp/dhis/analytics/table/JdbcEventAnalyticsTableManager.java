@@ -393,9 +393,13 @@ public class JdbcEventAnalyticsTableManager
      */
     private String getColumnType( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
+        if ( Double.class.equals( valueType.getJavaClass() ) )
         {
             return statementBuilder.getDoubleColumnType();
+        }
+        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        {
+            return "bigint";
         }
         else if ( Boolean.class.equals( valueType.getJavaClass() ) )
         {
@@ -421,9 +425,13 @@ public class JdbcEventAnalyticsTableManager
      */
     private String getSelectClause( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
+        if ( Double.class.equals( valueType.getJavaClass() ) )
         {
             return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
+        }
+        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        {
+            return "cast(value as bigint)";
         }
         else if ( Boolean.class.equals( valueType.getJavaClass() ) )
         {
