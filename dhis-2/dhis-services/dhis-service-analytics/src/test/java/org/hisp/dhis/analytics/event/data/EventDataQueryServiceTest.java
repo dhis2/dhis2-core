@@ -187,7 +187,7 @@ public class EventDataQueryServiceTest
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
             null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
-            false, false, null, null, null, null, null, false, false, null, null, null, null, null );
+            false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -207,7 +207,7 @@ public class EventDataQueryServiceTest
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
             null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, false, 
-            false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null, null );
+            false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -346,7 +346,7 @@ public class EventDataQueryServiceTest
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
             null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
-            false, false, null, null, null, null, null, false, false, null, null, null, null, null );
+            false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getItems().size() );
