@@ -377,14 +377,18 @@ public class DefaultEventDataQueryService
 
         if ( de != null ) // TODO check if part of program
         {
-            return new QueryItem( de, legendSet, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
+            ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
+            
+            return new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
         }
 
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
 
         if ( at != null )
         {
-            return new QueryItem( at, legendSet, at.getValueType(), at.getAggregationType(), at.getOptionSet() );
+            ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
+            
+            return new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( item );
