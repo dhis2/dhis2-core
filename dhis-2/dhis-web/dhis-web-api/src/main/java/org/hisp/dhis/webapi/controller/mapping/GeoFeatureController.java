@@ -111,12 +111,13 @@ public class GeoFeatureController
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
         @RequestParam Map<String, String> parameters,
+        DhisApiVersion apiVersion,
         HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets );
+        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
@@ -137,12 +138,13 @@ public class GeoFeatureController
         @RequestParam( defaultValue = "callback" ) String callback,
         @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
         @RequestParam Map<String, String> parameters,
+        DhisApiVersion apiVersion,
         HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets );
+        List<GeoFeature> features = getGeoFeatures( ou, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
 
         if ( features == null )
         {
@@ -172,13 +174,13 @@ public class GeoFeatureController
      * @return a list of geo features or null.
      */
     private List<GeoFeature> getGeoFeatures( String ou, DisplayProperty displayProperty, Date relativePeriodDate,
-        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets )
+        String userOrgUnit, HttpServletRequest request, HttpServletResponse response, boolean includeGroupSets, DhisApiVersion apiVersion )
     {
         Set<String> set = new HashSet<>();
         set.add( ou );
 
-        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null,
-            false, false, false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit );
+        DataQueryParams params = dataQueryService.getFromUrl( set, null, AggregationType.SUM, null, null, false, false, 
+            false, false, false, false, false, false, false, displayProperty, null, null, false, null, relativePeriodDate, userOrgUnit, apiVersion );
 
         DimensionalObject dim = params.getDimension( DimensionalObject.ORGUNIT_DIM_ID );
 

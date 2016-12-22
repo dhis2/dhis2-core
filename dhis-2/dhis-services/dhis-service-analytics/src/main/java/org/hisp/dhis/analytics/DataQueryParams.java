@@ -243,6 +243,11 @@ public class DataQueryParams
      * The end date fore the period dimension, can be null.
      */
     protected Date endDate;
+    
+    /**
+     * The API version used for the request.
+     */
+    protected DhisApiVersion apiVersion;
 
     // -------------------------------------------------------------------------
     // Event transient properties
@@ -387,6 +392,7 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.apiVersion = this.apiVersion;
         //params.program = this.program; //TODO
         //params.programStage = this.programStage; //TODO
         
@@ -1668,6 +1674,11 @@ public class DataQueryParams
         return endDate;
     }
 
+    public DhisApiVersion getApiVersion()
+    {
+        return apiVersion;
+    }
+    
     public Program getProgram()
     {
         return program;
@@ -2336,6 +2347,12 @@ public class DataQueryParams
         public Builder withEndDate( Date endDate )
         {
             this.params.endDate = endDate;
+            return this;
+        }
+        
+        public Builder withApiVersion( DhisApiVersion apiVersion )
+        {
+            this.params.apiVersion = apiVersion;
             return this;
         }
         

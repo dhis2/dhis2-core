@@ -100,15 +100,20 @@ public abstract class AbstractEventJdbcTableManager
         }
     }
     
+    
     /**
      * Returns the select clause, potentially with a cast statement, based on the
      * given value type.
      */
-    protected String getSelectClause( ValueType valueType )
+    private String getSelectClause( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
+        if ( Double.class.equals( valueType.getJavaClass() ) )
         {
             return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
+        }
+        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        {
+            return "cast(value as bigint)";
         }
         else if ( Boolean.class.equals( valueType.getJavaClass() ) )
         {
