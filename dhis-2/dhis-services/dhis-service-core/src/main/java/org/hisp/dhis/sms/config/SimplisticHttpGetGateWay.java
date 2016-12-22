@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
-import org.hisp.dhis.outboundmessage.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -90,9 +90,9 @@ public class SimplisticHttpGetGateWay
         HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
 
     @Override
-    public List<MessageResponseStatus> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
+    public List<OutboundMessageResponseStatus> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        List<MessageResponseStatus> statuses = new ArrayList<>();
+        List<OutboundMessageResponseStatus> statuses = new ArrayList<>();
 
         for ( OutboundMessage message : batch.getMessages() )
         {
@@ -109,11 +109,11 @@ public class SimplisticHttpGetGateWay
     }
 
     @Override
-    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public OutboundMessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         GenericHttpGatewayConfig genericHttpConfiguraiton = (GenericHttpGatewayConfig) config;
 
-        MessageResponseStatus status = new MessageResponseStatus();
+        OutboundMessageResponseStatus status = new OutboundMessageResponseStatus();
 
         UriComponentsBuilder uri = buildUrl( genericHttpConfiguraiton, text, recipients );
 

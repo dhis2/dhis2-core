@@ -33,7 +33,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.outboundmessage.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -83,7 +83,7 @@ public class BulkSmsGateway
     // -------------------------------------------------------------------------
 
     @Override
-    public List<MessageResponseStatus> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
+    public List<OutboundMessageResponseStatus> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
         BulkSmsGatewayConfig bulkSmsConfig = (BulkSmsGatewayConfig) config;
 
@@ -100,7 +100,7 @@ public class BulkSmsGateway
     }
 
     @Override
-    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public OutboundMessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         UriComponentsBuilder uriBuilder = createUri( (BulkSmsGatewayConfig) config, recipients, SubmissionType.SINGLE );
         uriBuilder.queryParam( "message", text );
@@ -121,7 +121,7 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private MessageResponseStatus send( UriComponentsBuilder uriBuilder )
+    private OutboundMessageResponseStatus send( UriComponentsBuilder uriBuilder )
     {
         ResponseEntity<String> responseEntity = null;
 
@@ -184,9 +184,9 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private MessageResponseStatus getResponse( ResponseEntity<String> responseEntity )
+    private OutboundMessageResponseStatus getResponse( ResponseEntity<String> responseEntity )
     {
-        MessageResponseStatus status = new MessageResponseStatus();
+        OutboundMessageResponseStatus status = new OutboundMessageResponseStatus();
 
         if ( responseEntity == null )
         {

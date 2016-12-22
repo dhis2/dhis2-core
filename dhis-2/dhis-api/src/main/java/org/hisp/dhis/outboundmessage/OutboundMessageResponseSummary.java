@@ -136,7 +136,7 @@ public class OutboundMessageResponseSummary
         return responseMessage;
     }
 
-    public void setResposneMessage( String responseMessage )
+    public void setResponseMessage( String responseMessage )
     {
         this.responseMessage = responseMessage;
     }

@@ -29,7 +29,7 @@ package org.hisp.dhis.message;
  */
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.outboundmessage.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
@@ -45,7 +45,7 @@ public class MockMessageSender
     implements MessageSender
 {
     @Override
-    public MessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
+    public OutboundMessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
         // Do nothing
@@ -59,13 +59,13 @@ public class MockMessageSender
     }
 
     @Override
-    public  MessageResponseStatus  sendMessage( String subject, String text, Set<String> recipient )
+    public OutboundMessageResponseStatus sendMessage( String subject, String text, Set<String> recipient )
     {
         return null;
     }
 
     @Override
-    public  MessageResponseStatus  sendMessage( String subject, String text, String recipient )
+    public OutboundMessageResponseStatus sendMessage( String subject, String text, String recipient )
     {
         return null;
     }

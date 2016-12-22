@@ -40,7 +40,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
-import org.hisp.dhis.outboundmessage.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -84,7 +84,7 @@ public class SmsMessageSender
     // -------------------------------------------------------------------------
 
     @Override
-    public MessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
+    public OutboundMessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
         Set<User> toSendList = new HashSet<>();
@@ -115,7 +115,7 @@ public class SmsMessageSender
     }
 
     @Override
-    public MessageResponseStatus sendMessage( String subject, String text, String recipient )
+    public OutboundMessageResponseStatus sendMessage( String subject, String text, String recipient )
     {
         Set<String> recipients = new HashSet<>();
         recipients.add( recipient );
@@ -124,13 +124,13 @@ public class SmsMessageSender
     }
 
     @Override
-    public MessageResponseStatus sendMessage( String subject, String text, Set<String> recipients )
+    public OutboundMessageResponseStatus sendMessage( String subject, String text, Set<String> recipients )
     {
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
         if ( defaultGateway == null )
         {
-            return new MessageResponseStatus( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
+            return new OutboundMessageResponseStatus( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
         }
 
         return sendMessage( subject, text, normalizePhoneNumbers( recipients ), defaultGateway );
@@ -152,7 +152,7 @@ public class SmsMessageSender
         {
             if ( smsGateway.accept( defaultGateway ) )
             {
-                List<MessageResponseStatus> responses = smsGateway.sendBatch( batch, defaultGateway );
+                List<OutboundMessageResponseStatus> responses = smsGateway.sendBatch( batch, defaultGateway );
 
                 return generateSummary( responses, batch, smsGateway );
             }
@@ -192,20 +192,20 @@ public class SmsMessageSender
         }
     }
 
-    private MessageResponseStatus sendMessage( String subject, String text, Set<String> recipients,
+    private OutboundMessageResponseStatus sendMessage( String subject, String text, Set<String> recipients,
         SmsGatewayConfig gatewayConfig )
     {
         for ( SmsGateway smsGateway : smsGateways )
         {
             if ( smsGateway.accept( gatewayConfig ) )
             {
-                MessageResponseStatus status = smsGateway.send( subject, text, recipients, gatewayConfig );
+                OutboundMessageResponseStatus status = smsGateway.send( subject, text, recipients, gatewayConfig );
 
                 return handleResponse( status );
             }
         }
 
-        return new MessageResponseStatus( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
+        return new OutboundMessageResponseStatus( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
     }
 
     private Set<String> normalizePhoneNumbers( Set<String> to )
@@ -213,7 +213,7 @@ public class SmsMessageSender
         return to.stream().map( SmsUtils::removePhoneNumberPrefix ).collect( Collectors.toSet() );
     }
 
-    private MessageResponseStatus handleResponse( MessageResponseStatus status )
+    private OutboundMessageResponseStatus handleResponse( OutboundMessageResponseStatus status )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
             GatewayResponse.RESULT_CODE_202 );
@@ -224,17 +224,17 @@ public class SmsMessageSender
         {
             log.info( "SMS sent" );
 
-            return new MessageResponseStatus( gatewayResponse.getResponseMessage(), gatewayResponse, true );
+            return new OutboundMessageResponseStatus( gatewayResponse.getResponseMessage(), gatewayResponse, true );
         }
         else
         {
             log.error( "SMS failed, failure cause: " + gatewayResponse.getResponseMessage() );
 
-            return new MessageResponseStatus( gatewayResponse.getResponseMessage(), gatewayResponse, false );
+            return new OutboundMessageResponseStatus( gatewayResponse.getResponseMessage(), gatewayResponse, false );
         }
     }
 
-    private OutboundMessageResponseSummary generateSummary( List<MessageResponseStatus> statuses, OutboundMessageBatch batch,
+    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponseStatus> statuses, OutboundMessageBatch batch,
         SmsGateway smsGateway )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
@@ -250,7 +250,7 @@ public class SmsMessageSender
 
         total = batch.getMessages().size();
 
-        for ( MessageResponseStatus status : statuses )
+        for ( OutboundMessageResponseStatus status : statuses )
         {
             if ( okCodes.contains( status.getResponseObject() ) )
             {
@@ -279,7 +279,7 @@ public class SmsMessageSender
         else
         {
             summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
-            summary.setResposneMessage( "SENT" );
+            summary.setResponseMessage( "SENT" );
 
             log.info( "SMS batch processed successfully" );
         }
