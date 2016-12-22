@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.config;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.io.Serializable;
 import java.util.stream.Collectors;
