@@ -157,8 +157,8 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
-                    format, true, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
 
                 if ( dimObj != null )
                 {                    
@@ -177,8 +177,8 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
-                    format, true, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
 
                 if ( dimObj != null )
                 {
