@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -60,6 +61,7 @@ import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -75,6 +77,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.database.DatabaseInfo;
@@ -201,39 +204,11 @@ public class DefaultEventAnalyticsService
             }
         }
         
-        // ---------------------------------------------------------------------
-        // Meta-data
-        // ---------------------------------------------------------------------
+        addMetadata( params, grid );
         
-        if ( !params.isSkipMeta() )
-        {
-            Map<String, Object> metaData = new HashMap<>();
-            
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), getUidNameMap( params ) );
-            metaData.put( PERIOD_DIM_ID, getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) );
-            metaData.put( ORGUNIT_DIM_ID, getDimensionalItemIds( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) );
-
-            User user = securityManager.getCurrentUser( params );
-
-            List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-            
-            if ( params.isHierarchyMeta() )
-            {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
-            }
-
-            if ( params.isShowHierarchy() )
-            {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
-            }
-
-            grid.setMetaData( metaData );
-        }
-
         return grid;
     }
-    
+
     @Override
     public Grid getAggregatedEventData( AnalyticalObject object )
     {
@@ -395,6 +370,63 @@ public class DefaultEventAnalyticsService
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Adds meta data values to the given grid based on the given data query
+     * parameters.
+     *
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    private void addMetadata( EventQueryParams params, Grid grid )
+    {
+        if ( !params.isSkipMeta() )
+        {
+            Calendar calendar = PeriodType.getCalendar();
+            
+            List<String> periodUids = calendar.isIso8601() ?
+                getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+                getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
+
+            Map<String, Object> metaData = new HashMap<>();
+            
+            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), getUidNameMap( params ) );
+            metaData.put( PERIOD_DIM_ID, periodUids );
+
+            for ( DimensionalObject dim : params.getDimensionsAndFilters() )
+            {
+                if ( !metaData.keySet().contains( dim.getDimension() ) )
+                {
+                    metaData.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
+                }
+            }
+            
+            for ( QueryItem item : params.getItemsAndItemFilters() )
+            {
+                if ( item.hasLegendSet() )
+                {
+                    metaData.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getLegends() ) );
+                }
+            }
+
+            User user = securityManager.getCurrentUser( params );
+
+            List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+            
+            if ( params.isHierarchyMeta() )
+            {
+                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+            }
+
+            if ( params.isShowHierarchy() )
+            {
+                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+            }
+
+            grid.setMetaData( metaData );
+        }
+    }
+    
     private Map<String, String> getUidNameMap( EventQueryParams params )
     {
         Map<String, String> map = new HashMap<>();
