@@ -41,6 +41,7 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -60,7 +61,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics";
@@ -386,11 +387,11 @@ public class AnalyticsController
         params = DataQueryParams.newBuilder( params )
             .withStartDate( startDate )
             .withEndDate( endDate ).build();
-        
+
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getRawDataValues( params );
     }
-    
+
     @RequestMapping( value = RESOURCE_PATH + RAW_DATA_PATH + ".csv", method = RequestMethod.GET )
     public void getRawDataCsv(
         @RequestParam Set<String> dimension,
@@ -413,12 +414,12 @@ public class AnalyticsController
         params = DataQueryParams.newBuilder( params )
             .withStartDate( startDate )
             .withEndDate( endDate ).build();
-        
+
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
         Grid grid = analyticsService.getRawDataValues( params );
         GridUtils.toCsv( grid, response.getWriter() );
     }
-    
+
     // -------------------------------------------------------------------------
     // Data value set
     // -------------------------------------------------------------------------

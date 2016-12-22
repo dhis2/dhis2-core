@@ -1,8 +1,8 @@
-package org.hisp.dhis.webapi.mvc.annotation;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,26 +28,91 @@ package org.hisp.dhis.webapi.mvc.annotation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.springframework.core.annotation.AliasFor;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Target( { ElementType.TYPE, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface ApiVersion
+public enum DhisApiVersion
 {
-    @AliasFor( "include" )
-    DhisApiVersion[] value() default DhisApiVersion.ALL;
+    /**
+     * Default mapping /api/name
+     */
+    DEFAULT( "" ),
 
-    @AliasFor( "value" )
-    DhisApiVersion[] include() default DhisApiVersion.ALL;
+    /**
+     * Default mapping /api/name
+     */
+    TEST( "test" ),
 
-    DhisApiVersion[] exclude() default {};
+    /**
+     * /api/23/name
+     */
+    V23( "23" ),
+
+    /**
+     * /api/24/name
+     */
+    V24( "24" ),
+
+    /**
+     * /api/25/name
+     */
+    V25( "25" ),
+
+    /**
+     * /api/26/name
+     */
+    V26( "26" ),
+
+    /**
+     * Map to all versions, not including default.
+     */
+    ALL( "*", true );
+
+    final String path;
+
+    final boolean ignore;
+
+    DhisApiVersion( String path )
+    {
+        this.path = path;
+        this.ignore = false;
+    }
+
+    DhisApiVersion( String path, boolean ignore )
+    {
+        this.path = path;
+        this.ignore = ignore;
+    }
+
+    public String getPath()
+    {
+        return path;
+    }
+
+    public boolean isIgnore()
+    {
+        return ignore;
+    }
+
+    public static DhisApiVersion getVersion( String version )
+    {
+        if ( StringUtils.isEmpty( version ) )
+        {
+            return DhisApiVersion.DEFAULT;
+        }
+
+        for ( int i = 0; i < DhisApiVersion.values().length; i++ )
+        {
+            DhisApiVersion v = DhisApiVersion.values()[i];
+
+            if ( version.equals( v.getPath() ) )
+            {
+                return v;
+            }
+        }
+
+        throw new RuntimeException( "Invalid value `" + version + "` for enum ApiVersion.Version" );
+    }
 }
