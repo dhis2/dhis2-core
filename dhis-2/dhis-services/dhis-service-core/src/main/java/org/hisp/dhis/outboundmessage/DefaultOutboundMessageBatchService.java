@@ -60,7 +60,7 @@ public class DefaultOutboundMessageBatchService
     @Override
     public List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches )
     {
-        // Partition by channel first so we don't do multiple config checks
+        // Partition by channel (sender) first so we don't do multiple sender config checks
         return batches.stream()
             .collect( Collectors.groupingBy( OutboundMessageBatch::getDeliveryChannel ) )
             .entrySet().stream()

@@ -1389,6 +1389,11 @@
     <property name="attributeGroupStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" />
   </bean>
 
+  <!-- Outbound messaging services -->
+
+  <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"
+    class="org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService" />
+
   <!-- ProgramMessage services -->
 
   <bean id="org.hisp.dhis.program.message.ProgramMessageService" class="org.hisp.dhis.program.message.DefaultProgramMessageService">
