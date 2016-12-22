@@ -123,37 +123,6 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table )
-    {
-        final String tableName = table.getTempTableName();
-
-        final String sqlDrop = "drop table " + tableName;
-
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        validateDimensionColumns( columns );
-        
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-
-        sqlCreate = removeLast( sqlCreate, 1 ) + ") ";
-
-        sqlCreate += statementBuilder.getTableOptions( false );
-
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
-    }
-
-    @Override
     protected void populateTable( AnalyticsTable table )
     {
         final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );

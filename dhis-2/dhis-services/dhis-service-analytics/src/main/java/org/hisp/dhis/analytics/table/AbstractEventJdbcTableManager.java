@@ -1,16 +1,51 @@
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.commons.util.TextUtils.removeLast;
+
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.common.ValueType;
 
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
+    @Override
+    public void createTable( AnalyticsTable table )
+    {
+        final String tableName = table.getTempTableName();
+
+        final String sqlDrop = "drop table " + tableName;
+
+        executeSilently( sqlDrop );
+
+        String sqlCreate = "create table " + tableName + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+        
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+        }
+
+        sqlCreate = removeLast( sqlCreate, 1 ) + ") ";
+
+        sqlCreate += statementBuilder.getTableOptions( false );
+
+        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
+        
+        log.debug( "Create SQL: " + sqlCreate );
+        
+        jdbcTemplate.execute( sqlCreate );
+    }
+    
     @Override
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
         Collection<String> dataElements, int aggregationLevel )

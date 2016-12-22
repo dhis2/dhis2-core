@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -54,6 +55,8 @@ import java.util.regex.Pattern;
 public class ProgramIndicator
     extends BaseDataDimensionalItemObject
 {
+    public static final String DB_SEPARATOR_ID = "_";
+    
     public static final String SEPARATOR_ID = "\\.";
     public static final String SEP_OBJECT = ":";
     public static final String KEY_DATAELEMENT = "#";

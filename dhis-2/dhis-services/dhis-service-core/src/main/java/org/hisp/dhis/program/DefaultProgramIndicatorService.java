@@ -74,8 +74,6 @@ public class DefaultProgramIndicatorService
         put( DaysBetweenSqlFunction.KEY, new DaysBetweenSqlFunction() ).
         put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() ).build();
 
-    private static final String SEPARATOR_DB = "_";
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -375,7 +373,7 @@ public class DefaultProgramIndicatorService
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
             {                
                 String columnName = ProgramIndicatorAnalyticsType.ENROLLMENT == programIndicatorAnalyticsType ? 
-                    statementBuilder.columnQuote( el1 + SEPARATOR_DB + el2 ) : statementBuilder.columnQuote( el2 );
+                    statementBuilder.columnQuote( el1 + ProgramIndicator.DB_SEPARATOR_ID + el2 ) : statementBuilder.columnQuote( el2 );
                 
                 String de = ignoreMissingValues ? getIgnoreNullSql( columnName ) : columnName;
 
