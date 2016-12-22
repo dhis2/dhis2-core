@@ -217,7 +217,7 @@ public class DefaultProgramMessageService
         {
             for ( MessageSender messageSender : messageSenders )
             {
-                if ( messageSender.accept( Sets.newHashSet( batch.getDeliveryChannel() ) ) )
+                if ( messageSender.getDeliveryChannel() == batch.getDeliveryChannel() )
                 {
                     if ( messageSender.isServiceReady() )
                     {

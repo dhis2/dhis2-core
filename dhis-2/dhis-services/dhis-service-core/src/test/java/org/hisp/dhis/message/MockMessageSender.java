@@ -53,12 +53,6 @@ public class MockMessageSender
     }
 
     @Override
-    public boolean accept( Set<DeliveryChannel> channels )
-    {
-        return false;
-    }
-
-    @Override
     public boolean isServiceReady()
     {
         return false;

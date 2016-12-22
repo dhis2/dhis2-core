@@ -28,10 +28,12 @@ package org.hisp.dhis.outboundmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
 /**
  * @author Halvdan Hoem Grelland
  */
 public interface OutboundMessageBatchService
 {
-    OutboundMessageResponseSummary sendBatch( OutboundMessageBatch outboundBatch );
+    OutboundMessageResponseSummary sendBatches( List<OutboundMessageBatch> outboundBatch );
 }

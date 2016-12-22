@@ -34,4 +34,5 @@ package org.hisp.dhis.validation.notification;
  */
 public interface ValidationNotificationService
 {
+
 }

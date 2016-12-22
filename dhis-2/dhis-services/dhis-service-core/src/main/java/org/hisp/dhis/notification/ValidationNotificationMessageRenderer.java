@@ -30,7 +30,6 @@ package org.hisp.dhis.notification;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable;
 

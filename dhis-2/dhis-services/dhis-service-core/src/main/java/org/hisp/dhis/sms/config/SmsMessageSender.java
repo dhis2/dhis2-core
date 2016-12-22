@@ -162,12 +162,6 @@ public class SmsMessageSender
     }
 
     @Override
-    public boolean accept( Set<DeliveryChannel> channels )
-    {
-        return channels.contains( DeliveryChannel.SMS );
-    }
-
-    @Override
     public boolean isServiceReady()
     {
         Map<String, SmsGatewayConfig> gatewayMap = gatewayAdminService.getGatewayConfigurationMap();

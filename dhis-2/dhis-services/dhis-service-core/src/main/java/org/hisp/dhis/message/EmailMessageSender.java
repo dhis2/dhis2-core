@@ -280,15 +280,9 @@ public class EmailMessageSender
     }
 
     @Override
-    public boolean accept( Set<DeliveryChannel> channels )
-    {
-        return channels.contains( DeliveryChannel.EMAIL );
-
-    }
-
-    @Override
     public boolean isServiceReady()
     {
+        // TODO Check if SMTP is configured
         return true;
     }
 

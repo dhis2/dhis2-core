@@ -61,8 +61,6 @@ public interface MessageSender
    
     OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
 
-    boolean accept( Set<DeliveryChannel> channels );
-
     boolean isServiceReady();
 
     DeliveryChannel getDeliveryChannel();
