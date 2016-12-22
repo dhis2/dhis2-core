@@ -42,7 +42,7 @@ import org.hisp.dhis.schema.descriptors.PushAnalysisSchemaDescriptor;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -60,7 +60,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( PushAnalysisSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class PushAnalysisController
     extends AbstractCrudController<PushAnalysis>
 {

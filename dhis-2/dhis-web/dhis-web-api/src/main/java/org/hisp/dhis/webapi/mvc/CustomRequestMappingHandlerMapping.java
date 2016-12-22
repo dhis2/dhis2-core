@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.mvc;
  */
 
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
@@ -76,7 +76,7 @@ public class CustomRequestMappingHandlerMapping
         Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
         Set<String> patterns = new HashSet<>();
 
-        Set<DhisVersion> versions = getVersions( typeApiVersion, methodApiVersion );
+        Set<DhisApiVersion> versions = getVersions( typeApiVersion, methodApiVersion );
 
         for ( String pattern : rqmPatterns )
         {
@@ -105,10 +105,10 @@ public class CustomRequestMappingHandlerMapping
         );
     }
 
-    private Set<DhisVersion> getVersions( ApiVersion typeApiVersion, ApiVersion methodApiVersion )
+    private Set<DhisApiVersion> getVersions( ApiVersion typeApiVersion, ApiVersion methodApiVersion )
     {
-        Set<DhisVersion> includes = new HashSet<>();
-        Set<DhisVersion> excludes = new HashSet<>();
+        Set<DhisApiVersion> includes = new HashSet<>();
+        Set<DhisApiVersion> excludes = new HashSet<>();
 
         if ( typeApiVersion != null )
         {
@@ -122,20 +122,20 @@ public class CustomRequestMappingHandlerMapping
             excludes.addAll( Arrays.asList( methodApiVersion.exclude() ) );
         }
 
-        if ( includes.contains( DhisVersion.ALL ) )
+        if ( includes.contains( DhisApiVersion.ALL ) )
         {
-            boolean includeDefault = includes.contains( DhisVersion.DEFAULT );
-            boolean includeTest = includes.contains( DhisVersion.TEST );
-            includes = new HashSet<>( Arrays.asList( DhisVersion.values() ) );
+            boolean includeDefault = includes.contains( DhisApiVersion.DEFAULT );
+            boolean includeTest = includes.contains( DhisApiVersion.TEST );
+            includes = new HashSet<>( Arrays.asList( DhisApiVersion.values() ) );
 
             if ( !includeDefault )
             {
-                includes.remove( DhisVersion.DEFAULT );
+                includes.remove( DhisApiVersion.DEFAULT );
             }
 
             if ( !includeTest )
             {
-                includes.remove( DhisVersion.TEST );
+                includes.remove( DhisApiVersion.TEST );
             }
         }
 

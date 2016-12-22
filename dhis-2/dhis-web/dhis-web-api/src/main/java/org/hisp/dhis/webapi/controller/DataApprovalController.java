@@ -64,7 +64,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.approval.Approval;
@@ -101,7 +101,7 @@ import static com.google.common.collect.Lists.newArrayList;
  */
 @Controller
 @RequestMapping
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataApprovalController
 {
     public static final String APPROVALS_PATH = "/dataApprovals";

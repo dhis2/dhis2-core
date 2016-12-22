@@ -39,7 +39,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.BatchResponseStatus;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,7 +60,7 @@ import java.util.Set;
  */
 @RestController
 @RequestMapping( value = "/messages" )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ProgramMessageController
     extends AbstractCrudController<ProgramMessage>
 {

@@ -31,7 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.appstore.AppStore;
 import org.hisp.dhis.appstore.AppStoreManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,7 +50,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( AppStoreController.RESOURCE_PATH )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class AppStoreController
 {
     public static final String RESOURCE_PATH = "/appStore";

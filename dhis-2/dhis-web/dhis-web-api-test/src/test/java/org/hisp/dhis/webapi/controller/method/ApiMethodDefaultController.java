@@ -28,7 +28,7 @@ package org.hisp.dhis.webapi.controller.method;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,14 +44,14 @@ import java.io.IOException;
 public class ApiMethodDefaultController
 {
     @RequestMapping( "a" )
-    @ApiVersion( DhisVersion.DEFAULT )
+    @ApiVersion( DhisApiVersion.DEFAULT )
     public void testVDefaultA( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );
     }
 
     @RequestMapping( "b" )
-    @ApiVersion( DhisVersion.DEFAULT )
+    @ApiVersion( DhisApiVersion.DEFAULT )
     public void testDefaultB( HttpServletResponse response ) throws IOException
     {
         response.getWriter().println( "TEST" );

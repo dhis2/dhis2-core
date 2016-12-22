@@ -28,7 +28,7 @@ package org.hisp.dhis.webapi.mvc.annotation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
@@ -44,10 +44,10 @@ import java.lang.annotation.Target;
 public @interface ApiVersion
 {
     @AliasFor( "include" )
-    DhisVersion[] value() default DhisVersion.ALL;
+    DhisApiVersion[] value() default DhisApiVersion.ALL;
 
     @AliasFor( "value" )
-    DhisVersion[] include() default DhisVersion.ALL;
+    DhisApiVersion[] include() default DhisApiVersion.ALL;
 
-    DhisVersion[] exclude() default {};
+    DhisApiVersion[] exclude() default {};
 }

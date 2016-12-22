@@ -28,7 +28,7 @@ package org.hisp.dhis.webapi.controller.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +40,7 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ApiVersion( DhisVersion.V23 )
+@ApiVersion( DhisApiVersion.V23 )
 public abstract class BaseWithVersionController
 {
     @RequestMapping( value = "/{id}", method = RequestMethod.POST )

@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.mvc;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,91 +28,43 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.StringUtils;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum DhisVersion
+@Component
+public class DhisApiVersionHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    /**
-     * Default mapping /api/name
-     */
-    DEFAULT( "" ),
+    private Pattern API_VERSION_PATTERN = Pattern.compile( "^/api/(?<version>[0-9]{2})/" );
 
-    /**
-     * Default mapping /api/name
-     */
-    TEST( "test" ),
-
-    /**
-     * /api/23/name
-     */
-    V23( "23" ),
-
-    /**
-     * /api/24/name
-     */
-    V24( "24" ),
-
-    /**
-     * /api/25/name
-     */
-    V25( "25" ),
-
-    /**
-     * /api/26/name
-     */
-    V26( "26" ),
-
-    /**
-     * Map to all versions, not including default.
-     */
-    ALL( "*", true );
-
-    final String path;
-
-    final boolean ignore;
-
-    DhisVersion( String path )
+    @Override
+    public boolean supportsParameter( MethodParameter parameter )
     {
-        this.path = path;
-        this.ignore = false;
+        return DhisApiVersion.class.isAssignableFrom( parameter.getParameterType() );
     }
 
-    DhisVersion( String path, boolean ignore )
+    @Override
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
     {
-        this.path = path;
-        this.ignore = ignore;
-    }
+        String requestURI = ((HttpServletRequest) webRequest.getNativeRequest()).getRequestURI();
+        Matcher matcher = API_VERSION_PATTERN.matcher( requestURI );
 
-    public String getPath()
-    {
-        return path;
-    }
-
-    public boolean isIgnore()
-    {
-        return ignore;
-    }
-
-    public static DhisVersion getVersion( String version )
-    {
-        if ( StringUtils.isEmpty( version ) )
+        if ( matcher.find() )
         {
-            return DhisVersion.DEFAULT;
+            return DhisApiVersion.getVersion( matcher.group( "version" ) );
         }
 
-        for ( int i = 0; i < DhisVersion.values().length; i++ )
-        {
-            DhisVersion v = DhisVersion.values()[i];
-
-            if ( version.equals( v.getPath() ) )
-            {
-                return v;
-            }
-        }
-
-        throw new RuntimeException( "Invalid value `" + version + "` for enum ApiVersion.Version" );
+        return DhisApiVersion.getVersion( "" );
     }
 }

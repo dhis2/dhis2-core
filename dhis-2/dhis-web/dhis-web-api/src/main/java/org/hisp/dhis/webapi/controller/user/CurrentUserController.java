@@ -64,7 +64,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.controller.exception.FilterTooShortException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FormUtils;
@@ -101,7 +101,7 @@ import java.util.Set;
  */
 @Controller
 @RequestMapping( value = { CurrentUserController.RESOURCE_PATH, "/me" }, method = RequestMethod.GET )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.V23 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
 public class CurrentUserController
 {
     public static final String RESOURCE_PATH = "/currentUser";

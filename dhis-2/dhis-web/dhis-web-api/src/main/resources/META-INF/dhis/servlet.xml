@@ -109,7 +109,7 @@
     <property name="customArgumentResolvers">
       <list>
         <ref bean="currentUserHandlerMethodArgumentResolver" />
-        <ref bean="dhisVersionHandlerMethodArgumentResolver" />
+        <ref bean="dhisApiVersionHandlerMethodArgumentResolver" />
       </list>
     </property>
     <property name="messageConverters">

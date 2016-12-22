@@ -44,7 +44,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -69,7 +69,7 @@ import java.util.Date;
  */
 @Controller
 @RequestMapping( value = FileResourceSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FileResourceController
 {
     private static final String DEFAULT_FILENAME = "untitled";

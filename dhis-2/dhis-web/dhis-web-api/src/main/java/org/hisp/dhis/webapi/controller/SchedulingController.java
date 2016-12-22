@@ -32,7 +32,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.SchedulingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +55,7 @@ import static org.hisp.dhis.system.scheduling.Scheduler.*;
  */
 @Controller
 @RequestMapping( value = "/scheduling" )
-@ApiVersion( { DhisVersion.DEFAULT, DhisVersion.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SchedulingController
 {
     private static final String STRATEGY_ALL_DAILY = "allDaily";

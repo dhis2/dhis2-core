@@ -70,7 +70,7 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,7 +159,7 @@ public class CompleteDataSetRegistrationController
     // GET
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisVersion.DEFAULT, DhisVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
     public void getCompleteRegistrationsXml(
         @RequestParam Set<String> dataSet,
@@ -186,7 +186,7 @@ public class CompleteDataSetRegistrationController
         registrationExchangeService.writeCompleteDataSetRegistrationsXml( params, response.getOutputStream() );
     }
 
-    @ApiVersion( { DhisVersion.DEFAULT, DhisVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
     public void getCompleteRegistrationsJson(
         @RequestParam Set<String> dataSet,
@@ -215,7 +215,7 @@ public class CompleteDataSetRegistrationController
 
     // Legacy (>= V25)
 
-    @ApiVersion( { DhisVersion.V23, DhisVersion.V24, DhisVersion.V25, } )
+    @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
     public @ResponseBody
     RootNode getCompleteDataSetRegistrationsJson(
@@ -252,7 +252,7 @@ public class CompleteDataSetRegistrationController
     // POST
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisVersion.DEFAULT, DhisVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
     public void postCompleteRegistrationsXml(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -272,7 +272,7 @@ public class CompleteDataSetRegistrationController
         }
     }
 
-    @ApiVersion( { DhisVersion.DEFAULT, DhisVersion.V26 } )
+    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V26 } )
     @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
     public void postCompleteRegistrationsJson(
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response
@@ -294,7 +294,7 @@ public class CompleteDataSetRegistrationController
 
     // Legacy (<= V25)
 
-    @ApiVersion( { DhisVersion.V23, DhisVersion.V24, DhisVersion.V25, } )
+    @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.POST, produces = "text/plain" )
     public void saveCompleteDataSetRegistration(
         @RequestParam String ds,
@@ -374,7 +374,7 @@ public class CompleteDataSetRegistrationController
         registrationService.saveCompleteDataSetRegistrations( registrations, true );
     }
 
-    @ApiVersion( { DhisVersion.V23, DhisVersion.V24, DhisVersion.V25, } )
+    @ApiVersion( { DhisApiVersion.V23, DhisApiVersion.V24, DhisApiVersion.V25, } )
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json", value = MULTIPLE_SAVE_RESOURCE_PATH )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void saveCompleteDataSetRegistration(
@@ -460,7 +460,7 @@ public class CompleteDataSetRegistrationController
     // DELETE
     // -------------------------------------------------------------------------
 
-    @ApiVersion( { DhisVersion.ALL, DhisVersion.DEFAULT } )
+    @ApiVersion( { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
     @RequestMapping( method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCompleteDataSetRegistration(
