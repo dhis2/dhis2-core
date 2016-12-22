@@ -28,8 +28,6 @@ package org.hisp.dhis.outboundmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -37,7 +35,6 @@ import org.hisp.dhis.message.MessageSender;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,34 +58,69 @@ public class DefaultOutboundMessageBatchService
     }
 
     @Override
-    public OutboundMessageResponseSummary sendBatches( List<OutboundMessageBatch> batches )
+    public List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches )
     {
-        Map<DeliveryChannel, List<OutboundMessageBatch>> batchesByChannel = batches.stream()
-            .collect( Collectors.groupingBy( OutboundMessageBatch::getDeliveryChannel ) );
+        // Partition by channel first so we don't do multiple config checks
+        return batches.stream()
+            .collect( Collectors.groupingBy( OutboundMessageBatch::getDeliveryChannel ) )
+            .entrySet().stream()
+            .flatMap( entry -> {
+                DeliveryChannel channel = entry.getKey();
+                MessageSender sender = resolveMessageSender( channel );
+                List<OutboundMessageBatch> messageBatches = entry.getValue();
 
-
-        return null;
+                return messageBatches.stream()
+                        .map( batch -> send( batch, channel, sender ) );
+            } )
+            .collect( Collectors.toList() );
     }
 
     // ---------------------------------------------------------------------
     // Supportive Methods
     // ---------------------------------------------------------------------
 
-    private OutboundMessageResponseSummary send( OutboundMessageBatch batch, DeliveryChannel channel )
+    private MessageSender resolveMessageSender( DeliveryChannel channel )
     {
-        Set<MessageSender> applicableSenders = getApplicableMessageSenders( ImmutableSet.of( channel ) );
-        Set<MessageSender> notApplicableSenders = Sets.difference( messageSenders, applicableSenders );
+        Set<MessageSender> senders = messageSenders.stream()
+            .filter( sender -> sender.getDeliveryChannel() == channel )
+            .collect( Collectors.toSet() );
 
-        List<OutboundMessageResponseSummary> summaries = batch.getBatch().stream()
-            .map( message ->  )
+        if ( senders.isEmpty() )
+        {
+            return null;
+        }
 
-
+        // TODO Need to consider multiple senders here?
+        return senders.iterator().next();
     }
 
-    private Set<MessageSender> getApplicableMessageSenders( Set<DeliveryChannel> channels )
+    private static OutboundMessageResponseSummary send( OutboundMessageBatch batch, DeliveryChannel channel, MessageSender sender )
     {
-        return messageSenders.stream()
-            .filter( sender -> sender.accept( channels ) )
-            .collect( Collectors.toSet() );
+        if ( sender == null )
+        {
+            String err = String.format( "No server/gateway found for delivery channel %s", channel );
+            log.error( err );
+
+            return new OutboundMessageResponseSummary(
+                err,
+                channel,
+                OutboundMessageBatchStatus.FAILED
+            );
+        }
+        else if ( !sender.isConfigured() )
+        {
+            String err = String.format( "Server/gateway for delivery channel %s is not configured", channel );
+            log.error( err );
+
+            return new OutboundMessageResponseSummary(
+                err,
+                channel,
+                OutboundMessageBatchStatus.FAILED
+            );
+        }
+
+        log.info( "Invoking message sender: " + sender.getClass().getSimpleName() );
+
+        return sender.sendMessageBatch( batch );
     }
 }

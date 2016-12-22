@@ -28,7 +28,6 @@ package org.hisp.dhis.program.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -219,7 +218,7 @@ public class DefaultProgramMessageService
             {
                 if ( messageSender.getDeliveryChannel() == batch.getDeliveryChannel() )
                 {
-                    if ( messageSender.isServiceReady() )
+                    if ( messageSender.isConfigured() )
                     {
                         log.info( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
 

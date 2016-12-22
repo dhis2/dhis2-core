@@ -53,7 +53,7 @@ public class MockMessageSender
     }
 
     @Override
-    public boolean isServiceReady()
+    public boolean isConfigured()
     {
         return false;
     }

@@ -280,7 +280,7 @@ public class EmailMessageSender
     }
 
     @Override
-    public boolean isServiceReady()
+    public boolean isConfigured()
     {
         // TODO Check if SMTP is configured
         return true;

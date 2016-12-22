@@ -162,7 +162,7 @@ public class SmsMessageSender
     }
 
     @Override
-    public boolean isServiceReady()
+    public boolean isConfigured()
     {
         Map<String, SmsGatewayConfig> gatewayMap = gatewayAdminService.getGatewayConfigurationMap();
 

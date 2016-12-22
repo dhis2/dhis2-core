@@ -61,7 +61,7 @@ public interface MessageSender
    
     OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
 
-    boolean isServiceReady();
+    boolean isConfigured();
 
     DeliveryChannel getDeliveryChannel();
 }

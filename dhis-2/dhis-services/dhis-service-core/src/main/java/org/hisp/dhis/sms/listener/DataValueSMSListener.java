@@ -520,7 +520,7 @@ public class DataValueSMSListener
 
         notInReport = notInReport.substring( 0, notInReport.length() - 1 );
 
-        if ( smsSender.isServiceReady() )
+        if ( smsSender.isConfigured() )
         {
             if ( command.getSuccessMessage() != null && !StringUtils.isEmpty( command.getSuccessMessage() ) )
             {
