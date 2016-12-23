@@ -66,6 +66,6 @@ public class DhisApiVersionHandlerMethodArgumentResolver implements HandlerMetho
             return DhisApiVersion.getVersion( version );
         }
 
-        return DhisApiVersion.getVersion( 0 );
+        return DhisApiVersion.DEFAULT;
     }
 }
