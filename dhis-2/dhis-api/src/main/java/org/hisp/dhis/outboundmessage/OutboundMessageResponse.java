@@ -39,7 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 
 @JacksonXmlRootElement( localName = "messageResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class OutboundMessageResponseStatus
+public class OutboundMessageResponse
 {
     private String description;
     
@@ -47,11 +47,11 @@ public class OutboundMessageResponseStatus
 
     private Enum<?> responseObject;
 
-    public OutboundMessageResponseStatus()
+    public OutboundMessageResponse()
     {
     }
 
-    public OutboundMessageResponseStatus( String description, Enum<?> response, boolean ok )
+    public OutboundMessageResponse( String description, Enum<?> response, boolean ok )
     {
         this.ok = ok;
         this.responseObject = response;

@@ -42,7 +42,7 @@ import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -103,7 +103,7 @@ public class EmailMessageSender
      */
     @Async
     @Override
-    public OutboundMessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
+    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
         String hostName = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_HOST_NAME );
@@ -114,7 +114,7 @@ public class EmailMessageSender
         String from = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_SENDER );
         String errorMessage = "No recipient found";
 
-        OutboundMessageResponseStatus status = new OutboundMessageResponseStatus();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( hostName == null )
         {
@@ -164,31 +164,31 @@ public class EmailMessageSender
 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
 
-                status = new OutboundMessageResponseStatus( "Email sent", EmailResponse.SENT, true );
+                status = new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
             {
-                status = new OutboundMessageResponseStatus( errorMessage, EmailResponse.ABORTED, false );
+                status = new OutboundMessageResponse( errorMessage, EmailResponse.ABORTED, false );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Could not send email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new OutboundMessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
+            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new OutboundMessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
+            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;
     }
 
     @Override
-    public OutboundMessageResponseStatus sendMessage( String subject, String text, Set<String> recipients )
+    public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipients )
     {
         String hostName = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_HOST_NAME );
         int port = (int) systemSettingManager.getSystemSetting( SettingKey.EMAIL_PORT );
@@ -198,7 +198,7 @@ public class EmailMessageSender
         String from = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_SENDER );
         String errorMessage = "No recipient found";
 
-        OutboundMessageResponseStatus status = new OutboundMessageResponseStatus();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( hostName == null )
         {
@@ -237,31 +237,31 @@ public class EmailMessageSender
 
                 log.info( "Email sent using host: " + hostName + ":" + port + " with TLS: " + tls );
 
-                return new OutboundMessageResponseStatus( "Email sent", EmailResponse.SENT, true );
+                return new OutboundMessageResponse( "Email sent", EmailResponse.SENT, true );
             }
             else
             {
-                status = new OutboundMessageResponseStatus( errorMessage, EmailResponse.ABORTED, false );
+                status = new OutboundMessageResponse( errorMessage, EmailResponse.ABORTED, false );
             }
         }
         catch ( EmailException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new OutboundMessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
+            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
         catch ( RuntimeException ex )
         {
             log.warn( "Error while sending email: " + ex.getMessage() + ", " + DebugUtils.getStackTrace( ex ) );
 
-            status = new OutboundMessageResponseStatus( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
+            status = new OutboundMessageResponse( "Email not sent: " + ex.getMessage(), EmailResponse.FAILED, false );
         }
 
         return status;
     }
 
     @Override
-    public OutboundMessageResponseStatus sendMessage( String subject, String text, String recipient )
+    public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
         return sendMessage( subject, text, Sets.newHashSet( recipient ) );
     }
@@ -269,7 +269,7 @@ public class EmailMessageSender
     @Override
     public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
-        List<OutboundMessageResponseStatus> statuses = new ArrayList<>();
+        List<OutboundMessageResponse> statuses = new ArrayList<>();
 
         for ( OutboundMessage email : batch.getMessages() )
         {
@@ -378,7 +378,7 @@ public class EmailMessageSender
         return ValidationUtils.emailIsValid( email );
     }
 
-    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponseStatus> statuses )
+    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses )
     {
         OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
 
@@ -390,7 +390,7 @@ public class EmailMessageSender
 
         total = statuses.size();
 
-        for ( OutboundMessageResponseStatus status : statuses )
+        for ( OutboundMessageResponse status : statuses )
         {
             if ( EmailResponse.SENT.equals( status.getResponseObject() ) )
             {

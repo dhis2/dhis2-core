@@ -33,7 +33,7 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -83,7 +83,7 @@ public class BulkSmsGateway
     // -------------------------------------------------------------------------
 
     @Override
-    public List<OutboundMessageResponseStatus> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
         BulkSmsGatewayConfig bulkSmsConfig = (BulkSmsGatewayConfig) config;
 
@@ -100,7 +100,7 @@ public class BulkSmsGateway
     }
 
     @Override
-    public OutboundMessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         UriComponentsBuilder uriBuilder = createUri( (BulkSmsGatewayConfig) config, recipients, SubmissionType.SINGLE );
         uriBuilder.queryParam( "message", text );
@@ -121,7 +121,7 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private OutboundMessageResponseStatus send( UriComponentsBuilder uriBuilder )
+    private OutboundMessageResponse send( UriComponentsBuilder uriBuilder )
     {
         ResponseEntity<String> responseEntity = null;
 
@@ -184,9 +184,9 @@ public class BulkSmsGateway
         return uriBuilder;
     }
 
-    private OutboundMessageResponseStatus getResponse( ResponseEntity<String> responseEntity )
+    private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
     {
-        OutboundMessageResponseStatus status = new OutboundMessageResponseStatus();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         if ( responseEntity == null )
         {

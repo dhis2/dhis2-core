@@ -32,7 +32,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -140,7 +140,7 @@ public class SmsController
             throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
         }
 
-        OutboundMessageResponseStatus status = smsSender.sendMessage( null, message, recipient );
+        OutboundMessageResponse status = smsSender.sendMessage( null, message, recipient );
 
         if ( status.isOk() )
         {
@@ -159,7 +159,7 @@ public class SmsController
     {
         OutboundSms sms = renderService.fromJson( request.getInputStream(), OutboundSms.class );
 
-        OutboundMessageResponseStatus status = smsSender.sendMessage( null, sms.getMessage(), sms.getRecipients() );
+        OutboundMessageResponse status = smsSender.sendMessage( null, sms.getMessage(), sms.getRecipients() );
 
         if ( status.isOk() )
         {

@@ -31,7 +31,7 @@ package org.hisp.dhis.message;
 import java.util.Set;
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
@@ -53,11 +53,11 @@ public interface MessageSender
      * @param forceSend force sending the message despite potential user
      *        settings.
      */
-    OutboundMessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
+    OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
 
-    OutboundMessageResponseStatus sendMessage( String subject, String text, Set<String> recipient );
+    OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipient );
 
-    OutboundMessageResponseStatus sendMessage( String subject, String text, String recipient );
+    OutboundMessageResponse sendMessage( String subject, String text, String recipient );
    
     OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
 

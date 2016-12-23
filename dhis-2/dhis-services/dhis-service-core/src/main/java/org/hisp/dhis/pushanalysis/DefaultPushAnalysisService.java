@@ -56,7 +56,7 @@ import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -285,7 +285,7 @@ public class DefaultPushAnalysisService
 
                 // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
                 @SuppressWarnings( "unused" )
-                OutboundMessageResponseStatus status = messageSender
+                OutboundMessageResponse status = messageSender
                     .sendMessage( title, html, "", null, Sets.newHashSet( user ), true );
 
             }

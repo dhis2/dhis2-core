@@ -35,7 +35,7 @@ import javax.annotation.Resource;
 
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
@@ -65,7 +65,7 @@ public class SendSmsTask
 
     private String message;
 
-    private OutboundMessageResponseStatus status;
+    private OutboundMessageResponse status;
 
     private TaskId taskId;
 
@@ -93,12 +93,12 @@ public class SendSmsTask
         }
     }
 
-    public OutboundMessageResponseStatus getStatus()
+    public OutboundMessageResponse getStatus()
     {
         return status;
     }
 
-    public void setStatus( OutboundMessageResponseStatus status )
+    public void setStatus( OutboundMessageResponse status )
     {
         this.status = status;
     }
