@@ -45,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -57,7 +58,6 @@ public class JdbcEnrollmentAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
     private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
-    public static final String SEP = "_";
     
     @Override
     @Transactional
@@ -187,19 +187,19 @@ public class JdbcEnrollmentAnalyticsTableManager
                 boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
                 //Only this has been changed so far:
-                String sql = "(select " + select + " FROM trackedentitydatavalue tedv " + 
-                     "JOIN programstageinstance psi " + 
-                     "ON psi.programstageinstanceid = tedv.programstageinstanceid " + 
-                     "WHERE psi.executiondate is not null " + 
-                     "AND psi.deleted is not true " + 
-                     "AND psi.programinstanceid = pi.programinstanceid " +
+                String sql = "(select " + select + " from trackedentitydatavalue tedv " + 
+                     "join programstageinstance psi " + 
+                     "on psi.programstageinstanceid = tedv.programstageinstanceid " + 
+                     "where psi.executiondate is not null " + 
+                     "and psi.deleted is not true " + 
+                     "and psi.programinstanceid = pi.programinstanceid " +
                      dataClause + 
-                     " AND tedv.dataelementid = " + dataElement.getId() + 
-                     " AND psi.programStageId = " + programStage.getId() +
-                     " ORDER BY psi.executiondate desc " +
-                     "LIMIT 1) as " + quote( programStage.getUid() + SEP + dataElement.getUid() );
+                     " and tedv.dataelementid = " + dataElement.getId() + 
+                     " and psi.programStageId = " + programStage.getId() +
+                     " order by psi.executiondate desc " +
+                     "limit 1) as " + quote( programStage.getUid() + ProgramIndicator.DB_SEPARATOR_ID + dataElement.getUid() );
 
-                columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + SEP + dataElement.getUid() ), dataType, sql, skipIndex ) ); 
+                columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + ProgramIndicator.DB_SEPARATOR_ID + dataElement.getUid() ), dataType, sql, skipIndex ) ); 
             }
         }
 
@@ -222,24 +222,24 @@ public class JdbcEnrollmentAnalyticsTableManager
         
         // PSI columns fallback in enrollment analytics
         
-        String executionDateSql = "( SELECT psi.executionDate FROM programstageinstance psi " + 
-            "JOIN programinstance pi " + 
-            "ON psi.programinstanceid = pi.programinstanceid " + 
-            "WHERE psi.executiondate is not null " + 
-            "AND psi.deleted is not true " +
-            "ORDER BY psi.executiondate desc " +
-            "LIMIT 1 ) as " + quote( "executiondate" );        
+        String executionDateSql = "( select psi.executionDate from programstageinstance psi " + 
+            "join programinstance pi " + 
+            "on psi.programinstanceid = pi.programinstanceid " + 
+            "where psi.executiondate is not null " + 
+            "and psi.deleted is not true " +
+            "order by psi.executiondate desc " +
+            "limit 1 ) as " + quote( "executiondate" );        
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
         
-        String dueDateSql = "( SELECT psi.duedate FROM programstageinstance psi " + 
-            "JOIN programinstance pi " + 
-            "ON psi.programinstanceid = pi.programinstanceid " + 
-            "WHERE psi.duedate is not null " + 
-            "AND psi.deleted is not true " +
-            "ORDER BY psi.duedate desc " +
-            "LIMIT 1 ) as " + quote( "duedate" );        
+        String dueDateSql = "( select psi.duedate FROM programstageinstance psi " + 
+            "join programinstance pi " + 
+            "on psi.programinstanceid = pi.programinstanceid " + 
+            "where psi.duedate is not null " + 
+            "and psi.deleted is not true " +
+            "order by psi.duedate desc " +
+            "limit 1 ) as " + quote( "duedate" );        
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
-        AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "CASE status WHEN 'COMPLETED' THEN enddate END" );
+        AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case status when 'COMPLETED' then enddate end" );
         AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" );
         AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" );
         AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, "pi.latitude" );
