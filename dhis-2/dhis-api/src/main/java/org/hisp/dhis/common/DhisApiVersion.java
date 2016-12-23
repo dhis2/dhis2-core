@@ -28,8 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.util.StringUtils;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -118,11 +116,6 @@ public enum DhisApiVersion
 
     public static DhisApiVersion getVersion( int version )
     {
-        if ( StringUtils.isEmpty( version ) )
-        {
-            return DhisApiVersion.DEFAULT;
-        }
-
         for ( int i = 0; i < DhisApiVersion.values().length; i++ )
         {
             DhisApiVersion v = DhisApiVersion.values()[i];
@@ -133,6 +126,6 @@ public enum DhisApiVersion
             }
         }
 
-        throw new RuntimeException( "Invalid value `" + version + "` for enum ApiVersion.Version" );
+        return DEFAULT;
     }
 }
