@@ -40,6 +40,8 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventchart.EventChart;
@@ -87,6 +89,7 @@ public class EventDataQueryServiceTest
 
     private DataElement deA;
     private DataElement deB;
+    private DataElement deC;
 
     private TrackedEntityAttribute atA;
     private TrackedEntityAttribute atB;
@@ -134,9 +137,12 @@ public class EventDataQueryServiceTest
 
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
+        deC = createDataElement( 'C' );
+        deC.setValueType( ValueType.COORDINATE );
 
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
 
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
@@ -180,8 +186,8 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401;201402" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, 
-            false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
+            null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
+            false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -200,8 +206,8 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, 
-            false, false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
+            null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, false, 
+            false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -339,13 +345,33 @@ public class EventDataQueryServiceTest
         filterParams.add( atA.getUid() + ":LE:5" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, 
-            false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
+            null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
+            false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getItems().size() );
         assertEquals( legendSetA, params.getItems().get( 0 ).getLegendSet() );
         assertEquals( 1, params.getItemFilters().size() );
         assertEquals( 2, params.getFilterPeriods().size() );
+    }
+
+    @Test
+    public void testGetCoordinateField()
+    {
+        assertEquals( "geom", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
+        assertEquals( "geom", dataQueryService.getCoordinateField( null ) );
+        assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );        
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void testGetInvalidCoordinateFieldException()
+    {
+        dataQueryService.getCoordinateField( "someField" );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void testGetNonCoordinateValueTypeCoordinateFieldException()
+    {
+        dataQueryService.getCoordinateField( deA.getUid() );
     }
 }

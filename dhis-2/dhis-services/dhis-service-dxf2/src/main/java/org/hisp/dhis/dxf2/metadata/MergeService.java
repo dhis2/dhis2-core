@@ -28,8 +28,6 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.MergeMode;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -37,10 +35,11 @@ public interface MergeService
 {
     /**
      * Merges source object into target object, requires a "schema friendly" class.
-     *
-     * @param source    Source object to merge from
-     * @param target    Target object to merge into
-     * @param mergeMode MergeMode to use
      */
-    <T> void merge( T source, T target, MergeMode mergeMode );
+    <T> T merge( MergeParams<T> mergeParams );
+
+    /**
+     * Clones source into target, using REPLACE mode.
+     */
+    <T> T clone( T source );
 }

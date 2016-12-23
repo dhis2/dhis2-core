@@ -96,7 +96,7 @@ public class DefaultDataQueryService
         String measureCriteria, String preAggregationMeasureCriteria, boolean skipMeta, boolean skipData, boolean skipRounding,
         boolean completedOnly, boolean hierarchyMeta, boolean ignoreLimit, boolean hideEmptyRows, boolean showHierarchy,
         boolean includeNumDen, DisplayProperty displayProperty, IdScheme outputIdScheme, IdScheme inputIdScheme,
-        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit )
+        boolean duplicatesOnly, String approvalLevel, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
     {
         I18nFormat format = i18nManager.getI18nFormat();
         
@@ -139,7 +139,9 @@ public class DefaultDataQueryService
             .withOutputIdScheme( outputIdScheme )
             .withOutputFormat( OutputFormat.ANALYTICS )
             .withDuplicatesOnly( duplicatesOnly )
-            .withApprovalLevel( approvalLevel ).build();
+            .withApprovalLevel( approvalLevel )
+            .withApiVersion( apiVersion )
+            .build();
     }
 
     @Override

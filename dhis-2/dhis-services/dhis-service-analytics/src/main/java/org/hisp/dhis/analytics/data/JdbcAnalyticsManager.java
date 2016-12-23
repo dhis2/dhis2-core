@@ -66,8 +66,7 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data
- * from the analytics table. Organisation units provided as arguments must be on
- * the same level in the hierarchy.
+ * from the analytics table.
  *
  * @author Lars Helge Overland
  */
@@ -95,7 +94,7 @@ public class JdbcAnalyticsManager
     private StatementBuilder statementBuilder;
 
     // -------------------------------------------------------------------------
-    // Implementation
+    // AnalyticsManager implementation
     // -------------------------------------------------------------------------
 
     @Override
@@ -314,9 +313,9 @@ public class JdbcAnalyticsManager
      */
     private String getFromWhereClause( DataQueryParams params, String partition )
     {
-        SqlHelper sqlHelper = new SqlHelper();        
+        SqlHelper sqlHelper = new SqlHelper();
 
-        String sql = "from " + getPartition( params, partition ) + " ";
+        String sql = "from " + getPartitionSql( params, partition ) + " ";
 
         // ---------------------------------------------------------------------
         // Dimensions
@@ -406,10 +405,11 @@ public class JdbcAnalyticsManager
     }
 
     /**
-     * Generates a subquery if preAggregationMeasureCriteria is given
-     * returns the partition of not.
+     * If preAggregationMeasureCriteria is specified, generates a query which
+     * provides a filtered view of the data according to the criteria .If not, 
+     * returns the full view of the partition.
      */
-    private String getPartition( DataQueryParams params, String partition )
+    private String getPartitionSql( DataQueryParams params, String partition )
     {
         if ( params.isDataType( DataType.NUMERIC ) && !params.getPreAggregateMeasureCriteria().isEmpty() )
         {
@@ -457,7 +457,8 @@ public class JdbcAnalyticsManager
      */
     private String getMeasureCriteriaSql( DataQueryParams params )
     {
-        SqlHelper sqlHelper = new SqlHelper(  );
+        SqlHelper sqlHelper = new SqlHelper();
+        
         String sql = " ";
 
         for ( MeasureFilter filter : params.getMeasureCriteria().keySet() )

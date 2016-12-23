@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -140,6 +141,11 @@ public class DefaultAnalyticsTableService
         createIndexes( tables );
         
         clock.logTime( "Created indexes" );
+        notifier.notify( taskId, "Analyzing analytics tables" );
+        
+        tableManager.analyzeTables( tables );
+        
+        clock.logTime( "Analyzed tables" );
         notifier.notify( taskId, "Swapping analytics tables" );
         
         swapTables( tables, clock, taskId );
@@ -156,15 +162,23 @@ public class DefaultAnalyticsTableService
     @Override
     public void dropTables()
     {
-        List<AnalyticsTable> tables = tableManager.getAllTables();
+        Set<String> tables = tableManager.getExistingDatabaseTables();
         
-        for ( AnalyticsTable table : tables )   
-        {
-            tableManager.dropTable( table.getTableName() );
-            tableManager.dropTable( table.getTempTableName() );            
-        }
+        tables.forEach( table -> tableManager.dropTable( table ) );
+        
+        log.info( "Analytics tables dropped" );
     }
 
+    @Override
+    public void analyzeAnalyticsTables()
+    {
+        Set<String> tables = tableManager.getExistingDatabaseTables();
+        
+        tables.forEach( table -> tableManager.analyzeTable( table ) );
+        
+        log.info( "Analytics tables analyzed" );
+    }
+    
     @Override
     public void generateResourceTables()
     {

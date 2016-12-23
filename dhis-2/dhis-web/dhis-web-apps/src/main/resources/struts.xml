@@ -89,11 +89,17 @@
         </action>
     </package>
 
-    <package name="dhis-web-cache-cleaner" extends="dhis-web-commons" namespace="/dhis-web-cache-cleaner">
-        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
-            <result name="success" type="redirect">index.html</result>
-        </action>
-    </package>
+  <package name="dhis-web-dashboard-integration" extends="dhis-web-commons" namespace="/dhis-web-dashboard-integration">
+    <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+      <result name="success" type="redirect">index.html</result>
+    </action>
+  </package>
+
+  <package name="dhis-web-cache-cleaner" extends="dhis-web-commons" namespace="/dhis-web-cache-cleaner">
+    <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+      <result name="success" type="redirect">index.html</result>
+    </action>
+  </package>
 
     <package name="dhis-web-translations" extends="dhis-web-commons" namespace="/dhis-web-translations">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
@@ -102,6 +108,12 @@
     </package>
 
     <package name="dhis-web-menu-management" extends="dhis-web-commons" namespace="/dhis-web-menu-management">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
+    <package name="dhis-web-interpretation" extends="dhis-web-commons" namespace="/dhis-web-interpretation">
         <action name="index" class="org.hisp.dhis.commons.action.NoAction">
             <result name="success" type="redirect">index.html</result>
         </action>

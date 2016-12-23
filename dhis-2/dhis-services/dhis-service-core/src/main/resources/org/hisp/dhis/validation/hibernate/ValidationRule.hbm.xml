@@ -42,6 +42,13 @@
       <many-to-many class="org.hisp.dhis.validation.ValidationRuleGroup" column="validationgroupid" />
     </set>
 
+    <set name="notificationTemplates" table="validationrulenotificationtemplates" inverse="true">
+      <cache usage="read-write" />
+      <key column="validationruleid" foreign-key="fk_validationrule_validationrulenotificationtemplate" />
+      <many-to-many class="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
+        column="validationrulenotificationtemplateid" />
+    </set>
+
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_validationrule_periodtypeid" not-null="true" />
 

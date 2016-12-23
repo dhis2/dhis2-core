@@ -41,6 +41,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.omg.PortableServer.CurrentPackage.NoContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -66,7 +68,7 @@ import java.util.zip.GZIPOutputStream;
  * @author aamerm
  */
 @Controller
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataVersionController
     extends CrudControllerAdvice
 {
@@ -107,7 +109,7 @@ public class MetadataVersionController
             else
             {
                 versionToReturn = versionService.getCurrentVersion();
-                
+
                 if ( versionToReturn == null )
                 {
                     throw new MetadataVersionException( "No metadata versions exist. Please check again later." );
@@ -221,7 +223,7 @@ public class MetadataVersionController
     //Creates version in versioning table, exports the metadata and saves the snapshot in datastore
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @RequestMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT + "/create", method = RequestMethod.POST, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type", required = true ) VersionType versionType ) throws MetadataVersionException
+    public @ResponseBody MetadataVersion createSystemVersion( @RequestParam( value = "type" ) VersionType versionType ) throws MetadataVersionException
     {
         MetadataVersion versionToReturn = null;
         boolean enabled = isMetadataVersioningEnabled();

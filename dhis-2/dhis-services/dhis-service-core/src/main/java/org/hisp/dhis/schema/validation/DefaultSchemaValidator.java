@@ -38,18 +38,22 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DefaultSchemaValidator implements SchemaValidator
 {
+    private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2a?\\$\\d\\d\\$[./0-9A-Za-z]{53}" );
+
     @Autowired
     private SchemaService schemaService;
 
@@ -62,16 +66,21 @@ public class DefaultSchemaValidator implements SchemaValidator
     @Override
     public List<ErrorReport> validate( Object object, boolean persisted )
     {
-        if ( object == null || schemaService.getSchema( object.getClass() ) == null )
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        if ( object == null )
         {
-            return new ArrayList<>();
+            return errorReports;
+        }
+
+        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+
+        if ( schema == null )
+        {
+            return errorReports;
         }
 
         Class<?> klass = object.getClass();
-
-        Schema schema = schemaService.getSchema( klass );
-
-        List<ErrorReport> errorReports = new ArrayList<>();
 
         for ( Property property : schema.getProperties() )
         {
@@ -97,6 +106,16 @@ public class DefaultSchemaValidator implements SchemaValidator
             errorReports.addAll( validateInteger( klass, value, property ) );
             errorReports.addAll( validateFloat( klass, value, property ) );
             errorReports.addAll( validateDouble( klass, value, property ) );
+        }
+
+        if ( User.class.isInstance( object ) )
+        {
+            User user = (User) object;
+
+            if ( user.getUserCredentials() != null )
+            {
+                errorReports.addAll( validate( user.getUserCredentials(), persisted ) );
+            }
         }
 
         return errorReports;
@@ -138,7 +157,7 @@ public class DefaultSchemaValidator implements SchemaValidator
             errorReports.add( new ErrorReport( klass, ErrorCode.E4004, property.getName(), value )
                 .setErrorKlass( property.getKlass() ) );
         }
-        else if ( PropertyType.PASSWORD == property.getPropertyType() && !ValidationUtils.passwordIsValid( value ) )
+        else if ( !BCRYPT_PATTERN.matcher( value ).matches() && PropertyType.PASSWORD == property.getPropertyType() && !ValidationUtils.passwordIsValid( value ) )
         {
             errorReports.add( new ErrorReport( klass, ErrorCode.E4005, property.getName(), value )
                 .setErrorKlass( property.getKlass() ) );

@@ -264,15 +264,17 @@ public class ListGrid
     }
 
     @Override
-    public void setMetaData( Map<String, Object> metaData )
+    public Grid setMetaData( Map<String, Object> metaData )
     {
         this.metaData = metaData;
+        return this;
     }
 
     @Override
-    public void addMetaData( String key, Object value )
+    public Grid addMetaData( String key, Object value )
     {
         this.metaData.put( key, value );
+        return this;
     }
 
     @Override
@@ -645,7 +647,7 @@ public class ListGrid
             if ( header != null )
             {
                 GridHeader regressionHeader = new GridHeader( header.getName() + REGRESSION_SUFFIX,
-                    header.getColumn() + REGRESSION_SUFFIX, header.getType(), header.isHidden(), header.isMeta() );
+                    header.getColumn() + REGRESSION_SUFFIX, header.getValueType(), header.getType(), header.isHidden(), header.isMeta() );
 
                 addHeader( regressionHeader );
             }
@@ -696,7 +698,7 @@ public class ListGrid
             if ( header != null )
             {
                 GridHeader regressionHeader = new GridHeader( header.getName() + CUMULATIVE_SUFFIX,
-                    header.getColumn() + CUMULATIVE_SUFFIX, header.getType(), header.isHidden(), header.isMeta() );
+                    header.getColumn() + CUMULATIVE_SUFFIX, header.getValueType(), header.getType(), header.isHidden(), header.isMeta() );
 
                 addHeader( regressionHeader );
             }

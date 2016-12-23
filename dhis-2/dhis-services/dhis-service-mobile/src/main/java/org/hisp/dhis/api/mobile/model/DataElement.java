@@ -80,7 +80,8 @@ public class DataElement
         this.type = type;
     }
     
-    public void setType (ValueType type) {
+    public void setType (ValueType type) 
+    {
         if ( type == ValueType.BOOLEAN )
         {
             this.setType( TYPE_BOOL );

@@ -45,6 +45,7 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -71,7 +72,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.*;
  */
 @Controller
 @RequestMapping( value = DataValueSetController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
     public static final String RESOURCE_PATH = "/dataValueSets";
@@ -208,6 +209,7 @@ public class DataValueSetController
         else
         {
             ImportSummary summary = dataValueSetService.saveDataValueSet( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_XML );
             renderService.toXml( response.getOutputStream(), summary );
@@ -226,6 +228,7 @@ public class DataValueSetController
         else
         {
             ImportSummaries summaries = adxDataService.saveDataValueSet( request.getInputStream(), importOptions, null );
+            summaries.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_XML );
             renderService.toXml( response.getOutputStream(), summaries );
@@ -244,6 +247,7 @@ public class DataValueSetController
         else
         {
             ImportSummary summary = dataValueSetService.saveDataValueSetJson( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_JSON );
             renderService.toJson( response.getOutputStream(), summary );
@@ -262,6 +266,7 @@ public class DataValueSetController
         else
         {
             ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_XML );
             renderService.toXml( response.getOutputStream(), summary );

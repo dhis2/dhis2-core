@@ -81,12 +81,6 @@ public class ProgramRule
      */
     private Integer priority;
 
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------

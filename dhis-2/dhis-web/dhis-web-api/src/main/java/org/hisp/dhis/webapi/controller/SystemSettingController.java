@@ -30,14 +30,15 @@ package org.hisp.dhis.webapi.controller;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -64,7 +65,7 @@ import java.util.Set;
  */
 @Controller
 @RequestMapping( "/systemSettings" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SystemSettingController
 {
     @Autowired
@@ -129,7 +130,7 @@ public class SystemSettingController
         {
             Optional<SettingKey> settingKey = SettingKey.getByName( key );
 
-            Serializable setting = null;
+            Serializable setting;
 
             if ( settingKey.isPresent() )
             {

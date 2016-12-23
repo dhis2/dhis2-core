@@ -33,10 +33,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -49,7 +50,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramNotificationTemplate
-    extends BaseIdentifiableObject
+    extends BaseIdentifiableObject implements NotificationTemplate
 {
     private String subjectTemplate;
 
@@ -57,7 +58,7 @@ public class ProgramNotificationTemplate
 
     private NotificationTrigger notificationTrigger;
 
-    private NotificationRecipient notificationRecipient;
+    private ProgramNotificationRecipient notificationRecipient;
 
     private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
 
@@ -78,7 +79,7 @@ public class ProgramNotificationTemplate
     }
 
     public ProgramNotificationTemplate( String name, String subjectTemplate, String messageTemplate,
-        NotificationTrigger notificationTrigger, NotificationRecipient notificationRecipient,
+        NotificationTrigger notificationTrigger, ProgramNotificationRecipient notificationRecipient,
         Set<DeliveryChannel> deliveryChannels, Integer relativeScheduledDays, UserGroup recipientUserGroup )
     {
         this.name = name;
@@ -134,12 +135,12 @@ public class ProgramNotificationTemplate
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationRecipient getNotificationRecipient()
+    public ProgramNotificationRecipient getNotificationRecipient()
     {
         return notificationRecipient;
     }
 
-    public void setNotificationRecipient( NotificationRecipient notificationRecipient )
+    public void setNotificationRecipient( ProgramNotificationRecipient notificationRecipient )
     {
         this.notificationRecipient = notificationRecipient;
     }
@@ -185,12 +186,6 @@ public class ProgramNotificationTemplate
     // -------------------------------------------------------------------------
     // IdObject overrides
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )

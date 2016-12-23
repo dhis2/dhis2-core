@@ -399,7 +399,7 @@ dhis2.de.uploadLocalData = function()
         console.log( 'Uploaded complete data set: ' + key + ', with value: ' + value );
 
         $.ajax( {
-            url: '../api/completeDataSetRegistrations',
+            url: '../api/25/completeDataSetRegistrations',
             data: value,
             dataType: 'json',
             success: function( data, textStatus, jqXHR )
@@ -1012,6 +1012,15 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
             dhis2.de.clearPeriod();
             dhis2.de.clearAttributes();
         }
+        
+        var dsl = document.getElementById( 'selectedDataSetId' );
+        
+        if ( dsl && dsl.options && dsl.options.length == 2 )
+        {
+            $( '#selectedDataSetId' ).val( dsl.options[1].value );
+            dataSetSelected();
+        }
+        
     });
 
 }
@@ -1522,8 +1531,8 @@ dhis2.de.getAttributesMarkup = function()
 		html += '<option value="-1">[ ' + i18n_select_option + ' ]</option>';
 
 		$.safeEach( category.options, function( idx, option ) {
-			if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {
-				var selected = ( $.inArray( option.id, options ) != -1 ) ? " selected" : "";
+			if ( dhis2.de.optionValidWithinPeriod( option, period ) && dhis2.de.optionValidForSelectedOrgUnit( option ) ) {				
+                                var selected = ( $.inArray( option.id, options ) != -1 ) || category.options.length == 1 ? " selected" : "";
 				html += '<option value="' + option.id + '"' + selected + '>' + option.name + '</option>';
 			}
 		} );
@@ -2041,7 +2050,7 @@ function registerCompleteDataSet()
         dhis2.de.storageManager.saveCompleteDataSet( params );
 	
 	    $.ajax( {
-	    	url: '../api/completeDataSetRegistrations',
+	    	url: '../api/25/completeDataSetRegistrations',
 	    	data: params,
 	        dataType: 'json',
 	        type: 'post',
@@ -2093,7 +2102,7 @@ function undoCompleteDataSet()
     }
         
     $.ajax( {
-    	url: '../api/completeDataSetRegistrations' + params,
+    	url: '../api/25/completeDataSetRegistrations' + params,
     	dataType: 'json',
     	type: 'delete',
     	success: function( data, textStatus, xhr )

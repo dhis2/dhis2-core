@@ -118,6 +118,13 @@ public class MetaDataImportAction
         this.upload = upload;
     }
 
+    private String uploadFileName;
+
+    public void setUploadFileName( String uploadFileName )
+    {
+        this.uploadFileName = uploadFileName;
+    }
+
     private boolean dryRun;
 
     public void setDryRun( boolean dryRun )
@@ -168,10 +175,10 @@ public class MetaDataImportAction
 
         notifier.clear( taskId );
 
-        InputStream in = new FileInputStream( upload );
-        in = StreamUtils.wrapAndCheckCompressionFormat( in );
+        InputStream in = StreamUtils.wrapAndCheckCompressionFormat( new FileInputStream( upload ) );
 
-        MetadataImportParams importParams = createMetadataImportParams( taskId, strategy, atomicMode, dryRun );
+        MetadataImportParams importParams = createMetadataImportParams( taskId, strategy, atomicMode, dryRun )
+            .setFilename( uploadFileName );
 
         if ( "csv".equals( importFormat ) )
         {

@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -48,7 +48,6 @@ import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +69,8 @@ public class DefaultEventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
-    private static final List<String> SORTABLE_ITEMS = Lists.newArrayList( ITEM_EXECUTION_DATE, ITEM_ORG_UNIT_NAME,
-        ITEM_ORG_UNIT_CODE );
+    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of( 
+        ITEM_EXECUTION_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     @Autowired
     private ProgramService programService;
@@ -98,14 +97,15 @@ public class DefaultEventDataQueryService
     private I18nManager i18nManager;
 
     @Override
-    public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
+    public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
         SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, I18nFormat format )
+        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, relativePeriodDate, userOrgUnit, null, null, format );
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, 
+            relativePeriodDate, userOrgUnit, null, null, null, apiVersion );
 
         EventQueryParams params = new EventQueryParams.Builder( query )
             .withValue( getValueDimension( value ) )
@@ -117,18 +117,22 @@ public class DefaultEventDataQueryService
             .withOutputType( MoreObjects.firstNonNull( outputType, EventOutputType.EVENT ) )
             .withCollapseDataDimensions( collapseDataDimensions )
             .withAggregateData( aggregateData )
-            .withProgramStatus( programStatus ).build();
+            .withProgramStatus( programStatus )
+            .withApiVersion( apiVersion )
+            .build();
 
         return params;
     }
 
     @Override
-    public EventQueryParams getFromUrl( String program, String stage, String startDate, String endDate,
+    public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
         boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
-        Date relativePeriodDate, String userOrgUnit, Integer page, Integer pageSize, I18nFormat format )
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, DhisApiVersion apiVersion )
     {
+        I18nFormat format = i18nManager.getI18nFormat();
+        
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         
         IdScheme idScheme = IdScheme.UID;
@@ -149,30 +153,14 @@ public class DefaultEventDataQueryService
             throw new IllegalQueryException( "Program stage is specified but does not exist: " + stage );
         }
 
-        Date start = null;
-        Date end = null;
-
-        if ( startDate != null && endDate != null )
-        {
-            try
-            {
-                start = DateUtils.getMediumDate( startDate );
-                end = DateUtils.getMediumDate( endDate );
-            }
-            catch ( RuntimeException ex )
-            {
-                throw new IllegalQueryException( "Start date or end date is invalid: " + startDate + " - " + endDate );
-            }
-        }
-
         if ( dimension != null )
         {
             for ( String dim : dimension )
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
-                    format, true, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
 
                 if ( dimObj != null )
                 {                    
@@ -191,8 +179,8 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
-                    format, true, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
 
                 if ( dimObj != null )
                 {
@@ -224,8 +212,8 @@ public class DefaultEventDataQueryService
         return params
             .withProgram( pr )
             .withProgramStage( ps )
-            .withStartDate( start )
-            .withEndDate( end )
+            .withStartDate( startDate )
+            .withEndDate( endDate )
             .withOrganisationUnitMode( ouMode )
             .withSkipMeta( skipMeta )
             .withSkipData( skipData )
@@ -234,9 +222,12 @@ public class DefaultEventDataQueryService
             .withCoordinatesOnly( coordinatesOnly )
             .withEventStatus( eventStatus )
             .withDisplayProperty( displayProperty )
+            .withCoordinateField( getCoordinateField( coordinateField ) )
             .withPage( page )
             .withPageSize( pageSize )
-            .withProgramStatus( programStatus ).build();
+            .withProgramStatus( programStatus )
+            .withApiVersion( apiVersion )
+            .build();
     }
 
     @Override
@@ -294,6 +285,41 @@ public class DefaultEventDataQueryService
         }
 
         return params.build();
+    }
+    
+    @Override
+    public String getCoordinateField( String coordinateField )
+    {
+        if ( coordinateField == null || EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
+        {
+            return "geom";
+        }
+        
+        DataElement dataElement = dataElementService.getDataElement( coordinateField );
+        
+        if ( dataElement != null )
+        {
+            if ( ValueType.COORDINATE != dataElement.getValueType() )
+            {
+                throw new IllegalQueryException( "Data element must be of value type coordinate to be used as coordinate field: " + coordinateField );
+            }
+            
+            return dataElement.getUid();
+        }
+                
+        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
+        
+        if ( attribute != null )
+        {
+            if ( ValueType.COORDINATE != attribute.getValueType() )
+            {
+                throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as coordinate field: " + coordinateField );
+            }
+            
+            return attribute.getUid();
+        }
+        
+        throw new IllegalQueryException( "Cluster field not valid: " + coordinateField );
     }
 
     // -------------------------------------------------------------------------
@@ -358,14 +384,18 @@ public class DefaultEventDataQueryService
 
         if ( de != null ) // TODO check if part of program
         {
-            return new QueryItem( de, legendSet, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
+            ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
+            
+            return new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
         }
 
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
 
         if ( at != null )
         {
-            return new QueryItem( at, legendSet, at.getValueType(), at.getAggregationType(), at.getOptionSet() );
+            ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
+            
+            return new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( item );

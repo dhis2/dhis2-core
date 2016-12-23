@@ -82,6 +82,16 @@ public final class SchemaUtils
                 {
                     property.setOwner( pAnnotation.owner() == org.hisp.dhis.schema.annotation.Property.Value.TRUE );
                 }
+
+                if ( org.hisp.dhis.schema.annotation.Property.Access.READ_ONLY == pAnnotation.access() )
+                {
+                    property.setWritable( false );
+                }
+
+                if ( org.hisp.dhis.schema.annotation.Property.Access.WRITE_ONLY == pAnnotation.access() )
+                {
+                    property.setReadable( false );
+                }
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), PropertyRange.class ) )

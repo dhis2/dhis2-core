@@ -471,7 +471,9 @@ public class DefaultDimensionService
 
                         if ( dimItemObject != null )
                         {
-                            object.getDataDimensionItems().add( DataDimensionItem.create( dimItemObject ) );
+                            DataDimensionItem item = DataDimensionItem.create( dimItemObject );
+                            
+                            object.getDataDimensionItems().add( item );
                         }
                     }
                 }

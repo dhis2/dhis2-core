@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
+ * TODO switch to <code>jgen.writeObject( field )</code>
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class JacksonRowDataSerializer

@@ -113,12 +113,16 @@ public class DefaultMappingService
     @Override
     public int addMap( Map map )
     {
+        map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
+        
         return mapStore.save( map );
     }
 
     @Override
     public void updateMap( Map map )
     {
+        map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
+        
         mapStore.update( map );
     }
 

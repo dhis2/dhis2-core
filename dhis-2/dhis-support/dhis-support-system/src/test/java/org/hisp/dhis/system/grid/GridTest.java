@@ -43,6 +43,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,9 +67,9 @@ public class GridTest
         gridA = new ListGrid();
         gridB = new ListGrid();
         
-        headerA = new GridHeader( "ColA", "colA", String.class.getName(), false, true );
-        headerB = new GridHeader( "ColB", "colB", String.class.getName(), false, true );
-        headerC = new GridHeader( "ColC", "colC", String.class.getName(), true, false );
+        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, String.class.getName(), false, true );
+        headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, String.class.getName(), false, true );
+        headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, String.class.getName(), true, false );
         
         gridA.addHeader( headerA );
         gridA.addHeader( headerB );

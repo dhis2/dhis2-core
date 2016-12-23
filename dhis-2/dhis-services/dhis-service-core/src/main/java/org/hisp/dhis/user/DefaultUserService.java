@@ -339,8 +339,12 @@ public class DefaultUserService
     @Override
     public boolean canAddOrUpdateUser( Collection<String> userGroups )
     {
-        User currentUser = currentUserService.getCurrentUser();
+        return canAddOrUpdateUser( userGroups, currentUserService.getCurrentUser() );
+    }
 
+    @Override
+    public boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser )
+    {
         if ( currentUser == null )
         {
             return false;
@@ -588,7 +592,7 @@ public class DefaultUserService
     }
 
     @Override
-    public List<ErrorReport> validateUser( User currentUser, User user )
+    public List<ErrorReport> validateUser( User user, User currentUser )
     {
         List<ErrorReport> errors = new ArrayList<>();
 
@@ -626,7 +630,7 @@ public class DefaultUserService
 
         user.getGroups().forEach( ug ->
         {
-            if ( !currentUser.canManage( ug ) )
+            if ( ! ( currentUser.canManage( ug ) || userGroupService.canAddOrRemoveMember( ug.getUid() ) ) )
             {
                 errors.add( new ErrorReport( UserGroup.class, ErrorCode.E3005, currentUser, ug ) );
             }

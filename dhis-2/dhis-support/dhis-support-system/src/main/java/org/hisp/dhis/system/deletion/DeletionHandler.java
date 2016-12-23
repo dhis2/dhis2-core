@@ -94,6 +94,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
@@ -115,6 +116,7 @@ import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 /**
  * A DeletionHandler should override methods for objects that, when deleted,
@@ -386,6 +388,15 @@ public abstract class DeletionHandler
     }
 
     public void deleteDataEntryForm( DataEntryForm form )
+    {
+    }
+
+    public String allowDeleteValidationNotificationTemplate( ValidationNotificationTemplate vrnt )
+    {
+        return null;
+    }
+
+    public void deleteValidationNotificationTemplate( ValidationNotificationTemplate vrnt )
     {
     }
 
@@ -930,6 +941,15 @@ public abstract class DeletionHandler
     }
 
     public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup color )
+    {
+    }
+
+    public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
+    {
+        return null;
+    }
+
+    public void deletePushAnalysis( PushAnalysis pushAnalysis )
     {
     }
 }

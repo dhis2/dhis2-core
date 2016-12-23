@@ -152,6 +152,10 @@ public class TableAlteror
         executeSql( "ALTER TABLE dataset DROP COLUMN skipaggregation" );
         executeSql( "ALTER TABLE configuration DROP COLUMN completenessrecipientsid" );
         executeSql( "ALTER TABLE dataelement DROP COLUMN alternativename" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportcategoryoptioncombo" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN aggregateexportattributeoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportcategoryoptioncombo" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN aggregateexportattributeoptioncombo" );
         executeSql( "ALTER TABLE indicator DROP COLUMN alternativename" );
         executeSql( "ALTER TABLE orgunitgroup DROP COLUMN image" );
         executeSql( "ALTER TABLE report DROP COLUMN usingorgunitgroupsets" );
@@ -1582,6 +1586,8 @@ public class TableAlteror
         addTranslationTable( listTables, "ValidationCriteria", "validationcriteriatranslations", "validationcriteria", "validationcriteriaid" );
         addTranslationTable( listTables, "ValidationRule", "validationruletranslations", "validationrule", "validationruleid" );
         addTranslationTable( listTables, "ValidationRuleGroup", "validationrulegrouptranslations", "validationrulegroup", "validationrulegroupid" );
+
+        executeSql( "alter table translation add column objectid integer;" );
 
         String sql;
 

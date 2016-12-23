@@ -86,7 +86,7 @@ public class SimplisticHttpGetGateWay
         .put( HttpURLConnection.HTTP_ACCEPTED, GatewayResponse.RESULT_CODE_0 )
         .put( HttpURLConnection.HTTP_CONFLICT, GatewayResponse.FAILED ).build();
 
-    private static final Set<Integer> OK_CODES = ImmutableSet.of( HttpURLConnection.HTTP_OK,
+    private static final ImmutableSet<Integer> OK_CODES = ImmutableSet.of( HttpURLConnection.HTTP_OK,
         HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
 
     @Override

@@ -34,7 +34,6 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
@@ -63,7 +62,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 public class JdbcEventAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
-    private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
+    private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     
     @Override
     @Transactional
@@ -75,10 +74,9 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    @Transactional
-    public List<AnalyticsTable> getAllTables()
+    public Set<String> getExistingDatabaseTables()
     {
-        return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
+        return partitionManager.getEventAnalyticsPartitions();
     }
     
     private List<AnalyticsTable> getTables( List<Integer> dataYears )
@@ -200,7 +198,7 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate <= '" + end + "' " +
             "and pr.programid=" + table.getProgram().getId() + " " + 
             "and psi.organisationunitid is not null " +
-            "and psi.executiondate is not null" +
+            "and psi.executiondate is not null " +
             "and psi.deleted is false";
 
         populateAndLog( sql, tableName );
@@ -395,9 +393,13 @@ public class JdbcEventAnalyticsTableManager
      */
     private String getColumnType( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
+        if ( Double.class.equals( valueType.getJavaClass() ) )
         {
             return statementBuilder.getDoubleColumnType();
+        }
+        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        {
+            return "bigint";
         }
         else if ( Boolean.class.equals( valueType.getJavaClass() ) )
         {
@@ -406,6 +408,10 @@ public class JdbcEventAnalyticsTableManager
         else if ( Date.class.equals( valueType.getJavaClass() ) )
         {
             return "timestamp";
+        }
+        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        {
+            return "geometry(Point, 4326)";
         }
         else
         {
@@ -419,9 +425,13 @@ public class JdbcEventAnalyticsTableManager
      */
     private String getSelectClause( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
+        if ( Double.class.equals( valueType.getJavaClass() ) )
         {
             return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
+        }
+        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        {
+            return "cast(value as bigint)";
         }
         else if ( Boolean.class.equals( valueType.getJavaClass() ) )
         {
@@ -430,6 +440,10 @@ public class JdbcEventAnalyticsTableManager
         else if ( Date.class.equals( valueType.getJavaClass() ) )
         {
             return "cast(value as timestamp)";
+        }
+        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        {
+            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || value || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
         else
         {

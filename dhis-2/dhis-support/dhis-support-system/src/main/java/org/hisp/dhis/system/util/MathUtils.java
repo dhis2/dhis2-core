@@ -432,10 +432,21 @@ public class MathUtils
      * coordinate.
      */
     public static boolean isCoordinate( String value )
-    {
+    {        
+        if( value == null )
+        {
+            return false;
+        }
+        
+        value = value.replaceAll( "\\s+", "" );
+        if ( value.length() < 5 || value.indexOf( "[" ) != 0 || value.indexOf( "]" ) != value.length() - 1 )
+        {
+            return false;
+        }
+        
         try
         {
-            String[] lnglat = value.trim().split( "," );
+            String[] lnglat = value.substring( 1, value.length() - 1 ).split( "," );
             float lng = Float.parseFloat( lnglat[0] );
             float lat = Float.parseFloat( lnglat[1] );
             return (lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90);

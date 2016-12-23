@@ -141,6 +141,22 @@ function Selection()
         sessionStorage[ OU_SELECTED_KEY ] = JSON.stringify( selected );
     };
 
+    this.setOrgUnitFromURL = function (selected) {
+        selection.setSelected(selected);
+        subtree.reloadTree();
+        function setSelectedOrgUnit() {
+            /*When the selected orgunit is loaded in the tree, selection.select() is called*/
+            setTimeout(function () {
+                if(organisationUnits[selected]) {
+                    selection.select(selected);
+                } else {
+                    setSelectedOrgUnit();
+                }
+            }, 100);
+        }
+        setSelectedOrgUnit();
+    };
+
     this.selectedExists = function() {
         return sessionStorage[ OU_SELECTED_KEY ] != null;
     };

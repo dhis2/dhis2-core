@@ -1,5 +1,6 @@
 function performMaintenance() {
     var clearAnalytics = $("#clearAnalytics").is(":checked");
+    var analyzeAnalytics = $("#analyzeAnalytics").is(":checked");
     var zeroValues = $("#zeroValues").is(":checked");
     var softDeletedValues = $("#softDeletedValues").is(":checked");
     var softDeletedEvents = $("#softDeletedEvents").is(":checked");
@@ -12,12 +13,13 @@ function performMaintenance() {
     var clearApplicationCache = $("#clearApplicationCache").is(":checked");
     var reloadApps = $("#reloadApps").is(":checked");
 
-    if (clearAnalytics || zeroValues || softDeletedValues || softDeletedEvents || prunePeriods || removeExpiredInvitations ||
-        dropSqlViews || createSqlViews || updateCategoryOptionCombos || updateOrganisationUnitPaths || clearApplicationCache || reloadApps) {
+    if ( clearAnalytics || analyzeAnalytics || zeroValues || softDeletedValues || softDeletedEvents || prunePeriods || removeExpiredInvitations ||
+        dropSqlViews || createSqlViews || updateCategoryOptionCombos || updateOrganisationUnitPaths || clearApplicationCache || reloadApps ) {
 
         setHeaderWaitMessage(i18n_performing_maintenance);
 
         var params = "analyticsTableClear=" + clearAnalytics +
+        	"&analyticsTableAnalyze=" + analyzeAnalytics +
             "&zeroDataValueRemoval=" + zeroValues +
             "&softDeletedDataValueRemoval=" + softDeletedValues +
             "&softDeletedEventRemoval=" + softDeletedEvents +

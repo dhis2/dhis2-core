@@ -5,8 +5,12 @@ addons:
   apt:
     packages:
     - oracle-java8-installer
+before_script:
+- "echo $JAVA_OPTS"
+- "export JAVA_OPTS=-Xmx2048m"
+
 script:
-- mvn clean test  -T 1C  -f ./dhis-2/pom-full.xml
+- mvn clean test -f ./dhis-2/pom-full.xml
 
 cache:
   directories:

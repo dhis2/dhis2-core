@@ -43,12 +43,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -59,7 +64,7 @@ import java.util.List;
  */
 @Controller
 @RequestMapping( value = MaintenanceController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MaintenanceController
 {
     public static final String RESOURCE_PATH = "/maintenance";
@@ -103,6 +108,14 @@ public class MaintenanceController
     public void clearAnalyticsTables()
     {
         analyticsTableService.forEach( AnalyticsTableService::dropTables );
+    }
+
+    @RequestMapping( value = "/analyticsTablesAnalyze", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void analyzeAnalyticsTables()
+    {
+        analyticsTableService.forEach( AnalyticsTableService::analyzeAnalyticsTables );
     }
 
     @RequestMapping( value = "/expiredInvitationsClear", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -152,7 +165,7 @@ public class MaintenanceController
     {
         maintenanceService.deleteSoftDeletedProgramStageInstances();
     }
-    
+
     @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -248,6 +261,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void performMaintenance(
         @RequestParam( required = false ) boolean analyticsTableClear,
+        @RequestParam( required = false ) boolean analyticsTableAnalyze,
         @RequestParam( required = false ) boolean expiredInvitationsClear,
         @RequestParam( required = false ) boolean ouPathsUpdate,
         @RequestParam( required = false ) boolean periodPruning,
@@ -263,6 +277,11 @@ public class MaintenanceController
         if ( analyticsTableClear )
         {
             clearAnalyticsTables();
+        }
+
+        if ( analyticsTableAnalyze )
+        {
+            analyzeAnalyticsTables();
         }
 
         if ( expiredInvitationsClear )

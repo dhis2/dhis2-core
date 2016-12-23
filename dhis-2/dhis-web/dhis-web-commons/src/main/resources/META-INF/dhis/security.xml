@@ -110,19 +110,19 @@
     <sec:logout logout-url="/dhis-web-commons-security/logout.action" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
-    
+
     <!-- Account recovery -->
-    
+
     <sec:intercept-url pattern="/api/account/username" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/recovery" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
-    <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()"/>
-    <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()"/>
-    
+    <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
+    <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
+
     <!-- Apps -->
-    
+
     <sec:intercept-url pattern="/dhis-web-pivot/**" access="hasAnyRole('ALL,M_dhis-web-pivot')" />
     <sec:intercept-url pattern="/dhis-web-visualizer/**" access="hasAnyRole('ALL,M_dhis-web-visualizer')" />
     <sec:intercept-url pattern="/dhis-web-mapping/**" access="hasAnyRole('ALL,M_dhis-web-mapping')" />
@@ -135,7 +135,7 @@
     <sec:intercept-url pattern="/dhis-web-event-capture/**" access="hasAnyRole('ALL,M_dhis-web-event-capture')" />
     <sec:intercept-url pattern="/dhis-web-tracker-capture/**" access="hasAnyRole('ALL,M_dhis-web-tracker-capture')" />
     <sec:intercept-url pattern="/dhis-web-cache-cleaner/**" access="hasAnyRole('ALL,M_dhis-web-cache-cleaner')" />
-    
+
     <sec:intercept-url pattern="/**" access="isAuthenticated()" />
     <sec:custom-filter ref="resourceServerFilter" before="PRE_AUTH_FILTER" />
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
@@ -333,6 +333,7 @@
           <property name="source" ref="simpleSystemAuthoritiesProvider" />
         </bean>
         <ref bean="appsSystemAuthoritiesProvider" />
+        <ref bean="schemaAuthoritiesProvider" />
       </set>
     </property>
   </bean>
@@ -366,21 +367,13 @@
     </property>
   </bean>
 
+  <bean id="schemaAuthoritiesProvider" class="org.hisp.dhis.security.authority.SchemaAuthoritiesProvider" />
+
   <bean id="simpleSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider">
     <property name="authorities">
       <set>
         <value>ALL</value>
         <value>F_VIEW_EVENT_ANALYTICS</value>
-        <value>F_DASHBOARD_PUBLIC_ADD</value>
-        <value>F_METADATA_MANAGE</value>
-        <value>F_CHART_PUBLIC_ADD</value>
-        <value>F_MAP_PUBLIC_ADD</value>
-        <value>F_USERGROUP_PUBLIC_ADD</value>
-        <value>F_REPORTTABLE_PUBLIC_ADD</value>
-        <value>F_MAP_EXTERNAL</value>
-        <value>F_CHART_EXTERNAL</value>
-        <value>F_SQLVIEW_EXTERNAL</value>
-        <value>F_REPORTTABLE_EXTERNAL</value>
         <value>F_METADATA_EXPORT</value>
         <value>F_METADATA_IMPORT</value>
         <value>F_APPROVE_DATA</value>
@@ -391,16 +384,10 @@
         <value>F_REPLICATE_USER</value>
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_ADD</value>
         <value>F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW</value>
-        <value>F_USER_ADD_WITHIN_MANAGED_GROUP</value>
         <value>F_USER_GROUPS_READ_ONLY_ADD_MEMBERS</value>
-        <value>F_OAUTH2_CLIENT_MANAGE</value>
         <value>F_PROGRAM_DASHBOARD_CONFIG_ADMIN</value>
-        <value>F_GIS_ADMIN</value>
         <value>F_LEGEND_ADD</value>
         <value>F_LEGEND_DELETE</value>
-        <value>F_LEGEND_SET_PUBLIC_ADD</value>
-        <value>F_LEGEND_SET_PRIVATE_ADD</value>
-        <value>F_LEGEND_SET_DELETE</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_ADD</value>
         <value>F_TRACKED_ENTITY_DATAVALUE_DELETE</value>
         <value>F_TRACKED_ENTITY_INSTANCE_SEARCH</value>
@@ -409,71 +396,8 @@
         <value>F_TRACKED_ENTITY_INSTANCE_DELETE</value>
         <value>F_PROGRAM_ENROLLMENT</value>
         <value>F_PROGRAM_UNENROLLMENT</value>
-        <value>F_DATAELEMENT_PUBLIC_ADD</value>
-        <value>F_DATAELEMENT_PRIVATE_ADD</value>
-        <value>F_DATAELEMENT_DELETE</value>
-        <value>F_DATAELEMENTGROUP_PUBLIC_ADD</value>
-        <value>F_DATAELEMENTGROUP_PRIVATE_ADD</value>
-        <value>F_DATAELEMENTGROUP_DELETE</value>
-        <value>F_DATAELEMENTGROUPSET_PUBLIC_ADD</value>
-        <value>F_DATAELEMENTGROUPSET_PRIVATE_ADD</value>
-        <value>F_DATAELEMENTGROUPSET_DELETE</value>
-        <value>F_INDICATOR_PUBLIC_ADD</value>
-        <value>F_INDICATOR_PRIVATE_ADD</value>
-        <value>F_INDICATOR_DELETE</value>
-        <value>F_INDICATORGROUP_PUBLIC_ADD</value>
-        <value>F_INDICATORGROUP_PRIVATE_ADD</value>
-        <value>F_INDICATORGROUP_DELETE</value>
-        <value>F_INDICATORGROUPSET_PUBLIC_ADD</value>
-        <value>F_INDICATORGROUPSET_PRIVATE_ADD</value>
-        <value>F_INDICATORGROUPSET_DELETE</value>
-        <value>F_INDICATORTYPE_ADD</value>
-        <value>F_INDICATORTYPE_DELETE</value>
-        <value>F_CATEGORY_PUBLIC_ADD</value>
-        <value>F_CATEGORY_PRIVATE_ADD</value>
-        <value>F_CATEGORY_DELETE</value>
-        <value>F_CATEGORY_OPTION_PUBLIC_ADD</value>
-        <value>F_CATEGORY_OPTION_PRIVATE_ADD</value>
-        <value>F_CATEGORY_OPTION_DELETE</value>
-        <value>F_CATEGORY_COMBO_PUBLIC_ADD</value>
-        <value>F_CATEGORY_COMBO_PRIVATE_ADD</value>
-        <value>F_CATEGORY_COMBO_DELETE</value>
-        <value>F_CATEGORY_OPTION_GROUP_PUBLIC_ADD</value>
-        <value>F_CATEGORY_OPTION_GROUP_PRIVATE_ADD</value>
-        <value>F_CATEGORY_OPTION_GROUP_DELETE</value>
-        <value>F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD</value>
-        <value>F_CATEGORY_OPTION_GROUP_SET_PRIVATE_ADD</value>
-        <value>F_CATEGORY_OPTION_GROUP_SET_DELETE</value>
-        <value>F_ORGANISATIONUNIT_ADD</value>
-        <value>F_ORGANISATIONUNIT_DELETE</value>
-        <value>F_ORGUNITGROUP_PUBLIC_ADD</value>
-        <value>F_ORGUNITGROUP_PRIVATE_ADD</value>
-        <value>F_ORGUNITGROUP_DELETE</value>
-        <value>F_ORGUNITGROUPSET_PUBLIC_ADD</value>
-        <value>F_ORGUNITGROUPSET_PRIVATE_ADD</value>
-        <value>F_ORGUNITGROUPSET_DELETE</value>
-        <value>F_ORGANISATIONUNITLEVEL_UPDATE</value>
         <value>F_ORGANISATIONUNIT_MOVE</value>
-        <value>F_PREDICTOR_ADD</value>
-        <value>F_PREDICTOR_DELETE</value>
-        <value>F_CONSTANT_ADD</value>
-        <value>F_CONSTANT_DELETE</value>
-        <value>F_ATTRIBUTE_ADD</value>
-        <value>F_ATTRIBUTE_DELETE</value>
-        <value>F_OPTIONSET_PUBLIC_ADD</value>
-        <value>F_OPTIONSET_PRIVATE_ADD</value>
-        <value>F_OPTIONSET_DELETE</value>
-        <value>F_OPTIONGROUP_PUBLIC_ADD</value>
-        <value>F_OPTIONGROUP_PRIVATE_ADD</value>
-        <value>F_OPTIONGROUP_DELETE</value>
-        <value>F_OPTIONGROUPSET_PUBLIC_ADD</value>
-        <value>F_OPTIONGROUPSET_PRIVATE_ADD</value>
-        <value>F_OPTIONGROUPSET_DELETE</value>
-        <value>F_PUSH_ANALYSIS_ADD</value>
-        <value>F_PUSH_ANALYSIS_DELETE</value>
-        <value>F_EXTERNAL_MAP_LAYER_PRIVATE_ADD</value>
-        <value>F_EXTERNAL_MAP_LAYER_PUBLIC_ADD</value>
-        <value>F_EXTERNAL_MAP_LAYER_DELETE</value>
+        <value>F_PREDICTOR_RUN</value>
       </set>
     </property>
   </bean>

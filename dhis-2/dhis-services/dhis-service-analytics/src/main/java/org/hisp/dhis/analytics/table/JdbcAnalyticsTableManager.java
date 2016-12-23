@@ -31,12 +31,10 @@ package org.hisp.dhis.analytics.table;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -77,7 +75,6 @@ import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
-
     @Autowired
     private SystemSettingManager systemSettingManager;
 
@@ -85,6 +82,12 @@ public class JdbcAnalyticsTableManager
     // Implementation
     // -------------------------------------------------------------------------
 
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return partitionManager.getAnalyticsPartitions();
+    }
+    
     @Override
     public String validState()
     {
@@ -102,7 +105,7 @@ public class JdbcAnalyticsTableManager
             return "No organisation unit levels exist, not updating aggregate analytics tables";
         }
 
-        log.info( "Approval enabled: " + isApprovalEnabled() );
+        log.info( "Approval enabled: " + isApprovalEnabled( null ) );
 
         return null;
     }
@@ -116,7 +119,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public void preCreateTables()
     {
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( null ) )
         {
             resourceTableService.generateDataApprovalMinLevelTable();
         }
@@ -159,12 +162,14 @@ public class JdbcAnalyticsTableManager
     protected void populateTable( AnalyticsTable table )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
-        final String approvalClause = getApprovalJoinClause();
-        
+        final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
+
+        final String approvalClause = getApprovalJoinClause( table );
+        final String numericClause = skipDataTypeValidation ? "" : ( "and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " );
+
         String intClause =
-            "dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " +
-            "and ( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') " +
-            "or de.zeroissignificant = true ) ";
+            "( dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "') or de.zeroissignificant = true ) " +
+            numericClause;
 
         populateTable( table, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
 
@@ -174,7 +179,7 @@ public class JdbcAnalyticsTableManager
 
         populateTable( table, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
     }
-    
+
     /**
      * Populates the given analytics table.
      *
@@ -262,14 +267,14 @@ public class JdbcAnalyticsTableManager
      * data element resource table which will indicate level 0 (highest) if approval
      * is not required. Then looks for highest level in dataapproval table.
      */
-    private String getApprovalJoinClause()
+    private String getApprovalJoinClause( AnalyticsTable table )
     {
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( table ) )
         {
             String sql =
                 "left join _dataapprovalminlevel da " +
-                    "on des.workflowid=da.workflowid and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid " +
-                    "and (";
+                "on des.workflowid=da.workflowid and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid " +
+                "and (";
 
             Set<OrganisationUnitLevel> levels = dataApprovalLevelService.getOrganisationUnitApprovalLevels();
 
@@ -357,14 +362,21 @@ public class JdbcAnalyticsTableManager
         AnalyticsTableColumn de = new AnalyticsTableColumn( quote( "dx" ), "character(11) not null", "de.uid" );
         AnalyticsTableColumn co = new AnalyticsTableColumn( quote( "co" ), "character(11) not null", "co.uid" );
         AnalyticsTableColumn ao = new AnalyticsTableColumn( quote( "ao" ), "character(11) not null", "ao.uid" );
+        AnalyticsTableColumn pe = new AnalyticsTableColumn( quote( "pe" ), "character varying(15) not null", "ps.iso" );
         AnalyticsTableColumn ou = new AnalyticsTableColumn( quote( "ou" ), "character(11) not null", "ou.uid" );
         AnalyticsTableColumn level = new AnalyticsTableColumn( quote( "level" ), "integer", "ous.level" );
 
-        columns.addAll( Lists.newArrayList( de, co, ao, ou, level ) );
+        columns.addAll( Lists.newArrayList( de, co, ao, pe, ou, level ) );
 
-        if ( isApprovalEnabled() )
+        if ( isApprovalEnabled( table ) )
         {
             String col = "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel ";
+
+            columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", col ) );
+        }
+        else
+        {
+            String col = DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
             columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), "integer", col ) );
         }
@@ -377,9 +389,9 @@ public class JdbcAnalyticsTableManager
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
-                "from datavalue dv " +
-                "inner join period pe on dv.periodid=pe.periodid " +
-                "where pe.startdate is not null ";
+            "from datavalue dv " +
+            "inner join period pe on dv.periodid=pe.periodid " +
+            "where pe.startdate is not null ";
 
         if ( earliest != null )
         {
@@ -455,11 +467,22 @@ public class JdbcAnalyticsTableManager
      * Indicates whether the system should ignore data which has not been approved
      * in analytics tables.
      */
-    private boolean isApprovalEnabled()
+    private boolean isApprovalEnabled( AnalyticsTable table )
     {
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
+        Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
 
-        return setting && levels;
+        if ( table != null )
+        {
+            boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( table.getPeriod(), maxYears );
+
+            return setting && levels && !periodOverMaxYears;
+        }
+        else
+        {
+            return setting && levels;
+        }
+
     }
 }

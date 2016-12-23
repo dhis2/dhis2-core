@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -46,6 +47,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -53,6 +55,12 @@ import com.google.common.collect.Lists;
 public class JdbcCompletenessTableManager
     extends AbstractJdbcTableManager
 {
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return Sets.newHashSet( getTableName() );
+    }
+    
     @Override
     public String validState()
     {

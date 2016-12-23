@@ -237,7 +237,7 @@ public interface ExpressionService
      * @param aggregateMap     map of subexpression strings to List(s) of aggregated samples for the expression
      * @return the calculated object result
      */
-    public Object getExpressionObjectValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
+    Object getExpressionObjectValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap );
 
@@ -280,7 +280,7 @@ public interface ExpressionService
      * @param expression The expression string.
      * @return A Set of Operands.
      */
-    public Set<BaseDimensionalItemObject> getDataInputsInExpression( String expression );
+    Set<BaseDimensionalItemObject> getDataInputsInExpression( String expression );
 
     /**
      * Returns all aggregates included in an expression string. An aggregate has the form

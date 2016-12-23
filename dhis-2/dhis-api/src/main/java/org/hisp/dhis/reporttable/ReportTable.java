@@ -50,12 +50,13 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ReportingRate;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendDisplayStyle;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
@@ -175,7 +176,7 @@ public class ReportTable
      * The legend set in the table.
      */
     private LegendSet legendSet;
-    
+
     /**
      * The legend set display type.
      */
@@ -442,7 +443,7 @@ public class ReportTable
         {
             if ( object != null && object instanceof Period )
             {
-                buffer.append( object.getName() + SEPARATOR );
+                buffer.append( object.getName() ).append( SEPARATOR );
             }
             else
             {
@@ -562,20 +563,20 @@ public class ReportTable
             String name = StringUtils.defaultIfEmpty( metaData.get( row ), row );
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
 
-            grid.addHeader( new GridHeader( name + " ID", col + "id", String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name, col + "name", String.class.getName(), false, true ) );
-            grid.addHeader( new GridHeader( name + " code", col + "code", String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name + " description", col + "description", String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name + " ID", col + "id", ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
+            grid.addHeader( new GridHeader( name + " code", col + "code", ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( name + " description", col + "description", ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
         if ( paramColumns )
         {
             grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
-                String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit parameter",
-                PARAM_ORGANISATIONUNIT_COLUMN_NAME, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit is parent",
-                ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, String.class.getName(), true, true ) );
+                ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME, 
+                ValueType.TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, 
+                ValueType.TEXT, String.class.getName(), true, true ) );
         }
 
         final int startColumnIndex = grid.getHeaders().size();
@@ -583,8 +584,8 @@ public class ReportTable
 
         for ( List<DimensionalItemObject> column : gridColumns )
         {
-            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ), Double.class
-                .getName(), false, false ) );
+            grid.addHeader( new GridHeader( getPrettyColumnName( column, displayProperty ), getColumnName( column ), 
+                ValueType.NUMBER, Double.class.getName(), false, false ) );
         }
 
         // ---------------------------------------------------------------------
@@ -628,7 +629,7 @@ public class ReportTable
 
                 grid.addValue( value );
 
-                hasValue = !hasValue ? value != null : true;
+                hasValue = hasValue || value != null;
             }
 
             if ( hideEmptyRows && !hasValue )
@@ -725,12 +726,6 @@ public class ReportTable
     // -------------------------------------------------------------------------
     // Get- and set-methods for persisted properties
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean haveUniqueNames()
-    {
-        return false;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -992,9 +987,10 @@ public class ReportTable
     }
 
     @JsonIgnore
-    public void setReportingPeriodName( String reportingPeriodName )
+    public ReportTable setReportingPeriodName( String reportingPeriodName )
     {
         this.reportingPeriodName = reportingPeriodName;
+        return this;
     }
 
     @JsonIgnore
@@ -1003,9 +999,10 @@ public class ReportTable
         return gridColumns;
     }
 
-    public void setGridColumns( List<List<DimensionalItemObject>> gridColumns )
+    public ReportTable setGridColumns( List<List<DimensionalItemObject>> gridColumns )
     {
         this.gridColumns = gridColumns;
+        return this;
     }
 
     @JsonIgnore
@@ -1014,9 +1011,10 @@ public class ReportTable
         return gridRows;
     }
 
-    public void setGridRows( List<List<DimensionalItemObject>> gridRows )
+    public ReportTable setGridRows( List<List<DimensionalItemObject>> gridRows )
     {
         this.gridRows = gridRows;
+        return this;
     }
 
     @JsonIgnore
@@ -1025,11 +1023,12 @@ public class ReportTable
         return gridTitle;
     }
 
-    public void setGridTitle( String gridTitle )
+    public ReportTable setGridTitle( String gridTitle )
     {
         this.gridTitle = gridTitle;
+        return this;
     }
-    
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
