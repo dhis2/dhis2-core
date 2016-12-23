@@ -96,6 +96,26 @@ public enum DhisApiVersion
         return ignore;
     }
 
+    public boolean isAfter( DhisApiVersion dhisApiVersion )
+    {
+        return version < dhisApiVersion.getVersion();
+    }
+
+    public boolean isAfterOrSame( DhisApiVersion dhisApiVersion )
+    {
+        return version <= dhisApiVersion.getVersion();
+    }
+
+    public boolean isBefore( DhisApiVersion dhisApiVersion )
+    {
+        return version > dhisApiVersion.getVersion();
+    }
+
+    public boolean isBeforeOrSame( DhisApiVersion dhisApiVersion )
+    {
+        return version >= dhisApiVersion.getVersion();
+    }
+
     public static DhisApiVersion getVersion( int version )
     {
         if ( StringUtils.isEmpty( version ) )
