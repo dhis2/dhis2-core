@@ -38,57 +38,57 @@ public enum DhisApiVersion
     /**
      * Default mapping /api/name
      */
-    DEFAULT( "" ),
-
-    /**
-     * Default mapping /api/name
-     */
-    TEST( "test" ),
+    DEFAULT( 0 ),
 
     /**
      * /api/23/name
      */
-    V23( "23" ),
+    V23( 23 ),
 
     /**
      * /api/24/name
      */
-    V24( "24" ),
+    V24( 24 ),
 
     /**
      * /api/25/name
      */
-    V25( "25" ),
+    V25( 25 ),
 
     /**
      * /api/26/name
      */
-    V26( "26" ),
+    V26( 26 ),
 
     /**
      * Map to all versions, not including default.
      */
-    ALL( "*", true );
+    ALL( -1, true );
 
-    final String version;
+    final int version;
 
     final boolean ignore;
 
-    DhisApiVersion( String version )
+    DhisApiVersion( int version )
     {
         this.version = version;
         this.ignore = false;
     }
 
-    DhisApiVersion( String version, boolean ignore )
+    DhisApiVersion( int version, boolean ignore )
     {
         this.version = version;
         this.ignore = ignore;
     }
 
-    public String getVersion()
+    public int getVersion()
     {
         return version;
+    }
+
+    public String getVersionString()
+    {
+        return this == DEFAULT ? "" : String.valueOf( version );
     }
 
     public boolean isIgnore()
@@ -96,7 +96,7 @@ public enum DhisApiVersion
         return ignore;
     }
 
-    public static DhisApiVersion getVersion( String version )
+    public static DhisApiVersion getVersion( int version )
     {
         if ( StringUtils.isEmpty( version ) )
         {
@@ -107,7 +107,7 @@ public enum DhisApiVersion
         {
             DhisApiVersion v = DhisApiVersion.values()[i];
 
-            if ( version.equals( v.getVersion() ) )
+            if ( version == v.getVersion() )
             {
                 return v;
             }
