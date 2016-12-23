@@ -38,7 +38,12 @@ public enum DhisApiVersion
     /**
      * Default mapping /api/name
      */
-    DEFAULT( 0 ),
+    DEFAULT( -1 ),
+
+    /**
+     * Map to all versions, not including default.
+     */
+    ALL( -2, true ),
 
     /**
      * /api/23/name
@@ -58,12 +63,7 @@ public enum DhisApiVersion
     /**
      * /api/26/name
      */
-    V26( 26 ),
-
-    /**
-     * Map to all versions, not including default.
-     */
-    ALL( -1, true );
+    V26( 26 );
 
     final int version;
 
