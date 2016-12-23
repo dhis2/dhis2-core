@@ -36,25 +36,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.VersionedObject;
-import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
-import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -90,9 +76,12 @@ public class DataSet
     private PeriodType periodType;
 
     /**
-     * The openPeriods is a set of periods in which data sets are open for entry
+     * The dataInputPeriods is a set of periods with opening and closing dates, which determines the period
+     * of which data can belong (period) and at which dates (between opening and closing dates) actually registering
+     * this data is allowed. The same period can exist at the same time with different opening and closing dates to
+     * allow for multiple periods for registering data.
      */
-    private Set<Period> openPeriods = new HashSet<>();
+    private Set<DataInputPeriod> dataInputPeriods = new HashSet<>();
 
     /**
      * All DataElements associated with this DataSet.
@@ -296,9 +285,9 @@ public class DataSet
         sources.addAll( updates );
     }
 
-    public boolean addOpenPeriod( Period period )
+    public boolean addDataInputPeriod( DataInputPeriod dataInputPeriod )
     {
-        return openPeriods.add( period );
+        return dataInputPeriods.add( dataInputPeriod );
     }
 
     public boolean addDataSetElement( DataSetElement element )
@@ -514,6 +503,22 @@ public class DataSet
         return true;
     }
 
+    /**
+     * Checks if the given period and date combination conforms to any of the dataInputPeriods.
+     * Returns true if no dataInputPeriods exists, or the combination conforms to at least one dataInputPeriod.
+     *
+     * @param period
+     * @param date
+     * @return true if period and date conforms to a dataInputPeriod, or no dataInputPeriods exists.
+     */
+    public boolean isDataInputPeriodAndDateAllowed( Period period, Date date )
+    {
+        return dataInputPeriods.isEmpty() || dataInputPeriods.stream()
+            .map( dataInputPeriod -> isDataInputPeriodAndDateAllowed( period, date ) )
+            .reduce( ( a, b ) -> a || b )
+            .get();
+    }
+
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
@@ -544,18 +549,16 @@ public class DataSet
     }
 
     @JsonProperty
-    @JsonSerialize( contentUsing = JacksonPeriodSerializer.class )
-    @JsonDeserialize( contentUsing = JacksonPeriodDeserializer.class )
-    @JacksonXmlElementWrapper( localName = "openPeriods", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "openPeriods", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Period> getOpenPeriods()
+    @JacksonXmlElementWrapper( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<DataInputPeriod> getDataInputPeriods()
     {
-        return openPeriods;
+        return dataInputPeriods;
     }
 
-    public void setOpenPeriods( Set<Period> openPeriods )
+    public void setDataInputPeriods( Set<DataInputPeriod> dataInputPeriods )
     {
-        this.openPeriods = openPeriods;
+        this.dataInputPeriods= dataInputPeriods;
     }
 
     @JsonProperty
@@ -904,8 +907,8 @@ public class DataSet
                 workflow = dataSet.getWorkflow() == null ? workflow : dataSet.getWorkflow();
             }
 
-            openPeriods.clear();
-            dataSet.getOpenPeriods().forEach( this::addOpenPeriod );
+            dataInputPeriods.clear();
+            dataSet.getDataInputPeriods().forEach( this::addDataInputPeriod );
 
             removeAllDataSetElements();
             dataSet.getDataSetElements().forEach( this::addDataSetElement );

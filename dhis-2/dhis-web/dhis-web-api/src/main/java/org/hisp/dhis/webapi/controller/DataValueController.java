@@ -224,7 +224,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
 
         // ---------------------------------------------------------------------
         // Assemble and save data value
@@ -365,7 +365,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
 
         // ---------------------------------------------------------------------
         // Delete data value
@@ -703,10 +703,10 @@ public class DataValueController
         }
     }
 
-    private void validatePeriodWithinDataSetOpenPeriods( DataElement dataElement, Period period )
+    private void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, Period period )
         throws WebMessageException
     {
-        if ( !dataElement.isPeriodInDataSetOpenPeriods( period ) )
+        if ( !dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Period reported is not open in data set" ) );
         }
