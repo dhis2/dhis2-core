@@ -102,19 +102,6 @@ public class JdbcEventAnalyticsTableManager
 
         return tables;
     }
-    
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from trackedentitydatavalue limit 1" ).next();
-        
-        if ( !hasData )
-        {
-            return "No events exist, not updating event analytics tables";
-        }
-        
-        return null;
-    }
 
     @Override
     public String getTableName()
@@ -336,5 +323,5 @@ public class JdbcEventAnalyticsTableManager
         }
         
         return jdbcTemplate.queryForList( sql, Integer.class );
-    }
+    }   
 }

@@ -11,6 +11,7 @@ import java.util.concurrent.Future;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.common.ValueType;
+import org.springframework.scheduling.annotation.Async;
 
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
@@ -47,6 +48,7 @@ public abstract class AbstractEventJdbcTableManager
     }
     
     @Override
+    @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
         Collection<String> dataElements, int aggregationLevel )
     {
@@ -54,22 +56,10 @@ public abstract class AbstractEventJdbcTableManager
     }
 
     @Override
+    @Async
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
     {
-        return null; // Not relevant
-    }
-    
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from trackedentitydatavalue limit 1" ).next();
-        
-        if ( !hasData )
-        {
-            return "No events exist, not updating event analytics tables";
-        }
-        
-        return null;
+        return null; // Not needed
     }
     
     /**
@@ -78,9 +68,13 @@ public abstract class AbstractEventJdbcTableManager
      */
     protected String getColumnType( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
+        if ( Double.class.equals( valueType.getJavaClass() ) )
         {
             return statementBuilder.getDoubleColumnType();
+        }
+        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        {
+            return "bigint";
         }
         else if ( Boolean.class.equals( valueType.getJavaClass() ) )
         {
@@ -100,12 +94,11 @@ public abstract class AbstractEventJdbcTableManager
         }
     }
     
-    
     /**
      * Returns the select clause, potentially with a cast statement, based on the
      * given value type.
      */
-    private String getSelectClause( ValueType valueType )
+    protected String getSelectClause( ValueType valueType )
     {
         if ( Double.class.equals( valueType.getJavaClass() ) )
         {
@@ -131,5 +124,18 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "value";
         }
+    }
+    
+    @Override
+    public String validState()
+    {
+        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from trackedentitydatavalue limit 1" ).next();
+        
+        if ( !hasData )
+        {
+            return "No events exist, not updating event analytics tables";
+        }
+        
+        return null;
     }
 }
