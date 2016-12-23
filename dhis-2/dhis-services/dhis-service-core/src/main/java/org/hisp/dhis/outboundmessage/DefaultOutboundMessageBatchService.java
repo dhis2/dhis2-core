@@ -57,6 +57,10 @@ public class DefaultOutboundMessageBatchService
     {
     }
 
+    // ---------------------------------------------------------------------
+    // OutboundMessageService implementation
+    // ---------------------------------------------------------------------
+
     @Override
     public List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches )
     {
