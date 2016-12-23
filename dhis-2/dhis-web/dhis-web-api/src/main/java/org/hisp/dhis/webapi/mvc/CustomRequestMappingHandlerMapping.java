@@ -28,8 +28,8 @@ package org.hisp.dhis.webapi.mvc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
@@ -84,10 +84,10 @@ public class CustomRequestMappingHandlerMapping
                 .filter( version -> !version.isIgnore() )
                 .forEach( version ->
                 {
-                    if ( !pattern.startsWith( version.getPath() ) )
+                    if ( !pattern.startsWith( version.getVersionString() ) )
                     {
-                        if ( pattern.startsWith( "/" ) ) patterns.add( "/" + version.getPath() + pattern );
-                        else patterns.add( "/" + version.getPath() + "/" + pattern );
+                        if ( pattern.startsWith( "/" ) ) patterns.add( "/" + version.getVersion() + pattern );
+                        else patterns.add( "/" + version.getVersion() + "/" + pattern );
                     }
                     else
                     {
@@ -125,17 +125,11 @@ public class CustomRequestMappingHandlerMapping
         if ( includes.contains( DhisApiVersion.ALL ) )
         {
             boolean includeDefault = includes.contains( DhisApiVersion.DEFAULT );
-            boolean includeTest = includes.contains( DhisApiVersion.TEST );
             includes = new HashSet<>( Arrays.asList( DhisApiVersion.values() ) );
 
             if ( !includeDefault )
             {
                 includes.remove( DhisApiVersion.DEFAULT );
-            }
-
-            if ( !includeTest )
-            {
-                includes.remove( DhisApiVersion.TEST );
             }
         }
 

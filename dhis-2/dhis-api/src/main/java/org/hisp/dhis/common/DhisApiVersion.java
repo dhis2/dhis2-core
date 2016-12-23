@@ -38,57 +38,57 @@ public enum DhisApiVersion
     /**
      * Default mapping /api/name
      */
-    DEFAULT( "" ),
-
-    /**
-     * Default mapping /api/name
-     */
-    TEST( "test" ),
-
-    /**
-     * /api/23/name
-     */
-    V23( "23" ),
-
-    /**
-     * /api/24/name
-     */
-    V24( "24" ),
-
-    /**
-     * /api/25/name
-     */
-    V25( "25" ),
-
-    /**
-     * /api/26/name
-     */
-    V26( "26" ),
+    DEFAULT( -1 ),
 
     /**
      * Map to all versions, not including default.
      */
-    ALL( "*", true );
+    ALL( -2, true ),
 
-    final String path;
+    /**
+     * /api/23/name
+     */
+    V23( 23 ),
+
+    /**
+     * /api/24/name
+     */
+    V24( 24 ),
+
+    /**
+     * /api/25/name
+     */
+    V25( 25 ),
+
+    /**
+     * /api/26/name
+     */
+    V26( 26 );
+
+    final int version;
 
     final boolean ignore;
 
-    DhisApiVersion( String path )
+    DhisApiVersion( int version )
     {
-        this.path = path;
+        this.version = version;
         this.ignore = false;
     }
 
-    DhisApiVersion( String path, boolean ignore )
+    DhisApiVersion( int version, boolean ignore )
     {
-        this.path = path;
+        this.version = version;
         this.ignore = ignore;
     }
 
-    public String getPath()
+    public int getVersion()
     {
-        return path;
+        return version;
+    }
+
+    public String getVersionString()
+    {
+        return this == DEFAULT ? "" : String.valueOf( version );
     }
 
     public boolean isIgnore()
@@ -96,7 +96,27 @@ public enum DhisApiVersion
         return ignore;
     }
 
-    public static DhisApiVersion getVersion( String version )
+    public boolean isAfter( DhisApiVersion dhisApiVersion )
+    {
+        return version < dhisApiVersion.getVersion();
+    }
+
+    public boolean isAfterOrSame( DhisApiVersion dhisApiVersion )
+    {
+        return version <= dhisApiVersion.getVersion();
+    }
+
+    public boolean isBefore( DhisApiVersion dhisApiVersion )
+    {
+        return version > dhisApiVersion.getVersion();
+    }
+
+    public boolean isBeforeOrSame( DhisApiVersion dhisApiVersion )
+    {
+        return version >= dhisApiVersion.getVersion();
+    }
+
+    public static DhisApiVersion getVersion( int version )
     {
         if ( StringUtils.isEmpty( version ) )
         {
@@ -107,7 +127,7 @@ public enum DhisApiVersion
         {
             DhisApiVersion v = DhisApiVersion.values()[i];
 
-            if ( version.equals( v.getPath() ) )
+            if ( version == v.getVersion() )
             {
                 return v;
             }
