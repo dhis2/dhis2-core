@@ -70,25 +70,25 @@ public enum DhisApiVersion
      */
     ALL( "*", true );
 
-    final String path;
+    final String version;
 
     final boolean ignore;
 
-    DhisApiVersion( String path )
+    DhisApiVersion( String version )
     {
-        this.path = path;
+        this.version = version;
         this.ignore = false;
     }
 
-    DhisApiVersion( String path, boolean ignore )
+    DhisApiVersion( String version, boolean ignore )
     {
-        this.path = path;
+        this.version = version;
         this.ignore = ignore;
     }
 
-    public String getPath()
+    public String getVersion()
     {
-        return path;
+        return version;
     }
 
     public boolean isIgnore()
@@ -107,7 +107,7 @@ public enum DhisApiVersion
         {
             DhisApiVersion v = DhisApiVersion.values()[i];
 
-            if ( version.equals( v.getPath() ) )
+            if ( version.equals( v.getVersion() ) )
             {
                 return v;
             }

@@ -84,10 +84,10 @@ public class CustomRequestMappingHandlerMapping
                 .filter( version -> !version.isIgnore() )
                 .forEach( version ->
                 {
-                    if ( !pattern.startsWith( version.getPath() ) )
+                    if ( !pattern.startsWith( version.getVersion() ) )
                     {
-                        if ( pattern.startsWith( "/" ) ) patterns.add( "/" + version.getPath() + pattern );
-                        else patterns.add( "/" + version.getPath() + "/" + pattern );
+                        if ( pattern.startsWith( "/" ) ) patterns.add( "/" + version.getVersion() + pattern );
+                        else patterns.add( "/" + version.getVersion() + "/" + pattern );
                     }
                     else
                     {
