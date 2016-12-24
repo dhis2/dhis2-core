@@ -29,7 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 /**
- * @author markusbekken
+ * @author Markus Bekken
  */
 public enum ProgramRuleActionType
 {

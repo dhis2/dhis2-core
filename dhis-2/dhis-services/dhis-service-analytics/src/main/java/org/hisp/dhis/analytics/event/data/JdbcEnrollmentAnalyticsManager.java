@@ -66,8 +66,6 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 /**
- * TODO could use row_number() and filtering for paging, but not supported on MySQL.
- * 
  * @author Markus Bekken
  */
 public class JdbcEnrollmentAnalyticsManager
