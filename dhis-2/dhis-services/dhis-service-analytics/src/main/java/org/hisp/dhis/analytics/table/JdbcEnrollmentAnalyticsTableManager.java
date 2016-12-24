@@ -55,7 +55,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
- * @author markusbekken
+ * @author Markus Bekken
  */
 public class JdbcEnrollmentAnalyticsTableManager
     extends AbstractEventJdbcTableManager
@@ -190,7 +190,6 @@ public class JdbcEnrollmentAnalyticsTableManager
                 String select = getSelectClause( valueType );
                 boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
-                //Only this has been changed so far:
                 String sql = "(select " + select + " from trackedentitydatavalue tedv " + 
                      "join programstageinstance psi " + 
                      "on psi.programstageinstanceid = tedv.programstageinstanceid " + 
@@ -223,25 +222,23 @@ public class JdbcEnrollmentAnalyticsTableManager
         AnalyticsTableColumn pi = new AnalyticsTableColumn( quote( "pi" ), "character(11) not null", "pi.uid" );
         AnalyticsTableColumn erd = new AnalyticsTableColumn( quote( "enrollmentdate" ), "timestamp", "pi.enrollmentdate" );
         AnalyticsTableColumn id = new AnalyticsTableColumn( quote( "incidentdate" ), "timestamp", "pi.incidentdate" );
-        
-        // PSI columns fallback in enrollment analytics
-        
-        final String executionDateSql = "( select psi.executionDate from programstageinstance psi " + 
+                
+        final String executionDateSql = "(select psi.executionDate from programstageinstance psi " + 
             "join programinstance pi " + 
             "on psi.programinstanceid = pi.programinstanceid " + 
             "where psi.executiondate is not null " + 
             "and psi.deleted is not true " +
             "order by psi.executiondate desc " +
-            "limit 1 ) as " + quote( "executiondate" );        
+            "limit 1) as " + quote( "executiondate" );        
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
         
-        final String dueDateSql = "( select psi.duedate FROM programstageinstance psi " + 
+        final String dueDateSql = "(select psi.duedate FROM programstageinstance psi " + 
             "join programinstance pi " + 
             "on psi.programinstanceid = pi.programinstanceid " + 
             "where psi.duedate is not null " + 
             "and psi.deleted is not true " +
             "order by psi.duedate desc " +
-            "limit 1 ) as " + quote( "duedate" );        
+            "limit 1) as " + quote( "duedate" );        
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
         
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case status when 'COMPLETED' then enddate end" );

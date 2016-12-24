@@ -44,7 +44,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author markusbekken
+ * @author Markus Bekken
  */
 @JacksonXmlRootElement( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRule
