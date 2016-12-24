@@ -155,7 +155,7 @@ public class GetProgramIndicatorAction
     {
         return legendSets;
     }
-
+    
     private List<Attribute> attributes;
 
     public List<Attribute> getAttributes()

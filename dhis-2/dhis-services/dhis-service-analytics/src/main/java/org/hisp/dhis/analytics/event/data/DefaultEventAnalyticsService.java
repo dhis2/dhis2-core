@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
-
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
@@ -57,6 +56,7 @@ import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -88,7 +88,10 @@ public class DefaultEventAnalyticsService
     implements EventAnalyticsService
 {
     @Autowired
-    private EventAnalyticsManager analyticsManager;
+    private EventAnalyticsManager eventAnalyticsManager;
+
+    @Autowired
+    private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
     
     @Autowired
     private EventDataQueryService eventDataQueryService;
@@ -174,7 +177,14 @@ public class DefaultEventAnalyticsService
     
             for ( EventQueryParams query : queries )
             {
-                analyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                if ( query.hasEnrollmentProgramIndicatorDimension() )
+                {
+                    enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                }
+                else
+                {
+                    eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                }
             }
             
             timer.getTime( "Got aggregated events" );
@@ -261,10 +271,10 @@ public class DefaultEventAnalyticsService
         {
             if ( params.isPaging() )
             {
-                count += analyticsManager.getEventCount( params );
+                count += eventAnalyticsManager.getEventCount( params );
             }
     
-            analyticsManager.getEvents( params, grid, queryPlanner.getMaxLimit() );
+            eventAnalyticsManager.getEvents( params, grid, queryPlanner.getMaxLimit() );
     
             timer.getTime( "Got events " + grid.getHeight() );
         }
@@ -333,7 +343,7 @@ public class DefaultEventAnalyticsService
 
         params = queryPlanner.planEventQuery( params );
 
-        analyticsManager.getEventClusters( params, grid, queryPlanner.getMaxLimit() );
+        eventAnalyticsManager.getEventClusters( params, grid, queryPlanner.getMaxLimit() );
         
         return grid;
     }
@@ -358,7 +368,7 @@ public class DefaultEventAnalyticsService
         
         params = queryPlanner.planEventQuery( params );
 
-        return analyticsManager.getRectangle( params );
+        return eventAnalyticsManager.getRectangle( params );
     }
 
     // -------------------------------------------------------------------------

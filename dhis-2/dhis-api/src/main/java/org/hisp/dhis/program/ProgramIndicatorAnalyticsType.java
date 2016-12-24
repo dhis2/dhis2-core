@@ -28,34 +28,37 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Set;
-import org.junit.Test;
-import com.google.common.collect.Sets;
-
 /**
-* @author Lars Helge Overland
-*/
-public class ProgramIndicatorTest
+ * @author Markus Bekken
+ */
+
+public enum ProgramIndicatorAnalyticsType
 {
-    @Test
-    public void testGetIdentifiersEvent()
+    EVENT( "event" ), 
+    ENROLLMENT( "enrollment" );
+    
+    private final String value;
+
+    private ProgramIndicatorAnalyticsType( String value )
     {
-        String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
-        
-        Set<String> expected = Sets.newHashSet( "yD5mUKAm3aK", "UaGD9u0kaur", "y1Bhi6xHtVk" );
-        
-        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, ProgramIndicatorAnalyticsType.EVENT ) );
+        this.value = value;
+    }
+
+    public static ProgramIndicatorAnalyticsType fromValue( String value )
+    {
+        for ( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType : ProgramIndicatorAnalyticsType.values() )
+        {
+            if ( programIndicatorAnalyticsType.getValue().equalsIgnoreCase( value ) )
+            {
+                return programIndicatorAnalyticsType;
+            }
+        }
+
+        return null;
     }
     
-    @Test
-    public void testGetIdentifiersEnrollment()
+    public String getValue()
     {
-        String expression = "#{chG8sINMf11.yD5mUKAm3aK} + #{chG8sINMf11.UaGD9u0kaur} - A{y1Bhi6xHtVk}";
-        
-        Set<String> expected = Sets.newHashSet( "chG8sINMf11_yD5mUKAm3aK", "chG8sINMf11_UaGD9u0kaur", "y1Bhi6xHtVk" );
-        
-        assertEquals( expected, ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, ProgramIndicatorAnalyticsType.ENROLLMENT ) );
+        return value;
     }
 }

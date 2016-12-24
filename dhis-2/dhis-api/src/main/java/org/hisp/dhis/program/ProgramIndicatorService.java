@@ -113,7 +113,7 @@ public interface ProgramIndicatorService
      * @param expression the expression.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression );
+    String getAnalyticsSQl( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType );
     
     /**
      * Get the expression as an analytics SQL clause.
@@ -122,7 +122,7 @@ public interface ProgramIndicatorService
      * @param whether to ignore missing values for data elements and attributes.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, boolean ignoreMissingValues );
+    String getAnalyticsSQl( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType, boolean ignoreMissingValues );
     
     /**
      * Returns a SQL clause which matches any value for the data elements and
@@ -131,7 +131,7 @@ public interface ProgramIndicatorService
      * @param expression the expression.
      * @return the SQL string.
      */
-    String getAnyValueExistsClauseAnalyticsSql( String expression );
+    String getAnyValueExistsClauseAnalyticsSql( String expression, ProgramIndicatorAnalyticsType programIndicatorAnalyticsType );
 
     /**
      * Indicates whether the given program indicator expression is valid.

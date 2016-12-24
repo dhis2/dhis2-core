@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.partition;
 
 import static org.hisp.dhis.analytics.AnalyticsTableManager.ANALYTICS_TABLE_NAME;
 import static org.hisp.dhis.analytics.AnalyticsTableManager.EVENT_ANALYTICS_TABLE_NAME;
+import static org.hisp.dhis.analytics.AnalyticsTableManager.ENROLLMENT_ANALYTICS_TABLE_NAME;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -49,7 +50,7 @@ public class JdbcPartitionManager
     
     private Set<String> analyticsPartitions = null;
     private Set<String> analyticsEventPartitions = null;
-
+    
     @Autowired
     private JdbcTemplate jdbcTemplate;
   
@@ -84,12 +85,14 @@ public class JdbcPartitionManager
         final String sql = 
             "select table_name from information_schema.tables " +
             "where table_name like '" + EVENT_ANALYTICS_TABLE_NAME + "%' " +
+            "or table_name like '" + ENROLLMENT_ANALYTICS_TABLE_NAME + "%' " +
             "and table_type = 'BASE TABLE'";
         
         log.info( "Information schema event analytics SQL: " + sql );
         
         Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
         analyticsEventPartitions = partitions;
+        
         return partitions;
     }
     
