@@ -62,9 +62,10 @@ public class DhisApiVersionHandlerMethodArgumentResolver implements HandlerMetho
 
         if ( matcher.find() )
         {
-            return DhisApiVersion.getVersion( matcher.group( "version" ) );
+            Integer version = Integer.valueOf( matcher.group( "version" ) );
+            return DhisApiVersion.getVersion( version );
         }
 
-        return DhisApiVersion.getVersion( "" );
+        return DhisApiVersion.DEFAULT;
     }
 }
