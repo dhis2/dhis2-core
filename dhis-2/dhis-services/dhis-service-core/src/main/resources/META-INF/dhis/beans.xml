@@ -1392,7 +1392,14 @@
   <!-- Outbound messaging services -->
 
   <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"
-    class="org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService" />
+    class="org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService">
+    <property name="messageSenders">
+      <map key-type="org.hisp.dhis.common.DeliveryChannel">
+        <entry key="SMS" value-ref="smsMessageSender" />
+        <entry key="EMAIL" value-ref="emailMessageSender" />
+      </map>
+    </property>
+  </bean>
 
   <!-- ProgramMessage services -->
 

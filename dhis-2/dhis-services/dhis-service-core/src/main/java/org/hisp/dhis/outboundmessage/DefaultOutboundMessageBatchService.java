@@ -32,10 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -46,8 +45,16 @@ public class DefaultOutboundMessageBatchService
 {
     private static final Log log = LogFactory.getLog( DefaultOutboundMessageBatchService.class );
 
-    @Autowired
-    private Set<MessageSender> messageSenders;
+    // ---------------------------------------------------------------------
+    // Dependencies
+    // ---------------------------------------------------------------------
+
+    private Map<DeliveryChannel, MessageSender> messageSenders;
+
+    private void setMessageSenders( Map<DeliveryChannel, MessageSender> messageSenders )
+    {
+        this.messageSenders = messageSenders;
+    }
 
     // ---------------------------------------------------------------------
     // Constructors
@@ -68,14 +75,7 @@ public class DefaultOutboundMessageBatchService
         return batches.stream()
             .collect( Collectors.groupingBy( OutboundMessageBatch::getDeliveryChannel ) )
             .entrySet().stream()
-            .flatMap( entry -> {
-                DeliveryChannel channel = entry.getKey();
-                MessageSender sender = resolveMessageSender( channel );
-                List<OutboundMessageBatch> messageBatches = entry.getValue();
-
-                return messageBatches.stream()
-                        .map( batch -> send( batch, channel, sender ) );
-            } )
+            .flatMap( entry -> entry.getValue().stream().map( this::send ) )
             .collect( Collectors.toList() );
     }
 
@@ -83,23 +83,11 @@ public class DefaultOutboundMessageBatchService
     // Supportive Methods
     // ---------------------------------------------------------------------
 
-    private MessageSender resolveMessageSender( DeliveryChannel channel )
+    private OutboundMessageResponseSummary send( OutboundMessageBatch batch )
     {
-        Set<MessageSender> senders = messageSenders.stream()
-            .filter( sender -> sender.getDeliveryChannel() == channel )
-            .collect( Collectors.toSet() );
+        DeliveryChannel channel = batch.getDeliveryChannel();
+        MessageSender sender = messageSenders.get( channel );
 
-        if ( senders.isEmpty() )
-        {
-            return null;
-        }
-
-        // TODO Need to consider multiple senders here?
-        return senders.iterator().next();
-    }
-
-    private static OutboundMessageResponseSummary send( OutboundMessageBatch batch, DeliveryChannel channel, MessageSender sender )
-    {
         if ( sender == null )
         {
             String errorMessage = String.format( "No server/gateway found for delivery channel %s", channel );
