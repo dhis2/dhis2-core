@@ -7957,7 +7957,7 @@ Ext.onReady( function() {
 
                                         // root nodes
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnits.json?userDataViewFallback=true&paging=false&fields=id,' + namePropertyUrl,
+                                            url: encodeURI(contextPath + '/api/organisationUnits.json?userDataViewFallback=true&paging=false&fields=id,' + namePropertyUrl),
                                             success: function(r) {
                                                 init.rootNodes = Ext.decode(r.responseText).organisationUnits || [];
                                                 fn();
@@ -7980,7 +7980,7 @@ Ext.onReady( function() {
 
                                         // user orgunits and children
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnits.json?userOnly=true&fields=id,' + namePropertyUrl + ',children[id,' + namePropertyUrl + ']&paging=false',
+                                            url: encodeURI(contextPath + '/api/organisationUnits.json?userOnly=true&fields=id,' + namePropertyUrl + ',children[id,' + namePropertyUrl + ']&paging=false'),
                                             success: function(r) {
                                                 var organisationUnits = Ext.decode(r.responseText).organisationUnits || [],
                                                     ou = [],
@@ -8011,7 +8011,7 @@ Ext.onReady( function() {
 
                                         // dimensions
                                         requests.push({
-                                            url: contextPath + '/api/dimensions.json?fields=id,' + namePropertyUrl + '&paging=false',
+                                            url: encodeURI(contextPath + '/api/dimensions.json?fields=id,' + namePropertyUrl + '&paging=false'),
                                             success: function(r) {
                                                 init.dimensions = Ext.decode(r.responseText).dimensions || [];
                                                 fn();
