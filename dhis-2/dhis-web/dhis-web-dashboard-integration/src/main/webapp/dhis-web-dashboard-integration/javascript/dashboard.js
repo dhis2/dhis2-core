@@ -45,8 +45,6 @@ dhis2.db.chartItems = [];
 $(document).ready(function () {
     $("#interpretationArea").autogrow();
 
-    //$(document).click(function(){dhis2.db.hideSearch();dhis2.db.hideInterpretationPopup();});
-
     $(window).resize(dhis2.db.drawWideItems);
 
     $("#searchField").focus(function () {
@@ -69,9 +67,6 @@ $(document).ready(function () {
     $.getJSON("../api/system/info.json", function (json) {
         dhis2.db.contextPath = json.contextPath;
     });
-    
-    //Initialize interpretation popup events
-    //dhis2.db.initInterpretationPopupEvents();
 });
 
 //------------------------------------------------------------------------------
@@ -100,8 +95,6 @@ dhis2.db.tmpl = {
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
     "<a href='javascript:dhis2.db.exploreChart( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"chart\", \"${name}\" )'>${i18n_share}</a>" +
-    // "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"CHART\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
-    // "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"CHART\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"CHART\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
     "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"CHART\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
@@ -114,8 +107,6 @@ dhis2.db.tmpl = {
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
     "<a href='javascript:dhis2.db.exploreEventChart( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"eventChart\", \"${name}\" )'>${i18n_share}</a>" +
-    // "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"EVENT_CHART\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
-    // "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"EVENT_CHART\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"EVENT_CHART\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
     "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"EVENT_CHART\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
@@ -127,8 +118,6 @@ dhis2.db.tmpl = {
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
     "<a href='javascript:dhis2.db.exploreMap( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"map\", \"${name}\" )'>${i18n_share}</a>" +
-    // "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"MAP\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
-    // "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"MAP\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"MAP\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
     "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"MAP\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
@@ -140,8 +129,6 @@ dhis2.db.tmpl = {
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\" )'>${i18n_resize}</a>|" +
     "<a href='javascript:dhis2.db.exploreReportTable( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"reportTable\", \"${name}\" )'>${i18n_share}</a>" +
-    //"{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"REPORT_TABLE\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
-    //"{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"REPORT_TABLE\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"REPORT_TABLE\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
     "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"REPORT_TABLE\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
@@ -153,8 +140,6 @@ dhis2.db.tmpl = {
     "<a href='javascript:dhis2.db.resizeItem( \"${itemId}\", true )'>${i18n_resize}</a>|" +
     "<a href='javascript:dhis2.db.exploreEventReport( \"${id}\" )'>${i18n_explore}</a>|" +
     "<a href='javascript:dhis2.db.viewShareForm( \"${id}\", \"eventReport\", \"${name}\" )'>${i18n_share}</a>" +
-    // "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"EVENT_REPORT\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
-    // "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.showInterpretationPopup( event, \"${id}\", \"EVENT_REPORT\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "{{if interpretationCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"EVENT_REPORT\" );return false;' title=\"${interpretationCount} interpretations\"><i class=\"fa fa-comments-o\"></i>${interpretationCount}</a>{{/if}}" +
     "{{if interpretationLikeCount > 0}}<a href='#' onclick='dhis2.db.viewInterpretationPopup( \"${itemId}\", \"${id}\", \"EVENT_REPORT\" );return false;' title=\"${interpretationLikeCount} likes\"><i class=\"fa fa-thumbs-o-up\"></i>${interpretationLikeCount}</a>{{/if}}" +
     "<i class=\"fa fa-arrows dragIcon\" title=\"${i18n_click_and_drag_to_new_position}\"></i></div>" +
@@ -1620,6 +1605,7 @@ dhis2.db.viewInterpretationPopup = function (itemId, id, type) {
         $("#interpretationPopup").dialog({
             modal: true,
             width: dhis2.db.getFullWidth(),
+            maxHeight: 600,
             resizable: false,
             title: title
         });
