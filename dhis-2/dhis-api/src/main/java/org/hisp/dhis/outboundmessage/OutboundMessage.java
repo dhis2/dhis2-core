@@ -33,7 +33,6 @@ import java.util.Set;
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>
 */
-
 public class OutboundMessage
 {
     private String text;

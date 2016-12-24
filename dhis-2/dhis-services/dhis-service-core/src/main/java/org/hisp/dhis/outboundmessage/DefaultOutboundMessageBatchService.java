@@ -102,22 +102,22 @@ public class DefaultOutboundMessageBatchService
     {
         if ( sender == null )
         {
-            String err = String.format( "No server/gateway found for delivery channel %s", channel );
-            log.error( err );
+            String errorMessage = String.format( "No server/gateway found for delivery channel %s", channel );
+            log.error( errorMessage );
 
             return new OutboundMessageResponseSummary(
-                err,
+                errorMessage,
                 channel,
                 OutboundMessageBatchStatus.FAILED
             );
         }
         else if ( !sender.isConfigured() )
         {
-            String err = String.format( "Server/gateway for delivery channel %s is not configured", channel );
-            log.error( err );
+            String errorMessage = String.format( "Server/gateway for delivery channel %s is not configured", channel );
+            log.error( errorMessage );
 
             return new OutboundMessageResponseSummary(
-                err,
+                errorMessage,
                 channel,
                 OutboundMessageBatchStatus.FAILED
             );
