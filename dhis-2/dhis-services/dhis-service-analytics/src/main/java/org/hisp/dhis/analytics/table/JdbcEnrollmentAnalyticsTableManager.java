@@ -54,6 +54,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
+/**
+ * @author markusbekken
+ */
 public class JdbcEnrollmentAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
@@ -69,11 +72,11 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Override
     public Set<String> getExistingDatabaseTables()
     {
-        // TODO Auto-generated method stub
         return null;
     }
     
-    private List<AnalyticsTable> getTables() {
+    private List<AnalyticsTable> getTables() 
+    {
         List<AnalyticsTable> tables = new UniqueArrayList<>();
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
@@ -84,6 +87,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             AnalyticsTable table = new AnalyticsTable( baseName, null, null, program );
             List<AnalyticsTableColumn> dimensionColumns = getDimensionColumns( table );
             table.setDimensionColumns( dimensionColumns );
+            
             tables.add( table );
         }
         
@@ -193,10 +197,10 @@ public class JdbcEnrollmentAnalyticsTableManager
                      "where psi.executiondate is not null " + 
                      "and psi.deleted is not true " + 
                      "and psi.programinstanceid = pi.programinstanceid " +
-                     dataClause + 
-                     " and tedv.dataelementid = " + dataElement.getId() + 
-                     " and psi.programStageId = " + programStage.getId() +
-                     " order by psi.executiondate desc " +
+                     dataClause + " " +
+                     "and tedv.dataelementid = " + dataElement.getId() + " " +
+                     "and psi.programStageId = " + programStage.getId() + " " +
+                     "order by psi.executiondate desc " +
                      "limit 1) as " + quote( programStage.getUid() + ProgramIndicator.DB_SEPARATOR_ID + dataElement.getUid() );
 
                 columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + ProgramIndicator.DB_SEPARATOR_ID + dataElement.getUid() ), dataType, sql, skipIndex ) ); 
@@ -222,7 +226,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         
         // PSI columns fallback in enrollment analytics
         
-        String executionDateSql = "( select psi.executionDate from programstageinstance psi " + 
+        final String executionDateSql = "( select psi.executionDate from programstageinstance psi " + 
             "join programinstance pi " + 
             "on psi.programinstanceid = pi.programinstanceid " + 
             "where psi.executiondate is not null " + 
@@ -231,7 +235,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "limit 1 ) as " + quote( "executiondate" );        
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", executionDateSql );
         
-        String dueDateSql = "( select psi.duedate FROM programstageinstance psi " + 
+        final String dueDateSql = "( select psi.duedate FROM programstageinstance psi " + 
             "join programinstance pi " + 
             "on psi.programinstanceid = pi.programinstanceid " + 
             "where psi.duedate is not null " + 
@@ -239,6 +243,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "order by psi.duedate desc " +
             "limit 1 ) as " + quote( "duedate" );        
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", dueDateSql );
+        
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "case status when 'COMPLETED' then enddate end" );
         AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "enrollmentstatus" ), "character(50)", "pi.status" );
         AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, "pi.longitude" );

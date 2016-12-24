@@ -167,7 +167,7 @@ public class DefaultEventQueryPlanner
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
         Set<String> validPartitions = partitionManager.getEventAnalyticsPartitions();
-        
+
         List<EventQueryParams> queries = new ArrayList<>();
         
         List<EventQueryParams> groupedByQueryItems = groupByQueryItems( params );
@@ -201,7 +201,7 @@ public class DefaultEventQueryPlanner
         {
             Period queryPeriod = new Period();
             queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );    
+            queryPeriod.setEndDate( params.getEndDate() );
             params.setPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) );
         }
                 
@@ -232,11 +232,11 @@ public class DefaultEventQueryPlanner
         
         if ( params.hasEnrollmentProgramIndicatorDimension() ) 
         {
-            //TODO: Check - can we end up here with both program indicators and other elements in the params?
             List<EventQueryParams> indicatorQueries = new ArrayList<>();
             
             EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( ENROLLMENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) ).build();
+                .withPartitions( PartitionUtils.getPartitions( ENROLLMENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) )
+                .build();
         
             if ( query.getPartitions().hasAny() )
             {
@@ -254,7 +254,8 @@ public class DefaultEventQueryPlanner
             queryPeriod.setEndDate( params.getEndDate() );
             
             EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) ).build();
+                .withPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) )
+                .build();
             
             if ( query.getPartitions().hasAny() )
             {
@@ -304,7 +305,8 @@ public class DefaultEventQueryPlanner
                     .removeItems()
                     .removeItemProgramIndicators()
                     .withProgramIndicator( programIndicator )
-                    .withProgram( programIndicator.getProgram() ).build();
+                    .withProgram( programIndicator.getProgram() )
+                    .build();
                 
                 queries.add( query );
             }

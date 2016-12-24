@@ -34,8 +34,8 @@ package org.hisp.dhis.program;
 
 public enum ProgramIndicatorAnalyticsType
 {
-    EVENT("event"), 
-    ENROLLMENT("enrollment");
+    EVENT( "event" ), 
+    ENROLLMENT( "enrollment" );
     
     private final String value;
 
@@ -48,7 +48,7 @@ public enum ProgramIndicatorAnalyticsType
     {
         for ( ProgramIndicatorAnalyticsType programIndicatorAnalyticsType : ProgramIndicatorAnalyticsType.values() )
         {
-            if ( programIndicatorAnalyticsType.value.equalsIgnoreCase( value ) )
+            if ( programIndicatorAnalyticsType.getValue().equalsIgnoreCase( value ) )
             {
                 return programIndicatorAnalyticsType;
             }
