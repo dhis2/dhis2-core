@@ -71,12 +71,6 @@ public class MockMessageSender
     }
 
     @Override
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return null;
-    }
-
-    @Override
     public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
         return null;

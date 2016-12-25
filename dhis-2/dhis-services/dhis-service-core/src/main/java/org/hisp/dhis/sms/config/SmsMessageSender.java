@@ -167,12 +167,6 @@ public class SmsMessageSender
         return !gatewayAdminService.getGatewayConfigurationMap().isEmpty();
     }
 
-    @Override
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return DeliveryChannel.SMS;
-    }
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

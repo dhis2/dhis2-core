@@ -30,10 +30,9 @@ package org.hisp.dhis.message;
 
 import java.util.Set;
 
-import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
 
 /**
@@ -62,6 +61,4 @@ public interface MessageSender
     OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
 
     boolean isConfigured();
-
-    DeliveryChannel getDeliveryChannel();
 }
