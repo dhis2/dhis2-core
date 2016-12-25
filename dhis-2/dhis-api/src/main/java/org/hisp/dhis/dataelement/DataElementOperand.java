@@ -132,6 +132,14 @@ public class DataElementOperand
         this.operandId = dataElementId + SEPARATOR + optionComboId;
     }
 
+    public DataElementOperand( DataElement dataElement, String dataElementId, String optionComboId )
+    {
+        this.dataElement = dataElement;
+        this.dataElementId = dataElementId;
+        this.optionComboId = optionComboId;
+        this.operandId = dataElementId + SEPARATOR + optionComboId;
+    }
+
     public DataElementOperand( String dataElementId, String optionComboId, String operandName )
     {
         this.dataElementId = dataElementId;
