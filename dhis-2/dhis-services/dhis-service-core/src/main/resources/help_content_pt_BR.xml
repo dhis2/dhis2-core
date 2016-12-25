@@ -540,7 +540,7 @@ If there are no datasets defined for an organisation unit, it indicates that no 
 </section>
 <section id="dataSetAssignmentEditor">
 <title>Data set assignment editor</title>
-<para>The data set assignment editor is a tool for adding and removing many data sets to organisation units in messages style. Start by selecting an organisation unit from the selection tree. In the area below the tree a grid will be displayed showing all data sets as columns and the child organisation units as rows.</para>
+<para>The data set assignment editor is a tool for adding and removing many data sets to organisation units in batch style. Start by selecting an organisation unit from the selection tree. In the area below the tree a grid will be displayed showing all data sets as columns and the child organisation units as rows.</para>
 <para>From the grid you can now assign or unassign data sets simply by clicking on of the corresponding icons in the grid. If you want to assign or unassign an organisation unit to all data sets you can check or uncheck the checkbox next to the organisation unit. Your changes will automatically be saved.</para>
 </section>
 </section>
@@ -598,7 +598,7 @@ If there are no datasets defined for an organisation unit, it indicates that no 
 <para>Comment: Any additional information that you would like to add can be put here. </para>
 </listitem>
 <listitem>
-<para>Coordinates: This field is used to create the maps in the GIS module. Paste in the coordinates of the orgunit in this field, either a polygon (for orgunits that represent an administrative boundary) or a point (for health facilities). Without this information the GIS module will not work. It might be more efficient to import these coordinates later as a messages job for all orgunits using the import module. See the GIS chapter for more details.</para>
+<para>Coordinates: This field is used to create the maps in the GIS module. Paste in the coordinates of the orgunit in this field, either a polygon (for orgunits that represent an administrative boundary) or a point (for health facilities). Without this information the GIS module will not work. It might be more efficient to import these coordinates later as a batch job for all orgunits using the import module. See the GIS chapter for more details.</para>
 </listitem>
 <listitem>
 <para>URL: You can use this field to insert a URL link to an external web site that has additional information about this specific orgunit.</para>
@@ -1388,7 +1388,7 @@ details of a particular selected user.</para>
 </section>
 <section>
 <title>Validation rules</title>
-<para>Once you have set up the data entry part of the system and started to collect data then there is time to define data quality checks that help to improve the quality of the data being collected. You can add as many validation rules as you like and these are composed of left and right side expressions that again are composed of data elements, with an operator between the two sides. Typical rules are comparing subtotals to totals of something. E.g. if you have two data elements &quot;HIV tests taken&quot; and &quot;HIV test result positive&quot; then you know that in the same form (for the same period and organisational unit) the total number of tests must always be equal or higher than the number of positive tests. These rules should be absolute rules meaning that they are mathematically correct and not just assumptions or &quot;most of the time correct&quot;. The rules can be run in data entry, after filling each form, or as a more messages like process on multiple forms at the same time, e.g. for all facilities for the previous reporting month. The results of the tests will list all violations and the detailed values for each side of the expression where the violation ocurred to make it easy to go back to data entry and correct the values.</para>
+<para>Once you have set up the data entry part of the system and started to collect data then there is time to define data quality checks that help to improve the quality of the data being collected. You can add as many validation rules as you like and these are composed of left and right side expressions that again are composed of data elements, with an operator between the two sides. Typical rules are comparing subtotals to totals of something. E.g. if you have two data elements &quot;HIV tests taken&quot; and &quot;HIV test result positive&quot; then you know that in the same form (for the same period and organisational unit) the total number of tests must always be equal or higher than the number of positive tests. These rules should be absolute rules meaning that they are mathematically correct and not just assumptions or &quot;most of the time correct&quot;. The rules can be run in data entry, after filling each form, or as a more batch like process on multiple forms at the same time, e.g. for all facilities for the previous reporting month. The results of the tests will list all violations and the detailed values for each side of the expression where the violation ocurred to make it easy to go back to data entry and correct the values.</para>
 </section>
 <section>
 <title>Indicators</title>
