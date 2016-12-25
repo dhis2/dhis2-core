@@ -3,11 +3,11 @@ package org.hisp.dhis.sms.config;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.sms.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.ClickatellRequestEntity;
 import org.hisp.dhis.sms.outbound.ClickatellResponseEntity;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -97,13 +97,13 @@ public class ClickatellGateway
         return gatewayConfig != null && gatewayConfig instanceof ClickatellGatewayConfig;
     }
 
-    public List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig config )
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
         return null;
     }
 
     @Override
-    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         ClickatellGatewayConfig clickatellConfiguration = (ClickatellGatewayConfig) config;
         HttpEntity<ClickatellRequestEntity> request =
@@ -150,9 +150,9 @@ public class ClickatellGateway
         return statusCode;
     }
 
-    private MessageResponseStatus handleResponse( HttpStatus httpStatus )
+    private OutboundMessageResponse handleResponse( HttpStatus httpStatus )
     {
-        MessageResponseStatus status = new MessageResponseStatus();
+        OutboundMessageResponse status = new OutboundMessageResponse();
         status.setResponseObject( CLICKATELL_GATEWAY_RESPONSE_MAP.get( httpStatus ) );
 
         return status;
