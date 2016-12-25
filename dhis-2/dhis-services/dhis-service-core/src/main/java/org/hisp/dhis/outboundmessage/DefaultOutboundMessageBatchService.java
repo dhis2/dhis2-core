@@ -51,7 +51,7 @@ public class DefaultOutboundMessageBatchService
 
     private Map<DeliveryChannel, MessageSender> messageSenders;
 
-    private void setMessageSenders( Map<DeliveryChannel, MessageSender> messageSenders )
+    public void setMessageSenders( Map<DeliveryChannel, MessageSender> messageSenders )
     {
         this.messageSenders = messageSenders;
     }
