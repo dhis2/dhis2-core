@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.period.PeriodType;
@@ -57,6 +58,12 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
             session.save( dataElementOperand );
         }
 
+        for ( DataInputPeriod dataInputPeriod : dataSet.getDataInputPeriods() )
+        {
+            preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+            session.save( dataInputPeriod );
+        }
+
         if ( dataSet.getPeriodType() != null )
         {
             PeriodType periodType = bundle.getPreheat().getPeriodTypeMap().get( dataSet.getPeriodType().getName() );
@@ -73,6 +80,9 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 
         dataSet.getCompulsoryDataElementOperands().clear();
         persistedDataSet.getCompulsoryDataElementOperands().clear();
+
+        dataSet.getDataInputPeriods().clear();
+        persistedDataSet.getDataInputPeriods().clear();
 
         if ( dataSet.getPeriodType() != null )
         {
@@ -95,15 +105,42 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         if ( references == null ) return;
 
         Set<DataElementOperand> dataElementOperands = (Set<DataElementOperand>) references.get( "compulsoryDataElementOperands" );
-        if ( dataElementOperands == null || dataElementOperands.isEmpty() ) return;
+        Set<DataInputPeriod> dataInputPeriods = (Set<DataInputPeriod>) references.get( "dataInputPeriods" );
 
-        for ( DataElementOperand dataElementOperand : dataElementOperands )
+
+        for ( String key : references.keySet() ) System.out.println( "#DEBUG# " + key );
+
+        System.out.println(" #DEBUG#: " + dataInputPeriods.size() );
+
+        if ( dataElementOperands != null && !dataElementOperands.isEmpty() )
         {
-            preheatService.connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-            sessionFactory.getCurrentSession().save( dataElementOperand );
-            dataSet.getCompulsoryDataElementOperands().add( dataElementOperand );
+
+            for ( DataElementOperand dataElementOperand : dataElementOperands )
+            {
+                preheatService
+                    .connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                sessionFactory.getCurrentSession().save( dataElementOperand );
+                dataSet.getCompulsoryDataElementOperands().add( dataElementOperand );
+            }
+
+            sessionFactory.getCurrentSession().update( dataSet );
+
         }
 
-        sessionFactory.getCurrentSession().update( dataSet );
+        if ( dataInputPeriods != null && !dataInputPeriods.isEmpty() )
+        {
+
+            for ( DataInputPeriod dataInputPeriod : dataInputPeriods )
+            {
+                preheatService
+                    .connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                sessionFactory.getCurrentSession().save( dataInputPeriod );
+                dataSet.getDataInputPeriods().add( dataInputPeriod );
+            }
+
+            sessionFactory.getCurrentSession().update( dataSet );
+
+        }
+
     }
 }
