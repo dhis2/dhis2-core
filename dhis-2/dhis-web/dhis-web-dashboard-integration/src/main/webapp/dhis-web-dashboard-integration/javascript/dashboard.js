@@ -626,11 +626,12 @@ dhis2.db.linkItemHeaderHtml = function (itemId, title) {
     return html;
 }
 
-dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, alternativeDomElement) {
+dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, tmpl, pluginId) {
     width = width || dhis2.db.widthNormal;
     prepend = prepend || false;
     autoRender = autoRender || false;
-    alternativeDomElement = alternativeDomElement || "";
+    pluginId = pluginId || 'plugin-' + dashboardItem.id;
+    
 
     var graphStyle = "width:" + width + "px; overflow:hidden;";
     var tableStyle = "width:" + width + "px;";
@@ -638,7 +639,8 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
 
     if ("CHART" == dashboardItem.type) {
         var pluginItems = dhis2.db.chartItems;
-        var content = $.tmpl((alternativeDomElement == "")?dhis2.db.tmpl.chartItem:dhis2.db.tmpl.interpretationDashboardItem, {
+        tmpl = tmpl || dhis2.db.tmpl.chartItem;
+        var content = $.tmpl(tmpl, {
             "itemId": dashboardItem.id,
             "id": dashboardItem.chart.id,
             "name": dashboardItem.chart.displayName,
@@ -654,7 +656,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
 
         var pluginItem = {
             url: '..',
-            el: 'plugin-' + alternativeDomElement + dashboardItem.id,
+            el: pluginId,
             id: dashboardItem.chart.id,
             userOrgUnit: userOrgUnit
         };
@@ -667,7 +669,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
         }
     }
     else if ("EVENT_CHART" == dashboardItem.type) {
-        var content = $.tmpl((alternativeDomElement == "")?dhis2.db.tmpl.eventChartItem:dhis2.db.tmpl.interpretationDashboardItem, {
+        tmpl = tmpl || dhis2.db.tmpl.eventChartItem;
+
+        var content = $.tmpl(tmpl, {
             "itemId": dashboardItem.id,
             "id": dashboardItem.eventChart.id,
             "name": dashboardItem.eventChart.displayName,
@@ -684,7 +688,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
 
         DHIS.getEventChart({
             url: '..',
-            el: 'plugin-' + alternativeDomElement + dashboardItem.id,
+            el: pluginId,
             id: dashboardItem.eventChart.id,
             width: width,
             height: dhis2.db.itemContentHeight,
@@ -714,7 +718,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
         });
     }
     else if ("MAP" == dashboardItem.type) {
-        var content = $.tmpl((alternativeDomElement == "")?dhis2.db.tmpl.mapItem:dhis2.db.tmpl.interpretationDashboardItem, {
+        tmpl = tmpl || dhis2.db.tmpl.mapItem;
+
+        var content = $.tmpl(tmpl, {
             "itemId": dashboardItem.id,
             "id": dashboardItem.map.id,
             "name": dashboardItem.map.displayName,
@@ -731,7 +737,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
 
         DHIS.getMap({
             url: '..',
-            el: 'plugin-' + alternativeDomElement + dashboardItem.id,
+            el: pluginId,
             id: dashboardItem.map.id,
             hideLegend: true,
             dashboard: true,
@@ -743,8 +749,9 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
         });
     }
     else if ("REPORT_TABLE" == dashboardItem.type) {
+        tmpl = tmpl || dhis2.db.tmpl.reportTableItem;        
         var pluginItems = dhis2.db.reportTableItems;
-        var content = $.tmpl((alternativeDomElement == "")?dhis2.db.tmpl.reportTableItem:dhis2.db.tmpl.interpretationDashboardItem, {
+        var content = $.tmpl(tmpl, {
             "itemId": dashboardItem.id,
             "id": dashboardItem.reportTable.id,
             "name": dashboardItem.reportTable.displayName,
@@ -759,7 +766,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
 
         var pluginItem = {
             url: '..',
-            el: 'plugin-' + alternativeDomElement + dashboardItem.id,
+            el: pluginId,
             id: dashboardItem.reportTable.id,
             userOrgUnit: userOrgUnit
         };
@@ -772,7 +779,8 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
         }
     }
     else if ("EVENT_REPORT" == dashboardItem.type) {
-        var content = $.tmpl((alternativeDomElement == "")?dhis2.db.tmpl.eventReportItem:dhis2.db.tmpl.interpretationDashboardItem, {
+        tmpl = tmpl || dhis2.db.tmpl.eventReportItem;
+        var content = $.tmpl(tmpl, {
             "itemId": dashboardItem.id,
             "id": dashboardItem.eventReport.id,
             "name": dashboardItem.eventReport.displayName,
@@ -787,7 +795,7 @@ dhis2.db.renderItem = function ($d, dashboardItem, width, prepend, autoRender, a
 
         DHIS.getEventReport({
             url: '..',
-            el: 'plugin-' + alternativeDomElement + dashboardItem.id,
+            el: pluginId,
             id: dashboardItem.eventReport.id,
             dashboard: true,
             crossDomain: false,
@@ -1572,7 +1580,7 @@ dhis2.db.viewInterpretationPopup = function (itemId, id, type) {
 
         //Render dashboard item inside interpretation popup
         $.getJSON("../api/dashboardItems/" + itemId, function (item) {
-            dhis2.db.renderItem(dashboardItemInterpretationContainer, item, 300, true, true, 'interpretation-');
+            dhis2.db.renderItem(dashboardItemInterpretationContainer, item, 300, true, true, dhis2.db.tmpl.interpretationDashboardItem, 'plugin-interpretation-' + item.id);
         });
 
 		//Add description panel
