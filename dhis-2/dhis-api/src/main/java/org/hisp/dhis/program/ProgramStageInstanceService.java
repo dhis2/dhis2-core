@@ -57,6 +57,14 @@ public interface ProgramStageInstanceService
      * Deletes a {@link ProgramStageInstance}.
      *
      * @param programStageInstance the ProgramStageInstance to delete.
+     * @param forceDelete false if PSI should be soft deleted.
+     */
+    void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete );
+
+    /**
+     * Soft deletes a {@link ProgramStageInstance}.
+     *
+     * @param programStageInstance
      */
     void deleteProgramStageInstance( ProgramStageInstance programStageInstance );
 
