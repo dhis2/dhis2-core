@@ -135,6 +135,7 @@ public class DefaultSchedulingManager
     public void stopTasks()
     {
         systemSettingManager.deleteSystemSetting( SettingKey.METADATA_SYNC_CRON);
+        systemSettingManager.deleteSystemSetting( SettingKey.DATA_SYNC_CRON);
         systemSettingManager.saveSystemSetting( SettingKey.SCHEDULED_TASKS, null );
         
         scheduler.stopAllTasks();
