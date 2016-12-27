@@ -121,6 +121,9 @@ public class DefaultPreheatService implements PreheatService
             preheat.setUser( currentUserService.getCurrentUser() );
         }
 
+        preheat.put( PreheatIdentifier.UID, preheat.getUser() );
+        preheat.put( PreheatIdentifier.CODE, preheat.getUser() );
+
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
         {
             params.getObjects().get( klass ).stream()
