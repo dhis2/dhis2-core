@@ -437,6 +437,7 @@ public class DefaultDataApprovalService
                 {
                     orgUnit = orgUnit.getAncestors().get( approvalLevel.getOrgUnitLevel() - 1 );
                 }
+                
                 da = new DataApproval( approvalLevel, dataApproval.getWorkflow(),
                     dataApproval.getPeriod(), orgUnit, dataApproval.getAttributeOptionCombo() );
 
@@ -456,9 +457,9 @@ public class DefaultDataApprovalService
             return false;
         }
 
-        DataApproval da = new DataApproval ( null, workflow, period, organisationUnit, attributeOptionCombo );
+        DataApproval da = new DataApproval( null, workflow, period, organisationUnit, attributeOptionCombo );
 
-        da = lowestApproval ( da );
+        da = lowestApproval( da );
 
         if ( da != null )
         {
