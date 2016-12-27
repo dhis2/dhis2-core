@@ -494,6 +494,11 @@ public class DefaultPreheatService implements PreheatService
                             addIdentifiers( map, dataDimensionItem.getDataElementOperand().getDataElement() );
                             addIdentifiers( map, dataDimensionItem.getDataElementOperand().getCategoryOptionCombo() );
                         }
+
+                        if ( dataDimensionItem.getReportingRate() != null )
+                        {
+                            addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
+                        }
                     } );
 
                     categoryDimensions.forEach( categoryDimension ->
