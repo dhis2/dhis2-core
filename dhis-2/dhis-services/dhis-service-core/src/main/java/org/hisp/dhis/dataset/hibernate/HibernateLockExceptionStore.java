@@ -180,4 +180,14 @@ public class HibernateLockExceptionStore
 
         return (Long) criteria.setProjection( Projections.rowCount() ).uniqueResult();
     }
+    
+    @Override
+    public boolean anyExists()
+    {
+        String hql = "from LockException";
+        
+        return getQuery( hql )
+            .setMaxResults( 1 )
+            .list().size() > 0;
+    }
 }
