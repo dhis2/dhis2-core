@@ -54,10 +54,12 @@ public class DataElementOperandDeletionHandler
         return DataElementOperand.class.getSimpleName();
     }
 
+    //TODO masking real problem, we should control operands better and check associated objects regarding deletion
+    
     @Override
     public String allowDeleteDataElementCategoryOptionCombo( DataElementCategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) " + "FROM dataelementoperand " + "WHERE categoryoptioncomboid=" + optionCombo.getId();
+        String sql = "select count(*) from dataelementoperand where categoryoptioncomboid=" + optionCombo.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
