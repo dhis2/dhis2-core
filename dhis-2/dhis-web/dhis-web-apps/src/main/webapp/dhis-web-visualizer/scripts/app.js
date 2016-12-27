@@ -1293,7 +1293,7 @@ Ext.onReady( function() {
 
 					if (id && name) {
 						Ext.Ajax.request({
-							url: ns.core.init.contextPath + '/api/charts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(','),
+							url: encodeURI(ns.core.init.contextPath + '/api/charts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(',')),
 							method: 'GET',
 							failure: function(r) {
 								ns.core.web.mask.show();
@@ -2443,7 +2443,7 @@ Ext.onReady( function() {
 				}
 
 				Ext.Ajax.request({
-					url: init.contextPath + '/api/charts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(','),
+					url: encodeURI(init.contextPath + '/api/charts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(',')),
 					failure: function(r) {
 						web.mask.hide(ns.app.centerRegion);
 
@@ -3027,7 +3027,7 @@ Ext.onReady( function() {
                 ns.core.web.mask.show(indicatorAvailable.boundList);
 
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api' + path,
+                    url: encodeURI(ns.core.init.contextPath + '/api' + path),
                     params: params,
                     success: function(r) {
                         var response = Ext.decode(r.responseText),
@@ -3074,7 +3074,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name', 'index'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/indicatorGroups.json?fields=id,displayName|rename(name)&paging=false',
+				url: encodeURI(ns.core.init.contextPath + '/api/indicatorGroups.json?fields=id,displayName|rename(name)&paging=false'),
 				reader: {
 					type: 'json',
 					root: 'indicatorGroups'
@@ -3276,7 +3276,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name', 'index'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/dataElementGroups.json?fields=id,' + ns.core.init.namePropertyUrl + '&paging=false',
+				url: encodeURI(ns.core.init.contextPath + '/api/dataElementGroups.json?fields=id,' + ns.core.init.namePropertyUrl + '&paging=false'),
 				reader: {
 					type: 'json',
 					root: 'dataElementGroups'
@@ -3373,7 +3373,7 @@ Ext.onReady( function() {
                 ns.core.web.mask.show(dataSetAvailable.boundList);
 
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api' + path,
+                    url: encodeURI(ns.core.init.contextPath + '/api' + path),
                     params: params,
                     success: function(r) {
                         var response = Ext.decode(r.responseText),
@@ -3509,7 +3509,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/programs.json?fields=id,displayName|rename(name)&paging=false',
+				url: encodeURI(ns.core.init.contextPath + '/api/programs.json?fields=id,displayName|rename(name)&paging=false'),
 				reader: {
 					type: 'json',
 					root: 'programs'
@@ -3652,7 +3652,7 @@ Ext.onReady( function() {
 			isLoaded: false,
 			pageSize: 10,
 			page: 1,
-			defaultUrl: ns.core.init.contextPath + '/api/charts.json?fields=id,displayName|rename(name),access',
+			defaultUrl: encodeURI(ns.core.init.contextPath + '/api/charts.json?fields=id,displayName|rename(name),access'),
 			loadStore: function(url) {
 				this.proxy.url = url || this.defaultUrl;
 
@@ -4525,7 +4525,7 @@ Ext.onReady( function() {
             var types = ns.core.conf.valueType.tAggregateTypes.join(',');
 
             Ext.Ajax.request({
-                url: ns.core.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem|rename(id),name,valueType&paging=false',
+                url: encodeURI(ns.core.init.contextPath + '/api/programDataElements.json?program=' + programId + '&filter=valueType:in:[' + types + ']&fields=dimensionItem|rename(id),name,valueType&paging=false'),
                 disableCaching: false,
                 success: function(r) {
                     var elements = Ext.decode(r.responseText).programDataElements,
@@ -4533,7 +4533,7 @@ Ext.onReady( function() {
                         isO = Ext.isObject;
 
                     Ext.Ajax.request({
-                        url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem|rename(id),' + namePropertyUrl + '|rename(name),valueType]&paging=false',
+                        url: encodeURI(ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&filter=programTrackedEntityAttributes.trackedEntityAttribute.confidential:eq:false&filter=programTrackedEntityAttributes.valueType:in:[' + types + ']&fields=programTrackedEntityAttributes[dimensionItem|rename(id),' + namePropertyUrl + '|rename(name),valueType]&paging=false'),
                         disableCaching: false,
                         success: function(r) {
                             var attributes = (Ext.decode(r.responseText).programs[0] || {}).programTrackedEntityAttributes || [],
@@ -4775,7 +4775,7 @@ Ext.onReady( function() {
             }
 
             Ext.Ajax.request({
-                url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programIndicators[dimensionItem|rename(id),' + namePropertyUrl + ']&paging=false',
+                url: encodeURI(ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programIndicators[dimensionItem|rename(id),' + namePropertyUrl + ']&paging=false'),
 				disableCaching: false,
 				success: function(r) {
                     var indicators = (Ext.decode(r.responseText).programs[0] || {}).programIndicators || [],
@@ -5680,7 +5680,7 @@ Ext.onReady( function() {
 					format: 'json',
 					noCache: false,
 					extraParams: {
-						fields: 'children[id,' + namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false'
+						fields: encodeURI('children[id,' + namePropertyUrl + ',children::isNotEmpty|rename(hasChildren)&paging=false')
 					},
 					url: ns.core.init.contextPath + '/api/organisationUnits',
 					reader: {
@@ -6148,7 +6148,7 @@ Ext.onReady( function() {
 						ns.core.web.mask.show(available.boundList);
 
 						Ext.Ajax.request({
-							url: ns.core.init.contextPath + '/api' + path,
+							url: encodeURI(ns.core.init.contextPath + '/api' + path),
 							params: params,
 							success: function(r) {
 								var response = Ext.decode(r.responseText),
@@ -7966,7 +7966,7 @@ Ext.onReady( function() {
 
                                         // organisation unit levels
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false',
+                                            url: encodeURI(contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false'),
                                             success: function(r) {
                                                 init.organisationUnitLevels = Ext.decode(r.responseText).organisationUnitLevels || [];
 
