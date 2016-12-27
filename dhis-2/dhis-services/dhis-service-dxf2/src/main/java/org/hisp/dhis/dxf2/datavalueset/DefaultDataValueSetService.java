@@ -1021,7 +1021,7 @@ public class DefaultDataValueSetService
 
                     if ( approvalMap.get( orgUnit.getUid() + workflowPeriodAoc, () ->
                     {
-                        DataApproval lowestApproval = approvalService.lowestApproval( new DataApproval( null, workflow, period, orgUnit, aoc ) );
+                        DataApproval lowestApproval = DataApproval.getLowestApproval( new DataApproval( null, workflow, period, orgUnit, aoc ) );
 
                         return lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
                             () -> approvalService.getDataApproval( lowestApproval ) != null );
