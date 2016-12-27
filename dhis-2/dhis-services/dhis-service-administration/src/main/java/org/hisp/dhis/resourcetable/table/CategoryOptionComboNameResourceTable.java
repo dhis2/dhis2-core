@@ -30,12 +30,10 @@ package org.hisp.dhis.resourcetable.table;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryOption;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -93,17 +91,8 @@ public class CategoryOptionComboNameResourceTable
                 values.add( coc.getId() );
                 values.add( coc.getName() );
                 values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
-
-                Date latestStartDate = null;
-                Date earliestEndDate = null;
-
-                for( DataElementCategoryOption co : coc.getCategoryOptions() )
-                {
-                    latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ? co.getStartDate() : latestStartDate);
-                    earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ? co.getEndDate() : earliestEndDate);
-                }
-                values.add( latestStartDate );
-                values.add( earliestEndDate );
+                values.add( coc.getLatestStartDate() );
+                values.add( coc.getEarliestEndDate() );
 
                 batchArgs.add( values.toArray() );
             }
