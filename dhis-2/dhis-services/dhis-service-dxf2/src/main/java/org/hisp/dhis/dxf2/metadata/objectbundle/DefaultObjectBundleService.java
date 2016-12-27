@@ -33,7 +33,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -56,7 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -208,7 +206,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             preheatService.connectReferences( object, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
-            prepare( object, bundle );
             session.save( object );
             typeReport.getStats().incCreated();
 
@@ -275,7 +272,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 persistedObject.mergeSharingWith( object );
             }
 
-            prepare( persistedObject, bundle );
             session.update( persistedObject );
             typeReport.getStats().incUpdated();
 
@@ -356,18 +352,5 @@ public class DefaultObjectBundleService implements ObjectBundleService
         } );
 
         return klasses;
-    }
-
-    private void prepare( IdentifiableObject object, ObjectBundle bundle )
-    {
-        if ( object == null )
-        {
-            return;
-        }
-
-        BaseIdentifiableObject identifiableObject = (BaseIdentifiableObject) object;
-
-        if ( identifiableObject.getUser() == null ) identifiableObject.setUser( bundle.getUser() );
-        if ( identifiableObject.getUserGroupAccesses() == null ) identifiableObject.setUserGroupAccesses( new HashSet<>() );
     }
 }
