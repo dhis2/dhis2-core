@@ -230,7 +230,7 @@ public interface AclService
      * @param object Object to update
      * @param user   User to base ACL on
      */
-    <T extends BaseIdentifiableObject> void resetSharing( T object, User user );
+    <T extends IdentifiableObject> void resetSharing( T object, User user );
 
     /**
      * Verify that sharing props are correctly set according to user.

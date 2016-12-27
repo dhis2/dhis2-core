@@ -325,6 +325,21 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 }
             }
 
+            List<ErrorReport> sharingErrorReports = aclService.verifySharing( object, bundle.getUser() );
+
+            if ( !sharingErrorReports.isEmpty() )
+            {
+                ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
+                objectReport.addErrorReports( sharingErrorReports );
+
+                typeReport.addObjectReport( objectReport );
+                typeReport.getStats().incIgnored();
+
+                iterator.remove();
+                continue;
+            }
+
             idx++;
         }
 

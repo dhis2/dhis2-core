@@ -32,6 +32,8 @@ import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -51,13 +53,16 @@ import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.TaskCategory;
 import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -78,6 +83,9 @@ public class DefaultMetadataImportService implements MetadataImportService
 
     @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
+
+    @Autowired
+    private AclService aclService;
 
     @Autowired
     private Notifier notifier;
@@ -105,6 +113,8 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
         ObjectBundle bundle = objectBundleService.create( bundleParams );
+
+        prepareBundle( bundle );
 
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         report.addTypeReports( validationReport.getTypeReportMap() );
@@ -225,5 +235,29 @@ public class DefaultMetadataImportService implements MetadataImportService
         String value = String.valueOf( parameters.get( key ).get( 0 ) );
 
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
+    }
+
+    private void prepareBundle( ObjectBundle bundle )
+    {
+        if ( bundle.getUser() == null )
+        {
+            return;
+        }
+
+        for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
+        {
+            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle ) );
+        }
+    }
+
+    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle )
+    {
+        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
+        {
+            aclService.resetSharing( object, bundle.getUser() );
+        }
+
+        if ( object.getUser() == null ) object.setUser( bundle.getUser() );
+        if ( object.getUserGroupAccesses() == null ) object.setUserGroupAccesses( new HashSet<>() );
     }
 }
