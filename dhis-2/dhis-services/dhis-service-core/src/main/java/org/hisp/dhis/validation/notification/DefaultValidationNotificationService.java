@@ -30,15 +30,16 @@ package org.hisp.dhis.validation.notification;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -65,11 +66,8 @@ public class DefaultValidationNotificationService
     @Autowired
     private MessageService messageService;
 
-    @Autowired @Qualifier( "org.hisp.dhis.sms.config.SmsMessageSender" )
-    private MessageSender smsMessageSender;
-
-    @Autowired @Qualifier( "org.hisp.dhis.message.EmailMessageSender" )
-    private MessageSender emailMessageSender;
+    @Autowired
+    private OutboundMessageBatchService messageBatchService;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -171,7 +169,7 @@ public class DefaultValidationNotificationService
     {
         if ( message.recipients.isExternal() )
         {
-            sendExternalMessage( message );
+            sendOutboundMessage( message );
         }
         else
         {
@@ -184,7 +182,12 @@ public class DefaultValidationNotificationService
         messageService.sendMessage( message.message.getSubject(), message.message.getMessage(), null, message.recipients.userRecipients );
     }
 
-    private void sendExternalMessage( Message message )
+    private OutboundMessage toOutboundMessage( Message message )
+    {
+// TODO
+    }
+
+    private void sendOutboundMessage( Message message )
     {
         Map<DeliveryChannel, String> recipients = message.recipients.externalRecipients;
 
@@ -192,6 +195,8 @@ public class DefaultValidationNotificationService
         {
             return;
         }
+
+
 
         recipients.entrySet().forEach( entry -> {
             if ( entry.getKey() == DeliveryChannel.EMAIL )
@@ -205,26 +210,9 @@ public class DefaultValidationNotificationService
         });
     }
 
-    // TODO Generify the two below methods into one.
-
-    // TODO Make sure email is valid etc.
-    private void sendEmail( Message notification )
+    private void send()
     {
-        emailMessageSender.sendMessage(
-            notification.message.getSubject(),
-            notification.message.getMessage(),
-            notification.recipients.externalRecipients.get( DeliveryChannel.EMAIL )
-        );
-    }
 
-    // TODO Make sure number is valid etc.
-    private void sendSms( Message notification )
-    {
-        smsMessageSender.sendMessage(
-            "",
-            notification.message.getMessage(),
-            notification.recipients.externalRecipients.get( DeliveryChannel.SMS )
-        );
     }
 
     // -------------------------------------------------------------------------
