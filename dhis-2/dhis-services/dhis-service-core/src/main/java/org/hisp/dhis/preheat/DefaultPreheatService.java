@@ -121,6 +121,9 @@ public class DefaultPreheatService implements PreheatService
             preheat.setUser( currentUserService.getCurrentUser() );
         }
 
+        preheat.put( PreheatIdentifier.UID, preheat.getUser() );
+        preheat.put( PreheatIdentifier.CODE, preheat.getUser() );
+
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
         {
             params.getObjects().get( klass ).stream()
@@ -487,16 +490,17 @@ public class DefaultPreheatService implements PreheatService
 
                     dataDimensionItems.forEach( dataDimensionItem ->
                     {
-                        addIdentifiers( map, dataDimensionItem.getIndicator() );
-                        addIdentifiers( map, dataDimensionItem.getDataElement() );
-                        addIdentifiers( map, dataDimensionItem.getReportingRate() );
-                        addIdentifiers( map, dataDimensionItem.getProgramDataElement() );
-                        addIdentifiers( map, dataDimensionItem.getProgramAttribute() );
+                        addIdentifiers( map, dataDimensionItem.getDimensionalItemObject() );
 
                         if ( dataDimensionItem.getDataElementOperand() != null )
                         {
                             addIdentifiers( map, dataDimensionItem.getDataElementOperand().getDataElement() );
                             addIdentifiers( map, dataDimensionItem.getDataElementOperand().getCategoryOptionCombo() );
+                        }
+
+                        if ( dataDimensionItem.getReportingRate() != null )
+                        {
+                            addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
                         }
                     } );
 
@@ -529,19 +533,22 @@ public class DefaultPreheatService implements PreheatService
                 {
                     ValidationRule validationRule = (ValidationRule) object;
 
-                    if ( validationRule.getLeftSide() != null && !validationRule.getLeftSide().getDataElementsInExpression().isEmpty() )
+                    if ( validationRule.getLeftSide() != null )
                     {
                         validationRule.getLeftSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
+                        validationRule.getLeftSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
 
-                    if ( validationRule.getRightSide() != null && !validationRule.getRightSide().getDataElementsInExpression().isEmpty() )
+                    if ( validationRule.getRightSide() != null )
                     {
                         validationRule.getRightSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
+                        validationRule.getRightSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
                 }
 
                 object.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                 object.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                object.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
                 addIdentifiers( map, object );
             }
@@ -694,9 +701,9 @@ public class DefaultPreheatService implements PreheatService
                     IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
                     IdentifiableObject ref = getPersistedObject( preheat, identifier, refObject );
 
-                    if ( Preheat.isDefaultClass( refObject ) && (ref == null || "default".equals( refObject.getName() )) )
+                    if ( Preheat.isDefaultClass( p.getKlass() ) && (ref == null || refObject == null || "default".equals( refObject.getName() )) )
                     {
-                        ref = defaults.get( refObject.getClass() );
+                        ref = defaults.get( p.getKlass() );
                     }
 
                     if ( ref != null && ref.getId() == 0 )

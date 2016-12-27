@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.util;
 
+import com.google.common.collect.ImmutableSet;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,7 +30,6 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -41,7 +42,6 @@ import org.hisp.dhis.datavalue.DataValue;
 
 import java.awt.geom.Point2D;
 import java.util.Locale;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -69,10 +69,10 @@ public class ValidationUtils
 
     private static final int LAT_MIN = -90;
 
-    private static final Set<Character> SQL_VALID_CHARS = Sets.newHashSet(
+    private static final ImmutableSet<Character> SQL_VALID_CHARS = ImmutableSet.of(
         '&', '|', '=', '!', '<', '>', '/', '%', '"', '\'', '*', '+', '-', '^', ',', '.' );
 
-    public static final Set<String> ILLEGAL_SQL_KEYWORDS = Sets.newHashSet( "alter", "before", "case",
+    public static final ImmutableSet<String> ILLEGAL_SQL_KEYWORDS = ImmutableSet.of( "alter", "before", "case",
         "commit", "copy", "create", "createdb", "createrole", "createuser", "close", "delete", "destroy", "drop",
         "escape", "insert", "select", "rename", "replace", "restore", "return", "update", "when", "write" );
 

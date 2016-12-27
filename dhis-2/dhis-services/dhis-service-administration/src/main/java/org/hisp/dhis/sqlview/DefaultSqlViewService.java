@@ -28,16 +28,17 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,7 +50,9 @@ public class DefaultSqlViewService
     implements SqlViewService
 {
     private static final Log log = LogFactory.getLog( DefaultSqlViewService.class );
-    
+
+    private static final String PREFIX_SELECT_QUERY = "select * from ";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -59,6 +62,13 @@ public class DefaultSqlViewService
     public void setSqlViewStore( SqlViewStore sqlViewStore )
     {
         this.sqlViewStore = sqlViewStore;
+    }
+
+    private StatementBuilder statementBuilder;
+
+    public void setStatementBuilder( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -166,59 +176,61 @@ public class DefaultSqlViewService
         grid.setSubtitle( sqlView.getDescription() );
 
         validateSqlView( sqlView, criteria, variables );
-        
-        if ( sqlView.isQuery() )
-        {
-            final String sql = substituteSql( sqlView.getSqlQuery(), variables );
-            
-            sqlViewStore.executeQuery( grid, sql );
-        }
-        else
-        {
-            sqlViewStore.setUpDataSqlViewTable( grid, sqlView.getViewName(), criteria );
-        }
-        
+
+        String sql = sqlView.isQuery() ?
+            getSqlForQuery( grid, sqlView, criteria, variables ) :
+            getSqlForView( grid, sqlView, criteria );
+
+        sqlViewStore.populateSqlViewGrid( grid, sql );
+
         return grid;
     }
-    
-    @Override
-    public String substituteSql( String sql, Map<String, String> variables )
+
+    private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
     {
-        String sqlQuery = sql;
-     
-        if ( variables != null )
+        boolean hasCriteria = criteria != null && !criteria.isEmpty();
+
+        String sql = SqlViewUtils.substituteSqlVariables( sqlView.getSqlQuery(), variables );
+
+        if ( hasCriteria )
         {
-            for ( String param : variables.keySet() )
-            {
-                if ( param != null && SqlView.isValidQueryParam( param ) )
-                {
-                    final String regex = "\\$\\{(" + param + ")\\}";
-                    final String value = variables.get( param );
-                    
-                    if ( value != null && SqlView.isValidQueryValue( value ) )
-                    {
-                        sqlQuery = sqlQuery.replaceAll( regex, value );
-                    }
-                }
-            }
+            sql = SqlViewUtils.removeQuerySeparator( sql );
+
+            String outerSql = PREFIX_SELECT_QUERY + "(" + sql + ") as qry ";
+
+            outerSql += getCriteriaSqlClause( criteria );
+
+            sql = outerSql;
         }
-        
-        return sqlQuery;
+
+        return sql;
+    }
+
+    private String getSqlForView( Grid grid, SqlView sqlView, Map<String, String> criteria )
+    {
+        String sql = PREFIX_SELECT_QUERY + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
+
+        sql += getCriteriaSqlClause( criteria );
+
+        return sql;
     }
 
     @Override
-    public Set<String> getVariables( String sql )
+    public String getCriteriaSqlClause( Map<String, String> criteria )
     {
-        Set<String> variables = new HashSet<>();
-        
-        Matcher matcher = VARIABLE_PATTERN.matcher( sql );
-        
-        while ( matcher.find() )
+        String sql = StringUtils.EMPTY;
+
+        if ( criteria != null && !criteria.isEmpty() )
         {
-            variables.add( matcher.group( 1 ) );
+            SqlHelper helper = new SqlHelper();
+
+            for ( String filter : criteria.keySet() )
+            {
+                sql += helper.whereAnd() + " " + statementBuilder.columnQuote( filter ) + "='" + criteria.get( filter ) + "' ";
+            }
         }
-        
-        return variables;
+
+        return sql;
     }
 
     @Override
@@ -232,7 +244,7 @@ public class DefaultSqlViewService
             throw new IllegalQueryException( "SQL query is null" );
         }
         
-        final Set<String> sqlVars = getVariables( sqlView.getSqlQuery() );
+        final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
         final String sql = sqlView.getSqlQuery().toLowerCase();
         
         if ( !SELECT_PATTERN.matcher( sql ).matches() )

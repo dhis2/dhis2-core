@@ -29,7 +29,7 @@ package org.hisp.dhis.validation;
  */
 
 import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.system.util.SystemUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Collection;
@@ -55,7 +55,6 @@ public class Validator
     public static Collection<ValidationResult> validate( ValidationRunContext context, 
         ApplicationContext applicationContext )
     {
-        long startTime = System.nanoTime();
         DataElementCategoryService categoryService = (DataElementCategoryService)
             applicationContext.getBean( DataElementCategoryService.class );
                 
@@ -85,10 +84,6 @@ public class Validator
         }
 
         reloadAttributeOptionCombos( context.getValidationResults(), categoryService );
-
-        System.out.println( "Handled all " + context.getRuleXMap().size() + " rules " +
-            "to get " + context.getValidationResults().size() + " violations " +
-            "in " + ((System.nanoTime()-startTime)/1000000.0) + " milliseconds.");
 
         return context.getValidationResults();
     }

@@ -59,6 +59,9 @@ public class SharingObject
     @JsonProperty
     private List<SharingUserGroupAccess> userGroupAccesses = new ArrayList<>();
 
+    @JsonProperty
+    private List<SharingUserAccess> userAccesses = new ArrayList<>();
+
     public SharingObject()
     {
     }
@@ -131,5 +134,15 @@ public class SharingObject
     public void setUserGroupAccesses( List<SharingUserGroupAccess> userGroupAccesses )
     {
         this.userGroupAccesses = userGroupAccesses;
+    }
+
+    public List<SharingUserAccess> getUserAccesses()
+    {
+        return userAccesses;
+    }
+
+    public void setUserAccesses( List<SharingUserAccess> userAccesses )
+    {
+        this.userAccesses = userAccesses;
     }
 }

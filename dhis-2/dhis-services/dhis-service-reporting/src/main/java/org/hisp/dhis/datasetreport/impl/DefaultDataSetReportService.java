@@ -152,96 +152,95 @@ public class DefaultDataSetReportService
 
         for ( Section section : sections )
         {
-            if ( !section.hasDataElements() || section.getCategoryCombo() == null )
+            for( DataElementCategoryCombo categoryCombo : section.getCategoryCombos() )
             {
-                continue;
-            }
-            
-            Grid grid = new ListGrid().setTitle( section.getName() ).
-                setSubtitle( unit.getName() + SPACE + format.formatPeriod( period ) );
 
-            DataElementCategoryCombo categoryCombo = section.getCategoryCombo();
-
-            // -----------------------------------------------------------------
-            // Grid headers
-            // -----------------------------------------------------------------
-
-            grid.addHeader( new GridHeader( i18n.getString( "dataelement" ), false, true ) );
-
-            List<DataElementCategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
-
-            for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
-            {
-                grid.addHeader( new GridHeader( optionCombo.isDefault() ? DEFAULT_HEADER : optionCombo.getName(),
-                    false, false ) );
-            }
-
-            if ( categoryCombo.doSubTotals() && !selectedUnitOnly ) // Sub-total
-            {
-                for ( DataElementCategoryOption categoryOption : categoryCombo.getCategoryOptions() )
+                Grid grid = new ListGrid().setTitle( section.getName() + SPACE + categoryCombo.getName() ).
+                    setSubtitle( unit.getName() + SPACE + format.formatPeriod( period ) );                
+    
+                // -----------------------------------------------------------------
+                // Grid headers
+                // -----------------------------------------------------------------
+    
+                grid.addHeader( new GridHeader( i18n.getString( "dataelement" ), false, true ) );
+    
+                List<DataElementCategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
+    
+                for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
                 {
-                    grid.addHeader( new GridHeader( categoryOption.getName(), false, false ) );
+                    grid.addHeader( new GridHeader( optionCombo.isDefault() ? DEFAULT_HEADER : optionCombo.getName(),
+                        false, false ) );
                 }
-            }
-
-            if ( categoryCombo.doTotal() && !selectedUnitOnly ) // Total
-            {
-                grid.addHeader( new GridHeader( TOTAL_HEADER, false, false ) );
-            }
-
-            // -----------------------------------------------------------------
-            // Grid values
-            // -----------------------------------------------------------------
-
-            List<DataElement> dataElements = new ArrayList<>( section.getDataElements() );
-            FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
-            
-            for ( DataElement dataElement : dataElements )
-            {
-                grid.addRow();
-                grid.addValue( new GridValue( dataElement.getFormNameFallback() ) ); // Data element name
-
-                for ( DataElementCategoryOptionCombo optionCombo : optionCombos ) // Values
-                {
-                    Map<Object, Object> attributes = new HashMap<>();
-                    attributes.put( ATTR_DE, dataElement.getUid() );
-                    attributes.put( ATTR_CO, optionCombo.getUid() );
-                    
-                    Object value = null;
-
-                    if ( selectedUnitOnly )
-                    {
-                        DataValue dataValue = dataValueService.getDataValue( dataElement, period, unit, optionCombo );
-                        value = dataValue != null && dataValue.getValue() != null ? Double.parseDouble( dataValue
-                            .getValue() ) : null;
-                    }
-                    else
-                    {
-                        value = valueMap.get( dataElement.getUid() + SEPARATOR + optionCombo.getUid() );
-                    }
-
-                    grid.addValue( new GridValue( value, attributes ) );
-                }
-
+    
                 if ( categoryCombo.doSubTotals() && !selectedUnitOnly ) // Sub-total
                 {
                     for ( DataElementCategoryOption categoryOption : categoryCombo.getCategoryOptions() )
                     {
-                        Object value = subTotalMap.get( dataElement.getUid() + SEPARATOR + categoryOption.getUid() );
-
+                        grid.addHeader( new GridHeader( categoryOption.getName(), false, false ) );
+                    }
+                }
+    
+                if ( categoryCombo.doTotal() && !selectedUnitOnly ) // Total
+                {
+                    grid.addHeader( new GridHeader( TOTAL_HEADER, false, false ) );
+                }
+    
+                // -----------------------------------------------------------------
+                // Grid values
+                // -----------------------------------------------------------------
+    
+                List<DataElement> dataElements = new ArrayList<>( section.getDataElementsByCategoryCombo( categoryCombo ) );
+                
+                FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
+                
+                for ( DataElement dataElement : dataElements )
+                {
+                    grid.addRow();
+                    grid.addValue( new GridValue( dataElement.getFormNameFallback() ) ); // Data element name
+    
+                    for ( DataElementCategoryOptionCombo optionCombo : optionCombos ) // Values
+                    {
+                        Map<Object, Object> attributes = new HashMap<>();
+                        attributes.put( ATTR_DE, dataElement.getUid() );
+                        attributes.put( ATTR_CO, optionCombo.getUid() );
+                        
+                        Object value = null;
+    
+                        if ( selectedUnitOnly )
+                        {
+                            DataValue dataValue = dataValueService.getDataValue( dataElement, period, unit, optionCombo );
+                            value = dataValue != null && dataValue.getValue() != null ? Double.parseDouble( dataValue
+                                .getValue() ) : null;
+                        }
+                        else
+                        {
+                            value = valueMap.get( dataElement.getUid() + SEPARATOR + optionCombo.getUid() );
+                        }
+    
+                        grid.addValue( new GridValue( value, attributes ) );
+                    }
+    
+                    if ( categoryCombo.doSubTotals() && !selectedUnitOnly ) // Sub-total
+                    {
+                        for ( DataElementCategoryOption categoryOption : categoryCombo.getCategoryOptions() )
+                        {
+                            Object value = subTotalMap.get( dataElement.getUid() + SEPARATOR + categoryOption.getUid() );
+    
+                            grid.addValue( new GridValue( value ) );
+                        }
+                    }
+    
+                    if ( categoryCombo.doTotal() && !selectedUnitOnly ) // Total
+                    {
+                        Object value = totalMap.get( String.valueOf( dataElement.getUid() ) );
+    
                         grid.addValue( new GridValue( value ) );
                     }
                 }
-
-                if ( categoryCombo.doTotal() && !selectedUnitOnly ) // Total
-                {
-                    Object value = totalMap.get( String.valueOf( dataElement.getUid() ) );
-
-                    grid.addValue( new GridValue( value ) );
-                }
+    
+                grids.add( grid );
+                
             }
-
-            grids.add( grid );
         }
 
         return grids;

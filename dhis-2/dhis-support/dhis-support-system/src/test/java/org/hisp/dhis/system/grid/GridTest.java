@@ -43,6 +43,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -66,9 +67,9 @@ public class GridTest
         gridA = new ListGrid();
         gridB = new ListGrid();
         
-        headerA = new GridHeader( "ColA", "colA", String.class.getName(), false, true );
-        headerB = new GridHeader( "ColB", "colB", String.class.getName(), false, true );
-        headerC = new GridHeader( "ColC", "colC", String.class.getName(), true, false );
+        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, String.class.getName(), false, true );
+        headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, String.class.getName(), false, true );
+        headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, String.class.getName(), true, false );
         
         gridA.addHeader( headerA );
         gridA.addHeader( headerB );
@@ -291,6 +292,42 @@ public class GridTest
         assertTrue( row2.contains( 22 ) );
         assertTrue( row2.contains( 23 ) );
         assertTrue( row2.contains( 24 ) );
+    }
+
+    @Test
+    public void testAddColumnAtIndex()
+    {
+        List<Object> columnValues = new ArrayList<>();
+        columnValues.add( 14 );
+        columnValues.add( 24 );
+        columnValues.add( 34 );
+        columnValues.add( 44 );
+        
+        gridA.addColumn( 1, columnValues );
+        
+        List<Object> column1 = gridA.getColumn( 1 );
+        
+        assertEquals( 4, column1.size() );
+        assertTrue( column1.contains( 14 ) );
+        assertTrue( column1.contains( 24 ) );
+        assertTrue( column1.contains( 34 ) );
+        assertTrue( column1.contains( 44 ) );
+        
+        List<Object> column2 = gridA.getColumn( 2 );
+
+        assertEquals( 4, column2.size() );
+        assertTrue( column2.contains( 12 ) );
+        assertTrue( column2.contains( 22 ) );
+        assertTrue( column2.contains( 32 ) );
+        assertTrue( column2.contains( 42 ) );
+        
+        List<Object> row2 = gridA.getRow( 1 );
+        
+        assertEquals( 4, row2.size() );
+        assertTrue( row2.contains( 21 ) );
+        assertTrue( row2.contains( 24 ) );
+        assertTrue( row2.contains( 22 ) );
+        assertTrue( row2.contains( 23 ) );
     }
     
     @Test

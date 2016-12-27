@@ -17,13 +17,15 @@
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
     <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
-      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid" />
+      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid" index="programstageinstance_programinstanceid"/>
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />
 
     <many-to-one name="attributeOptionCombo" class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo"
       column="attributeoptioncomboid" foreign-key="fk_programstageinstance_attributeoptioncomboid" />
+
+    <property name="deleted" column="deleted" />
 
     <property name="storedBy" />
 

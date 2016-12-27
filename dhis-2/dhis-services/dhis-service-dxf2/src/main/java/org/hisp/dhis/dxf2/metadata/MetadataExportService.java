@@ -40,12 +40,35 @@ import java.util.Set;
  */
 public interface MetadataExportService
 {
+    /**
+     * Exports metadata using provided params.
+     *
+     * @param params Export parameters
+     * @return Map of all exported objects
+     */
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> getMetadata( MetadataExportParams params );
 
+    /**
+     * Returns same result as getMetadata, but metadata is returned as Node objects instead.
+     *
+     * @param params Export parameters
+     * @return RootNode instance with children containing all exported objects
+     */
     RootNode getMetadataAsNode( MetadataExportParams params );
 
+    /**
+     * Validates the import params. Not currently implemented.
+     *
+     * @param params Export parameters to validate
+     */
     void validate( MetadataExportParams params );
 
+    /**
+     * Parses, and creates a MetadataExportParams instance based on given map of parameters.
+     *
+     * @param parameters Key-Value map of wanted parameters
+     * @return MetadataExportParams instance created based on input parameters
+     */
     MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters );
 
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies( IdentifiableObject object );

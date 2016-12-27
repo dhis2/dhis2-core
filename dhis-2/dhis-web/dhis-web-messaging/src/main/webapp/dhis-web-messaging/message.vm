@@ -1,0 +1,158 @@
+<h3>$i18n.getString( "messages" ) #openHelp( "dashboard_messages" )</h3>
+
+<div class="horizontalMenu" style="padding: 8px 0 40px 0;">
+    <ul style="display: inline-block">
+
+        #if( $auth.hasAccess( "dhis-web-messaging", "sendMessage" ) )
+        <li><a class="blueButtonLink" href="showSendMessage.action">$i18n.getString( 'write_message' )</a></li>
+        #end
+        <li><a class="blueButtonLink" href="showSendFeedback.action">$i18n.getString( "write_feedback" )</a></li>
+        <li><span style="padding-left:12px"></span></li>
+        <li>
+            <div id="checkboxDropdown">
+                <div></div>
+                <ul>
+                    <li data-action="messageOperations.removeMessages">$i18n.getString( "delete" )</li>
+                    <li data-action="messageOperations.markMessagesRead">$i18n.getString( "mark_read")</li>
+                    <li data-action="messageOperations.markMessagesUnread">$i18n.getString( "mark_unread" )</li>
+                    <li data-action="messageOperations.markMessagesFollowup">$i18n.getString( "mark_followup")</li>
+                    <li data-action="messageOperations.unmarkMessagesFollowup">$i18n.getString( "clear_followup" )</li>
+                </ul>
+            </div>
+        </li>
+        <li><span style="padding-left:12px"></span></li>
+        <li><a class="greyButtonLink" href="message.action">$i18n.getString( "inbox" )</a></li>
+        <li><a class="greyButtonLink" href="message.action?followUp=true">$i18n.getString( "follow_up" )</a></li>
+        <li><a class="greyButtonLink" href="message.action?unread=true">$i18n.getString( "unread" )</a></li>
+        #if( $showTicketTools )
+        <li>
+            <div id="statusFilterContainer">
+                <div></div>
+                <ul>
+                    <li data-action="setStatusFilter" data-args="ALL">$i18n.getString( "Show all" )</li>
+                    <li data-action="setStatusFilter" data-args="NONE">$i18n.getString( "No status" )</li>
+                    <li data-action="setStatusFilter" data-args="OPEN">$i18n.getString( "Open" )</li>
+                    <li data-action="setStatusFilter" data-args="PENDING">$i18n.getString( "Pending" )</li>
+                    <li data-action="setStatusFilter" data-args="INVALID">$i18n.getString( "Invalid" )</li>
+                    <li data-action="setStatusFilter" data-args="SOLVED">$i18n.getString( "Solved" )</li>
+                </ul>
+            </div>
+        </li>
+        <li>
+            <a class="greyButtonLink" href="message.action?showAssignedToMe=true" id="showAssignedToMe">$i18n.getString( "assigned_to_me" )</a>
+        </li>
+        #end
+    </ul>
+</div>
+<div style="width:100%">
+    <div style="padding-right:15px">
+        <table class="plainList" style="width:100%">
+            <thead>
+            <tr>
+                <th></th>
+                <th></th>
+                <th>$i18n.getString( "sender" )</th>
+                <th>$i18n.getString( "subject" )</th>
+                #if( $showTicketTools )
+                    <th>
+                    </th>
+                #end
+                <th>$i18n.getString( "date" )</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody id="messages" >
+                #foreach( $conversation in $conversations )
+                <tr name="${conversation.uid}" id="tr${conversation.id}" #if( !$conversation.read )class="unread bold"#end>
+                    <td style="width:20px;padding-left:5px;">
+                        <input type="checkbox" value="${conversation.uid}" onchange="toggleRowSelected( this )"/>
+                    </td>
+                    <td style="width:40px;padding-left:5px;" onclick="toggleFollowUp( '${conversation.id}' )" class="followup-icon">
+                        <img id="followUp${conversation.id}" #if( $conversation.followUp ) src="../images/marked.png"#else src="../images/unmarked.png"#end></td>
+                    <td style="width:225px" onclick="read( '${conversation.uid}' )">
+                        #if( $conversation.senderDisplayName )$!encoder.htmlEncode( $conversation.senderDisplayName )#else $i18n.getString( "system_notification" )#end
+                        #if( $conversation.messageCount > 1 ) <span class="normal">(${conversation.messageCount})</span>#end
+                    </td>
+                    <td onclick="read( '${conversation.uid}' )">
+                        <span class="margin-left 4px">
+                            #if( $showTicketTools && $conversation.priority != "NONE" && $conversation.status != "SOLVED" )
+                                <span class="message-priority message-priority-${conversation.priority}">$!{conversation.priority}</span>
+                            #end
+                        </span>
+                        $!encoder.htmlEncode( $conversation.subject )
+                    </td>
+                    #if( $showTicketTools )
+                        <td style="width:100px; text-align: center;">
+                        #if( $conversation.status != "NONE" )
+                            <span class="message-status">
+                                ${conversation.status}
+                            </span>
+                        #end
+                        </td>
+                    #end
+                    <td onclick="read( '${conversation.uid}' )" style="width:80px">$!format.formatDate( $conversation.lastMessage )</td>
+                    <td style="width:70px; text-align:center;">
+                    <a href="readMessage.action?id=${conversation.uid}"><img src="../images/read.png" title="$i18n.getString( 'read' )"></a>
+                        <a href="javascript:removeMessage( '${conversation.id}' )"><img src="../images/delete.png" title="$i18n.getString( 'delete' )"></a>
+                    </td>
+                </tr>
+                #end
+            </tbody>
+        </table>
+        #parse( "/dhis-web-commons/paging/paging.vm" )
+    </div>
+</div>
+<script type="text/javascript">
+$( document ).ready( function() {
+    i18n_confirm_delete_message = '$encoder.jsEscape( $i18n.getString( "confirm_delete_message" ) , "'" )';
+    i18n_confirm_delete_all_selected_messages = '$encoder.jsEscape( $i18n.getString( "confirm_delete_all_selected_messages" ), "'" )';
+    i18n_no_messages_selected = '$encoder.jsEscape( $i18n.getString( "no_messages_selected" ), "'" )';
+    i18n_messages_were_deleted = '$encoder.jsEscape( $i18n.getString( "messages_were_deleted" ), "'" )';
+    i18n_delete = '$encoder.jsEscape( $i18n.getString( "delete" ), "'" )';
+    i18n_mark_read = '$encoder.jsEscape( $i18n.getString( "mark_read" ), "'" )';
+    i18n_mark_unread = '$encoder.jsEscape( $i18n.getString( "mark_unread" ) , "'" )';
+
+    $( "#checkboxDropdown" ).multiCheckboxMenu( $( "#messages" ) );
+    $( "#statusFilterContainer" ).simpleDropDownMenu( {
+        btnLabel: "<span id='activeStatusFilter'>$i18n.getString("Filter status")</span>"
+    });
+
+    var btn = $("#activeStatusFilter");
+
+    switch ( getParameterByName( "ticketStatus" ) ) {
+        case 'ALL':
+            btn.html( "$i18n.getString( "show_all" )" );
+            break;
+        case 'NONE':
+            btn.html( "$i18n.getString( "no_status" )" );
+            break;
+        case 'OPEN':
+            btn.html( "$i18n.getString( "open" )" );
+            break;
+        case 'PENDING':
+            btn.html( "$i18n.getString( "pending" )" );
+            break;
+        case 'INVALID':
+            btn.html( "$i18n.getString( "invalid" )" );
+            break;
+        case 'SOLVED':
+            btn.html( "$i18n.getString( "solved" )" );
+            break;
+        default:
+            break;
+    }
+
+    var showAssignedToMeBtn = $( "#showAssignedToMe" );
+
+    if(getParameterByName("showAssignedToMe") == "true")
+    {
+        showAssignedToMeBtn.attr("href", "message.action");
+        showAssignedToMeBtn.html( "$i18n.getString( 'all_messages' )" );
+    }
+    else
+    {
+        showAssignedToMeBtn.attr("href", "message.action?showAssignedToMe=true");
+        showAssignedToMeBtn.html( "$i18n.getString( 'assigned_to_me' )" );
+    }
+});
+</script>

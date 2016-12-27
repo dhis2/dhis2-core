@@ -32,16 +32,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
@@ -58,9 +64,13 @@ public class ProgramTrackedEntityAttribute
 
     private boolean displayInList;
 
+    private Integer sortOrder;
+
     private Boolean mandatory;
 
     private Boolean allowFutureDate;
+
+    private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -86,6 +96,15 @@ public class ProgramTrackedEntityAttribute
     }
 
     public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
+        Boolean mandatory, Integer sortOrder )
+    {
+        this( program, attribute );
+        this.displayInList = displayInList;
+        this.mandatory = mandatory;
+        this.sortOrder = sortOrder;
+    }
+
+    public ProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute, boolean displayInList,
         Boolean mandatory, Boolean allowFutureDate )
     {
         this( program, attribute, displayInList, mandatory );
@@ -93,23 +112,32 @@ public class ProgramTrackedEntityAttribute
     }
 
     // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
-
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.PROGRAM_ATTRIBUTE;
-    }
-
-    // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean haveUniqueNames()
+    public void addGroup( ProgramTrackedEntityAttributeGroup group )
     {
-        return false;
+        groups.add( group );
+        group.getAttributes().add( this );
+    }
+
+    public void removeGroup( ProgramTrackedEntityAttributeGroup group )
+    {
+        groups.remove( group );
+        group.getAttributes().remove( this );
+    }
+
+    public void updateProgramTrackedEntityAttributeGroups( Set<ProgramTrackedEntityAttributeGroup> updates )
+    {
+        for ( ProgramTrackedEntityAttributeGroup group : new HashSet<>( groups ) )
+        {
+            if ( !updates.contains( group ) )
+            {
+                removeGroup( group );
+            }
+        }
+
+        updates.forEach( this::addGroup );
     }
 
     @Override
@@ -156,9 +184,21 @@ public class ProgramTrackedEntityAttribute
     }
 
     @Override
-    public LegendSet getLegendSet()
+    public String getDimensionItem( IdScheme idScheme )
     {
-        return attribute != null ? attribute.getLegendSet() : null;
+        return program.getPropertyValue( idScheme ) + COMPOSITE_DIM_OBJECT_PLAIN_SEP + attribute.getPropertyValue( idScheme );
+    }
+
+    @Override
+    public DimensionItemType getDimensionItemType()
+    {
+        return DimensionItemType.PROGRAM_ATTRIBUTE;
+    }
+
+    @Override
+    public List<LegendSet> getLegendSets()
+    {
+        return attribute != null ? attribute.getLegendSets() : null;
     }
 
     @Override
@@ -233,6 +273,31 @@ public class ProgramTrackedEntityAttribute
         this.allowFutureDate = allowFutureDate;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getSortOrder()
+    {
+        return sortOrder;
+    }
+
+    public void setSortOrder( Integer sortOrder )
+    {
+        this.sortOrder = sortOrder;
+    }
+
+    @JsonProperty( "programTrackedEntityAttributeGroups" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "programTrackedEntityAttributeGroups", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramTrackedEntityAttributeGroup> getGroups()
+    {
+        return this.groups;
+    }
+
+    public void setGroups( Set<ProgramTrackedEntityAttributeGroup> groups )
+    {
+        this.groups = groups;
+    }
+
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -246,6 +311,7 @@ public class ProgramTrackedEntityAttribute
             if ( mergeMode.isReplace() )
             {
                 program = programTrackedEntityAttribute.getProgram();
+                sortOrder = programTrackedEntityAttribute.getSortOrder();
                 attribute = programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate();
@@ -253,9 +319,17 @@ public class ProgramTrackedEntityAttribute
             else if ( mergeMode.isMerge() )
             {
                 program = programTrackedEntityAttribute.getProgram() == null ? program : programTrackedEntityAttribute.getProgram();
+                sortOrder = programTrackedEntityAttribute.getSortOrder() == null ? sortOrder : programTrackedEntityAttribute.getSortOrder();
                 attribute = programTrackedEntityAttribute.getAttribute() == null ? attribute : programTrackedEntityAttribute.getAttribute();
                 mandatory = programTrackedEntityAttribute.isMandatory() == null ? mandatory : programTrackedEntityAttribute.isMandatory();
                 allowFutureDate = programTrackedEntityAttribute.getAllowFutureDate() == null ? allowFutureDate : programTrackedEntityAttribute.getAllowFutureDate();
+            }
+
+            groups.clear();
+
+            for ( ProgramTrackedEntityAttributeGroup group : programTrackedEntityAttribute.getGroups() )
+            {
+                addGroup( group );
             }
         }
     }

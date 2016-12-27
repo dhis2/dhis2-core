@@ -67,6 +67,7 @@ public class AdxController
         HttpServletResponse response, InputStream in, Model model ) throws IOException
     {
         ImportSummaries importSummaries = adxService.saveDataValueSet( in, importOptions, null );
+        importSummaries.setImportOptions( importOptions );
 
         log.debug( "Data values set saved" );
 

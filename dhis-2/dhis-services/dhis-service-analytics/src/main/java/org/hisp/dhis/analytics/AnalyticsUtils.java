@@ -28,52 +28,46 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DataDimensionalItemObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.NameableObjectUtils;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Maps;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 
 /**
  * @author Lars Helge Overland
  */
 public class AnalyticsUtils
 {
+    private static final int DECIMALS_NO_ROUNDING = 10;
+
     private static final String KEY_AGG_VALUE = "[aggregated]";
     
     public static String getDebugDataSql( DataQueryParams params )
@@ -158,8 +152,9 @@ public class AnalyticsUtils
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
      * returned unchanged. If the given number of decimals is specified, the
-     * value is rounded to the given decimals. Otherwise, default rounding is
-     * used.
+     * value is rounded to the given decimals. If skip rounding is specified
+     * in the given data query parameters, 10 decimals is used. Otherwise,
+     * default rounding is used.
      * 
      * @param params the query parameters.
      * @param decimals the number of decimals.
@@ -168,13 +163,17 @@ public class AnalyticsUtils
      */
     public static Double getRoundedValue( DataQueryParams params, Integer decimals, Double value )
     {
-        if ( value == null || params.isSkipRounding() )
+        if ( value == null )
         {
             return value;
         }
+        else if ( params.isSkipRounding() )
+        {
+            return Precision.round( value, DECIMALS_NO_ROUNDING );
+        }
         else if ( decimals != null && decimals > 0 )
         {
-            return MathUtils.getRounded( value, decimals );
+            return Precision.round( value, decimals );
         }
         else
         {
@@ -185,17 +184,23 @@ public class AnalyticsUtils
     /**
      * Rounds a value. If the given parameters has skip rounding, the value is
      * returned unchanged. If the given number is null or not of class Double,
-     * the value is returned unchanged. Otherwise, default rounding is used.
-     *  
+     * the value is returned unchanged. If skip rounding is specified in the
+     * given data query parameters, 10 decimals is used. Otherwise, default
+     * rounding is used.
+     *
      * @param params the query parameters.
      * @param value the value.
      * @return a value.
      */
     public static Object getRoundedValueObject( DataQueryParams params, Object value )
     {
-        if ( value == null || params.isSkipRounding() || !Double.class.equals( value.getClass() ) )
+        if ( value == null || !Double.class.equals( value.getClass() ) )
         {
             return value;
+        }
+        else if ( params.isSkipRounding() )
+        {
+            return Precision.round( (Double) value, DECIMALS_NO_ROUNDING );
         }
         
         return MathUtils.getRounded( (Double) value );
@@ -246,7 +251,7 @@ public class AnalyticsUtils
 
     /**
      * Generates a mapping where the key represents the dimensional item identifiers
-     * concatenated by {@link DimensionalObject.DIMENSION_SEP} and the value is 
+     * concatenated by DimensionalObject.DIMENSION_SEP and the value is
      * the corresponding aggregated data value based on the given grid. Assumes 
      * that the value column is the last column in the grid. 
      *
@@ -283,76 +288,170 @@ public class AnalyticsUtils
      * Generates a data value set based on the given grid with aggregated data.
      * Sets the created and last updated fields to the current date.
      * 
+     * @param params the data query parameters.
      * @param grid the grid.
      * @return a data value set.
      */
-    @SuppressWarnings("unchecked")
-    public static DataValueSet getDataValueSetFromGrid( Grid grid )
+    public static DataValueSet getDataValueSetFromGrid( DataQueryParams params, Grid grid )
     {
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
         int peInx = grid.getIndexOfHeader( PERIOD_DIM_ID );
         int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
+        int coInx = grid.getIndexOfHeader( CATEGORYOPTIONCOMBO_DIM_ID );
+        int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
         int vlInx = grid.getWidth() - 1;
         
         Assert.isTrue( dxInx >= 0 );
         Assert.isTrue( peInx >= 0 );
         Assert.isTrue( ouInx >= 0 );
+        Assert.isTrue( coInx >= 0 );
+        Assert.isTrue( aoInx >= 0 );
         Assert.isTrue( vlInx >= 0 );
-        
+                
         String created = DateUtils.getMediumDateString();
-        
-        Map<String, DimensionalItemObject> itemMap = (Map<String, DimensionalItemObject>) grid.
-            getMetaData().get( AnalyticsMetaDataKey.DIMENSION_ITEMS.getKey() );
         
         DataValueSet dvs = new DataValueSet();
         
+        Set<String> primaryKeys = Sets.newHashSet();
+        
         for ( List<Object> row : grid.getRows() )
         {
-            String dx = String.valueOf( row.get( dxInx ) );
-            
             DataValue dv = new DataValue();
             
-            dv.setDataElement( dx );
+            Object coc = row.get( coInx );
+            Object aoc = row.get( aoInx );
+            
+            dv.setDataElement( String.valueOf( row.get( dxInx ) ) );
             dv.setPeriod( String.valueOf( row.get( peInx ) ) );
             dv.setOrgUnit( String.valueOf( row.get( ouInx ) ) );
+            dv.setCategoryOptionCombo( coc != null ? String.valueOf( coc ) : null );
+            dv.setAttributeOptionCombo( aoc != null ? String.valueOf( aoc ) : null );
             dv.setValue( String.valueOf( row.get( vlInx ) ) );
             dv.setComment( KEY_AGG_VALUE );
             dv.setStoredBy( KEY_AGG_VALUE );
             dv.setCreated( created );
             dv.setLastUpdated( created );
-
-            if ( itemMap != null && itemMap.containsKey( dx ) )
-            {
-                DataDimensionalItemObject item = (DataDimensionalItemObject) itemMap.get( dx );
-                
-                Assert.isTrue( item != null );
-                
-                if ( item.hasAggregateExportCategoryOptionCombo() )
-                {
-                    dv.setCategoryOptionCombo( item.getAggregateExportCategoryOptionCombo() );
-                }
-                
-                if ( item.hasAggregateExportAttributeOptionCombo() )
-                {
-                    dv.setAttributeOptionCombo( item.getAggregateExportAttributeOptionCombo() );
-                }
-            }
                         
-            dvs.getDataValues().add( dv );
+            if ( !params.isDuplicatesOnly() || !primaryKeys.add( dv.getPrimaryKey() ) )
+            {
+                dvs.getDataValues().add( dv );
+            }
         }
         
         return dvs;        
     }
+    
+    /**
+     * Prepares the given grid to be converted to a data value set.
+     * 
+     * <ul>
+     * <li>Converts data values from double to integer based on the
+     * associated data item if required.</li>
+     * <li>Adds a category option combo and a attribute option combo
+     * column to the grid based on the aggregated export properties
+     * of the associated data item.</li>
+     * <li>For data element operand data items, the operand identifier
+     * is split and the data element identifier is used for the data
+     * dimension column and the category option combo identifier is
+     * used for the category option combo column.</li>
+     * </ul>
+     * 
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    public static void handleGridForDataValueSet( DataQueryParams params, Grid grid )
+    {
+        Map<String, DimensionalItemObject> dimItemObjectMap = AnalyticsUtils.getDimensionalItemObjectMap( params );
+        
+        List<Object> cocCol = Lists.newArrayList();
+        List<Object> aocCol = Lists.newArrayList();
+        
+        int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
+        int vlInx = grid.getWidth() - 1;
+        
+        Assert.isTrue( dxInx >= 0 );
+        Assert.isTrue( vlInx >= 0 );
+        
+        for ( List<Object> row : grid.getRows() )
+        {
+            String dx = String.valueOf( row.get( dxInx ) );
+            
+            Assert.notNull( dx );
+            
+            DimensionalItemObject item = dimItemObjectMap.get( dx );
+
+            Assert.notNull( item );
+            
+            Object value = AnalyticsUtils.getIntegerOrValue( row.get( vlInx ), item );
+            
+            row.set( vlInx, value );
+            
+            String coc = null, aoc = null;
+            
+            if ( DataDimensionalItemObject.class.isAssignableFrom( item.getClass() ) )
+            {
+                DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;                
+                coc = dataItem.getAggregateExportCategoryOptionCombo();
+                aoc = dataItem.getAggregateExportAttributeOptionCombo();
+            }
+            else if ( DataElementOperand.class.isAssignableFrom( item.getClass() ) )
+            {
+                row.set( dxInx, DimensionalObjectUtils.getFirstIdentifer( dx ) );
+                coc = DimensionalObjectUtils.getSecondIdentifer( dx );
+            }
+            
+            cocCol.add( coc );
+            aocCol.add( aoc );
+        }
+
+        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addColumn( vlInx, aocCol )
+            .addColumn( vlInx, cocCol );
+    }
 
     /**
-     * Returns a mapping between identifiers and dimensional item object for the 
-     * given query.
+     * Handles conversion of double values to integer. A value is converted to
+     * integer if it is a double, and if either the dimensional item object is
+     * associated with a data element of value type integer, or associated with
+     * an indicator with zero decimals in aggregated output.
+     * 
+     * @param value the value.
+     * @param item the dimensional item object.
+     * @return an object, double or integer depending on the given arguments.
+     */
+    public static Object getIntegerOrValue( Object value, DimensionalItemObject item )
+    {
+        boolean doubleValue = item != null && value != null && ( value instanceof Double );
+        
+        if ( doubleValue )
+        {
+            if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() && ((DataElement) item).getValueType().isInteger() )
+            {
+                value = ((Double) value).intValue();
+            }
+            else if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() && ((DataElementOperand) item).getDataElement().getValueType().isInteger() )
+            {
+                value = ((Double) value).intValue();
+            }
+            else if ( DimensionItemType.INDICATOR == item.getDimensionItemType() && ((Indicator) item).hasZeroDecimals() )
+            {
+                value = ((Double) value).intValue();
+            }
+        }
+        
+        return value;        
+    }
+    
+    /**
+     * Returns a mapping between dimension item identifiers and dimensional
+     * item object for the given query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
-    public static Map<String, DimensionalItemObject> getUidDimensionalItemMap( DataQueryParams params )
-    {
+    public static Map<String, DimensionalItemObject> getDimensionalItemObjectMap( DataQueryParams params )
+    {        
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
         
         Map<String, DimensionalItemObject> map = new HashMap<>();
@@ -371,7 +470,7 @@ public class AnalyticsUtils
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
      */
-    public static Map<String, String> getUidNameMap( DataQueryParams params )
+    public static Map<String, String> getDimensionItemNameMap( DataQueryParams params )
     {
         List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
 
@@ -381,24 +480,22 @@ public class AnalyticsUtils
 
         for ( DimensionalObject dimension : dimensions )
         {
-            List<DimensionalItemObject> items = new ArrayList<>( dimension.getItems() );
-
-            for ( DimensionalItemObject object : items )
+            for ( DimensionalItemObject item : dimension.getItems() )
             {
                 if ( DimensionType.PERIOD.equals( dimension.getDimensionType() ) && !calendar.isIso8601() )
                 {
-                    Period period = (Period) object;
+                    Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
                     map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), period.getDisplayName() );
                 }
                 else
                 {
-                    map.put( object.getDimensionItem(), object.getDisplayProperty( params.getDisplayProperty() ) );
+                    map.put( item.getDimensionItem(), item.getDisplayProperty( params.getDisplayProperty() ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() ) && params.isHierarchyMeta() )
                 {
-                    OrganisationUnit unit = (OrganisationUnit) object;
+                    OrganisationUnit unit = (OrganisationUnit) item;
 
                     map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( unit.getAncestors(), params.getDisplayProperty() ) );
                 }
@@ -411,11 +508,68 @@ public class AnalyticsUtils
     }
 
     /**
+     * Returns a mapping between identifiers and meta data items for the given query.
+     *
+     * @param params the data query parameters.
+     * @return a mapping between identifiers and meta data items.
+     */
+    public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
+    {
+        List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
+
+        Map<String, MetadataItem> map = new HashMap<>();
+
+        Calendar calendar = PeriodType.getCalendar();
+
+        for ( DimensionalObject dimension : dimensions )
+        {
+            for ( DimensionalItemObject item : dimension.getItems() )
+            {
+                if ( DimensionType.PERIOD == dimension.getDimensionType() && !calendar.isIso8601() )
+                {
+                    Period period = (Period) item;
+                    DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName() ) );
+                }
+                else
+                {
+                    String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet ) );
+                }
+
+                if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
+                {
+                    OrganisationUnit unit = (OrganisationUnit) item;
+                    
+                    for ( OrganisationUnit ancestor : unit.getAncestors() )
+                    {
+                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ) ) );
+                    }
+                }
+                
+                if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() )
+                {
+                    DataElement dataElement = (DataElement) item;
+                    
+                    for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+                    {
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ) ) );
+                    }
+                }
+            }
+
+            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ) ) );
+        }
+
+        return map;
+    }
+
+    /**
      * Returns a mapping between the category option combo identifiers and names
      * for the given query.
      *
      * @param params the data query parameters.
-     * @param a mapping between identifiers and names.
+     * @returns a mapping between identifiers and names.
      */
     public static Map<String, String> getCocNameMap( DataQueryParams params )
     {
@@ -437,5 +591,123 @@ public class AnalyticsUtils
         }
 
         return metaData;
+    }
+    
+    /**
+     * Returns a mapping of identifiers and names for the given event query.
+     * 
+     * @param params the event query.
+     * @return a mapping of identifiers and names for the given event query.
+     */
+    public static Map<String, String> getUidNameMap( EventQueryParams params )
+    {
+        Map<String, String> map = new HashMap<>();
+
+        Program program = params.getProgram();
+        ProgramStage stage = params.getProgramStage();
+
+        map.put( program.getUid(), program.getDisplayProperty( params.getDisplayProperty() ) );
+
+        if ( stage != null )
+        {
+            map.put( stage.getUid(), stage.getName() );
+        }
+        else
+        {
+            for ( ProgramStage st : program.getProgramStages() )
+            {
+                map.put( st.getUid(), st.getName() );
+            }
+        }
+
+        if ( params.hasValueDimension() )
+        {
+            map.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
+        }
+        
+        map.putAll( getUidDisplayPropertyMap( params.getItems(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getItemFilters(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
+        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
+        
+        return map;
+    }
+    /**
+     * Returns a mapping between identifiers and display properties for the given 
+     * list of query items.
+     * 
+     * @param queryItems the list of query items.
+     * @param displayProperty the display property to use.
+     * @return a mapping between identifiers and display properties.
+     */
+    public static Map<String, String> getUidDisplayPropertyMap( List<QueryItem> queryItems, DisplayProperty displayProperty )
+    {
+        Map<String, String> map = new HashMap<>();
+        
+        for ( QueryItem item : queryItems )
+        {
+            map.put( item.getItem().getUid(), item.getItem().getDisplayProperty( displayProperty ) );
+        }
+        
+        return map;
+    }
+
+    /**
+     * Returns a mapping between identifiers and display properties for the given 
+     * list of dimensions.
+     * 
+     * @param dimensions the dimensions.
+     * @param hierarchyMeta indicates whether to include meta data about the
+     *        organisation unit hierarchy.
+     * @return a mapping between identifiers and display properties.
+     */
+    public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
+    {
+        Map<String, String> map = new HashMap<>();
+
+        for ( DimensionalObject dimension : dimensions )
+        {
+            boolean hierarchy = hierarchyMeta && DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() );
+
+            for ( DimensionalItemObject object : dimension.getItems() )
+            {
+                Set<DimensionalItemObject> objects = Sets.newHashSet( object );
+                                
+                if ( hierarchy )
+                {
+                    OrganisationUnit unit = (OrganisationUnit) object;
+                    
+                    objects.addAll( unit.getAncestors() );
+                }
+                
+                map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( objects, displayProperty ) );
+            }
+            
+            map.put( dimension.getDimension(), dimension.getDisplayProperty( displayProperty ) );
+        }
+
+        return map;
+    }
+    
+    /**
+     * returns true if the given period occurs less than maxYears before the current date.
+     * @param period periods to check
+     * @param maxYears amount of years back to check
+     * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
+     */
+    public static boolean periodIsOutsideApprovalMaxYears( Period period, Integer maxYears )
+    {
+        if ( maxYears == 0 )
+        {
+            return false;
+        }
+
+        java.util.Calendar periodDate = java.util.Calendar.getInstance();
+        java.util.Calendar now = java.util.Calendar.getInstance();
+
+        periodDate.setTime( period.getStartDate() );
+
+        return ( now.get( java.util.Calendar.YEAR ) - periodDate.get( java.util.Calendar.YEAR ) ) >= maxYears;
     }
 }

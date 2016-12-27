@@ -34,6 +34,7 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
@@ -52,8 +53,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 /**
  * @author Lars Helge Overland
@@ -190,6 +189,16 @@ public class ListGrid
     }
 
     @Override
+    public Grid addHeader( int headerIndex, GridHeader header )
+    {
+        headers.add( headerIndex, header );
+
+        updateColumnIndexMap();
+
+        return this;
+    }
+
+    @Override
     public Grid addEmptyHeaders( int number )
     {
         for ( int i = 0; i < number; i++ )
@@ -255,15 +264,17 @@ public class ListGrid
     }
 
     @Override
-    public void setMetaData( Map<String, Object> metaData )
+    public Grid setMetaData( Map<String, Object> metaData )
     {
         this.metaData = metaData;
+        return this;
     }
 
     @Override
-    public void addMetaData( String key, Object value )
+    public Grid addMetaData( String key, Object value )
     {
         this.metaData.put( key, value );
+        return this;
     }
 
     @Override
@@ -427,8 +438,8 @@ public class ListGrid
     {
         verifyGridState();
 
-        int rowIndex = 0;
-        int columnIndex = 0;
+        int currentRowIndex = 0;
+        int currentColumnIndex = 0;
 
         if ( grid.size() != columnValues.size() )
         {
@@ -437,7 +448,28 @@ public class ListGrid
 
         for ( int i = 0; i < grid.size(); i++ )
         {
-            grid.get( rowIndex++ ).add( columnValues.get( columnIndex++ ) );
+            grid.get( currentRowIndex++ ).add( columnValues.get( currentColumnIndex++ ) );
+        }
+
+        return this;
+    }
+
+    @Override
+    public Grid addColumn( int columnIndex, List<Object> columnValues )
+    {
+        verifyGridState();
+
+        int currentRowIndex = 0;
+        int currentColumnIndex = 0;
+
+        if ( grid.size() != columnValues.size() )
+        {
+            throw new IllegalStateException( "Number of column values (" + columnValues.size() + ") is not equal to number of rows (" + grid.size() + ")" );
+        }
+
+        for ( int i = 0; i < grid.size(); i++ )
+        {
+            grid.get( currentRowIndex++ ).add( columnIndex, columnValues.get( currentColumnIndex++ ) );
         }
 
         return this;
@@ -598,7 +630,7 @@ public class ListGrid
 
             if ( !Double.isNaN( predicted ) )
             {
-                regressionColumn.add( getRounded( predicted, 1 ) );
+                regressionColumn.add( Precision.round( predicted, 1 ) );
             }
             else
             {
@@ -615,7 +647,7 @@ public class ListGrid
             if ( header != null )
             {
                 GridHeader regressionHeader = new GridHeader( header.getName() + REGRESSION_SUFFIX,
-                    header.getColumn() + REGRESSION_SUFFIX, header.getType(), header.isHidden(), header.isMeta() );
+                    header.getColumn() + REGRESSION_SUFFIX, header.getValueType(), header.getType(), header.isHidden(), header.isMeta() );
 
                 addHeader( regressionHeader );
             }
@@ -666,7 +698,7 @@ public class ListGrid
             if ( header != null )
             {
                 GridHeader regressionHeader = new GridHeader( header.getName() + CUMULATIVE_SUFFIX,
-                    header.getColumn() + CUMULATIVE_SUFFIX, header.getType(), header.isHidden(), header.isMeta() );
+                    header.getColumn() + CUMULATIVE_SUFFIX, header.getValueType(), header.getType(), header.isHidden(), header.isMeta() );
 
                 addHeader( regressionHeader );
             }

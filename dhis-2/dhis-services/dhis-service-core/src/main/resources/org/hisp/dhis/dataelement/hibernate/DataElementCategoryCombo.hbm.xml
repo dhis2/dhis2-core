@@ -31,7 +31,7 @@
       <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
         foreign-key="fk_categorycombo_categoryoptioncomboid" unique="true" />
     </set>
-    
+
     <property name="dataDimensionType" column="datadimensiontype" type="org.hisp.dhis.common.DataDimensionTypeUserType" not-null="true" />
 
     <property name="skipTotal" column="skiptotal" not-null="true" />
@@ -52,6 +52,12 @@
       <cache usage="read-write" />
       <key column="categorycomboid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="categorycombouseraccesses">
+      <cache usage="read-write" />
+      <key column="categorycomboid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
   </class>

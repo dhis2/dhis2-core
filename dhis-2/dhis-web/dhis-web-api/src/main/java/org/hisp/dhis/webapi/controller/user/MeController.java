@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
@@ -51,9 +52,8 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.user.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
  */
 @Controller
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { Version.V24, Version.V25 } )
+@ApiVersion( { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26 } )
 public class MeController
 {
     @Autowired
@@ -166,7 +166,12 @@ public class MeController
 
         User user = renderService.fromJson( request.getInputStream(), User.class );
         merge( currentUser, user );
-        updatePassword( currentUser, user );
+
+        if ( user.getUserCredentials() != null )
+        {
+            updatePassword( currentUser, user.getUserCredentials().getPassword() );
+        }
+
         manager.update( currentUser );
 
         if ( fields.isEmpty() )
@@ -228,9 +233,15 @@ public class MeController
     }
 
     @RequestMapping( value = "/settings/{key}" )
-    public void getSetting( HttpServletResponse response, @PathVariable String key ) throws IOException, WebMessageException
+    public void getSetting( HttpServletResponse response, @PathVariable String key ) throws IOException, WebMessageException, NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
         Optional<UserSettingKey> keyEnum = UserSettingKey.getByName( key );
 
         if ( !keyEnum.isPresent() )
@@ -247,6 +258,28 @@ public class MeController
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         renderService.toJson( response.getOutputStream(), value );
+    }
+
+    @RequestMapping( value = "/password", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = "text/*" )
+    public @ResponseBody RootNode changePassword( @RequestBody String password, HttpServletResponse response )
+        throws WebMessageException, NotAuthenticatedException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        if ( !ValidationUtils.passwordIsValid( password ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Password must have at least 8 characters, one digit, one uppercase" ) );
+        }
+
+        updatePassword( currentUser, password );
+        manager.update( currentUser );
+
+        return null;
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
@@ -334,13 +367,13 @@ public class MeController
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
     }
 
-    private void updatePassword( User currentUser, User user ) throws WebMessageException
+    private void updatePassword( User currentUser, String password ) throws WebMessageException
     {
-        if ( user.getUserCredentials() != null && !StringUtils.isEmpty( user.getUserCredentials().getPassword() ) )
+        if ( !StringUtils.isEmpty( password ) )
         {
-            if ( ValidationUtils.passwordIsValid( user.getUserCredentials().getPassword() ) )
+            if ( ValidationUtils.passwordIsValid( password ) )
             {
-                userService.encodeAndSetPassword( currentUser.getUserCredentials(), user.getUserCredentials().getPassword() );
+                userService.encodeAndSetPassword( currentUser.getUserCredentials(), password );
             }
             else
             {

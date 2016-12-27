@@ -98,17 +98,58 @@ public class InitTableAlteror
         executeSql( "UPDATE messageconversation SET status = 'NONE' WHERE status IS NULL" );
 
         updateMessageConversationMessageCount();
+
+        // Set OrganisationUnitGroupSet includeSubhierarchyInAnalytics to false where IS NULL
+        executeSql( "UPDATE orgunitgroupset SET includesubhierarchyinanalytics = FALSE WHERE includesubhierarchyinanalytics IS NULL" );
+
+        // Update programstageinstance set deleted = false where deleted = null
+        executeSql( "UPDATE programstageinstance SET deleted = false WHERE deleted IS NULL" );
+        executeSql( "alter table programstageinstance alter column deleted set not null" );
+        executeSql( "create index in_programstageinstance_deleted on programstageinstace(deleted)" );
+
+        updateLegendSetAssociationAndDeleteOldAssociation();
     }
 
-    private void updateMessageConversationMessageCount() {
+    private void updateLegendSetAssociationAndDeleteOldAssociation()
+    {
+        // Transfer all existing references from dataelement to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO dataelementlegendsets (dataelementid, sort_order, legendsetid) SELECT dataelementid, 0, legendsetid FROM dataelement WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE dataelement DROP COLUMN legendsetid ");
 
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO datasetlegendsets (datasetid, sort_order, legendsetid) SELECT datasetid, 0, legendsetid FROM dataset WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE dataset DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO indicatorlegendsets (indicatorid, sort_order, legendsetid) SELECT indicatorid, 0, legendsetid FROM indicator WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE indicator DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO programindicatorlegendsets (programindicatorid, sort_order, legendsetid) SELECT programindicatorid, 0, legendsetid FROM programindicator WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE programindicator DROP COLUMN legendsetid ");
+
+        // Transfer all existing references from dataset to legendset to new many-to-many table
+        // Then delete old reference
+        executeSql( "INSERT INTO trackedentityattributelegendsets (trackedentityattributeid, sort_order, legendsetid) SELECT trackedentityattributeid, 0, legendsetid FROM trackedentityattribute WHERE legendsetid IS NOT NULL" );
+        executeSql( "ALTER TABLE trackedentityattribute DROP COLUMN legendsetid ");
+    }
+
+    private void updateMessageConversationMessageCount()
+    {
         Integer nullCounts = statementManager.getHolder().queryForInteger( "SELECT count(*) from messageconversation WHERE messagecount IS NULL" );
 
-        if(nullCounts > 0)
+        if ( nullCounts > 0 )
         {
-            // Count messages in messageConversations
-            executeSql(
-                "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid) " );
+            executeSql( "update messageconversation MC SET messagecount = (SELECT count(MCM.messageconversationid) FROM messageconversation_messages MCM WHERE messageconversationid=MC.messageconversationid)" );
         }
     }
 

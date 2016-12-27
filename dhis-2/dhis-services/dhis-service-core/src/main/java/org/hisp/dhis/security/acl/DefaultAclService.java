@@ -28,17 +28,23 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -99,9 +105,9 @@ public class DefaultAclService implements AclService
         }
 
         if ( haveOverrideAuthority( user )
-            || (object.getUser() == null && canCreatePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
+            || (object.getUser() == null && canMakePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
             || (user != null && user.equals( object.getUser() ))
-            || ((object instanceof User) && canCreatePrivate( user, object.getClass() ))
+            || ((object instanceof User) && canMakePrivate( user, object.getClass() ))
             || AccessStringHelper.canWrite( object.getPublicAccess() ) )
         {
             return true;
@@ -112,6 +118,16 @@ public class DefaultAclService implements AclService
             /* Is the user allowed to write to this object through group access? */
             if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
                 && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to write to this object through user access? */
+            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
+                && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }
@@ -167,6 +183,16 @@ public class DefaultAclService implements AclService
             }
         }
 
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to read to this object through user access? */
+            if ( AccessStringHelper.canRead( userAccess.getAccess() )
+                && user.equals( userAccess.getUser() ) )
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -206,7 +232,7 @@ public class DefaultAclService implements AclService
 
         if ( haveOverrideAuthority( user )
             || user.equals( object.getUser() )
-            || (object.getUser() == null && canCreatePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
+            || (object.getUser() == null && canMakePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
             || AccessStringHelper.canWrite( object.getPublicAccess() ) )
         {
             return true;
@@ -217,6 +243,16 @@ public class DefaultAclService implements AclService
             /* Is the user allowed to write to this object through group access? */
             if ( AccessStringHelper.canWrite( userGroupAccess.getAccess() )
                 && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+            {
+                return true;
+            }
+        }
+
+        for ( UserAccess userAccess : object.getUserAccesses() )
+        {
+            /* Is the user allowed to write to this object through group access? */
+            if ( AccessStringHelper.canWrite( userAccess.getAccess() )
+                && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }
@@ -249,11 +285,11 @@ public class DefaultAclService implements AclService
             return canAccess( user, schema.getAuthorityByType( AuthorityType.CREATE ) );
         }
 
-        return canCreatePublic( user, klass ) || canCreatePrivate( user, klass );
+        return canMakePublic( user, klass ) || canMakePrivate( user, klass );
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canCreatePublic( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakePublic( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
@@ -261,7 +297,7 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canCreatePrivate( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakePrivate( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
@@ -269,7 +305,7 @@ public class DefaultAclService implements AclService
     }
 
     @Override
-    public <T extends IdentifiableObject> boolean canExternalize( User user, Class<T> klass )
+    public <T extends IdentifiableObject> boolean canMakeExternal( User user, Class<T> klass )
     {
         Schema schema = schemaService.getSchema( klass );
         return !(schema == null || !schema.isShareable())
@@ -330,12 +366,91 @@ public class DefaultAclService implements AclService
     {
         Access access = new Access();
         access.setManage( canManage( user, object ) );
-        access.setExternalize( canExternalize( user, object.getClass() ) );
+        access.setExternalize( canMakeExternal( user, object.getClass() ) );
         access.setWrite( canWrite( user, object ) );
         access.setRead( canRead( user, object ) );
         access.setUpdate( canUpdate( user, object ) );
         access.setDelete( canDelete( user, object ) );
 
         return access;
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void resetSharing( T object, User user )
+    {
+        if ( object == null || !isShareable( object.getClass() ) || user == null )
+        {
+            return;
+        }
+
+        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
+
+        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
+        baseIdentifiableObject.setExternalAccess( false );
+
+        if ( object.getUser() == null )
+        {
+            baseIdentifiableObject.setUser( user );
+        }
+
+        if ( canMakePublic( user, object.getClass() ) )
+        {
+            if ( defaultPublic( object.getClass() ) )
+            {
+                baseIdentifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
+            }
+        }
+
+        object.getUserAccesses().clear();
+        object.getUserGroupAccesses().clear();
+    }
+
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> verifySharing( T object, User user )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        if ( object == null || !isShareable( object.getClass() ) || user == null )
+        {
+            return errorReports;
+        }
+
+        boolean canMakePublic = canMakePublic( user, object.getClass() );
+        boolean canMakePrivate = canMakePrivate( user, object.getClass() );
+        boolean canMakeExternal = canMakeExternal( user, object.getClass() );
+
+        if ( object.getExternalAccess() )
+        {
+            if ( !canMakeExternal )
+            {
+                errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3006, user.getUsername(), object.getClass() ) );
+            }
+
+            if ( !AccessStringHelper.isEnabled( object.getPublicAccess(), Permission.READ ) )
+            {
+                errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3007, user.getUsername(), object.getClass() ) );
+            }
+        }
+
+        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        {
+            if ( canMakePublic || canMakePrivate )
+            {
+                return errorReports;
+            }
+
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3009, user.getUsername(), object.getClass() ) );
+        }
+        else
+        {
+            if ( canMakePublic )
+            {
+                return errorReports;
+            }
+
+            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3008, user.getUsername(), object.getClass() ) );
+        }
+
+        return errorReports;
     }
 }

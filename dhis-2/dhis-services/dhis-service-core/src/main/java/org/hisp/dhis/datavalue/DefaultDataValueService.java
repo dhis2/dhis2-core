@@ -221,7 +221,13 @@ public class DefaultDataValueService
     {
         dataValueStore.deleteDataValues( organisationUnit );
     }
-    
+
+    @Override
+    public void deleteDataValues( DataElement dataElement )
+    {
+        dataValueStore.deleteDataValues( dataElement );
+    }
+
     @Override
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source, DataElementCategoryOptionCombo categoryOptionCombo )
     {
@@ -336,7 +342,10 @@ public class DefaultDataValueService
             {
                 Integer periodId = ddv.getPeriodId();
                 Integer aoc = ddv.getAttributeOptionComboId();
-                
+
+                // TODO: Since dataElement and orgUnit are fixed, and the MapMap is by period and aoc,
+                // this just sums across disaggs. This could be done in instead within
+                // sumRecursiveDeflatedDataValues by removing categoryoptioncomboid from group by
                 if ( !( period2aoc.containsValue( periodId, aoc ) ) )
                 {
                     DataValue dv = accumulatedValues.getValue( periodId, aoc );

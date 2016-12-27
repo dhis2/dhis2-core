@@ -35,23 +35,35 @@
     <property name="filter" type="text" />
 
     <property name="aggregationType" length="40">
-		<type name="org.hibernate.type.EnumType">
-			<param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
-      <param name="useNamed">true</param>
-			<param name="type">12</param>
-		</type> 
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type> 
 	</property>
     
     <property name="decimals" />
 
-    <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
-      foreign-key="fk_programindicator_legendset" />
+    <list name="legendSets" table="programindicatorlegendsets">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_programindicator_legendsetid" ></many-to-many>
+    </list>
 
     <property name="aggregateExportCategoryOptionCombo" column="aggregateexportcategoryoptioncombo" />
 	
     <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
 	
     <property name="displayInForm" />
+
+    <property name="programIndicatorAnalyticsType" length="10">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramIndicatorAnalyticsType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type> 
+    </property>
 
     <!-- Object Translation -->
     <set name="translations" table="programindicatortranslations" cascade="delete-orphan">
@@ -69,6 +81,12 @@
       <cache usage="read-write" />
       <key column="programindicatorid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
+    </set>
+
+    <set name="userAccesses" table="programindicatoruseraccesses">
+      <cache usage="read-write" />
+      <key column="programindicatorid" />
+      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
     <!-- Dynamic attribute values -->

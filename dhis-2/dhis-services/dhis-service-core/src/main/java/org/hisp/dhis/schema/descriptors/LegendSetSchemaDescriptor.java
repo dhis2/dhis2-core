@@ -51,7 +51,6 @@ public class LegendSetSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( LegendSet.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( true );
         schema.setOrder( 1080 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_LEGEND_SET_PUBLIC_ADD", "F_GIS_ADMIN" ) ) );

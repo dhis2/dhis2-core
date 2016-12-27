@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
-
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
@@ -43,39 +42,39 @@ import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.NameableObjectUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
@@ -89,7 +88,10 @@ public class DefaultEventAnalyticsService
     implements EventAnalyticsService
 {
     @Autowired
-    private EventAnalyticsManager analyticsManager;
+    private EventAnalyticsManager eventAnalyticsManager;
+
+    @Autowired
+    private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
     
     @Autowired
     private EventDataQueryService eventDataQueryService;
@@ -108,7 +110,8 @@ public class DefaultEventAnalyticsService
     // -------------------------------------------------------------------------
 
     // TODO use ValueType for type in grid headers
-    // TODO order event analytics tables on execution date to avoid default
+    // TODO use [longitude/latitude] format for event points
+    // TODO order event analytics tables on execution date to avoid default sort
     // TODO sorting in queries
 
     @Override
@@ -136,7 +139,7 @@ public class DefaultEventAnalyticsService
 
             if ( params.isCollapseDataDimensions() || params.isAggregateData() )
             {
-                grid.addHeader( new GridHeader( DimensionalObject.DATA_COLLAPSED_DIM_ID, DataQueryParams.DISPLAY_NAME_DATA_X, String.class.getName(), false, true ) );
+                grid.addHeader( new GridHeader( DimensionalObject.DATA_COLLAPSED_DIM_ID, DataQueryParams.DISPLAY_NAME_DATA_X, ValueType.TEXT, String.class.getName(), false, true ) );
             }
             else
             {
@@ -144,22 +147,22 @@ public class DefaultEventAnalyticsService
                 {
                     String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
     
-                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getTypeAsString(), false, true, item.getOptionSetUid(), legendSet ) );
+                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), legendSet ) );
                 }
             }
             
             for ( DimensionalObject dimension : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayName(), String.class.getName(), false, true ) );
+                grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
             }
     
-            grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, Double.class.getName(), false, false ) );
+            grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, Double.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, Double.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
             }
 
             // -----------------------------------------------------------------
@@ -174,7 +177,14 @@ public class DefaultEventAnalyticsService
     
             for ( EventQueryParams query : queries )
             {
-                analyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                if ( query.hasEnrollmentProgramIndicatorDimension() )
+                {
+                    enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                }
+                else
+                {
+                    eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
+                }
             }
             
             timer.getTime( "Got aggregated events" );
@@ -199,41 +209,11 @@ public class DefaultEventAnalyticsService
             }
         }
         
-        // ---------------------------------------------------------------------
-        // Meta-data
-        // ---------------------------------------------------------------------
+        addMetadata( params, grid );
         
-        if ( !params.isSkipMeta() )
-        {
-            Map<String, Object> metaData = new HashMap<>();
-
-            Map<String, String> uidNameMap = getUidNameMap( params );
-            
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
-            metaData.put( PERIOD_DIM_ID, getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) );
-            metaData.put( ORGUNIT_DIM_ID, getDimensionalItemIds( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) );
-
-            User user = securityManager.getCurrentUser( params );
-
-            List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-            
-            if ( params.isHierarchyMeta() )
-            {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
-            }
-
-            if ( params.isShowHierarchy() )
-            {
-                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
-            }
-
-            grid.setMetaData( metaData );
-        }
-
         return grid;
     }
-    
+
     @Override
     public Grid getAggregatedEventData( AnalyticalObject object )
     {
@@ -245,7 +225,7 @@ public class DefaultEventAnalyticsService
     @Override
     public Grid getEvents( EventQueryParams params )
     {
-        securityManager.decideAccess( params );
+        securityManager.decideAccessEventQuery( params );
         
         queryPlanner.validate( params );
 
@@ -257,22 +237,22 @@ public class DefaultEventAnalyticsService
         // Headers
         // ---------------------------------------------------------------------
 
-        grid.addHeader( new GridHeader( ITEM_EVENT, "Event", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_PROGRAM_STAGE, "Program stage", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_EXECUTION_DATE, "Event date", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, "Organisation unit name", String.class.getName(), false, true ) );
-        grid.addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, "Organisation unit code", String.class.getName(), false, true ) );
+        grid.addHeader( new GridHeader( ITEM_EVENT, "Event", ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, "Program stage", ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_EXECUTION_DATE, "Event date", ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, "Longitude", ValueType.NUMBER, Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LATITUDE, "Latitude", ValueType.NUMBER, Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, "Organisation unit name", ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, "Organisation unit code", ValueType.TEXT, String.class.getName(), false, true ) );
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayName(), String.class.getName(), false, true ) );
+            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getTypeAsString(), false, true, item.getOptionSetUid(), item.getLegendSetUid() ) );
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSetUid(), item.getLegendSetUid() ) );
         }
 
         // ---------------------------------------------------------------------
@@ -291,10 +271,10 @@ public class DefaultEventAnalyticsService
         {
             if ( params.isPaging() )
             {
-                count += analyticsManager.getEventCount( params );
+                count += eventAnalyticsManager.getEventCount( params );
             }
     
-            analyticsManager.getEvents( params, grid, queryPlanner.getMaxLimit() );
+            eventAnalyticsManager.getEvents( params, grid, queryPlanner.getMaxLimit() );
     
             timer.getTime( "Got events " + grid.getHeight() );
         }
@@ -305,9 +285,7 @@ public class DefaultEventAnalyticsService
 
         Map<String, Object> metaData = new HashMap<>();
 
-        Map<String, String> uidNameMap = getUidNameMap( params );
-
-        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), AnalyticsUtils.getUidNameMap( params ) );
 
         User user = securityManager.getCurrentUser( params );
 
@@ -315,19 +293,19 @@ public class DefaultEventAnalyticsService
         
         if ( params.isHierarchyMeta() )
         {
-            metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( asTypedList( 
-                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ), roots ) );
+            Map<String, String> parentMap = getParentGraphMap( asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ), roots );
+            
+            metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), parentMap );
         }
 
         if ( params.isPaging() )
         {
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            
             metaData.put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
         }
 
-        grid.setMetaData( metaData );
-
-        return grid;
+        return grid.setMetaData( metaData );
     }
 
     @Override
@@ -337,6 +315,10 @@ public class DefaultEventAnalyticsService
         {
             throw new IllegalQueryException( "Spatial database support is not enabled" );
         }
+        
+        params = new EventQueryParams.Builder( params )
+            .withGeometryOnly( true )
+            .build();
         
         securityManager.decideAccess( params );
         
@@ -350,10 +332,10 @@ public class DefaultEventAnalyticsService
         // Headers
         // ---------------------------------------------------------------------
 
-        grid.addHeader( new GridHeader( ITEM_COUNT, "Count", Long.class.getName(), false, false ) );
-        grid.addHeader( new GridHeader( ITEM_CENTER, "Center", String.class.getName(), false, false ) );
-        grid.addHeader( new GridHeader( ITEM_EXTENT, "Extent", String.class.getName(), false, false ) );
-        grid.addHeader( new GridHeader( ITEM_POINTS, "Points", String.class.getName(), false, false ) );
+        grid.addHeader( new GridHeader( ITEM_COUNT, "Count", ValueType.NUMBER, Long.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_CENTER, "Center", ValueType.TEXT, String.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_EXTENT, "Extent", ValueType.TEXT, String.class.getName(), false, false ) )
+            .addHeader( new GridHeader( ITEM_POINTS, "Points", ValueType.TEXT, String.class.getName(), false, false ) );
 
         // ---------------------------------------------------------------------
         // Data
@@ -361,7 +343,7 @@ public class DefaultEventAnalyticsService
 
         params = queryPlanner.planEventQuery( params );
 
-        analyticsManager.getEventClusters( params, grid, queryPlanner.getMaxLimit() );
+        eventAnalyticsManager.getEventClusters( params, grid, queryPlanner.getMaxLimit() );
         
         return grid;
     }
@@ -373,6 +355,10 @@ public class DefaultEventAnalyticsService
         {
             throw new IllegalQueryException( "Spatial database support is not enabled" );
         }
+
+        params = new EventQueryParams.Builder( params )
+            .withGeometryOnly( true )
+            .build();
         
         securityManager.decideAccess( params );
         
@@ -382,85 +368,74 @@ public class DefaultEventAnalyticsService
         
         params = queryPlanner.planEventQuery( params );
 
-        return analyticsManager.getRectangle( params );
+        return eventAnalyticsManager.getRectangle( params );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Map<String, String> getUidNameMap( EventQueryParams params )
+    /**
+     * Adds meta data values to the given grid based on the given data query
+     * parameters.
+     * 
+     * TODO handle legend sets for ITEMS.
+     * TODO version for ITEMS / NAMES.
+     *
+     * @param params the data query parameters.
+     * @param grid the grid.
+     */
+    private void addMetadata( EventQueryParams params, Grid grid )
     {
-        Map<String, String> map = new HashMap<>();
-
-        Program program = params.getProgram();
-        ProgramStage stage = params.getProgramStage();
-
-        map.put( program.getUid(), program.getName() );
-
-        if ( stage != null )
+        if ( !params.isSkipMeta() )
         {
-            map.put( stage.getUid(), stage.getName() );
-        }
-        else
-        {
-            for ( ProgramStage st : program.getProgramStages() )
+            Calendar calendar = PeriodType.getCalendar();
+            
+            List<String> periodUids = calendar.isIso8601() ?
+                getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
+                getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
+
+            Map<String, Object> metaData = new HashMap<>();
+            
+            Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+            
+            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
+                Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
+            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+            metaData.put( PERIOD_DIM_ID, periodUids );
+
+            for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
-                map.put( st.getUid(), st.getName() );
-            }
-        }
-
-        if ( params.hasValueDimension() )
-        {
-            map.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
-        }
-        
-        map.putAll( getUidNameMap( params.getItems(), params.getDisplayProperty() ) );
-        map.putAll( getUidNameMap( params.getItemFilters(), params.getDisplayProperty() ) );
-        map.putAll( getUidNameMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
-        map.putAll( getUidNameMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
-        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
-        
-        return map;
-    }
-    
-    private Map<String, String> getUidNameMap( List<QueryItem> queryItems, DisplayProperty displayProperty )
-    {
-        Map<String, String> map = new HashMap<>();
-        
-        for ( QueryItem item : queryItems )
-        {
-            map.put( item.getItem().getUid(), item.getItem().getDisplayProperty( displayProperty ) );
-        }
-        
-        return map;
-    }
-
-    private Map<String, String> getUidNameMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
-    {
-        Map<String, String> map = new HashMap<>();
-
-        for ( DimensionalObject dimension : dimensions )
-        {
-            boolean hierarchy = hierarchyMeta && DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() );
-
-            for ( DimensionalItemObject object : dimension.getItems() )
-            {
-                Set<DimensionalItemObject> objects = new HashSet<>();
-                objects.add( object );
-                
-                if ( hierarchy )
+                if ( !metaData.keySet().contains( dim.getDimension() ) )
                 {
-                    OrganisationUnit unit = (OrganisationUnit) object;
-                    objects.addAll( unit.getAncestors() );
+                    metaData.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
-                
-                map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( objects, displayProperty ) );
             }
             
-            map.put( dimension.getDimension(), dimension.getDisplayProperty( displayProperty ) );
-        }
+            for ( QueryItem item : params.getItemsAndItemFilters() )
+            {
+                if ( item.hasLegendSet() )
+                {
+                    metaData.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getLegends() ) );
+                }
+            }
 
-        return map;
+            User user = securityManager.getCurrentUser( params );
+
+            List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+            
+            if ( params.isHierarchyMeta() )
+            {
+                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), getParentGraphMap( organisationUnits, roots ) );
+            }
+
+            if ( params.isShowHierarchy() )
+            {
+                metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
+            }
+
+            grid.setMetaData( metaData );
+        }
     }
 }

@@ -41,27 +41,29 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 /**
- * Subclass of {@link org.springframework.web.filter.ShallowEtagHeaderFilter} 
+ * <p>Subclass of {@link org.springframework.web.filter.ShallowEtagHeaderFilter} 
  * which allows exclusion of URIs matching a regex.
  *
- * The regex is given as the init-param named 'excludeUriRegex' in the filter 
+ * <p>The regex is given as the init-param named 'excludeUriRegex' in the filter 
  * configuration.
  *
- * Example configuration:
+ * <p>Example configuration:
  * 
- *  {@code
- *  <filter>
- *      <filter-name>ShallowEtagHeaderFilter</filter-name>
- *      <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
- *      <init-param>
- *          <param-name>excludeUriRegex</param-name>
- *          <param-value>/api/dataValues|/api/dataValues/files</param-value>
- *      </init-param>
- *  </filter>
- *  }
- *
- *  The example exactly matches and excludes any request to the '/api/dataValues' 
- *  and '/api/dataValues/files' from the filter.
+ * <pre>
+ * {@code
+ * <filter>
+ *     <filter-name>ShallowEtagHeaderFilter</filter-name>
+ *     <filter-class>org.hisp.dhis.servlet.filter.ExcludableShallowEtagHeaderFilter</filter-class>
+ *     <init-param>
+ *         <param-name>excludeUriRegex</param-name>
+ *         <param-value>/api/dataValues|/api/dataValues/files</param-value>
+ *     </init-param>
+ * </filter>
+ * }
+ * </pre>
+ * 
+ * <p>The example exactly matches and excludes any request to the '/api/dataValues' 
+ * and '/api/dataValues/files' from the filter.
  * 
  * @author Lars Helge Overland
  * @author Halvdan Hoem Grelland
@@ -93,7 +95,7 @@ public class ExcludableShallowEtagHeaderFilter
     {
         String uri = request.getRequestURI();
 
-        if ( pattern != null && pattern.matcher( uri ).matches() )
+        if ( pattern != null && pattern.matcher( uri ).find() )
         {
             filterChain.doFilter( request, response ); // Proceed without invoking this filter
         }

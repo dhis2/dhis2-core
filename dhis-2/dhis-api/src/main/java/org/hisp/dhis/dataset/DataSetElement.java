@@ -90,8 +90,8 @@ public class DataSetElement
 
     /**
      * Returns the category combination of this data set element, if null,
-     * returns the category combination of the data element of this data set 
-     * element.
+     * then returns the category combination of the data element of this data
+     * set element.
      */
     public DataElementCategoryCombo getResolvedCategoryCombo()
     {

@@ -37,6 +37,7 @@ import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,7 +54,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping( "/metadata/sync" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataSyncController
     extends CrudControllerAdvice
 {
@@ -70,29 +71,31 @@ public class MetadataSyncController
         MetadataSyncParams syncParams;
         MetadataSyncSummary metadataSyncSummary;
 
-        try
+        synchronized ( metadataSyncService )
         {
-            syncParams = metadataSyncService.getParamsFromMap( contextService.getParameterValuesMap() );
-        }
-        catch ( RemoteServerUnavailableException exception )
-        {
-            throw new MetadataSyncException( exception.getMessage(), exception );
+            try
+            {
+                syncParams = metadataSyncService.getParamsFromMap( contextService.getParameterValuesMap() );
+            }
+            catch ( RemoteServerUnavailableException exception )
+            {
+                throw new MetadataSyncException( exception.getMessage(), exception );
 
-        }
-        catch ( MetadataSyncServiceException serviceException )
-        {
-            throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(), serviceException );
-        }
+            }
+            catch ( MetadataSyncServiceException serviceException )
+            {
+                throw new BadRequestException( "Error in parsing inputParams " + serviceException.getMessage(), serviceException );
+            }
 
-        try
-        {
-            metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+            try
+            {
+                metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
+            }
+            catch ( MetadataSyncServiceException serviceException )
+            {
+                throw new MetadataSyncException( "Exception occurred while doing metadata sync " + serviceException.getMessage() );
+            }
         }
-        catch ( MetadataSyncServiceException serviceException )
-        {
-            throw new MetadataSyncException( "Exception occurred while doing metadata sync " + serviceException.getMessage() );
-        }
-
         return metadataSyncSummary;
     }
 }

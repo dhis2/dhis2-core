@@ -136,6 +136,15 @@ public class HibernateDataValueStore
     }
 
     @Override
+    public void deleteDataValues( DataElement dataElement )
+    {
+        String hql = "delete from DataValue d where d.dataElement = :dataElement";
+
+        sessionFactory.getCurrentSession().createQuery( hql )
+            .setEntity( "dataElement", dataElement ).executeUpdate();
+    }
+
+    @Override
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         DataElementCategoryOptionCombo categoryOptionCombo, DataElementCategoryOptionCombo attributeOptionCombo )
     {
@@ -345,6 +354,8 @@ public class HibernateDataValueStore
                 result.add( dv );
             }
         }
+
+        log.debug("sumRecursiveDeflatedDataValues: " + result.size() + " results from \"" + sql + "\"");
 
         return result;
     }

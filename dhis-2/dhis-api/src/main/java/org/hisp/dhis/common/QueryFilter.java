@@ -91,6 +91,21 @@ public class QueryFilter
         return OPERATOR_MAP.get( operator );
     }
     
+    public String getJavaOperator()
+    {
+        if ( operator == null || operator == QueryOperator.LIKE || operator == QueryOperator.IN )
+        {
+            return null;
+        }
+        
+        if( operator == QueryOperator.EQ )
+        {
+            return "==";
+        }
+        
+        return OPERATOR_MAP.get( operator );
+    }
+    
     public String getSqlFilter( String encodedFilter )
     {
         if ( operator == null || encodedFilter == null )
@@ -118,7 +133,7 @@ public class QueryFilter
         
         return "'" + encodedFilter + "'";
     }
-    
+
     /**
      * Returns the items of the filter. Items are separated with the ";" character.
      */

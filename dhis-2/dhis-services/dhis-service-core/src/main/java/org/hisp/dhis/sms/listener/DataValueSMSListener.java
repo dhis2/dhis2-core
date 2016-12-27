@@ -207,15 +207,15 @@ public class DataValueSMSListener
         if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
         {
             String x = "([^\\s|" + smsCommand.getSeparator().trim() + "]+)\\s*\\" + smsCommand.getSeparator().trim()
-                + "\\s*([\\w ]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
+                + "\\s*([-\\w\\s]+)\\s*(\\" + smsCommand.getSeparator().trim() + "|$)*\\s*";
             pattern = Pattern.compile( x );
         }
 
         Matcher matcher = pattern.matcher( sms );
         while ( matcher.find() )
         {
-            String key = matcher.group( 1 );
-            String value = matcher.group( 2 );
+            String key = matcher.group( 1 ).trim();
+            String value = matcher.group( 2 ).trim();
 
             if ( !StringUtils.isEmpty( key ) && !StringUtils.isEmpty( value ) )
             {
@@ -520,7 +520,7 @@ public class DataValueSMSListener
 
         notInReport = notInReport.substring( 0, notInReport.length() - 1 );
 
-        if ( smsSender.isServiceReady() )
+        if ( smsSender.isConfigured() )
         {
             if ( command.getSuccessMessage() != null && !StringUtils.isEmpty( command.getSuccessMessage() ) )
             {

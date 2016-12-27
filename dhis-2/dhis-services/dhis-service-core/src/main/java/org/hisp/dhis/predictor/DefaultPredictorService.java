@@ -36,6 +36,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
@@ -153,8 +154,9 @@ public class DefaultPredictorService
     }
 
     @Override
-    public Collection<DataValue> getPredictions( Predictor p, Date start, Date end )
+    public List<DataValue> getPredictions( Predictor p, Date start, Date end )
     {
+        // Gets predictions in a date range
         List<OrganisationUnit> sources = new ArrayList<OrganisationUnit>();
 
         for ( OrganisationUnitLevel level : p.getOrganisationUnitLevels() )
@@ -168,7 +170,7 @@ public class DefaultPredictorService
     }
 
     @Override
-    public Collection<DataValue> getPredictions( Predictor p, Collection<OrganisationUnit> sources, Date start, Date end )
+    public List<DataValue> getPredictions( Predictor p, Collection<OrganisationUnit> sources, Date start, Date end )
     {
         Collection<Period> basePeriods = getPeriodsBetween( p.getPeriodType(), start, end );
 
@@ -176,7 +178,9 @@ public class DefaultPredictorService
     }
 
     @Override
-    public Collection<DataValue> getPredictions( Predictor predictor, Collection<OrganisationUnit> sources, Collection<Period> periods )
+    public List<DataValue> getPredictions( Predictor predictor,
+        Collection<OrganisationUnit> sources,
+        Collection<Period> periods )
     {
         // Is end inclusive or exclusive? And what if end is in the middle of a
         // period? Does the period get included?
@@ -184,79 +188,66 @@ public class DefaultPredictorService
         Expression generator = predictor.getGenerator();
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement output = predictor.getOutput();
+        DataElementCategoryOptionCombo outputCombo = predictor.getOutputCombo();
         Set<BaseDimensionalItemObject> datarefs = getExpressionInputs( generator.getExpression() );
         Set<BaseDimensionalItemObject> skiprefs = skipTest == null ? new HashSet<BaseDimensionalItemObject>()
             : getExpressionInputs( skipTest.getExpression() );
         Set<BaseDimensionalItemObject> samplerefs = new HashSet<BaseDimensionalItemObject>();
         Set<String> aggregates = expressionService.getAggregatesInExpression( generator.getExpression() );
         Map<String, Double> constantMap = constantService.getConstantMap();
+        Map<? extends BaseDimensionalItemObject, Double> valueMap = new HashMap<>(); // There are no (non-aggregate) values
 
-        ListMap<Period, Period> periodMaps = getSamplePeriods( periods, predictor.getPeriodType(),
-            predictor.getSequentialSkipCount(), predictor.getSequentialSampleCount(),
+        // This returns a map from periods to the periods needed to predict their values
+        ListMap<Period, Period> periodMaps = getSamplePeriods
+            ( periods, predictor.getPeriodType(),
+                predictor.getSequentialSkipCount(), predictor.getSequentialSampleCount(),
                 predictor.getAnnualSampleCount() );
 
         Set<Period> basePeriods = periodMaps.keySet();
         Set<Period> samplePeriods = periodMaps.uniqueValues();
 
+        if ( outputCombo == null ) outputCombo =
+            categoryService.getDefaultDataElementCategoryOptionCombo();
+
+        // Aggregates are subexpressions which are passed to aggregate
+        // functions (such as AVG, STDDEV, etc) and which generate
+        // vectors of sample values rather than regular scalar values.
         for ( String aggregate : aggregates )
         {
             samplerefs.addAll( expressionService.getDataInputsInExpression( aggregate ) );
         }
 
+        // This iterates over sources and periods. All the Maps with
+        // Integer keys are mappings from attribute option combo ids
+        // to other mappings (for instance, data element to values, or
+        // aggregate string to values).
         for ( OrganisationUnit source : sources )
         {
-            MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>> valueMaps = getDataValues(
-                datarefs, sourceList( source ), basePeriods );
             Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>> skipdata = skipTest == null ? null :
                 getDataValues( skiprefs, sourceList( source ), samplePeriods ).get( source );
 
             for ( Period period : basePeriods )
             {
-                MapMap<Integer, BaseDimensionalItemObject, Double> valueMap = valueMaps.getValue( source, period );
-                
-                Map<Integer, ListMap<String, Double>> sampleMap = getSampleMaps( aggregates, samplerefs, source,
-                    periodMaps.get( period ), skipTest, skipdata, constantMap );
+                Map<Integer, ListMap<String, Double>> aggregateSampleMap =
+                    getAggregateSampleMaps
+                        ( aggregates, samplerefs, source,
+                            periodMaps.get( period ), skipTest, skipdata, constantMap );
 
-                Set<Integer> allAoc = new HashSet<Integer>();
-                
-                if ( valueMap != null )
+                for ( Integer aoc : aggregateSampleMap.keySet() )
                 {
-                    allAoc.addAll( valueMap.keySet() );
-                }
-                
-                if ( sampleMap != null )
-                {
-                    allAoc.addAll( sampleMap.keySet() );
-                }
+                    ListMap<String, Double> aggregateValueMap = aggregateSampleMap.get( aoc );
 
-                if ( allAoc.size() > 0 )
-                {
-                    for ( Integer aoc : allAoc )
+                    Double value = evalExpression( generator, valueMap, constantMap,
+                        null,0, null, aggregateValueMap );
+
+                    if ( value != null && !value.isNaN() && !value.isInfinite() )
                     {
-                        Map<? extends BaseDimensionalItemObject, Double> bindings = valueMap == null ? 
-                            emptyBindings() : valueMap.get( aoc );
-                        
-                        Double value = null;
+                        DataValue dv = new DataValue( output, period, source, outputCombo,
+                            categoryService.getDataElementCategoryOptionCombo( aoc ) );
 
-                        if ( sampleMap == null )
-                        {
-                            value = expressionService.getExpressionValue( generator, bindings, constantMap, null, 0, null );
-                        }
-                        else
-                        {
-                            value = expressionService.getExpressionValue( generator, bindings, constantMap, null, 0, null, sampleMap.get( aoc ) );
-                        }
+                        dv.setValue( value.toString() );
 
-                        if ( value != null && !value.isNaN() && !value.isInfinite() )
-                        {
-                            DataValue dv = new DataValue( output, period, source,
-                                categoryService.getDefaultDataElementCategoryOptionCombo(),
-                                categoryService.getDataElementCategoryOptionCombo( aoc ) );
-
-                            dv.setValue( value.toString() );
-                            
-                            results.add( dv );
-                        }
+                        results.add( dv );
                     }
                 }
             }
@@ -265,114 +256,123 @@ public class DefaultPredictorService
         return results;
     }
 
-    private Map<? extends BaseDimensionalItemObject, Double> emptyBindings()
+    private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,
+        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
+        Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
     {
-        return new HashMap<BaseDimensionalItemObject, Double>();
+        return expressionService.getExpressionValue
+            ( expression, valueMap, constantMap, orgUnitCountMap, days, incompleteValues, aggregateMap );
     }
 
-    private Map<Integer, ListMap<String, Double>> getSampleMaps( Collection<String> aggregateExpressions,
-        Set<BaseDimensionalItemObject> samplerefs, OrganisationUnit source, Collection<Period> periods,
-        Expression skipTest, Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>> skipData,
-        Map<String, Double> constantMap )
+    private Double evalExpression( Expression expression, Map<? extends BaseDimensionalItemObject, Double> valueMap,
+        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
+    {
+        return expressionService.getExpressionValue
+            ( expression, valueMap, constantMap, orgUnitCountMap, days );
+    }
+
+    private Map<Integer, ListMap<String, Double>> getAggregateSampleMaps
+        ( Collection<String> aggregateExpressions, Set<BaseDimensionalItemObject> samplerefs,
+            OrganisationUnit source, Collection<Period> periods,
+            Expression skipTest, Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>> skipData,
+            Map<String, Double> constantMap )
     {
         Map<Integer, ListMap<String, Double>> result = new HashMap<>();
-        
-        MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>> dataMaps = getDataValues(
-            samplerefs, sourceList( source ), periods );
-        
+
+        MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>> dataMaps =
+            getDataValues( samplerefs, sourceList( source ), periods );
+
         Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>> dataMap = dataMaps.get( source );
 
         if ( dataMap != null )
         {
-            if ( ( skipTest != null ) && (skipData != null) )
+            if ( (skipTest != null) && (skipData != null) )
             {
-                for ( Period period : periods )
-                {
-                    MapMap<Integer, BaseDimensionalItemObject, Double> periodData = skipData.get( period );
-                    
-                    if ( periodData != null )
-                    {
-                        for ( Integer aoc : periodData.keySet() )
-                        {
-                            Map<BaseDimensionalItemObject, Double> bindings = periodData.get( aoc );
-                            Double testValue = expressionService.getExpressionValue( skipTest, bindings, constantMap, null, 0 );
-                            
-                            log.debug( "skipTest " + skipTest.getExpression() + " yielded " + testValue );
-                            
-                            if ( testValue != null && !testValue.equals( 0 ) )
-                            {
-                                MapMap<Integer, BaseDimensionalItemObject, Double> inPeriod = dataMap.get( period );
-                                
-                                log.debug( "Removing sample for aoc=" + aoc + " at " + period + " from " + source );
-                                inPeriod.remove( aoc );
-                            }
-                        }
-                    }
-                }
+                applySkipTest( dataMap, skipTest, periods, source, skipData, constantMap );
             }
-            
+
             for ( String aggregate : aggregateExpressions )
             {
                 Expression exp = new Expression( aggregate, "aggregated",
                     expressionService.getDataElementsInExpression( aggregate ) );
-                
+
                 for ( Period period : periods )
                 {
-                    MapMap<Integer, BaseDimensionalItemObject, Double> inperiod = dataMap.get( period );
-                    
-                    if ( inperiod != null )
+                    MapMap<Integer, BaseDimensionalItemObject, Double> inPeriod = dataMap.get( period );
+
+                    if ( inPeriod != null )
                     {
-                        for ( Integer aoc : inperiod.keySet() )
+                        for ( Integer aoc : inPeriod.keySet() )
                         {
-                            Double value = expressionService.getExpressionValue( exp, inperiod.get( aoc ), constantMap, null, 0 );
-                            
-                            ListMap<String, Double> samplemap = result.get( aoc );
-                            
-                            if ( samplemap == null )
+                            Double value = evalExpression( exp, inPeriod.get( aoc ), constantMap, null, 0 );
+
+                            ListMap<String, Double> sampleMap = result.get( aoc );
+
+                            if ( sampleMap == null )
                             {
-                                samplemap = new ListMap<String, Double>();
-                                result.put( aoc, samplemap );
+                                sampleMap = new ListMap<>();
+                                result.put( aoc, sampleMap );
                             }
-                            
-                            samplemap.putValue( aggregate, value );
+
+                            sampleMap.putValue( aggregate, value );
                         }
                     }
                 }
             }
         }
 
-
-
         return result;
     }
 
-    private List<DataValue> readDataValues( BaseDimensionalItemObject input, Collection<OrganisationUnit> sources,
+    private void applySkipTest( Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>> dataMap,
+        Expression skipTest, Collection<Period> periods, OrganisationUnit source,
+        Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>> skipData,
+        Map<String, Double> constantMap )
+    {
+        for ( Period period : periods )
+        {
+            MapMap<Integer, BaseDimensionalItemObject, Double> periodData = skipData.get( period );
+
+            if ( periodData != null )
+            {
+                for ( Integer aoc : periodData.keySet() )
+                {
+                    Map<BaseDimensionalItemObject, Double> bindings = periodData.get( aoc );
+                    Double testValue = evalExpression( skipTest, bindings, constantMap, null, 0 );
+
+                    log.debug( "skipTest " + skipTest.getExpression() + " yielded " + testValue );
+
+                    if ( testValue != null && !testValue.equals( 0 ) )
+                    {
+                        MapMap<Integer, BaseDimensionalItemObject, Double> inPeriod = dataMap.get( period );
+
+                        log.debug( "Removing sample for aoc=" + aoc + " at " + period + " from " + source );
+                        inPeriod.remove( aoc );
+                    }
+                }
+            }
+        }
+    }
+
+    private MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>> getDataValues(
+        Collection<BaseDimensionalItemObject> inputs,
+        Collection<OrganisationUnit> sources,
         Collection<Period> periods )
     {
-        List<DataValue> result;
-        
-        if ( input instanceof DataElement )
+        MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>> result =
+            new MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>>();
+
+        for ( BaseDimensionalItemObject input : inputs )
         {
-            DataElement de = (DataElement) input;
-            result = dataValueService.getRecursiveDeflatedDataValues( de, null, periods, sources );
+            gatherDataValues( input, sources, periods, result );
         }
-        else if ( input instanceof DataElementOperand )
-        {
-            DataElementOperand deo = (DataElementOperand) input;
-            result = dataValueService.getRecursiveDeflatedDataValues(
-                    deo.getDataElement(), deo.getCategoryOptionCombo(), periods, sources );
-        }
-        else
-        {
-            result = new ArrayList<>();
-        }
-        
+
         return result;
     }
 
     private void gatherDataValues( BaseDimensionalItemObject input, Collection<OrganisationUnit> sources,
-            Collection<Period> periods, MapMap<OrganisationUnit, Period,
-            MapMap<Integer, BaseDimensionalItemObject, Double>> result )
+        Collection<Period> periods, MapMap<OrganisationUnit, Period,
+        MapMap<Integer, BaseDimensionalItemObject, Double>> result )
     {
         List<DataValue> values = readDataValues( input, sources, periods );
 
@@ -382,14 +382,14 @@ public class DefaultPredictorService
             OrganisationUnit source = value.getSource();
             Integer aoc = value.getAttributeOptionCombo().getId();
             MapMap<Integer, BaseDimensionalItemObject, Double> valueMap =
-                    result.getValue( source, pe );
+                result.getValue( source, pe );
             Map<BaseDimensionalItemObject, Double> deoMap =
-                    valueMap == null ? null : valueMap.get( aoc );
+                valueMap == null ? null : valueMap.get( aoc );
 
             if ( valueMap == null )
             {
-                Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>>  periodSubMap = result.get( source );
-                
+                Map<Period, MapMap<Integer, BaseDimensionalItemObject, Double>> periodSubMap = result.get( source );
+
                 if ( periodSubMap == null )
                 {
                     periodSubMap = new HashMap<Period, MapMap<Integer, BaseDimensionalItemObject, Double>>();
@@ -400,7 +400,7 @@ public class DefaultPredictorService
 
                 periodSubMap.put( pe, valueMap );
             }
-            
+
             if ( deoMap == null )
             {
                 deoMap = new HashMap<BaseDimensionalItemObject, Double>();
@@ -411,19 +411,27 @@ public class DefaultPredictorService
         }
     }
 
-    private MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>> getDataValues(
-        Collection<BaseDimensionalItemObject> inputs,
-        Collection<OrganisationUnit> sources,
+    private List<DataValue> readDataValues( BaseDimensionalItemObject input, Collection<OrganisationUnit> sources,
         Collection<Period> periods )
     {
-        MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>> result = 
-            new MapMap<OrganisationUnit, Period, MapMap<Integer, BaseDimensionalItemObject, Double>>();
-        
-        for ( BaseDimensionalItemObject input : inputs )
+        List<DataValue> result;
+
+        if ( input instanceof DataElement )
         {
-            gatherDataValues( input, sources, periods, result );
+            DataElement de = (DataElement) input;
+            result = dataValueService.getRecursiveDeflatedDataValues( de, null, periods, sources );
         }
-        
+        else if ( input instanceof DataElementOperand )
+        {
+            DataElementOperand deo = (DataElementOperand) input;
+            result = dataValueService.getRecursiveDeflatedDataValues(
+                deo.getDataElement(), deo.getCategoryOptionCombo(), periods, sources );
+        }
+        else
+        {
+            result = new ArrayList<>();
+        }
+
         return result;
     }
 
@@ -434,7 +442,7 @@ public class DefaultPredictorService
 
     private Set<Period> getPeriodsBetween( PeriodType ptype, Date first, Date last )
     {
-        Set<Period> periods=new HashSet<Period>();
+        Set<Period> periods = new HashSet<Period>();
 
         Period period = ptype.createPeriod( first );
 
@@ -444,7 +452,7 @@ public class DefaultPredictorService
             return periods;
         }
 
-        while ( ( period != null ) && ( !(period.getEndDate().after( last ) ) ) )
+        while ( (period != null) && (!(period.getEndDate().after( last ))) )
         {
             periods.add( period );
             period = ptype.getNextPeriod( period );
@@ -452,31 +460,31 @@ public class DefaultPredictorService
 
         return periods;
     }
-    
-    private ListMap<Period, Period> getSamplePeriods( Collection<Period> periods, PeriodType ptype,
-        int skipCount, int sequentialCount, int annualCount )
-    {
-        // Is end inclusive or exclusive? And what if end is in the middle of a
-        // period? Does the period get included?
 
+    private ListMap<Period, Period> getSamplePeriods( Collection<Period> periods, PeriodType ptype,
+        Integer skipCount, int sequentialCount, int annualCount )
+    {
         ListMap<Period, Period> results = new ListMap<Period, Period>();
 
-        for ( Period period: periods ) 
+        for ( Period period : periods )
         {
             results.put( period, new ArrayList<Period>() );
-            
+
             if ( sequentialCount > 0 )
             {
                 Period samplePeriod = ptype.getPreviousPeriod( period );
                 int i = 0;
-                
-                while ( i < skipCount )
+
+                if ( skipCount != null )
                 {
-                    samplePeriod = ptype.getPreviousPeriod( samplePeriod );
-                    i++;
+                    while ( i < skipCount )
+                    {
+                        samplePeriod = ptype.getPreviousPeriod( samplePeriod );
+                        i++;
+                    }
                 }
 
-                // We try to get a 'known period' for two reasons:
+                // We try to get a 'known period' (which has an id) for two reasons:
                 //  1. It will have an id (which lets us do direct sql queries against the datavalue table)
                 //  2. If there isn't a known period, there won't be any samples!
                 Period knownPeriod = getPeriod( samplePeriod );
@@ -491,7 +499,7 @@ public class DefaultPredictorService
                     {
                         log.debug( "Ignoring unregistered period " + samplePeriod );
                     }
-                    
+
                     samplePeriod = ptype.getPreviousPeriod( samplePeriod );
                     knownPeriod = getPeriod( samplePeriod );
                     i++;
@@ -510,13 +518,13 @@ public class DefaultPredictorService
                 {
                     // Defensive copy because createPeriod mutates Calendar
                     Calendar pastYear = PeriodType.createCalendarInstance( yearlyCalendar.getTime() );
-                    
+
                     Period pastPeriod = ptype.createPeriod( pastYear );
-                    
+
                     if ( sequentialCount == 0 )
                     {
                         Period knownPeriod = getPeriod( pastPeriod );
-                        
+
                         if ( knownPeriod != null )
                         {
                             results.putValue( period, knownPeriod );
@@ -531,7 +539,7 @@ public class DefaultPredictorService
                         Period samplePeriod = pastPeriod;
                         Period knownPeriod = getPeriod( samplePeriod );
                         int j = 0;
-                        while ( j < sequentialCount+1 ) // The +1 includes the identical past year period
+                        while ( j < sequentialCount + 1 ) // The +1 includes the identical past year period
                         {
                             if ( knownPeriod != null )
                             {
@@ -541,7 +549,7 @@ public class DefaultPredictorService
                             {
                                 log.debug( "Ignoring unregistered period " + samplePeriod );
                             }
-                            
+
                             samplePeriod = ptype.getNextPeriod( samplePeriod );
                             knownPeriod = getPeriod( samplePeriod );
                             j++;
@@ -550,10 +558,10 @@ public class DefaultPredictorService
                         // Reset past year, because createPeriod may have mutated it
                         pastYear = PeriodType.createCalendarInstance( yearlyCalendar.getTime() );
 
-                        j=0; 
+                        j = 0;
                         samplePeriod = ptype.getPreviousPeriod( pastPeriod );
                         knownPeriod = getPeriod( samplePeriod );
-                        
+
                         while ( j < sequentialCount )
                         {
                             if ( knownPeriod != null )
@@ -564,13 +572,13 @@ public class DefaultPredictorService
                             {
                                 log.debug( "Ignoring unregistered period " + samplePeriod );
                             }
-                            
+
                             samplePeriod = ptype.getPreviousPeriod( samplePeriod );
                             knownPeriod = getPeriod( samplePeriod );
                             j++;
                         }
                     }
-                    
+
                     // Move to the previous year
                     yearlyCalendar.set( Calendar.YEAR, yearlyCalendar.get( Calendar.YEAR ) - 1 );
                     yearCount++;
@@ -580,20 +588,27 @@ public class DefaultPredictorService
         return results;
     }
 
-    private Period getPeriod( Period predictor )
+    private Period getPeriod( Period period )
     {
-        return predictor.getId() != 0 ? predictor : periodService.getPeriod( predictor.getStartDate(), predictor.getEndDate(), predictor.getPeriodType() );
+        return (period.getId() != 0) ? period :
+            periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
     }
 
     @Override
     public int predict( Predictor predictor, Date start, Date end )
     {
+        log.info("Predicting for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
+
         Collection<DataValue> values = getPredictions( predictor, start, end );
+
+        log.info("Saving " + values.size() + " predicted values for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
 
         for ( DataValue value : values )
         {
             dataValueService.addDataValue( value );
         }
+
+        log.info("Saved " + values.size() + " predicted values for " + predictor.getName() + " from " + start.toString() + " to " + end.toString() );
 
         return values.size();
     }
@@ -601,13 +616,20 @@ public class DefaultPredictorService
     @Override
     public int predict( Predictor predictor, Collection<OrganisationUnit> sources, Collection<Period> basePeriods )
     {
+        log.info("Predicting for " + predictor.getName() + " from orgUnits and periods " );
+
         Collection<DataValue> values = getPredictions( predictor, sources, basePeriods );
+
+        log.info("Saving " + values.size() + " values for " + predictor.getName() + " from orgUnits and periods " );
 
         for ( DataValue value : values )
         {
             dataValueService.addDataValue( value );
         }
 
+        log.info("Saved " + values.size() + " values for " + predictor.getName() + " from orgUnits and periods " );
+
         return values.size();
     }
 }
+

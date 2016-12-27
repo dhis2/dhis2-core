@@ -99,7 +99,7 @@ public class DefaultMetadataSyncService
     }
 
     @Override
-    public MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams )
+    public synchronized MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams )
         throws MetadataSyncServiceException
     {
         MetadataVersion version = getMetadataVersion( syncParams );

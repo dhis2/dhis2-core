@@ -28,6 +28,7 @@ package org.hisp.dhis.maintenance;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -52,6 +53,14 @@ public interface MaintenanceService
      * @return the number of deleted data values.
      */
     int deleteSoftDeletedDataValues();
+
+    /**
+     * Permanently deletes program stage instances which have been soft deleted, i.e.
+     * program stage instances where the deleted property is true.
+     *
+     * @return the number of deleted program stage instances.
+     */
+    int deleteSoftDeletedProgramStageInstances();
     
     /**
      * Deletes periods which do not have data values associated with them.
@@ -66,6 +75,14 @@ public interface MaintenanceService
      * @return true if the data pruning took place, false if not permitted.
      */
     boolean pruneData( OrganisationUnit organisationUnit );
+
+    /**
+     * Prunes data and audit records related to the given data element
+     *
+     * @param dataElement the data element.
+     * @return true if the data pruning took place, false if not permitted.
+     */
+    boolean pruneData( DataElement dataElement );
     
     /**
      * Deletes user accounts representing expired account invitations.

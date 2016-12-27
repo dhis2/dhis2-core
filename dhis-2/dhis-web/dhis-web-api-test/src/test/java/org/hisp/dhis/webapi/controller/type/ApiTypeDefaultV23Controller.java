@@ -28,8 +28,8 @@ package org.hisp.dhis.webapi.controller.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -41,7 +41,7 @@ import java.io.IOException;
  */
 @Controller
 @RequestMapping( "/type/testDefaultV23" )
-@ApiVersion( { Version.DEFAULT, Version.V23 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
 public class ApiTypeDefaultV23Controller
 {
     @RequestMapping

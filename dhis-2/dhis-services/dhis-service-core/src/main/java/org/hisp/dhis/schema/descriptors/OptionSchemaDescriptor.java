@@ -51,7 +51,6 @@ public class OptionSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( Option.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setShareable( false );
         schema.setOrder( 1040 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_OPTIONSET_PUBLIC_ADD" ) ) );

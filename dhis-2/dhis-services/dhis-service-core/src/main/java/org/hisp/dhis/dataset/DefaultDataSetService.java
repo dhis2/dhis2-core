@@ -42,7 +42,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.joda.time.DateTime;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -291,19 +290,15 @@ public class DefaultDataSetService
     }
 
     @Override
-    public boolean isLockedPeriod( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
+    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
     {
-        now = now != null ? now : new Date();
-
-        boolean expired = dataSet.getExpiryDays() != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( dataSet.getExpiryDays() ).isBefore( new DateTime( now ) );
-
-        return expired && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
+        return dataSet.isLocked( period, now ) && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
     }
 
     @Override
     public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now )
     {
-        return isLockedPeriod( dataSet, period, organisationUnit, now ) ||
+        return isLocked( dataSet, period, organisationUnit, now ) ||
             dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
     }
 

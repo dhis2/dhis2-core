@@ -108,3 +108,11 @@ fonts/LiberationSans-Bold-webfont.svg
 #end
 ../dhis-web-commons/javascripts/dhis2/dhis2.period.js?_rev=$!{buildRevision}
 ../dhis-web-commons/javascripts/jQuery/calendars/jquery.calendars.picker.min.js?_rev=$!{buildRevision}
+
+# Header bar with dependencies
+../dhis-web-core-resource/react-15/react-15.min.js
+../dhis-web-core-resource/rxjs/4.1.0/rx.lite.min.js
+../dhis-web-core-resource/lodash/4.15.0/lodash.min.js
+../dhis-web-core-resource/lodash-functional/lodash-functional.js
+../dhis-web-commons/javascripts/header-bar/babel-polyfill.js?_rev=$!{buildRevision}
+../dhis-web-commons/javascripts/header-bar/header-bar.js?_rev=$!{buildRevision}

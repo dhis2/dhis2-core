@@ -44,6 +44,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -57,10 +58,10 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -85,17 +86,17 @@ import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * <p>
- * The following statements are added not to cause api break.
- * They need to be remove say in 2.26 or so once users are aware of the changes.
- * 
- * programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
- * programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
+ *         <p>
+ *         The following statements are added not to cause api break.
+ *         They need to be remove say in 2.26 or so once users are aware of the changes.
+ *         <p>
+ *         programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
+ *         programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
  */
 @Controller
 @RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
 @PreAuthorize( "hasAnyRole('ALL', 'F_TRACKED_ENTITY_INSTANCE_SEARCH')" )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class TrackedEntityInstanceController
 {
     @Autowired
@@ -177,7 +178,7 @@ public class TrackedEntityInstanceController
         {
             Set<String> trackedEntityInstanceIds = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
 
-            trackedEntityInstances = trackedEntityInstanceIds != null ? trackedEntityInstanceIds.stream().map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id ) ).collect( Collectors.toList()) : null;
+            trackedEntityInstances = trackedEntityInstanceIds != null ? trackedEntityInstanceIds.stream().map( id -> trackedEntityInstanceService.getTrackedEntityInstance( id ) ).collect( Collectors.toList() ) : null;
         }
 
         if ( params.isPaging() && params.isTotalPages() )
@@ -396,6 +397,7 @@ public class TrackedEntityInstanceController
             if ( !importSummaries.getImportSummaries().isEmpty() )
             {
                 importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
 
                 if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                 {
@@ -405,6 +407,7 @@ public class TrackedEntityInstanceController
             else
             {
                 importSummary = new ImportSummary( ImportStatus.SUCCESS, "Empty list of tracked entity instances given." );
+                importSummary.setImportOptions( importOptions );
                 importSummary.setImportCount( null );
             }
 
@@ -420,6 +423,7 @@ public class TrackedEntityInstanceController
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceJson( inputStream, importOptions );
+        importSummaries.setImportOptions( importOptions );
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
         if ( importSummaries.getImportSummaries().size() > 1 )
@@ -435,6 +439,7 @@ public class TrackedEntityInstanceController
             if ( !importSummaries.getImportSummaries().isEmpty() )
             {
                 importSummary = importSummaries.getImportSummaries().get( 0 );
+                importSummary.setImportOptions( importOptions );
 
                 if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                 {
@@ -444,6 +449,7 @@ public class TrackedEntityInstanceController
             else
             {
                 importSummary = new ImportSummary( ImportStatus.SUCCESS, "Empty list of tracked entity instances given." );
+                importSummary.setImportOptions( importOptions );
                 importSummary.setImportCount( null );
             }
 
@@ -462,6 +468,7 @@ public class TrackedEntityInstanceController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, inputStream, importOptions );
+        importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 
@@ -472,6 +479,7 @@ public class TrackedEntityInstanceController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, inputStream, importOptions );
+        importSummary.setImportOptions( importOptions );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
     }
 

@@ -326,6 +326,18 @@ public interface OrganisationUnitService
      */
     List<OrganisationUnit> getOrganisationUnitsWithCategoryOptions();
 
+    /**
+     * Returns the count of OrganisationUnits which are part of the
+     * sub-hierarchy of the given parent OrganisationUnit and members of 
+     * the given object based on the collection of the given collection name.
+     * 
+     * @param parent the parent OrganisationUnit.
+     * @param member the member object.
+     * @param collectionName the name of the collection.
+     * @return the count of member OrganisationUnits.
+     */
+    Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName );
+
     OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxlevels );
 
     List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max );

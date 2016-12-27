@@ -41,6 +41,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
+import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -123,6 +124,8 @@ public class Attribute
 
     private boolean sectionAttribute;
 
+    private boolean categoryOptionComboAttribute;
+
     private boolean mandatory;
 
     private boolean unique;
@@ -148,7 +151,7 @@ public class Attribute
         return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute, indicatorAttribute, indicatorGroupAttribute,
             dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute, organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
             programAttribute, programStageAttribute, trackedEntityAttribute, trackedEntityAttributeAttribute, categoryOptionAttribute, categoryOptionGroupAttribute,
-            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute );
+            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute, programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute );
     }
 
     @Override
@@ -192,6 +195,7 @@ public class Attribute
             && Objects.equals( this.programIndicatorAttribute, other.programIndicatorAttribute )
             && Objects.equals( this.sqlViewAttribute, other.sqlViewAttribute )
             && Objects.equals( this.sectionAttribute, other.sectionAttribute )
+            && Objects.equals( this.categoryOptionComboAttribute, other.categoryOptionComboAttribute )
 
             && Objects.equals( this.mandatory, other.mandatory )
             && Objects.equals( this.unique, other.unique )
@@ -512,6 +516,18 @@ public class Attribute
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCategoryOptionComboAttribute()
+    {
+        return categoryOptionComboAttribute;
+    }
+
+    public void setCategoryOptionComboAttribute( boolean categoryOptionComboAttribute )
+    {
+        this.categoryOptionComboAttribute = categoryOptionComboAttribute;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSectionAttribute()
     {
         return sectionAttribute;
@@ -574,6 +590,7 @@ public class Attribute
         if ( programIndicatorAttribute ) klasses.add( ProgramIndicator.class );
         if ( sqlViewAttribute ) klasses.add( SqlView.class );
         if ( sectionAttribute ) klasses.add( Section.class );
+        if ( categoryOptionComboAttribute ) klasses.add( DataElementCategoryOptionCombo.class );
 
         return klasses;
     }
@@ -611,6 +628,7 @@ public class Attribute
             programIndicatorAttribute = attribute.isProgramIndicatorAttribute();
             sqlViewAttribute = attribute.isSqlViewAttribute();
             sectionAttribute = attribute.isSectionAttribute();
+            categoryOptionComboAttribute = attribute.isCategoryOptionComboAttribute();
             mandatory = attribute.isMandatory();
             unique = attribute.isUnique();
             optionSet = attribute.getOptionSet();
@@ -655,6 +673,7 @@ public class Attribute
             .add( "programIndicatorAttribute", programIndicatorAttribute )
             .add( "sqlViewAttribute", sqlViewAttribute )
             .add( "sectionAttribute", sectionAttribute )
+            .add( "categoryOptionComboAttribute", categoryOptionComboAttribute )
             .add( "mandatory", mandatory )
             .toString();
     }

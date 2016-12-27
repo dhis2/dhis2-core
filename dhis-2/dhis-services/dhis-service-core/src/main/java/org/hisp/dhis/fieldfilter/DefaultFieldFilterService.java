@@ -152,7 +152,6 @@ public class DefaultFieldFilterService implements FieldFilterService
             fieldMap = fieldParser.parse( fields );
         }
 
-
         final FieldMap finalFieldMap = fieldMap;
         objects.forEach( object -> collectionNode.addChild( buildNode( finalFieldMap, klass, object ) ) );
 
@@ -181,16 +180,15 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         for ( String fieldKey : fieldMap.keySet() )
         {
-            AbstractNode child = null;
+            AbstractNode child;
+            Property property = schema.getProperty( fieldKey );
 
-            if ( !schema.haveProperty( fieldKey ) )
+            if ( property == null || !property.isReadable() )
             {
                 // throw new FieldFilterException( fieldKey, schema );
                 log.debug( "Unknown field property `" + fieldKey + "`, available fields are " + schema.getPropertyMap().keySet() );
                 continue;
             }
-
-            Property property = schema.getProperty( fieldKey );
 
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
             Schema propertySchema = schemaService.getDynamicSchema( property.getKlass() );

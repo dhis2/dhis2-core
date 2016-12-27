@@ -3,6 +3,23 @@
  * This file is used by dataSetReportForm.vm and dataApprovalForm.vm.
  */
 dhis2.util.namespace( 'dhis2.dsr' );
+dhis2.util.namespace( 'dhis2.de' );
+
+/**
+ * Events from data entry that might be relevant to a data set report.
+ */
+dhis2.de.event = {
+	// Fired
+	formLoaded        : "dhis2.de.event.formLoaded",
+	dataValuesLoaded  : "dhis2.de.event.dataValuesLoaded",
+	formReady         : "dhis2.de.event.formReady",
+	// Never fired in data set report (but can be subscribed to in custom form)
+	dataValueSaved    : "dhis2.de.event.dataValueSaved",
+	completed         : "dhis2.de.event.completed",
+	uncompleted       : "dhis2.de.event.uncompleted",
+	validationSucces  : "dhis2.de.event.validationSuccess",
+	validationError   : "dhis2.de.event.validationError"
+};
 
 dhis2.dsr.currentPeriodOffset = 0;
 dhis2.dsr.currentDataSetReport = null;
@@ -213,6 +230,18 @@ dhis2.dsr.displayDataSetReport = function( dataSetReport )
     	dhis2.dsr.showContent();
     	setTableStyles();
     	dhis2.dsr.registerViewEvent();
+
+		// Trigger data entry events
+		(function ($, document, undefined) {
+			// When the document is ready fire the data-entry events
+			$(function () {
+				var $document = $(document);
+
+				$document.trigger(dhis2.de.event.formLoaded);
+				$document.trigger(dhis2.de.event.dataValuesLoaded);
+				$document.trigger(dhis2.de.event.formReady);
+			});
+		}(jQuery, document));
     } );
 }
 

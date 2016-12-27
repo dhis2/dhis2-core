@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -62,11 +63,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElement;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -75,6 +72,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 public class EventQueryParams
     extends DataQueryParams
 {
+    public static final String EVENT_COORDINATE_FIELD = "EVENT";
+    
     /**
      * The query items.
      */
@@ -171,6 +170,11 @@ public class EventQueryParams
      * Size of cluster in meter.
      */
     private Long clusterSize;
+    
+    /**
+     * The coordinate field to use as basis for spatial event analytics.
+     */
+    private String coordinateField;
 
     /**
      * Bounding box for events to include in clustering.
@@ -181,7 +185,12 @@ public class EventQueryParams
      * Indicates whether to include underlying points for each cluster.
      */
     private boolean includeClusterPoints;
-    
+
+    /**
+     * Indicates the program status
+     */
+    private ProgramStatus programStatus;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -229,8 +238,10 @@ public class EventQueryParams
         params.geometryOnly = this.geometryOnly;
         params.aggregateData = this.aggregateData;
         params.clusterSize = this.clusterSize;
+        params.coordinateField = this.coordinateField;
         params.bbox = this.bbox;
         params.includeClusterPoints = this.includeClusterPoints;
+        params.programStatus = this.programStatus;
 
         params.periodType = this.periodType;
 
@@ -249,7 +260,7 @@ public class EventQueryParams
         {
             ProgramDataElement element = (ProgramDataElement) object;
             DataElement dataElement = element.getDataElement(); 
-            QueryItem item = new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
+            QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItem( item );
         }
@@ -258,7 +269,7 @@ public class EventQueryParams
         {
             ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
             TrackedEntityAttribute attribute = element.getAttribute();
-            QueryItem item = new QueryItem( attribute, attribute.getLegendSet(), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
+            QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItem( item );
         }
@@ -267,7 +278,7 @@ public class EventQueryParams
         {
             ProgramDataElement element = (ProgramDataElement) object;
             DataElement dataElement = element.getDataElement(); 
-            QueryItem item = new QueryItem( dataElement, dataElement.getLegendSet(), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
+            QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItemFilter( item );
         }
@@ -276,7 +287,7 @@ public class EventQueryParams
         {
             ProgramTrackedEntityAttribute element = (ProgramTrackedEntityAttribute) object;
             TrackedEntityAttribute attribute = element.getAttribute();
-            QueryItem item = new QueryItem( attribute, attribute.getLegendSet(), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
+            QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             builder.addItemFilter( item );
         }
 
@@ -403,6 +414,14 @@ public class EventQueryParams
     }
 
     /**
+     * Gets program status
+     */
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    /**
      * Removes items and item filters of type program indicators.
      */
     public EventQueryParams removeProgramIndicatorItems()
@@ -521,6 +540,18 @@ public class EventQueryParams
     {
         return programIndicator != null;
     }
+    
+    public boolean hasEventProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            ProgramIndicatorAnalyticsType.EVENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
+    }
+    
+    public boolean hasEnrollmentProgramIndicatorDimension()
+    {
+        return programIndicator != null &&
+            ProgramIndicatorAnalyticsType.ENROLLMENT.equals( programIndicator.getProgramIndicatorAnalyticsType() );
+    }
 
     /**
      * Indicates whether the program of this query requires registration of
@@ -534,6 +565,11 @@ public class EventQueryParams
     public boolean hasClusterSize()
     {
         return clusterSize != null;
+    }
+
+    public boolean hasProgramStatus()
+    {
+        return programStatus != null;
     }
     
     public boolean hasBbox()
@@ -666,11 +702,6 @@ public class EventQueryParams
         return geometryOnly;
     }
 
-    public void setGeometryOnly( boolean geometryOnly )
-    {
-        this.geometryOnly = geometryOnly; //TODO builder
-    }
-
     public boolean isAggregateData()
     {
         return aggregateData;
@@ -679,6 +710,11 @@ public class EventQueryParams
     public Long getClusterSize()
     {
         return clusterSize;
+    }
+
+    public String getCoordinateField()
+    {
+        return coordinateField;
     }
 
     public String getBbox()
@@ -844,6 +880,12 @@ public class EventQueryParams
             this.params.coordinatesOnly = coordinatesOnly;
             return this;
         }
+        
+        public Builder withGeometryOnly( boolean geometryOnly )
+        {
+            this.params.geometryOnly = geometryOnly;
+            return this;
+        }
 
         public Builder withDisplayProperty( DisplayProperty displayProperty )
         {
@@ -941,6 +983,12 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withCoordinateField( String coordinateField )
+        {
+            this.params.coordinateField = coordinateField;
+            return this;
+        }
+        
         public Builder withBbox( String bbox )
         {
             this.params.bbox = bbox;
@@ -950,6 +998,18 @@ public class EventQueryParams
         public Builder withIncludeClusterPoints( boolean includeClusterPoints )
         {
             this.params.includeClusterPoints = includeClusterPoints;
+            return this;
+        }
+
+        public Builder withProgramStatus( ProgramStatus programStatus )
+        {
+            this.params.programStatus = programStatus;
+            return this;
+        }
+        
+        public Builder withApiVersion( DhisApiVersion apiVersion )
+        {
+            this.params.apiVersion = apiVersion;
             return this;
         }
 

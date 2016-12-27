@@ -30,10 +30,14 @@ package org.hisp.dhis.webapi.controller;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dxf2.common.Status;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.fileresource.ExternalFileResource;
+import org.hisp.dhis.fileresource.ExternalFileResourceService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.schema.descriptors.ExternalFileResourceSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -53,10 +57,9 @@ import java.util.Date;
  */
 @Controller
 @RequestMapping( ExternalFileResourceSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ExternalFileResourceController
 {
-
     @Autowired
     private ExternalFileResourceService externalFileResourceService;
 

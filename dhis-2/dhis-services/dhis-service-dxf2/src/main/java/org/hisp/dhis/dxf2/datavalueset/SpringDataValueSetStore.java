@@ -34,8 +34,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -138,10 +138,14 @@ public class SpringDataValueSetStore
     {
         if ( params.isSingleDataValueSet() )
         {
-            dataValueSet.setDataSet( params.getFirstDataSet().getUid() ); //TODO id scheme
+            IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
+            IdScheme ouScheme = idScheme.getOrgUnitIdScheme();
+            IdScheme dataSetScheme = idScheme.getDataSetIdScheme();
+            
+            dataValueSet.setDataSet( params.getFirstDataSet().getPropertyValue( dataSetScheme ) );
             dataValueSet.setCompleteDate( getLongGmtDateString( completeDate ) );
             dataValueSet.setPeriod( params.getFirstPeriod().getIsoDate() );
-            dataValueSet.setOrgUnit( params.getFirstOrganisationUnit().getUid() );
+            dataValueSet.setOrgUnit( params.getFirstOrganisationUnit().getPropertyValue( ouScheme ) );
         }
 
         final Calendar calendar = PeriodType.getCalendar();
@@ -185,19 +189,63 @@ public class SpringDataValueSetStore
 
     private String getDataValueSql( DataExportParams params )
     {
-        IdSchemes idSchemes = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
+        IdSchemes idScheme = params.getOutputIdSchemes() != null ? params.getOutputIdSchemes() : new IdSchemes();
 
-        String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
-        String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
-        String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
+        String deScheme = idScheme.getDataElementIdScheme().getIdentifiableString().toLowerCase();
+        String ouScheme = idScheme.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
+        String cocScheme = idScheme.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
         String dataElements = getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) );
         String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
         String orgUnitGroups = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnitGroups() ) );
 
+        //----------------------------------------------------------------------
+        // Identifier schemes
+        //----------------------------------------------------------------------
+
+        String deSql = idScheme.getDataElementIdScheme().isAttribute() ? 
+            "coalesce((" +
+            "select av.value as deid from attributevalue av " +
+            "inner join dataelementattributevalues deav on av.attributevalueid=deav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getDataElementIdScheme().getAttribute() + "' " +
+            "where dv.dataelementid=deav.dataelementid " +
+            "limit 1), de.uid) as deid" :
+            "de." + deScheme + " as deid";
+        
+        String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ? 
+            "coalesce((" +
+            "select av.value as ouid from attributevalue av " +
+            "inner join organisationunitattributevalues ouav on av.attributevalueid=ouav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getOrgUnitIdScheme().getAttribute() + "' " +
+            "where dv.sourceid=ouav.organisationunitid " +
+            "limit 1), ou.uid) as ouid" :
+            "ou." + ouScheme + " as ouid";
+        
+        String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
+            "coalesce((" +
+            "select av.value as cocid from attributevalue av " +
+            "inner join categoryoptioncomboattributevalues cocav on av.attributevalueid=cocav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "' " +
+            "where dv.categoryoptioncomboid=cocav.categoryoptioncomboid " +
+            "limit 1), coc.uid) as cocid" :
+            "coc." + cocScheme + " as cocid";
+
+        String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
+            "coalesce((" +
+            "select av.value as aocid from attributevalue av " +
+            "inner join categoryoptioncomboattributevalues cocav on av.attributevalueid=cocav.attributevalueid " +
+            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "' " +
+            "where dv.attributeoptioncomboid=cocav.categoryoptioncomboid " +
+            "limit 1), aoc.uid) as aocid" :
+            "aoc." + cocScheme + " as aocid";
+
+        //----------------------------------------------------------------------
+        // Data values
+        //----------------------------------------------------------------------
+
         String sql =
-            "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
-            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
+            "select " + deSql + ", pe.startdate as pestart, pt.name as ptname, " + 
+            ouSql + ", " + cocSql + ", " + aocSql + ", " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
             "inner join dataelement de on (dv.dataelementid=de.dataelementid) " +
@@ -206,6 +254,10 @@ public class SpringDataValueSetStore
             "inner join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
             "inner join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
             "inner join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) ";
+
+        //----------------------------------------------------------------------
+        // Filters
+        //----------------------------------------------------------------------
 
         if ( params.hasOrganisationUnitGroups() )
         {

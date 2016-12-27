@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -37,8 +37,8 @@
       <artifactId>hibernate-ehcache</artifactId>
     </dependency>
     <dependency>
-      <groupId>geronimo-spec</groupId>
-      <artifactId>geronimo-spec-jta</artifactId>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jta_1.1_spec</artifactId>
     </dependency>
     <dependency>
       <groupId>c3p0</groupId>
@@ -48,14 +48,14 @@
       <groupId>cglib</groupId>
       <artifactId>cglib</artifactId>
     </dependency>
-    
+
     <!-- Jasypt -->
 
     <dependency>
-	  <groupId>org.jasypt</groupId>
-	  <artifactId>jasypt</artifactId>
+      <groupId>org.jasypt</groupId>
+      <artifactId>jasypt</artifactId>
     </dependency>
-    
+
     <!-- Database connectors -->
 
     <dependency>
@@ -87,13 +87,13 @@
     </dependency>
 
     <!-- Test -->
-    
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

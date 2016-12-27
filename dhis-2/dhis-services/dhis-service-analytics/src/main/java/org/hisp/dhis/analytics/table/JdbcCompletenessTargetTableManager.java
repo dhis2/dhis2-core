@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -45,6 +46,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -60,11 +62,11 @@ public class JdbcCompletenessTargetTableManager
         tables.add( new AnalyticsTable( getTableName(), getDimensionColumns( null ) ) );
         return tables;
     }
-    
+
     @Override
-    public List<AnalyticsTable> getAllTables()
+    public Set<String> getExistingDatabaseTables()
     {
-        return getTables( null );
+        return Sets.newHashSet( getTableName() );
     }
     
     @Override
@@ -111,52 +113,39 @@ public class JdbcCompletenessTargetTableManager
     }
 
     @Override
-    @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    protected void populateTable( AnalyticsTable table )
     {
-        taskLoop: while ( true )
+        final String tableName = table.getTempTableName();
+
+        String sql = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
         {
-            AnalyticsTable table = tables.poll();
-                
-            if ( table == null )
-            {
-                break taskLoop;
-            }
+            sql += col.getName() + ",";
+        }
 
-            final String tableName = table.getTempTableName();
+        sql += "value) select ";
 
-            String sql = "insert into " + table.getTempTableName() + " (";
-
-            List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-            
-            validateDimensionColumns( columns );
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getName() + ",";
-            }
-
-            sql += "value) select ";
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getAlias() + ",";
-            }
-            
-            sql += 
-                "1 as value " +
-                "from _datasetorganisationunitcategory doc " +
-                "inner join dataset ds on doc.datasetid=ds.datasetid " +
-                "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid " +
-                "left join _orgunitstructure ous on doc.organisationunitid=ous.organisationunitid " +
-                "left join _organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid " +
-                "left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid " +
-                "left join _categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
-
-            populateAndLog( sql, tableName );
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
         }
         
-        return null;
+        sql += 
+            "1 as value " +
+            "from _datasetorganisationunitcategory doc " +
+            "inner join dataset ds on doc.datasetid=ds.datasetid " +
+            "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on doc.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on doc.organisationunitid=ougs.organisationunitid " +
+            "left join categoryoptioncombo ao on doc.attributeoptioncomboid=ao.categoryoptioncomboid " +
+            "left join _categorystructure acs on doc.attributeoptioncomboid=acs.categoryoptioncomboid ";
+
+        populateAndLog( sql, tableName );
     }
     
     @Override

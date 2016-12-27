@@ -31,8 +31,8 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -40,9 +40,9 @@ import org.hisp.dhis.sms.outbound.MessageBatch;
 
 public interface SmsGateway
 {
-    List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig gatewayConfig );
+    List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
     boolean accept( SmsGatewayConfig gatewayConfig );
     
-    MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
+    OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 }

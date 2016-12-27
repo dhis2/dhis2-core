@@ -28,27 +28,17 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.commons.util.TextUtils.removeLast;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataelement.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
@@ -56,19 +46,20 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.*;
+
+import static org.hisp.dhis.commons.util.TextUtils.removeLast;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 /**
  * @author Lars Helge Overland
  */
 public class JdbcEventAnalyticsTableManager
-    extends AbstractJdbcTableManager
+    extends AbstractEventJdbcTableManager
 {
-    private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
+    private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     
     @Override
     @Transactional
@@ -80,10 +71,9 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    @Transactional
-    public List<AnalyticsTable> getAllTables()
+    public Set<String> getExistingDatabaseTables()
     {
-        return getTables( ListUtils.getClosedOpenList( 1500, 2100 ) );
+        return partitionManager.getEventAnalyticsPartitions();
     }
     
     private List<AnalyticsTable> getTables( List<Integer> dataYears )
@@ -112,19 +102,6 @@ public class JdbcEventAnalyticsTableManager
 
         return tables;
     }
-    
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from trackedentitydatavalue limit 1" ).next();
-        
-        if ( !hasData )
-        {
-            return "No events exist, not updating event analytics tables";
-        }
-        
-        return null;
-    }
 
     @Override
     public String getTableName()
@@ -133,94 +110,51 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    public void createTable( AnalyticsTable table )
+    protected void populateTable( AnalyticsTable table )
     {
+        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
+        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
         final String tableName = table.getTempTableName();
+        final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
 
-        final String sqlDrop = "drop table " + tableName;
-
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
+        String sql = "insert into " + table.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( table );
         
         validateDimensionColumns( columns );
-        
+
         for ( AnalyticsTableColumn col : columns )
         {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
+            sql += col.getName() + ",";
         }
 
-        sqlCreate = removeLast( sqlCreate, 1 ) + ") ";
+        sql = removeLast( sql, 1 ) + ") select ";
 
-        sqlCreate += statementBuilder.getTableOptions( false );
-
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
-    }
-
-    @Async
-    @Override
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        taskLoop: while ( true )
+        for ( AnalyticsTableColumn col : columns )
         {
-            AnalyticsTable table = tables.poll();
-
-            if ( table == null )
-            {
-                break taskLoop;
-            }
-
-            final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-            final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
-            final String tableName = table.getTempTableName();
-            final String psiExecutionDate = statementBuilder.getCastToDate( "psi.executiondate" );
-
-            String sql = "insert into " + table.getTempTableName() + " (";
-
-            List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-            
-            validateDimensionColumns( columns );
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getName() + ",";
-            }
-
-            sql = removeLast( sql, 1 ) + ") select ";
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                sql += col.getAlias() + ",";
-            }
-
-            sql = removeLast( sql, 1 ) + " ";
-
-            sql += "from programstageinstance psi " +
-                "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
-                "inner join programstage ps on psi.programstageid=ps.programstageid " +
-                "inner join program pr on pi.programid=pr.programid " +
-                "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
-                "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
-                "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
-                "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
-                "left join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
-                "where psi.executiondate >= '" + start + "' " + 
-                "and psi.executiondate <= '" + end + "' " +
-                "and pr.programid=" + table.getProgram().getId() + " " + 
-                "and psi.organisationunitid is not null " +
-                "and psi.executiondate is not null";
-
-            populateAndLog( sql, tableName );
+            sql += col.getAlias() + ",";
         }
 
-        return null;
+        sql = removeLast( sql, 1 ) + " ";
+
+        sql += "from programstageinstance psi " +
+            "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
+            "inner join programstage ps on psi.programstageid=ps.programstageid " +
+            "inner join program pr on pi.programid=pr.programid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
+            "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "left join _dateperiodstructure dps on " + psiExecutionDate + "=dps.dateperiod " +
+            "where psi.executiondate >= '" + start + "' " + 
+            "and psi.executiondate <= '" + end + "' " +
+            "and pr.programid=" + table.getProgram().getId() + " " + 
+            "and psi.organisationunitid is not null " +
+            "and psi.executiondate is not null " +
+            "and psi.deleted is false";
+
+        populateAndLog( sql, tableName );
     }
 
     @Override
@@ -283,7 +217,7 @@ public class JdbcEventAnalyticsTableManager
             String select = getSelectClause( valueType );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
-            String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " + 
+            String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " +
                 "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
@@ -291,15 +225,23 @@ public class JdbcEventAnalyticsTableManager
 
         for ( DataElement dataElement : table.getProgram().getDataElementsWithLegendSet() )
         {
-            String column = quote( dataElement.getUid() + PartitionUtils.SEP + dataElement.getLegendSet().getUid() );
-            String select = getSelectClause( dataElement.getValueType() );
-            
-            String sql = "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
-                "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " and l.endvalue > " + select + " " +
-                "and lsl.legendsetid=" + dataElement.getLegendSet().getId() + " and dv.programstageinstanceid=psi.programstageinstanceid " + 
-                "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
-                
-            columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+
+            for ( LegendSet legendSet : dataElement.getLegendSets() )
+            {
+                String column = quote(
+                    dataElement.getUid() + PartitionUtils.SEP + legendSet.getUid() );
+                String select = getSelectClause( dataElement.getValueType() );
+
+                String sql =
+                    "(select l.uid from maplegend l " +
+                    "inner join trackedentitydatavalue dv on l.startvalue <= " + select + " " +
+                    "and l.endvalue > " + select + " " +
+                    "and l.maplegendsetid=" + legendSet.getId() + " " +
+                    "and dv.programstageinstanceid=psi.programstageinstanceid " +
+                    "and dv.dataelementid=" + dataElement.getId() + numericClause + ") as " + column;
+
+                columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+            }
         }
 
         for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributes() )
@@ -317,15 +259,21 @@ public class JdbcEventAnalyticsTableManager
         
         for ( TrackedEntityAttribute attribute : table.getProgram().getNonConfidentialTrackedEntityAttributesWithLegendSet() )
         {
-            String column = quote( attribute.getUid() + PartitionUtils.SEP + attribute.getLegendSet().getUid() );
-            String select = getSelectClause( attribute.getValueType() );
-            
-            String sql = "(select l.uid from maplegend l inner join maplegendsetmaplegend lsl on l.maplegendid=lsl.maplegendid " +
-                "inner join trackedentityattributevalue av on l.startvalue <= " + select + " and l.endvalue > " + select + " " +
-                "and lsl.legendsetid=" + attribute.getLegendSet().getId() + " and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
-            
-            columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+            for ( LegendSet legendSet : attribute.getLegendSets() )
+            {
+                String column = quote( attribute.getUid() + PartitionUtils.SEP + legendSet.getUid() );
+                String select = getSelectClause( attribute.getValueType() );
+
+                String sql =
+                    "(select l.uid from maplegend l " +
+                    "inner join trackedentityattributevalue av on l.startvalue <= " + select + " " +
+                    "and l.endvalue > " + select + " " +
+                    "and l.maplegendsetid=" + legendSet.getId() + " " +
+                    "and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
+                    "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
+
+                columns.add( new AnalyticsTableColumn( column, "character(11)", sql ) );
+            }
         }
 
         AnalyticsTableColumn psi = new AnalyticsTableColumn( quote( "psi" ), "character(11) not null", "psi.uid" );
@@ -336,6 +284,7 @@ public class JdbcEventAnalyticsTableManager
         AnalyticsTableColumn ed = new AnalyticsTableColumn( quote( "executiondate" ), "timestamp", "psi.executiondate" );
         AnalyticsTableColumn dd = new AnalyticsTableColumn( quote( "duedate" ), "timestamp", "psi.duedate" );
         AnalyticsTableColumn cd = new AnalyticsTableColumn( quote( "completeddate" ), "timestamp", "psi.completeddate" );
+        AnalyticsTableColumn pes = new AnalyticsTableColumn( quote( "pistatus" ), "character(25)", "pi.status" );
         AnalyticsTableColumn es = new AnalyticsTableColumn( quote( "psistatus" ), "character(25)", "psi.status" );
         AnalyticsTableColumn longitude = new AnalyticsTableColumn( quote( "longitude" ), dbl, "psi.longitude" );
         AnalyticsTableColumn latitude = new AnalyticsTableColumn( quote( "latitude" ), dbl, "psi.latitude" );
@@ -343,7 +292,7 @@ public class JdbcEventAnalyticsTableManager
         AnalyticsTableColumn oun = new AnalyticsTableColumn( quote( "ouname" ), "character varying(230) not null", "ou.name" );
         AnalyticsTableColumn ouc = new AnalyticsTableColumn( quote( "oucode" ), "character varying(50)", "ou.code" );
 
-        columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, es, longitude, latitude, ou, oun, ouc ) );
+        columns.addAll( Lists.newArrayList( psi, pi, ps, erd, id, ed, dd, cd, pes, es, longitude, latitude, ou, oun, ouc ) );
 
         if ( databaseInfo.isSpatialSupport() )
         {
@@ -365,7 +314,8 @@ public class JdbcEventAnalyticsTableManager
         String sql = 
             "select distinct(extract(year from psi.executiondate)) " +
             "from programstageinstance psi " +
-            "where psi.executiondate is not null ";
+            "where psi.executiondate is not null " +
+            "and psi.deleted is false ";
 
         if ( earliest != null )
         {
@@ -373,68 +323,5 @@ public class JdbcEventAnalyticsTableManager
         }
         
         return jdbcTemplate.queryForList( sql, Integer.class );
-    }
-        
-    @Override
-    @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
-        Collection<String> dataElements, int aggregationLevel )
-    {
-        return null; // Not relevant
-    }
-
-    @Override
-    @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        return null; // Not needed
-    }
-    
-    /**
-     * Returns the database column type based on the given value type. For boolean
-     * values, 1 means true, 0 means false and null means no value.
-     */
-    private String getColumnType( ValueType valueType )
-    {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
-        {
-            return statementBuilder.getDoubleColumnType();
-        }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
-        {
-            return "integer";
-        }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
-        {
-            return "timestamp";
-        }
-        else
-        {
-            return "text";
-        }
-    }
-    
-    /**
-     * Returns the select clause, potentially with a cast statement, based on the
-     * given value type.
-     */
-    private String getSelectClause( ValueType valueType )
-    {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
-        {
-            return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
-        }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
-        {
-            return "case when value = 'true' then 1 when value = 'false' then 0 else null end";
-        }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
-        {
-            return "cast(value as timestamp)";
-        }
-        else
-        {
-            return "value";
-        }
-    }
+    }   
 }

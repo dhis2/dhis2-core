@@ -29,15 +29,17 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.hisp.dhis.webapi.utils.WebMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -48,7 +50,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -60,6 +61,8 @@ import java.util.List;
 public class PredictorController
     extends AbstractCrudController<Predictor>
 {
+    private static final Log log = LogFactory.getLog( PredictorController.class );
+
     @Autowired
     private PredictorService predictorService;
 
@@ -70,7 +73,7 @@ public class PredictorController
     private OrganisationUnitService organisationUnitService;
 
     @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_ADD')" )
     public void runPredictor(
         @PathVariable( "uid" ) String uid,
         @RequestParam Date startDate,
@@ -80,34 +83,51 @@ public class PredictorController
     {
         Predictor predictor = predictorService.getPredictor( uid );
 
-        int count = predictorService.predict( predictor, startDate, endDate );
+        try
+        {
+            int count = predictorService.predict( predictor, startDate, endDate );
 
-        webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
+            webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Unable to predict " + predictor.getName(), ex );
+
+            webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+        }
     }
 
     @RequestMapping( value = "/{uid}/dryRun", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void testPredictor(
         @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) String sourceId,
+        @RequestParam( required = false ) String ou,
         @RequestParam Date startDate,
         @RequestParam( required = false ) Date endDate,
         TranslateParams translateParams,
         HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         Predictor predictor = predictorService.getPredictor( uid );
-        Collection<OrganisationUnit> sources = (sourceId == null) ? (null) :
-            Lists.newArrayList( organisationUnitService.getOrganisationUnit( sourceId ) );
+        List<OrganisationUnit> sources = ou == null ? null :
+            Lists.newArrayList( organisationUnitService.getOrganisationUnit( ou ) );
 
-        Collection<DataValue> results = (sources == null) ?
-            (predictorService.getPredictions( predictor, startDate, endDate )) :
-            (predictorService.getPredictions( predictor, sources, startDate, endDate ));
+        try
+        {
+            List<DataValue> results = (sources == null) ?
+                (predictorService.getPredictions( predictor, startDate, endDate )) :
+                (predictorService.getPredictions( predictor, sources, startDate, endDate ));
 
-        webMessageService.send( WebMessageUtils.ok( "Generated " + results.size() + " predictions" ), response, request );
+            webMessageService.send( WebMessageUtils.ok( "Generated " + results.size() + " predictions" ), response, request );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Unable to predict " + predictor.getName(), ex );
+            webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+        }
     }
 
     @RequestMapping( value = "/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
     public void runPredictors(
         @RequestParam Date startDate,
         @RequestParam Date endDate,
@@ -120,7 +140,18 @@ public class PredictorController
 
         for ( Predictor predictor : allPredictors )
         {
-            count += predictorService.predict( predictor, startDate, endDate );
+            try
+            {
+                count += predictorService.predict( predictor, startDate, endDate );
+            }
+            catch ( Exception ex )
+            {
+                log.error( "Unable to predict " + predictor.getName(), ex );
+
+                webMessageService.send( WebMessageUtils.conflict( "Unable to predict " + predictor.getName(), ex.getMessage() ), response, request );
+
+                return;
+            }
         }
 
         webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );

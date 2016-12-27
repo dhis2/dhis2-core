@@ -42,8 +42,13 @@ import java.util.List;
  */
 public class DefaultQueryParser implements QueryParser
 {
+    private final SchemaService schemaService;
+
     @Autowired
-    private SchemaService schemaService;
+    public DefaultQueryParser( SchemaService schemaService )
+    {
+        this.schemaService = schemaService;
+    }
 
     @Override
     public Query parse( Class<?> klass, List<String> filters ) throws QueryParserException

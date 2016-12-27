@@ -33,10 +33,10 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.BufferedReader;
@@ -86,15 +86,15 @@ public class SimplisticHttpGetGateWay
         .put( HttpURLConnection.HTTP_ACCEPTED, GatewayResponse.RESULT_CODE_0 )
         .put( HttpURLConnection.HTTP_CONFLICT, GatewayResponse.FAILED ).build();
 
-    private static final Set<Integer> OK_CODES = ImmutableSet.of( HttpURLConnection.HTTP_OK,
+    private static final ImmutableSet<Integer> OK_CODES = ImmutableSet.of( HttpURLConnection.HTTP_OK,
         HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
 
     @Override
-    public List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig gatewayConfig )
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        List<MessageResponseStatus> statuses = new ArrayList<>();
+        List<OutboundMessageResponse> statuses = new ArrayList<>();
 
-        for ( OutBoundMessage message : batch.getBatch() )
+        for ( OutboundMessage message : batch.getMessages() )
         {
             statuses.add( send( message.getSubject(), message.getText(), message.getRecipients(), gatewayConfig ) );
         }
@@ -109,11 +109,11 @@ public class SimplisticHttpGetGateWay
     }
 
     @Override
-    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         GenericHttpGatewayConfig genericHttpConfiguraiton = (GenericHttpGatewayConfig) config;
 
-        MessageResponseStatus status = new MessageResponseStatus();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         UriComponentsBuilder uri = buildUrl( genericHttpConfiguraiton, text, recipients );
 

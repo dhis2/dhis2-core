@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
@@ -46,6 +47,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -53,6 +55,12 @@ import com.google.common.collect.Lists;
 public class JdbcCompletenessTableManager
     extends AbstractJdbcTableManager
 {
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return Sets.newHashSet( getTableName() );
+    }
+    
     @Override
     public String validState()
     {
@@ -104,63 +112,50 @@ public class JdbcCompletenessTableManager
     }
     
     @Override
-    @Async
-    public Future<?> populateTableAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
+    protected void populateTable( AnalyticsTable table )
     {
-        taskLoop: while ( true )
+        final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
+        final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
+        final String tableName = table.getTempTableName();
+
+        String insert = "insert into " + table.getTempTableName() + " (";
+
+        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
+        
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
         {
-            AnalyticsTable table = tables.poll();
-                
-            if ( table == null )
-            {
-                break taskLoop;
-            }
-            
-            final String start = DateUtils.getMediumDateString( table.getPeriod().getStartDate() );
-            final String end = DateUtils.getMediumDateString( table.getPeriod().getEndDate() );
-            final String tableName = table.getTempTableName();
-
-            String insert = "insert into " + table.getTempTableName() + " (";
-
-            List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-            
-            validateDimensionColumns( columns );
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                insert += col.getName() + ",";
-            }
-            
-            insert += "value) ";
-            
-            String select = "select ";
-            
-            for ( AnalyticsTableColumn col : columns )
-            {
-                select += col.getAlias() + ",";
-            }
-            
-            select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
-            
-            select += 
-                "cdr.date as value " +
-                "from completedatasetregistration cdr " +
-                "inner join dataset ds on cdr.datasetid=ds.datasetid " +
-                "left join _organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid " +
-                "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
-                "left join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
-                "inner join period pe on cdr.periodid=pe.periodid " +
-                "left join _periodstructure ps on cdr.periodid=ps.periodid " +
-                "where pe.startdate >= '" + start + "' " +
-                "and pe.startdate <= '" + end + "' " +
-                "and cdr.date is not null";
-    
-            final String sql = insert + select;
-            
-            populateAndLog( sql, tableName );
+            insert += col.getName() + ",";
         }
         
-        return null;
+        insert += "value) ";
+        
+        String select = "select ";
+        
+        for ( AnalyticsTableColumn col : columns )
+        {
+            select += col.getAlias() + ",";
+        }
+        
+        select = select.replace( "organisationunitid", "sourceid" ); // Legacy fix
+        
+        select += 
+            "cdr.date as value " +
+            "from completedatasetregistration cdr " +
+            "inner join dataset ds on cdr.datasetid=ds.datasetid " +
+            "inner join _organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid " +
+            "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
+            "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
+            "inner join period pe on cdr.periodid=pe.periodid " +
+            "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
+            "where pe.startdate >= '" + start + "' " +
+            "and pe.startdate <= '" + end + "' " +
+            "and cdr.date is not null";
+
+        final String sql = insert + select;
+        
+        populateAndLog( sql, tableName );
     }
     
     @Override

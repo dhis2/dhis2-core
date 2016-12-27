@@ -29,9 +29,9 @@ package org.hisp.dhis.programrule;
  */
 
 /**
- * @author markusbekken
+ * @author Markus Bekken
  */
-public enum ProgramRuleActionType 
+public enum ProgramRuleActionType
 {
     DISPLAYTEXT( "displaytext" ),
     DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
@@ -42,12 +42,12 @@ public enum ProgramRuleActionType
     WARNINGONCOMPLETE( "warningoncomplete" ),
     SHOWERROR( "showerror" ),
     ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT("createevent"),
-    SETMANDATORYFIELD("setmandatoryfield");
+    CREATEEVENT( "createevent" ),
+    SETMANDATORYFIELD( "setmandatoryfield" );
 
     final String value;
 
-    private ProgramRuleActionType( String value )
+    ProgramRuleActionType( String value )
     {
         this.value = value;
     }

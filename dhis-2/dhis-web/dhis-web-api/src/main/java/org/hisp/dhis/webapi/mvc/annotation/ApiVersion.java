@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.mvc.annotation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
@@ -43,69 +44,10 @@ import java.lang.annotation.Target;
 public @interface ApiVersion
 {
     @AliasFor( "include" )
-    Version[] value() default Version.ALL;
+    DhisApiVersion[] value() default DhisApiVersion.ALL;
 
     @AliasFor( "value" )
-    Version[] include() default Version.ALL;
+    DhisApiVersion[] include() default DhisApiVersion.ALL;
 
-    Version[] exclude() default {};
-
-    enum Version
-    {
-        /**
-         * Default mapping /api/name
-         */
-        DEFAULT( "" ),
-
-        /**
-         * Default mapping /api/name
-         */
-        TEST( "test" ),
-
-        /**
-         * /api/23/name
-         */
-        V23( "23" ),
-
-        /**
-         * /api/24/name
-         */
-        V24( "24" ),
-
-        /**
-         * /api/25/name
-         */
-        V25( "25" ),
-
-        /**
-         * Map to all versions, not including default.
-         */
-        ALL( "*", true );
-
-        final String path;
-
-        final boolean ignore;
-
-        Version( String path )
-        {
-            this.path = path;
-            this.ignore = false;
-        }
-
-        Version( String path, boolean ignore )
-        {
-            this.path = path;
-            this.ignore = ignore;
-        }
-
-        public String getPath()
-        {
-            return path;
-        }
-
-        public boolean isIgnore()
-        {
-            return ignore;
-        }
-    }
+    DhisApiVersion[] exclude() default {};
 }

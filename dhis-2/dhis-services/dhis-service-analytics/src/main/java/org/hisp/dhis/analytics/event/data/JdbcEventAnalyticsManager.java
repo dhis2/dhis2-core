@@ -28,40 +28,20 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.commons.util.TextUtils.trimEnd;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -77,7 +57,20 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.google.common.collect.Lists;
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 
 /**
  * TODO could use row_number() and filtering for paging, but not supported on MySQL.
@@ -94,6 +87,7 @@ public class JdbcEventAnalyticsManager
     private static final String NA = "[N/A]";
     private static final String COL_COUNT = "count";
     private static final String COL_EXTENT = "extent";
+    private static final int COORD_DEC = 6;
 
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
@@ -306,7 +300,12 @@ public class JdbcEventAnalyticsManager
             
             for ( GridHeader header : grid.getHeaders() )
             {
-                if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
+                if ( ITEM_LONGITUDE.equals( header.getName() ) || ITEM_LATITUDE.equals( header.getName() ) )
+                {
+                    double val = rowSet.getDouble( index );
+                    grid.addValue( Precision.round( val, COORD_DEC ) );
+                }
+                else if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
                 {
                     double val = rowSet.getDouble( index );
                     grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
@@ -324,10 +323,10 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEventClusters( EventQueryParams params, Grid grid, int maxLimit )
     {
-        params.setGeometryOnly( true );
+        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
         
         List<String> columns = Lists.newArrayList( "count(psi) as count", 
-            "ST_AsText(ST_Centroid(ST_Collect(geom))) as center", "ST_Extent(geom) as extent" );
+            "ST_AsText(ST_Centroid(ST_Collect(" + clusterField + "))) as center", "ST_Extent(" + clusterField + ") as extent" );
 
         columns.add( params.isIncludeClusterPoints() ?
             "array_to_string(array_agg(psi), ',') as points" :
@@ -335,9 +334,9 @@ public class JdbcEventAnalyticsManager
         
         String sql = "select " + StringUtils.join( columns, "," ) + " ";
         
-        sql += getFromWhereClause( params, Lists.newArrayList( "psi", "geom" ) );
+        sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
         
-        sql += "group by ST_SnapToGrid(ST_Transform(geom, 3785), " + params.getClusterSize() + ") ";
+        sql += "group by ST_SnapToGrid(ST_Transform(" + clusterField + ", 3785), " + params.getClusterSize() + ") ";
 
         log.debug( "Analytics event cluster SQL: " + sql );
         
@@ -345,12 +344,11 @@ public class JdbcEventAnalyticsManager
 
         while ( rowSet.next() )
         {
-            grid.addRow();
-            
-            grid.addValue( rowSet.getLong( "count" ) );
-            grid.addValue( rowSet.getString( "center" ) );
-            grid.addValue( rowSet.getString( "extent" ) );
-            grid.addValue( rowSet.getString( "points" ) );         
+            grid.addRow()
+                .addValue( rowSet.getLong( "count" ) )
+                .addValue( rowSet.getString( "center" ) )
+                .addValue( rowSet.getString( "extent" ) )
+                .addValue( rowSet.getString( "points" ) );         
         }
         
         return grid;
@@ -381,12 +379,12 @@ public class JdbcEventAnalyticsManager
     
     @Override
     public Rectangle getRectangle( EventQueryParams params )
-    {        
-        params.setGeometryOnly( true );
+    {
+        String clusterField = statementBuilder.columnQuote( params.getCoordinateField() );
+                
+        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(" + clusterField + ") as " + COL_EXTENT + " ";
         
-        String sql = "select count(psi) as " + COL_COUNT + ", ST_Extent(geom) AS " + COL_EXTENT + " ";
-        
-        sql += getFromWhereClause( params, Lists.newArrayList( "psi", "geom" ) );
+        sql += getFromWhereClause( params, Lists.newArrayList( "psi", clusterField ) );
 
         log.debug( "Analytics event count and extent SQL: " + sql );
         
@@ -426,13 +424,14 @@ public class JdbcEventAnalyticsManager
             
             return function + "(" + expression + ")";
         }
-        else if ( params.hasProgramIndicatorDimension() )
+        else if ( params.hasEventProgramIndicatorDimension() )
         {
             String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
             
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
             
-            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression() );
+            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(), 
+                params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             return function + "(" + expression + ")";
             
@@ -468,7 +467,7 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasProgramIndicatorDimension() )
         {
-            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression() );
+            Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( params.getProgramIndicator().getExpression(),  params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             return uids.stream().map( uid -> statementBuilder.columnQuote( uid ) ).collect( Collectors.toList() );
         }
@@ -501,14 +500,24 @@ public class JdbcEventAnalyticsManager
         }
         
         for ( QueryItem queryItem : params.getItems() )
-        {
+        {            
             if ( queryItem.isProgramIndicator() )
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
                 String asClause = " as " + statementBuilder.columnQuote( in.getUid() );
                 
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in.getProgramIndicatorAnalyticsType() ) + ")" + asClause );
+            }
+            else if ( ValueType.COORDINATE == queryItem.getValueType() )
+            {
+                String colName = statementBuilder.columnQuote( queryItem.getItemName() );
+                
+                String coordSql =  
+                    "'[' || round(ST_X(" + colName + ")::numeric, " + COORD_DEC + ") ||" +
+                    "',' || round(ST_Y(" + colName + ")::numeric, " + COORD_DEC + ") || ']' as " + colName;
+                
+                columns.add( coordSql );
             }
             else
             {
@@ -539,7 +548,7 @@ public class JdbcEventAnalyticsManager
             {
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
                 
-                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression() );
+                Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( in.getExpression(), in.getProgramIndicatorAnalyticsType() );
                 
                 for ( String uid : uids )
                 {
@@ -656,10 +665,13 @@ public class JdbcEventAnalyticsManager
         // Organisation unit group sets
         // ---------------------------------------------------------------------
 
-        for ( DimensionalObject dim : params.getDimensionsAndFilters( DimensionType.ORGANISATION_UNIT_GROUP_SET ) )
+        List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters( 
+            Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
+        
+        for ( DimensionalObject dim : dynamicDimensions )
         {            
             String col = statementBuilder.columnQuote( dim.getDimensionName() );
-                
+            
             sql += "and " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
         }
 
@@ -704,7 +716,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
-            String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), false );
+            String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(), 
+                params.getProgramIndicator().getProgramIndicatorAnalyticsType(), false );
             
             String sqlFilter = ExpressionUtils.asSql( filter );
             
@@ -713,7 +726,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasProgramIndicatorDimension() )
         {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression() );
+            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             if ( anyValueFilter != null )
             {
@@ -724,6 +737,11 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
         // Various filters
         // ---------------------------------------------------------------------
+
+        if ( params.hasProgramStatus() )
+        {
+            sql += "and pistatus = '" + params.getProgramStatus().name() + "' ";
+        }
 
         if ( params.hasEventStatus() )
         {
@@ -737,7 +755,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.isGeometryOnly() )
         {
-            sql += "and geom is not null ";
+            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " is not null ";
         }
         
         if ( params.isCompletedOnly() )
@@ -747,7 +765,7 @@ public class JdbcEventAnalyticsManager
         
         if ( params.hasBbox() )
         {
-            sql += "and geom && ST_MakeEnvelope(" + params.getBbox() + ",4326)";
+            sql += "and " + statementBuilder.columnQuote( params.getCoordinateField() ) + " && ST_MakeEnvelope(" + params.getBbox() + ",4326) ";
         }
         
         return sql;

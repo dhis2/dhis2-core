@@ -56,7 +56,7 @@ import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -81,7 +81,7 @@ import java.util.UUID;
  */
 @Controller
 @RequestMapping( value = SystemController.RESOURCE_PATH )
-@ApiVersion( { Version.DEFAULT, Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SystemController
 {
     public static final String RESOURCE_PATH = "/system";
@@ -139,9 +139,13 @@ public class SystemController
         throws IOException, InvalidTypeException
     {
         limit = Math.min( limit, 10000 );
+
         CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
-        CsvSchema.Builder schemaBuilder = CsvSchema.builder().setUseHeader( true );
-        schemaBuilder.addColumn( "uid" );
+
+        CsvSchema.Builder schemaBuilder = CsvSchema.builder()
+            .addColumn( "uid" )
+            .setUseHeader( true );
+
         csvGenerator.setSchema( schemaBuilder.build() );
 
         for ( int i = 0; i < limit; i++ )
@@ -150,6 +154,8 @@ public class SystemController
             csvGenerator.writeStringField( "uid", CodeGenerator.generateCode() );
             csvGenerator.writeEndObject();
         }
+
+        csvGenerator.flush();
     }
 
     @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
@@ -229,6 +235,12 @@ public class SystemController
         return info;
     }
 
+    @RequestMapping( value = "/info/minimal", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody SystemInfo getMinialSystemInfo( Model model, HttpServletRequest request )
+    {
+        return systemService.getMinimalSystemInfo();
+    }
+
     @RequestMapping( value = "/objectCounts", method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectCounts()
     {
@@ -244,14 +256,14 @@ public class SystemController
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { Version.V24, Version.V25 } )
+    @ApiVersion( exclude = { DhisApiVersion.V24, DhisApiVersion.V25, DhisApiVersion.V26 } )
     public @ResponseBody String pingLegacy()
     {
         return "pong";
     }
 
     @RequestMapping( value = "/ping", method = RequestMethod.GET )
-    @ApiVersion( exclude = { Version.DEFAULT, Version.V23 } )
+    @ApiVersion( exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
     public @ResponseBody String ping()
     {
         return "pong";

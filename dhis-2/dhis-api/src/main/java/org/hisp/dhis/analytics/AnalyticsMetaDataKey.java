@@ -29,21 +29,21 @@ package org.hisp.dhis.analytics;
  */
 
 /**
-* Represents keys for the meta data part of analytics responses.
-* 
-* @author Lars Helge Overland
-*/
+ * Represents keys for the meta data part of analytics responses.
+ *
+ * @author Lars Helge Overland
+ */
 public enum AnalyticsMetaDataKey
 {
+    ITEMS( "items" ),
     NAMES( "names" ),
-    DIMENSION_ITEMS( "dimensionItems" ),
     PAGER( "pager" ),
     ORG_UNIT_HIERARCHY( "ouHierarchy" ),
     ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" );
-    
+
     private String key;
 
-    private AnalyticsMetaDataKey( String key )
+    AnalyticsMetaDataKey( String key )
     {
         this.key = key;
     }

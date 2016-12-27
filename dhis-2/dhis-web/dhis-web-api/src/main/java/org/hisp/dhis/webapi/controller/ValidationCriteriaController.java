@@ -28,17 +28,17 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.schema.descriptors.ValidationCriteriaSchemaDescriptor;
+import org.hisp.dhis.validation.ValidationCriteria;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @Controller
-@RequestMapping(value = ValidationCriteriaSchemaDescriptor.API_ENDPOINT)
+@RequestMapping( value = ValidationCriteriaSchemaDescriptor.API_ENDPOINT )
 public class ValidationCriteriaController extends
-		AbstractCrudController<ValidationCriteria> {
+    AbstractCrudController<ValidationCriteria>
+{
 }
