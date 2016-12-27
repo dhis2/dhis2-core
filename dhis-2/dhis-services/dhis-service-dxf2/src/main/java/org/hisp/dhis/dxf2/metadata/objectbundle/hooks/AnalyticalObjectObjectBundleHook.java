@@ -102,7 +102,8 @@ public class AnalyticalObjectObjectBundleHook
 
             if ( dataDimensionItem.getReportingRate() != null )
             {
-                preheatService.connectReferences( dataDimensionItem.getReportingRate(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                dataDimensionItem.getReportingRate().setDataSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                    dataDimensionItem.getReportingRate().getDataSet() ) );
             }
 
             preheatService.connectReferences( dataDimensionItem, bundle.getPreheat(), bundle.getPreheatIdentifier() );
