@@ -35,17 +35,17 @@ import java.util.Set;
 */
 public class OutboundMessage
 {
+    private String subject;
+
     private String text;
     
     private Set<String> recipients;
-    
-    private String subject;
    
-    public OutboundMessage( String text, Set<String> recipients, String subject )
+    public OutboundMessage( String subject, String text, Set<String> recipients )
     {
+        this.subject = subject;
         this.text = text;
         this.recipients = recipients;
-        this.subject = subject;
     }
 
     public String getText()

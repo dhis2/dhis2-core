@@ -53,8 +53,8 @@ public class EmailMessageBatchCreator
         {
             if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
             {
-                OutboundMessage email = new OutboundMessage( programMessage.getText(),
-                    programMessage.getRecipients().getEmailAddresses(), programMessage.getSubject() );
+                OutboundMessage email = new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+                    programMessage.getRecipients().getEmailAddresses() );
 
                 messages.add( email );
             }

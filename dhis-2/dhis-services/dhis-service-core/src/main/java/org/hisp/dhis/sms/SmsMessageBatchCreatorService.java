@@ -52,8 +52,8 @@ public class SmsMessageBatchCreatorService
         {
             if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
-                OutboundMessage sms = new OutboundMessage( programMessage.getText(),
-                    programMessage.getRecipients().getPhoneNumbers(), programMessage.getSubject() );
+                OutboundMessage sms = new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+                    programMessage.getRecipients().getPhoneNumbers() );
 
                 messages.add( sms );
             }
