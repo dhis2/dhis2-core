@@ -994,7 +994,7 @@ public class DefaultDataValueSetService
             if ( approvalDataSet != null ) // Data element is assigned to at least one data set
             {
                 if ( periodLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
-                    () -> dataSetService.isLockedPeriod( approvalDataSet, period, orgUnit, null ) ) )
+                    () -> dataSetService.isLocked( approvalDataSet, period, orgUnit, null ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +
                         period.getIsoDate() + " and data set: " + approvalDataSet.getUid() ) );

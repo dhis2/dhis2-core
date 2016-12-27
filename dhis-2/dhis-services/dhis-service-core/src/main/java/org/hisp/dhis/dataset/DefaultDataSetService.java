@@ -291,7 +291,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    public boolean isLockedPeriod( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
+    public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
     {
         now = now != null ? now : new Date();
 
@@ -303,7 +303,7 @@ public class DefaultDataSetService
     @Override
     public boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo, Date now )
     {
-        return isLockedPeriod( dataSet, period, organisationUnit, now ) ||
+        return isLocked( dataSet, period, organisationUnit, now ) ||
             dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
     }
 

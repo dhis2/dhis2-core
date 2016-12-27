@@ -277,7 +277,7 @@ public interface DataSetService
      * @param now              the base date for deciding locked date, current date if null.
      * @return true or false indicating whether the system is locked or not.
      */
-    boolean isLockedPeriod( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
+    boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
 
     /**
      * Checks whether the system is locked for data entry for the given input,
