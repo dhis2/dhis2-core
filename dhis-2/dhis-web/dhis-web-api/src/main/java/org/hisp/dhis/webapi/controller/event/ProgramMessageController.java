@@ -36,7 +36,7 @@ import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.sms.BatchResponseStatus;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;

@@ -1,11 +1,11 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permi      tted provided that the following conditions are met:
+ * modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
@@ -28,43 +28,53 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.List;
+import java.util.Set;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-
-@JacksonXmlRootElement( localName = "batchResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class BatchResponseStatus
+* @author Zubair <rajazubair.asghar@gmail.com>
+*/
+public class OutboundMessage
 {
-    private List<MessageResponseSummary> summaries;
+    private String text;
     
-    public BatchResponseStatus( List<MessageResponseSummary> summaries )
+    private Set<String> recipients;
+    
+    private String subject;
+   
+    public OutboundMessage( String text, Set<String> recipients, String subject )
     {
-        this.summaries = summaries;
+        this.text = text;
+        this.recipients = recipients;
+        this.subject = subject;
     }
 
-    public boolean isOk()
+    public String getText()
     {
-        return summaries.stream().noneMatch( s -> s.getBatchStatus() != MessageBatchStatus.COMPLETED );
+        return text;
     }
 
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonProperty( value = "summaries" )
-    public List<MessageResponseSummary> getSummaries()
+    public void setText( String text )
     {
-        return summaries;
+        this.text = text;
     }
 
-    @Override
-    public String toString()
+    public Set<String> getRecipients()
     {
-        return MoreObjects.toStringHelper( this ).add( "summaries", summaries ).toString();
+        return recipients;
+    }
+
+    public void setRecipients( Set<String> recipients )
+    {
+        this.recipients = recipients;
+    }
+
+    public String getSubject()
+    {
+        return subject;
+    }
+
+    public void setSubject( String subject )
+    {
+        this.subject = subject;
     }
 }

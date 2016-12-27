@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,67 +28,33 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DeliveryChannel;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
+ * @author gZubair <rajazubair.asghar@gmail.com>
  */
 
-@JacksonXmlRootElement( localName = "messageResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class MessageResponseStatus
+public class OutboundMessageBatch
 {
-    private String description;
+    private final List<OutboundMessage> messages;
     
-    private boolean ok;
+    private final DeliveryChannel deliveryChannel;
 
-    private Enum<?> responseObject;
-
-    public MessageResponseStatus()
+    public OutboundMessageBatch( List<OutboundMessage> messages, DeliveryChannel deliveryChannel )
     {
+        this.messages = messages;
+        this.deliveryChannel = deliveryChannel;
+    }
+    
+    public List<OutboundMessage> getMessages()
+    {
+        return messages;
     }
 
-    public MessageResponseStatus( String description, Enum<?> response, boolean ok )
+    public DeliveryChannel getDeliveryChannel()
     {
-        this.ok = ok;
-        this.responseObject = response;
-        this.description = description;
-    }
-
-    @JsonProperty( value = "status" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Enum<?> getResponseObject()
-    {
-        return responseObject;
-    }
-
-    public void setResponseObject( Enum<?> response )
-    {
-        this.responseObject = response;
-    }
-
-    @JsonProperty( value = "description" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    public boolean isOk()
-    {
-        return ok;
-    }
-
-    public void setOk( boolean ok )
-    {
-        this.ok = ok;
+        return deliveryChannel;
     }
 }

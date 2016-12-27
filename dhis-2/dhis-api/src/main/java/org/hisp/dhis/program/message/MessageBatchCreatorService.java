@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.program.message;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,59 +28,14 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
+import java.util.List;
+
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>
 */
-
-public class OutBoundMessage
+public interface MessageBatchCreatorService
 {
-    private String text;
-    
-    private Set<String> recipients;
-    
-    private String subject;
-
-    public OutBoundMessage()
-    {
-    }
-   
-    public OutBoundMessage( String text, Set<String> recipients, String subject )
-    {
-        super();
-        this.text = text;
-        this.recipients = recipients;
-        this.subject = subject;
-    }
-
-    public String getText()
-    {
-        return text;
-    }
-
-    public void setText( String text )
-    {
-        this.text = text;
-    }
-
-    public Set<String> getRecipients()
-    {
-        return recipients;
-    }
-
-    public void setRecipients( Set<String> recipients )
-    {
-        this.recipients = recipients;
-    }
-
-    public String getSubject()
-    {
-        return subject;
-    }
-
-    public void setSubject( String subject )
-    {
-        this.subject = subject;
-    }
+    OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages );
 }

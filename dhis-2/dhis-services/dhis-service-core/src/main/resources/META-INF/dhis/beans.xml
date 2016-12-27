@@ -1389,6 +1389,18 @@
     <property name="attributeGroupStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" />
   </bean>
 
+  <!-- Outbound messaging services -->
+
+  <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"
+    class="org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService">
+    <property name="messageSenders">
+      <map>
+        <entry key="SMS" value-ref="smsMessageSender" />
+        <entry key="EMAIL" value-ref="emailMessageSender" />
+      </map>
+    </property>
+  </bean>
+
   <!-- ProgramMessage services -->
 
   <bean id="org.hisp.dhis.program.message.ProgramMessageService" class="org.hisp.dhis.program.message.DefaultProgramMessageService">
@@ -1680,6 +1692,10 @@
   </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementDeletionHandler" class="org.hisp.dhis.dataelement.DataElementDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
+  <bean id="org.hisp.dhis.dataelement.DataElementOperandDeletionHandler" class="org.hisp.dhis.dataelement.DataElementOperandDeletionHandler">
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 

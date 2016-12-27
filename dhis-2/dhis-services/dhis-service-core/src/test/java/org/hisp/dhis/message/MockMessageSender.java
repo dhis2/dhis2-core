@@ -29,9 +29,9 @@ package org.hisp.dhis.message;
  */
 
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.MessageResponseSummary;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
 
 import java.util.Set;
@@ -45,7 +45,7 @@ public class MockMessageSender
     implements MessageSender
 {
     @Override
-    public MessageResponseStatus sendMessage( String subject, String text, String footer, User sender, Set<User> users,
+    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
         boolean forceSend )
     {
         // Do nothing
@@ -53,37 +53,25 @@ public class MockMessageSender
     }
 
     @Override
-    public boolean accept( Set<DeliveryChannel> channels )
+    public boolean isConfigured()
     {
         return false;
     }
 
     @Override
-    public boolean isServiceReady()
-    {
-        return false;
-    }
-
-    @Override
-    public  MessageResponseStatus  sendMessage( String subject, String text, Set<String> recipient )
+    public OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipient )
     {
         return null;
     }
 
     @Override
-    public  MessageResponseStatus  sendMessage( String subject, String text, String recipient )
+    public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
         return null;
     }
 
     @Override
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return null;
-    }
-
-    @Override
-    public MessageResponseSummary sendMessageBatch( MessageBatch batch )
+    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
         return null;
     }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.email;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,38 +28,11 @@ package org.hisp.dhis.email;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.program.message.MessageBatchCreatorService;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
+ * @author Zubair <rajazubair.asghar@gmail.com>
+ */
 
-public class EmailMessageBatchCreator
-    implements MessageBatchCreatorService
+public enum OutboundMessageBatchStatus
 {
-    @Override
-    public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
-    {
-        List<OutboundMessage> messages = new ArrayList<>();
-
-        for ( ProgramMessage programMessage : programMessages )
-        {
-            if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
-            {
-                OutboundMessage email = new OutboundMessage( programMessage.getText(),
-                    programMessage.getRecipients().getEmailAddresses(), programMessage.getSubject() );
-
-                messages.add( email );
-            }
-        }
-        
-        return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );
-    }
+    COMPLETED, FAILED, PENDING
 }

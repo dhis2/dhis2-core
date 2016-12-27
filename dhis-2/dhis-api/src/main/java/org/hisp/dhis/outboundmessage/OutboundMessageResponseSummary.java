@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -40,7 +40,7 @@ import org.hisp.dhis.common.DeliveryChannel;
  */
 
 @JacksonXmlRootElement( localName = "messageResponseSummary", namespace = DxfNamespaces.DXF_2_0 )
-public class MessageResponseSummary
+public class OutboundMessageResponseSummary
 {
     private int total;
     
@@ -50,7 +50,7 @@ public class MessageResponseSummary
     
     private int sent;
     
-    private MessageBatchStatus batchStatus;
+    private OutboundMessageBatchStatus batchStatus;
     
     private String responseMessage;
     
@@ -58,13 +58,12 @@ public class MessageResponseSummary
     
     private DeliveryChannel channel;
     
-    public MessageResponseSummary()
+    public OutboundMessageResponseSummary()
     {
     }
     
-    public MessageResponseSummary(String errorMessage, DeliveryChannel channel, MessageBatchStatus status)
+    public OutboundMessageResponseSummary( String errorMessage, DeliveryChannel channel, OutboundMessageBatchStatus status )
     {
-        super();
         this.errorMessage = errorMessage;
         this.channel = channel;
         this.batchStatus = status;
@@ -120,12 +119,12 @@ public class MessageResponseSummary
 
     @JsonProperty( value = "status" )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public MessageBatchStatus getBatchStatus()
+    public OutboundMessageBatchStatus getBatchStatus()
     {
         return batchStatus;
     }
 
-    public void setBatchStatus( MessageBatchStatus batchStatus )
+    public void setBatchStatus( OutboundMessageBatchStatus batchStatus )
     {
         this.batchStatus = batchStatus;
     }
@@ -137,7 +136,7 @@ public class MessageResponseSummary
         return responseMessage;
     }
 
-    public void setResposneMessage( String responseMessage )
+    public void setResponseMessage( String responseMessage )
     {
         this.responseMessage = responseMessage;
     }
