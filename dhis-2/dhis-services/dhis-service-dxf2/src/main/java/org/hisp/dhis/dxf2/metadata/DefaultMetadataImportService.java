@@ -247,14 +247,13 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
         {
-            bundle.getObjects( klass, true ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, true, bundle ) );
-            bundle.getObjects( klass, false ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, false, bundle ) );
+            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle ) );
         }
     }
 
-    private void prepareObject( BaseIdentifiableObject object, boolean update, ObjectBundle bundle )
+    private void prepareObject( BaseIdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !update && StringUtils.isEmpty( object.getPublicAccess() ) )
+        if ( StringUtils.isEmpty( object.getPublicAccess() ) )
         {
             aclService.resetSharing( object, bundle.getUser() );
         }
