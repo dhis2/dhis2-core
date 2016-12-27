@@ -988,16 +988,16 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            final DataSet implicitDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
+            final DataSet approvalDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
                 () -> dataElement.getApprovalDataSet() );
 
-            if ( implicitDataSet != null ) // Data element is assigned to at least one data set
+            if ( approvalDataSet != null ) // Data element is assigned to at least one data set
             {
-                if ( periodLockedMap.get( implicitDataSet.getUid() + period.getUid() + orgUnit.getUid(),
-                    () -> dataSetService.isLockedPeriod( implicitDataSet, period, orgUnit, null ) ) )
+                if ( periodLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
+                    () -> dataSetService.isLockedPeriod( approvalDataSet, period, orgUnit, null ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +
-                        period.getIsoDate() + " and data set: " + implicitDataSet.getUid() ) );
+                        period.getIsoDate() + " and data set: " + approvalDataSet.getUid() ) );
                     continue;
                 }
 
@@ -1010,7 +1010,7 @@ public class DefaultDataValueSetService
                     continue;
                 }
 
-                DataApprovalWorkflow workflow = implicitDataSet.getWorkflow();
+                DataApprovalWorkflow workflow = approvalDataSet.getWorkflow();
 
                 if ( workflow != null )
                 {
@@ -1025,17 +1025,17 @@ public class DefaultDataValueSetService
                     } ) )
                     {
                         summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
-                            "Data is already approved for data set: " + implicitDataSet.getUid() + " period: " + period.getIsoDate()
+                            "Data is already approved for data set: " + approvalDataSet.getUid() + " period: " + period.getIsoDate()
                                 + " organisation unit: " + orgUnit.getUid() + " attribute option combo: " + attrOptionCombo.getUid() ) );
                         continue;
                     }
                 }
             }
 
-            if ( implicitDataSet != null && !implicitDataSet.isValidPeriodForDataEntry( period ) )
+            if ( approvalDataSet != null && !approvalDataSet.isValidPeriodForDataEntry( period ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
-                    "Period: " + period.getIsoDate() + " is not within date range of data set: " + implicitDataSet.getUid() ) );
+                    "Period: " + period.getIsoDate() + " is not within date range of data set: " + approvalDataSet.getUid() ) );
                 continue;
             }
 
