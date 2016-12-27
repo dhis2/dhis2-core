@@ -56,7 +56,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockExceptionStore;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.common.JacksonUtils;
@@ -132,9 +132,6 @@ public class DefaultDataValueSetService
     private PeriodService periodService;
 
     @Autowired
-    private DataSetService dataSetService;
-
-    @Autowired
     private DataApprovalService approvalService;
 
     @Autowired
@@ -151,6 +148,9 @@ public class DefaultDataValueSetService
 
     @Autowired
     private SystemSettingManager systemSettingManager;
+    
+    @Autowired
+    private LockExceptionStore lockExceptionStore;
 
     @Autowired
     private I18nManager i18nManager;
@@ -577,7 +577,9 @@ public class DefaultDataValueSetService
         notifier.clear( id ).notify( id, "Process started" );
 
         ImportSummary summary = new ImportSummary();
+        
         boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
+        boolean skipLockExceptionCheck = !lockExceptionStore.anyExists();
 
         I18n i18n = i18nManager.getI18n();
 
@@ -628,7 +630,7 @@ public class DefaultDataValueSetService
         CachingMap<String, Set<DataElementCategoryOptionCombo>> dataElementCategoryOptionComboMap = new CachingMap<>();
         CachingMap<String, Set<DataElementCategoryOptionCombo>> dataElementAttrOptionComboMap = new CachingMap<>();
         CachingMap<String, Boolean> dataElementOrgUnitMap = new CachingMap<>();
-        CachingMap<String, Boolean> periodLockedMap = new CachingMap<>();
+        CachingMap<String, Boolean> dataSetLockedMap = new CachingMap<>();
         CachingMap<String, Period> dataElementLatestFuturePeriodMap = new CachingMap<>();
         CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
         CachingMap<String, DateRange> attrOptionComboDateRangeMap = new CachingMap<>();
@@ -956,16 +958,16 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            final DataSet implicitDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
+            final DataSet approvalDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
                 () -> dataElement.getApprovalDataSet() );
 
-            if ( implicitDataSet != null ) // Data element is assigned to at least one data set
+            if ( approvalDataSet != null ) // Data element is assigned to at least one data set
             {
-                if ( periodLockedMap.get( implicitDataSet.getUid() + period.getUid() + orgUnit.getUid(),
-                    () -> dataSetService.isLockedPeriod( implicitDataSet, period, orgUnit, null ) ) )
+                if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
+                    () -> isLocked( approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +
-                        period.getIsoDate() + " and data set: " + implicitDataSet.getUid() ) );
+                        period.getIsoDate() + " and data set: " + approvalDataSet.getUid() ) );
                     continue;
                 }
 
@@ -978,7 +980,7 @@ public class DefaultDataValueSetService
                     continue;
                 }
 
-                DataApprovalWorkflow workflow = implicitDataSet.getWorkflow();
+                DataApprovalWorkflow workflow = approvalDataSet.getWorkflow();
 
                 if ( workflow != null )
                 {
@@ -993,7 +995,7 @@ public class DefaultDataValueSetService
                     } ) )
                     {
                         summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
-                            "Data is already approved for data set: " + implicitDataSet.getUid() + " period: " + period.getIsoDate()
+                            "Data is already approved for data set: " + approvalDataSet.getUid() + " period: " + period.getIsoDate()
                                 + " organisation unit: " + orgUnit.getUid() + " attribute option combo: " + attrOptionCombo.getUid() ) );
                         continue;
                     }
@@ -1123,5 +1125,18 @@ public class DefaultDataValueSetService
         }
 
         summary.setDataSetComplete( DateUtils.getMediumDateString( completeDate ) );
+    }
+    
+    /**
+     * Checks whether the given data set is locked.
+     * 
+     * @param dataSet the data set.
+     * @param period the period.
+     * @param organisationUnit the organisation unit.
+     * @param skipLockExceptionCheck whether to skip lock exception check.
+     */
+    private boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
+    {
+        return dataSet.isLocked( period, null ) && ( skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L );
     }
 }
