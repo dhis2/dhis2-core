@@ -37,6 +37,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserInfo;
 
 /**
  * @author Lars Helge Overland
@@ -90,6 +91,13 @@ public class MockCurrentUserService
     public User getCurrentUser()
     {
         return currentUser;
+    }
+
+    @Override
+    public UserInfo getCurrentUserInfo()
+    {
+        return new UserInfo( currentUser.getId(), 
+            currentUser.getUsername(), currentUser.getUserCredentials().getAllAuthorities() );
     }
 
     @Override
