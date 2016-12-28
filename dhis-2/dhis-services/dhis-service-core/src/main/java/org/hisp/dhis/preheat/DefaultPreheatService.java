@@ -409,18 +409,16 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> scanObjects = new HashMap<>();
+        Map<Class<? extends IdentifiableObject>, List<?>> scanObjects = new HashMap<>();
         scanObjects.putAll( objects ); // clone objects list, we don't want to modify it
 
         if ( scanObjects.containsKey( User.class ) )
         {
-            List<IdentifiableObject> users = scanObjects.get( User.class );
-            List<IdentifiableObject> userCredentials = new ArrayList<>();
+            List<User> users = (List<User>) scanObjects.get( User.class );
+            List<UserCredentials> userCredentials = new ArrayList<>();
 
-            for ( IdentifiableObject identifiableObject : users )
+            for ( User user : users )
             {
-                User user = (User) identifiableObject;
-
                 if ( user.getUserCredentials() != null )
                 {
                     userCredentials.add( user.getUserCredentials() );
@@ -438,12 +436,7 @@ public class DefaultPreheatService implements PreheatService
                 .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
                 .collect( Collectors.toList() );
 
-            List<IdentifiableObject> identifiableObjects = scanObjects.get( objectClass );
-
-            if ( !uidMap.containsKey( objectClass ) ) uidMap.put( objectClass, new HashSet<>() );
-            if ( !codeMap.containsKey( objectClass ) ) codeMap.put( objectClass, new HashSet<>() );
-
-            for ( IdentifiableObject object : identifiableObjects )
+            for ( Object object : scanObjects.get( objectClass ) )
             {
                 identifiableProperties.forEach( p ->
                 {
@@ -546,11 +539,15 @@ public class DefaultPreheatService implements PreheatService
                     }
                 }
 
-                object.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
-                object.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
-                object.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
+                if ( schema.isIdentifiableObject() )
+                {
+                    IdentifiableObject identifiableObject = (IdentifiableObject) object;
+                    identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
+                    identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                    identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
 
-                addIdentifiers( map, object );
+                    addIdentifiers( map, identifiableObject );
+                }
             }
         }
 
