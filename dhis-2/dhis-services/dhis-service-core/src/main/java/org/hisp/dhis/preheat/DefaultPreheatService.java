@@ -373,7 +373,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
-        map.put( object.getClass(), Lists.newArrayList( (IdentifiableObject) object ) );
+        map.put( object.getClass(), Lists.newArrayList( object ) );
 
         return collectReferences( map );
     }
@@ -432,13 +432,23 @@ public class DefaultPreheatService implements PreheatService
         {
             Schema schema = schemaService.getDynamicSchema( klass );
 
-            List<Property> identifiableProperties = schema.getProperties().stream()
+            List<Property> referenceProperties = schema.getProperties().stream()
                 .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
                 .collect( Collectors.toList() );
 
             for ( Object object : scanObjects.get( klass ) )
             {
-                identifiableProperties.forEach( p ->
+                if ( schema.isIdentifiableObject() )
+                {
+                    IdentifiableObject identifiableObject = (IdentifiableObject) object;
+                    identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
+                    identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                    identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
+
+                    addIdentifiers( map, identifiableObject );
+                }
+
+                referenceProperties.forEach( p ->
                 {
                     if ( !p.isCollection() )
                     {
@@ -537,16 +547,6 @@ public class DefaultPreheatService implements PreheatService
                         validationRule.getRightSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                         validationRule.getRightSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
-                }
-
-                if ( schema.isIdentifiableObject() )
-                {
-                    IdentifiableObject identifiableObject = (IdentifiableObject) object;
-                    identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
-                    identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
-                    identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
-
-                    addIdentifiers( map, identifiableObject );
                 }
             }
         }
