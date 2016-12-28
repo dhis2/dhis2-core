@@ -157,7 +157,7 @@ public class DefaultDataValueSetService
 
     @Autowired
     private LockExceptionStore lockExceptionStore;
-    
+
     @Autowired
     private I18nManager i18nManager;
 
@@ -605,7 +605,7 @@ public class DefaultDataValueSetService
 
         boolean isIso8601 = calendarService.getSystemCalendar().isIso8601();
         boolean skipLockExceptionCheck = !lockExceptionStore.anyExists();
-        
+
         log.info( String.format( "Is ISO calendar: %b, skip lock exception check: %b", isIso8601, skipLockExceptionCheck ) );
 
         I18n i18n = i18nManager.getI18n();
@@ -904,7 +904,7 @@ public class DefaultDataValueSetService
                     categoryOptionCombo = fallbackCategoryOptionCombo;
                 }
             }
-            
+
             if ( attrOptionCombo == null )
             {
                 if ( requireAttrOptionCombo )
@@ -995,8 +995,8 @@ public class DefaultDataValueSetService
                 () -> dataElement.getApprovalDataSet() );
 
             if ( approvalDataSet != null ) // Data element is assigned to at least one data set
-            {                
-                if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(), 
+            {
+                if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
                     () -> isLocked( approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +
@@ -1213,17 +1213,17 @@ public class DefaultDataValueSetService
 
         summary.setDataSetComplete( DateUtils.getMediumDateString( completeDate ) );
     }
-    
+
     /**
      * Checks whether the given data set is locked.
-     * 
-     * @param dataSet the data set.
-     * @param period the period.
-     * @param organisationUnit the organisation unit.
+     *
+     * @param dataSet                the data set.
+     * @param period                 the period.
+     * @param organisationUnit       the organisation unit.
      * @param skipLockExceptionCheck whether to skip lock exception check.
      */
     private boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
     {
-        return dataSet.isLocked( period, null ) && ( skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L );
+        return dataSet.isLocked( period, null ) && (skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L);
     }
 }

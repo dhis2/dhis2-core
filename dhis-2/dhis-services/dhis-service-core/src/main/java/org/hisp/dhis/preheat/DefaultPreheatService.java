@@ -365,36 +365,44 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( IdentifiableObject object )
+    @SuppressWarnings( "unchecked" )
+    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Object object )
     {
         if ( object == null )
         {
             return new HashMap<>();
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
+        if ( Collection.class.isInstance( object ) )
+        {
+            return collectReferences( (Collection<?>) object );
+        }
+        else if ( Map.class.isInstance( object ) )
+        {
+            return collectReferences( (Map<Class<?>, List<?>>) object );
+        }
+
+        Map<Class<?>, List<?>> map = new HashMap<>();
         map.put( object.getClass(), Lists.newArrayList( object ) );
 
         return collectReferences( map );
     }
 
-    @Override
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Collection<IdentifiableObject> objects )
+    private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Collection<?> objects )
     {
         if ( objects == null || objects.isEmpty() )
         {
             return new HashMap<>();
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
+        Map<Class<?>, List<?>> map = new HashMap<>();
         map.put( objects.iterator().next().getClass(), Lists.newArrayList( objects ) );
 
         return collectReferences( map );
     }
 
-    @Override
     @SuppressWarnings( "unchecked" )
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Map<Class<?>, List<?>> objects )
     {
         Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> map = new HashMap<>();
 
