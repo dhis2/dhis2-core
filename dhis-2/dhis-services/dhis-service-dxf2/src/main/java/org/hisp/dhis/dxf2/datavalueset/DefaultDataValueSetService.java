@@ -1044,7 +1044,7 @@ public class DefaultDataValueSetService
 
             if ( !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(), () -> dataElement.isPeriodInDataSetOpenPeriods( period ) ) )
             {
-                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data set(s)" ) );
+                summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data sets" ) );
                 continue;
             }
 

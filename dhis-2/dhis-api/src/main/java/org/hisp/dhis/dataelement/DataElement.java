@@ -709,14 +709,16 @@ public class DataElement
 
     public boolean isPeriodInDataSetOpenPeriods( Period period )
     {
-        if ( getDataSets().isEmpty() )
+        Set<DataSet> dataSets = getDataSets();
+        
+        if ( dataSets.isEmpty() )
         {
             return true;
         }
 
         boolean result = false;
 
-        for ( DataSet dataSet : getDataSets() )
+        for ( DataSet dataSet : dataSets )
         {
             if ( dataSet.getOpenPeriods().contains( period ) )
             {
