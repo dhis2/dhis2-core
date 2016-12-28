@@ -365,36 +365,44 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( IdentifiableObject object )
+    @SuppressWarnings( "unchecked" )
+    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Object object )
     {
         if ( object == null )
         {
             return new HashMap<>();
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
-        map.put( object.getClass(), Lists.newArrayList( (IdentifiableObject) object ) );
+        if ( Collection.class.isInstance( object ) )
+        {
+            return collectReferences( (Collection<?>) object );
+        }
+        else if ( Map.class.isInstance( object ) )
+        {
+            return collectReferences( (Map<Class<?>, List<?>>) object );
+        }
+
+        Map<Class<?>, List<?>> map = new HashMap<>();
+        map.put( object.getClass(), Lists.newArrayList( object ) );
 
         return collectReferences( map );
     }
 
-    @Override
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Collection<IdentifiableObject> objects )
+    private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Collection<?> objects )
     {
         if ( objects == null || objects.isEmpty() )
         {
             return new HashMap<>();
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
+        Map<Class<?>, List<?>> map = new HashMap<>();
         map.put( objects.iterator().next().getClass(), Lists.newArrayList( objects ) );
 
         return collectReferences( map );
     }
 
-    @Override
     @SuppressWarnings( "unchecked" )
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Map<Class<?>, List<?>> objects )
     {
         Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> map = new HashMap<>();
 
@@ -409,18 +417,16 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> scanObjects = new HashMap<>();
+        Map<Class<?>, List<?>> scanObjects = new HashMap<>();
         scanObjects.putAll( objects ); // clone objects list, we don't want to modify it
 
         if ( scanObjects.containsKey( User.class ) )
         {
-            List<IdentifiableObject> users = scanObjects.get( User.class );
-            List<IdentifiableObject> userCredentials = new ArrayList<>();
+            List<User> users = (List<User>) scanObjects.get( User.class );
+            List<UserCredentials> userCredentials = new ArrayList<>();
 
-            for ( IdentifiableObject identifiableObject : users )
+            for ( User user : users )
             {
-                User user = (User) identifiableObject;
-
                 if ( user.getUserCredentials() != null )
                 {
                     userCredentials.add( user.getUserCredentials() );
@@ -430,29 +436,34 @@ public class DefaultPreheatService implements PreheatService
             scanObjects.put( UserCredentials.class, userCredentials );
         }
 
-        for ( Class<? extends IdentifiableObject> objectClass : scanObjects.keySet() )
+        for ( Class<?> klass : scanObjects.keySet() )
         {
-            Schema schema = schemaService.getDynamicSchema( objectClass );
+            Schema schema = schemaService.getDynamicSchema( klass );
 
-            List<Property> identifiableProperties = schema.getProperties().stream()
+            List<Property> referenceProperties = schema.getProperties().stream()
                 .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
                 .collect( Collectors.toList() );
 
-            List<IdentifiableObject> identifiableObjects = scanObjects.get( objectClass );
-
-            if ( !uidMap.containsKey( objectClass ) ) uidMap.put( objectClass, new HashSet<>() );
-            if ( !codeMap.containsKey( objectClass ) ) codeMap.put( objectClass, new HashSet<>() );
-
-            for ( IdentifiableObject object : identifiableObjects )
+            for ( Object object : scanObjects.get( klass ) )
             {
-                identifiableProperties.forEach( p ->
+                if ( schema.isIdentifiableObject() )
+                {
+                    IdentifiableObject identifiableObject = (IdentifiableObject) object;
+                    identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
+                    identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                    identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
+
+                    addIdentifiers( map, identifiableObject );
+                }
+
+                referenceProperties.forEach( p ->
                 {
                     if ( !p.isCollection() )
                     {
-                        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) p.getKlass();
+                        Class<? extends IdentifiableObject> itemKlass = (Class<? extends IdentifiableObject>) p.getKlass();
 
-                        if ( !uidMap.containsKey( klass ) ) uidMap.put( klass, new HashSet<>() );
-                        if ( !codeMap.containsKey( klass ) ) codeMap.put( klass, new HashSet<>() );
+                        if ( !uidMap.containsKey( itemKlass ) ) uidMap.put( itemKlass, new HashSet<>() );
+                        if ( !codeMap.containsKey( itemKlass ) ) codeMap.put( itemKlass, new HashSet<>() );
 
                         Object reference = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
 
@@ -545,12 +556,6 @@ public class DefaultPreheatService implements PreheatService
                         validationRule.getRightSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
                 }
-
-                object.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
-                object.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
-                object.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
-
-                addIdentifiers( map, object );
             }
         }
 
