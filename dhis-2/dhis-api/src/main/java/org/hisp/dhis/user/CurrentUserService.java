@@ -57,6 +57,12 @@ public interface CurrentUserService
     User getCurrentUser();
     
     /**
+     * @return the user info for the currently logged in user. If no user is 
+     *         logged in or the auto access admin is active, null is returned.
+     */
+    UserInfo getCurrentUserInfo();
+    
+    /**
      * @return the data capture organisation units of the current user, empty set
      *         if no current user.
      */
