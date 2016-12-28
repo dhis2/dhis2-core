@@ -709,10 +709,8 @@ public class DefaultDataElementCategoryService
             User user = currentUserService.getCurrentUser();
             
             for ( DataElementCategoryOption categoryOption : coc.getCategoryOptions() )
-            {
-                boolean b = !aclService.canRead( user, categoryOption );
-                
-                if ( b )
+            {                
+                if ( !aclService.canRead( user, categoryOption ) )
                 {
                     return null;
                 }
