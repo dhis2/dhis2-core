@@ -1,7 +1,5 @@
 package org.hisp.dhis.dataelement;
 
-import com.google.common.collect.Lists;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -30,6 +28,7 @@ import com.google.common.collect.Lists;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -37,11 +36,13 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.deletion.DeletionManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,13 +115,27 @@ public class DefaultDataElementCategoryService
         this.idObjectManager = idObjectManager;
     }
 
+    private CurrentUserService currentUserService;
+    
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
+    private AclService aclService;
+
+    public void setAclService( AclService aclService )
+    {
+        this.aclService = aclService;
+    }
+    
     private DeletionManager deletionManager;
 
     public void setDeletionManager( DeletionManager deletionManager )
     {
         this.deletionManager = deletionManager;
     }
-
+    
     // -------------------------------------------------------------------------
     // Category
     // -------------------------------------------------------------------------
@@ -688,21 +703,23 @@ public class DefaultDataElementCategoryService
     public DataElementCategoryOptionCombo getDataElementCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
         DataElementCategoryOptionCombo coc = idObjectManager.getObject( DataElementCategoryOptionCombo.class, property, id );
-
-        return canReadDataElementCategoryOptionCombo( coc ) ? coc : null;
-    }
-
-    private boolean canReadDataElementCategoryOptionCombo( DataElementCategoryOptionCombo categoryOptionCombo )
-    {
-        if ( categoryOptionCombo == null )
-        {
-            return false;
+        
+        if ( coc != null )
+        {            
+            User user = currentUserService.getCurrentUser();
+            
+            for ( DataElementCategoryOption categoryOption : coc.getCategoryOptions() )
+            {
+                boolean b = !aclService.canRead( user, categoryOption );
+                
+                if ( b )
+                {
+                    return null;
+                }
+            }
         }
-
-        List<DataElementCategoryOption> options = categoryOptionStore.getByUid(
-            IdentifiableObjectUtils.getUids( categoryOptionCombo.getCategoryOptions() ) );
-
-        return options.size() == categoryOptionCombo.getCategoryOptions().size();
+        
+        return coc;
     }
 
     @Override

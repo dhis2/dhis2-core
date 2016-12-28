@@ -936,6 +936,8 @@
     <property name="categoryOptionGroupStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupStore" />
     <property name="categoryOptionGroupSetStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupSetStore" />
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
     <property name="deletionManager" ref="deletionManager" />
   </bean>
 
