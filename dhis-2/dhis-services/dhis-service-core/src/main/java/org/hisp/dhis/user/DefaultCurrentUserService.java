@@ -29,7 +29,6 @@ package org.hisp.dhis.user;
  */
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -58,10 +57,10 @@ public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
     /**
-     * Cache for user IDs. Key is username. Does not accept nulls. Disabled during 
-     * test phase. Take care not to cache user info which might change during runtime.
+     * Cache for user IDs. Key is username. Disabled during test phase. 
+     * Take care not to cache user info which might change during runtime.
      */
-    private static final Cache<String, Optional<Integer>> USERNAME_ID_CACHE = Caffeine.newBuilder()
+    private static final Cache<String, Integer> USERNAME_ID_CACHE = Caffeine.newBuilder()
         .expireAfterAccess( 1, TimeUnit.HOURS )
         .initialCapacity( 200 )
         .maximumSize( SystemUtils.isTestRun() ? 0 : 2000 )
@@ -109,9 +108,9 @@ public class DefaultCurrentUserService
             return null;
         }
         
-        Optional<Integer> userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserIdOptional( un ) );
+        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
         
-        if ( !userId.isPresent() )
+        if ( userId == null )
         {
             return null;
         }
@@ -120,14 +119,14 @@ public class DefaultCurrentUserService
             .stream().map( GrantedAuthority::getAuthority )
             .collect( Collectors.toSet() );
         
-        return new UserInfo( userId.get(), userDetails.getUsername(), authorities );
+        return new UserInfo( userId, userDetails.getUsername(), authorities );
     }
     
-    private Optional<Integer> getUserIdOptional( String username )
+    private Integer getUserId( String username )
     {
         UserCredentials credentials = currentUserStore.getUserCredentialsByUsername( username );
         
-        return credentials != null ? Optional.of( credentials.getId() ) : Optional.empty(); 
+        return credentials != null ? credentials.getId() : null;
     }
 
     @Override

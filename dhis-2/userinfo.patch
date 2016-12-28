@@ -1,0 +1,304 @@
+From 7f5a0a52a69371e3a8051240870858717d1156f2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lars=20Helge=20=C3=98verland?= <lars@dhis2.org>
+Date: Wed, 28 Dec 2016 16:36:38 +0100
+Subject: [PATCH] Introduced UserInfo and getCurrentUserInfo
+
+---
+ .../org/hisp/dhis/user/CurrentUserService.java     |  6 ++
+ .../src/main/java/org/hisp/dhis/user/UserInfo.java | 97 ++++++++++++++++++++++
+ .../AbstractSpringSecurityCurrentUserService.java  | 17 ++++
+ .../hisp/dhis/user/DefaultCurrentUserService.java  | 61 +++++++++++++-
+ .../org/hisp/dhis/mock/MockCurrentUserService.java |  8 ++
+ 5 files changed, 188 insertions(+), 1 deletion(-)
+ create mode 100644 dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/UserInfo.java
+
+diff --git a/dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/CurrentUserService.java b/dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/CurrentUserService.java
+index 7ddc648a..7d8c2b5d 100644
+--- a/dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/CurrentUserService.java
++++ b/dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/CurrentUserService.java
+@@ -57,6 +57,12 @@ public interface CurrentUserService
+     User getCurrentUser();
+     
+     /**
++     * @return the user info for the currently logged in user. If no user is 
++     *         logged in or the auto access admin is active, null is returned.
++     */
++    UserInfo getCurrentUserInfo();
++    
++    /**
+      * @return the data capture organisation units of the current user, empty set
+      *         if no current user.
+      */
+diff --git a/dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/UserInfo.java b/dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/UserInfo.java
+new file mode 100644
+index 00000000..0823a51a
+--- /dev/null
++++ b/dhis-2/dhis-api/src/main/java/org/hisp/dhis/user/UserInfo.java
+@@ -0,0 +1,97 @@
++package org.hisp.dhis.user;
++
++/*
++ * Copyright (c) 2004-2016, University of Oslo
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ * Redistributions of source code must retain the above copyright notice, this
++ * list of conditions and the following disclaimer.
++ *
++ * Redistributions in binary form must reproduce the above copyright notice,
++ * this list of conditions and the following disclaimer in the documentation
++ * and/or other materials provided with the distribution.
++ * Neither the name of the HISP project nor the names of its contributors may
++ * be used to endorse or promote products derived from this software without
++ * specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
++ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++import java.util.HashSet;
++import java.util.Set;
++
++/**
++ * Represents minimal user information.
++ * 
++ * @author Lars Helge Overland
++ */
++public class UserInfo
++{
++    private int id;
++    
++    private String username;
++    
++    private Set<String> authorities = new HashSet<>();
++    
++    protected UserInfo()
++    {
++    }
++    
++    public UserInfo( int id, String username, Set<String> authorities )
++    {
++        this.id = id;
++        this.username = username;
++        this.authorities = authorities;
++    }
++
++    // -------------------------------------------------------------------------
++    // Logic
++    // -------------------------------------------------------------------------
++    
++    public boolean isSuper()
++    {
++        return authorities.contains( UserAuthorityGroup.AUTHORITY_ALL );
++    }
++    
++    public static UserInfo fromUser( User user )
++    {
++        if ( user == null )
++        {
++            return null;
++        }
++        
++        UserCredentials credentials = user.getUserCredentials();
++        
++        return new UserInfo( credentials.getId(), credentials.getUsername(), credentials.getAllAuthorities() );
++    }
++    
++    // -------------------------------------------------------------------------
++    // Get methods
++    // -------------------------------------------------------------------------
++
++    public int getId()
++    {
++        return id;
++    }
++
++    public String getUsername()
++    {
++        return username;
++    }
++
++    public Set<String> getAuthorities()
++    {
++        return authorities;
++    }
++}
+diff --git a/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/security/spring/AbstractSpringSecurityCurrentUserService.java b/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/security/spring/AbstractSpringSecurityCurrentUserService.java
+index 61f3d7db..b81db291 100644
+--- a/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/security/spring/AbstractSpringSecurityCurrentUserService.java
++++ b/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/security/spring/AbstractSpringSecurityCurrentUserService.java
+@@ -70,6 +70,23 @@ public abstract class AbstractSpringSecurityCurrentUserService
+         return userDetails.getUsername();
+     }
+ 
++    /**
++     * Returns the current UserDetails, or null of there is no
++     * current user or if principal is not of type UserDetails.
++     */
++    protected UserDetails getCurrentUserDetails()
++    {
++        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
++
++        if ( authentication == null || !authentication.isAuthenticated() || 
++            authentication.getPrincipal() == null || !( authentication.getPrincipal() instanceof UserDetails ) )
++        {
++            return null;
++        }
++        
++        return (UserDetails) authentication.getPrincipal();
++    }
++    
+     @Override
+     public void clearCurrentUser()
+     {
+diff --git a/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/user/DefaultCurrentUserService.java b/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/user/DefaultCurrentUserService.java
+index 2bcf79ea..2ade91c2 100644
+--- a/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/user/DefaultCurrentUserService.java
++++ b/dhis-2/dhis-services/dhis-service-core/src/main/java/org/hisp/dhis/user/DefaultCurrentUserService.java
+@@ -29,20 +29,44 @@ package org.hisp.dhis.user;
+  */
+ 
+ import java.util.HashSet;
++import java.util.Optional;
+ import java.util.Set;
++import java.util.concurrent.TimeUnit;
++import java.util.stream.Collectors;
+ 
++import org.hisp.dhis.commons.util.SystemUtils;
+ import org.hisp.dhis.organisationunit.OrganisationUnit;
+ import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
+ import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.security.core.GrantedAuthority;
++import org.springframework.security.core.userdetails.UserDetails;
+ import org.springframework.transaction.annotation.Transactional;
+ 
++import com.github.benmanes.caffeine.cache.Cache;
++import com.github.benmanes.caffeine.cache.Caffeine;
++
+ /**
++ * Service for retrieving information about the currently
++ * authenticated user.
++ * 
++ * Note that most methods are transactional, except for
++ * retrieving current UserInfo.
++ * 
+  * @author Torgeir Lorange Ostby
+  */
+-@Transactional
+ public class DefaultCurrentUserService
+     extends AbstractSpringSecurityCurrentUserService
+ {
++    /**
++     * Cache for user IDs. Key is username. Does not accept nulls. Disabled during 
++     * test phase. Take care not to cache user info which might change during runtime.
++     */
++    private static final Cache<String, Optional<Integer>> USERNAME_ID_CACHE = Caffeine.newBuilder()
++        .expireAfterAccess( 1, TimeUnit.HOURS )
++        .initialCapacity( 200 )
++        .maximumSize( SystemUtils.isTestRun() ? 0 : 2000 )
++        .build();
++    
+     // -------------------------------------------------------------------------
+     // Dependencies
+     // -------------------------------------------------------------------------
+@@ -55,6 +79,7 @@ public class DefaultCurrentUserService
+     // -------------------------------------------------------------------------
+ 
+     @Override
++    @Transactional
+     public User getCurrentUser()
+     {
+         String username = getCurrentUsername();
+@@ -75,6 +100,38 @@ public class DefaultCurrentUserService
+     }
+ 
+     @Override
++    public UserInfo getCurrentUserInfo()
++    {
++        UserDetails userDetails = getCurrentUserDetails();
++        
++        if ( userDetails == null )
++        {
++            return null;
++        }
++        
++        Optional<Integer> userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserIdOptional( un ) );
++        
++        if ( !userId.isPresent() )
++        {
++            return null;
++        }
++        
++        Set<String> authorities = userDetails.getAuthorities()
++            .stream().map( GrantedAuthority::getAuthority )
++            .collect( Collectors.toSet() );
++        
++        return new UserInfo( userId.get(), userDetails.getUsername(), authorities );
++    }
++    
++    private Optional<Integer> getUserIdOptional( String username )
++    {
++        UserCredentials credentials = currentUserStore.getUserCredentialsByUsername( username );
++        
++        return credentials != null ? Optional.of( credentials.getId() ) : Optional.empty(); 
++    }
++
++    @Override
++    @Transactional
+     public boolean currentUserIsSuper()
+     {
+         User user = getCurrentUser();
+@@ -83,6 +140,7 @@ public class DefaultCurrentUserService
+     }
+ 
+     @Override
++    @Transactional
+     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
+     {
+         User user = getCurrentUser();
+@@ -91,6 +149,7 @@ public class DefaultCurrentUserService
+     }
+     
+     @Override
++    @Transactional
+     public boolean currenUserIsAuthorized( String auth )
+     {
+         User user = getCurrentUser();
+diff --git a/dhis-2/dhis-support/dhis-support-test/src/main/java/org/hisp/dhis/mock/MockCurrentUserService.java b/dhis-2/dhis-support/dhis-support-test/src/main/java/org/hisp/dhis/mock/MockCurrentUserService.java
+index fa3224c2..bc996a86 100644
+--- a/dhis-2/dhis-support/dhis-support-test/src/main/java/org/hisp/dhis/mock/MockCurrentUserService.java
++++ b/dhis-2/dhis-support/dhis-support-test/src/main/java/org/hisp/dhis/mock/MockCurrentUserService.java
+@@ -37,6 +37,7 @@ import org.hisp.dhis.user.CurrentUserService;
+ import org.hisp.dhis.user.User;
+ import org.hisp.dhis.user.UserAuthorityGroup;
+ import org.hisp.dhis.user.UserCredentials;
++import org.hisp.dhis.user.UserInfo;
+ 
+ /**
+  * @author Lars Helge Overland
+@@ -93,6 +94,13 @@ public class MockCurrentUserService
+     }
+ 
+     @Override
++    public UserInfo getCurrentUserInfo()
++    {
++        return new UserInfo( currentUser.getId(), 
++            currentUser.getUsername(), currentUser.getUserCredentials().getAllAuthorities() );
++    }
++
++    @Override
+     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
+     {
+         return currentUser != null ? currentUser.getOrganisationUnits() : new HashSet<>();
+-- 
+2.11.0
+
