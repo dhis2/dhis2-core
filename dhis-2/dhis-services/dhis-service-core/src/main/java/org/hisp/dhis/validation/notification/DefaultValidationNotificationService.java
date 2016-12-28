@@ -28,24 +28,26 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.api.client.util.Maps;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,25 +58,31 @@ import java.util.stream.Stream;
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
+    private static final Log log = LogFactory.getLog( DefaultValidationNotificationService.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private NotificationMessageRenderer<ValidationResult> notificationRenderer;
+    private NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
 
-    @Autowired
-    private MessageService messageService;
+    public void setNotificationMessageRenderer( NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
+    {
+        this.notificationMessageRenderer = notificationMessageRenderer;
+    }
 
-    @Autowired
     private OutboundMessageBatchService messageBatchService;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public DefaultValidationNotificationService()
+    public void setMessageBatchService( OutboundMessageBatchService messageBatchService )
     {
+        this.messageBatchService = messageBatchService;
+    }
+
+    private MessageService messageService;
+
+    public void setMessageService( MessageService messageService )
+    {
+        this.messageService = messageService;
     }
 
     // -------------------------------------------------------------------------
@@ -82,37 +90,67 @@ public class DefaultValidationNotificationService
     // -------------------------------------------------------------------------
 
     @Override
-    public void sendNotifications( Set<ValidationResult> results )
+    public void sendNotifications( Set<ValidationResult> validationResults )
     {
-        Set<Message> message = createMessagesForValidationResults( results );
-        dispatchMessages( message );
+        Stream<Message> messages = filterNullAndEmpty( validationResults.stream() )
+            .flatMap( this::createMessages );
+
+        // Split messages by type
+        Map<MessageType, Set<Message>> messagesByType =
+            messages.collect( Collectors.groupingBy( MessageType::getTypeFor, Collectors.toSet() ) );
+
+        // Do dispatching of dhis message and external messages in parallel
+        messagesByType.entrySet().parallelStream()
+            .forEach( entry -> send( entry.getKey(), entry.getValue() ) );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Set<Message> createMessagesForValidationResults( Set<ValidationResult> results )
+    private void send( MessageType type, Set<Message> messages )
     {
-        return results.stream()
-                .filter( Objects::nonNull )
-                .filter( v -> Objects.nonNull( v.getValidationRule() ) )
-                .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() )
-                .flatMap( this::renderNotificationMessages )
-                .collect( Collectors.toSet() );
+        switch ( type )
+        {
+            case OUTBOUND:
+                sendOutboundMessages( messages );
+                break;
+            case DHIS:
+                sendDhisMessages( messages );
+                break;
+        }
     }
 
-    private Stream<Message> renderNotificationMessages( final ValidationResult validationResult )
+    /**
+     * Ensure null-safety when processing the stream.
+     */
+    private static Stream<ValidationResult> filterNullAndEmpty( Stream<ValidationResult> validationResults )
+    {
+        return validationResults
+            .filter( Objects::nonNull )
+            .filter( v -> Objects.nonNull( v.getValidationRule() ) )
+            .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() );
+    }
+
+    private Stream<Message> createMessages( final ValidationResult validationResult )
     {
         return validationResult.getValidationRule().getNotificationTemplates().stream()
-                .map( t -> new Message( notificationRenderer.render( validationResult, t ), resolveRecipients( validationResult, t ) ) );
+            .map( template ->
+                new Message(
+                    createNotification( validationResult, template ),
+                    createRecipients( validationResult, template )
+                )
+            );
     }
 
-    private Recipients resolveRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
+    private NotificationMessage createNotification( ValidationResult validationResult, ValidationNotificationTemplate template )
     {
-        ValidationNotificationRecipient recipient = template.getNotificationRecipient();
+        return notificationMessageRenderer.render( validationResult, template );
+    }
 
-        if ( recipient.isExternalRecipient() )
+    private Recipients createRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
+    {
+        if ( template.getNotificationRecipient().isExternalRecipient() )
         {
             return new Recipients( recipientsFromOrgUnit( validationResult, template ) );
         }
@@ -122,25 +160,45 @@ public class DefaultValidationNotificationService
         }
     }
 
-    private static Map<DeliveryChannel, String> recipientsFromOrgUnit( final ValidationResult validationResult, ValidationNotificationTemplate template )
+    private static Map<DeliveryChannel, Set<String>> recipientsFromOrgUnit(
+        final ValidationResult validationResult, ValidationNotificationTemplate template )
     {
-        Map<DeliveryChannel, String> channelPrincipalMap = new EnumMap<>( DeliveryChannel.class );
         Set<DeliveryChannel> channels = template.getDeliveryChannels();
 
+        if ( channels.isEmpty() )
+        {
+            return Maps.newHashMap();
+        }
+
+        Map<DeliveryChannel, Set<String>> channelPrincipalMap = new EnumMap<>( DeliveryChannel.class );
+
         OrganisationUnit organisationUnit = validationResult.getOrgUnit();
+
+        if ( organisationUnit == null )
+        {
+            return Maps.newHashMap();
+        }
+
+        // Resolve e-mail address and/or phone number where applicable
+        // Multiple recipients per delivery channel are supported, but
+        // and org unit can only have one of each, hence the singleton sets.
+
+        // E-mail address
 
         String email = organisationUnit.getEmail();
 
         if ( StringUtils.isNotBlank( email ) && channels.contains( DeliveryChannel.EMAIL ) )
         {
-            channelPrincipalMap.put( DeliveryChannel.EMAIL, email );
+            channelPrincipalMap.put( DeliveryChannel.EMAIL, Collections.singleton( email ) );
         }
+
+        // Phone numbers
 
         String phone = organisationUnit.getPhoneNumber();
 
         if ( StringUtils.isNotBlank( phone ) && channels.contains( DeliveryChannel.SMS ) )
         {
-            channelPrincipalMap.put( DeliveryChannel.SMS, null );
+            channelPrincipalMap.put( DeliveryChannel.SMS, Collections.singleton( phone ) );
         }
 
         return channelPrincipalMap;
@@ -148,109 +206,107 @@ public class DefaultValidationNotificationService
 
     private static Set<User> recipientsFromUserGroups( final ValidationResult validationResult, ValidationNotificationTemplate template )
     {
+        // Limit recipients to be withing org unit hierarchy only, effectively
+        // producing a cross-cut of all users in the configured user groups.
+
         final boolean limitToHierarchy = template.getNotifyUsersInHierarchyOnly();
 
-        final List<OrganisationUnit> ancestors =
-            limitToHierarchy ? validationResult.getOrgUnit().getAncestors() : Collections.emptyList();
+        Set<OrganisationUnit> orgUnitsToInclude = Sets.newHashSet();
+
+        if ( limitToHierarchy )
+        {
+            orgUnitsToInclude.add( validationResult.getOrgUnit() ); // Include self
+            orgUnitsToInclude.addAll( validationResult.getOrgUnit().getAncestors() );
+        }
+
+        // Get all distinct users in configured user groups
+        // Limit (only if configured) to the pre-computed set of ancestors
 
         return template.getRecipientUserGroups().stream()
-                .flatMap( ug -> ug.getMembers().stream() )
-                .distinct()
-                .filter( user -> !limitToHierarchy || ancestors.contains( user.getOrganisationUnit() ) )
-                .collect( Collectors.toSet() );
+            .flatMap( ug -> ug.getMembers().stream() )
+            .distinct()
+            .filter( user -> !limitToHierarchy /* pass-through */ || orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
+            .collect( Collectors.toSet() );
     }
 
-    private void dispatchMessages( Set<Message> messages )
+    private void sendDhisMessages( Set<Message> messages )
     {
-        messages.forEach( this::sendMessage );
-    }
+        messages.forEach( message -> {
+                String msgSubj = message.notificationMessage.getSubject();
+                String msgText = message.notificationMessage.getMessage();
 
-    private void sendMessage( Message message )
-    {
-        if ( message.recipients.isExternal() )
-        {
-            sendOutboundMessage( message );
-        }
-        else
-        {
-            sendDhisMessage( message );
-        }
-    }
+                Set<User> rcpt = message.recipients.userRecipients.map( r -> r ).orElse( Sets.newHashSet() );
 
-    private void sendDhisMessage( Message message )
-    {
-        messageService.sendMessage( message.message.getSubject(), message.message.getMessage(), null, message.recipients.userRecipients );
-    }
-
-    private OutboundMessage toOutboundMessage( Message message )
-    {
-// TODO
-    }
-
-    private void sendOutboundMessage( Message message )
-    {
-        Map<DeliveryChannel, String> recipients = message.recipients.externalRecipients;
-
-        if ( recipients == null || recipients.isEmpty() )
-        {
-            return;
-        }
-
-
-
-        recipients.entrySet().forEach( entry -> {
-            if ( entry.getKey() == DeliveryChannel.EMAIL )
-            {
-                sendEmail( message );
+                messageService.sendMessage( msgSubj, msgText, null, rcpt );
             }
-            else if ( entry.getKey() == DeliveryChannel.SMS )
-            {
-                sendSms( message );
-            }
-        });
+        );
     }
 
-    private void send()
+    private void sendOutboundMessages( Set<Message> messages )
     {
+        // TODO
+//        messages.stream().map( m -> toOutboundMessage( messages,  ) )
+    }
 
+
+    private static Set<OutboundMessage> toOutboundMessages( Message message, DeliveryChannel channel )
+    {
+        String subText = message.notificationMessage.getSubject();
+        String msgText = message.notificationMessage.getMessage();
+
+        Set<String> recipients =
+            message.recipients.externalRecipients.map( rcpt -> rcpt.get( channel ) ).orElse( Sets.newHashSet() );
+
+        return new OutboundMessage( subText, msgText, recipients );
     }
 
     // -------------------------------------------------------------------------
-    // Internal classes
+    // Supportive methods
     // -------------------------------------------------------------------------
 
+    @SuppressWarnings( "OptionalUsedAsFieldOrParameterType" )
     private static class Recipients
     {
-        final Set<User> userRecipients;
-        final Map<DeliveryChannel, String> externalRecipients;
+        final Optional<Set<User>> userRecipients;
+        final Optional<Map<DeliveryChannel, Set<String>>> externalRecipients;
 
         Recipients( Set<User> userRecipients )
         {
-            this.userRecipients = userRecipients;
-            this.externalRecipients = null;
+            this.userRecipients = Optional.of( userRecipients );
+            this.externalRecipients = Optional.empty();
         }
 
-        Recipients( Map<DeliveryChannel, String> externalRecipients )
+        Recipients( Map<DeliveryChannel, Set<String>> externalRecipients )
         {
-            this.userRecipients = null;
-            this.externalRecipients = externalRecipients;
+            this.userRecipients = Optional.empty();
+            this.externalRecipients = Optional.of( externalRecipients );
         }
 
         boolean isExternal()
         {
-            return externalRecipients != null;
+            return externalRecipients.isPresent();
         }
     }
 
     private static class Message
     {
-        final NotificationMessage message;
+        final NotificationMessage notificationMessage;
         final Recipients recipients;
 
-        public Message( NotificationMessage message, Recipients recipients )
+        public Message( NotificationMessage notificationMessage, Recipients recipients )
         {
-            this.message = message;
+            this.notificationMessage = notificationMessage;
             this.recipients = recipients;
+        }
+    }
+
+    private enum MessageType
+    {
+        OUTBOUND, DHIS;
+
+        static MessageType getTypeFor( Message message )
+        {
+            return message.recipients.isExternal() ? OUTBOUND : DHIS;
         }
     }
 }
