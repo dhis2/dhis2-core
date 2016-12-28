@@ -39,12 +39,14 @@ import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -242,10 +244,17 @@ public class DefaultValidationNotificationService
         );
     }
 
+    /**
+     * TODO Need to split-and-copy messages by delivery channel.
+     *      Could consider changing the singular DC on OutboundMessageBatch to a Set instead (?)
+     */
     private void sendOutboundMessages( Set<Message> messages )
     {
-        // TODO
-//        messages.stream().map( m -> toOutboundMessage( messages,  ) )
+        Map<DeliveryChannel, List<OutboundMessage>> outboundMessagesByChannel =
+            messages.stream().collect( Collectors.groupingBy( m -> m, m -> m  ) )
+
+        OutboundMessageBatch emailBatch = new OutboundMessageBatch( , DeliveryChannel.EMAIL );
+        OutboundMessageBatch smsBatch = new OutboundMessageBatch( , DeliveryChannel.SMS )
     }
 
 
