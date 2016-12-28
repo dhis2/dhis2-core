@@ -194,4 +194,15 @@ public class CachingMap<K, V>
     {
         return cacheLoadCount > 0;
     }
+    
+    public String toString()
+    {
+        return "[" +
+            "Size: " + size() + ", " +
+            "Hit count: " + cacheHitCount + ", " +
+            "Miss count: " + cacheMissCount + ", " +
+            "Hit ratio: " + getCacheHitRatio() + ", " +
+            "Load count: " + cacheLoadCount + 
+            "]";
+    }
 }
