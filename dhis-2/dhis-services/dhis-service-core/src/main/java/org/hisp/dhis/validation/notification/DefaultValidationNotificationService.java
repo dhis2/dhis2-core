@@ -249,7 +249,7 @@ public class DefaultValidationNotificationService
     }
 
 
-    private static Set<OutboundMessage> toOutboundMessages( Message message, DeliveryChannel channel )
+    private static OutboundMessage toOutboundMessage( Message message, DeliveryChannel channel )
     {
         String subText = message.notificationMessage.getSubject();
         String msgText = message.notificationMessage.getMessage();
