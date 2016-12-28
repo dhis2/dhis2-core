@@ -8,6 +8,8 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataset.DataSetElement" table="datasetelement">
 
+    <cache usage="read-write" />
+    
     <id name="id" column="datasetelementid">
       <generator class="native" />
     </id>
