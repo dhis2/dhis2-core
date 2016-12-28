@@ -687,6 +687,11 @@ public class JdbcEventStore
                 + DateUtils.getLongDateString( params.getDueDateEnd() ) + "' ";
         }
 
+        if ( !params.isIncludeDeleted() )
+        {
+            sql += hlp.whereAnd() + " psi.deleted is false ";
+        }
+
         if ( params.getEventStatus() != null )
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
