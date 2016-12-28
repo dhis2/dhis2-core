@@ -409,7 +409,7 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<? extends IdentifiableObject>, List<?>> scanObjects = new HashMap<>();
+        Map<Class<?>, List<?>> scanObjects = new HashMap<>();
         scanObjects.putAll( objects ); // clone objects list, we don't want to modify it
 
         if ( scanObjects.containsKey( User.class ) )
@@ -428,24 +428,24 @@ public class DefaultPreheatService implements PreheatService
             scanObjects.put( UserCredentials.class, userCredentials );
         }
 
-        for ( Class<? extends IdentifiableObject> objectClass : scanObjects.keySet() )
+        for ( Class<?> klass : scanObjects.keySet() )
         {
-            Schema schema = schemaService.getDynamicSchema( objectClass );
+            Schema schema = schemaService.getDynamicSchema( klass );
 
             List<Property> identifiableProperties = schema.getProperties().stream()
                 .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
                 .collect( Collectors.toList() );
 
-            for ( Object object : scanObjects.get( objectClass ) )
+            for ( Object object : scanObjects.get( klass ) )
             {
                 identifiableProperties.forEach( p ->
                 {
                     if ( !p.isCollection() )
                     {
-                        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) p.getKlass();
+                        Class<? extends IdentifiableObject> itemKlass = (Class<? extends IdentifiableObject>) p.getKlass();
 
-                        if ( !uidMap.containsKey( klass ) ) uidMap.put( klass, new HashSet<>() );
-                        if ( !codeMap.containsKey( klass ) ) codeMap.put( klass, new HashSet<>() );
+                        if ( !uidMap.containsKey( itemKlass ) ) uidMap.put( itemKlass, new HashSet<>() );
+                        if ( !codeMap.containsKey( itemKlass ) ) codeMap.put( itemKlass, new HashSet<>() );
 
                         Object reference = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
 
