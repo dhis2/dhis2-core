@@ -28,7 +28,8 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Maps;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -44,6 +45,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
@@ -250,13 +252,40 @@ public class DefaultValidationNotificationService
      */
     private void sendOutboundMessages( Set<Message> messages )
     {
-        Map<DeliveryChannel, List<OutboundMessage>> outboundMessagesByChannel =
-            messages.stream().collect( Collectors.groupingBy( m -> m, m -> m  ) )
-
-        OutboundMessageBatch emailBatch = new OutboundMessageBatch( , DeliveryChannel.EMAIL );
-        OutboundMessageBatch smsBatch = new OutboundMessageBatch( , DeliveryChannel.SMS )
+        List<OutboundMessageBatch> outboundBatches = createOutboundMessageBatches( messages );
+        messageBatchService.sendBatches( outboundBatches );
     }
 
+    private static List<OutboundMessageBatch> createOutboundMessageBatches( Set<Message> messages )
+    {
+        List<OutboundMessage> smsMessages = new ArrayList<>();
+        List<OutboundMessage> emailMessages = new ArrayList<>();
+
+        for ( Message message : messages )
+        {
+            NotificationMessage notification = message.notificationMessage;
+
+            Map<DeliveryChannel, Set<String>> recipients = message.recipients.externalRecipients.map( r -> r ).orElse( Maps.newHashMap() );
+
+            Set<String> smsRcpt = recipients.getOrDefault( DeliveryChannel.SMS, Sets.newHashSet() );
+            Set<String> emailRcpt = recipients.getOrDefault( DeliveryChannel.EMAIL, Sets.newHashSet() );
+
+            if ( !smsRcpt.isEmpty() )
+            {
+                smsMessages.add( new OutboundMessage( notification.getSubject(), notification.getMessage(), smsRcpt ) );
+            }
+
+            if ( !emailRcpt.isEmpty() )
+            {
+                emailMessages.add( new OutboundMessage( notification.getSubject(), notification.getMessage(), emailRcpt ) );
+            }
+        }
+
+        OutboundMessageBatch smsBatch = new OutboundMessageBatch( smsMessages, DeliveryChannel.SMS )
+        OutboundMessageBatch emailBatch = new OutboundMessageBatch( emailMessages, DeliveryChannel.EMAIL );
+
+        return Lists.newArrayList( smsBatch, emailBatch );
+    }
 
     private static OutboundMessage toOutboundMessage( Message message, DeliveryChannel channel )
     {
