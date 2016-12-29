@@ -119,7 +119,7 @@ public class MockCurrentUserService
     }
 
     @Override
-    public boolean currenUserIsAuthorized( String auth )
+    public boolean currentUserIsAuthorized( String auth )
     {
         return true;
     }

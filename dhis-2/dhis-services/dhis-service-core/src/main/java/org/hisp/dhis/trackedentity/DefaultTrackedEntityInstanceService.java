@@ -273,7 +273,7 @@ public class DefaultTrackedEntityInstanceService
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
         if ( params.isOrganisationUnitMode( ALL ) &&
-            !currentUserService.currenUserIsAuthorized( F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS ) )
+            !currentUserService.currentUserIsAuthorized( F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS ) )
         {
             throw new IllegalQueryException( "Current user is not authorized to query across all organisation units" );
         }
