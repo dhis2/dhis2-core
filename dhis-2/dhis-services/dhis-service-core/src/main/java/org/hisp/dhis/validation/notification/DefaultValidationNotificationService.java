@@ -103,24 +103,24 @@ public class DefaultValidationNotificationService
     public void sendNotifications( Set<ValidationResult> validationResults )
     {
         Clock clock = new Clock( log ).startClock().
-            logTime( String.format( "Creating notifications for %d validation rule violations", validationResults.size() ) );
+            logTime( String.format( "Creating notification messages for %d validation rule violations", validationResults.size() ) );
 
-        Set<Message> messages = validationResults.stream()
-            .filter( Objects::nonNull )
-            .filter( v -> Objects.nonNull( v.getValidationRule() ) )
-            .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() ) // Only pass through when there is a template
-            .flatMap( this::createMessages )
-            .collect( Collectors.toSet() );
+        Set<Message> allMessages = createMessages( validationResults );
 
-        clock.logTime( String.format( "Rendered %d messages", messages.size() ) );
+        clock.logTime( String.format( "Rendered %d messages", allMessages.size() ) );
 
-        // Split messages by type
-        Map<MessageType, Set<Message>> messagesByType = messages.stream()
-                .collect( Collectors.groupingBy( MessageType::getTypeFor, Collectors.toSet() ) );
+        // Group messages by type and dispatch internal/outbound in parallel
 
-        // Do dispatching of dhis message and external messages in parallel
-        messagesByType.entrySet().parallelStream()
-            .forEach( entry -> send( entry.getKey(), entry.getValue() ) );
+        allMessages.stream()
+            .collect( Collectors.groupingBy( MessageType::getTypeFor, Collectors.toSet() ) )
+            .entrySet().forEach( entry -> {
+                MessageType type = entry.getKey();
+                Set<Message> messages = entry.getValue();
+
+                clock.logTime( String.format( "Sending %d %s messages", messages.size(), type.name().toLowerCase() ) );
+
+                send( type, messages );
+            } );
     }
 
     // -------------------------------------------------------------------------
@@ -138,6 +138,16 @@ public class DefaultValidationNotificationService
                 sendDhisMessages( messages );
                 break;
         }
+    }
+
+    private Set<Message> createMessages( Set<ValidationResult> validationResults )
+    {
+        return validationResults.stream()
+            .filter( Objects::nonNull )
+            .filter( v -> Objects.nonNull( v.getValidationRule() ) )
+            .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() ) // Only pass through when there is a template
+            .flatMap( this::createMessages )
+            .collect( Collectors.toSet() );
     }
 
     private Stream<Message> createMessages( final ValidationResult validationResult )
@@ -288,7 +298,6 @@ public class DefaultValidationNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "OptionalUsedAsFieldOrParameterType" )
     private static class Recipients
     {
         final Optional<Set<User>> userRecipients;
