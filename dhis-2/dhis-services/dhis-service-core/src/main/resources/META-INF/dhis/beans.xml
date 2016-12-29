@@ -928,6 +928,15 @@
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
 
+  <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
+
+  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
+    class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
+    <property name="messageBatchService" ref="org.hisp.dhis.outboundmessage.OutboundMessageService" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
     <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
     <property name="categoryOptionStore" ref="org.hisp.dhis.dataelement.CategoryOptionStore" />
