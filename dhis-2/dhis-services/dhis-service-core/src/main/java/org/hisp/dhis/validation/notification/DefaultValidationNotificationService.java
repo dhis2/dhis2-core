@@ -28,6 +28,8 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -42,12 +44,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
+import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -63,6 +66,9 @@ public class DefaultValidationNotificationService
     implements ValidationNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationNotificationService.class );
+
+    private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = ImmutableSet.<DeliveryChannel>builder()
+        .addAll( Iterators.forArray( DeliveryChannel.values() ) ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -96,12 +102,21 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> validationResults )
     {
-        Stream<Message> messages = filterNullAndEmpty( validationResults.stream() )
-            .flatMap( this::createMessages );
+        Clock clock = new Clock( log ).startClock().
+            logTime( String.format( "Creating notifications for %d validation rule violations", validationResults.size() ) );
+
+        Set<Message> messages = validationResults.stream()
+            .filter( Objects::nonNull )
+            .filter( v -> Objects.nonNull( v.getValidationRule() ) )
+            .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() ) // Only pass through when there is a template
+            .flatMap( this::createMessages )
+            .collect( Collectors.toSet() );
+
+        clock.logTime( String.format( "Rendered %d messages", messages.size() ) );
 
         // Split messages by type
-        Map<MessageType, Set<Message>> messagesByType =
-            messages.collect( Collectors.groupingBy( MessageType::getTypeFor, Collectors.toSet() ) );
+        Map<MessageType, Set<Message>> messagesByType = messages.stream()
+                .collect( Collectors.groupingBy( MessageType::getTypeFor, Collectors.toSet() ) );
 
         // Do dispatching of dhis message and external messages in parallel
         messagesByType.entrySet().parallelStream()
@@ -123,17 +138,6 @@ public class DefaultValidationNotificationService
                 sendDhisMessages( messages );
                 break;
         }
-    }
-
-    /**
-     * Ensure null-safety when processing the stream.
-     */
-    private static Stream<ValidationResult> filterNullAndEmpty( Stream<ValidationResult> validationResults )
-    {
-        return validationResults
-            .filter( Objects::nonNull )
-            .filter( v -> Objects.nonNull( v.getValidationRule() ) )
-            .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() );
     }
 
     private Stream<Message> createMessages( final ValidationResult validationResult )
@@ -246,10 +250,6 @@ public class DefaultValidationNotificationService
         );
     }
 
-    /**
-     * TODO Need to split-and-copy messages by delivery channel.
-     *      Could consider changing the singular DC on OutboundMessageBatch to a Set instead (?)
-     */
     private void sendOutboundMessages( Set<Message> messages )
     {
         List<OutboundMessageBatch> outboundBatches = createOutboundMessageBatches( messages );
@@ -258,33 +258,20 @@ public class DefaultValidationNotificationService
 
     private static List<OutboundMessageBatch> createOutboundMessageBatches( Set<Message> messages )
     {
-        List<OutboundMessage> smsMessages = new ArrayList<>();
-        List<OutboundMessage> emailMessages = new ArrayList<>();
+        Map<DeliveryChannel, List<OutboundMessage>> outboundMessagesByChannel = new HashMap<>();
 
         for ( Message message : messages )
         {
-            NotificationMessage notification = message.notificationMessage;
-
-            Map<DeliveryChannel, Set<String>> recipients = message.recipients.externalRecipients.map( r -> r ).orElse( Maps.newHashMap() );
-
-            Set<String> smsRcpt = recipients.getOrDefault( DeliveryChannel.SMS, Sets.newHashSet() );
-            Set<String> emailRcpt = recipients.getOrDefault( DeliveryChannel.EMAIL, Sets.newHashSet() );
-
-            if ( !smsRcpt.isEmpty() )
+            for ( DeliveryChannel channel : ALL_DELIVERY_CHANNELS )
             {
-                smsMessages.add( new OutboundMessage( notification.getSubject(), notification.getMessage(), smsRcpt ) );
-            }
-
-            if ( !emailRcpt.isEmpty() )
-            {
-                emailMessages.add( new OutboundMessage( notification.getSubject(), notification.getMessage(), emailRcpt ) );
+                List<OutboundMessage> messagesForChannel = outboundMessagesByChannel.computeIfAbsent( channel, c -> Lists.newArrayList() );
+                messagesForChannel.add( toOutboundMessage( message, channel ) );
             }
         }
 
-        OutboundMessageBatch smsBatch = new OutboundMessageBatch( smsMessages, DeliveryChannel.SMS )
-        OutboundMessageBatch emailBatch = new OutboundMessageBatch( emailMessages, DeliveryChannel.EMAIL );
-
-        return Lists.newArrayList( smsBatch, emailBatch );
+        return outboundMessagesByChannel.entrySet().stream()
+            .map( entry -> new OutboundMessageBatch( entry.getValue(), entry.getKey() ) )
+            .collect( Collectors.toList() );
     }
 
     private static OutboundMessage toOutboundMessage( Message message, DeliveryChannel channel )
@@ -292,8 +279,7 @@ public class DefaultValidationNotificationService
         String subText = message.notificationMessage.getSubject();
         String msgText = message.notificationMessage.getMessage();
 
-        Set<String> recipients =
-            message.recipients.externalRecipients.map( rcpt -> rcpt.get( channel ) ).orElse( Sets.newHashSet() );
+        Set<String> recipients = message.recipients.externalRecipients.map( rcpt -> rcpt.get( channel ) ).orElse( Sets.newHashSet() );
 
         return new OutboundMessage( subText, msgText, recipients );
     }
