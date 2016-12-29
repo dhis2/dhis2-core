@@ -119,7 +119,7 @@ public class DefaultValidationNotificationService
             case OUTBOUND:
                 sendOutboundMessages( messages );
                 break;
-            case DHIS:
+            case INTERNAL:
                 sendDhisMessages( messages );
                 break;
         }
@@ -340,11 +340,11 @@ public class DefaultValidationNotificationService
 
     private enum MessageType
     {
-        OUTBOUND, DHIS;
+        OUTBOUND, INTERNAL;
 
         static MessageType getTypeFor( Message message )
         {
-            return message.recipients.isExternal() ? OUTBOUND : DHIS;
+            return message.recipients.isExternal() ? OUTBOUND : INTERNAL;
         }
     }
 }
