@@ -103,6 +103,15 @@ public class DefaultMetadataSyncService
         throws MetadataSyncServiceException
     {
         MetadataVersion version = getMetadataVersion( syncParams );
+        boolean isVersionExists = metadataVersionService.getVersionByName( version.getName() ) != null;
+
+        if ( isVersionExists )
+        {
+            MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
+            metadataSyncSummary.setMetadataVersion( version );
+            metadataSyncSummary.setImportReport( null );
+            return metadataSyncSummary;
+        }
 
         if ( VersionType.BEST_EFFORT.equals( version.getType() ) )
         {
