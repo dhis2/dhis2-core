@@ -121,6 +121,8 @@ public class DefaultValidationNotificationService
 
                 send( type, messages );
             } );
+
+        clock.logTime( "Done sending validation notifications" );
     }
 
     // -------------------------------------------------------------------------
