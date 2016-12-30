@@ -55,6 +55,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.validation.notification.ValidationNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
@@ -160,12 +161,19 @@ public class DefaultValidationRuleService
     {
         this.systemSettingManager = systemSettingManager;
     }
-    
+
     private ExpressionService expressionService;
     
     public void setExpressionService( ExpressionService expressionService )
     {
         this.expressionService = expressionService;
+    }
+
+    private ValidationNotificationService notificationService;
+
+    public void setNotificationService( ValidationNotificationService notificationService )
+    {
+        this.notificationService = notificationService;
     }
 
     @Autowired
@@ -190,7 +198,7 @@ public class DefaultValidationRuleService
 
         User user = currentUserService.getCurrentUser();
         
-        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext( 
+        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext(
             sources, periods, rules, attributeCombo, 
             null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),

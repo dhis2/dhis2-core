@@ -931,6 +931,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+    <property name="notificationService" ref="org.hisp.dhis.validation.notification.ValidationNotificationService" />
   </bean>
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
