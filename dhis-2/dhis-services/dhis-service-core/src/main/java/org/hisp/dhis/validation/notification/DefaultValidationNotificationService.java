@@ -56,6 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,6 +70,12 @@ public class DefaultValidationNotificationService
 
     private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = ImmutableSet.<DeliveryChannel>builder()
         .addAll( Iterators.forArray( DeliveryChannel.values() ) ).build();
+
+    private static final Predicate<ValidationResult> RETAIN_APPLICABLE_RESULTS =
+        vr ->
+            Objects.nonNull( vr ) &&
+            Objects.nonNull( vr.getValidationRule() ) &&
+            !vr.getValidationRule().getNotificationTemplates().isEmpty();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -102,10 +109,14 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> validationResults )
     {
-        Clock clock = new Clock( log ).startClock().
-            logTime( String.format( "Creating notification messages for %d validation rule violations", validationResults.size() ) );
+        Set<ValidationResult> applicableResults = validationResults.stream()
+            .filter( RETAIN_APPLICABLE_RESULTS )
+            .collect( Collectors.toSet() );
 
-        Set<Message> allMessages = createMessages( validationResults );
+        Clock clock = new Clock( log ).startClock().
+            logTime( String.format( "Creating notification messages for %d validation rule violations", applicableResults.size() ) );
+
+        Set<Message> allMessages = createMessages( applicableResults );
 
         clock.logTime( String.format( "Rendered %d messages", allMessages.size() ) );
 
@@ -145,9 +156,6 @@ public class DefaultValidationNotificationService
     private Set<Message> createMessages( Set<ValidationResult> validationResults )
     {
         return validationResults.stream()
-            .filter( Objects::nonNull )
-            .filter( v -> Objects.nonNull( v.getValidationRule() ) )
-            .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() ) // Only pass through when there is a template
             .flatMap( this::createMessages )
             .collect( Collectors.toSet() );
     }
