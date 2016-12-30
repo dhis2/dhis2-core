@@ -89,7 +89,7 @@
     <div class="syncActionWrapper">
 
           <div class="radioButtonGroup">
-            <input type="radio" class="radio" name="dataSyncDatepick" id="minute" value="minute">$i18n.getString( "Minute" )<br>
+            <input type="radio" class="radio" name="dataSyncDatepick" id="minute" value="minute" checked="checked">$i18n.getString( "Minute" )<br>
             <input type="radio" class="radio" name="dataSyncDatepick" id="hourly" value="hourly">$i18n.getString( "Hourly" )<br>
             <input type="radio" class="radio" name="dataSyncDatepick" id="daily" value="daily">$i18n.getString( "Daily" )<br>
             <input type="radio" class="radio" name="dataSyncDatepick" id="weekly" value="weekly">$i18n.getString( "Weekly" )<br>
@@ -120,7 +120,7 @@
       <div class="syncActionWrapper">
 
           <div class="radioButtonGroup">
-            <input type="radio" class="radio" name="metadataSyncDatepick" id="daily" value="daily">$i18n.getString( "Daily" )<br>
+            <input type="radio" class="radio" name="metadataSyncDatepick" id="daily" value="daily" checked="checked">$i18n.getString( "Daily" )<br>
             <input type="radio" class="radio" name="metadataSyncDatepick" id="weekly" value="weekly">$i18n.getString( "Weekly" )<br>
             <input type="radio" class="radio" name="metadataSyncDatepick" id="monthly" value="monthly">$i18n.getString( "Monthly" )<br>
             <input type="radio" class="radio" name="metadataSyncDatepick" id="yearly" value="yearly">$i18n.getString( "Yearly" )<br>
