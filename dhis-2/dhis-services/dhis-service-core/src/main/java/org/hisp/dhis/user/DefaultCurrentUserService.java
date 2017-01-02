@@ -149,7 +149,7 @@ public class DefaultCurrentUserService
     
     @Override
     @Transactional
-    public boolean currenUserIsAuthorized( String auth )
+    public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();
         

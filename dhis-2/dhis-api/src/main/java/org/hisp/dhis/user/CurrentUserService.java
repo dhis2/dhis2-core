@@ -83,5 +83,5 @@ public interface CurrentUserService
     /**
      * Indicates whether the current user has been granted the given authority.
      */
-    boolean currenUserIsAuthorized( String auth );
+    boolean currentUserIsAuthorized( String auth );
 }
