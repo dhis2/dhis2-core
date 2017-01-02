@@ -219,7 +219,7 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
                 // If value = 0 and zero not significant for data element, skip
             	// If existing value, let through and delete on server
 
-                if ( dhis2.de.significantZeros.indexOf( dataElementId ) == -1 )
+                if ( dhis2.de.significantZeros.indexOf( dataElementId ) == -1 && dhis2.validation.isNumericType(type) )
                 {
                     $( fieldId ).css( 'background-color', dhis2.de.cst.colorGreen );
                     return false;
