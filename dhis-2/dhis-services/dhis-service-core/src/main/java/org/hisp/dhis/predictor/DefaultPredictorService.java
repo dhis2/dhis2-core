@@ -189,7 +189,6 @@ public class DefaultPredictorService
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement output = predictor.getOutput();
         DataElementCategoryOptionCombo outputCombo = predictor.getOutputCombo();
-        Set<BaseDimensionalItemObject> datarefs = getExpressionInputs( generator.getExpression() );
         Set<BaseDimensionalItemObject> skiprefs = skipTest == null ? new HashSet<BaseDimensionalItemObject>()
             : getExpressionInputs( skipTest.getExpression() );
         Set<BaseDimensionalItemObject> samplerefs = new HashSet<BaseDimensionalItemObject>();

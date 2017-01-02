@@ -435,7 +435,7 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasLegendSet() )
                 {
-                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getLegends() ) );
+                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
                 }
             }
 
