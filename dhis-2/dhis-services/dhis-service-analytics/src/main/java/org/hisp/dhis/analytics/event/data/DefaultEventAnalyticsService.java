@@ -64,6 +64,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
@@ -284,8 +285,18 @@ public class DefaultEventAnalyticsService
         // ---------------------------------------------------------------------
 
         Map<String, Object> metaData = new HashMap<>();
+        
+        Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
 
-        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), AnalyticsUtils.getUidNameMap( params ) );
+        if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO ge
+        {
+            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
+                Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
+        }
+        else
+        {
+            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+        }
 
         User user = securityManager.getCurrentUser( params );
 
@@ -380,7 +391,6 @@ public class DefaultEventAnalyticsService
      * parameters.
      * 
      * TODO handle legend sets for ITEMS.
-     * TODO version for ITEMS / NAMES.
      *
      * @param params the data query parameters.
      * @param grid the grid.
@@ -399,16 +409,25 @@ public class DefaultEventAnalyticsService
             
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
             
-            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
-                Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
-            metaData.put( PERIOD_DIM_ID, periodUids );
+            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO ge
+            {
+                metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
+                    Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
+            }
+            else
+            {
+                metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+            }
+            
+            Map<String, Object> dimensionItems = new HashMap<>();
+            
+            dimensionItems.put( PERIOD_DIM_ID, periodUids );
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
                 if ( !metaData.keySet().contains( dim.getDimension() ) )
                 {
-                    metaData.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
+                    dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
             }
             
@@ -416,8 +435,17 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasLegendSet() )
                 {
-                    metaData.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getLegends() ) );
+                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getLegends() ) );
                 }
+            }
+
+            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO ge
+            {
+                metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
+            }
+            else
+            {
+                metaData.putAll( dimensionItems );
             }
 
             User user = securityManager.getCurrentUser( params );
