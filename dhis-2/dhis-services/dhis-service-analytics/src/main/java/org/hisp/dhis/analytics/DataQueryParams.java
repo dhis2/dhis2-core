@@ -248,7 +248,7 @@ public class DataQueryParams
     /**
      * The API version used for the request.
      */
-    protected DhisApiVersion apiVersion;
+    protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
 
     // -------------------------------------------------------------------------
     // Event transient properties
