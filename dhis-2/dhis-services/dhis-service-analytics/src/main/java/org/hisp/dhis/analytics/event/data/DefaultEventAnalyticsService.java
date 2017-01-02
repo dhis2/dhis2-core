@@ -416,7 +416,7 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasLegendSet() )
                 {
-                    metaData.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getLegends() ) );
+                    metaData.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
                 }
             }
 
