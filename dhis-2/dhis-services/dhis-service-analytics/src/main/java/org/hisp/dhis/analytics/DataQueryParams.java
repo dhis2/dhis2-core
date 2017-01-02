@@ -76,6 +76,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -1552,12 +1553,14 @@ public class DataQueryParams
     @Override
     public String toString()
     {
-        Map<String, Object> map = new HashMap<>();
-        map.put( "Dimensions", dimensions );
-        map.put( "Filters", filters );
-        map.put( "Aggregation type", aggregationType );
-        
-        return map.toString(); //TODO
+        return ImmutableMap.<String, Object>builder()
+            .put( "Dimensions", dimensions )
+            .put( "Filters", filters )
+            .put( "Aggregation type", aggregationType )
+            .put( "Measure criteria", measureCriteria )
+            .put( "Output format", outputFormat )
+            .put( "API version", apiVersion )
+            .build().toString();
     }
     
     // -------------------------------------------------------------------------

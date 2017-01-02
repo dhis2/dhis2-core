@@ -36,10 +36,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,6 +63,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Lars Helge Overland
@@ -589,22 +589,20 @@ public class EventQueryParams
     @Override
     public String toString()
     {
-        Map<String, Object> map = new HashMap<>();
-        
-        map.put( "Program", program );
-        map.put( "Stage", programStage );
-        map.put( "Start date", startDate );
-        map.put( "End date", endDate );
-        map.put( "Items", items );
-        map.put( "Item filters", itemFilters );
-        map.put( "Value", value );
-        map.put( "Item program indicators", itemProgramIndicators );
-        map.put( "Program indicator", programIndicator );
-        map.put( "Aggregation type", aggregationType );
-        map.put( "Dimensions", dimensions );
-        map.put( "Filters", filters );
-        
-        return map.toString(); //TODO
+        return ImmutableMap.<String, Object>builder()
+            .put( "Program", program )
+            .put( "Stage", programStage )
+            .put( "Start date", startDate )
+            .put( "End date", endDate )
+            .put( "Items", items )
+            .put( "Item filters", itemFilters )
+            .put( "Value", value )
+            .put( "Item program indicators", itemProgramIndicators )
+            .put( "Program indicator", programIndicator )
+            .put( "Aggregation type", aggregationType )
+            .put( "Dimensions", dimensions )
+            .put( "Filters", filters )
+            .build().toString();
     }
 
     // -------------------------------------------------------------------------
