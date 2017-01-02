@@ -2346,7 +2346,7 @@ function displayHistoryDialog( operandName )
         modal: true,
         title: operandName,
         width: 580,
-        height: 660
+        height: 620
     } );
 }
 
