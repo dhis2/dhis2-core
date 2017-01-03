@@ -178,8 +178,7 @@ public class DefaultValidationRuleService
             sources, periods, rules, attributeCombo, 
             null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ),
-            false ), applicationContext );
+            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 
         formatPeriods( results, format );
 
@@ -377,6 +376,7 @@ public class DefaultValidationRuleService
         {
             Period currentPeriod = periodType.createPeriod();
             Period previousPeriod = periodType.getPreviousPeriod( currentPeriod );
+            
             periods.addAll( periodService.getIntersectingPeriodsByPeriodType( periodType,
                 previousPeriod.getStartDate(), currentPeriod.getEndDate() ) );
         }
@@ -398,7 +398,7 @@ public class DefaultValidationRuleService
      * <p>
      * TODO: Internationalize the messages according to the user's
      * preferred language, and generate a message for each combination of
-     * ( target language, set of results ).
+     * (target language, set of results).
      *
      * @param validationResults the set of validation error results
      * @param scheduledRunStart the date/time when this scheduled run started
@@ -513,15 +513,15 @@ public class DefaultValidationRuleService
      * Determines whether a user can access an organisation unit,
      * based on the organisation units to which the user has been assigned.
      *
-     * @param user   user to test
+     * @param user user to test
      * @param source organisation unit to which the user may have access
      * @return whether the user has access to the organisation unit
      */
     private boolean canUserAccessSource( User user, OrganisationUnit source )
     {
-        for ( OrganisationUnit o : user.getOrganisationUnits() )
+        for ( OrganisationUnit unit : user.getOrganisationUnits() )
         {
-            if ( source == o || source.getAncestors().contains( o ) )
+            if ( source == unit || source.getAncestors().contains( unit ) )
             {
                 return true;
             }
