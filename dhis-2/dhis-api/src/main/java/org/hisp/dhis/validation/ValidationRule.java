@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -183,20 +185,15 @@ public class ValidationRule
     }
 
     /**
-     * Gets the data elements to evaluate for the current period. For
-     * validation-type rules this means all data elements. For monitoring-type
-     * rules this means just the left side elements.
+     * Gets the data elements to evaluate for the current period.
      *
      * @return the data elements to evaluate for the current period.
      */
-    public Set<DataElement> getCurrentDataElements()
+    public Set<DataElement> getDataElementsInExpressions()
     {
-        Set<DataElement> currentDataElements =
-            new HashSet<>( leftSide.getDataElementsInExpression() );
-
-        currentDataElements.addAll( rightSide.getDataElementsInExpression() );
-
-        return currentDataElements;
+        Set<DataElement> elements = Sets.newHashSet( leftSide.getDataElementsInExpression() );
+        elements.addAll( rightSide.getDataElementsInExpression() );
+        return elements;
     }
 
     /**

@@ -44,6 +44,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -85,7 +86,7 @@ public class ValidationRunContext
 
     private Set<DataElementCategoryOption> coDimensionConstraints;
 
-    private Collection<ValidationResult> validationResults;
+    private Queue<ValidationResult> validationResults;
 
     private ValidationRunContext()
     {
@@ -173,21 +174,18 @@ public class ValidationRunContext
         {
             // Find the period type extended for this rule
             PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( rule.getPeriodType() );
-            periodTypeX.getRules().add( rule ); // Add to the period type ext.
+            periodTypeX.getRules().add( rule ); // Add to the period type ext
 
-            if ( rule.getCurrentDataElements() != null )
-            {
-                // Add this rule's data elements to the period extended.
-                periodTypeX.getDataElements().addAll( rule.getCurrentDataElements() );
-            }
+             // Add this rule's data elements to the period extended
+            periodTypeX.getDataElements().addAll( rule.getDataElementsInExpressions() );
 
-            // Add the allowed period types for rule's current data elements:
+            // Add the allowed period types for rule's current data elements
             periodTypeX.getAllowedPeriodTypes().addAll(
-                getAllowedPeriodTypesForDataElements( rule.getCurrentDataElements(), rule.getPeriodType() ) );
+                getAllowedPeriodTypesForDataElements( rule.getDataElementsInExpressions(), rule.getPeriodType() ) );
 
             // Add the ValidationRuleExtended
-            Collection<PeriodType> allowedPastPeriodTypes = getAllowedPeriodTypesForDataElements(
-                rule.getCurrentDataElements(), rule.getPeriodType() );
+            Set<PeriodType> allowedPastPeriodTypes = getAllowedPeriodTypesForDataElements(
+                rule.getDataElementsInExpressions(), rule.getPeriodType() );
             
             ValidationRuleExtended ruleX = new ValidationRuleExtended( rule, allowedPastPeriodTypes );
             ruleXMap.put( rule, ruleX );
@@ -235,7 +233,7 @@ public class ValidationRunContext
 
                 for ( PeriodType allowedType : periodTypeX.getAllowedPeriodTypes() )
                 {
-                    Collection<DataElement> sourceDataElements = sourceElementsMap.get( allowedType );
+                    Set<DataElement> sourceDataElements = sourceElementsMap.get( allowedType );
 
                     if ( sourceDataElements != null )
                     {
@@ -275,10 +273,10 @@ public class ValidationRunContext
      * @param periodType   the minimum-length period type
      * @return all period types that are allowed for these data elements
      */
-    private static Collection<PeriodType> getAllowedPeriodTypesForDataElements( Collection<DataElement> dataElements,
+    private static Set<PeriodType> getAllowedPeriodTypesForDataElements( Collection<DataElement> dataElements,
         PeriodType periodType )
     {
-        Collection<PeriodType> allowedPeriodTypes = new HashSet<>();
+        Set<PeriodType> allowedPeriodTypes = new HashSet<>();
 
         if ( dataElements != null )
         {
