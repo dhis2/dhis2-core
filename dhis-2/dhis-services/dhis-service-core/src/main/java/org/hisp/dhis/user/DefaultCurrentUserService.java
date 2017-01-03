@@ -30,19 +30,21 @@ package org.hisp.dhis.user;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
+import org.hisp.dhis.system.util.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 
 /**
  * Service for retrieving information about the currently
@@ -60,7 +62,7 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase. 
      * Take care not to cache user info which might change during runtime.
      */
-    private static final Cache<String, Integer> USERNAME_ID_CACHE = Caffeine.newBuilder()
+    private static final Cache<String, Integer> USERNAME_ID_CACHE = CacheBuilder.newBuilder()
         .expireAfterAccess( 1, TimeUnit.HOURS )
         .initialCapacity( 200 )
         .maximumSize( SystemUtils.isTestRun() ? 0 : 2000 )
@@ -103,12 +105,23 @@ public class DefaultCurrentUserService
     {
         UserDetails userDetails = getCurrentUserDetails();
         
-        if ( userDetails == null )
+        if ( userDetails == null || userDetails.getUsername() == null )
         {
             return null;
         }
         
-        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
+        final String username = userDetails.getUsername();
+        
+        Integer userId = null;
+        
+        try
+        {
+            userId = USERNAME_ID_CACHE.get( username, () -> getUserId( username ) );
+        }
+        catch ( ExecutionException ex )
+        {
+            throw new RuntimeException( ex );
+        }
         
         if ( userId == null )
         {
