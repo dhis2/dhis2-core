@@ -125,7 +125,7 @@ public class DataValidationTask
             {
                 Set<DataElement> sourceDataElements = periodTypeX.getSourceDataElements().get( sourceX.getSource() );
                 
-                Set<ValidationRule> rules = getRulesBySourceAndPeriodType( sourceX, periodTypeX, sourceDataElements, context );
+                Set<ValidationRule> rules = getRulesBySourceAndPeriodType( periodTypeX, sourceDataElements );
                 expressionService.explodeValidationRuleExpressions( rules );
 
                 if ( !rules.isEmpty() )
@@ -135,10 +135,9 @@ public class DataValidationTask
                         MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
                         SetMap<Integer, DataElementOperand> incompleteValuesMap = new SetMap<>();
                         
-                        MapMap<Integer, DataElementOperand, Double> currentValueMap = getValueMap( periodTypeX,
+                        MapMap<Integer, DataElementOperand, Double> currentValueMap = getValueMap( 
                             periodTypeX.getDataElements(), sourceDataElements,
-                            periodTypeX.getAllowedPeriodTypes(), period, sourceX.getSource(), lastUpdatedMap,
-                            incompleteValuesMap );
+                            periodTypeX.getAllowedPeriodTypes(), period, sourceX.getSource(), lastUpdatedMap );
 
                         log.trace( "Source " + sourceX.getSource().getName() + " [" + period.getStartDate() + " - "
                             + period.getEndDate() + "]" + " currentValueMap[" + currentValueMap.size() + "]" );
@@ -218,15 +217,13 @@ public class DataValidationTask
      * Gets the rules that should be evaluated for a given organisation unit and
      * period type.
      *
-     * @param sourceX            the organisation unit extended information
      * @param periodTypeX        the period type extended information
      * @param sourceDataElements all data elements collected for this
      *                           organisation unit
      * @return set of rules for this org unit and period type
      */
-    private Set<ValidationRule> getRulesBySourceAndPeriodType( OrganisationUnitExtended sourceX,
-        PeriodTypeExtended periodTypeX, Set<DataElement> sourceDataElements,
-        ValidationRunContext context )
+    private Set<ValidationRule> getRulesBySourceAndPeriodType( PeriodTypeExtended periodTypeX, 
+        Set<DataElement> sourceDataElements )
     {
         Set<ValidationRule> periodTypeRules = new HashSet<>();
 
@@ -340,24 +337,18 @@ public class DataValidationTask
      * Gets data values for a given organisation unit and period, recursing if
      * necessary to sum the values from child organisation units.
      *
-     * @param periodTypeX           period type which we are evaluating
      * @param ruleDataElements      data elements configured for the rule
-     * @param sourceDataElements    data elements configured for the organisation
-     *                              unit
-     * @param allowedPeriodTypes    all the periods in which we might find the data
-     *                              values
+     * @param sourceDataElements    data elements configured for the organisation unit
+     * @param allowedPeriodTypes    all the periods in which we might find data values
      * @param period                period in which we are looking for values
      * @param source                organisation unit for which we are looking for values
      * @param lastUpdatedMap        map showing when each data values was last updated
-     * @param incompleteValuesMap   ongoing set showing which values were found
-     *                              but not from all children, mapped by attribute option combo.
      * @return map of attribute option combo to map of values found.
      */
-    private MapMap<Integer, DataElementOperand, Double> getValueMap( PeriodTypeExtended periodTypeX,
+    private MapMap<Integer, DataElementOperand, Double> getValueMap( 
         Set<DataElement> ruleDataElements, Set<DataElement> sourceDataElements,
         Set<PeriodType> allowedPeriodTypes, Period period,
-        OrganisationUnit source, MapMap<Integer, DataElementOperand, Date> lastUpdatedMap,
-        SetMap<Integer, DataElementOperand> incompleteValuesMap )
+        OrganisationUnit source, MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
     {
         Set<DataElement> dataElementsToGet = new HashSet<>( ruleDataElements );
         dataElementsToGet.retainAll( sourceDataElements );
