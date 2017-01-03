@@ -126,6 +126,7 @@ public class DataValidationTask
                 Set<DataElement> sourceDataElements = periodTypeX.getSourceDataElements().get( sourceX.getSource() );
                 
                 Set<ValidationRule> rules = getRulesBySourceAndPeriodType( periodTypeX, sourceDataElements );
+
                 expressionService.explodeValidationRuleExpressions( rules );
 
                 if ( !rules.isEmpty() )
@@ -134,7 +135,7 @@ public class DataValidationTask
                     {
                         MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
                         SetMap<Integer, DataElementOperand> incompleteValuesMap = new SetMap<>();
-                        
+
                         MapMap<Integer, DataElementOperand, Double> currentValueMap = getValueMap( 
                             periodTypeX.getDataElements(), sourceDataElements,
                             periodTypeX.getAllowedPeriodTypes(), period, sourceX.getSource(), lastUpdatedMap );
