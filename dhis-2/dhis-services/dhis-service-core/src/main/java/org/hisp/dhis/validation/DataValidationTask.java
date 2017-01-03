@@ -227,10 +227,8 @@ public class DataValidationTask
 
         for ( ValidationRule rule : periodTypeX.getRules() )
         {
-                // For validation-type rules, include only rules where the
-                // organisation collects all the data elements in the rule.
-                // But if this is some funny kind of rule with no elements
-                // (like for testing), include it also.
+                // Include only rules where the organisation collects all the data elements in the rule.
+            
                 Collection<DataElement> elements = rule.getCurrentDataElements();
 
                 if ( elements == null || elements.size() == 0 || sourceDataElements.containsAll( elements ) )
@@ -247,10 +245,10 @@ public class DataValidationTask
      * evaluationRule, after the "current" data to evaluate has been fetched.
      * For INTERACTIVE runs, we always go further (always return true.) For
      * SCHEDULED runs, we go further only if something has changed since the
-     * last successful scheduled run -- either the rule definition or one of the
+     * last successful scheduled run. Either the rule definition or one of the
      * "current" data element / option values on the left or right sides.
      * <p>
-     * For scheduled runs, remove all values for any attribute option combos
+     * For scheduled runs, remove all values for any attribute option combinations
      * where nothing has changed since the last run.
      *
      * @param lastUpdatedMapMap when each data value was last updated
@@ -268,9 +266,6 @@ public class DataValidationTask
             {
                 if ( rule.getLastUpdated().before( context.getLastScheduledRun() ) )
                 {
-                    // Get the "current" DataElementOperands from this rule:
-                    // Left+Right sides for VALIDATION, Left side only for
-                    // SURVEILLANCE.
                     Collection<DataElementOperand> deos = expressionService
                         .getOperandsInExpression( rule.getLeftSide().getExpression() );
 
