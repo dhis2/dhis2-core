@@ -30,14 +30,14 @@
         foreign-key="fk_categoryoption_organisationunits_organisationunitid" />
     </set>
 
-    <set name="categoryOptionCombos" table="categoryoptioncombos_categoryoptions" inverse="true" lazy="false">
+    <set name="categoryOptionCombos" table="categoryoptioncombos_categoryoptions" inverse="true">
       <cache usage="read-write" />
       <key column="categoryoptionid" foreign-key="fk_categoryoptioncombos_categoryoptions_categoryoptionid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementCategoryOptionCombo" column="categoryoptioncomboid"
         foreign-key="fk_categoryoption_categoryoptioncomboid" />
     </set>
 
-    <set name="categories" table="categories_categoryoptions" inverse="true" lazy="false">
+    <set name="categories" table="categories_categoryoptions" inverse="true">
       <cache usage="read-write" />
       <key column="categoryoptionid" />
       <many-to-many class="org.hisp.dhis.dataelement.DataElementCategory" column="categoryid" />
