@@ -124,7 +124,7 @@ public class DefaultValidationNotificationService
 
         allMessages.stream()
             .collect( Collectors.groupingBy( MessageType::getTypeFor, Collectors.toSet() ) )
-            .entrySet().forEach( entry -> {
+            .entrySet().parallelStream().forEach( entry -> {
                 MessageType type = entry.getKey();
                 Set<Message> messages = entry.getValue();
 
