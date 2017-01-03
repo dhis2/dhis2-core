@@ -58,6 +58,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -167,7 +169,7 @@ public class DefaultValidationRuleService
     public Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
         DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendAlerts, I18nFormat format )
     {
-        log.info( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
+        log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
 
         List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
         Collection<ValidationRule> rules = group != null ? group.getMembers() : getAllValidationRules();
@@ -193,25 +195,6 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public Collection<ValidationResult> validate( Date startDate, Date endDate, OrganisationUnit source )
-    {
-        log.info( "Validate start: " + startDate + " end: " + endDate + " source: " + source.getName() );
-
-        Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
-        Collection<ValidationRule> rules = getAllValidationRules();
-        Collection<OrganisationUnit> sources = new HashSet<>();
-        sources.add( source );
-
-        User user = currentUserService.getCurrentUser();
-        
-        return Validator.validate( ValidationRunContext.getNewContext( 
-            sources, periods, rules, null, null,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
-    }
-
-    @Override
     public Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source,
         DataElementCategoryOptionCombo attributeCombo )
     {
@@ -219,20 +202,12 @@ public class DefaultValidationRuleService
             + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName()
             + " attribute combo: " + ( attributeCombo == null ? "[none]" : attributeCombo.getName() ) );
 
-        Collection<Period> periods = new ArrayList<>();
-        periods.add( period );
-
         Collection<ValidationRule> rules = getValidationTypeRulesForDataElements( dataSet.getDataElements() );
-
-        log.debug( "Using validation rules: " + rules.size() );
-
-        Collection<OrganisationUnit> sources = new HashSet<>();
-        sources.add( source );
 
         User user = currentUserService.getCurrentUser();
         
         return Validator.validate( ValidationRunContext.getNewContext( 
-            sources, periods, rules, attributeCombo, null,
+            Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null,
             ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );

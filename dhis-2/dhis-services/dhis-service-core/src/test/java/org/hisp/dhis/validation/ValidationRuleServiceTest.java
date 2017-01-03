@@ -472,44 +472,6 @@ public class ValidationRuleServiceTest
     }
 
     @Test
-    public void testValidateDateDateSource()
-    {
-        useDataValue( dataElementA, periodA, sourceA, "1" );
-        useDataValue( dataElementB, periodA, sourceA, "2" );
-        useDataValue( dataElementC, periodA, sourceA, "3" );
-        useDataValue( dataElementD, periodA, sourceA, "4" );
-
-        useDataValue( dataElementA, periodB, sourceA, "1" );
-        useDataValue( dataElementB, periodB, sourceA, "2" );
-        useDataValue( dataElementC, periodB, sourceA, "3" );
-        useDataValue( dataElementD, periodB, sourceA, "4" );
-
-        validationRuleService.saveValidationRule( validationRuleA );
-        validationRuleService.saveValidationRule( validationRuleB );
-        validationRuleService.saveValidationRule( validationRuleC );
-        validationRuleService.saveValidationRule( validationRuleD );
-
-        Collection<ValidationResult> results = validationRuleService.validate( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourceA );
-
-        Collection<ValidationResult> reference = new HashSet<>();
-
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleB, -1.0, 4.0 ) );
-        reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleB, -1.0, 4.0 ) );
-
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( 4, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
-    }
-
-    @Test
     public void testValidateDataSetPeriodSource()
     {
         useDataValue( dataElementA, periodA, sourceA, "1" );
