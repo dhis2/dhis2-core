@@ -1,9 +1,5 @@
 package org.hisp.dhis.validation;
 
-import java.util.Collection;
-
-import org.hisp.dhis.period.PeriodType;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -31,6 +27,10 @@ import org.hisp.dhis.period.PeriodType;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.Collection;
+
+import org.hisp.dhis.period.PeriodType;
 
 /**
  * Holds information for each validation rule that is needed during a validation

@@ -28,7 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,35 +57,30 @@ public class PeriodTypeExtended
 {	
     private PeriodType periodType;
 
-    private Collection<Period> periods;
+    private Collection<Period> periods = new HashSet<>();
 
-    private Collection<ValidationRule> rules;
+    private Collection<ValidationRule> rules = new HashSet<>();
 
-    private Collection<DataElement> dataElements;
+    private Collection<DataElement> dataElements = new HashSet<>();
 
-    private Collection<PeriodType> allowedPeriodTypes;
+    private Collection<PeriodType> allowedPeriodTypes = new HashSet<>();
 
-    private Map<OrganisationUnit, Collection<DataElement>> sourceDataElements;
+    private Map<OrganisationUnit, Collection<DataElement>> sourceDataElements = new HashMap<>();
 
     public PeriodTypeExtended( PeriodType periodType )
     {
     	this.periodType = periodType;
-	    periods = new HashSet<>();
-	    rules = new HashSet<>();
-	    dataElements = new HashSet<>();
-	    allowedPeriodTypes = new HashSet<>();
-	    sourceDataElements = new HashMap<>();
     }
 
     public String toString()
     {
         return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
-            .append( "\n  periodType", periodType )
-            .append( "\n  periods", (Arrays.toString( periods.toArray() )) )
-            .append( "\n  rules", (Arrays.toString( rules.toArray() )) )
-            .append( "\n  dataElements", (Arrays.toString( dataElements.toArray() )) )
-            .append( "\n  allowedPeriodTypes", (Arrays.toString( allowedPeriodTypes.toArray() )) )
-            .append( "\n  sourceDataElements", "[" + sourceDataElements.size() + "]" ).toString();
+            .append( "periodType", periodType )
+            .append( "periods", periods )
+            .append( "rules", rules.toArray() )
+            .append( "dataElements", dataElements )
+            .append( "allowedPeriodTypes", allowedPeriodTypes )
+            .append( "sourceDataElements", sourceDataElements.size() ).toString();
     }
 
     // -------------------------------------------------------------------------

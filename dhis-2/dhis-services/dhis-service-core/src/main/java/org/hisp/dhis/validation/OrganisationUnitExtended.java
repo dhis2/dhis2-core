@@ -59,14 +59,16 @@ public class OrganisationUnitExtended
     {
         this.source = source;
         this.toBeValidated = toBeValidated;
-        children = new HashSet<>( source.getChildren() );
-        level = source.getLevel();
+        this.children = new HashSet<>( source.getChildren() );
+        this.level = source.getLevel();
     }
 
     public String toString()
     {
-        return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE ).append( "\n  name", source.getName() )
-            .append( "\n  children[", children.size() + "]" ).append( "\n  level", level ).toString();
+        return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
+            .append( "name", source.getName() )
+            .append( "children", children.size() )
+            .append( "level", level ).toString();
     }
 
     // -------------------------------------------------------------------------
