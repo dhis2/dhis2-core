@@ -515,7 +515,7 @@ public class DefaultValidationRuleService
      *
      * @param user   user to test
      * @param source organisation unit to which the user may have access
-     * @return whether the user has acceess to the organisation unit
+     * @return whether the user has access to the organisation unit
      */
     private boolean canUserAccessSource( User user, OrganisationUnit source )
     {

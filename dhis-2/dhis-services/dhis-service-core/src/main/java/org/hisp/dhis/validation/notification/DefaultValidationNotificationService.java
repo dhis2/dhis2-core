@@ -300,7 +300,6 @@ public class DefaultValidationNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "OptionalUsedAsFieldOrParameterType" )
     private static class Recipients
     {
         final Optional<Set<User>> userRecipients;
