@@ -90,6 +90,16 @@ public class ValidationNotificationTemplate
     }
 
     // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public void addValidationRule( ValidationRule validationRule )
+    {
+        this.validationRules.add( validationRule );
+        validationRule.getNotificationTemplates().add( this );
+    }
+
+    // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 

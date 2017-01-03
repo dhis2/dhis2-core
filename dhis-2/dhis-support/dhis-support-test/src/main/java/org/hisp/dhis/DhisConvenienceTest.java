@@ -114,6 +114,8 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationCriteria;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.validation.notification.ValidationNotificationRecipient;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.joda.time.DateTime;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -1681,6 +1683,18 @@ public abstract class DhisConvenienceTest
             days,
             null
         );
+    }
+
+    protected static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
+    {
+        ValidationNotificationTemplate template = new ValidationNotificationTemplate();
+
+        template.setName( name );
+        template.setSubjectTemplate( "Subject" );
+        template.setMessageTemplate( "Message" );
+        template.setNotificationRecipient( ValidationNotificationRecipient.ORGANISATION_UNIT_CONTACT );
+
+        return template;
     }
 
     // -------------------------------------------------------------------------

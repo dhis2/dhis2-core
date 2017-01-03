@@ -42,7 +42,7 @@
       <many-to-many class="org.hisp.dhis.validation.ValidationRuleGroup" column="validationgroupid" />
     </set>
 
-    <set name="notificationTemplates" table="validationrulenotificationtemplates" inverse="true">
+    <set name="notificationTemplates" table="validationnotificationtemplatevalidationrules" inverse="true">
       <cache usage="read-write" />
       <key column="validationruleid" foreign-key="fk_validationrule_validationrulenotificationtemplate" />
       <many-to-many class="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"

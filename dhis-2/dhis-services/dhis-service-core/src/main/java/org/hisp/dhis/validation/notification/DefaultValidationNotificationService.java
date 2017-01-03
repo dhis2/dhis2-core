@@ -71,7 +71,7 @@ public class DefaultValidationNotificationService
     private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = ImmutableSet.<DeliveryChannel>builder()
         .addAll( Iterators.forArray( DeliveryChannel.values() ) ).build();
 
-    private static final Predicate<ValidationResult> RETAIN_APPLICABLE_RESULTS =
+    private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT =
         vr ->
             Objects.nonNull( vr ) &&
             Objects.nonNull( vr.getValidationRule() ) &&
@@ -110,7 +110,7 @@ public class DefaultValidationNotificationService
     public void sendNotifications( Set<ValidationResult> validationResults )
     {
         Set<ValidationResult> applicableResults = validationResults.stream()
-            .filter( RETAIN_APPLICABLE_RESULTS )
+            .filter( IS_APPLICABLE_RESULT )
             .collect( Collectors.toSet() );
 
         Clock clock = new Clock( log ).startClock().
@@ -232,6 +232,7 @@ public class DefaultValidationNotificationService
         return channelPrincipalMap;
     }
 
+    // TODO Need to consider if user has access to the validationResult.orgUnit? (Done in validation alerts)...
     private static Set<User> recipientsFromUserGroups( final ValidationResult validationResult, ValidationNotificationTemplate template )
     {
         // Limit recipients to be withing org unit hierarchy only, effectively

@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -208,9 +207,10 @@ public class DefaultValidationRuleService
 
         if ( sendAlerts )
         {
-            Set<ValidationResult> resultsToAlert = new HashSet<>( results );
-            FilterUtils.filter( resultsToAlert, new ValidationResultToAlertFilter() );
-            postAlerts( resultsToAlert, new Date() );
+//            Set<ValidationResult> resultsToAlert = new HashSet<>( results );
+//            FilterUtils.filter( resultsToAlert, new ValidationResultToAlertFilter() );
+//            postAlerts( resultsToAlert, new Date() );
+            notificationService.sendNotifications( new HashSet<>( results ) );
         }
 
         return results;
@@ -275,7 +275,8 @@ public class DefaultValidationRuleService
 
         if ( !results.isEmpty() )
         {
-            postAlerts( results, thisRun );
+//            postAlerts( results, thisRun );
+            notificationService.sendNotifications( new HashSet<>( results ) );
         }
 
         log.info( "Posted alerts, monitoring task done" );
@@ -361,6 +362,11 @@ public class DefaultValidationRuleService
         return rules;
     }
 
+    private List<ValidationRule> getValidationRulesWithNotificationTemplates()
+    {
+        return validationRuleStore.getValidationRulesWithNotificationTemplates();
+    }
+
     /**
      * Gets the current and most recent periods to search, based on
      * the period types from the rules to run.
@@ -424,6 +430,7 @@ public class DefaultValidationRuleService
             sendAlertmessage( entry.getKey(), entry.getValue(), scheduledRunStart );
         }
     }
+
 
     /**
      * Gets the Set of period types found in a set of rules.

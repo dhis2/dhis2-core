@@ -55,4 +55,11 @@ public interface ValidationRuleStore
      * @return a collection of ValidationRules.
      */
     List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
+
+    /**
+     * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+     *
+     * @return a List of ValidationRule.
+     */
+    List<ValidationRule> getValidationRulesWithNotificationTemplates();
 }
