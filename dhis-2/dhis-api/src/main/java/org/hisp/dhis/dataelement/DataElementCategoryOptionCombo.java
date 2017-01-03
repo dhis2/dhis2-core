@@ -160,6 +160,20 @@ public class DataElementCategoryOptionCombo
     }
     
     // -------------------------------------------------------------------------
+    // hashCode and equals based on identifiable object
+    // -------------------------------------------------------------------------
+
+    public int hashCodeIdentifiableObject()
+    {
+        return super.hashCode();
+    }
+    
+    public boolean equalsIdentifiableObject( Object object )
+    {
+        return super.equals( object );
+    }    
+    
+    // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
 
