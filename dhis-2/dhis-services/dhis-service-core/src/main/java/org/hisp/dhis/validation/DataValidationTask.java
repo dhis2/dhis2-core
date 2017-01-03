@@ -47,6 +47,8 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Sets;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -148,9 +150,7 @@ public class DataValidationTask
                                 Map<Integer, Double> rightSideValues =
                                     getExpressionValueMap( rule.getRightSide(), currentValueMap, incompleteValuesMap );
 
-                                Set<Integer> attributeOptionCombos = new HashSet<Integer>();
-                                attributeOptionCombos.addAll( leftSideValues.keySet() );
-                                attributeOptionCombos.addAll( rightSideValues.keySet() );
+                                Set<Integer> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
                                 for ( int optionCombo : attributeOptionCombos )
                                 {

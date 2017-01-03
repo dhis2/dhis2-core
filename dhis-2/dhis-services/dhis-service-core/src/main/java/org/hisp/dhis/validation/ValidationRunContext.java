@@ -173,21 +173,18 @@ public class ValidationRunContext
         {
             // Find the period type extended for this rule
             PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( rule.getPeriodType() );
-            periodTypeX.getRules().add( rule ); // Add to the period type ext.
+            periodTypeX.getRules().add( rule ); // Add to the period type ext
 
-            if ( rule.getCurrentDataElements() != null )
-            {
-                // Add this rule's data elements to the period extended.
-                periodTypeX.getDataElements().addAll( rule.getCurrentDataElements() );
-            }
+             // Add this rule's data elements to the period extended
+            periodTypeX.getDataElements().addAll( rule.getDataElementsInExpressions() );
 
-            // Add the allowed period types for rule's current data elements:
+            // Add the allowed period types for rule's current data elements
             periodTypeX.getAllowedPeriodTypes().addAll(
-                getAllowedPeriodTypesForDataElements( rule.getCurrentDataElements(), rule.getPeriodType() ) );
+                getAllowedPeriodTypesForDataElements( rule.getDataElementsInExpressions(), rule.getPeriodType() ) );
 
             // Add the ValidationRuleExtended
             Collection<PeriodType> allowedPastPeriodTypes = getAllowedPeriodTypesForDataElements(
-                rule.getCurrentDataElements(), rule.getPeriodType() );
+                rule.getDataElementsInExpressions(), rule.getPeriodType() );
             
             ValidationRuleExtended ruleX = new ValidationRuleExtended( rule, allowedPastPeriodTypes );
             ruleXMap.put( rule, ruleX );

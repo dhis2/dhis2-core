@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -189,9 +191,7 @@ public class ValidationRule
      */
     public Set<DataElement> getDataElementsInExpressions()
     {
-        Set<DataElement> currentDataElements = new HashSet<>( leftSide.getDataElementsInExpression() );
-        currentDataElements.addAll( rightSide.getDataElementsInExpression() );
-        return currentDataElements;
+        return Sets.union( leftSide.getDataElementsInExpression(), rightSide.getDataElementsInExpression() );
     }
 
     /**
