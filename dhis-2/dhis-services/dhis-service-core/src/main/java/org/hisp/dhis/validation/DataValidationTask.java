@@ -119,6 +119,7 @@ public class DataValidationTask
             {
                 Collection<DataElement> sourceDataElements = periodTypeX.getSourceDataElements()
                     .get( sourceX.getSource() );
+                
                 Set<ValidationRule> rules = getRulesBySourceAndPeriodType( sourceX, periodTypeX, sourceDataElements, context );
                 expressionService.explodeValidationRuleExpressions( rules );
 
@@ -128,6 +129,7 @@ public class DataValidationTask
                     {
                         MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
                         SetMap<Integer, DataElementOperand> incompleteValuesMap = new SetMap<>();
+                        
                         MapMap<Integer, DataElementOperand, Double> currentValueMap = getValueMap( periodTypeX,
                             periodTypeX.getDataElements(), sourceDataElements,
                             periodTypeX.getAllowedPeriodTypes(), period, sourceX.getSource(), lastUpdatedMap,
@@ -158,8 +160,8 @@ public class DataValidationTask
 
                                     if ( Operator.compulsory_pair.equals( rule.getOperator() ) )
                                     {
-                                        violation = (leftSide != null && rightSide == null)
-                                            || (leftSide == null && rightSide != null);
+                                        violation = ( leftSide != null && rightSide == null )
+                                            || ( leftSide == null && rightSide != null );
                                     }
                                     else if ( Operator.exclusive_pair.equals( rule.getOperator() ) )
                                     {
@@ -169,18 +171,17 @@ public class DataValidationTask
                                     {
                                         if ( leftSide == null && rule.getLeftSide().getMissingValueStrategy() == NEVER_SKIP )
                                         {
-                                            leftSide = 0.0;
+                                            leftSide = 0d;
                                         }
 
                                         if ( rightSide == null && rule.getRightSide().getMissingValueStrategy() == NEVER_SKIP )
                                         {
-                                            rightSide = 0.0;
+                                            rightSide = 0d;
                                         }
 
                                         if ( leftSide != null && rightSide != null )
                                         {
-                                            violation = !expressionIsTrue( leftSide, rule.getOperator(),
-                                                rightSide );
+                                            violation = !expressionIsTrue( leftSide, rule.getOperator(), rightSide );
                                         }
                                     }
 
@@ -227,14 +228,15 @@ public class DataValidationTask
 
         for ( ValidationRule rule : periodTypeX.getRules() )
         {
-                // Include only rules where the organisation collects all the data elements in the rule.
-            
-                Collection<DataElement> elements = rule.getCurrentDataElements();
+            // Include only rules where the organisation collects all the data elements
+            // in the rule, or rules which have no data elements.
+        
+            Collection<DataElement> elements = rule.getDataElementsInExpressions();
 
-                if ( elements == null || elements.size() == 0 || sourceDataElements.containsAll( elements ) )
-                {
-                    periodTypeRules.add( rule );
-                }
+            if ( elements.isEmpty() || sourceDataElements.containsAll( elements ) )
+            {
+                periodTypeRules.add( rule );
+            }
         }
 
         return periodTypeRules;
@@ -319,7 +321,7 @@ public class DataValidationTask
         for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
         {
             Double value = expressionService.getExpressionValue( expression, entry.getValue(),
-                    context.getConstantMap(), null, null, incompleteValuesMap.getSet( entry.getKey() ), null );
+                context.getConstantMap(), null, null, incompleteValuesMap.getSet( entry.getKey() ), null );
 
             if ( MathUtils.isValidDouble( value ) )
             {

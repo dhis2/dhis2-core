@@ -183,19 +183,14 @@ public class ValidationRule
     }
 
     /**
-     * Gets the data elements to evaluate for the current period. For
-     * validation-type rules this means all data elements. For monitoring-type
-     * rules this means just the left side elements.
+     * Gets the data elements to evaluate for the current period.
      *
      * @return the data elements to evaluate for the current period.
      */
-    public Set<DataElement> getCurrentDataElements()
+    public Set<DataElement> getDataElementsInExpressions()
     {
-        Set<DataElement> currentDataElements =
-            new HashSet<>( leftSide.getDataElementsInExpression() );
-
+        Set<DataElement> currentDataElements = new HashSet<>( leftSide.getDataElementsInExpression() );
         currentDataElements.addAll( rightSide.getDataElementsInExpression() );
-
         return currentDataElements;
     }
 
