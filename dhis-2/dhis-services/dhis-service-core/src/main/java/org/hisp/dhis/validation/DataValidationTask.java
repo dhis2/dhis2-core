@@ -47,17 +47,20 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.hisp.dhis.expression.MissingValueStrategy.*;
-import static org.hisp.dhis.system.util.MathUtils.*;
+import com.google.common.collect.Sets;
+
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.system.util.MathUtils.expressionIsTrue;
+import static org.hisp.dhis.system.util.MathUtils.roundSignificant;
+import static org.hisp.dhis.system.util.MathUtils.zeroIfNull;
+import static org.hisp.dhis.validation.ValidationRuleService.MAX_INTERACTIVE_ALERTS;
+import static org.hisp.dhis.validation.ValidationRuleService.MAX_SCHEDULED_ALERTS;
 
 /**
  * Runs a validation task on a thread within a multi-threaded validation run.
@@ -114,13 +117,13 @@ public class DataValidationTask
 
     private void runInternal()
     {
-        if ( context.getValidationResults().size() < (ValidationRunType.INTERACTIVE == context.getRunType() ? 
-            ValidationRuleService.MAX_INTERACTIVE_ALERTS : ValidationRuleService.MAX_SCHEDULED_ALERTS) )
+        int maxAlerts = ValidationRunType.INTERACTIVE == context.getRunType() ? MAX_INTERACTIVE_ALERTS : MAX_SCHEDULED_ALERTS;
+        
+        if ( context.getValidationResults().size() < maxAlerts )
         {
             for ( PeriodTypeExtended periodTypeX : context.getPeriodTypeExtendedMap().values() )
             {
-                Collection<DataElement> sourceDataElements = periodTypeX.getSourceDataElements()
-                    .get( sourceX.getSource() );
+                Set<DataElement> sourceDataElements = periodTypeX.getSourceDataElements().get( sourceX.getSource() );
                 
                 Set<ValidationRule> rules = getRulesBySourceAndPeriodType( sourceX, periodTypeX, sourceDataElements, context );
                 expressionService.explodeValidationRuleExpressions( rules );
@@ -150,7 +153,8 @@ public class DataValidationTask
                                 Map<Integer, Double> rightSideValues =
                                     getExpressionValueMap( rule.getRightSide(), currentValueMap, incompleteValuesMap );
 
-                                Set<Integer> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
+                                Set<Integer> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
+                                attributeOptionCombos.addAll( rightSideValues.keySet() );
 
                                 for ( int optionCombo : attributeOptionCombos )
                                 {
@@ -187,11 +191,11 @@ public class DataValidationTask
 
                                     if ( violation )
                                     {
-                                        context.getValidationResults()
-                                            .add( new ValidationResult( period, sourceX.getSource(),
-                                                categoryService.getDataElementCategoryOptionCombo( optionCombo ),
-                                                rule, roundSignificant( zeroIfNull( leftSide ) ),
-                                                roundSignificant( zeroIfNull( rightSide ) ) ) );
+                                        context.getValidationResults().add( new ValidationResult( 
+                                            period, sourceX.getSource(),
+                                            categoryService.getDataElementCategoryOptionCombo( optionCombo ),
+                                            rule, roundSignificant( zeroIfNull( leftSide ) ),
+                                            roundSignificant( zeroIfNull( rightSide ) ) ) );
                                     }
 
                                     log.debug( "Evaluated " + rule.getName() + ", combo id " + optionCombo
@@ -221,7 +225,7 @@ public class DataValidationTask
      * @return set of rules for this org unit and period type
      */
     private Set<ValidationRule> getRulesBySourceAndPeriodType( OrganisationUnitExtended sourceX,
-        PeriodTypeExtended periodTypeX, Collection<DataElement> sourceDataElements,
+        PeriodTypeExtended periodTypeX, Set<DataElement> sourceDataElements,
         ValidationRunContext context )
     {
         Set<ValidationRule> periodTypeRules = new HashSet<>();
@@ -231,7 +235,7 @@ public class DataValidationTask
             // Include only rules where the organisation collects all the data elements
             // in the rule, or rules which have no data elements.
         
-            Collection<DataElement> elements = rule.getDataElementsInExpressions();
+            Set<DataElement> elements = rule.getDataElementsInExpressions();
 
             if ( elements.isEmpty() || sourceDataElements.containsAll( elements ) )
             {
@@ -268,7 +272,7 @@ public class DataValidationTask
             {
                 if ( rule.getLastUpdated().before( context.getLastScheduledRun() ) )
                 {
-                    Collection<DataElementOperand> deos = expressionService
+                    Set<DataElementOperand> deos = expressionService
                         .getOperandsInExpression( rule.getLeftSide().getExpression() );
 
                     // Return true if any data is more recent than the last
@@ -350,8 +354,8 @@ public class DataValidationTask
      * @return map of attribute option combo to map of values found.
      */
     private MapMap<Integer, DataElementOperand, Double> getValueMap( PeriodTypeExtended periodTypeX,
-        Collection<DataElement> ruleDataElements, Collection<DataElement> sourceDataElements,
-        Collection<PeriodType> allowedPeriodTypes, Period period,
+        Set<DataElement> ruleDataElements, Set<DataElement> sourceDataElements,
+        Set<PeriodType> allowedPeriodTypes, Period period,
         OrganisationUnit source, MapMap<Integer, DataElementOperand, Date> lastUpdatedMap,
         SetMap<Integer, DataElementOperand> incompleteValuesMap )
     {

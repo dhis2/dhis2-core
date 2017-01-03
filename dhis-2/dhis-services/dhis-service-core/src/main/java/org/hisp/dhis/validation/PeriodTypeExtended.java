@@ -28,10 +28,10 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -57,15 +57,15 @@ public class PeriodTypeExtended
 {	
     private PeriodType periodType;
 
-    private Collection<Period> periods = new HashSet<>();
+    private Set<Period> periods = new HashSet<>();
 
-    private Collection<ValidationRule> rules = new HashSet<>();
+    private Set<ValidationRule> rules = new HashSet<>();
 
-    private Collection<DataElement> dataElements = new HashSet<>();
+    private Set<DataElement> dataElements = new HashSet<>();
 
-    private Collection<PeriodType> allowedPeriodTypes = new HashSet<>();
+    private Set<PeriodType> allowedPeriodTypes = new HashSet<>();
 
-    private Map<OrganisationUnit, Collection<DataElement>> sourceDataElements = new HashMap<>();
+    private Map<OrganisationUnit, Set<DataElement>> sourceDataElements = new HashMap<>();
 
     public PeriodTypeExtended( PeriodType periodType )
     {
@@ -92,52 +92,52 @@ public class PeriodTypeExtended
         return periodType;
     }
 
-    public Collection<Period> getPeriods()
+    public Set<Period> getPeriods()
     {
         return periods;
     }
 
-    public void setPeriods( Collection<Period> periods )
+    public void setPeriods( Set<Period> periods )
     {
         this.periods = periods;
     }
 
-    public Collection<ValidationRule> getRules()
+    public Set<ValidationRule> getRules()
     {
         return rules;
     }
 
-    public void setRules( Collection<ValidationRule> rules )
+    public void setRules( Set<ValidationRule> rules )
     {
         this.rules = rules;
     }
 
-    public Collection<DataElement> getDataElements()
+    public Set<DataElement> getDataElements()
     {
         return dataElements;
     }
 
-    public void setDataElements( Collection<DataElement> dataElements )
+    public void setDataElements( Set<DataElement> dataElements )
     {
         this.dataElements = dataElements;
     }
 
-    public Collection<PeriodType> getAllowedPeriodTypes()
+    public Set<PeriodType> getAllowedPeriodTypes()
     {
         return allowedPeriodTypes;
     }
 
-    public void setAllowedPeriodTypes( Collection<PeriodType> allowedPeriodTypes )
+    public void setAllowedPeriodTypes( Set<PeriodType> allowedPeriodTypes )
     {
         this.allowedPeriodTypes = allowedPeriodTypes;
     }
 
-    public Map<OrganisationUnit, Collection<DataElement>> getSourceDataElements()
+    public Map<OrganisationUnit, Set<DataElement>> getSourceDataElements()
     {
         return sourceDataElements;
     }
 
-    public void setSourceDataElements( Map<OrganisationUnit, Collection<DataElement>> sourceDataElements )
+    public void setSourceDataElements( Map<OrganisationUnit, Set<DataElement>> sourceDataElements )
     {
         this.sourceDataElements = sourceDataElements;
     }

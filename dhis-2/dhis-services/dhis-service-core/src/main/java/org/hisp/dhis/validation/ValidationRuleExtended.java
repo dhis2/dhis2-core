@@ -28,7 +28,7 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
+import java.util.Set;
 
 import org.hisp.dhis.period.PeriodType;
 
@@ -49,9 +49,9 @@ public class ValidationRuleExtended
 {
     private ValidationRule rule;
 
-    private Collection<PeriodType> allowedPastPeriodTypes;
+    private Set<PeriodType> allowedPastPeriodTypes;
 
-    public ValidationRuleExtended( ValidationRule rule, Collection<PeriodType> allowedPastPeriodTypes )
+    public ValidationRuleExtended( ValidationRule rule, Set<PeriodType> allowedPastPeriodTypes )
     {
         this.rule = rule;
         this.allowedPastPeriodTypes = allowedPastPeriodTypes;
@@ -66,7 +66,7 @@ public class ValidationRuleExtended
         return rule;
     }
 
-    public Collection<PeriodType> getAllowedPastPeriodTypes()
+    public Set<PeriodType> getAllowedPastPeriodTypes()
     {
         return allowedPastPeriodTypes;
     }

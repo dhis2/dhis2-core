@@ -28,8 +28,8 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -51,7 +51,7 @@ public class OrganisationUnitExtended
 
     private boolean toBeValidated;
 
-    private Collection<OrganisationUnit> children;
+    private Set<OrganisationUnit> children;
 
     private int level;
 
@@ -85,7 +85,7 @@ public class OrganisationUnitExtended
         return toBeValidated;
     }
 
-    public Collection<OrganisationUnit> getChildren()
+    public Set<OrganisationUnit> getChildren()
     {
         return children;
     }

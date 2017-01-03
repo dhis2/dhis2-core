@@ -191,7 +191,9 @@ public class ValidationRule
      */
     public Set<DataElement> getDataElementsInExpressions()
     {
-        return Sets.union( leftSide.getDataElementsInExpression(), rightSide.getDataElementsInExpression() );
+        Set<DataElement> elements = Sets.newHashSet( leftSide.getDataElementsInExpression() );
+        elements.addAll( rightSide.getDataElementsInExpression() );
+        return elements;
     }
 
     /**
