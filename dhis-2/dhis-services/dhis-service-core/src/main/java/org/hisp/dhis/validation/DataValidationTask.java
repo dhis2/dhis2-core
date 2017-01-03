@@ -260,7 +260,7 @@ public class DataValidationTask
     private boolean evaluateValidationCheck( MapMap<Integer, DataElementOperand, Double> currentValueMapMap,
         MapMap<Integer, DataElementOperand, Date> lastUpdatedMapMap, ValidationRule rule )
     {
-        boolean evaluate = true; // Assume true for now.
+        boolean evaluate = true; // Assume true for now
 
         if ( ValidationRunType.SCHEDULED == context.getRunType() )
         {
@@ -272,12 +272,12 @@ public class DataValidationTask
                         .getOperandsInExpression( rule.getLeftSide().getExpression() );
 
                     // Return true if any data is more recent than the last
-                    // scheduled run, otherwise return false.
+                    // scheduled run, otherwise return false
                     evaluate = false;
 
                     for ( Map.Entry<Integer, Map<DataElementOperand, Date>> entry : lastUpdatedMapMap.entrySet() )
                     {
-                        boolean saveThisCombo = false;
+                        boolean saveCombo = false;
 
                         for ( DataElementOperand deo : deos )
                         {
@@ -285,13 +285,13 @@ public class DataValidationTask
 
                             if ( lastUpdated != null && lastUpdated.after( context.getLastScheduledRun() ) )
                             {
-                                saveThisCombo = true; // True if new/updated data
+                                saveCombo = true; // True if new/updated data
                                 evaluate = true;
                                 break;
                             }
                         }
 
-                        if ( !saveThisCombo )
+                        if ( !saveCombo )
                         {
                             currentValueMapMap.remove( entry.getKey() );
                         }
