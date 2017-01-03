@@ -28,12 +28,12 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
+
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
 
 /**
  * @author Dang Duy Hieu
@@ -95,7 +95,7 @@ public interface SqlViewService
     *        with variables inside the SQL view.
     * @return a grid.
     */
-    Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables );
+    Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters );
 
     /**
      * Returns an SQL where clause based on the given criteria.

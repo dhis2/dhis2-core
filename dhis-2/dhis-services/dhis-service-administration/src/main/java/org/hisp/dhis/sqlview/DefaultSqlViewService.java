@@ -28,10 +28,6 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,8 +35,13 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Dang Duy Hieu
@@ -169,7 +170,7 @@ public class DefaultSqlViewService
     }
     
     @Override
-    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
+    public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters  )
     {
         Grid grid = new ListGrid();
         grid.setTitle( sqlView.getName() );
@@ -181,16 +182,56 @@ public class DefaultSqlViewService
             getSqlForQuery( grid, sqlView, criteria, variables ) :
             getSqlForView( grid, sqlView, criteria );
 
+        System.out.println( "getSqlViewGrid() sql = " + sql );
+
         sqlViewStore.populateSqlViewGrid( grid, sql );
 
         return grid;
     }
+
+
+    private String parseFilters( SqlView sqlView, List<String> filters ) throws QueryParserException
+    {
+        String query = StringUtils.EMPTY;
+
+        for ( String filter : filters )
+        {
+            String[] split = filter.split( ":" );
+
+            if ( !(split.length >= 2) )
+            {
+                throw new QueryParserException( "Invalid filter => " + filter );
+            }
+
+            if ( split.length >= 3 )
+            {
+                int index = split[0].length() + ":".length() + split[1].length() + ":".length();
+                query +=  getFilterQuery( sqlView, split[0], split[1], filter.substring( index ) ) ;
+            }
+            else
+            {
+                query += getFilterQuery( sqlView, split[0], split[1], null );
+            }
+        }
+
+        return query;
+    }
+
+    private String getFilterQuery( SqlView sqlView, String columnName, String operator, String value ) {
+        String query = StringUtils.EMPTY;
+
+        // TODO
+
+        return query;
+    }
+
 
     private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
     {
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
         String sql = SqlViewUtils.substituteSqlVariables( sqlView.getSqlQuery(), variables );
+        System.out.println( "getSqlForQuery() sql = " + sql );
 
         if ( hasCriteria )
         {
