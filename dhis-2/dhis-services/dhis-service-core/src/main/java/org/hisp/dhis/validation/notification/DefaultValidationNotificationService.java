@@ -306,7 +306,7 @@ public class DefaultValidationNotificationService
     }
 
     // -------------------------------------------------------------------------
-    // Supportive methods
+    // Inner classes
     // -------------------------------------------------------------------------
 
     private static class Recipients
