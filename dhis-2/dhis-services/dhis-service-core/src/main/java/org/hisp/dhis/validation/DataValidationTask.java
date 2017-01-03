@@ -168,7 +168,7 @@ public class DataValidationTask
                                     }
                                     else if ( Operator.exclusive_pair.equals( rule.getOperator() ) )
                                     {
-                                        violation = (leftSide != null && rightSide != null);
+                                        violation = ( leftSide != null && rightSide != null );
                                     }
                                     else
                                     {
