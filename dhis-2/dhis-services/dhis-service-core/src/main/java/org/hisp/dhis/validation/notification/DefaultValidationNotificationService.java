@@ -160,19 +160,16 @@ public class DefaultValidationNotificationService
     private Set<Message> createMessages( Set<ValidationResult> validationResults )
     {
         return validationResults.stream()
-            .flatMap( this::createMessages )
+            .flatMap(
+                result -> result.getValidationRule().getNotificationTemplates().stream()
+                    .map( template ->
+                        new Message(
+                            createNotification( result, template ),
+                            createRecipients( result, template )
+                        )
+                    )
+            )
             .collect( Collectors.toSet() );
-    }
-
-    private Stream<Message> createMessages( final ValidationResult validationResult )
-    {
-        return validationResult.getValidationRule().getNotificationTemplates().stream()
-            .map( template ->
-                new Message(
-                    createNotification( validationResult, template ),
-                    createRecipients( validationResult, template )
-                )
-            );
     }
 
     private NotificationMessage createNotification( ValidationResult validationResult, ValidationNotificationTemplate template )
