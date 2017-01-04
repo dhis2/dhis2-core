@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.version;
 
 import org.apache.http.HttpResponse;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -45,6 +46,7 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -70,6 +72,7 @@ import static org.mockito.Mockito.*;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( HttpUtils.class )
+@Category( IntegrationTest.class )
 public class MetadataVersionDelegateTest
     extends DhisSpringTest
 {
