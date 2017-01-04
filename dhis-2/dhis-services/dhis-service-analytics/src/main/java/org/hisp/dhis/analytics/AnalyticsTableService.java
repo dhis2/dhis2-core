@@ -31,6 +31,8 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.scheduling.TaskId;
 
 /**
+ * Service for analytics table generation and analysis.
+ * 
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableService
@@ -49,7 +51,7 @@ public interface AnalyticsTableService
     void dropTables();
 
     /**
-     * Performs an <code>analyze</code> operation on all analytics tables.
+     * Performs an SQL analyze operation on all analytics tables.
      */
     void analyzeAnalyticsTables();
     

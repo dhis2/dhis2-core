@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 /**
- * Interface for management of the analytics database tables.
+ * Manager for the analytics database tables.
  * 
  * @author Lars Helge Overland
  */

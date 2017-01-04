@@ -36,7 +36,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ListMap;
 
 /**
- * Interface for queries for retrieval of analytics data.
+ * Manager for queries for retrieval of analytics data.
  * 
  * @author Lars Helge Overland
  */
