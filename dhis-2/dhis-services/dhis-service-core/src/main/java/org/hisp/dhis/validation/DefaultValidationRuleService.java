@@ -132,13 +132,13 @@ public class DefaultValidationRuleService
     {
         this.constantService = constantService;
     }
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
+//
+//    private MessageService messageService;
+//
+//    public void setMessageService( MessageService messageService )
+//    {
+//        this.messageService = messageService;
+//    }
 
     private OrganisationUnitService organisationUnitService;
 
@@ -207,9 +207,6 @@ public class DefaultValidationRuleService
 
         if ( sendAlerts )
         {
-//            Set<ValidationResult> resultsToAlert = new HashSet<>( results );
-//            FilterUtils.filter( resultsToAlert, new ValidationResultToAlertFilter() );
-//            postAlerts( resultsToAlert, new Date() );
             notificationService.sendNotifications( new HashSet<>( results ) );
         }
 
@@ -245,9 +242,12 @@ public class DefaultValidationRuleService
 
         List<OrganisationUnit> sources = organisationUnitService.getAllOrganisationUnits();
 
-        // Find all the rules belonging to groups that will send alerts to user roles.
+//        // Find all the rules belonging to groups that will send alerts to user roles.
+//        Set<ValidationRule> rules = getAlertRules();
 
-        Set<ValidationRule> rules = getAlertRules();
+        // Find all rules which might generate notifications
+
+        Set<ValidationRule> rules = getValidationRulesWithNotificationTemplates();
 
         Set<Period> periods = getAlertPeriodsFromRules( rules );
 
@@ -342,29 +342,9 @@ public class DefaultValidationRuleService
     // Supportive methods - scheduled run
     // -------------------------------------------------------------------------
 
-    /**
-     * Gets all the validation rules that could generate alerts.
-     *
-     * @return rules that will generate alerts
-     */
-    private Set<ValidationRule> getAlertRules()
+    private Set<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
-        Set<ValidationRule> rules = new HashSet<>();
-
-        for ( ValidationRuleGroup validationRuleGroup : getAllValidationRuleGroups() )
-        {
-            if ( validationRuleGroup.hasUserGroupsToAlert() )
-            {
-                rules.addAll( validationRuleGroup.getMembers() );
-            }
-        }
-
-        return rules;
-    }
-
-    private List<ValidationRule> getValidationRulesWithNotificationTemplates()
-    {
-        return validationRuleStore.getValidationRulesWithNotificationTemplates();
+        return Sets.newHashSet( validationRuleStore.getValidationRulesWithNotificationTemplates() );
     }
 
     /**
@@ -400,36 +380,36 @@ public class DefaultValidationRuleService
         return periods;
     }
 
-    /**
-     * At the end of a scheduled monitoring run, post messages to the users who
-     * want to see the results.
-     * <p>
-     * Create one message for each set of users who receive the same
-     * subset of results. (Not necessarily the same as the set of users who
-     * receive alerts from the same subset of validation rules -- because
-     * some of these rules may return no results.) This saves on message
-     * storage space.
-     * <p>
-     * The message results are sorted into their natural order.
-     * <p>
-     * TODO: Internationalize the messages according to the user's
-     * preferred language, and generate a message for each combination of
-     * (target language, set of results).
-     *
-     * @param validationResults the set of validation error results
-     * @param scheduledRunStart the date/time when this scheduled run started
-     */
-    private void postAlerts( Collection<ValidationResult> validationResults, Date scheduledRunStart )
-    {
-        SortedSet<ValidationResult> results = new TreeSet<>( validationResults );
-
-        Map<SortedSet<ValidationResult>, Set<User>> messageMap = getMessageMap( results );
-
-        for ( Map.Entry<SortedSet<ValidationResult>, Set<User>> entry : messageMap.entrySet() )
-        {
-            sendAlertmessage( entry.getKey(), entry.getValue(), scheduledRunStart );
-        }
-    }
+//    /**
+//     * At the end of a scheduled monitoring run, post messages to the users who
+//     * want to see the results.
+//     * <p>
+//     * Create one message for each set of users who receive the same
+//     * subset of results. (Not necessarily the same as the set of users who
+//     * receive alerts from the same subset of validation rules -- because
+//     * some of these rules may return no results.) This saves on message
+//     * storage space.
+//     * <p>
+//     * The message results are sorted into their natural order.
+//     * <p>
+//     * TODO: Internationalize the messages according to the user's
+//     * preferred language, and generate a message for each combination of
+//     * (target language, set of results).
+//     *
+//     * @param validationResults the set of validation error results
+//     * @param scheduledRunStart the date/time when this scheduled run started
+//     */
+//    private void postAlerts( Collection<ValidationResult> validationResults, Date scheduledRunStart )
+//    {
+//        SortedSet<ValidationResult> results = new TreeSet<>( validationResults );
+//
+//        Map<SortedSet<ValidationResult>, Set<User>> messageMap = getMessageMap( results );
+//
+//        for ( Map.Entry<SortedSet<ValidationResult>, Set<User>> entry : messageMap.entrySet() )
+//        {
+//            sendAlertmessage( entry.getKey(), entry.getValue(), scheduledRunStart );
+//        }
+//    }
 
 
     /**
@@ -453,161 +433,161 @@ public class DefaultValidationRuleService
         return rulePeriodTypes;
     }
 
-    /**
-     * Returns a map where the key is a sorted list of validation results
-     * to assemble into a message, and the value is the set of users who
-     * should receive this message.
-     *
-     * @param results all the validation run results, in a sorted set
-     * @return map of result sets to users
-     */
-    private Map<SortedSet<ValidationResult>, Set<User>> getMessageMap( SortedSet<ValidationResult> results )
-    {
-        Map<User, SortedSet<ValidationResult>> userResults = getUserResults( results );
+//    /**
+//     * Returns a map where the key is a sorted list of validation results
+//     * to assemble into a message, and the value is the set of users who
+//     * should receive this message.
+//     *
+//     * @param results all the validation run results, in a sorted set
+//     * @return map of result sets to users
+//     */
+//    private Map<SortedSet<ValidationResult>, Set<User>> getMessageMap( SortedSet<ValidationResult> results )
+//    {
+//        Map<User, SortedSet<ValidationResult>> userResults = getUserResults( results );
+//
+//        Map<SortedSet<ValidationResult>, Set<User>> messageMap = new HashMap<>();
+//
+//        for ( Map.Entry<User, SortedSet<ValidationResult>> userResultEntry : userResults.entrySet() )
+//        {
+//            Set<User> users = messageMap.get( userResultEntry.getValue() );
+//
+//            if ( users == null )
+//            {
+//                users = new HashSet<>();
+//
+//                messageMap.put( userResultEntry.getValue(), users );
+//            }
+//
+//            users.add( userResultEntry.getKey() );
+//        }
+//
+//        return messageMap;
+//    }
 
-        Map<SortedSet<ValidationResult>, Set<User>> messageMap = new HashMap<>();
+//    /**
+//     * Returns a map where the key is a user and the value is a naturally-sorted
+//     * list of results they should receive.
+//     *
+//     * @param results all the validation run results, in a sorted set
+//     * @return map of users to results
+//     */
+//    private Map<User, SortedSet<ValidationResult>> getUserResults( SortedSet<ValidationResult> results )
+//    {
+//        Map<User, SortedSet<ValidationResult>> userResults = new HashMap<>();
+//
+//        for ( ValidationResult result : results )
+//        {
+//            for ( ValidationRuleGroup ruleGroup : result.getValidationRule().getGroups() )
+//            {
+//                if ( ruleGroup.hasUserGroupsToAlert() )
+//                {
+//                    for ( UserGroup userGroup : ruleGroup.getUserGroupsToAlert() )
+//                    {
+//                        for ( User user : userGroup.getMembers() )
+//                        {
+//                            if ( !ruleGroup.isAlertByOrgUnits() || canUserAccessSource( user, result.getOrgUnit() ) )
+//                            {
+//                                SortedSet<ValidationResult> resultSet = userResults.get( user );
+//
+//                                if ( resultSet == null )
+//                                {
+//                                    resultSet = new TreeSet<>();
+//
+//                                    userResults.put( user, resultSet );
+//                                }
+//
+//                                resultSet.add( result );
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        return userResults;
+//    }
 
-        for ( Map.Entry<User, SortedSet<ValidationResult>> userResultEntry : userResults.entrySet() )
-        {
-            Set<User> users = messageMap.get( userResultEntry.getValue() );
+//    /**
+//     * Determines whether a user can access an organisation unit,
+//     * based on the organisation units to which the user has been assigned.
+//     *
+//     * @param user user to test
+//     * @param source organisation unit to which the user may have access
+//     * @return whether the user has access to the organisation unit
+//     */
+//    private boolean canUserAccessSource( User user, OrganisationUnit source )
+//    {
+//        for ( OrganisationUnit unit : user.getOrganisationUnits() )
+//        {
+//            if ( source == unit || source.getAncestors().contains( unit ) )
+//            {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//    }
 
-            if ( users == null )
-            {
-                users = new HashSet<>();
-
-                messageMap.put( userResultEntry.getValue(), users );
-            }
-
-            users.add( userResultEntry.getKey() );
-        }
-
-        return messageMap;
-    }
-
-    /**
-     * Returns a map where the key is a user and the value is a naturally-sorted
-     * list of results they should receive.
-     *
-     * @param results all the validation run results, in a sorted set
-     * @return map of users to results
-     */
-    private Map<User, SortedSet<ValidationResult>> getUserResults( SortedSet<ValidationResult> results )
-    {
-        Map<User, SortedSet<ValidationResult>> userResults = new HashMap<>();
-
-        for ( ValidationResult result : results )
-        {
-            for ( ValidationRuleGroup ruleGroup : result.getValidationRule().getGroups() )
-            {
-                if ( ruleGroup.hasUserGroupsToAlert() )
-                {
-                    for ( UserGroup userGroup : ruleGroup.getUserGroupsToAlert() )
-                    {
-                        for ( User user : userGroup.getMembers() )
-                        {
-                            if ( !ruleGroup.isAlertByOrgUnits() || canUserAccessSource( user, result.getOrgUnit() ) )
-                            {
-                                SortedSet<ValidationResult> resultSet = userResults.get( user );
-
-                                if ( resultSet == null )
-                                {
-                                    resultSet = new TreeSet<>();
-
-                                    userResults.put( user, resultSet );
-                                }
-
-                                resultSet.add( result );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return userResults;
-    }
-
-    /**
-     * Determines whether a user can access an organisation unit,
-     * based on the organisation units to which the user has been assigned.
-     *
-     * @param user user to test
-     * @param source organisation unit to which the user may have access
-     * @return whether the user has access to the organisation unit
-     */
-    private boolean canUserAccessSource( User user, OrganisationUnit source )
-    {
-        for ( OrganisationUnit unit : user.getOrganisationUnits() )
-        {
-            if ( source == unit || source.getAncestors().contains( unit ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Generate and send an alert message containing a list of validation
-     * results to a set of users.
-     *
-     * @param results           results to put in this message
-     * @param users             users to receive these results
-     * @param scheduledRunStart date/time when the scheduled run started
-     */
-    private void sendAlertmessage( SortedSet<ValidationResult> results, Set<User> users, Date scheduledRunStart )
-    {
-        StringBuilder builder = new StringBuilder();
-
-        Map<Importance, Integer> importanceCountMap = countResultsByImportanceType( results );
-
-        String subject = "Alerts as of " + DateUtils.getLongDateString( scheduledRunStart ) + ": High "
-            + (importanceCountMap.get( Importance.HIGH ) == null ? 0 : importanceCountMap.get( Importance.HIGH )) + ", Medium "
-            + (importanceCountMap.get( Importance.MEDIUM ) == null ? 0 : importanceCountMap.get( Importance.MEDIUM )) + ", Low "
-            + (importanceCountMap.get( Importance.LOW ) == null ? 0 : importanceCountMap.get( Importance.LOW ));
-
-        //TODO use velocity template for message
-
-        for ( ValidationResult result : results )
-        {
-            ValidationRule rule = result.getValidationRule();
-
-            builder.append( result.getOrgUnit().getName() ).append( " " ).append( result.getPeriod().getName() ).
-                append( result.getAttributeOptionCombo().isDefault() ? "" : " " + result.getAttributeOptionCombo().getName() ).append( LN ).
-                append( rule.getName() ).append( " (" ).append( rule.getImportance() ).append( ") " ).append( LN ).
-                append( rule.getLeftSide().getDescription() ).append( ": " ).append( result.getLeftsideValue() ).append( LN ).
-                append( rule.getRightSide().getDescription() ).append( ": " ).append( result.getRightsideValue() ).append( LN ).append( LN );
-        }
-
-        log.info( "Alerting users: " + users.size() + ", subject: " + subject );
-
-        messageService.sendMessage( subject, builder.toString(), null, users );
-    }
+//    /**
+//     * Generate and send an alert message containing a list of validation
+//     * results to a set of users.
+//     *
+//     * @param results           results to put in this message
+//     * @param users             users to receive these results
+//     * @param scheduledRunStart date/time when the scheduled run started
+//     */
+//    private void sendAlertmessage( SortedSet<ValidationResult> results, Set<User> users, Date scheduledRunStart )
+//    {
+//        StringBuilder builder = new StringBuilder();
+//
+//        Map<Importance, Integer> importanceCountMap = countResultsByImportanceType( results );
+//
+//        String subject = "Alerts as of " + DateUtils.getLongDateString( scheduledRunStart ) + ": High "
+//            + (importanceCountMap.get( Importance.HIGH ) == null ? 0 : importanceCountMap.get( Importance.HIGH )) + ", Medium "
+//            + (importanceCountMap.get( Importance.MEDIUM ) == null ? 0 : importanceCountMap.get( Importance.MEDIUM )) + ", Low "
+//            + (importanceCountMap.get( Importance.LOW ) == null ? 0 : importanceCountMap.get( Importance.LOW ));
+//
+//        //TODO use velocity template for message
+//
+//        for ( ValidationResult result : results )
+//        {
+//            ValidationRule rule = result.getValidationRule();
+//
+//            builder.append( result.getOrgUnit().getName() ).append( " " ).append( result.getPeriod().getName() ).
+//                append( result.getAttributeOptionCombo().isDefault() ? "" : " " + result.getAttributeOptionCombo().getName() ).append( LN ).
+//                append( rule.getName() ).append( " (" ).append( rule.getImportance() ).append( ") " ).append( LN ).
+//                append( rule.getLeftSide().getDescription() ).append( ": " ).append( result.getLeftsideValue() ).append( LN ).
+//                append( rule.getRightSide().getDescription() ).append( ": " ).append( result.getRightsideValue() ).append( LN ).append( LN );
+//        }
+//
+//        log.info( "Alerting users: " + users.size() + ", subject: " + subject );
+//
+//        messageService.sendMessage( subject, builder.toString(), null, users );
+//    }
 
     // -------------------------------------------------------------------------
     // Supportive methods - monitoring
     // -------------------------------------------------------------------------
 
-    /**
-     * Counts the results of each importance type, for all the importance
-     * types that are found within the results.
-     *
-     * @param results results to analyze
-     * @return Mapping between importance type and result counts.
-     */
-    private Map<Importance, Integer> countResultsByImportanceType( Set<ValidationResult> results )
-    {
-        Map<Importance, Integer> importanceCountMap = new HashMap<>();
-
-        for ( ValidationResult result : results )
-        {
-            Integer importanceCount = importanceCountMap.get( result.getValidationRule().getImportance() );
-
-            importanceCountMap.put( result.getValidationRule().getImportance(), importanceCount == null ? 1 : importanceCount + 1 );
-        }
-
-        return importanceCountMap;
-    }
+//    /**
+//     * Counts the results of each importance type, for all the importance
+//     * types that are found within the results.
+//     *
+//     * @param results results to analyze
+//     * @return Mapping between importance type and result counts.
+//     */
+//    private Map<Importance, Integer> countResultsByImportanceType( Set<ValidationResult> results )
+//    {
+//        Map<Importance, Integer> importanceCountMap = new HashMap<>();
+//
+//        for ( ValidationResult result : results )
+//        {
+//            Integer importanceCount = importanceCountMap.get( result.getValidationRule().getImportance() );
+//
+//            importanceCountMap.put( result.getValidationRule().getImportance(), importanceCount == null ? 1 : importanceCount + 1 );
+//        }
+//
+//        return importanceCountMap;
+//    }
 
     /**
      * Formats and sets name on the period of each result.

@@ -34,6 +34,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -51,6 +53,7 @@ import org.hisp.dhis.validation.ValidationResult;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -109,6 +112,7 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> validationResults )
     {
+        // Filter out un-applicable validation results
         Set<ValidationResult> applicableResults = validationResults.stream()
             .filter( IS_APPLICABLE_RESULT )
             .collect( Collectors.toSet() );
@@ -160,6 +164,34 @@ public class DefaultValidationNotificationService
             .collect( Collectors.toSet() );
     }
 
+    private static Map<List<ValidationResult>, Recipients> createValidationResultsForMessageMap( Set<ValidationResult> results )
+    {
+        Map<Recipients, List<ValidationResult>> recipientsResultsMap = createRecipientsResultsMap( results );
+
+        Map<List<ValidationResult>, Set<Recipients>> validationResultsMessageMap = new HashMap<>();
+
+        for ( Map.Entry<Recipients, List<ValidationResult>> entry : recipientsResultsMap.entrySet() )
+        {
+            Set<Recipients> recipients = validationResultsMessageMap.get( entry.getValue() );
+
+            if ( recipients == null )
+            {
+                recipients = new HashSet<>();
+            }
+        }
+    }
+
+    private static Map<Recipients, List<ValidationResult>> createRecipientsResultsMap( Set<ValidationResult> results )
+    {
+        Map<Recipients, List<ValidationResult>> recipientsResults = new HashMap<>();
+
+        results.stream()
+            .map( ValidationResult::getValidationRule )
+            .
+
+        return null;
+    }
+
     private Stream<Message> createMessages( final ValidationResult validationResult )
     {
         return validationResult.getValidationRule().getNotificationTemplates().stream()
@@ -169,6 +201,11 @@ public class DefaultValidationNotificationService
                     createRecipients( validationResult, template )
                 )
             );
+    }
+
+    private Set<Message> reduceToSummaries( Set<Message> messages )
+    {
+        return null;
     }
 
     private NotificationMessage createNotification( ValidationResult validationResult, ValidationNotificationTemplate template )
@@ -309,6 +346,7 @@ public class DefaultValidationNotificationService
     // Inner classes
     // -------------------------------------------------------------------------
 
+    @SuppressWarnings( "OptionalUsedAsFieldOrParameterType" )
     private static class Recipients
     {
         final Optional<Set<User>> userRecipients;
@@ -330,6 +368,30 @@ public class DefaultValidationNotificationService
         {
             return externalRecipients.isPresent();
         }
+
+//        @Override
+//        public boolean equals( Object other )
+//        {
+//            if ( this == other ) return true;
+//
+//            if ( !(other instanceof Recipients) ) return false;
+//
+//            Recipients that = (Recipients) other;
+//
+//            return new EqualsBuilder()
+//                .append( userRecipients.orElse( null ), that.userRecipients.orElse( null ) )
+//                .append( externalRecipients.orElse( null ), that.externalRecipients.orElse( null ) )
+//                .isEquals();
+//        }
+//
+//        @Override
+//        public int hashCode()
+//        {
+//            return new HashCodeBuilder( 17, 37 )
+//                .append( userRecipients )
+//                .append( externalRecipients )
+//                .toHashCode();
+//        }
     }
 
     private static class Message
