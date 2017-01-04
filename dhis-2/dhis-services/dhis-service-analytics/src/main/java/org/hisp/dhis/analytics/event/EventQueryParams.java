@@ -426,6 +426,9 @@ public class EventQueryParams
 
     /**
      * Removes items and item filters of type program indicators.
+     * 
+     * TODO add support for program indicators in aggregate event 
+     * analytics and remove this method.
      */
     public EventQueryParams removeProgramIndicatorItems()
     {
