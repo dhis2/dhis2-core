@@ -86,12 +86,14 @@ public class ResourceTableController
         @RequestParam( required = false ) boolean skipResourceTables,
         @RequestParam( required = false ) boolean skipAggregate,
         @RequestParam( required = false ) boolean skipEvents,
+        @RequestParam( required = false ) boolean skipEnrollment,
         @RequestParam( required = false ) Integer lastYears,
         HttpServletResponse response, HttpServletRequest request )
     {
         analyticsTableTask.setSkipResourceTables( skipResourceTables );
         analyticsTableTask.setSkipAggregate( skipAggregate );
         analyticsTableTask.setSkipEvents( skipEvents );
+        analyticsTableTask.setSkipEnrollment( skipEnrollment );
         analyticsTableTask.setLastYears( lastYears );
         analyticsTableTask.setTaskId( new TaskId( TaskCategory.ANALYTICSTABLE_UPDATE, currentUserService.getCurrentUser() ) );
 
