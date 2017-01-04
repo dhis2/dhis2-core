@@ -164,34 +164,6 @@ public class DefaultValidationNotificationService
             .collect( Collectors.toSet() );
     }
 
-    private static Map<List<ValidationResult>, Recipients> createValidationResultsForMessageMap( Set<ValidationResult> results )
-    {
-        Map<Recipients, List<ValidationResult>> recipientsResultsMap = createRecipientsResultsMap( results );
-
-        Map<List<ValidationResult>, Set<Recipients>> validationResultsMessageMap = new HashMap<>();
-
-        for ( Map.Entry<Recipients, List<ValidationResult>> entry : recipientsResultsMap.entrySet() )
-        {
-            Set<Recipients> recipients = validationResultsMessageMap.get( entry.getValue() );
-
-            if ( recipients == null )
-            {
-                recipients = new HashSet<>();
-            }
-        }
-    }
-
-    private static Map<Recipients, List<ValidationResult>> createRecipientsResultsMap( Set<ValidationResult> results )
-    {
-        Map<Recipients, List<ValidationResult>> recipientsResults = new HashMap<>();
-
-        results.stream()
-            .map( ValidationResult::getValidationRule )
-            .
-
-        return null;
-    }
-
     private Stream<Message> createMessages( final ValidationResult validationResult )
     {
         return validationResult.getValidationRule().getNotificationTemplates().stream()
@@ -201,11 +173,6 @@ public class DefaultValidationNotificationService
                     createRecipients( validationResult, template )
                 )
             );
-    }
-
-    private Set<Message> reduceToSummaries( Set<Message> messages )
-    {
-        return null;
     }
 
     private NotificationMessage createNotification( ValidationResult validationResult, ValidationNotificationTemplate template )
