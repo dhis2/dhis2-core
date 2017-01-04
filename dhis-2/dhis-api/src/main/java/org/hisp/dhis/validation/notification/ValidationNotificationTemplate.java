@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.notification.NotificationTemplate;
-import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
@@ -61,25 +60,11 @@ public class ValidationNotificationTemplate
 
     private Set<ValidationRule> validationRules = Sets.newHashSet();
 
-    private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
-
-    private ValidationNotificationRecipient notificationRecipient;
-
-    // -------------------------------------------------------------------------
-    // Conditionally relevant properties
-    // -------------------------------------------------------------------------
-
-    /**
-     * Limit notifications to only users which are in the direct hierarchy of the
-     * orgunit. This includes any orgunit in the direct path from the root to the
-     * orgunit, as well all children (recursive).
-     *
-     * Should act like a filter on the configured user groups.
-     * In the case of non User recipients, this is not applicable.
-     */
     private Boolean notifyUsersInHierarchyOnly;
 
     private Set<UserGroup> recipientUserGroups = Sets.newHashSet();
+
+    private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -125,18 +110,10 @@ public class ValidationNotificationTemplate
         return messageTemplate;
     }
 
-    @PropertyRange( min = 1 )
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<DeliveryChannel> getDeliveryChannels()
     {
-        return deliveryChannels;
-    }
-
-    public void setDeliveryChannels( Set<DeliveryChannel> deliveryChannels )
-    {
-        this.deliveryChannels = deliveryChannels;
+        return ALL_DELIVERY_CHANNELS;
     }
 
     public void setMessageTemplate( String messageTemplate )
@@ -156,20 +133,6 @@ public class ValidationNotificationTemplate
         this.validationRules = validationRules;
     }
 
-    @Property( required = Property.Value.TRUE )
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValidationNotificationRecipient getNotificationRecipient()
-    {
-        return notificationRecipient;
-    }
-
-    public void setNotificationRecipient( ValidationNotificationRecipient notificationRecipient )
-    {
-        this.notificationRecipient = notificationRecipient;
-    }
-
-    @Property( required = Property.Value.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getNotifyUsersInHierarchyOnly()
@@ -211,19 +174,15 @@ public class ValidationNotificationTemplate
             {
                 subjectTemplate = that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate();
-                notificationRecipient = that.getNotificationRecipient();
                 notifyUsersInHierarchyOnly = that.notifyUsersInHierarchyOnly;
             }
             else if ( mergeMode.isMerge() )
             {
                 subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
-                notificationRecipient = that.getNotificationRecipient() == null ? notificationRecipient : that.getNotificationRecipient();
-                notifyUsersInHierarchyOnly = that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
+                notifyUsersInHierarchyOnly =
+                    that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
             }
-
-            deliveryChannels.clear();
-            deliveryChannels.addAll( that.getDeliveryChannels() );
 
             validationRules.clear();
             validationRules.addAll( that.getValidationRules() );

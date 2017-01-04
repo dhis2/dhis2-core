@@ -21,25 +21,6 @@
 
     <property name="notifyUsersInHierarchyOnly" column="notifyusersinhierarchyonly" />
 
-    <property name="notificationRecipient" column="notificationrecipienttype">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.validation.notification.ValidationNotificationRecipient</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
-    <set name="deliveryChannels" fetch="select">
-      <key column="validationnotificationtemplate_deliverychannelid" />
-      <element column="deliverychannels">
-        <type name="org.hibernate.type.EnumType">
-          <param name="enumClass">org.hisp.dhis.common.DeliveryChannel</param>
-          <param name="useNamed">true</param>
-          <param name="type">12</param>
-        </type>
-      </element>
-    </set>
-
     <set name="recipientUserGroups">
       <key column="validationnotificationtemplateid" foreign-key="fk_validationnotificationtemplate_usergroup" not-null="false" />
       <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid" />

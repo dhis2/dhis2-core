@@ -34,8 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -61,7 +59,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -157,6 +154,30 @@ public class DefaultValidationNotificationService
         }
     }
 
+    private Map<ValidationResult, Set<Message>> createMessageMap( Set<ValidationResult> validationResults )
+    {
+        Map<ValidationResult, Set<Message>> resultToMessagesMap = new HashMap<>();
+
+        for ( ValidationResult result : validationResults )
+        {
+            Set<ValidationNotificationTemplate> templates = result.getValidationRule().getNotificationTemplates();
+            Set<Message> messages = resultToMessagesMap.computeIfAbsent( result, new HashSet<>() );
+
+            for ( ValidationNotificationTemplate template : templates )
+            {
+                Message message = new Message( createNotification( result, template ), createRecipients( result, template ) );
+            }
+
+        }
+
+//        return validationResults.stream()
+//            .map(
+//                result -> result.getValidationRule().getNotificationTemplates().stream()
+//                    .map( template -> new Message( result, createNotification( result, template ), createRecipients( result, template ) ) )
+//            )
+//            .collect( Collectors.toMap( null, null ) );
+    }
+
     private Set<Message> createMessages( Set<ValidationResult> validationResults )
     {
         return validationResults.stream()
@@ -179,14 +200,7 @@ public class DefaultValidationNotificationService
 
     private Recipients createRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
     {
-        if ( template.getNotificationRecipient().isExternalRecipient() )
-        {
-            return new Recipients( recipientsFromOrgUnit( validationResult, template ) );
-        }
-        else
-        {
-            return new Recipients( recipientsFromUserGroups( validationResult, template ) );
-        }
+        return new Recipients( recipientsFromUserGroups( validationResult, template ) );
     }
 
     private static Map<DeliveryChannel, Set<String>> recipientsFromOrgUnit(
