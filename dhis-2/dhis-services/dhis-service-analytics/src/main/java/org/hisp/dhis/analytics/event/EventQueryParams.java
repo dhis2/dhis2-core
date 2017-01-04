@@ -67,6 +67,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import com.google.common.collect.ImmutableMap;
 
 /**
+ * Class representing query parameters for retrieving event data from the
+ * event analytics service.
+ * 
  * @author Lars Helge Overland
  */
 public class EventQueryParams
@@ -311,7 +314,7 @@ public class EventQueryParams
      * from the periods as start date and the latest end date from the periods
      * as end date. Remove the period dimension or filter.
      */
-    public void replacePeriodsWithStartEndDates()
+    private void replacePeriodsWithStartEndDates()
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
@@ -320,12 +323,12 @@ public class EventQueryParams
             Date start = period.getStartDate();
             Date end = period.getEndDate();
 
-            if ( startDate == null || (start != null && start.before( startDate )) )
+            if ( startDate == null || ( start != null && start.before( startDate ) ) )
             {
                 startDate = start;
             }
 
-            if ( endDate == null || (end != null && end.after( endDate )) )
+            if ( endDate == null || ( end != null && end.after( endDate ) ) )
             {
                 endDate = end;
             }
@@ -1005,12 +1008,18 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withStartEndDatesForPeriods()
+        {
+            this.params.replacePeriodsWithStartEndDates();
+            return this;
+        }
+        
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
             return this;
         }
-
+        
         public EventQueryParams build()
         {
             return params;

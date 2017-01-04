@@ -1091,17 +1091,6 @@ public class DataQueryParams
     // TODO remove public write methods and replace with builder
     
     /**
-     * Removes the dimension or filter with the given identifier.
-     */
-    public DataQueryParams removeDimensionOrFilter( String dimension )
-    {
-        removeDimension( dimension );
-        removeFilter( dimension );
-        
-        return this;
-    }
-
-    /**
      * Replaces the periods of this query with the corresponding data periods.
      * Sets the period type to the data period type. This method is relevant only 
      * when then the data period type has lower frequency than the aggregation 
@@ -1128,6 +1117,17 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Removes the dimension or filter with the given identifier.
+     */
+    protected DataQueryParams removeDimensionOrFilter( String dimension )
+    {
+        removeDimension( dimension );
+        removeFilter( dimension );
+        
+        return this;
+    }
 
     /**
      * Sets the given options for the given dimension. If the dimension exists, 

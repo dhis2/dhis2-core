@@ -230,9 +230,11 @@ public class DefaultEventAnalyticsService
         securityManager.decideAccessEventQuery( params );
         
         queryPlanner.validate( params );
-
-        params.replacePeriodsWithStartEndDates();
         
+        params = new EventQueryParams.Builder( params )
+            .withStartEndDatesForPeriods()
+            .build();
+
         Grid grid = new ListGrid();
         
         // ---------------------------------------------------------------------
@@ -330,13 +332,12 @@ public class DefaultEventAnalyticsService
         
         params = new EventQueryParams.Builder( params )
             .withGeometryOnly( true )
+            .withStartEndDatesForPeriods()
             .build();
         
         securityManager.decideAccess( params );
         
         queryPlanner.validate( params );
-
-        params.replacePeriodsWithStartEndDates();
         
         Grid grid = new ListGrid();
         
@@ -370,14 +371,13 @@ public class DefaultEventAnalyticsService
 
         params = new EventQueryParams.Builder( params )
             .withGeometryOnly( true )
+            .withStartEndDatesForPeriods()
             .build();
         
         securityManager.decideAccess( params );
         
         queryPlanner.validate( params );
 
-        params.replacePeriodsWithStartEndDates();
-        
         params = queryPlanner.planEventQuery( params );
 
         return eventAnalyticsManager.getRectangle( params );

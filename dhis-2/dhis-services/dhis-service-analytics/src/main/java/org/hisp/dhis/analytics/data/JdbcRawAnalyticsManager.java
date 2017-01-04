@@ -59,7 +59,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.google.common.collect.Sets;
 
 /**
- * This class is responsible for retrieving raw data from the
+ * Class responsible for retrieving raw data from the
  * analytics tables.
  *
  * @author Lars Helge Overland

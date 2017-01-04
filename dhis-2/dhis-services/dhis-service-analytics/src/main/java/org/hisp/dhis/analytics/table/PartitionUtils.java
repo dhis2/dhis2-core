@@ -47,6 +47,8 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.joda.time.DateTime;
 
 /**
+ * Utilities for analytics table partition handling.
+ * 
  * @author Lars Helge Overland
  */
 public class PartitionUtils
