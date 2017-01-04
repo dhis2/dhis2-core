@@ -82,6 +82,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * @author Lars Helge Overland
  */
@@ -110,7 +112,6 @@ public class DefaultEventAnalyticsService
     // EventAnalyticsService implementation
     // -------------------------------------------------------------------------
 
-    // TODO use ValueType for type in grid headers
     // TODO use [longitude/latitude] format for event points
     // TODO order event analytics tables on execution date to avoid default sort
     // TODO sorting in queries
@@ -288,7 +289,7 @@ public class DefaultEventAnalyticsService
         
         Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
 
-        if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO ge
+        if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
         {
             metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
                 Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
@@ -316,7 +317,7 @@ public class DefaultEventAnalyticsService
             metaData.put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
         }
 
-        return grid.setMetaData( metaData );
+        return grid.setMetaData( ImmutableMap.copyOf( metaData ) );
     }
 
     @Override
@@ -409,7 +410,7 @@ public class DefaultEventAnalyticsService
             
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
             
-            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO ge
+            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
             {
                 metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
                     Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
@@ -439,7 +440,7 @@ public class DefaultEventAnalyticsService
                 }
             }
 
-            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO ge
+            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
             {
                 metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
             }
@@ -463,7 +464,7 @@ public class DefaultEventAnalyticsService
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
-            grid.setMetaData( metaData );
+            grid.setMetaData( ImmutableMap.copyOf( metaData ) );
         }
     }
 }

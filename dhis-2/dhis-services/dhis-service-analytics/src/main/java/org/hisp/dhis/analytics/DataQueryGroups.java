@@ -36,7 +36,7 @@ import org.hisp.dhis.common.ListMap;
 /**
  * Immutable class representing a group of data query parameters. Should be
  * instantiated using the Builder class. Example usage:
- * 
+ * <p>
  * <pre>
  * {@code
  * DataQueryGroups groups = DataQueryGroups.newBuilder()

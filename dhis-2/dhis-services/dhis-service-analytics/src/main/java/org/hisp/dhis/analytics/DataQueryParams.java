@@ -1085,9 +1085,11 @@ public class DataQueryParams
     }
     
     // -------------------------------------------------------------------------
-    // Logic write methods TODO remove public write methods
+    // Logic write methods
     // -------------------------------------------------------------------------
 
+    // TODO remove public write methods and replace with builder
+    
     /**
      * Removes the dimension or filter with the given identifier.
      */
@@ -1123,16 +1125,6 @@ public class DataQueryParams
         }
     }
     
-    /**
-     * Removes the filter with the given identifier.
-     */
-    public DataQueryParams removeFilter( String filter )
-    {
-        this.filters.remove( new BaseDimensionalObject( filter ) );
-        
-        return this;
-    }
-
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
@@ -1200,6 +1192,16 @@ public class DataQueryParams
     private DataQueryParams removeDimension( String dimension )
     {
         this.dimensions.remove( new BaseDimensionalObject( dimension ) );
+        
+        return this;
+    }
+
+    /**
+     * Removes the filter with the given identifier.
+     */
+    private DataQueryParams removeFilter( String filter )
+    {
+        this.filters.remove( new BaseDimensionalObject( filter ) );
         
         return this;
     }

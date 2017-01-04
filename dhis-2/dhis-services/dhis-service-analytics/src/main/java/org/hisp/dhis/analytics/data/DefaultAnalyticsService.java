@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
+import com.google.common.collect.ImmutableMap;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -150,8 +152,6 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
-
-    //TODO use immutable maps for meta data
     
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
@@ -787,7 +787,7 @@ public class DefaultAnalyticsService
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
-            grid.setMetaData( metaData );
+            grid.setMetaData( ImmutableMap.copyOf( metaData ) );
         }
     }
 
