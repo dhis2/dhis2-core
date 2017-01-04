@@ -940,7 +940,6 @@
 
   <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
     class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
-    <property name="messageBatchService" ref="org.hisp.dhis.outboundmessage.OutboundMessageService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
   </bean>
