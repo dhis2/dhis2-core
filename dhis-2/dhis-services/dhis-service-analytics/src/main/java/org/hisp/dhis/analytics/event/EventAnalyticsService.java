@@ -34,10 +34,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.analytics.Rectangle;
 
 /**
- * <p>
  * This interface is responsible for retrieving aggregated event data. Data will 
  * be returned in a grid object or as a dimensional key-value mapping.
- * </p>
  * 
  * @author Lars Helge Overland
  */

@@ -31,8 +31,10 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.common.Grid;
 
 /**
-* @author Lars Helge Overland
-*/
+ * Manager for queries for retrieval of raw analytics data.
+ * 
+ * @author Lars Helge Overland
+ */
 public interface RawAnalyticsManager
 {
     Grid getRawDataValues( DataQueryParams params, Grid grid );    

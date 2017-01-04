@@ -31,6 +31,8 @@ package org.hisp.dhis.analytics.partition;
 import java.util.Set;
 
 /**
+ * Manager for analytics table partitions.
+ * 
  * @author Lars Helge Overland
  */
 public interface PartitionManager
