@@ -558,7 +558,7 @@ public class DataSet
 
     public void setDataInputPeriods( Set<DataInputPeriod> dataInputPeriods )
     {
-        this.dataInputPeriods= dataInputPeriods;
+        this.dataInputPeriods = dataInputPeriods;
     }
 
     @JsonProperty

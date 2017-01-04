@@ -31,7 +31,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.period.Period;
@@ -41,10 +47,10 @@ import java.util.Date;
 /**
  * @author Stian Sandvold
  */
+@JacksonXmlRootElement( localName = "dataInputPeriods", namespace = DxfNamespaces.DXF_2_0 )
 public class DataInputPeriod
+    extends BaseIdentifiableObject
 {
-
-    private int id;
 
     /**
      * Period data must belong to
@@ -63,17 +69,6 @@ public class DataInputPeriod
 
     public DataInputPeriod()
     {
-
-    }
-
-    public Object getId()
-    {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
     }
 
     /**
@@ -98,8 +93,8 @@ public class DataInputPeriod
      */
     public boolean isDateWithinOpenCloseDates( Date date )
     {
-        return ( openingDate == null || date.after( openingDate ) )
-            && ( closingDate == null || date.before( closingDate ) );
+        return (openingDate == null || date.after( openingDate ))
+            && (closingDate == null || date.before( closingDate ));
     }
 
     /**
@@ -141,7 +136,6 @@ public class DataInputPeriod
         this.openingDate = openingDate;
     }
 
-
     @JsonProperty
     @JacksonXmlProperty( localName = "closingDate", namespace = DxfNamespaces.DXF_2_0 )
     public Date getClosingDate()
@@ -152,5 +146,56 @@ public class DataInputPeriod
     public void setClosingDate( Date closingDate )
     {
         this.closingDate = closingDate;
+    }
+
+    @Override
+    public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
+    {
+        super.mergeWith( other, mergeMode );
+
+        DataInputPeriod dataInputPeriod = (DataInputPeriod) other;
+
+        if ( mergeMode.isReplace() )
+        {
+            closingDate = dataInputPeriod.closingDate;
+            openingDate = dataInputPeriod.openingDate;
+            period = dataInputPeriod.period;
+        }
+        else
+        {
+            closingDate = closingDate == null ? dataInputPeriod.getClosingDate() : null;
+            openingDate = openingDate == null ? dataInputPeriod.getOpeningDate() : null;
+            period = period == null ? dataInputPeriod.getPeriod() : null;
+        }
+
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+            return true;
+
+        if ( o == null || getClass() != o.getClass() )
+            return false;
+
+        DataInputPeriod that = (DataInputPeriod) o;
+
+        return new EqualsBuilder()
+            .appendSuper( super.equals( o ) )
+            .append( period, that.period )
+            .append( openingDate, that.openingDate )
+            .append( closingDate, that.closingDate )
+            .isEquals();
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "period", period )
+            .add( "openingDate", openingDate )
+            .add( "closingDate", closingDate )
+            .toString();
     }
 }

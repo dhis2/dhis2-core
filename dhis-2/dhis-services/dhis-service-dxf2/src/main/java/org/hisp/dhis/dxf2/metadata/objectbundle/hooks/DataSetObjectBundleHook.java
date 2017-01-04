@@ -61,6 +61,8 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         for ( DataInputPeriod dataInputPeriod : dataSet.getDataInputPeriods() )
         {
             preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+
+            dataInputPeriod.setAutoFields();
             session.save( dataInputPeriod );
         }
 
@@ -107,11 +109,6 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         Set<DataElementOperand> dataElementOperands = (Set<DataElementOperand>) references.get( "compulsoryDataElementOperands" );
         Set<DataInputPeriod> dataInputPeriods = (Set<DataInputPeriod>) references.get( "dataInputPeriods" );
 
-
-        for ( String key : references.keySet() ) System.out.println( "#DEBUG# " + key );
-
-        System.out.println(" #DEBUG#: " + dataInputPeriods.size() );
-
         if ( dataElementOperands != null && !dataElementOperands.isEmpty() )
         {
 
@@ -127,14 +124,17 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 
         }
 
-        if ( dataInputPeriods != null && !dataInputPeriods.isEmpty() )
+        if ( !dataInputPeriods.isEmpty() )
         {
 
             for ( DataInputPeriod dataInputPeriod : dataInputPeriods )
             {
                 preheatService
                     .connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+
+                dataInputPeriod.setAutoFields();
                 sessionFactory.getCurrentSession().save( dataInputPeriod );
+                
                 dataSet.getDataInputPeriods().add( dataInputPeriod );
             }
 

@@ -145,6 +145,12 @@
     <property name="transientIdentifiableProperties" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataset.DataInputPeriodStore" class="org.hisp.dhis.dataset.hibernate.HibernateDataInputPeriodStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.DataInputPeriod" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataelement.DataElementGroupStore" class="org.hisp.dhis.dataelement.hibernate.HibernateDataElementGroupStore">
     <property name="clazz" value="org.hisp.dhis.dataelement.DataElementGroup" />
     <property name="sessionFactory" ref="sessionFactory" />
