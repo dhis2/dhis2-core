@@ -31,7 +31,9 @@ package org.hisp.dhis.commons.collection;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Utility methods for operations on various collections.
@@ -81,5 +83,12 @@ public class CollectionUtils
         }
 
         return null;
+    }
+
+    public static <E> void nullSafeForEach( Collection<E> collection, Consumer<E> consumer )
+    {
+        collection.stream()
+            .filter( Objects::nonNull )
+            .forEach( consumer );
     }
 }

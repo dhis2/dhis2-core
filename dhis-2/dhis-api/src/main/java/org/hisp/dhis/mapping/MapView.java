@@ -152,7 +152,7 @@ public class MapView
     private String labelFontColor;
 
     private boolean eventClustering;
-    
+
     private String eventCoordinateField;
 
     private String eventPointColor;
@@ -259,7 +259,9 @@ public class MapView
     @Override
     public String getName()
     {
-        if ( !dataDimensionItems.isEmpty() && dataDimensionItems.get( 0 ).getDimensionalItemObject() != null )
+        if ( !dataDimensionItems.isEmpty() &&
+            dataDimensionItems.get( 0 ) != null &&
+            dataDimensionItems.get( 0 ).getDimensionalItemObject() != null )
         {
             return dataDimensionItems.get( 0 ).getDimensionalItemObject().getName();
         }
