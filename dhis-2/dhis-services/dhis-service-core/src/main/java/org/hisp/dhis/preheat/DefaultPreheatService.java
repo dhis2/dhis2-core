@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementCategoryDimension;
@@ -469,7 +470,7 @@ public class DefaultPreheatService implements PreheatService
 
                         if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
                         {
-                            reference.forEach( identifiableObject ->
+                            CollectionUtils.nullSafeForEach( reference, identifiableObject ->
                             {
                                 DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
                                 addIdentifiers( map, dataElementOperand.getDataElement() );
@@ -484,11 +485,11 @@ public class DefaultPreheatService implements PreheatService
                     BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
                     List<DataDimensionItem> dataDimensionItems = analyticalObject.getDataDimensionItems();
                     List<DataElementCategoryDimension> categoryDimensions = analyticalObject.getCategoryDimensions();
-                    List<TrackedEntityDataElementDimension> dataElementDimensions = analyticalObject.getDataElementDimensions();
+                    List<TrackedEntityDataElementDimension> trackedEntityDataElementDimensions = analyticalObject.getDataElementDimensions();
                     List<TrackedEntityAttributeDimension> attributeDimensions = analyticalObject.getAttributeDimensions();
                     List<TrackedEntityProgramIndicatorDimension> programIndicatorDimensions = analyticalObject.getProgramIndicatorDimensions();
 
-                    dataDimensionItems.forEach( dataDimensionItem ->
+                    CollectionUtils.nullSafeForEach( dataDimensionItems, dataDimensionItem ->
                     {
                         addIdentifiers( map, dataDimensionItem.getDimensionalItemObject() );
 
@@ -504,25 +505,25 @@ public class DefaultPreheatService implements PreheatService
                         }
                     } );
 
-                    categoryDimensions.forEach( categoryDimension ->
+                    CollectionUtils.nullSafeForEach( categoryDimensions, categoryDimension ->
                     {
                         addIdentifiers( map, categoryDimension.getDimension() );
                         categoryDimension.getItems().forEach( item -> addIdentifiers( map, item ) );
                     } );
 
-                    dataElementDimensions.forEach( trackedEntityDataElementDimension ->
+                    CollectionUtils.nullSafeForEach( trackedEntityDataElementDimensions, trackedEntityDataElementDimension ->
                     {
                         addIdentifiers( map, trackedEntityDataElementDimension.getDataElement() );
                         addIdentifiers( map, trackedEntityDataElementDimension.getLegendSet() );
                     } );
 
-                    attributeDimensions.forEach( trackedEntityAttributeDimension ->
+                    CollectionUtils.nullSafeForEach( attributeDimensions, trackedEntityAttributeDimension ->
                     {
                         addIdentifiers( map, trackedEntityAttributeDimension.getAttribute() );
                         addIdentifiers( map, trackedEntityAttributeDimension.getLegendSet() );
                     } );
 
-                    programIndicatorDimensions.forEach( programIndicatorDimension ->
+                    CollectionUtils.nullSafeForEach( programIndicatorDimensions, programIndicatorDimension ->
                     {
                         addIdentifiers( map, programIndicatorDimension.getProgramIndicator() );
                         addIdentifiers( map, programIndicatorDimension.getLegendSet() );
