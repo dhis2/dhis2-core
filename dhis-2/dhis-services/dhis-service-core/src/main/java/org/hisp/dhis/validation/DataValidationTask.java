@@ -136,7 +136,7 @@ public class DataValidationTask
                         MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
                         SetMap<Integer, DataElementOperand> incompleteValuesMap = new SetMap<>();
 
-                        MapMap<Integer, DataElementOperand, Double> currentValueMap = getValueMap( 
+                        MapMap<Integer, DataElementOperand, Double> currentValueMap = getDataValueMap( 
                             periodTypeX.getDataElements(), sourceDataElements,
                             periodTypeX.getAllowedPeriodTypes(), period, sourceX.getSource(), lastUpdatedMap );
 
@@ -346,7 +346,7 @@ public class DataValidationTask
      * @param lastUpdatedMap        map showing when each data values was last updated
      * @return map of attribute option combo to map of values found.
      */
-    private MapMap<Integer, DataElementOperand, Double> getValueMap( 
+    private MapMap<Integer, DataElementOperand, Double> getDataValueMap( 
         Set<DataElement> ruleDataElements, Set<DataElement> sourceDataElements,
         Set<PeriodType> allowedPeriodTypes, Period period,
         OrganisationUnit source, MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
@@ -358,15 +358,8 @@ public class DataValidationTask
             + ruleDataElements.size() + "] sourceDataElements[" + sourceDataElements.size() + "] elementsToGet["
             + dataElementsToGet.size() + "] allowedPeriodTypes[" + allowedPeriodTypes.size() + "]" );
 
-        if ( dataElementsToGet.isEmpty() )
-        {
-            return new MapMap<>();
-        }
-        else
-        {
-            return dataValueService.getDataValueMapByAttributeCombo( dataElementsToGet,
-                period.getStartDate(), source, allowedPeriodTypes, context.getAttributeCombo(),
-                context.getCogDimensionConstraints(), context.getCoDimensionConstraints(), lastUpdatedMap );
-        }
+        return dataValueService.getDataValueMapByAttributeCombo( dataElementsToGet,
+            period.getStartDate(), source, allowedPeriodTypes, context.getAttributeCombo(),
+            context.getCogDimensionConstraints(), context.getCoDimensionConstraints(), lastUpdatedMap );
     }
 }
