@@ -63,7 +63,7 @@ public class SizeNodeTransformer implements NodeTransformer
         {
             return new SimpleNode( property.getCollectionName(), node.getChildren().size(), property.isAttribute() );
         }
-        else if ( property.is( PropertyType.TEXT ) || property.is( PropertyType.TEXT ) )
+        else if ( property.is( PropertyType.TEXT ) )
         {
             return new SimpleNode( property.getName(), ((String) ((SimpleNode) node).getValue()).length(), property.isAttribute() );
         }
