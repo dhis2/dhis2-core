@@ -83,8 +83,6 @@ public class ExpressionStoreTest
 
     private Set<DataElement> dataElements = new HashSet<>();
 
-    private Set<DataElement> sampleElements = new HashSet<>();
-
     private Set<DataElementCategoryOptionCombo> optionCombos;
 
     // -------------------------------------------------------------------------
@@ -122,9 +120,6 @@ public class ExpressionStoreTest
         dataElements.add( dataElementB );
         dataElements.add( dataElementC );
         dataElements.add( dataElementD );
-
-        sampleElements.add( dataElementA );
-        sampleElements.add( dataElementB );
     }
 
     // -------------------------------------------------------------------------
@@ -134,7 +129,7 @@ public class ExpressionStoreTest
     @Test
     public void testAddGetExpression()
     {
-        Expression expr = new Expression( expressionA, descriptionA, dataElements, sampleElements );
+        Expression expr = new Expression( expressionA, descriptionA, dataElements );
 
         int id = expressionStore.save( expr );
 
@@ -143,7 +138,6 @@ public class ExpressionStoreTest
         assertEquals( expr.getExpression(), expressionA );
         assertEquals( expr.getDescription(), descriptionA );
         assertEquals( expr.getDataElementsInExpression(), dataElements );
-        assertEquals( expr.getSampleElementsInExpression(), sampleElements );
     }
 
     @Test

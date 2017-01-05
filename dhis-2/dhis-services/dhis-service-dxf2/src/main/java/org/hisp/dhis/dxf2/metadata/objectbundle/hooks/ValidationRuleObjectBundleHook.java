@@ -98,12 +98,9 @@ public class ValidationRuleObjectBundleHook
     private void connectExpression( ObjectBundle bundle, Expression expression )
     {
         Set<DataElement> dataElementsInExpression = new HashSet<>();
-        Set<DataElement> sampleElementsInExpression = new HashSet<>();
 
         expression.getDataElementsInExpression().forEach( de -> dataElementsInExpression.add( bundle.getPreheat().get( bundle.getPreheatIdentifier(), de ) ) );
-        expression.getSampleElementsInExpression().forEach( de -> dataElementsInExpression.add( bundle.getPreheat().get( bundle.getPreheatIdentifier(), de ) ) );
 
         expression.setDataElementsInExpression( dataElementsInExpression );
-        expression.setSampleElementsInExpression( sampleElementsInExpression );
     }
 }

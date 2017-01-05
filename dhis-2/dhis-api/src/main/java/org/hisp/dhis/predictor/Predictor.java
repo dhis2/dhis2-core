@@ -141,14 +141,6 @@ public class Predictor
         return generator.getDataElementsInExpression();
     }
 
-    /**
-     * Gets the data sources needed from past sample periods to evaluate the predictor
-     */
-    public Set<DataElement> getSampleDataNeeded()
-    {
-        return generator.getSampleElementsInExpression();
-    }
-
     // -------------------------------------------------------------------------
     // Set and get methods
     // -------------------------------------------------------------------------
