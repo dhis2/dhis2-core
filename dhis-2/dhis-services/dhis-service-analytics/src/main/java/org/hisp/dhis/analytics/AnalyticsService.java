@@ -120,6 +120,15 @@ public interface AnalyticsService
      */
     Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows );
     
+    /**
+     * Generates a raw data value grid for the given query. The grid will
+     * represent a table with denormalized raw data. This means that no 
+     * aggregation will be performed on the data, and dimensions specified
+     * in the query will be present for each row.
+     * 
+     * @param params the data query parameters.
+     * @return raw data as a Grid object.
+     */
     Grid getRawDataValues( DataQueryParams params );
     
     /**
