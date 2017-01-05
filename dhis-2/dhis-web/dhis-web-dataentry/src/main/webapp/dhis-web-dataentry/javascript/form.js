@@ -1302,6 +1302,14 @@ function displayPeriods()
     var periods = dhis2.period.generator.generateReversedPeriods( periodType, dhis2.de.currentPeriodOffset );
 
     periods = dhis2.period.generator.filterOpenPeriods( periodType, periods, openFuturePeriods, dsStartDate, dsEndDate );
+
+    var periodWhitelist = dhis2.de.dataSets[dataSetId].dataInputPeriods
+        .filter(function(dip) { return ( dip.openingDate == "" || new Date( dip.openingDate ) <= Date.now() ) && ( dip.closingDate == "" || Date.now() <= new Date( dip.closingDate )); })
+        .map(function(dip) { return dip.period.isoPeriod; });
+
+    console.log(periods);
+    periods = periods
+        .filter(function(period) { return periodWhitelist.indexOf(period.iso) > -1});
     
     clearListById( 'selectedPeriodId' );
 
@@ -1316,15 +1324,10 @@ function displayPeriods()
 
     dhis2.de.periodChoices = [];
 
-    dhis2.de.openPeriodsWhitelist = dhis2.de.dataSets[dataSetId].openPeriods.map(function(_period) { return _period.isoPeriod; });
-
-    $.safeEach( periods, function( idx, item ) 
+    $.safeEach( periods, function( idx, item )
     {
-        if ( dhis2.de.openPeriodsWhitelist.length == 0 || dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 )
-        {
-            addOptionById( 'selectedPeriodId', item.iso, item.name );
-            dhis2.de.periodChoices[ item.iso ] = item;
-        }
+        addOptionById( 'selectedPeriodId', item.iso, item.name );
+        dhis2.de.periodChoices[ item.iso ] = item;
     } );
 }
 

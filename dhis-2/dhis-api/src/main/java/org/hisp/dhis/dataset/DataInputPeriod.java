@@ -69,6 +69,7 @@ public class DataInputPeriod
 
     public DataInputPeriod()
     {
+        setAutoFields();
     }
 
     /**

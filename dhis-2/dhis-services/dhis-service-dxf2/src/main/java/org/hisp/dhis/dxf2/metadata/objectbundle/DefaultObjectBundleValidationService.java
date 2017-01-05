@@ -38,7 +38,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -65,14 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -915,7 +907,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     {
         return klass != null && (
             UserCredentials.class.isAssignableFrom( klass ) || DataElementOperand.class.isAssignableFrom( klass )
-                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ) ||
-                DataInputPeriod.class.isAssignableFrom( klass ));
+                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 }

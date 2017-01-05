@@ -1,5 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
-
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,29 +27,48 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Sandvold
  */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor
+public class DataInputPeriodObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    public static final String SINGULAR = "dataInputPeriod";
-
-    public static final String PLURAL = "dataInputPeriods";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @Autowired
+    PeriodService periodService;
 
     @Override
-    public Schema getSchema()
+    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        Schema schema = new Schema( DataInputPeriod.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setMetadata( true );
-        schema.setOrder( 1230 );
+        if ( !DataInputPeriod.class.isInstance( object ) )
+            return;
 
-        return schema;
+        setPeriod(object);
     }
+
+    @Override
+    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    {
+        if ( !DataInputPeriod.class.isInstance( object ) )
+            return;
+
+        setPeriod(object);
+    }
+
+    private void setPeriod( IdentifiableObject object )
+    {
+        DataInputPeriod dataInputPeriod = (DataInputPeriod) object;
+
+        Period period = periodService.getPeriod( dataInputPeriod.getPeriod().getIsoDate() );
+
+        dataInputPeriod.setPeriod( period );
+        sessionFactory.getCurrentSession().save( period );
+    }
+
 }
