@@ -134,22 +134,22 @@ public class DataValidationTask
                     {
                         MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
 
-                        MapMap<Integer, DataElementOperand, Double> currentValueMap = getDataValueMap( 
+                        MapMap<Integer, DataElementOperand, Double> dataValueMap = getDataValueMap( 
                             periodTypeX.getDataElements(), sourceDataElements, periodTypeX.getAllowedPeriodTypes(), 
                             period, sourceX.getSource(), lastUpdatedMap );
 
                         log.trace( "Source " + sourceX.getSource().getName() + " [" + period.getStartDate() + " - "
-                            + period.getEndDate() + "]" + " currentValueMap[" + currentValueMap.size() + "]" );
+                            + period.getEndDate() + "]" + " currentValueMap[" + dataValueMap.size() + "]" );
 
                         for ( ValidationRule rule : rules )
                         {
-                            if ( evaluateValidationCheck( currentValueMap, lastUpdatedMap, rule ) )
+                            if ( evaluateValidationCheck( dataValueMap, lastUpdatedMap, rule ) )
                             {
                                 Map<Integer, Double> leftSideValues =
-                                    getExpressionValueMap( rule.getLeftSide(), currentValueMap );
+                                    getExpressionValueMap( rule.getLeftSide(), dataValueMap );
 
                                 Map<Integer, Double> rightSideValues =
-                                    getExpressionValueMap( rule.getRightSide(), currentValueMap );
+                                    getExpressionValueMap( rule.getRightSide(), dataValueMap );
 
                                 Set<Integer> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
                                 attributeOptionCombos.addAll( rightSideValues.keySet() );
