@@ -296,7 +296,7 @@ public class DefaultExpressionService
         
         final DataElementCategoryOptionCombo defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         
-        if ( comboId == null || comboId == defaultCombo.getUid() )
+        if ( comboId == null || comboId.equals( defaultCombo.getUid() ) )
         {
             Double value = valueMap.get( dataElement );
             
