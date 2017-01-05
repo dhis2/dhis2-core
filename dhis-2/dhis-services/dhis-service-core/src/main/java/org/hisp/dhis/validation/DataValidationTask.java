@@ -31,7 +31,6 @@ package org.hisp.dhis.validation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -134,11 +133,10 @@ public class DataValidationTask
                     for ( Period period : periodTypeX.getPeriods() )
                     {
                         MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
-                        SetMap<Integer, DataElementOperand> incompleteValuesMap = new SetMap<>();
 
                         MapMap<Integer, DataElementOperand, Double> currentValueMap = getDataValueMap( 
-                            periodTypeX.getDataElements(), sourceDataElements,
-                            periodTypeX.getAllowedPeriodTypes(), period, sourceX.getSource(), lastUpdatedMap );
+                            periodTypeX.getDataElements(), sourceDataElements, periodTypeX.getAllowedPeriodTypes(), 
+                            period, sourceX.getSource(), lastUpdatedMap );
 
                         log.trace( "Source " + sourceX.getSource().getName() + " [" + period.getStartDate() + " - "
                             + period.getEndDate() + "]" + " currentValueMap[" + currentValueMap.size() + "]" );
@@ -148,10 +146,10 @@ public class DataValidationTask
                             if ( evaluateValidationCheck( currentValueMap, lastUpdatedMap, rule ) )
                             {
                                 Map<Integer, Double> leftSideValues =
-                                    getExpressionValueMap( rule.getLeftSide(), currentValueMap, incompleteValuesMap );
+                                    getExpressionValueMap( rule.getLeftSide(), currentValueMap );
 
                                 Map<Integer, Double> rightSideValues =
-                                    getExpressionValueMap( rule.getRightSide(), currentValueMap, incompleteValuesMap );
+                                    getExpressionValueMap( rule.getRightSide(), currentValueMap );
 
                                 Set<Integer> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
                                 attributeOptionCombos.addAll( rightSideValues.keySet() );
@@ -311,19 +309,17 @@ public class DataValidationTask
      *
      * @param expression          expression to evaluate.
      * @param valueMap            Map of value maps, by attribute option combo.
-     * @param incompleteValuesMap map of values that were incomplete.
      * @return map of values.
      */
     private Map<Integer, Double> getExpressionValueMap( Expression expression,
-        MapMap<Integer, DataElementOperand, Double> valueMap,
-        SetMap<Integer, DataElementOperand> incompleteValuesMap )
+        MapMap<Integer, DataElementOperand, Double> valueMap )
     {
         Map<Integer, Double> expressionValueMap = new HashMap<>();
 
         for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
         {
             Double value = expressionService.getExpressionValue( expression, entry.getValue(),
-                context.getConstantMap(), null, null, incompleteValuesMap.getSet( entry.getKey() ), null );
+                context.getConstantMap(), null, null );
 
             if ( MathUtils.isValidDouble( value ) )
             {
