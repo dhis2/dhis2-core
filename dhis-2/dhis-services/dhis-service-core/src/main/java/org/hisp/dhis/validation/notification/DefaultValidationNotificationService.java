@@ -36,13 +36,24 @@ import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
+import org.hisp.dhis.validation.ValidationRule;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -55,8 +66,8 @@ public class DefaultValidationNotificationService
     private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT =
         vr ->
             Objects.nonNull( vr ) &&
-            Objects.nonNull( vr.getValidationRule() ) &&
-            !vr.getValidationRule().getNotificationTemplates().isEmpty();
+                Objects.nonNull( vr.getValidationRule() ) &&
+                !vr.getValidationRule().getNotificationTemplates().isEmpty();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -93,13 +104,14 @@ public class DefaultValidationNotificationService
 
         Set<Message> allMessages = createMessages( applicableResults );
 
-        clock.logTime( String.format( "Rendered %d messages", allMessages.size() ) );
+        clock.logTime( String.format( "Rendered %d individual messages", allMessages.size() ) );
 
-        // Group messages by type and dispatch internal/outbound in parallel
+        Map<Set<User>, SortedSet<Message>> usersToMessagesMap = createUserToMessagesMap( allMessages );
 
-        clock.logTime( String.format( "Sending %d messages", allMessages.size()) );
+        clock.logTime( String.format( "Messages going out to %d users", userToMessagesMap.keySet().size() ) );
 
-        allMessages.forEach( this::send );
+        Map<Set<User>, NotificationMessage> summarizedMessages = summarizeMessagesPerUser( userToMessagesMap );
+        summarizedMessages.forEach( this::send );
 
         clock.logTime( "Done sending validation notifications" );
     }
@@ -108,14 +120,69 @@ public class DefaultValidationNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void send( Message message )
+    private static Map<User, NotificationMessage> summarizeMessagesPerUser( Map<User, SortedSet<Message>> userToMessagesMap )
     {
-        messageService.sendMessage(
-            message.notificationMessage.getSubject(),
-            message.notificationMessage.getMessage(),
-            null,
-            message.recipients
+        return userToMessagesMap.entrySet().stream()
+            .collect( Collectors.toMap( Map.Entry::getKey, entry -> createSummarizedMessage( entry.getValue() ) ) );
+    }
+
+    /**
+     * Creates a summarized message from the given messages.
+     * The messages are concatenated in their given order.
+     */
+    private static NotificationMessage createSummarizedMessage( SortedSet<Message> messages )
+    {
+        Map<Importance, Long> counts = messages.stream()
+            .map( m -> m.validationResult.getValidationRule().getImportance() )
+            .collect( Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+
+        String subject = String.format(
+            "Validation violations as of %s: High %d, medium %d, low %d",
+            DateUtils.getLongDateString( new Date() ),
+            counts.getOrDefault( Importance.HIGH, 0L ),
+            counts.getOrDefault( Importance.MEDIUM, 0L ),
+            counts.getOrDefault( Importance.LOW, 0L )
         );
+
+        String message = messages.stream()
+            .map( m -> m.notificationMessage )
+            .map( n -> String.format( "%s%s%s", n.getSubject(), LN, n.getMessage() ) )
+            .reduce( "", (initStr, newStr) -> String.format( "%s%s%s", initStr, LN, newStr ) );
+
+        return new NotificationMessage( subject, message );
+    }
+
+    private Map<SortedSet<ValidationResult>, Set<User>> splitByRecipients( SortedSet<ValidationResult> validationResults )
+    {
+
+        Map<User, SortedSet<ValidationResult>> userResults = getUserResults( validationResults );
+        // TODO Perform for-loop gymnastics to transform map
+
+        return null;
+    }
+
+    private Map<User, SortedSet<ValidationResult>> getUserResults( SortedSet<ValidationResult> results )
+    {
+        Map<User, SortedSet<ValidationResult>> userResults = new HashMap<>();
+
+        for ( ValidationResult result : results )
+        {
+            ValidationRule rule = result.getValidationRule();
+
+            Set<ValidationNotificationTemplate> templates = rule.getNotificationTemplates();
+
+            for ( ValidationNotificationTemplate template : templates )
+            {
+                Set<User> usersForTemplate = resolveRecipients( result, template );
+
+                for ( User user : usersForTemplate )
+                {
+                    userResults.computeIfAbsent( user, k -> new TreeSet<>() ).add( result );
+                }
+            }
+        }
+
+        return userResults;
     }
 
     private Set<Message> createMessages( Set<ValidationResult> validationResults )
@@ -125,12 +192,32 @@ public class DefaultValidationNotificationService
                 result -> result.getValidationRule().getNotificationTemplates().stream()
                     .map( template ->
                         new Message(
+                            result,
                             notificationMessageRenderer.render( result, template ),
                             resolveRecipients( result, template )
                         )
                     )
             )
             .collect( Collectors.toSet() );
+    }
+
+    private Map<Set<User>, SortedSet<Message>> createUserToMessagesMap( Set<Message> messages )
+    {
+        Map<User, SortedSet<Message>> usersToMessages = new HashMap<>();
+
+        for ( Message message : messages )
+        {
+            Set<User> users = message.recipients;
+
+            for ( User user : users )
+            {
+                usersToMessages.computeIfAbsent( users, k -> new TreeSet<>() ).add( message );
+            }
+        }
+
+
+
+        return usersToMessages;
     }
 
     private static Set<User> resolveRecipients( final ValidationResult validationResult, ValidationNotificationTemplate template )
@@ -154,8 +241,21 @@ public class DefaultValidationNotificationService
         return template.getRecipientUserGroups().stream()
             .flatMap( ug -> ug.getMembers().stream() )
             .distinct()
-            .filter( user -> !limitToHierarchy /* pass-through */ || orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
+            .filter( user -> !limitToHierarchy || orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
             .collect( Collectors.toSet() );
+    }
+
+    private void send( User user, NotificationMessage notificationMessage )
+    {
+        messageService.sendMessage(
+            notificationMessage.getSubject(),
+            notificationMessage.getMessage(),
+            null,
+            Sets.newHashSet( user ), // TODO Should be multiple?
+            null,
+            false,
+            false // TODO Consider this?
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -164,11 +264,13 @@ public class DefaultValidationNotificationService
 
     private static class Message
     {
+        final ValidationResult validationResult;
         final NotificationMessage notificationMessage;
         final Set<User> recipients;
 
-        public Message( NotificationMessage notificationMessage, Set<User> recipients )
+        public Message( ValidationResult validationResult, NotificationMessage notificationMessage, Set<User> recipients )
         {
+            this.validationResult = validationResult;
             this.notificationMessage = notificationMessage;
             this.recipients = recipients;
         }
