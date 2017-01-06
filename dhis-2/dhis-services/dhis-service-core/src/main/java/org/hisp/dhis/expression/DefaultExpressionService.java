@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.RegexUtils;
@@ -67,6 +68,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -360,54 +362,58 @@ public class DefaultExpressionService
     @Transactional
     public Set<DataElement> getDataElementsInExpression( String expression )
     {
-        return getDataElementsInExpressionInternal( OPERAND_PATTERN, expression );
-    }
-
-    private Set<DataElement> getDataElementsInExpressionInternal( Pattern pattern, String expression )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        if ( expression != null )
-        {
-            final Matcher matcher = pattern.matcher( expression );
-
-            while ( matcher.find() )
-            {
-                final DataElement dataElement = dataElementService.getDataElement( matcher.group( 1 ) );
-
-                if ( dataElement != null )
-                {
-                    dataElements.add( dataElement );
-                }
-            }
-        }
-
-        return dataElements;
+        return getIdObjectsInExpression( OPERAND_PATTERN, expression,
+            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) );
     }
 
     @Override
     @Transactional
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
-        Set<DataElementCategoryOptionCombo> optionCombosInExpression = new HashSet<>();
+        return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
+            ( m  ) -> categoryService.getDataElementCategoryOptionCombo( m.group( 2 ) ) );
+    }
 
-        if ( expression != null )
+    @Override
+    @Transactional
+    public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
+    {
+        return getIdObjectsInExpression( OU_GROUP_PATTERN, expression, 
+            ( m ) -> organisationUnitGroupService.getOrganisationUnitGroup( m.group( 1 ) ) );
+    }
+
+    /**
+     * Returns a set of identifiable objects which are referenced in
+     * the given expression based on the given regular expression pattern.
+     * 
+     * @param pattern the regular expression pattern to match identifiable objects on.
+     * @param expression the expression where identifiable objects are referenced.
+     * @param provider the provider of identifiable objects, accepts a matcher and 
+     *        provides the object.
+     * @return a set of identifiable objects.
+     */
+    private <T extends IdentifiableObject> Set<T> getIdObjectsInExpression( Pattern pattern, String expression, Function<Matcher, T> provider )
+    {
+        Set<T> objects = new HashSet<>();
+        
+        if ( expression == null )
         {
-            final Matcher matcher = OPTION_COMBO_OPERAND_PATTERN.matcher( expression );
+            return  objects;
+        }
+        
+        final Matcher matcher = pattern.matcher( expression );
 
-            while ( matcher.find() )
+        while ( matcher.find() )
+        {
+            final T object = provider.apply( matcher );
+            
+            if ( object != null )
             {
-                DataElementCategoryOptionCombo categoryOptionCombo = categoryService
-                    .getDataElementCategoryOptionCombo( matcher.group( 2 ) );
-
-                if ( categoryOptionCombo != null )
-                {
-                    optionCombosInExpression.add( categoryOptionCombo );
-                }
+                objects.add( object );
             }
         }
-
-        return optionCombosInExpression;
+        
+        return objects;
     }
 
     @Override
@@ -442,7 +448,8 @@ public class DefaultExpressionService
     {
         Set<BaseDimensionalItemObject> results=new HashSet<BaseDimensionalItemObject>();
 
-        results.addAll( getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, expression ) );
+        results.addAll( getIdObjectsInExpression( DATA_ELEMENT_TOTAL_PATTERN, expression, 
+            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) ) );
         results.addAll( getOperandsInExpression( expression ) );
 
         return results;
@@ -525,30 +532,6 @@ public class DefaultExpressionService
         }
 
         return items;
-    }
-
-    @Override
-    public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
-    {
-        Set<OrganisationUnitGroup> groupsInExpression = new HashSet<>();
-
-        if ( expression != null )
-        {
-            final Matcher matcher = OU_GROUP_PATTERN.matcher( expression );
-
-            while ( matcher.find() )
-            {
-                final OrganisationUnitGroup group = organisationUnitGroupService
-                    .getOrganisationUnitGroup( matcher.group( 1 ) );
-
-                if ( group != null )
-                {
-                    groupsInExpression.add( group );
-                }
-            }
-        }
-
-        return groupsInExpression;
     }
 
     @Override

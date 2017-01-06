@@ -241,6 +241,15 @@ public interface ExpressionService
     Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression );
 
     /**
+     * Returns all OrganisationUnitGroups in the given expression string. Returns
+     * an set list if the given indicators are null or empty.
+     *
+     * @param expression the expression string.
+     * @return a Set of OrganisationUnitGroups included in the expression string.
+     */
+    Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression );
+
+    /**
      * Returns all operands included in an expression string. The operand is on
      * the form #{data-element-id.category-option combo-id}. Only operands with
      * a category option combo will be included. Requires that the expression
@@ -288,15 +297,6 @@ public interface ExpressionService
      * @return a set of dimensional item objects.
      */
     Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators );
-
-    /**
-     * Returns all OrganisationUnitGroups in the given expression string. Returns
-     * an set list if the given indicators are null or empty.
-     *
-     * @param expression the expression string.
-     * @return a Set of OrganisationUnitGroups included in the expression string.
-     */
-    Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression );
 
     /**
      * Returns all OrganisationUnitGroups in the numerator and denominator
