@@ -44,7 +44,7 @@ Ext.onReady( function() {
 
 	ER.instances = [];
 	ER.i18n = {};
-	ER.isDebug = true;
+	ER.isDebug = false;
 	ER.isSessionStorage = ('sessionStorage' in window && window['sessionStorage'] !== null);
 
     // core
