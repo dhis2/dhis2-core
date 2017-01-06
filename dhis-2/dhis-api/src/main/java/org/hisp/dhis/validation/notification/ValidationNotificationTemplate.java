@@ -41,6 +41,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -50,6 +51,8 @@ public class ValidationNotificationTemplate
     extends BaseIdentifiableObject
     implements NotificationTemplate
 {
+    private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
+
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
@@ -58,13 +61,11 @@ public class ValidationNotificationTemplate
 
     private String messageTemplate;
 
-    private Set<ValidationRule> validationRules = Sets.newHashSet();
+    private Set<ValidationRule> validationRules = new HashSet<>();
 
     private Boolean notifyUsersInHierarchyOnly;
 
-    private Set<UserGroup> recipientUserGroups = Sets.newHashSet();
-
-    private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
+    private Set<UserGroup> recipientUserGroups = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -101,7 +102,7 @@ public class ValidationNotificationTemplate
         this.subjectTemplate = subjectTemplate;
     }
 
-    @PropertyRange( min = 1, max = 10000 )
+    @PropertyRange( min = 1, max = 1000 )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Override
