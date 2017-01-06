@@ -65,11 +65,10 @@ public class DefaultValidationNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationNotificationService.class );
 
-    private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT =
-        vr ->
-            Objects.nonNull( vr ) &&
-                Objects.nonNull( vr.getValidationRule() ) &&
-                !vr.getValidationRule().getNotificationTemplates().isEmpty();
+    private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr ->
+        Objects.nonNull( vr ) &&
+        Objects.nonNull( vr.getValidationRule() ) &&
+        !vr.getValidationRule().getNotificationTemplates().isEmpty();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -119,20 +118,16 @@ public class DefaultValidationNotificationService
 
     private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages( Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients )
     {
+        // Extract all distinct MessagePairs from the map values
         Set<MessagePair> distinctMessagePairs = groupedByRecipients.entrySet().stream()
             .flatMap( entry -> entry.getValue().stream() )
             .collect( Collectors.toSet() );
 
+        // Render a NotificationMessage from each MessagePair
         final Map<MessagePair, NotificationMessage> preRendered = renderNotificationMessages( distinctMessagePairs );
 
-        Map<Set<User>, NotificationMessage> transformed = new HashMap<>();
-
-        for ( Map.Entry<Set<User>, SortedSet<MessagePair>> entry : groupedByRecipients.entrySet() )
-        {
-            transformed.put( entry.getKey(), createSummarizedMessage( entry.getValue(), preRendered ) );
-        }
-
-        return transformed;
+        return groupedByRecipients.entrySet().stream()
+            .collect( Collectors.toMap( Map.Entry::getKey, e -> createSummarizedMessage( e.getValue(), preRendered ) ) );
     }
 
     /**
