@@ -30,6 +30,7 @@ package org.hisp.dhis.validation.notification;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -118,14 +119,14 @@ public class DefaultValidationNotificationService
 
     private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages( Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients )
     {
-        // Extract all distinct MessagePairs from the map values
+        // Extract all distinct MessagePairs from the map values and render a NotificationMessage from each of them
         Set<MessagePair> distinctMessagePairs = groupedByRecipients.entrySet().stream()
             .flatMap( entry -> entry.getValue().stream() )
             .collect( Collectors.toSet() );
 
-        // Render a NotificationMessage from each MessagePair
         final Map<MessagePair, NotificationMessage> preRendered = renderNotificationMessages( distinctMessagePairs );
 
+        // Collect all pre-rendered messages into summaries and return mapped by recipients
         return groupedByRecipients.entrySet().stream()
             .collect( Collectors.toMap( Map.Entry::getKey, e -> createSummarizedMessage( e.getValue(), preRendered ) ) );
     }
@@ -135,8 +136,11 @@ public class DefaultValidationNotificationService
      */
     private Map<MessagePair, NotificationMessage> renderNotificationMessages( Set<MessagePair> pairs )
     {
-        return pairs.stream()
-            .collect( Collectors.toMap( Function.identity(), pair -> notificationMessageRenderer.render( pair.result, pair.template ) ) );
+        ImmutableMap.Builder<MessagePair, NotificationMessage> mapBuilder = ImmutableMap.builder();
+
+        pairs.forEach( pair -> mapBuilder.put( pair, notificationMessageRenderer.render( pair.result, pair.template ) ) );
+
+        return mapBuilder.build();
     }
 
     /**
@@ -267,7 +271,7 @@ public class DefaultValidationNotificationService
             users,
             null,
             false,
-            false // TODO Consider this?
+            false
         );
     }
 
