@@ -1743,10 +1743,6 @@
     <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
   </bean>
 
-  <bean id="org.hisp.dhis.expression.ExpressionDeletionHandler" class="org.hisp.dhis.expression.ExpressionDeletionHandler">
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-  </bean>
-
   <bean id="org.hisp.dhis.indicator.IndicatorDeletionHandler" class="org.hisp.dhis.indicator.IndicatorDeletionHandler">
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
