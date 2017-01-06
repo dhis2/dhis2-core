@@ -231,7 +231,7 @@ public class DataValidationTask
             // Include only rules where the organisation collects all the data elements
             // in the rule, or rules which have no data elements.
         
-            Set<DataElement> elements = rule.getDataElementsInExpressions();
+            Set<DataElement> elements = getDataElements( rule );
 
             if ( elements.isEmpty() || sourceDataElements.containsAll( elements ) )
             {
@@ -242,6 +242,20 @@ public class DataValidationTask
         return periodTypeRules;
     }
 
+    /**
+     * Gets data elements part of left side and right side expressions of the
+     * given validation rule.
+     * 
+     * @param validationRule the validation rule.
+     */
+    private Set<DataElement> getDataElements( ValidationRule validationRule )
+    {
+        Set<DataElement> elements = new HashSet<>();
+        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getLeftSide().getExpression() ) );
+        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getRightSide().getExpression() ) );
+        return elements;
+    }
+    
     /**
      * Checks to see if the evaluation should go further for this
      * evaluationRule, after the "current" data to evaluate has been fetched.

@@ -1104,14 +1104,12 @@ public abstract class DhisConvenienceTest
      * @param dataElementsInExpression A collection of the data elements
      *                                 entering into the expression.
      */
-    public static Expression createExpression( char uniqueCharacter, String expressionString,
-        Set<DataElement> dataElementsInExpression, Set<DataElementCategoryOptionCombo> optionCombosInExpression )
+    public static Expression createExpression2( char uniqueCharacter, String expressionString )
     {
         Expression expression = new Expression();
 
         expression.setExpression( expressionString );
         expression.setDescription( "Description" + uniqueCharacter );
-        expression.setDataElementsInExpression( dataElementsInExpression );
 
         return expression;
     }

@@ -31,7 +31,6 @@ package org.hisp.dhis.validationrule.action;
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -61,13 +60,6 @@ public class AddValidationRuleAction
     public void setValidationRuleService( ValidationRuleService validationRuleService )
     {
         this.validationRuleService = validationRuleService;
-    }
-
-    private ExpressionService expressionService;
-
-    public void setExpressionService( ExpressionService expressionService )
-    {
-        this.expressionService = expressionService;
     }
 
     private PeriodService periodService;
@@ -191,14 +183,12 @@ public class AddValidationRuleAction
         leftSide.setExpression( leftSideExpression );
         leftSide.setDescription( leftSideDescription );
         leftSide.setMissingValueStrategy( safeValueOf( leftSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
-        leftSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( leftSideExpression ) );
 
         Expression rightSide = new Expression();
 
         rightSide.setExpression( rightSideExpression );
         rightSide.setDescription( rightSideDescription );
         rightSide.setMissingValueStrategy( safeValueOf( rightSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
-        rightSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( rightSideExpression ) );
 
         Expression skipTest = null;
 
@@ -207,8 +197,6 @@ public class AddValidationRuleAction
             skipTest = new Expression();
             skipTest.setExpression( skipTestExpression );
             skipTest.setDescription( skipTestDescription );
-
-            skipTest.setDataElementsInExpression( expressionService.getDataElementsInExpression( skipTestExpression ) );
         }
 
         ValidationRule validationRule = new ValidationRule();

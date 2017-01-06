@@ -293,8 +293,7 @@ public class DefaultPredictorService
 
             for ( String aggregate : aggregateExpressions )
             {
-                Expression exp = new Expression( aggregate, "aggregated",
-                    expressionService.getDataElementsInExpression( aggregate ) );
+                Expression exp = new Expression( aggregate, "Aggregated" );
 
                 for ( Period period : periods )
                 {

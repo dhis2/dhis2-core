@@ -395,17 +395,17 @@ public class ExpressionServiceTest
     @Test
     public void testCustomFunctions()
     {
-        assertEquals( 5.0, calcExpression( "COUNT([1,2,3,4,5])" ) );
-        assertEquals( 15.0, calcExpression( "VSUM([1,2,3,4,5])" ) );
-        assertEquals( 1.0, calcExpression( "MIN([1,2,3,4,5])" ) );
-        assertEquals( 5.0, calcExpression( "MAX([1,2,3,4,5])" ) );
-        assertEquals( 3.0, calcExpression( "AVG([1,2,3,4,5])" ) );
-        assertEquals( Math.sqrt( 2 ), calcExpression( "STDDEV([1,2,3,4,5])" ) );
+        assertEquals( 5.0, calculateExpression( "COUNT([1,2,3,4,5])" ) );
+        assertEquals( 15.0, calculateExpression( "VSUM([1,2,3,4,5])" ) );
+        assertEquals( 1.0, calculateExpression( "MIN([1,2,3,4,5])" ) );
+        assertEquals( 5.0, calculateExpression( "MAX([1,2,3,4,5])" ) );
+        assertEquals( 3.0, calculateExpression( "AVG([1,2,3,4,5])" ) );
+        assertEquals( Math.sqrt( 2 ), calculateExpression( "STDDEV([1,2,3,4,5])" ) );
     }
 
-    private Object calcExpression( String expressionString )
+    private Object calculateExpression( String expressionString )
     {
-        Expression expression = new Expression( expressionString, "test: " + expressionString, new HashSet<DataElement>() );
+        Expression expression = new Expression( expressionString, "test: " + expressionString );
         
         return expressionService.getExpressionValue( expression, new HashMap<DimensionalItemObject, Double>(),
             new HashMap<String, Double>(), new HashMap<String, Integer>(), 0 );
@@ -540,10 +540,10 @@ public class ExpressionServiceTest
     @Test
     public void testGetExpressionValue()
     {
-        Expression expA = createExpression( 'A', expressionA, null, null );
-        Expression expD = createExpression( 'D', expressionD, null, null );
-        Expression expE = createExpression( 'E', expressionE, null, null );
-        Expression expH = createExpression( 'H', expressionH, null, null );
+        Expression expA = new Expression( expressionA, null );
+        Expression expD = new Expression( expressionD, null );
+        Expression expE = new Expression( expressionE, null );
+        Expression expH = new Expression( expressionH, null );
         
         Map<DataElementOperand, Double> valueMap = new HashMap<>();
         valueMap.put( new DataElementOperand( deA.getUid(), coc.getUid() ), 12d );
@@ -609,7 +609,7 @@ public class ExpressionServiceTest
     @Test
     public void testAddGetExpression()
     {
-        Expression expression = new Expression( expressionA, descriptionA, dataElements );
+        Expression expression = new Expression( expressionA, descriptionA );
 
         int id = expressionService.addExpression( expression );
 
@@ -617,13 +617,12 @@ public class ExpressionServiceTest
 
         assertEquals( expressionA, expression.getExpression() );
         assertEquals( descriptionA, expression.getDescription() );
-        assertEquals( dataElements, expression.getDataElementsInExpression() );
     }
 
     @Test
     public void testUpdateExpression()
     {
-        Expression expression = new Expression( expressionA, descriptionA, dataElements );
+        Expression expression = new Expression( expressionA, descriptionA );
 
         int id = expressionService.addExpression( expression );
 
@@ -646,8 +645,8 @@ public class ExpressionServiceTest
     @Test
     public void testDeleteExpression()
     {
-        Expression exprA = new Expression( expressionA, descriptionA, dataElements );
-        Expression exprB = new Expression( expressionB, descriptionB, dataElements );
+        Expression exprA = new Expression( expressionA, descriptionA );
+        Expression exprB = new Expression( expressionB, descriptionB );
 
         int idA = expressionService.addExpression( exprA );
         int idB = expressionService.addExpression( exprB );
@@ -669,8 +668,8 @@ public class ExpressionServiceTest
     @Test
     public void testGetAllExpressions()
     {
-        Expression exprA = new Expression( expressionA, descriptionA, dataElements );
-        Expression exprB = new Expression( expressionB, descriptionB, dataElements );
+        Expression exprA = new Expression( expressionA, descriptionA );
+        Expression exprB = new Expression( expressionB, descriptionB );
 
         expressionService.addExpression( exprA );
         expressionService.addExpression( exprB );
