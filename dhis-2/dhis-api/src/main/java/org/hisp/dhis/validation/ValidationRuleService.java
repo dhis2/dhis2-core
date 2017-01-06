@@ -173,6 +173,15 @@ public interface ValidationRuleService
      */
     List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
 
+    /**
+     * Get data elements part of the left side and right side expressions of the
+     * given validation rule.
+     * 
+     * @param validationRule the validation rule.
+     * @return a set of data elements.
+     */
+    Set<DataElement> getDataElements( ValidationRule validationRule );
+
     // -------------------------------------------------------------------------
     // ValidationRuleGroup
     // -------------------------------------------------------------------------

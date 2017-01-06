@@ -73,6 +73,8 @@ public class ValidationRunContext
     private Date lastScheduledRun;
 
     private Map<String, Double> constantMap;
+    
+    private Map<ValidationRule, Set<DataElement>> validationRuleDataElementsMap;
 
     private Map<ValidationRule, ValidationRuleExtended> ruleXMap;
 
@@ -102,6 +104,7 @@ public class ValidationRunContext
      * @param lastScheduledRun (for SCHEDULED runs) date/time of previous run
      * @param runType whether this is an INTERACTIVE or SCHEDULED run
      * @param constantMap map of constants
+     * @param validationRuleDataElementsMap map of validation rule to data sets
      * @param cogDimensionConstraints category option group dimension constraints.
      * @param coDimensionConstraints category option dimension constraints.
 
@@ -109,7 +112,8 @@ public class ValidationRunContext
      */
     public static ValidationRunContext getNewContext( Collection<OrganisationUnit> sources,
         Collection<Period> periods, Collection<ValidationRule> rules, DataElementCategoryOptionCombo attributeCombo,
-        Date lastScheduledRun, ValidationRunType runType, Map<String, Double> constantMap,
+        Date lastScheduledRun, ValidationRunType runType, 
+        Map<String, Double> constantMap, Map<ValidationRule, Set<DataElement>> validationRuleDataElementsMap, 
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
     {
         ValidationRunContext context = new ValidationRunContext();
@@ -121,6 +125,7 @@ public class ValidationRunContext
         context.lastScheduledRun = lastScheduledRun;
         context.runType = runType;
         context.constantMap = constantMap;
+        context.validationRuleDataElementsMap = validationRuleDataElementsMap;
         context.cogDimensionConstraints = cogDimensionConstraints;
         context.coDimensionConstraints = coDimensionConstraints;
         context.initialize( sources, periods, rules );
@@ -172,20 +177,21 @@ public class ValidationRunContext
     {
         for ( ValidationRule rule : rules )
         {
+            Set<DataElement> dataElements = validationRuleDataElementsMap.get( rule );
+            
             // Find the period type extended for this rule
             PeriodTypeExtended periodTypeX = getOrCreatePeriodTypeExtended( rule.getPeriodType() );
             periodTypeX.getRules().add( rule );
 
              // Add data elements of rule to the period extended
-            periodTypeX.getDataElements().addAll( rule.getDataElementsInExpressions() );
+            periodTypeX.getDataElements().addAll( dataElements );
 
             // Add the allowed period types for data elements of rule
             periodTypeX.getAllowedPeriodTypes().addAll(
-                getAllowedPeriodTypesForDataElements( rule.getDataElementsInExpressions(), rule.getPeriodType() ) );
+                getAllowedPeriodTypesForDataElements( dataElements, rule.getPeriodType() ) );
 
             // Add the ValidationRuleExtended
-            Set<PeriodType> allowedPastPeriodTypes = getAllowedPeriodTypesForDataElements(
-                rule.getDataElementsInExpressions(), rule.getPeriodType() );
+            Set<PeriodType> allowedPastPeriodTypes = getAllowedPeriodTypesForDataElements( dataElements, rule.getPeriodType() );
             
             ValidationRuleExtended ruleX = new ValidationRuleExtended( rule, allowedPastPeriodTypes );
             ruleXMap.put( rule, ruleX );
