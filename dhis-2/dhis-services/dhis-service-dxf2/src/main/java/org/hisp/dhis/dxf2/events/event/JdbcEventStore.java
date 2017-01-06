@@ -287,7 +287,7 @@ public class JdbcEventStore
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
-
+        
         List<Map<String, String>> list = new ArrayList<>();
 
         while ( rowSet.next() )
@@ -609,8 +609,6 @@ public class JdbcEventStore
             + "inner join program p on p.programid = pi.programid "
             + "inner join programstage ps on ps.programstageid = psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-            + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid = cocco.categoryoptioncomboid "
-            + "inner join dataelementcategoryoption deco on cocco.categoryoptionid = deco.categoryoptionid "
             + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid ";
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
@@ -647,6 +645,11 @@ public class JdbcEventStore
         if ( params.getProgramStage() != null )
         {
             sql += hlp.whereAnd() + " ps.programstageid = " + params.getProgramStage().getId() + " ";
+        }
+        
+        if ( params.getCategoryOptionCombo() != null )
+        {
+            sql += hlp.whereAnd() + " psi.attributeoptioncomboid = " + params.getCategoryOptionCombo().getId() + " ";
         }
 
         if ( params.getStartDate() != null )
