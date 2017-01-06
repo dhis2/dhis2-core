@@ -359,7 +359,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
     public Set<DataElement> getDataElementsInExpression( String expression )
     {
         return getIdObjectsInExpression( OPERAND_PATTERN, expression,
@@ -367,7 +366,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
         return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
@@ -375,7 +373,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
     {
         return getIdObjectsInExpression( OU_GROUP_PATTERN, expression, 
