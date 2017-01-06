@@ -309,14 +309,12 @@ public class DefaultValidationRuleService
 
         for ( ValidationRule validationRule : getAllValidationRules() )
         {
-            Set<DataElement> validationRuleElements = new HashSet<>();
-                validationRuleElements.addAll( validationRule.getLeftSide().getDataElementsInExpression() );
-                validationRuleElements.addAll( validationRule.getRightSide().getDataElementsInExpression() );
+            Set<DataElement> validationRuleElements = getDataElements( validationRule );
 
-                if ( dataElements.containsAll( validationRuleElements ) )
-                {
-                    rulesForDataElements.add( validationRule );
-                }
+            if ( dataElements.containsAll( validationRuleElements ) )
+            {
+                rulesForDataElements.add( validationRule );
+            }
         }
 
         return rulesForDataElements;

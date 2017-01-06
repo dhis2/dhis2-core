@@ -45,7 +45,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.option.Option;
@@ -79,9 +78,6 @@ public class DefaultCsvImportService
 {
     @Autowired
     private DataElementCategoryService categoryService;
-
-    @Autowired
-    private ExpressionService expressionService;
 
     // -------------------------------------------------------------------------
     // CsvImportService implementation
@@ -293,12 +289,10 @@ public class DefaultCsvImportService
                 leftSide.setExpression( getSafe( values, 9, null, 255 ) );
                 leftSide.setDescription( getSafe( values, 10, null, 255 ) );
                 leftSide.setMissingValueStrategy( MissingValueStrategy.safeValueOf( getSafe( values, 11, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
-                leftSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( leftSide.getExpression() ) );
 
                 rightSide.setExpression( getSafe( values, 12, null, 255 ) );
                 rightSide.setDescription( getSafe( values, 13, null, 255 ) );
                 rightSide.setMissingValueStrategy( MissingValueStrategy.safeValueOf( getSafe( values, 14, MissingValueStrategy.NEVER_SKIP.toString(), 50 ) ) );
-                rightSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( rightSide.getExpression() ) );
 
                 object.setLeftSide( leftSide );
                 object.setRightSide( rightSide );

@@ -28,7 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategory;
@@ -191,25 +190,19 @@ public class ValidationRuleServiceTest
         optionCombos.add( optionCombo );
 
         expressionA = new Expression(
-            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA",
-            Sets.newHashSet( dataElementA, dataElementB ) );
+            "#{" + dataElementA.getUid() + suffix + "} + #{" + dataElementB.getUid() + suffix + "}", "expressionA" );
         expressionB = new Expression(
-            "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB",
-            Sets.newHashSet( dataElementC, dataElementD ) );
-        expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC", Sets.newHashSet( dataElementB ) );
-        expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD", Sets.newHashSet( dataElementB ) );
-        expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE",
-            Sets.newHashSet( dataElementB ) );
-        expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF",
-            Sets.newHashSet( dataElementB, dataElementE ) );
-        expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})",
-            "expressionG", Sets.newHashSet( dataElementB, dataElementE ) );
-        expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
-            "expressionH", Sets.newHashSet() );
-        expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI", Sets.newHashSet( dataElementA ) );
-        expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ", Sets.newHashSet( dataElementB ) );
-        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", Sets.newHashSet( dataElementC ), NEVER_SKIP );
-        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", Sets.newHashSet( dataElementD ), NEVER_SKIP );
+            "#{" + dataElementC.getUid() + suffix + "} - #{" + dataElementD.getUid() + suffix + "}", "expressionB" );
+        expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC" );
+        expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD" );
+        expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE" );
+        expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF"  );
+        expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})", "expressionG" );
+        expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})", "expressionH" );
+        expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI" );
+        expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ" );
+        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", NEVER_SKIP );
+        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", NEVER_SKIP );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );

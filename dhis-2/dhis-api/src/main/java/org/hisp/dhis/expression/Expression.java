@@ -30,18 +30,12 @@ package org.hisp.dhis.expression;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElement;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * An Expression is the expression of e.g. a validation rule. It consist of a
@@ -96,11 +90,6 @@ public class Expression
      */
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 
-    /**
-     * A reference to the DataElements in the Expression.
-     */
-    private Set<DataElement> dataElementsInExpression = new HashSet<>();
-
     // -------------------------------------------------------------------------
     // Transient properties
     // -------------------------------------------------------------------------
@@ -121,13 +110,11 @@ public class Expression
     /**
      * @param expression               The expression as a String
      * @param description              A description of the Expression.
-     * @param dataElementsInExpression A reference to the DataElements in the Expression.
      */
-    public Expression( String expression, String description, Set<DataElement> dataElementsInExpression )
+    public Expression( String expression, String description )
     {
         this.expression = expression;
         this.description = description;
-        this.dataElementsInExpression = dataElementsInExpression;
     }
 
     /**
@@ -135,15 +122,13 @@ public class Expression
      *
      * @param expression                 The expression as a String
      * @param description                A description of the Expression.
-     * @param dataElementsInExpression   A reference to the DataElements in the Expression.
      * @param missingValueStrategy       Strategy for handling missing values.
      */
     public Expression( String expression, String description,
-        Set<DataElement> dataElementsInExpression, MissingValueStrategy missingValueStrategy )
+        MissingValueStrategy missingValueStrategy )
     {
         this.expression = expression;
         this.description = description;
-        this.dataElementsInExpression = dataElementsInExpression;
         this.missingValueStrategy = missingValueStrategy;
     }
 
@@ -299,20 +284,6 @@ public class Expression
         this.expression = expression;
     }
 
-    @JsonProperty( value = "dataElements" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElement> getDataElementsInExpression()
-    {
-        return dataElementsInExpression;
-    }
-
-    public void setDataElementsInExpression( Set<DataElement> dataElementsInExpression )
-    {
-        this.dataElementsInExpression = dataElementsInExpression;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
@@ -355,7 +326,5 @@ public class Expression
         expression = other.getExpression() == null ? expression : other.getExpression();
         description = other.getDescription() == null ? description : other.getDescription();
         missingValueStrategy = other.getMissingValueStrategy() == null ? missingValueStrategy : other.getMissingValueStrategy();
-        dataElementsInExpression = other.getDataElementsInExpression() == null ?
-            dataElementsInExpression : new HashSet<>( other.getDataElementsInExpression() );
     }
 }
