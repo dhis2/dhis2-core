@@ -1,8 +1,8 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.webapi.mvc;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,59 +28,38 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.core.MethodParameter;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
-
-public class OutBoundMessage
+ * @author Morten Olav Hansen <mortenoh@gmail.com>
+ */
+@Component
+public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
 {
-    private String text;
-    
-    private Set<String> recipients;
-    
-    private String subject;
+    private final CurrentUserService currentUserService;
 
-    public OutBoundMessage()
+    public CurrentUserHandlerMethodArgumentResolver( CurrentUserService currentUserService )
     {
-    }
-   
-    public OutBoundMessage( String text, Set<String> recipients, String subject )
-    {
-        super();
-        this.text = text;
-        this.recipients = recipients;
-        this.subject = subject;
+        this.currentUserService = currentUserService;
     }
 
-    public String getText()
+    @Override
+    public boolean supportsParameter( MethodParameter parameter )
     {
-        return text;
+        return "currentUser".equals( parameter.getParameterName() )
+            && User.class.isAssignableFrom( parameter.getParameterType() );
     }
 
-    public void setText( String text )
+    @Override
+    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory ) throws Exception
     {
-        this.text = text;
-    }
-
-    public Set<String> getRecipients()
-    {
-        return recipients;
-    }
-
-    public void setRecipients( Set<String> recipients )
-    {
-        this.recipients = recipients;
-    }
-
-    public String getSubject()
-    {
-        return subject;
-    }
-
-    public void setSubject( String subject )
-    {
-        this.subject = subject;
+        return currentUserService.getCurrentUser();
     }
 }

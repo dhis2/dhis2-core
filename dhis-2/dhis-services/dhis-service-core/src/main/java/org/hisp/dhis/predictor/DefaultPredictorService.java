@@ -49,6 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -189,7 +190,6 @@ public class DefaultPredictorService
         Expression skipTest = predictor.getSampleSkipTest();
         DataElement output = predictor.getOutput();
         DataElementCategoryOptionCombo outputCombo = predictor.getOutputCombo();
-        Set<BaseDimensionalItemObject> datarefs = getExpressionInputs( generator.getExpression() );
         Set<BaseDimensionalItemObject> skiprefs = skipTest == null ? new HashSet<BaseDimensionalItemObject>()
             : getExpressionInputs( skipTest.getExpression() );
         Set<BaseDimensionalItemObject> samplerefs = new HashSet<BaseDimensionalItemObject>();
@@ -342,7 +342,7 @@ public class DefaultPredictorService
 
                     log.debug( "skipTest " + skipTest.getExpression() + " yielded " + testValue );
 
-                    if ( testValue != null && !testValue.equals( 0 ) )
+                    if ( testValue != null && !MathUtils.isZero( testValue ) )
                     {
                         MapMap<Integer, BaseDimensionalItemObject, Double> inPeriod = dataMap.get( period );
 

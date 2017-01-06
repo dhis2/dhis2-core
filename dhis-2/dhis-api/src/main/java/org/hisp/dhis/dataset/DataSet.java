@@ -50,6 +50,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
+import org.joda.time.DateTime;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -501,6 +502,21 @@ public class DataSet
         }
 
         return true;
+    }
+    
+    /**
+     * Indicates whether the data set is locked for data entry based on the 
+     * expiry days.
+     * 
+     * @param period the period to compare with.
+     * @param now the date indicating now, uses current date if null.
+     */
+    public boolean isLocked( Period period, Date now )
+    {
+        DateTime date = now != null ? new DateTime( now ) : new DateTime();
+        
+        return expiryDays != DataSet.NO_EXPIRY && 
+            new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( date  );
     }
 
     /**

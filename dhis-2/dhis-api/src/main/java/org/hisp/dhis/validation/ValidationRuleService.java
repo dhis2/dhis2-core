@@ -82,16 +82,6 @@ public interface ValidationRuleService
     Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source, DataElementCategoryOptionCombo attributeCombo );
 
     /**
-     * Validate DataValues.
-     *
-     * @param startDate the start date.
-     * @param endDate   the end date.
-     * @param source    the Source.
-     * @return a Collection of ValidationResults for each validation violation.
-     */
-    Collection<ValidationResult> validate( Date startDate, Date endDate, OrganisationUnit source );
-
-    /**
      * Evaluates all the validation rules that could generate alerts,
      * and sends results (if any) to users who should be notified.
      */

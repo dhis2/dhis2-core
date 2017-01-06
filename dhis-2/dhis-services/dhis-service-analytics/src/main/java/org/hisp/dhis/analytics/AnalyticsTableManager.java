@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
 /**
- * Interface for management of the analytics database tables.
+ * Manager for the analytics database tables.
  * 
  * @author Lars Helge Overland
  */
@@ -48,6 +48,7 @@ public interface AnalyticsTableManager
     public static final String COMPLETENESS_TARGET_TABLE_NAME = "analytics_completenesstarget";
     public static final String ORGUNIT_TARGET_TABLE_NAME = "analytics_orgunittarget";
     public static final String EVENT_ANALYTICS_TABLE_NAME = "analytics_event";
+    public static final String ENROLLMENT_ANALYTICS_TABLE_NAME = "analytics_enrollment";
     
     /**
      * Returns a list of generated analytics tables for yearly partitions.

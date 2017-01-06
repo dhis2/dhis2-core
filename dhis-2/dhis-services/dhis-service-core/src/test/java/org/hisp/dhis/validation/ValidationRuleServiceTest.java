@@ -199,20 +199,17 @@ public class ValidationRuleServiceTest
         expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC", Sets.newHashSet( dataElementB ) );
         expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD", Sets.newHashSet( dataElementB ) );
         expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE",
-            Sets.newHashSet( dataElementB ), Sets.newHashSet( dataElementB ) );
-        expressionF = new Expression(
-            "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF",
+            Sets.newHashSet( dataElementB ) );
+        expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF",
             Sets.newHashSet( dataElementB, dataElementE ) );
-        expressionG = new Expression(
-            "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})",
-            "expressionG", Sets.newHashSet( dataElementB, dataElementE ), Sets.newHashSet( dataElementB, dataElementE ) );
-        expressionH = new Expression(
-            "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
-            "expressionH", Sets.newHashSet(), Sets.newHashSet( dataElementB ) );
+        expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})",
+            "expressionG", Sets.newHashSet( dataElementB, dataElementE ) );
+        expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
+            "expressionH", Sets.newHashSet() );
         expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI", Sets.newHashSet( dataElementA ) );
         expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ", Sets.newHashSet( dataElementB ) );
-        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", Sets.newHashSet( dataElementC ), new HashSet<>(), NEVER_SKIP );
-        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", Sets.newHashSet( dataElementD ), new HashSet<>(), NEVER_SKIP );
+        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", Sets.newHashSet( dataElementC ), NEVER_SKIP );
+        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", Sets.newHashSet( dataElementD ), NEVER_SKIP );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );
@@ -460,44 +457,6 @@ public class ValidationRuleServiceTest
         reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
         reference.add( new ValidationResult( periodA, sourceB, defaultCombo, validationRuleA, 3.0, -1.0 ) );
         reference.add( new ValidationResult( periodB, sourceB, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-
-        for ( ValidationResult result : results )
-        {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
-        }
-
-        assertEquals( 4, results.size() );
-        assertEquals( orderedList( reference ), orderedList( results ) );
-    }
-
-    @Test
-    public void testValidateDateDateSource()
-    {
-        useDataValue( dataElementA, periodA, sourceA, "1" );
-        useDataValue( dataElementB, periodA, sourceA, "2" );
-        useDataValue( dataElementC, periodA, sourceA, "3" );
-        useDataValue( dataElementD, periodA, sourceA, "4" );
-
-        useDataValue( dataElementA, periodB, sourceA, "1" );
-        useDataValue( dataElementB, periodB, sourceA, "2" );
-        useDataValue( dataElementC, periodB, sourceA, "3" );
-        useDataValue( dataElementD, periodB, sourceA, "4" );
-
-        validationRuleService.saveValidationRule( validationRuleA );
-        validationRuleService.saveValidationRule( validationRuleB );
-        validationRuleService.saveValidationRule( validationRuleC );
-        validationRuleService.saveValidationRule( validationRuleD );
-
-        Collection<ValidationResult> results = validationRuleService.validate( getDate( 2000, 2, 1 ),
-            getDate( 2000, 6, 1 ), sourceA );
-
-        Collection<ValidationResult> reference = new HashSet<>();
-
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleA, 3.0, -1.0 ) );
-        reference.add( new ValidationResult( periodA, sourceA, defaultCombo, validationRuleB, -1.0, 4.0 ) );
-        reference.add( new ValidationResult( periodB, sourceA, defaultCombo, validationRuleB, -1.0, 4.0 ) );
 
         for ( ValidationResult result : results )
         {

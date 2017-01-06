@@ -108,7 +108,7 @@ public class MetadataSyncPostProcessor
         {
             text.append( "New Version created. It does not have any metadata changes. \n" );
         }
-        else
+        else if ( typeReportMap != null )
         {
             text.append( "Imported Object Details: \n" );
             for ( Map.Entry<Class<?>, TypeReport> typeReportEntry : typeReportMap.entrySet() )

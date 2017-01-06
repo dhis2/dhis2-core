@@ -33,9 +33,9 @@ import java.util.List;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.sms.MessageBatchCreatorService;
-import org.hisp.dhis.sms.OutBoundMessage;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.program.message.MessageBatchCreatorService;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>
@@ -45,29 +45,21 @@ public class EmailMessageBatchCreator
     implements MessageBatchCreatorService
 {
     @Override
-    public MessageBatch getMessageBatch( List<ProgramMessage> programMessages )
+    public OutboundMessageBatch getMessageBatch( List<ProgramMessage> programMessages )
     {
-        MessageBatch messageBatch = new MessageBatch();
-
-        List<OutBoundMessage> smsBatch = new ArrayList<>();
+        List<OutboundMessage> messages = new ArrayList<>();
 
         for ( ProgramMessage programMessage : programMessages )
         {
             if ( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
             {
-                OutBoundMessage email = new OutBoundMessage( programMessage.getText(),
-                    programMessage.getRecipients().getEmailAddresses(), programMessage.getSubject() );
+                OutboundMessage email = new OutboundMessage( programMessage.getSubject(), programMessage.getText(),
+                    programMessage.getRecipients().getEmailAddresses() );
 
-                smsBatch.add( email );
+                messages.add( email );
             }
         }
-
-        if ( !smsBatch.isEmpty() )
-        {
-            messageBatch.setBatch( smsBatch );
-            messageBatch.setDeliveryChannel( DeliveryChannel.EMAIL );
-        }
         
-        return messageBatch;
+        return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );
     }
 }

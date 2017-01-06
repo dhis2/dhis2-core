@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics;
  */
 
 /**
+ * Analytics output formats.
+ * 
  * @author Lars Helge Overland
  */
 public enum OutputFormat

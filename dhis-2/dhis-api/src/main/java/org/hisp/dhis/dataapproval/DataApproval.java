@@ -37,7 +37,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.User;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Records the approval of DataSet values for a given OrganisationUnit and
@@ -145,6 +147,44 @@ public class DataApproval
         this.accepted = da.accepted;
         this.created = da.created;
         this.creator = da.creator;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Finds the lowest level (if any) at which data would be approved.
+     */
+    public static DataApproval getLowestApproval( DataApproval dataApproval )
+    {
+        OrganisationUnit orgUnit = dataApproval.getOrganisationUnit();
+
+        List<DataApprovalLevel> approvalLevels = dataApproval.getWorkflow().getSortedLevels();
+
+        Collections.reverse( approvalLevels );
+
+        DataApproval da = null;
+
+        for ( DataApprovalLevel approvalLevel : approvalLevels )
+        {
+            int orgUnitLevel = orgUnit.getLevel();
+            
+            if ( approvalLevel.getOrgUnitLevel() <= orgUnitLevel )
+            {
+                if ( approvalLevel.getOrgUnitLevel() < orgUnitLevel )
+                {
+                    orgUnit = orgUnit.getAncestors().get( approvalLevel.getOrgUnitLevel() - 1 );
+                }
+                
+                da = new DataApproval( approvalLevel, dataApproval.getWorkflow(),
+                    dataApproval.getPeriod(), orgUnit, dataApproval.getAttributeOptionCombo() );
+
+                break;
+            }
+        }
+
+        return da;
     }
 
     // -------------------------------------------------------------------------

@@ -37,6 +37,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
@@ -93,7 +94,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion.Version;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -128,7 +128,7 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ApiVersion( { Version.DEFAULT, Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public abstract class AbstractCrudController<T extends IdentifiableObject>
 {
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
@@ -201,13 +201,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, HttpServletRequest request ) throws QueryParserException
+        HttpServletResponse response, HttpServletRequest request, User currentUser ) throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<Order> orders = orderParams.getOrders( getSchema() );
-
-        User user = currentUserService.getCurrentUser();
 
         if ( fields.isEmpty() )
         {
@@ -217,7 +215,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         WebOptions options = new WebOptions( rpParameters );
         WebMetadata metadata = new WebMetadata();
 
-        if ( !aclService.canRead( user, getEntityClass() ) )
+        if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
@@ -234,7 +232,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         postProcessEntities( entities );
         postProcessEntities( entities, options, rpParameters );
 
-        handleLinksAndAccess( entities, fields, false, user );
+        handleLinksAndAccess( entities, fields, false, currentUser );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -597,7 +595,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
             String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
-            
+
             webMessage.setHttpStatus( HttpStatus.CREATED );
             response.setHeader( ContextUtils.HEADER_LOCATION, location );
             T entity = manager.get( objectReport.getUid() );
@@ -640,7 +638,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
             String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
-            
+
             webMessage.setHttpStatus( HttpStatus.CREATED );
             response.setHeader( ContextUtils.HEADER_LOCATION, location );
             T entity = manager.get( objectReport.getUid() );

@@ -135,7 +135,7 @@ public class DhisMessageAlertListener
                     confirmMessage = SMSCommand.ALERT_FEEDBACK;
                 }
 
-                if ( smsSender.isServiceReady() )
+                if ( smsSender.isConfigured() )
                 {
                     smsSender.sendMessage( smsCommand.getName(), confirmMessage, null, null, feedbackList, false );
                 }

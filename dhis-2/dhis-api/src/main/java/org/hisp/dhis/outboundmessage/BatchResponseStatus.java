@@ -1,11 +1,11 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * modification, are permi      tted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
@@ -28,67 +28,43 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.List;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 
-@JacksonXmlRootElement( localName = "messageResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class MessageResponseStatus
+@JacksonXmlRootElement( localName = "batchResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
+public class BatchResponseStatus
 {
-    private String description;
+    private List<OutboundMessageResponseSummary> summaries;
     
-    private boolean ok;
-
-    private Enum<?> responseObject;
-
-    public MessageResponseStatus()
+    public BatchResponseStatus( List<OutboundMessageResponseSummary> summaries )
     {
-    }
-
-    public MessageResponseStatus( String description, Enum<?> response, boolean ok )
-    {
-        this.ok = ok;
-        this.responseObject = response;
-        this.description = description;
-    }
-
-    @JsonProperty( value = "status" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Enum<?> getResponseObject()
-    {
-        return responseObject;
-    }
-
-    public void setResponseObject( Enum<?> response )
-    {
-        this.responseObject = response;
-    }
-
-    @JsonProperty( value = "description" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
+        this.summaries = summaries;
     }
 
     public boolean isOk()
     {
-        return ok;
+        return summaries.stream().noneMatch( s -> s.getBatchStatus() != OutboundMessageBatchStatus.COMPLETED );
     }
 
-    public void setOk( boolean ok )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonProperty( value = "summaries" )
+    public List<OutboundMessageResponseSummary> getSummaries()
     {
-        this.ok = ok;
+        return summaries;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).add( "summaries", summaries ).toString();
     }
 }

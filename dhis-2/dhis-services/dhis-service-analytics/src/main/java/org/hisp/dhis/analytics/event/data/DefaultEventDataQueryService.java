@@ -101,10 +101,11 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
         boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
         SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus, ProgramStatus programStatus, boolean collapseDataDimensions,
-        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, I18nFormat format )
+        boolean aggregateData, DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
     {
         EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, relativePeriodDate, userOrgUnit, null, null, null, format );
+            skipMeta, skipData, completedOnly, hierarchyMeta, false, eventStatus, programStatus, displayProperty, 
+            relativePeriodDate, userOrgUnit, null, null, null, apiVersion );
 
         EventQueryParams params = new EventQueryParams.Builder( query )
             .withValue( getValueDimension( value ) )
@@ -116,7 +117,9 @@ public class DefaultEventDataQueryService
             .withOutputType( MoreObjects.firstNonNull( outputType, EventOutputType.EVENT ) )
             .withCollapseDataDimensions( collapseDataDimensions )
             .withAggregateData( aggregateData )
-            .withProgramStatus( programStatus ).build();
+            .withProgramStatus( programStatus )
+            .withApiVersion( apiVersion )
+            .build();
 
         return params;
     }
@@ -126,8 +129,10 @@ public class DefaultEventDataQueryService
         Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
         Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
         boolean coordinatesOnly, EventStatus eventStatus, ProgramStatus programStatus, DisplayProperty displayProperty,
-        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, I18nFormat format )
+        Date relativePeriodDate, String userOrgUnit, String coordinateField, Integer page, Integer pageSize, DhisApiVersion apiVersion )
     {
+        I18nFormat format = i18nManager.getI18nFormat();
+        
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         
         IdScheme idScheme = IdScheme.UID;
@@ -154,8 +159,8 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
-                    format, true, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
 
                 if ( dimObj != null )
                 {                    
@@ -174,8 +179,8 @@ public class DefaultEventDataQueryService
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, items, relativePeriodDate, userOrgUnits,
-                    format, true, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
+                    items, relativePeriodDate, userOrgUnits, format, true, idScheme );
 
                 if ( dimObj != null )
                 {
@@ -220,7 +225,9 @@ public class DefaultEventDataQueryService
             .withCoordinateField( getCoordinateField( coordinateField ) )
             .withPage( page )
             .withPageSize( pageSize )
-            .withProgramStatus( programStatus ).build();
+            .withProgramStatus( programStatus )
+            .withApiVersion( apiVersion )
+            .build();
     }
 
     @Override
@@ -377,14 +384,18 @@ public class DefaultEventDataQueryService
 
         if ( de != null ) // TODO check if part of program
         {
-            return new QueryItem( de, legendSet, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
+            ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
+            
+            return new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
         }
 
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
 
         if ( at != null )
         {
-            return new QueryItem( at, legendSet, at.getValueType(), at.getAggregationType(), at.getOptionSet() );
+            ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
+            
+            return new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( item );

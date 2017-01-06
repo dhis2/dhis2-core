@@ -934,6 +934,15 @@
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
 
+  <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
+
+  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
+    class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
+    <property name="messageBatchService" ref="org.hisp.dhis.outboundmessage.OutboundMessageService" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
     <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
     <property name="categoryOptionStore" ref="org.hisp.dhis.dataelement.CategoryOptionStore" />
@@ -942,6 +951,8 @@
     <property name="categoryOptionGroupStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupStore" />
     <property name="categoryOptionGroupSetStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupSetStore" />
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
     <property name="deletionManager" ref="deletionManager" />
   </bean>
 
@@ -1395,6 +1406,18 @@
     <property name="attributeGroupStore" ref="org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" />
   </bean>
 
+  <!-- Outbound messaging services -->
+
+  <bean id="org.hisp.dhis.outboundmessage.OutboundMessageService"
+    class="org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService">
+    <property name="messageSenders">
+      <map>
+        <entry key="SMS" value-ref="smsMessageSender" />
+        <entry key="EMAIL" value-ref="emailMessageSender" />
+      </map>
+    </property>
+  </bean>
+
   <!-- ProgramMessage services -->
 
   <bean id="org.hisp.dhis.program.message.ProgramMessageService" class="org.hisp.dhis.program.message.DefaultProgramMessageService">
@@ -1689,6 +1712,10 @@
     <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataelement.DataElementOperandDeletionHandler" class="org.hisp.dhis.dataelement.DataElementOperandDeletionHandler">
+    <property name="jdbcTemplate" ref="jdbcTemplate" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" class="org.hisp.dhis.dataelement.DataElementGroupDeletionHandler" />
 
   <bean id="org.hisp.dhis.dataelement.DataElementCategoryOptionDeletionHandler"
@@ -1783,9 +1810,7 @@
   <bean id="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler"
     class="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler" />
 
-  <bean id="org.hisp.dhis.configuration.ConfigurationDeletionHandler" class="org.hisp.dhis.configuration.ConfigurationDeletionHandler">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
+  <bean id="org.hisp.dhis.configuration.ConfigurationDeletionHandler" class="org.hisp.dhis.configuration.ConfigurationDeletionHandler" />
 
   <bean id="org.hisp.dhis.message.MessageConversationDeletionHandler" class="org.hisp.dhis.message.MessageConversationDeletionHandler">
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />

@@ -6,7 +6,7 @@ $( document ).ready( function() {
 
 mde.displayObjectList = function() {
 	var objectType = $( "#objectType" ).val(),
-		url = "../api/" + objectType + "?fields=id,displayName";
+		url = "../api/" + objectType + "?fields=id,displayName&paging=false";
 	
 	$.getJSON( url, function( json ) {
 		var html = "";

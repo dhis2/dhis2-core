@@ -28,7 +28,6 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
@@ -230,7 +229,7 @@ public interface AclService
      * @param object Object to update
      * @param user   User to base ACL on
      */
-    <T extends BaseIdentifiableObject> void resetSharing( T object, User user );
+    <T extends IdentifiableObject> void resetSharing( T object, User user );
 
     /**
      * Verify that sharing props are correctly set according to user.

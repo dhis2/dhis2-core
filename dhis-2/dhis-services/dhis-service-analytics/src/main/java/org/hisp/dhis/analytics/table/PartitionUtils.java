@@ -47,6 +47,8 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.joda.time.DateTime;
 
 /**
+ * Utilities for analytics table partition handling.
+ * 
  * @author Lars Helge Overland
  */
 public class PartitionUtils
@@ -108,6 +110,19 @@ public class PartitionUtils
             partitions.add( name.toLowerCase() );
             startYear++;
         }
+
+        return partitions.prunePartitions( validPartitions );
+    }
+    
+    public static Partitions getPartitions( String tablePrefix, String tableSuffix, Set<String> validPartitions )
+    {
+        tablePrefix = StringUtils.trimToEmpty( tablePrefix );
+        tableSuffix = StringUtils.trimToEmpty( tableSuffix );
+
+        Partitions partitions = new Partitions();
+
+        String name = tablePrefix + tableSuffix;
+        partitions.add( name.toLowerCase() );
 
         return partitions.prunePartitions( validPartitions );
     }

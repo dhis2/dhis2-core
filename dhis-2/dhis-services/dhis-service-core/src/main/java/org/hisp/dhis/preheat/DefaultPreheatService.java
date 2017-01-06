@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementCategoryDimension;
@@ -120,6 +121,9 @@ public class DefaultPreheatService implements PreheatService
         {
             preheat.setUser( currentUserService.getCurrentUser() );
         }
+
+        preheat.put( PreheatIdentifier.UID, preheat.getUser() );
+        preheat.put( PreheatIdentifier.CODE, preheat.getUser() );
 
         for ( Class<? extends IdentifiableObject> klass : params.getObjects().keySet() )
         {
@@ -362,36 +366,44 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( IdentifiableObject object )
+    @SuppressWarnings( "unchecked" )
+    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Object object )
     {
         if ( object == null )
         {
             return new HashMap<>();
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
-        map.put( object.getClass(), Lists.newArrayList( (IdentifiableObject) object ) );
+        if ( Collection.class.isInstance( object ) )
+        {
+            return collectReferences( (Collection<?>) object );
+        }
+        else if ( Map.class.isInstance( object ) )
+        {
+            return collectReferences( (Map<Class<?>, List<?>>) object );
+        }
+
+        Map<Class<?>, List<?>> map = new HashMap<>();
+        map.put( object.getClass(), Lists.newArrayList( object ) );
 
         return collectReferences( map );
     }
 
-    @Override
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Collection<IdentifiableObject> objects )
+    private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Collection<?> objects )
     {
         if ( objects == null || objects.isEmpty() )
         {
             return new HashMap<>();
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = new HashMap<>();
+        Map<Class<?>, List<?>> map = new HashMap<>();
         map.put( objects.iterator().next().getClass(), Lists.newArrayList( objects ) );
 
         return collectReferences( map );
     }
 
-    @Override
     @SuppressWarnings( "unchecked" )
-    public Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> collectReferences( Map<Class<?>, List<?>> objects )
     {
         Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> map = new HashMap<>();
 
@@ -406,18 +418,16 @@ public class DefaultPreheatService implements PreheatService
             return map;
         }
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> scanObjects = new HashMap<>();
+        Map<Class<?>, List<?>> scanObjects = new HashMap<>();
         scanObjects.putAll( objects ); // clone objects list, we don't want to modify it
 
         if ( scanObjects.containsKey( User.class ) )
         {
-            List<IdentifiableObject> users = scanObjects.get( User.class );
-            List<IdentifiableObject> userCredentials = new ArrayList<>();
+            List<User> users = (List<User>) scanObjects.get( User.class );
+            List<UserCredentials> userCredentials = new ArrayList<>();
 
-            for ( IdentifiableObject identifiableObject : users )
+            for ( User user : users )
             {
-                User user = (User) identifiableObject;
-
                 if ( user.getUserCredentials() != null )
                 {
                     userCredentials.add( user.getUserCredentials() );
@@ -427,29 +437,34 @@ public class DefaultPreheatService implements PreheatService
             scanObjects.put( UserCredentials.class, userCredentials );
         }
 
-        for ( Class<? extends IdentifiableObject> objectClass : scanObjects.keySet() )
+        for ( Class<?> klass : scanObjects.keySet() )
         {
-            Schema schema = schemaService.getDynamicSchema( objectClass );
+            Schema schema = schemaService.getDynamicSchema( klass );
 
-            List<Property> identifiableProperties = schema.getProperties().stream()
+            List<Property> referenceProperties = schema.getProperties().stream()
                 .filter( p -> p.isPersisted() && p.isOwner() && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
                 .collect( Collectors.toList() );
 
-            List<IdentifiableObject> identifiableObjects = scanObjects.get( objectClass );
-
-            if ( !uidMap.containsKey( objectClass ) ) uidMap.put( objectClass, new HashSet<>() );
-            if ( !codeMap.containsKey( objectClass ) ) codeMap.put( objectClass, new HashSet<>() );
-
-            for ( IdentifiableObject object : identifiableObjects )
+            for ( Object object : scanObjects.get( klass ) )
             {
-                identifiableProperties.forEach( p ->
+                if ( schema.isIdentifiableObject() )
+                {
+                    IdentifiableObject identifiableObject = (IdentifiableObject) object;
+                    identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
+                    identifiableObject.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                    identifiableObject.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
+
+                    addIdentifiers( map, identifiableObject );
+                }
+
+                referenceProperties.forEach( p ->
                 {
                     if ( !p.isCollection() )
                     {
-                        Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) p.getKlass();
+                        Class<? extends IdentifiableObject> itemKlass = (Class<? extends IdentifiableObject>) p.getKlass();
 
-                        if ( !uidMap.containsKey( klass ) ) uidMap.put( klass, new HashSet<>() );
-                        if ( !codeMap.containsKey( klass ) ) codeMap.put( klass, new HashSet<>() );
+                        if ( !uidMap.containsKey( itemKlass ) ) uidMap.put( itemKlass, new HashSet<>() );
+                        if ( !codeMap.containsKey( itemKlass ) ) codeMap.put( itemKlass, new HashSet<>() );
 
                         Object reference = ReflectionUtils.invokeMethod( object, p.getGetterMethod() );
 
@@ -466,7 +481,7 @@ public class DefaultPreheatService implements PreheatService
 
                         if ( DataElementOperand.class.isAssignableFrom( p.getItemKlass() ) )
                         {
-                            reference.forEach( identifiableObject ->
+                            CollectionUtils.nullSafeForEach( reference, identifiableObject ->
                             {
                                 DataElementOperand dataElementOperand = (DataElementOperand) identifiableObject;
                                 addIdentifiers( map, dataElementOperand.getDataElement() );
@@ -481,11 +496,11 @@ public class DefaultPreheatService implements PreheatService
                     BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
                     List<DataDimensionItem> dataDimensionItems = analyticalObject.getDataDimensionItems();
                     List<DataElementCategoryDimension> categoryDimensions = analyticalObject.getCategoryDimensions();
-                    List<TrackedEntityDataElementDimension> dataElementDimensions = analyticalObject.getDataElementDimensions();
+                    List<TrackedEntityDataElementDimension> trackedEntityDataElementDimensions = analyticalObject.getDataElementDimensions();
                     List<TrackedEntityAttributeDimension> attributeDimensions = analyticalObject.getAttributeDimensions();
                     List<TrackedEntityProgramIndicatorDimension> programIndicatorDimensions = analyticalObject.getProgramIndicatorDimensions();
 
-                    dataDimensionItems.forEach( dataDimensionItem ->
+                    CollectionUtils.nullSafeForEach( dataDimensionItems, dataDimensionItem ->
                     {
                         addIdentifiers( map, dataDimensionItem.getDimensionalItemObject() );
 
@@ -494,27 +509,32 @@ public class DefaultPreheatService implements PreheatService
                             addIdentifiers( map, dataDimensionItem.getDataElementOperand().getDataElement() );
                             addIdentifiers( map, dataDimensionItem.getDataElementOperand().getCategoryOptionCombo() );
                         }
+
+                        if ( dataDimensionItem.getReportingRate() != null )
+                        {
+                            addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
+                        }
                     } );
 
-                    categoryDimensions.forEach( categoryDimension ->
+                    CollectionUtils.nullSafeForEach( categoryDimensions, categoryDimension ->
                     {
                         addIdentifiers( map, categoryDimension.getDimension() );
                         categoryDimension.getItems().forEach( item -> addIdentifiers( map, item ) );
                     } );
 
-                    dataElementDimensions.forEach( trackedEntityDataElementDimension ->
+                    CollectionUtils.nullSafeForEach( trackedEntityDataElementDimensions, trackedEntityDataElementDimension ->
                     {
                         addIdentifiers( map, trackedEntityDataElementDimension.getDataElement() );
                         addIdentifiers( map, trackedEntityDataElementDimension.getLegendSet() );
                     } );
 
-                    attributeDimensions.forEach( trackedEntityAttributeDimension ->
+                    CollectionUtils.nullSafeForEach( attributeDimensions, trackedEntityAttributeDimension ->
                     {
                         addIdentifiers( map, trackedEntityAttributeDimension.getAttribute() );
                         addIdentifiers( map, trackedEntityAttributeDimension.getLegendSet() );
                     } );
 
-                    programIndicatorDimensions.forEach( programIndicatorDimension ->
+                    CollectionUtils.nullSafeForEach( programIndicatorDimensions, programIndicatorDimension ->
                     {
                         addIdentifiers( map, programIndicatorDimension.getProgramIndicator() );
                         addIdentifiers( map, programIndicatorDimension.getLegendSet() );
@@ -528,21 +548,13 @@ public class DefaultPreheatService implements PreheatService
                     if ( validationRule.getLeftSide() != null )
                     {
                         validationRule.getLeftSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
-                        validationRule.getLeftSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
 
                     if ( validationRule.getRightSide() != null )
                     {
                         validationRule.getRightSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
-                        validationRule.getRightSide().getSampleElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
                     }
                 }
-
-                object.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
-                object.getUserGroupAccesses().forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
-                object.getUserAccesses().forEach( ua -> addIdentifiers( map, ua.getUser() ) );
-
-                addIdentifiers( map, object );
             }
         }
 

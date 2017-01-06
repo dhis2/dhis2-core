@@ -113,4 +113,10 @@
         </action>
     </package>
 
+    <package name="dhis-web-interpretation" extends="dhis-web-commons" namespace="/dhis-web-interpretation">
+        <action name="index" class="org.hisp.dhis.commons.action.NoAction">
+            <result name="success" type="redirect">index.html</result>
+        </action>
+    </package>
+
 </struts>

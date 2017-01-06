@@ -30,11 +30,5 @@
       <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_expression_dataelementid" />
     </set>
 
-    <set name="sampleElementsInExpression" table="expressionsampleelement">
-      <cache usage="read-write" />
-      <key column="expressionid" foreign-key="fk_expressionsampleelement_expressionid" />
-      <many-to-many class="org.hisp.dhis.dataelement.DataElement" column="dataelementid" foreign-key="fk_expression_sampleelementid" />
-    </set>
-
   </class>
 </hibernate-mapping>

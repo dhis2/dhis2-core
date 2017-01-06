@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,15 +28,70 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.program.message.ProgramMessage;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
-* @author Zubair <rajazubair.asghar@gmail.com>
-*/
-public interface MessageBatchCreatorService
+ * Represents minimal user information.
+ * 
+ * @author Lars Helge Overland
+ */
+public class UserInfo
 {
-    MessageBatch getMessageBatch( List<ProgramMessage> programMessages );
+    private int id;
+    
+    private String username;
+    
+    private Set<String> authorities = new HashSet<>();
+    
+    protected UserInfo()
+    {
+    }
+    
+    public UserInfo( int id, String username, Set<String> authorities )
+    {
+        this.id = id;
+        this.username = username;
+        this.authorities = authorities;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+    
+    public boolean isSuper()
+    {
+        return authorities.contains( UserAuthorityGroup.AUTHORITY_ALL );
+    }
+    
+    public static UserInfo fromUser( User user )
+    {
+        if ( user == null )
+        {
+            return null;
+        }
+        
+        UserCredentials credentials = user.getUserCredentials();
+        
+        return new UserInfo( credentials.getId(), credentials.getUsername(), credentials.getAllAuthorities() );
+    }
+    
+    // -------------------------------------------------------------------------
+    // Get methods
+    // -------------------------------------------------------------------------
+
+    public int getId()
+    {
+        return id;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public Set<String> getAuthorities()
+    {
+        return authorities;
+    }
 }

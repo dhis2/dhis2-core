@@ -43,7 +43,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * @author markusbekken
+ * @author Markus Bekken
  */
 @JacksonXmlRootElement( localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleAction

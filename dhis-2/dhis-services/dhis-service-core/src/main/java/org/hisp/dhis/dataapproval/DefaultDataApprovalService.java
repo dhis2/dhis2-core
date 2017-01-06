@@ -29,7 +29,6 @@ package org.hisp.dhis.dataapproval;
  */
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -419,35 +418,6 @@ public class DefaultDataApprovalService
     }
 
     @Override
-    public DataApproval lowestApproval( DataApproval dataApproval )
-    {
-        OrganisationUnit orgUnit = dataApproval.getOrganisationUnit();
-
-        List<DataApprovalLevel> approvalLevels = dataApproval.getWorkflow().getSortedLevels();
-
-        Collections.reverse( approvalLevels );
-
-        DataApproval da = null;
-
-        for ( DataApprovalLevel approvalLevel : approvalLevels )
-        {
-            if ( approvalLevel.getOrgUnitLevel() <= orgUnit.getLevel() )
-            {
-                if ( approvalLevel.getOrgUnitLevel() < orgUnit.getLevel() )
-                {
-                    orgUnit = orgUnit.getAncestors().get( approvalLevel.getOrgUnitLevel() - 1 );
-                }
-                da = new DataApproval( approvalLevel, dataApproval.getWorkflow(),
-                    dataApproval.getPeriod(), orgUnit, dataApproval.getAttributeOptionCombo() );
-
-                break;
-            }
-        }
-
-        return da;
-    }
-
-    @Override
     public boolean isApproved( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
     {
@@ -456,9 +426,9 @@ public class DefaultDataApprovalService
             return false;
         }
 
-        DataApproval da = new DataApproval ( null, workflow, period, organisationUnit, attributeOptionCombo );
+        DataApproval da = new DataApproval( null, workflow, period, organisationUnit, attributeOptionCombo );
 
-        da = lowestApproval ( da );
+        da = DataApproval.getLowestApproval( da );
 
         if ( da != null )
         {

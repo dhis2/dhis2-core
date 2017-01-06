@@ -30,6 +30,7 @@
     </set>
 
     <set name="dataSetElements" table="datasetelement" cascade="all-delete-orphan">
+      <cache usage="read-write" />
       <key column="datasetid" foreign-key="fk_datasetmembers_datasetid" />
       <one-to-many class="org.hisp.dhis.dataset.DataSetElement" />
     </set>

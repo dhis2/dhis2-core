@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
  */
 
 import static org.hisp.dhis.analytics.AnalyticsTableManager.EVENT_ANALYTICS_TABLE_NAME;
+import static org.hisp.dhis.analytics.AnalyticsTableManager.ENROLLMENT_ANALYTICS_TABLE_NAME;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -160,6 +161,8 @@ public class DefaultEventQueryPlanner
         }
     }
     
+    // TODO use list of functional groupers and single loop
+    
     @Override
     public List<EventQueryParams> planAggregateQuery( EventQueryParams params )
     {
@@ -198,7 +201,7 @@ public class DefaultEventQueryPlanner
         {
             Period queryPeriod = new Period();
             queryPeriod.setStartDate( params.getStartDate() );
-            queryPeriod.setEndDate( params.getEndDate() );            
+            queryPeriod.setEndDate( params.getEndDate() );
             params.setPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) );
         }
                 
@@ -227,7 +230,22 @@ public class DefaultEventQueryPlanner
     {
         String tableSuffix = PartitionUtils.SEP + params.getProgram().getUid();
         
-        if ( params.hasStartEndDate() )
+        if ( params.hasEnrollmentProgramIndicatorDimension() ) 
+        {
+            List<EventQueryParams> indicatorQueries = new ArrayList<>();
+            
+            EventQueryParams query = new EventQueryParams.Builder( params )
+                .withPartitions( PartitionUtils.getPartitions( ENROLLMENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) )
+                .build();
+        
+            if ( query.getPartitions().hasAny() )
+            {
+                indicatorQueries.add( query );
+            }
+            
+            return indicatorQueries;
+        }
+        else if ( params.hasStartEndDate() )
         {
             List<EventQueryParams> queries = new ArrayList<>();
             
@@ -236,7 +254,8 @@ public class DefaultEventQueryPlanner
             queryPeriod.setEndDate( params.getEndDate() );
             
             EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) ).build();
+                .withPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) )
+                .build();
             
             if ( query.getPartitions().hasAny() )
             {
@@ -286,7 +305,8 @@ public class DefaultEventQueryPlanner
                     .removeItems()
                     .removeItemProgramIndicators()
                     .withProgramIndicator( programIndicator )
-                    .withProgram( programIndicator.getProgram() ).build();
+                    .withProgram( programIndicator.getProgram() )
+                    .build();
                 
                 queries.add( query );
             }

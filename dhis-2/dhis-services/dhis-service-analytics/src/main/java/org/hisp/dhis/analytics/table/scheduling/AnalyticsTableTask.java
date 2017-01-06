@@ -71,6 +71,9 @@ public class AnalyticsTableTask
     @Resource( name = "org.hisp.dhis.analytics.EventAnalyticsTableService" )
     private AnalyticsTableService eventAnalyticsTableService;
 
+    @Resource( name = "org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" )
+    private AnalyticsTableService enrollmentAnalyticsTableService;
+    
     @Autowired
     private Notifier notifier;
 
@@ -106,6 +109,13 @@ public class AnalyticsTableTask
     public void setSkipEvents( boolean skipEvents )
     {
         this.skipEvents = skipEvents;
+    }
+    
+    private boolean skipEnrollment = false;
+
+    public void setSkipEnrollment( boolean skipEnrollment )
+    {
+        this.skipEnrollment = skipEnrollment;
     }
 
     private TaskId taskId;
@@ -154,6 +164,13 @@ public class AnalyticsTableTask
             {
                 notifier.notify( taskId, "Updating event analytics table" );
                 eventAnalyticsTableService.update( lastYears, taskId );
+                
+            }
+            
+            if ( !skipEnrollment )
+            {
+                notifier.notify( taskId, "Updating enrollment analytics table" );
+                enrollmentAnalyticsTableService.update( lastYears, taskId );
             }
 
             clock.logTime( "Analytics tables updated" );

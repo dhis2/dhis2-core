@@ -1,11 +1,11 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.legend.comparator;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permi      tted provided that the following conditions are met:
+ * modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
@@ -28,43 +28,23 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.Comparator;
 
-import java.util.List;
+import org.hisp.dhis.legend.Legend;
 
-/**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
-
-@JacksonXmlRootElement( localName = "batchResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class BatchResponseStatus
+public class LegendValueComparator
+    implements Comparator<Legend>
 {
-    private List<MessageResponseSummary> summaries;
+    public static final LegendValueComparator INSTANCE = new LegendValueComparator();
     
-    public BatchResponseStatus( List<MessageResponseSummary> summaries )
-    {
-        this.summaries = summaries;
-    }
-
-    public boolean isOk()
-    {
-        return summaries.stream().noneMatch( s -> s.getBatchStatus() != MessageBatchStatus.COMPLETED );
-    }
-
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonProperty( value = "summaries" )
-    public List<MessageResponseSummary> getSummaries()
-    {
-        return summaries;
-    }
-
     @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).add( "summaries", summaries ).toString();
+    public int compare( Legend o1, Legend o2 )
+    {        
+        if ( o1.getStartValue().compareTo( o2.getStartValue() ) != 0 )
+        {
+            return o1.getStartValue().compareTo( o2.getStartValue() );
+        }
+        
+        return o1.getEndValue().compareTo( o2.getEndValue() );            
     }
 }

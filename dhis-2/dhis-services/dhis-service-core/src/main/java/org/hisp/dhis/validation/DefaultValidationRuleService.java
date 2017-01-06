@@ -58,6 +58,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.Sets;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -167,7 +169,7 @@ public class DefaultValidationRuleService
     public Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
         DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendAlerts, I18nFormat format )
     {
-        log.info( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
+        log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
 
         List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
         Collection<ValidationRule> rules = group != null ? group.getMembers() : getAllValidationRules();
@@ -178,8 +180,7 @@ public class DefaultValidationRuleService
             sources, periods, rules, attributeCombo, 
             null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ),
-            false ), applicationContext );
+            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 
         formatPeriods( results, format );
 
@@ -194,25 +195,6 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public Collection<ValidationResult> validate( Date startDate, Date endDate, OrganisationUnit source )
-    {
-        log.info( "Validate start: " + startDate + " end: " + endDate + " source: " + source.getName() );
-
-        Collection<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
-        Collection<ValidationRule> rules = getAllValidationRules();
-        Collection<OrganisationUnit> sources = new HashSet<>();
-        sources.add( source );
-
-        User user = currentUserService.getCurrentUser();
-        
-        return Validator.validate( ValidationRunContext.getNewContext( 
-            sources, periods, rules, null, null,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
-    }
-
-    @Override
     public Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source,
         DataElementCategoryOptionCombo attributeCombo )
     {
@@ -220,20 +202,12 @@ public class DefaultValidationRuleService
             + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName()
             + " attribute combo: " + ( attributeCombo == null ? "[none]" : attributeCombo.getName() ) );
 
-        Collection<Period> periods = new ArrayList<>();
-        periods.add( period );
-
         Collection<ValidationRule> rules = getValidationTypeRulesForDataElements( dataSet.getDataElements() );
-
-        log.debug( "Using validation rules: " + rules.size() );
-
-        Collection<OrganisationUnit> sources = new HashSet<>();
-        sources.add( source );
 
         User user = currentUserService.getCurrentUser();
         
         return Validator.validate( ValidationRunContext.getNewContext( 
-            sources, periods, rules, attributeCombo, null,
+            Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null,
             ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
@@ -377,6 +351,7 @@ public class DefaultValidationRuleService
         {
             Period currentPeriod = periodType.createPeriod();
             Period previousPeriod = periodType.getPreviousPeriod( currentPeriod );
+            
             periods.addAll( periodService.getIntersectingPeriodsByPeriodType( periodType,
                 previousPeriod.getStartDate(), currentPeriod.getEndDate() ) );
         }
@@ -398,7 +373,7 @@ public class DefaultValidationRuleService
      * <p>
      * TODO: Internationalize the messages according to the user's
      * preferred language, and generate a message for each combination of
-     * ( target language, set of results ).
+     * (target language, set of results).
      *
      * @param validationResults the set of validation error results
      * @param scheduledRunStart the date/time when this scheduled run started
@@ -513,15 +488,15 @@ public class DefaultValidationRuleService
      * Determines whether a user can access an organisation unit,
      * based on the organisation units to which the user has been assigned.
      *
-     * @param user   user to test
+     * @param user user to test
      * @param source organisation unit to which the user may have access
-     * @return whether the user has acceess to the organisation unit
+     * @return whether the user has access to the organisation unit
      */
     private boolean canUserAccessSource( User user, OrganisationUnit source )
     {
-        for ( OrganisationUnit o : user.getOrganisationUnits() )
+        for ( OrganisationUnit unit : user.getOrganisationUnits() )
         {
-            if ( source == o || source.getAncestors().contains( o ) )
+            if ( source == unit || source.getAncestors().contains( unit ) )
             {
                 return true;
             }

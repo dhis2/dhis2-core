@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms;
+package org.hisp.dhis.outboundmessage;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,11 +28,67 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 
-public enum MessageBatchStatus
+@JacksonXmlRootElement( localName = "messageResponseStatus", namespace = DxfNamespaces.DXF_2_0 )
+public class OutboundMessageResponse
 {
-    COMPLETED, FAILED, PENDING
+    private String description;
+    
+    private boolean ok;
+
+    private Enum<?> responseObject;
+
+    public OutboundMessageResponse()
+    {
+    }
+
+    public OutboundMessageResponse( String description, Enum<?> response, boolean ok )
+    {
+        this.ok = ok;
+        this.responseObject = response;
+        this.description = description;
+    }
+
+    @JsonProperty( value = "status" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Enum<?> getResponseObject()
+    {
+        return responseObject;
+    }
+
+    public void setResponseObject( Enum<?> response )
+    {
+        this.responseObject = response;
+    }
+
+    @JsonProperty( value = "description" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
+
+    public boolean isOk()
+    {
+        return ok;
+    }
+
+    public void setOk( boolean ok )
+    {
+        this.ok = ok;
+    }
 }

@@ -46,12 +46,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 
 import static org.hisp.dhis.commons.util.TextUtils.removeLast;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
@@ -60,7 +57,7 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
  * @author Lars Helge Overland
  */
 public class JdbcEventAnalyticsTableManager
-    extends AbstractJdbcTableManager
+    extends AbstractEventJdbcTableManager
 {
     private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     
@@ -105,55 +102,11 @@ public class JdbcEventAnalyticsTableManager
 
         return tables;
     }
-    
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from trackedentitydatavalue limit 1" ).next();
-        
-        if ( !hasData )
-        {
-            return "No events exist, not updating event analytics tables";
-        }
-        
-        return null;
-    }
 
     @Override
     public String getTableName()
     {
         return EVENT_ANALYTICS_TABLE_NAME;
-    }
-
-    @Override
-    public void createTable( AnalyticsTable table )
-    {
-        final String tableName = table.getTempTableName();
-
-        final String sqlDrop = "drop table " + tableName;
-
-        executeSilently( sqlDrop );
-
-        String sqlCreate = "create table " + tableName + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( table );
-        
-        validateDimensionColumns( columns );
-        
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sqlCreate += col.getName() + " " + col.getDataType() + ",";
-        }
-
-        sqlCreate = removeLast( sqlCreate, 1 ) + ") ";
-
-        sqlCreate += statementBuilder.getTableOptions( false );
-
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
-        
-        log.debug( "Create SQL: " + sqlCreate );
-        
-        jdbcTemplate.execute( sqlCreate );
     }
 
     @Override
@@ -370,76 +323,5 @@ public class JdbcEventAnalyticsTableManager
         }
         
         return jdbcTemplate.queryForList( sql, Integer.class );
-    }
-        
-    @Override
-    @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTable> tables,
-        Collection<String> dataElements, int aggregationLevel )
-    {
-        return null; // Not relevant
-    }
-
-    @Override
-    @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTable> tables )
-    {
-        return null; // Not needed
-    }
-    
-    /**
-     * Returns the database column type based on the given value type. For boolean
-     * values, 1 means true, 0 means false and null means no value.
-     */
-    private String getColumnType( ValueType valueType )
-    {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
-        {
-            return statementBuilder.getDoubleColumnType();
-        }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
-        {
-            return "integer";
-        }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
-        {
-            return "timestamp";
-        }
-        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
-        {
-            return "geometry(Point, 4326)";
-        }
-        else
-        {
-            return "text";
-        }
-    }
-    
-    /**
-     * Returns the select clause, potentially with a cast statement, based on the
-     * given value type.
-     */
-    private String getSelectClause( ValueType valueType )
-    {
-        if ( Double.class.equals( valueType.getJavaClass() ) || Integer.class.equals( valueType.getJavaClass() ) )
-        {
-            return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
-        }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
-        {
-            return "case when value = 'true' then 1 when value = 'false' then 0 else null end";
-        }
-        else if ( Date.class.equals( valueType.getJavaClass() ) )
-        {
-            return "cast(value as timestamp)";
-        }
-        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
-        {
-            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || value || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-        }
-        else
-        {
-            return "value";
-        }
-    }
+    }   
 }

@@ -28,10 +28,14 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.validation.ValidationResult;
+
+import java.util.Set;
+
 /**
- * TODO
  * @author Halvdan Hoem Grelland
  */
 public interface ValidationNotificationService
 {
+    void sendNotifications( Set<ValidationResult> results );
 }

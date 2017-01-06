@@ -627,7 +627,7 @@ public class DateUtils
 
         return Date.from( instant );
     }
-
+    
     /**
      * Return the current date minus the duration specified by the given string.
      *

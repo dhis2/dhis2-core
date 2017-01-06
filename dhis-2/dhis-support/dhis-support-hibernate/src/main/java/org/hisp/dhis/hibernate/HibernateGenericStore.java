@@ -58,6 +58,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -202,37 +203,37 @@ public class HibernateGenericStore<T>
     @Override
     public final Criteria getSharingCriteria()
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUser(), "r%" ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" ) );
     }
 
     @Override
     public final Criteria getSharingCriteria( String access )
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUser(), access ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access ) );
     }
 
     @Override
     public final Criteria getSharingCriteria( User user )
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( user, "r%" ) );
+        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" ) );
     }
 
     @Override
     public final DetachedCriteria getSharingDetachedCriteria()
     {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUser(), "r%" );
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), "r%" );
     }
 
     @Override
     public final DetachedCriteria getSharingDetachedCriteria( String access )
     {
-        return getSharingDetachedCriteria( currentUserService.getCurrentUser(), access );
+        return getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), access );
     }
 
     @Override
     public final DetachedCriteria getSharingDetachedCriteria( User user )
     {
-        return getSharingDetachedCriteria( user, "r%" );
+        return getSharingDetachedCriteria( UserInfo.fromUser( user ), "r%" );
     }
 
     @Override
@@ -241,7 +242,7 @@ public class HibernateGenericStore<T>
         return detachedCriteria.getExecutableCriteria( getSession() ).setCacheable( cacheable );
     }
 
-    private DetachedCriteria getSharingDetachedCriteria( User user, String access )
+    private DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -736,6 +737,11 @@ public class HibernateGenericStore<T>
     protected boolean sharingEnabled( User user )
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
+    }
+
+    protected boolean sharingEnabled( UserInfo userInfo )
+    {
+        return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
     }
 
     protected boolean isReadAllowed( T object )

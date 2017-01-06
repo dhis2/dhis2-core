@@ -274,4 +274,23 @@ public class SmsUtils
 
         return orgUnit;
     }
+
+    public static String removePhoneNumberPrefix( String number )
+    {
+        if ( number == null )
+        {
+            return null;
+        }
+
+        if ( number.startsWith( "00" ) )
+        {
+            number = number.substring( 2, number.length() );
+        }
+        else if ( number.startsWith( "+" ) )
+        {
+            number = number.substring( 1, number.length() );
+        }
+
+        return number;
+    }
 }

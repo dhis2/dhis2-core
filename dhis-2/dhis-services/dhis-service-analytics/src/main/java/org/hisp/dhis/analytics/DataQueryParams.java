@@ -76,6 +76,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -243,6 +244,11 @@ public class DataQueryParams
      * The end date fore the period dimension, can be null.
      */
     protected Date endDate;
+    
+    /**
+     * The API version used for the request.
+     */
+    protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
 
     // -------------------------------------------------------------------------
     // Event transient properties
@@ -387,6 +393,7 @@ public class DataQueryParams
         params.approvalLevel = this.approvalLevel;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.apiVersion = this.apiVersion;
         //params.program = this.program; //TODO
         //params.programStage = this.programStage; //TODO
         
@@ -1078,20 +1085,11 @@ public class DataQueryParams
     }
     
     // -------------------------------------------------------------------------
-    // Logic write methods TODO remove public write methods
+    // Logic write methods
     // -------------------------------------------------------------------------
 
-    /**
-     * Removes the dimension or filter with the given identifier.
-     */
-    public DataQueryParams removeDimensionOrFilter( String dimension )
-    {
-        removeDimension( dimension );
-        removeFilter( dimension );
-        
-        return this;
-    }
-
+    // TODO remove public write methods and replace with builder
+    
     /**
      * Replaces the periods of this query with the corresponding data periods.
      * Sets the period type to the data period type. This method is relevant only 
@@ -1116,19 +1114,20 @@ public class DataQueryParams
         }
     }
     
-    /**
-     * Removes the filter with the given identifier.
-     */
-    public DataQueryParams removeFilter( String filter )
-    {
-        this.filters.remove( new BaseDimensionalObject( filter ) );
-        
-        return this;
-    }
-
     // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Removes the dimension or filter with the given identifier.
+     */
+    protected DataQueryParams removeDimensionOrFilter( String dimension )
+    {
+        removeDimension( dimension );
+        removeFilter( dimension );
+        
+        return this;
+    }
 
     /**
      * Sets the given options for the given dimension. If the dimension exists, 
@@ -1193,6 +1192,16 @@ public class DataQueryParams
     private DataQueryParams removeDimension( String dimension )
     {
         this.dimensions.remove( new BaseDimensionalObject( dimension ) );
+        
+        return this;
+    }
+
+    /**
+     * Removes the filter with the given identifier.
+     */
+    private DataQueryParams removeFilter( String filter )
+    {
+        this.filters.remove( new BaseDimensionalObject( filter ) );
         
         return this;
     }
@@ -1546,12 +1555,14 @@ public class DataQueryParams
     @Override
     public String toString()
     {
-        Map<String, Object> map = new HashMap<>();
-        map.put( "Dimensions", dimensions );
-        map.put( "Filters", filters );
-        map.put( "Aggregation type", aggregationType );
-        
-        return map.toString(); //TODO
+        return ImmutableMap.<String, Object>builder()
+            .put( "Dimensions", dimensions )
+            .put( "Filters", filters )
+            .put( "Aggregation type", aggregationType )
+            .put( "Measure criteria", measureCriteria )
+            .put( "Output format", outputFormat )
+            .put( "API version", apiVersion )
+            .build().toString();
     }
     
     // -------------------------------------------------------------------------
@@ -1668,6 +1679,11 @@ public class DataQueryParams
         return endDate;
     }
 
+    public DhisApiVersion getApiVersion()
+    {
+        return apiVersion;
+    }
+    
     public Program getProgram()
     {
         return program;
@@ -2336,6 +2352,12 @@ public class DataQueryParams
         public Builder withEndDate( Date endDate )
         {
             this.params.endDate = endDate;
+            return this;
+        }
+        
+        public Builder withApiVersion( DhisApiVersion apiVersion )
+        {
+            this.params.apiVersion = apiVersion;
             return this;
         }
         

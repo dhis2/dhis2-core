@@ -37,6 +37,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserInfo;
 
 /**
  * @author Lars Helge Overland
@@ -93,6 +94,13 @@ public class MockCurrentUserService
     }
 
     @Override
+    public UserInfo getCurrentUserInfo()
+    {
+        return new UserInfo( currentUser.getId(), 
+            currentUser.getUsername(), currentUser.getUserCredentials().getAllAuthorities() );
+    }
+
+    @Override
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         return currentUser != null ? currentUser.getOrganisationUnits() : new HashSet<>();
@@ -111,7 +119,7 @@ public class MockCurrentUserService
     }
 
     @Override
-    public boolean currenUserIsAuthorized( String auth )
+    public boolean currentUserIsAuthorized( String auth )
     {
         return true;
     }
