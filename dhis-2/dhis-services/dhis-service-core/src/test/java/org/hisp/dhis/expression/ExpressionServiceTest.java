@@ -72,7 +72,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -410,54 +409,6 @@ public class ExpressionServiceTest
         
         return expressionService.getExpressionValue( expression, new HashMap<DimensionalItemObject, Double>(),
             new HashMap<String, Double>(), new HashMap<String, Integer>(), 0 );
-    }
-
-    @Test
-    public void testGetDataElementsInIndicators()
-    {
-        Indicator inA = createIndicator( 'A', null );
-        inA.setNumerator( expressionA );
-        
-        Set<DataElement> dataElements = expressionService.getDataElementsInIndicators( Lists.newArrayList( inA ) );
-
-        assertTrue( dataElements.size() == 2 );
-        assertTrue( dataElements.contains( deA ) );
-        assertTrue( dataElements.contains( deB ) );
-
-        Indicator inG = createIndicator( 'G', null );
-        inG.setNumerator( expressionG );
-        
-        dataElements = expressionService.getDataElementsInIndicators( Lists.newArrayList( inG ) );
-
-        assertEquals( 3, dataElements.size() );
-        assertTrue( dataElements.contains( deA ) );
-        assertTrue( dataElements.contains( deB ) );
-        assertTrue( dataElements.contains( deC ) );
-    }
-
-    @Test
-    public void testGetDataElementTotalsInIndicators()
-    {
-        Indicator inG = createIndicator( 'G', null );
-        inG.setNumerator( expressionG );
-        
-        Set<DataElement> dataElements = expressionService.getDataElementTotalsInIndicators( Lists.newArrayList( inG ) );
-
-        assertEquals( 2, dataElements.size() );
-        assertTrue( dataElements.contains( deB ) );
-        assertTrue( dataElements.contains( deC ) );
-    }
-
-    @Test
-    public void testGetDataElementWithOptionCombosInIndicators()
-    {
-        Indicator inG = createIndicator( 'G', null );
-        inG.setNumerator( expressionG );
-        
-        Set<DataElement> dataElements = expressionService.getDataElementWithOptionCombosInIndicators( Lists.newArrayList( inG ) );
-
-        assertEquals( 1, dataElements.size() );
-        assertTrue( dataElements.contains( deA ) );
     }
 
     @Test
