@@ -62,10 +62,8 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -489,53 +487,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
-    public Set<DataElement> getDataElementsInIndicators( Collection<Indicator> indicators )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            dataElements.addAll( getDataElementsInExpression( indicator.getNumerator() ) );
-            dataElements.addAll( getDataElementsInExpression( indicator.getDenominator() ) );
-        }
-
-        return dataElements;
-    }
-
-    @Override
-    @Transactional
-    public Set<DataElement> getDataElementTotalsInIndicators( Collection<Indicator> indicators )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            dataElements.addAll( 
-                getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, indicator.getNumerator() ) );
-            dataElements.addAll(
-                getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, indicator.getDenominator() ) );
-        }
-
-        return dataElements;
-    }
-
-    @Override
-    @Transactional
-    public Set<DataElement> getDataElementWithOptionCombosInIndicators( Collection<Indicator> indicators )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            dataElements.addAll( getDataElementsInExpressionInternal( OPTION_COMBO_OPERAND_PATTERN, indicator.getNumerator() ) );
-            dataElements.addAll( getDataElementsInExpressionInternal( OPTION_COMBO_OPERAND_PATTERN, indicator.getDenominator() ) );
-        }
-
-        return dataElements;
-    }
-
-    @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression )
     {
         Set<DimensionalItemObject> dimensionItems = Sets.newHashSet();
@@ -615,29 +566,6 @@ public class DefaultExpressionService
         }
 
         return groups;
-    }
-
-    @Override
-    @Transactional
-    public void filterInvalidIndicators( List<Indicator> indicators )
-    {
-        if ( indicators != null )
-        {
-            Iterator<Indicator> iterator = indicators.iterator();
-
-            while ( iterator.hasNext() )
-            {
-                Indicator indicator = iterator.next();
-
-                if ( !expressionIsValid( indicator.getNumerator() ).isValid()
-                    || !expressionIsValid( indicator.getDenominator() ).isValid() )
-                {
-                    iterator.remove();
-                    log.warn( "Indicator is invalid: " + indicator + ", " + indicator.getNumerator() + ", "
-                        + indicator.getDenominator() );
-                }
-            }
-        }
     }
 
     @Override
@@ -1193,24 +1121,6 @@ public class DefaultExpressionService
         }
 
         return TextUtils.appendTail( matcher, sb );
-    }
-
-    @Override
-    @Transactional
-    public List<DataElementOperand> getOperandsInIndicators( List<Indicator> indicators )
-    {
-        final List<DataElementOperand> operands = new ArrayList<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            Set<DataElementOperand> temp = getOperandsInExpression( indicator.getExplodedNumerator() );
-            operands.addAll( temp != null ? temp : new HashSet<DataElementOperand>() );
-
-            temp = getOperandsInExpression( indicator.getExplodedDenominator() );
-            operands.addAll( temp != null ? temp : new HashSet<DataElementOperand>() );
-        }
-
-        return operands;
     }
 
     // -------------------------------------------------------------------------
