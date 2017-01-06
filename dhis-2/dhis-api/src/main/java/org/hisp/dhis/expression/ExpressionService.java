@@ -273,17 +273,6 @@ public interface ExpressionService
     Set<String> getAggregatesInExpression( String expression );
 
     /**
-     * Returns all data elements included in aggregates from the given
-     * expression string. Returns an empty set if the given expression
-     * is null.
-     *
-     * @param expression the expression string.
-     * @return a set of data elements included in aggregate  expressions
-     * within the expression string.
-     */
-    Set<DataElement> getSampleElementsInExpression( String expression );
-
-    /**
      * Returns all data elements which are present in the numerator and denominator
      * of the given indicators.
      *

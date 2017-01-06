@@ -267,8 +267,8 @@ public class DefaultExpressionService
             }
         }
 
-        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), valueMap, constantMap,
-            orgUnitCountMap, days, expression.getMissingValueStrategy(),
+        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), 
+            valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(), 
             incompleteValues, aggregateMap );
 
         return expressionString != null ? calculateExpression( expressionString ) : null;
@@ -490,26 +490,6 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public Set<DataElement> getSampleElementsInExpression( String expression )
-    {
-        Set<String> aggregates = getAggregatesInExpression( expression );
-        
-        HashSet<DataElement> elements = new HashSet<DataElement>();
-        
-        if ( aggregates.size() > 0 )
-        {
-            for ( String aggregate_expression : aggregates )
-            {
-                elements.addAll( getDataElementsInExpressionInternal( 
-                    OPERAND_PATTERN, aggregate_expression ) );
-            }
-        }
-        
-        return elements;
-    }
-
-    @Override
-    @Transactional
     public Set<DataElement> getDataElementsInIndicators( Collection<Indicator> indicators )
     {
         Set<DataElement> dataElements = new HashSet<>();
@@ -531,8 +511,8 @@ public class DefaultExpressionService
 
         for ( Indicator indicator : indicators )
         {
-            dataElements
-                .addAll( getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, indicator.getNumerator() ) );
+            dataElements.addAll( 
+                getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, indicator.getNumerator() ) );
             dataElements.addAll(
                 getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, indicator.getDenominator() ) );
         }
@@ -1066,7 +1046,7 @@ public class DefaultExpressionService
         missingValueStrategy = ObjectUtils.firstNonNull( missingValueStrategy, NEVER_SKIP );
 
         // ---------------------------------------------------------------------
-        // Substitute aggregates
+        // Aggregates
         // ---------------------------------------------------------------------
 
         StringBuffer sb = new StringBuffer();
