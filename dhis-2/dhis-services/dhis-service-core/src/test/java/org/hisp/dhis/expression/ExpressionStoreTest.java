@@ -129,7 +129,7 @@ public class ExpressionStoreTest
     @Test
     public void testAddGetExpression()
     {
-        Expression expr = new Expression( expressionA, descriptionA, dataElements );
+        Expression expr = new Expression( expressionA, descriptionA );
 
         int id = expressionStore.save( expr );
 
@@ -137,13 +137,12 @@ public class ExpressionStoreTest
 
         assertEquals( expr.getExpression(), expressionA );
         assertEquals( expr.getDescription(), descriptionA );
-        assertEquals( expr.getDataElementsInExpression(), dataElements );
     }
 
     @Test
     public void testUpdateExpression()
     {
-        Expression expr = new Expression( expressionA, descriptionA, dataElements );
+        Expression expr = new Expression( expressionA, descriptionA );
 
         int id = expressionStore.save( expr );
 
@@ -166,8 +165,8 @@ public class ExpressionStoreTest
     @Test
     public void testDeleteExpression()
     {
-        Expression exprA = new Expression( expressionA, descriptionA, dataElements );
-        Expression exprB = new Expression( expressionB, descriptionB, dataElements );
+        Expression exprA = new Expression( expressionA, descriptionA );
+        Expression exprB = new Expression( expressionB, descriptionB );
 
         int idA = expressionStore.save( exprA );
         int idB = expressionStore.save( exprB );
@@ -189,8 +188,8 @@ public class ExpressionStoreTest
     @Test
     public void testGetAllExpressions()
     {
-        Expression exprA = new Expression( expressionA, descriptionA, dataElements );
-        Expression exprB = new Expression( expressionB, descriptionB, dataElements );
+        Expression exprA = new Expression( expressionA, descriptionA );
+        Expression exprB = new Expression( expressionB, descriptionB );
 
         expressionStore.save( exprA );
         expressionStore.save( exprB );

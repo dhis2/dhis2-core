@@ -64,7 +64,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -539,21 +538,6 @@ public class DefaultPreheatService implements PreheatService
                         addIdentifiers( map, programIndicatorDimension.getProgramIndicator() );
                         addIdentifiers( map, programIndicatorDimension.getLegendSet() );
                     } );
-                }
-
-                if ( ValidationRule.class.isInstance( object ) )
-                {
-                    ValidationRule validationRule = (ValidationRule) object;
-
-                    if ( validationRule.getLeftSide() != null )
-                    {
-                        validationRule.getLeftSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
-                    }
-
-                    if ( validationRule.getRightSide() != null )
-                    {
-                        validationRule.getRightSide().getDataElementsInExpression().forEach( de -> addIdentifiers( map, de ) );
-                    }
                 }
             }
         }

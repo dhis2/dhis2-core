@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -70,6 +71,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
@@ -158,6 +161,13 @@ public class DefaultValidationRuleService
         this.systemSettingManager = systemSettingManager;
     }
     
+    private ExpressionService expressionService;
+    
+    public void setExpressionService( ExpressionService expressionService )
+    {
+        this.expressionService = expressionService;
+    }
+
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -172,13 +182,17 @@ public class DefaultValidationRuleService
         log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
 
         List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
+        
         Collection<ValidationRule> rules = group != null ? group.getMembers() : getAllValidationRules();
+        
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
+            Collectors.toMap( Function.identity(), v -> getDataElements( v ) ) );
 
         User user = currentUserService.getCurrentUser();
         
         Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext( 
             sources, periods, rules, attributeCombo, 
-            null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
+            null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 
@@ -202,13 +216,16 @@ public class DefaultValidationRuleService
             + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName()
             + " attribute combo: " + ( attributeCombo == null ? "[none]" : attributeCombo.getName() ) );
 
-        Collection<ValidationRule> rules = getValidationTypeRulesForDataElements( dataSet.getDataElements() );
+        Collection<ValidationRule> rules = getValidationRulesForDataElements( dataSet.getDataElements() );
+        
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
+            Collectors.toMap( Function.identity(), v -> getDataElements( v ) ) );
 
         User user = currentUserService.getCurrentUser();
         
         return Validator.validate( ValidationRunContext.getNewContext( 
             Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
+            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
     }
@@ -218,13 +235,16 @@ public class DefaultValidationRuleService
     {
         log.info( "Starting scheduled monitoring task" );
 
+        List<OrganisationUnit> sources = organisationUnitService.getAllOrganisationUnits();
+
         // Find all the rules belonging to groups that will send alerts to user roles.
 
         Set<ValidationRule> rules = getAlertRules();
 
-        Collection<OrganisationUnit> sources = organisationUnitService.getAllOrganisationUnits();
-
         Set<Period> periods = getAlertPeriodsFromRules( rules );
+
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
+            Collectors.toMap( Function.identity(), v -> getDataElements( v ) ) );
 
         Date lastScheduledRun = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_MONITORING_RUN );
 
@@ -239,7 +259,7 @@ public class DefaultValidationRuleService
         
         Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext( 
             sources, periods, rules, null, lastScheduledRun,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), 
+            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 
@@ -283,25 +303,32 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public Collection<ValidationRule> getValidationTypeRulesForDataElements( Set<DataElement> dataElements )
+    public Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements )
     {
         Set<ValidationRule> rulesForDataElements = new HashSet<>();
 
         for ( ValidationRule validationRule : getAllValidationRules() )
         {
-            Set<DataElement> validationRuleElements = new HashSet<>();
-                validationRuleElements.addAll( validationRule.getLeftSide().getDataElementsInExpression() );
-                validationRuleElements.addAll( validationRule.getRightSide().getDataElementsInExpression() );
+            Set<DataElement> validationRuleElements = getDataElements( validationRule );
 
-                if ( dataElements.containsAll( validationRuleElements ) )
-                {
-                    rulesForDataElements.add( validationRule );
-                }
+            if ( dataElements.containsAll( validationRuleElements ) )
+            {
+                rulesForDataElements.add( validationRule );
+            }
         }
 
         return rulesForDataElements;
     }
 
+    @Override
+    public Set<DataElement> getDataElements( ValidationRule validationRule )
+    {
+        Set<DataElement> elements = new HashSet<>();
+        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getLeftSide().getExpression() ) );
+        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getRightSide().getExpression() ) );
+        return elements;
+    }
+    
     // -------------------------------------------------------------------------
     // Supportive methods - scheduled run
     // -------------------------------------------------------------------------

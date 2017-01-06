@@ -99,7 +99,6 @@ public interface ValidationRuleService
      */
     List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
 
-
     /**
      * Returns all validation-type rules which have specified data elements
      * assigned to them.
@@ -107,7 +106,7 @@ public interface ValidationRuleService
      * @param dataElements the data elements to look for.
      * @return all validation rules which have the data elements assigned.
      */
-    Collection<ValidationRule> getValidationTypeRulesForDataElements( Set<DataElement> dataElements );
+    Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements );
 
     // -------------------------------------------------------------------------
     // ValidationRule
@@ -173,6 +172,15 @@ public interface ValidationRuleService
      * @return a List of validation rules.
      */
     List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
+
+    /**
+     * Get data elements part of the left side and right side expressions of the
+     * given validation rule.
+     * 
+     * @param validationRule the validation rule.
+     * @return a set of data elements.
+     */
+    Set<DataElement> getDataElements( ValidationRule validationRule );
 
     // -------------------------------------------------------------------------
     // ValidationRuleGroup

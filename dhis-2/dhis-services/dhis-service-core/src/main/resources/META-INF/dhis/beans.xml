@@ -924,6 +924,7 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
   </bean>
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
@@ -1741,10 +1742,6 @@
 
   <bean id="org.hisp.dhis.dataset.SectionDeletionHandler" class="org.hisp.dhis.dataset.SectionDeletionHandler">
     <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.expression.ExpressionDeletionHandler" class="org.hisp.dhis.expression.ExpressionDeletionHandler">
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
   </bean>
 
   <bean id="org.hisp.dhis.indicator.IndicatorDeletionHandler" class="org.hisp.dhis.indicator.IndicatorDeletionHandler">

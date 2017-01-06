@@ -1038,18 +1038,10 @@ public class ObjectBundleServiceTest
         ValidationRule validationRule1 = manager.get( ValidationRule.class, "ztzsVjSIWg7" );
         assertNotNull( validationRule1.getLeftSide() );
         assertNotNull( validationRule1.getRightSide() );
-        assertFalse( validationRule1.getLeftSide().getDataElementsInExpression().isEmpty() );
-        assertFalse( validationRule1.getRightSide().getDataElementsInExpression().isEmpty() );
-        assertEquals( "jocQSivF2ry", validationRule1.getLeftSide().getDataElementsInExpression().iterator().next().getUid() );
-        assertEquals( "X0ypiOyoDbw", validationRule1.getRightSide().getDataElementsInExpression().iterator().next().getUid() );
 
         ValidationRule validationRule2 = manager.get( ValidationRule.class, "TGvH4Hiyduc" );
         assertNotNull( validationRule2.getLeftSide() );
         assertNotNull( validationRule2.getRightSide() );
-        assertFalse( validationRule2.getLeftSide().getDataElementsInExpression().isEmpty() );
-        assertFalse( validationRule2.getRightSide().getDataElementsInExpression().isEmpty() );
-        assertEquals( "jocQSivF2ry", validationRule2.getLeftSide().getDataElementsInExpression().iterator().next().getUid() );
-        assertEquals( "X0ypiOyoDbw", validationRule2.getRightSide().getDataElementsInExpression().iterator().next().getUid() );
     }
 
     @Test
@@ -1099,18 +1091,10 @@ public class ObjectBundleServiceTest
         ValidationRule validationRule1 = manager.get( ValidationRule.class, "ztzsVjSIWg7" );
         assertNotNull( validationRule1.getLeftSide() );
         assertNotNull( validationRule1.getRightSide() );
-        assertFalse( validationRule1.getLeftSide().getDataElementsInExpression().isEmpty() );
-        assertFalse( validationRule1.getRightSide().getDataElementsInExpression().isEmpty() );
-        assertEquals( "vAczVs4mxna", validationRule1.getLeftSide().getDataElementsInExpression().iterator().next().getUid() );
-        assertEquals( "X0ypiOyoDbw", validationRule1.getRightSide().getDataElementsInExpression().iterator().next().getUid() );
 
         ValidationRule validationRule2 = manager.get( ValidationRule.class, "TGvH4Hiyduc" );
         assertNotNull( validationRule2.getLeftSide() );
         assertNotNull( validationRule2.getRightSide() );
-        assertFalse( validationRule2.getLeftSide().getDataElementsInExpression().isEmpty() );
-        assertFalse( validationRule2.getRightSide().getDataElementsInExpression().isEmpty() );
-        assertEquals( "jocQSivF2ry", validationRule2.getLeftSide().getDataElementsInExpression().iterator().next().getUid() );
-        assertEquals( "vAczVs4mxna", validationRule2.getRightSide().getDataElementsInExpression().iterator().next().getUid() );
     }
 
     @Test
