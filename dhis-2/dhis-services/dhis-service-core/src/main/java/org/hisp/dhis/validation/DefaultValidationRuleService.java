@@ -202,7 +202,7 @@ public class DefaultValidationRuleService
             + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName()
             + " attribute combo: " + ( attributeCombo == null ? "[none]" : attributeCombo.getName() ) );
 
-        Collection<ValidationRule> rules = getValidationTypeRulesForDataElements( dataSet.getDataElements() );
+        Collection<ValidationRule> rules = getValidationRulesForDataElements( dataSet.getDataElements() );
 
         User user = currentUserService.getCurrentUser();
         
@@ -283,7 +283,7 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public Collection<ValidationRule> getValidationTypeRulesForDataElements( Set<DataElement> dataElements )
+    public Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements )
     {
         Set<ValidationRule> rulesForDataElements = new HashSet<>();
 
