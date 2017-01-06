@@ -1032,10 +1032,10 @@ public class DefaultDataValueSetService
                 }
             }
 
-            if ( implicitDataSet != null && !implicitDataSet.isValidPeriodForDataEntry( period ) )
+            if ( implicitDataSet != null && !implicitDataSet.isDataInputPeriodAndDateAllowed( period, new Date() ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
-                    "Period: " + period.getIsoDate() + " is not within date range of data set: " + implicitDataSet.getUid() ) );
+                    "Period: " + period.getIsoDate() + " is not open for this data set at this time: " + implicitDataSet.getUid() ) );
                 continue;
             }
 

@@ -514,7 +514,7 @@ public class DataSet
     public boolean isDataInputPeriodAndDateAllowed( Period period, Date date )
     {
         return dataInputPeriods.isEmpty() || dataInputPeriods.stream()
-            .map( dataInputPeriod -> isDataInputPeriodAndDateAllowed( period, date ) )
+            .map( dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid( period, date ) )
             .reduce( ( a, b ) -> a || b )
             .get();
     }
