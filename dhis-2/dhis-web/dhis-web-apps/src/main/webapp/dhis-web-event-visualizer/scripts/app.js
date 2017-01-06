@@ -2785,7 +2785,7 @@ Ext.onReady( function() {
 
 					if (id && name) {
 						Ext.Ajax.request({
-							url: ns.core.init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(','),
+							url: encodeURI(ns.core.init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + ns.core.conf.url.analysisFields.join(',')),
 							method: 'GET',
 							failure: function(r) {
 								ns.core.web.mask.show();
@@ -2890,7 +2890,7 @@ Ext.onReady( function() {
 							this.currentValue = this.getValue();
 
 							var value = this.getValue(),
-								url = value ? ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value : null;
+								url = value ? encodeURI(ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value) : null;
 								store = ns.app.stores.eventChart;
 
 							store.page = 1;
@@ -2906,7 +2906,7 @@ Ext.onReady( function() {
 			text: NS.i18n.prev,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value : null;
+					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value) : null;
 					store = ns.app.stores.eventChart;
 
 				store.page = store.page <= 1 ? 1 : store.page - 1;
@@ -2918,7 +2918,7 @@ Ext.onReady( function() {
 			text: NS.i18n.next,
 			handler: function() {
 				var value = searchTextfield.getValue(),
-					url = value ? ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value : null;
+					url = value ? encodeURI(ns.core.init.contextPath + '/api/eventCharts.json?fields=id,displayName|rename(name),access&filter=displayName:ilike:' + value) : null;
 					store = ns.app.stores.eventChart;
 
 				store.page = store.page + 1;
@@ -3764,7 +3764,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/programs.json?fields=id,' + namePropertyUrl + '&paging=false',
+				url: encodeURI(ns.core.init.contextPath + '/api/programs.json?fields=id,' + namePropertyUrl + '&paging=false'),
 				reader: {
 					type: 'json',
 					root: 'programs'
@@ -3819,7 +3819,7 @@ Ext.onReady( function() {
 			fields: ['id', 'name'],
 			proxy: {
 				type: 'ajax',
-				url: ns.core.init.contextPath + '/api/organisationUnitGroups.json?fields=id,' + ns.core.init.namePropertyUrl + '&paging=false',
+				url: encodeURI(ns.core.init.contextPath + '/api/organisationUnitGroups.json?fields=id,' + ns.core.init.namePropertyUrl + '&paging=false'),
 				reader: {
 					type: 'json',
 					root: 'organisationUnitGroups'
@@ -4036,7 +4036,7 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programIndicators[id,' + namePropertyUrl + '],programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl + ',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]&paging=false',
+                    url: encodeURI(ns.core.init.contextPath + '/api/programs.json?filter=id:eq:' + programId + '&fields=programStages[id,displayName|rename(name)],programIndicators[id,' + namePropertyUrl + '],programTrackedEntityAttributes[trackedEntityAttribute[id,' + namePropertyUrl + ',valueType,confidential,optionSet[id,displayName|rename(name)],legendSet[id,displayName|rename(name)]]]&paging=false'),
                     success: function(r) {
                         var program = Ext.decode(r.responseText).programs[0],
                             stages,
@@ -4163,7 +4163,7 @@ Ext.onReady( function() {
             }
             else {
                 Ext.Ajax.request({
-                    url: ns.core.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + namePropertyUrl + ',valueType,optionSet[id,displayName|rename(name)],legendSet|rename(storageLegendSet)[id,displayName|rename(name)]]]',
+                    url: encodeURI(ns.core.init.contextPath + '/api/programStages.json?filter=id:eq:' + stageId + '&fields=programStageDataElements[dataElement[id,' + namePropertyUrl + ',valueType,optionSet[id,displayName|rename(name)],legendSet|rename(storageLegendSet)[id,displayName|rename(name)]]]'),
                     success: function(r) {
                         var objects = Ext.decode(r.responseText).programStages,
                             types = ns.core.conf.valueType.tAggregateTypes,
@@ -5869,7 +5869,7 @@ Ext.onReady( function() {
 					store.isPending = true;
 
 					Ext.Ajax.request({
-						url: ns.core.init.contextPath + '/api' + path,
+						url: encodeURI(ns.core.init.contextPath + '/api' + path),
 						params: {
 							page: store.nextPage,
 							pageSize: 50
@@ -6857,7 +6857,7 @@ Ext.onReady( function() {
 				}
 
 				Ext.Ajax.request({
-					url: init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + conf.url.analysisFields.join(','),
+					url: encodeURI(init.contextPath + '/api/eventCharts/' + id + '.json?fields=' + conf.url.analysisFields.join(',')),
 					failure: function(r) {
 						web.mask.hide(ns.app.centerRegion);
 
@@ -8137,7 +8137,7 @@ Ext.onReady( function() {
 
                                         // root nodes
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnits.json?userDataViewFallback=true&paging=false&fields=id,' + namePropertyUrl,
+                                            url: encodeURI(contextPath + '/api/organisationUnits.json?userDataViewFallback=true&paging=false&fields=id,' + namePropertyUrl),
                                             success: function(r) {
                                                 init.rootNodes = Ext.decode(r.responseText).organisationUnits || [];
                                                 fn();
@@ -8146,7 +8146,7 @@ Ext.onReady( function() {
 
                                         // organisation unit levels
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false',
+                                            url: encodeURI(contextPath + '/api/organisationUnitLevels.json?fields=id,displayName|rename(name),level&paging=false'),
                                             success: function(r) {
                                                 init.organisationUnitLevels = Ext.decode(r.responseText).organisationUnitLevels || [];
 
@@ -8160,7 +8160,7 @@ Ext.onReady( function() {
 
                                         // user orgunits and children
                                         requests.push({
-                                            url: contextPath + '/api/organisationUnits.json?userOnly=true&fields=id,' + namePropertyUrl + ',children[id,' + namePropertyUrl + ']&paging=false',
+                                            url: encodeURI(contextPath + '/api/organisationUnits.json?userOnly=true&fields=id,' + namePropertyUrl + ',children[id,' + namePropertyUrl + ']&paging=false'),
                                             success: function(r) {
                                                 var organisationUnits = Ext.decode(r.responseText).organisationUnits || [],
                                                     ou = [],
@@ -8191,7 +8191,7 @@ Ext.onReady( function() {
 
                                         // legend sets
                                         requests.push({
-                                            url: contextPath + '/api/legendSets.json?fields=id,displayName|rename(name),legends[id,displayName|rename(name),startValue,endValue,color]&paging=false',
+                                            url: encodeURI(contextPath + '/api/legendSets.json?fields=id,displayName|rename(name),legends[id,displayName|rename(name),startValue,endValue,color]&paging=false'),
                                             success: function(r) {
                                                 init.legendSets = Ext.decode(r.responseText).legendSets || [];
                                                 fn();
@@ -8200,7 +8200,7 @@ Ext.onReady( function() {
 
                                         // dimensions
                                         requests.push({
-                                            url: contextPath + '/api/dimensions.json?fields=id,' + namePropertyUrl + '&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET&paging=false',
+                                            url: encodeURI(contextPath + '/api/dimensions.json?fields=id,' + namePropertyUrl + '&filter=dimensionType:eq:ORGANISATION_UNIT_GROUP_SET&paging=false'),
                                             success: function(r) {
                                                 init.dimensions = Ext.decode(r.responseText).dimensions || [];
                                                 fn();
