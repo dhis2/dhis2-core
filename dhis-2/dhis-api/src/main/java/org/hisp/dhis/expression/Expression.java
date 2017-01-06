@@ -101,11 +101,6 @@ public class Expression
      */
     private Set<DataElement> dataElementsInExpression = new HashSet<>();
 
-    /**
-     * A reference to the DataElements in the Expression.
-     */
-    private Set<DataElement> sampleElementsInExpression = new HashSet<>();
-
     // -------------------------------------------------------------------------
     // Transient properties
     // -------------------------------------------------------------------------
@@ -124,47 +119,6 @@ public class Expression
     }
 
     /**
-     * Constructor with all the parameters.
-     *
-     * @param expression                 The expression as a String
-     * @param description                A description of the Expression.
-     * @param dataElementsInExpression   A reference to the DataElements in the Expression.
-     * @param sampleElementsInExpression Past sampled periods DataElements in the Expression.
-     * @param missingValueStrategy       Strategy for handling missing values.
-     */
-    public Expression( String expression, String description,
-        Set<DataElement> dataElementsInExpression,
-        Set<DataElement> sampleElementsInExpression,
-        MissingValueStrategy missingValueStrategy )
-    {
-        this.expression = expression;
-        this.description = description;
-        this.dataElementsInExpression = dataElementsInExpression;
-        this.sampleElementsInExpression = sampleElementsInExpression;
-        this.missingValueStrategy = missingValueStrategy;
-    }
-
-    /**
-     * Constructor with all parameters except missingValueStrategy.
-     *
-     * @param expression                 The expression as a String
-     * @param description                A description of the Expression.
-     * @param dataElementsInExpression   A reference to the DataElements in the Expression.
-     * @param sampleElementsInExpression Past sampled periods DataElements in the Expression.
-     */
-    public Expression( String expression, String description,
-        Set<DataElement> dataElementsInExpression,
-        Set<DataElement> sampleElementsInExpression )
-    {
-        this.expression = expression;
-        this.description = description;
-        this.dataElementsInExpression = dataElementsInExpression;
-        this.sampleElementsInExpression = sampleElementsInExpression;
-    }
-
-    /**
-     * Constructor without sample elements
-     *
      * @param expression               The expression as a String
      * @param description              A description of the Expression.
      * @param dataElementsInExpression A reference to the DataElements in the Expression.
@@ -174,7 +128,23 @@ public class Expression
         this.expression = expression;
         this.description = description;
         this.dataElementsInExpression = dataElementsInExpression;
-        this.sampleElementsInExpression = null;
+    }
+
+    /**
+     * Constructor with all the parameters.
+     *
+     * @param expression                 The expression as a String
+     * @param description                A description of the Expression.
+     * @param dataElementsInExpression   A reference to the DataElements in the Expression.
+     * @param missingValueStrategy       Strategy for handling missing values.
+     */
+    public Expression( String expression, String description,
+        Set<DataElement> dataElementsInExpression, MissingValueStrategy missingValueStrategy )
+    {
+        this.expression = expression;
+        this.description = description;
+        this.dataElementsInExpression = dataElementsInExpression;
+        this.missingValueStrategy = missingValueStrategy;
     }
 
     // -------------------------------------------------------------------------
@@ -343,20 +313,6 @@ public class Expression
         this.dataElementsInExpression = dataElementsInExpression;
     }
 
-    @JsonProperty( value = "sampleElements" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "sampleElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "sampleElement", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElement> getSampleElementsInExpression()
-    {
-        return sampleElementsInExpression;
-    }
-
-    public void setSampleElementsInExpression( Set<DataElement> sampleElementsInExpression )
-    {
-        this.sampleElementsInExpression = sampleElementsInExpression;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
@@ -399,10 +355,7 @@ public class Expression
         expression = other.getExpression() == null ? expression : other.getExpression();
         description = other.getDescription() == null ? description : other.getDescription();
         missingValueStrategy = other.getMissingValueStrategy() == null ? missingValueStrategy : other.getMissingValueStrategy();
-
         dataElementsInExpression = other.getDataElementsInExpression() == null ?
             dataElementsInExpression : new HashSet<>( other.getDataElementsInExpression() );
-        sampleElementsInExpression = other.getSampleElementsInExpression() == null ?
-            sampleElementsInExpression : new HashSet<>( other.getSampleElementsInExpression() );
     }
 }

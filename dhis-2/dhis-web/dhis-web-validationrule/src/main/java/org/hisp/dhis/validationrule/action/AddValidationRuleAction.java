@@ -192,7 +192,6 @@ public class AddValidationRuleAction
         leftSide.setDescription( leftSideDescription );
         leftSide.setMissingValueStrategy( safeValueOf( leftSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
         leftSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( leftSideExpression ) );
-        leftSide.setSampleElementsInExpression( expressionService.getSampleElementsInExpression( leftSideExpression ) );
 
         Expression rightSide = new Expression();
 
@@ -200,7 +199,6 @@ public class AddValidationRuleAction
         rightSide.setDescription( rightSideDescription );
         rightSide.setMissingValueStrategy( safeValueOf( rightSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
         rightSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( rightSideExpression ) );
-        rightSide.setSampleElementsInExpression( expressionService.getSampleElementsInExpression( rightSideExpression ) );
 
         Expression skipTest = null;
 
@@ -211,7 +209,6 @@ public class AddValidationRuleAction
             skipTest.setDescription( skipTestDescription );
 
             skipTest.setDataElementsInExpression( expressionService.getDataElementsInExpression( skipTestExpression ) );
-            skipTest.setSampleElementsInExpression( expressionService.getSampleElementsInExpression( skipTestExpression ) );
         }
 
         ValidationRule validationRule = new ValidationRule();

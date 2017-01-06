@@ -199,20 +199,17 @@ public class ValidationRuleServiceTest
         expressionC = new Expression( "#{" + dataElementB.getUid() + suffix + "} * 2", "expressionC", Sets.newHashSet( dataElementB ) );
         expressionD = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionD", Sets.newHashSet( dataElementB ) );
         expressionE = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5)", "expressionE",
-            Sets.newHashSet( dataElementB ), Sets.newHashSet( dataElementB ) );
-        expressionF = new Expression(
-            "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF",
+            Sets.newHashSet( dataElementB ) );
+        expressionF = new Expression( "#{" + dataElementB.getUid() + suffix + "} / #{" + dataElementE.getUid() + suffix + "}", "expressionF",
             Sets.newHashSet( dataElementB, dataElementE ) );
-        expressionG = new Expression(
-            "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})",
-            "expressionG", Sets.newHashSet( dataElementB, dataElementE ), Sets.newHashSet( dataElementB, dataElementE ) );
-        expressionH = new Expression(
-            "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
-            "expressionH", Sets.newHashSet(), Sets.newHashSet( dataElementB ) );
+        expressionG = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "} * 1.5 / #{" + dataElementE.getUid() + suffix + "})",
+            "expressionG", Sets.newHashSet( dataElementB, dataElementE ) );
+        expressionH = new Expression( "AVG(#{" + dataElementB.getUid() + suffix + "}) + 1.5*STDDEV(#{" + dataElementB.getUid() + suffix + "})",
+            "expressionH", Sets.newHashSet() );
         expressionI = new Expression( "#{" + dataElementA.getUid() + suffix + "}", "expressionI", Sets.newHashSet( dataElementA ) );
         expressionJ = new Expression( "#{" + dataElementB.getUid() + suffix + "}", "expressionJ", Sets.newHashSet( dataElementB ) );
-        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", Sets.newHashSet( dataElementC ), new HashSet<>(), NEVER_SKIP );
-        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", Sets.newHashSet( dataElementD ), new HashSet<>(), NEVER_SKIP );
+        expressionK = new Expression( "#{" + dataElementC.getUid() + "}", "expressionK", Sets.newHashSet( dataElementC ), NEVER_SKIP );
+        expressionL = new Expression( "#{" + dataElementD.getUid() + "}", "expressionL", Sets.newHashSet( dataElementD ), NEVER_SKIP );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionB );

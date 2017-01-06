@@ -255,14 +255,6 @@ public class DefaultExpressionService
     @Override
     public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues )
-    {
-        return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, incompleteValues, null );
-    }
-
-    @Override
-    public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
     {
         if ( aggregateMap == null )
@@ -296,7 +288,7 @@ public class DefaultExpressionService
         
         final DataElementCategoryOptionCombo defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         
-        if ( comboId == null || comboId == defaultCombo.getUid() )
+        if ( comboId == null || comboId.equals( defaultCombo.getUid() ) )
         {
             Double value = valueMap.get( dataElement );
             

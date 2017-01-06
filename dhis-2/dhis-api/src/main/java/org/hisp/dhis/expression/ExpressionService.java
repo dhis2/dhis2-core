@@ -176,26 +176,6 @@ public interface ExpressionService
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days );
 
-    /**
-     * Generates the calculated value for the given expression base on the values
-     * supplied in the value map, constant map and days.
-     *
-     * @param expression      the expression which holds the formula for the calculation.
-     * @param valueMap        the mapping between data element operands and values to
-     *                        use in the calculation.
-     * @param constantMap     the mapping between the constant uid and value to use
-     *                        in the calculation.
-     * @param orgUnitCountMap the mapping between organisation unit group uid and
-     *                        count of organisation units to use in the calculation.
-     * @param days            the number of days to use in the calculation.
-     * @param set             of data element operands that have values but they are incomplete
-     *                        (for example due to aggregation from organisationUnit children where
-     *                        not all children had a value.)
-     * @return the calculated value as a double.
-     */
-    Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues );
 
     /**
      * Generates the calculated value for the given expression base on the values
