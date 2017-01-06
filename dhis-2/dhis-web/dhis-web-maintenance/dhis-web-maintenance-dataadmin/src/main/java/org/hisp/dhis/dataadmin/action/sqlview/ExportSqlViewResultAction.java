@@ -104,7 +104,7 @@ public class ExportSqlViewResultAction
     {
         sqlView = sqlViewService.getSqlView( id );
 
-        grid = sqlViewService.getSqlViewGrid( sqlView, null, null );
+        grid = sqlViewService.getSqlViewGrid( sqlView, null, null, null, null );
 
         return type != null ? type : DEFAULT_TYPE;
     }

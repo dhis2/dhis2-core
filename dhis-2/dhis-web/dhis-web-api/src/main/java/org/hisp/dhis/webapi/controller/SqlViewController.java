@@ -79,10 +79,9 @@ public class SqlViewController
         }
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        System.out.println( "filters = " + filters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy() );
 
@@ -101,9 +100,9 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        System.out.println( "filters = " + filters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, sqlView.getCacheStrategy() );
 
@@ -122,9 +121,9 @@ public class SqlViewController
             throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
         }
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        System.out.println( "filters = " + filters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".csv";
 
@@ -146,9 +145,9 @@ public class SqlViewController
         }
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        System.out.println( "filters = " + filters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".xls";
 
@@ -170,9 +169,9 @@ public class SqlViewController
         }
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        System.out.println( "filters = " + filters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy() );
 
@@ -192,9 +191,9 @@ public class SqlViewController
         }
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        System.out.println( "filters = " + filters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy() );
 
@@ -214,9 +213,10 @@ public class SqlViewController
         }
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        System.out.println( "filters = " + filters );
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
+
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, sqlView.getCacheStrategy() );
 
