@@ -44,9 +44,9 @@
 
     <set name="notificationTemplates" table="validationnotificationtemplatevalidationrules" inverse="true">
       <cache usage="read-write" />
-      <key column="validationruleid" foreign-key="fk_validationrule_validationrulenotificationtemplate" />
+      <key column="validationruleid" foreign-key="fk_validationrule_validationnotificationtemplateid" />
       <many-to-many class="org.hisp.dhis.validation.notification.ValidationNotificationTemplate"
-        column="validationrulenotificationtemplateid" />
+        column="validationnotificationtemplateid" />
     </set>
 
     <many-to-one name="periodType" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"

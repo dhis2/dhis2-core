@@ -27,7 +27,7 @@
     </set>
 
     <set name="validationRules" table="validationnotificationtemplatevalidationrules">
-      <key column="validationrulenotificationtemplateid" />
+      <key column="validationnotificationtemplateid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid" />
     </set>
 
