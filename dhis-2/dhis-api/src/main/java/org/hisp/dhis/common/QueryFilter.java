@@ -29,7 +29,10 @@ package org.hisp.dhis.common;
  */
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -98,7 +101,7 @@ public class QueryFilter
             return null;
         }
         
-        if( operator == QueryOperator.EQ )
+        if ( operator == QueryOperator.EQ ) //TODO why special case?
         {
             return "==";
         }
@@ -119,13 +122,13 @@ public class QueryFilter
         }
         else if ( QueryOperator.IN.equals( operator ) )
         {
-            String[] split =  getFilterItems( encodedFilter );
+            List<String> filterItems =  getFilterItems( encodedFilter );
             
             final StringBuffer buffer = new StringBuffer( "(" );        
             
-            for ( String el : split )
+            for ( String filterItem : filterItems )
             {
-                buffer.append( "'" ).append( el ).append( "'," );
+                buffer.append( "'" ).append( filterItem ).append( "'," );
             }
             
             return buffer.deleteCharAt( buffer.length() - 1 ).append( ")" ).toString();
@@ -135,11 +138,11 @@ public class QueryFilter
     }
 
     /**
-     * Returns the items of the filter. Items are separated with the ";" character.
+     * Returns the items of the filter.
      */
-    public static String[] getFilterItems( String filter )
+    public static List<String> getFilterItems( String filter )
     {
-        return filter.split( OPTION_SEP );
+        return Lists.newArrayList( filter.split( OPTION_SEP ) );
     }
     
     // -------------------------------------------------------------------------
