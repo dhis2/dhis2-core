@@ -46,13 +46,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -151,6 +145,7 @@ public class DefaultSchemaService
         add( new OptionGroupSchemaDescriptor() ).
         add( new OptionGroupSetSchemaDescriptor() ).
         add( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() ).
+        add( new DataInputPeriodSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

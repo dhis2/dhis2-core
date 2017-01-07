@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -63,6 +64,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
@@ -707,28 +711,17 @@ public class DataElement
         this.commentOptionSet = commentOptionSet;
     }
 
-    public boolean isPeriodInDataSetOpenPeriods( Period period )
+    /**
+     * Checks if the combination of period and date is allowed for any of the dataSets associated with the dataElement
+     *
+     * @param period period to check
+     * @param date date to check
+     * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the period and date.
+     */
+    public boolean isDataInputAllowedForPeriodAndDate( Period period, Date date )
     {
-        Set<DataSet> dataSets = getDataSets();
-        
-        if ( dataSets.isEmpty() )
-        {
-            return true;
-        }
-
-        boolean result = false;
-
-        for ( DataSet dataSet : dataSets )
-        {
-            if ( dataSet.getOpenPeriods().contains( period ) )
-            {
-                return true;
-            }
-
-            result = result || dataSet.getOpenPeriods().isEmpty();
-        }
-
-        return result;
+        return getDataSets().isEmpty() || getDataSets().stream()
+            .anyMatch( dataSet -> dataSet.isDataInputPeriodAndDateAllowed( period, date ) );
     }
 
     @Override
