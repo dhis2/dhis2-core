@@ -139,10 +139,12 @@ public class QueryFilter
 
     /**
      * Returns the items of the filter.
+     * 
+     * @param encodedFilter the encoded filter.
      */
-    public static List<String> getFilterItems( String filter )
+    public static List<String> getFilterItems( String encodedFilter )
     {
-        return Lists.newArrayList( filter.split( OPTION_SEP ) );
+        return Lists.newArrayList( encodedFilter.split( OPTION_SEP ) );
     }
     
     // -------------------------------------------------------------------------
