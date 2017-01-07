@@ -152,7 +152,7 @@ public class DefaultEventQueryPlanner
         {
             violation = "Cluster field must be specified when bbox or cluster size are specified";
         }
-        
+                
         if ( violation != null )
         {
             log.warn( "Event analytics validation failed: " + violation );
