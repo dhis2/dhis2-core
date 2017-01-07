@@ -162,7 +162,18 @@ public class QueryItem
     {
         return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
     }
-        
+    
+    public List<String> getQueryFilterItems()
+    {
+        List<String> filterItems = new ArrayList<>();
+        filters.forEach( f -> filterItems.addAll( QueryFilter.getFilterItems( f.getFilter() ) ) );
+        return filterItems;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Static utilities
+    // -------------------------------------------------------------------------
+
     public static List<QueryItem> getQueryItems( Collection<TrackedEntityAttribute> attributes )
     {
         List<QueryItem> queryItems = new ArrayList<>();

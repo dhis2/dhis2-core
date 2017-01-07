@@ -421,6 +421,10 @@ public class DefaultEventAnalyticsService
                 {
                     dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
                 }
+                else if ( item.hasOptionSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
             }
 
             if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
