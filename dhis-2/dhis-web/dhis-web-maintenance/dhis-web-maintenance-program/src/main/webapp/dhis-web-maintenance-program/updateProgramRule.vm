@@ -203,7 +203,7 @@
                                                                                                 <option value='HIDEPROGRAMSTAGE' #if($action.programRuleActionType=='HIDEPROGRAMSTAGE') selected #end>$i18n.getString("hide_programstage")</option>
 										 </select>
 									 </td>
-									 <td><input type='text' class='content' style='width:97%;' value='$!encoder.htmlEncode( $action.content )'/></td>
+									 <td><input #if($action.programRuleActionType=='HIDESECTION' || $action.programRuleActionType=='HIDEPROGRAMSTAGE') style='display:none;' #end type='text' class='content' style='width:97%;' value='$!encoder.htmlEncode( $action.content )'/></td>
 									 <td>                                                                                
 										<span class="deCell" #if($action.programRuleActionType=='HIDESECTION' || $action.programRuleActionType=='HIDEPROGRAMSTAGE') style='display:none;' #end>
 											<select style='width:100%;'>                                                                                                

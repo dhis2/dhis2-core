@@ -530,16 +530,19 @@ function actionListToggle(_this)
     var row = $(_this).closest('tr');
     if( selected === 'HIDESECTION' ){
         row.find('.deCell').hide();
+        row.find('.content').hide();
         row.find('.programStageCell').hide();
         row.find('.sectionCell').show();
     }
     else if(selected === 'HIDEPROGRAMSTAGE'){
         row.find('.deCell').hide();
+        row.find('.content').hide();
         row.find('.programStageCell').show();
         row.find('.sectionCell').hide();
     }
     else{
         row.find('.deCell').show();
+        row.find('.content').show();
         row.find('.programStageCell').hide();
         row.find('.sectionCell').hide();
     }
