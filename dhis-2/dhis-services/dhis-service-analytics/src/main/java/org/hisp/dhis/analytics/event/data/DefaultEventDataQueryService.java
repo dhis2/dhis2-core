@@ -118,7 +118,6 @@ public class DefaultEventDataQueryService
             .withCollapseDataDimensions( collapseDataDimensions )
             .withAggregateData( aggregateData )
             .withProgramStatus( programStatus )
-            .withApiVersion( apiVersion )
             .build();
 
         return params;
