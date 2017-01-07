@@ -47,7 +47,9 @@ public class DataInputPeriodObjectBundleHook
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
         if ( !DataInputPeriod.class.isInstance( object ) )
+        {
             return;
+        }
 
         setPeriod(object);
     }
@@ -56,7 +58,9 @@ public class DataInputPeriodObjectBundleHook
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
         if ( !DataInputPeriod.class.isInstance( object ) )
+        {
             return;
+        }
 
         setPeriod(object);
     }
@@ -70,5 +74,4 @@ public class DataInputPeriodObjectBundleHook
         dataInputPeriod.setPeriod( period );
         sessionFactory.getCurrentSession().save( period );
     }
-
 }
