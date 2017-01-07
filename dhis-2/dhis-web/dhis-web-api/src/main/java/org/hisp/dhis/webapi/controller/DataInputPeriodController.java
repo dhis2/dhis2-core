@@ -1,5 +1,4 @@
-package org.hisp.dhis.programrule;
-
+package org.hisp.dhis.webapi.controller;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,41 +27,16 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.dataset.DataInputPeriod;
+import org.hisp.dhis.schema.descriptors.DataInputPeriodSchemaDescriptor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 /**
- * @author Markus Bekken
+ * @author Stian Sandvold
  */
-public enum ProgramRuleActionType
+@Controller
+@RequestMapping( value = DataInputPeriodSchemaDescriptor.API_ENDPOINT )
+public class DataInputPeriodController extends AbstractCrudController<DataInputPeriod>
 {
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" );
-
-    final String value;
-
-    ProgramRuleActionType( String value )
-    {
-        this.value = value;
-    }
-
-    public static ProgramRuleActionType fromValue( String value )
-    {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
 }

@@ -399,6 +399,10 @@ function saveAction( programRuleId )
         if (row.find(".actionSections").val()) {
             json_Data.programStageSection = {id: row.find(".actionSections").val() };
         }
+        
+        if (row.find(".actionStages").val()) {
+            json_Data.programStage = {id: row.find(".actionStages").val() };
+        }
 
         var actionId = $(this).attr('id');		
         var actionMethod = ( actionId === undefined ) ? "POST" : "PUT";
@@ -509,10 +513,12 @@ function addMoreAction()
         + "     <option value='WARNINGONCOMPLETE' errorMessage='" + i18n_please_enter_warning_message + "' > " + i18n_show_warning_on_complete + "</option>"
         + "     <option value='ERRORONCOMPLETE' errorMessage='" + i18n_please_enter_error_message + "' >" + i18n_show_error_on_complete + "</option>"
         + "	<option value='HIDESECTION' errorMessage='" + i18n_please_enter_alert_message_when_hiding_a_section + "' >" + i18n_hide_section + "</option>"
+        + "     <option value='HIDEPROGRAMSTAGE'>" + i18n_hide_programstage + "</option>"
         + "</select>"
         + "</td>"
         + "<td><input type='text' class='content' style='width:97%;'/></td>"
-        + "<td><span class='deCell'>" + dataElementSelector + "</span><span class='sectionCell' style='display:none;'>" + sectionSelector + "</td>"
+        + "<td><span class='deCell'>" + dataElementSelector + "</span><span class='sectionCell' style='display:none;'>" 
+        + sectionSelector + "</span><span class='programStageCell' style='display:none;'>" + programStageSelector + "</span></td>"
         + "<td><input class='small-button' type='button' value='-' onclick='javascript:removeActionRow(this)';></td>"
         + "</tr>";
     table.append(row);
@@ -522,13 +528,23 @@ function actionListToggle(_this)
 {
     var selected = _this.value;
     var row = $(_this).closest('tr');
-    if( selected == 'HIDESECTION' ){
+    if( selected === 'HIDESECTION' ){
         row.find('.deCell').hide();
+        row.find('.content').hide();
+        row.find('.programStageCell').hide();
         row.find('.sectionCell').show();
     }
-    else{
+    else if(selected === 'HIDEPROGRAMSTAGE'){
+        row.find('.deCell').hide();
+        row.find('.content').hide();
+        row.find('.programStageCell').show();
         row.find('.sectionCell').hide();
+    }
+    else{
         row.find('.deCell').show();
+        row.find('.content').show();
+        row.find('.programStageCell').hide();
+        row.find('.sectionCell').hide();
     }
 }
 

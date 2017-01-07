@@ -1035,14 +1035,14 @@ public class DefaultDataValueSetService
                 }
             }
 
-            if ( approvalDataSet != null && !approvalDataSet.isValidPeriodForDataEntry( period ) )
+            if ( approvalDataSet != null && !approvalDataSet.isDataInputPeriodAndDateAllowed( period, new Date() ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
-                    "Period: " + period.getIsoDate() + " is not within date range of data set: " + approvalDataSet.getUid() ) );
+                    "Period: " + period.getIsoDate() + " is not open for this data set at this time: " + approvalDataSet.getUid() ) );
                 continue;
             }
 
-            if ( !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(), () -> dataElement.isPeriodInDataSetOpenPeriods( period ) ) )
+            if ( !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(), () -> dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data sets" ) );
                 continue;

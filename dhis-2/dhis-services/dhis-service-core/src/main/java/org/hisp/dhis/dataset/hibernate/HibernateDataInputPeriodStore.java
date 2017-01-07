@@ -1,5 +1,4 @@
-package org.hisp.dhis.programrule;
-
+package org.hisp.dhis.dataset.hibernate;
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -28,41 +27,15 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.dataset.DataInputPeriod;
+import org.hisp.dhis.dataset.DataInputPeriodStore;
+
 /**
- * @author Markus Bekken
+ * @author Stian Sandvold
  */
-public enum ProgramRuleActionType
+public class HibernateDataInputPeriodStore
+    extends HibernateIdentifiableObjectStore<DataInputPeriod>
+    implements DataInputPeriodStore
 {
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
-    ASSIGN( "assign" ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield" );
-
-    final String value;
-
-    ProgramRuleActionType( String value )
-    {
-        this.value = value;
-    }
-
-    public static ProgramRuleActionType fromValue( String value )
-    {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
 }
