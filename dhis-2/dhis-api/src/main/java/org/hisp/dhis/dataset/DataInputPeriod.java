@@ -51,7 +51,6 @@ import java.util.Date;
 public class DataInputPeriod
     extends BaseIdentifiableObject
 {
-
     /**
      * Period data must belong to
      */
@@ -93,8 +92,8 @@ public class DataInputPeriod
      */
     public boolean isDateWithinOpenCloseDates( Date date )
     {
-        return (openingDate == null || date.after( openingDate ))
-            && (closingDate == null || date.before( closingDate ));
+        return ( openingDate == null || date.after( openingDate ) )
+            && ( closingDate == null || date.before( closingDate ) );
     }
 
     /**
@@ -171,18 +170,22 @@ public class DataInputPeriod
     }
 
     @Override
-    public boolean equals( Object o )
+    public boolean equals( Object object )
     {
-        if ( this == o )
+        if ( this == object )
+        {
             return true;
+        }
 
-        if ( o == null || getClass() != o.getClass() )
+        if ( object == null || getClass() != object.getClass() )
+        {
             return false;
+        }
 
-        DataInputPeriod that = (DataInputPeriod) o;
+        DataInputPeriod that = (DataInputPeriod) object;
 
         return new EqualsBuilder()
-            .appendSuper( super.equals( o ) )
+            .appendSuper( super.equals( object ) )
             .append( period, that.period )
             .append( openingDate, that.openingDate )
             .append( closingDate, that.closingDate )
