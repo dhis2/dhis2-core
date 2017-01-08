@@ -168,7 +168,7 @@ public class DefaultEventDataQueryService
                 }
                 else
                 {
-                    params.addItem( getQueryItem( dim ) );
+                    params.addItem( getQueryItem( dim, pr ) );
                 }
             }
         }
@@ -188,7 +188,7 @@ public class DefaultEventDataQueryService
                 }
                 else
                 {
-                    params.addItemFilter( getQueryItem( dim ) );
+                    params.addItemFilter( getQueryItem( dim, pr ) );
                 }
             }
         }
@@ -197,7 +197,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : asc )
             {
-                params.addAscSortItem( getSortItem( sort ) );
+                params.addAscSortItem( getSortItem( sort, pr ) );
             }
         }
 
@@ -205,7 +205,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : desc )
             {
-                params.addDescSortItem( getSortItem( sort ) );
+                params.addDescSortItem( getSortItem( sort, pr ) );
             }
         }
 
@@ -255,7 +255,7 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter() ) );
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram() ) );
             }
         }
 
@@ -270,7 +270,7 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter() ) );
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram() ) );
             }
         }
 
@@ -323,17 +323,17 @@ public class DefaultEventDataQueryService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private QueryItem getQueryItem( String dimension, String filter )
+    private QueryItem getQueryItem( String dimension, String filter, Program program )
     {
         if ( filter != null )
         {
             dimension += DIMENSION_NAME_SEP + filter;
         }
 
-        return getQueryItem( dimension );
+        return getQueryItem( dimension, program );
     }
 
-    private QueryItem getQueryItem( String dimensionString )
+    private QueryItem getQueryItem( String dimensionString, Program program )
     {
         String[] split = dimensionString.split( DIMENSION_NAME_SEP );
 
@@ -342,7 +342,7 @@ public class DefaultEventDataQueryService
             throw new IllegalQueryException( "Query item or filter is invalid: " + dimensionString );
         }
 
-        QueryItem queryItem = getQueryItemFromDimension( split[0] );
+        QueryItem queryItem = getQueryItemFromDimension( split[0], program );
 
         if ( split.length > 1 ) // Filters specified
         {
@@ -357,9 +357,9 @@ public class DefaultEventDataQueryService
         return queryItem;
     }
 
-    private String getSortItem( String item )
+    private String getSortItem( String item, Program program )
     {
-        if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && getQueryItem( item ) == null )
+        if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && getQueryItem( item, program ) == null )
         {
             throw new IllegalQueryException( "Descending sort item is invalid: " + item );
         }
@@ -369,7 +369,7 @@ public class DefaultEventDataQueryService
         return item;
     }
 
-    private QueryItem getQueryItemFromDimension( String dimension )
+    private QueryItem getQueryItemFromDimension( String dimension, Program program )
     {
         String[] split = dimension.split( ITEM_SEP );
 
@@ -379,7 +379,7 @@ public class DefaultEventDataQueryService
 
         DataElement de = dataElementService.getDataElement( item );
 
-        if ( de != null ) // TODO check if part of program
+        if ( de != null && program.containsDataElement( de ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
             
@@ -388,7 +388,7 @@ public class DefaultEventDataQueryService
 
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
 
-        if ( at != null )
+        if ( at != null && program.containsAttribute( at ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
             
@@ -397,13 +397,13 @@ public class DefaultEventDataQueryService
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( item );
 
-        if ( pi != null )
+        if ( pi != null && program.getProgramIndicators().contains( pi ) )
         {
             return new QueryItem( pi, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
         }
 
         throw new IllegalQueryException(
-            "Item identifier does not reference any data element or attribute part of the program: " + item );
+            "Item identifier does not reference any data element, attribute or indicator part of the program: " + item );
     }
 
     private DimensionalItemObject getValueDimension( String value )

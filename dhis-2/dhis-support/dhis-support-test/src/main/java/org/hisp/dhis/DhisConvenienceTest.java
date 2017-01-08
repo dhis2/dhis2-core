@@ -1406,7 +1406,7 @@ public abstract class DhisConvenienceTest
             
             for ( DataElement dataElement : dataElements )
             {
-                ProgramStageDataElement psd = createProgramStageDataElement( programStage, dataElement, false, sortOrder );
+                ProgramStageDataElement psd = createProgramStageDataElement( programStage, dataElement, sortOrder );
                 psd.setAutoFields();
                 
                 programStage.getProgramStageDataElements().add( psd );
@@ -1416,10 +1416,9 @@ public abstract class DhisConvenienceTest
         return programStage;
     }
     
-    public static ProgramStageDataElement createProgramStageDataElement( ProgramStage programStage, DataElement dataElement, 
-        boolean compulsory, Integer sortOrder )
+    public static ProgramStageDataElement createProgramStageDataElement( ProgramStage programStage, DataElement dataElement, Integer sortOrder )
     {
-        ProgramStageDataElement psde = new ProgramStageDataElement( programStage, dataElement, compulsory, sortOrder );
+        ProgramStageDataElement psde = new ProgramStageDataElement( programStage, dataElement, false, sortOrder );
         psde.setAutoFields();
         
         return psde;
