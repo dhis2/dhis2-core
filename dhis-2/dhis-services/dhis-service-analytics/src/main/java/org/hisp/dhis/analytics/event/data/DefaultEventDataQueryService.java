@@ -28,8 +28,19 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EXECUTION_DATE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -37,7 +48,18 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -47,20 +69,20 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
