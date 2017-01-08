@@ -51,6 +51,7 @@ import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 import java.util.Date;
 import java.util.List;
@@ -232,58 +233,55 @@ public class DefaultEventDataQueryService
     @Override
     public EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object )
     {
+        Assert.notNull( object );
+        Assert.notNull( object.getProgram(), "Event analytical object must specify program" );
+        
         EventQueryParams.Builder params = new EventQueryParams.Builder();
         
-        I18nFormat format = i18nManager.getI18nFormat();
-        
-        IdScheme idScheme = IdScheme.UID;
+        I18nFormat format = i18nManager.getI18nFormat();        
+        IdScheme idScheme = IdScheme.UID;        
+        Date date = object.getRelativePeriodDate();
 
-        if ( object != null )
+        object.populateAnalyticalProperties();
+
+        for ( DimensionalObject dimension : ListUtils.union( object.getColumns(), object.getRows() ) )
         {
-            Date date = object.getRelativePeriodDate();
+            DimensionalObject dimObj = dataQueryService.getDimension( dimension.getDimension(),
+                getDimensionalItemIds( dimension.getItems() ), date, null, format, true, idScheme );
 
-            object.populateAnalyticalProperties();
-
-            for ( DimensionalObject dimension : ListUtils.union( object.getColumns(), object.getRows() ) )
+            if ( dimObj != null )
             {
-                DimensionalObject dimObj = dataQueryService.getDimension( dimension.getDimension(),
-                    getDimensionalItemIds( dimension.getItems() ), date, null, format, true, idScheme );
-
-                if ( dimObj != null )
-                {
-                    params.addDimension( dimObj );
-                }
-                else
-                {
-                    params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter() ) );
-                }
+                params.addDimension( dimObj );
             }
-
-            for ( DimensionalObject filter : object.getFilters() )
+            else
             {
-                DimensionalObject dimObj = dataQueryService.getDimension( filter.getDimension(),
-                    getDimensionalItemIds( filter.getItems() ), date, null, format, true, idScheme );
-
-                if ( dimObj != null )
-                {
-                    params.addFilter( dimObj );
-                }
-                else
-                {
-                    params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter() ) );
-                }
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter() ) );
             }
-
-            params
-                .withProgram( object.getProgram() )
-                .withProgramStage( object.getProgramStage() )
-                .withStartDate( object.getStartDate() )
-                .withEndDate( object.getEndDate() )
-                .withValue( object.getValue() )
-                .withOutputType( object.getOutputType() );
         }
 
-        return params.build();
+        for ( DimensionalObject filter : object.getFilters() )
+        {
+            DimensionalObject dimObj = dataQueryService.getDimension( filter.getDimension(),
+                getDimensionalItemIds( filter.getItems() ), date, null, format, true, idScheme );
+
+            if ( dimObj != null )
+            {
+                params.addFilter( dimObj );
+            }
+            else
+            {
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter() ) );
+            }
+        }
+
+        return params
+            .withProgram( object.getProgram() )
+            .withProgramStage( object.getProgramStage() )
+            .withStartDate( object.getStartDate() )
+            .withEndDate( object.getEndDate() )
+            .withValue( object.getValue() )
+            .withOutputType( object.getOutputType() )
+            .build();
     }
     
     @Override
