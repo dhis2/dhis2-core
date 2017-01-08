@@ -789,9 +789,7 @@ public class JdbcEventAnalyticsManager
     {
         String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
         
-        String sqlFilter = filter.getSqlFilter( encodedFilter );
-        
-        return item.isText() ? sqlFilter.toLowerCase() : sqlFilter;
+        return item.getSqlFilter( filter, encodedFilter );
     }
 
     /**
