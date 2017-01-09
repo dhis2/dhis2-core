@@ -1072,36 +1072,6 @@ public class DataQueryParams
     }
     
     // -------------------------------------------------------------------------
-    // Logic write methods
-    // -------------------------------------------------------------------------
-
-    // TODO remove public write methods and replace with builder
-    
-    /**
-     * Replaces the periods of this query with the corresponding data periods.
-     * Sets the period type to the data period type. This method is relevant only 
-     * when then the data period type has lower frequency than the aggregation 
-     * period type. This is valid because disaggregation is allowed for data
-     * with average aggregation operator.
-     */
-    public void replaceAggregationPeriodsWithDataPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
-    {
-        if ( isDisaggregation() && hasDataPeriodType() )
-        {
-            this.periodType = this.dataPeriodType.getName();
-            
-            if ( !getPeriods().isEmpty() ) // Period is dimension
-            {
-                setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
-            }
-            else // Period is filter
-            {
-                setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
-            }
-        }
-    }
-    
-    // -------------------------------------------------------------------------
     // Supportive protected methods
     // -------------------------------------------------------------------------
 
@@ -1173,6 +1143,27 @@ public class DataQueryParams
     // Supportive private methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Replaces the periods of this query with the corresponding data periods.
+     * Sets the period type to the data period type. This method is relevant only 
+     * when then the data period type has lower frequency than the aggregation 
+     * period type. This is valid because disaggregation is allowed for data
+     * with average aggregation operator.
+     */
+    private void replaceAggregationPeriodsWithDataPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
+    {        
+        this.periodType = this.dataPeriodType.getName();
+        
+        if ( !getPeriods().isEmpty() ) // Period is dimension
+        {
+            setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
+        }
+        else // Period is filter
+        {
+            setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
+        }
+    }
+    
     /**
      * Removes the dimension with the given identifier.
      */
@@ -2353,6 +2344,12 @@ public class DataQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+        
+        public Builder withDataPeriodsForAggregationPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
+        {
+            this.params.replaceAggregationPeriodsWithDataPeriods( dataPeriodAggregationPeriodMap );
             return this;
         }
         
