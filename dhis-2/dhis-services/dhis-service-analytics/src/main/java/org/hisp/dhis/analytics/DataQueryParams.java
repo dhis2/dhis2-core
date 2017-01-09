@@ -409,24 +409,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Logic read methods
     // -------------------------------------------------------------------------
-    
-    /**
-     * Ensures conformity for this query. The category option combo dimension
-     * can only be present if the data element dimension exists and the indicator 
-     * and data set dimensions do not exist.
-     */
-    public DataQueryParams conform()
-    {
-        if ( !( !getDataElements().isEmpty() && getDataElementOperands().isEmpty() && getIndicators().isEmpty() && getReportingRates().isEmpty() ) )
-        {
-            removeDimension( CATEGORYOPTIONCOMBO_DIM_ID );
-        }
         
-        //TODO program data elements / attributes
-        
-        return this;
-    }
-    
     /**
      * Returns a key representing a group of queries which should be run in 
      * sequence. Currently queries with different aggregation type are run in
@@ -1764,6 +1747,14 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
 
     /**
+     * Returns all data dimension items part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllDataDimensionItems()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+    
+    /**
      * Returns all indicators part of a dimension or filter.
      */
     public List<DimensionalItemObject> getAllIndicators()
@@ -1814,7 +1805,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
-
+    
     /**
      * Returns all indicators part of the data dimension.
      */
@@ -1899,7 +1890,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Get helpers for filters
     // -------------------------------------------------------------------------
-
+    
     /**
      * Returns all indicators part of the data filter.
      */

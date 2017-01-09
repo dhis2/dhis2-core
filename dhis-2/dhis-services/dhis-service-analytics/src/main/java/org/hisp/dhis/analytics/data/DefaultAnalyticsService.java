@@ -167,8 +167,6 @@ public class DefaultAnalyticsService
 
         queryPlanner.validate( params );
 
-        params.conform();
-
         return getAggregatedDataValueGridInternal( params );
     }
 
