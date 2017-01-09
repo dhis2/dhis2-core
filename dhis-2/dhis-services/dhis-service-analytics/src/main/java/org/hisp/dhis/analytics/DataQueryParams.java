@@ -1004,6 +1004,14 @@ public class DataQueryParams
         
         return items;
     }
+    
+    /**
+     * Indicates whether this query has a data period type.
+     */
+    public boolean hasDataPeriodType()
+    {
+        return dataPeriodType != null;
+    }
 
     /**
      * Indicates whether this query has a start and end date.
@@ -1054,7 +1062,7 @@ public class DataQueryParams
     {
         return getFilterReportingRates().size() == 1 && getFilterOptions( DATA_X_DIM_ID ).size() == 1;
     }
-    
+        
     /**
      * Indicates whether this query has a current user specified.
      */
@@ -1078,7 +1086,7 @@ public class DataQueryParams
      */
     public void replaceAggregationPeriodsWithDataPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
     {
-        if ( isDisaggregation() && dataPeriodType != null )
+        if ( isDisaggregation() && hasDataPeriodType() )
         {
             this.periodType = this.dataPeriodType.getName();
             
