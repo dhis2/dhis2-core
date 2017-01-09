@@ -253,10 +253,7 @@ public class DefaultValidationRuleService
 
         log.info( "Validation run result count: " + results.size() );
 
-        if ( !results.isEmpty() )
-        {
-            notificationService.sendNotifications( new HashSet<>( results ) );
-        }
+        notificationService.sendNotifications( new HashSet<>( results ) );
 
         log.info( "Sent notifications, monitoring task done" );
 
