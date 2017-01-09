@@ -75,10 +75,6 @@
 
     <property name="timelyDays" />
 
-    <property name="startDate" type="timestamp" />
-
-    <property name="endDate" type="timestamp" />
-
     <many-to-one name="notificationRecipients" class="org.hisp.dhis.user.UserGroup"
       foreign-key="fk_dataset_notificationrecipients" />
 

@@ -149,6 +149,11 @@ public class DefaultMetadataImportService implements MetadataImportService
                 .addTaskSummary( bundle.getTaskId(), importReport );
         }
 
+        if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
+        {
+            return importReport;
+        }
+
         Lists.newArrayList( importReport.getTypeReportMap().keySet() ).forEach( typeReportKey ->
         {
             if ( importReport.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )

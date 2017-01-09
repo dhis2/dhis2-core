@@ -920,8 +920,6 @@ public class DataValueSetServiceTest
 
         dsA.setExpiryDays( 62 );
         dsA.setOpenFuturePeriods( 2 );
-        dsA.setStartDate( getDate( 2000,01,01 ) );
-        dsA.setEndDate( DateUtils.addMonths( thisMonth, 5 ) );
 
         dataSetService.updateDataSet( dsA );
 

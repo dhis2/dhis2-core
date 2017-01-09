@@ -107,6 +107,10 @@ public class InitTableAlteror
         executeSql( "alter table programstageinstance alter column deleted set not null" );
         executeSql( "create index in_programstageinstance_deleted on programstageinstace(deleted)" );
 
+        // Remove DataSet start and end date - replaced by DataInputPeriods
+        executeSql( "ALTER TABLE dataset drop column startdate" );
+        executeSql( "ALTER TABLE dataset drop column enddate" );
+
         updateLegendSetAssociationAndDeleteOldAssociation();
     }
 

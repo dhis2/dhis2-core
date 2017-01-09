@@ -64,7 +64,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -136,6 +143,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     typeReport.getStats().incIgnored();
                 }
 
+                typeReport.getStats().incCreated( nonPersistedObjects.size() );
+                typeReport.getStats().incUpdated( persistedObjects.size() );
+
                 typeReport.merge( checkReferences );
             }
             else if ( bundle.getImportMode().isCreate() )
@@ -153,6 +163,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 {
                     typeReport.getStats().incIgnored();
                 }
+
+                typeReport.getStats().incCreated( nonPersistedObjects.size() );
 
                 typeReport.merge( checkReferences );
             }
@@ -172,12 +184,16 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     typeReport.getStats().incIgnored();
                 }
 
+                typeReport.getStats().incUpdated( persistedObjects.size() );
+
                 typeReport.merge( checkReferences );
             }
             else if ( bundle.getImportMode().isDelete() )
             {
                 typeReport.merge( validateSecurity( klass, persistedObjects, bundle, ImportStrategy.DELETE ) );
                 typeReport.merge( validateForDelete( klass, nonPersistedObjects, bundle ) );
+
+                typeReport.getStats().incDeleted( persistedObjects.size() );
             }
 
             validation.addTypeReport( typeReport );
