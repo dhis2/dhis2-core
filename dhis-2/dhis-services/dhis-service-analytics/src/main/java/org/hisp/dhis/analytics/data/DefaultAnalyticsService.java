@@ -753,7 +753,7 @@ public class DefaultAnalyticsService
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
-                if ( !metaData.keySet().contains( dim.getDimension() ) )
+                if ( !dimensionItems.keySet().contains( dim.getDimension() ) )
                 {
                     dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }

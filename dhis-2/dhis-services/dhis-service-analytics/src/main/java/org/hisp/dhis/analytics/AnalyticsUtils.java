@@ -577,7 +577,7 @@ public class AnalyticsUtils
 
         List<DimensionalItemObject> des = params.getAllDataElements();
 
-        if ( des != null && !des.isEmpty() )
+        if ( !des.isEmpty() )
         {
             for ( DimensionalItemObject de : des )
             {
