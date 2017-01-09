@@ -40,6 +40,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.Importance;
@@ -96,6 +97,14 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> validationResults )
     {
+        if ( validationResults.isEmpty() )
+        {
+            return;
+        }
+
+        Clock clock = new Clock( log ).startClock()
+            .logTime( String.format( "Creating notifications for %d validation results", validationResults.size() ) );
+
         // Filter out un-applicable validation results and put in (natural) order
         SortedSet<ValidationResult> applicableResults = validationResults.stream()
             .filter( IS_APPLICABLE_RESULT )
@@ -110,7 +119,11 @@ public class DefaultValidationNotificationService
         // Flatten the grouped and sorted MessagePairs into single NotificationMessages
         Map<Set<User>, NotificationMessage> flattenedToSummaries = createSummaryNotificationMessages( groupedByRecipients );
 
+        clock.logTime( String.format( "Sending %d summarized notifications", flattenedToSummaries.size() ) );
+
         flattenedToSummaries.forEach( this::send );
+
+        clock.logTime( "Done sending validation notifications" );
     }
 
     // -------------------------------------------------------------------------
@@ -165,7 +178,7 @@ public class DefaultValidationNotificationService
             .sorted()
             .map( preRendered::get )
             .map( n -> String.format( "%s%s%s", n.getSubject(), LN, n.getMessage() ) )
-            .reduce( "", (initStr, newStr) -> String.format( "%s%s%s", initStr, LN, newStr ) );
+            .reduce( "", (initStr, newStr) -> String.format( "%s%s%s", initStr, LN + LN, newStr ) );
 
         return new NotificationMessage( subject, message );
     }
