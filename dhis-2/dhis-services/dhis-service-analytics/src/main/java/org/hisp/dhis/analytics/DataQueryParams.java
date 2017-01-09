@@ -393,6 +393,7 @@ public class DataQueryParams
         params.endDate = this.endDate;
         params.apiVersion = this.apiVersion;
         
+        params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
         params.dataType = this.dataType;
         params.periodType = this.periodType;
@@ -402,6 +403,7 @@ public class DataQueryParams
         params.restrictByOrgUnitOpeningClosedDate = this.restrictByOrgUnitOpeningClosedDate;
         params.restrictByCategoryOptionStartEndDate = this.restrictByCategoryOptionStartEndDate;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
+        params.processingHints = new HashSet<>( this.processingHints );
         
         return params;
     }

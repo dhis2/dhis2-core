@@ -1,7 +1,5 @@
 package org.hisp.dhis.analytics.data;
 
-import com.google.common.collect.ImmutableMap;
-
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -30,6 +28,7 @@ import com.google.common.collect.ImmutableMap;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
