@@ -85,8 +85,6 @@ import com.google.common.collect.Sets;
  * Class representing query parameters for retrieving aggregated data from the
  * analytics service.
  * 
- * TODO finish builder pattern instantiation
- * 
  * @author Lars Helge Overland
  */
 public class DataQueryParams
