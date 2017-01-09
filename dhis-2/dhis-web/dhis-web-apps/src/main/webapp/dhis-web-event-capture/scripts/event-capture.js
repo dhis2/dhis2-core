@@ -268,7 +268,7 @@ function getPrograms( programs )
 
     _.each( _.values( programs ), function ( program ) {
         
-        if(program.programStages && program.programStages[0].programStageDataElements){
+        if(program.programStages && program.programStages[0] && program.programStages[0].programStageDataElements){
             build = build.then(function() {
                 var d = $.Deferred();
                 var p = d.promise();
@@ -342,7 +342,7 @@ function getProgramStages( programs )
 
     _.each( _.values( programs ), function ( program ) {
         
-        if(program.programStages){
+        if(program.programStages && program.programStages[0]){
             build = build.then(function() {
                 var d = $.Deferred();
                 var p = d.promise();
@@ -415,7 +415,7 @@ function getOptionSets( programs )
 
     _.each( _.values( programs ), function ( program ) {
         
-        if(program.programStages && program.programStages[0].programStageDataElements){
+        if(program.programStages && program.programStages[0] && program.programStages[0].programStageDataElements){
             _.each(_.values( program.programStages[0].programStageDataElements), function(prStDe){
                 if( prStDe.dataElement && prStDe.dataElement.optionSet && prStDe.dataElement.optionSet.id ){
                     build = build.then(function() {
