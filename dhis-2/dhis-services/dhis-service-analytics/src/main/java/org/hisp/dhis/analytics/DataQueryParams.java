@@ -394,8 +394,6 @@ public class DataQueryParams
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.apiVersion = this.apiVersion;
-        //params.program = this.program; //TODO
-        //params.programStage = this.programStage; //TODO
         
         params.partitions = new Partitions( this.partitions );
         params.dataType = this.dataType;
