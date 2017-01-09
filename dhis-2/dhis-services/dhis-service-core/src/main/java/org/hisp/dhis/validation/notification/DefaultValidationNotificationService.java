@@ -32,6 +32,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
@@ -119,7 +120,8 @@ public class DefaultValidationNotificationService
         // Flatten the grouped and sorted MessagePairs into single NotificationMessages
         Map<Set<User>, NotificationMessage> flattenedToSummaries = createSummaryNotificationMessages( groupedByRecipients );
 
-        clock.logTime( String.format( "Sending %d summarized notifications", flattenedToSummaries.size() ) );
+        clock.logTime( String.format( "Sending %d summarized notification(s) to %d distinct user(s)",
+            flattenedToSummaries.size(), flattenedToSummaries.keySet().size() ) );
 
         flattenedToSummaries.forEach( this::send );
 
@@ -311,13 +313,13 @@ public class DefaultValidationNotificationService
         }
 
         @Override
-        public boolean equals( Object o )
+        public boolean equals( Object other )
         {
-            if ( this == o ) return true;
+            if ( this == other ) return true;
 
-            if ( !(o instanceof MessagePair) ) return false;
+            if ( !(other instanceof MessagePair) ) return false;
 
-            MessagePair that = (MessagePair) o;
+            MessagePair that = (MessagePair) other;
 
             return new EqualsBuilder()
                 .append( result, that.result )
@@ -337,7 +339,10 @@ public class DefaultValidationNotificationService
         @Override
         public int compareTo( MessagePair other )
         {
-            return this.result.compareTo( other.result );
+            return new CompareToBuilder()
+                .append( this.result, other.result )
+                .append( this.template, other.template )
+                .build();
         }
     }
 }

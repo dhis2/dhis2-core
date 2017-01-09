@@ -180,22 +180,24 @@ public abstract class BaseNotificationMessageRenderer<T>
         return variables.stream()
             .collect( Collectors.toMap(
                 v -> v,
-                v -> resolveValue( getVariableResolvers().get( fromVariableName( v ) ), entity )
+                v -> resolveValue( v, entity )
             ) );
     }
 
-    private String resolveValue( Function<T, String> resolver, T entity )
+    private String resolveValue( String variableName, T entity )
     {
+        Function<T, String> resolver = getVariableResolvers().get( fromVariableName( variableName ) );
+
         if ( resolver == null )
         {
-            log.warn( "Cannot resolve value: resolver function is null" );
+            log.warn( String.format( "Cannot resolve value for expression '%s': no resolver", variableName ) );
 
             return StringUtils.EMPTY;
         }
 
         if ( entity == null )
         {
-            log.warn( "Cannot resolve value: entity is null" );
+            log.warn( String.format( "Cannot resolve value for expression '%s': entity is null", variableName ) );
 
             return StringUtils.EMPTY;
         }
