@@ -138,16 +138,6 @@ public class DataSet
     private int expiryDays;
 
     /**
-     * The start date.
-     */
-    private Date startDate;
-
-    /**
-     * The end date.
-     */
-    private Date endDate;
-
-    /**
      * Days after period end to qualify for timely data submission
      */
     private int timelyDays;
@@ -486,23 +476,6 @@ public class DataSet
     {
         return categoryCombo != null && !DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals( categoryCombo.getName() );
     }
-
-    /**
-     * Indicates if the given period is valid for data entry for this data set.
-     * Returns true if the given period is null.
-     *
-     * @param period the period.
-     */
-    public boolean isValidPeriodForDataEntry( Period period )
-    {
-        if ( period != null )
-        {
-            return (startDate == null || startDate.compareTo( period.getStartDate() ) <= 0)
-                && (endDate == null || endDate.compareTo( period.getEndDate() ) >= 0);
-        }
-
-        return true;
-    }
     
     /**
      * Indicates whether the data set is locked for data entry based on the 
@@ -711,32 +684,6 @@ public class DataSet
     }
 
     @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
-
-    @JsonProperty
-    @Property( value = PropertyType.DATE, required = Property.Value.FALSE )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
-    }
-
-    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getTimelyDays()
     {
@@ -908,8 +855,6 @@ public class DataSet
                 categoryCombo = dataSet.getCategoryCombo();
                 dataEntryForm = dataSet.getDataEntryForm();
                 notificationRecipients = dataSet.getNotificationRecipients();
-                startDate = dataSet.getStartDate();
-                endDate = dataSet.getEndDate();
                 workflow = dataSet.getWorkflow();
             }
             else if ( mergeMode.isMerge() )
@@ -918,8 +863,6 @@ public class DataSet
                 categoryCombo = dataSet.getCategoryCombo() == null ? categoryCombo : dataSet.getCategoryCombo();
                 dataEntryForm = dataSet.getDataEntryForm() == null ? dataEntryForm : dataSet.getDataEntryForm();
                 notificationRecipients = dataSet.getNotificationRecipients() == null ? notificationRecipients : dataSet.getNotificationRecipients();
-                startDate = dataSet.getStartDate() == null ? startDate : dataSet.getStartDate();
-                endDate = dataSet.getEndDate() == null ? endDate : dataSet.getEndDate();
                 workflow = dataSet.getWorkflow() == null ? workflow : dataSet.getWorkflow();
             }
 
