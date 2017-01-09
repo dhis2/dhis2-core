@@ -1306,9 +1306,13 @@ function displayPeriods()
     var periodWhitelist = dhis2.de.dataSets[dataSetId].dataInputPeriods
         .filter(function(dip) { return ( dip.openingDate == "" || new Date( dip.openingDate ) <= Date.now() ) && ( dip.closingDate == "" || Date.now() <= new Date( dip.closingDate )); })
         .map(function(dip) { return dip.period.isoPeriod; });
-
-    periods = periods
-        .filter(function(period) { return periodWhitelist.indexOf(period.iso) > -1});
+  
+    if ( periodWhitelist.length > 0 ) {
+        periods = periods
+            .filter(function (period) {
+                return periodWhitelist.indexOf(period.iso) > -1
+            });
+    }
 
     clearListById( 'selectedPeriodId' );
 
