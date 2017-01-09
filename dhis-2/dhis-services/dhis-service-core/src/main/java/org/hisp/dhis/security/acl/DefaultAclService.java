@@ -105,7 +105,7 @@ public class DefaultAclService implements AclService
 
         if ( haveOverrideAuthority( user )
             || (object.getUser() == null && canCreatePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
-            || (user != null && user.equals( object.getUser() ))
+            || (user != null && object.getUser() != null && user.getUid().equals( object.getUser().getUid() ))
             || ((object instanceof User) && canCreatePrivate( user, object.getClass() ))
             || AccessStringHelper.canWrite( object.getPublicAccess() ) )
         {
