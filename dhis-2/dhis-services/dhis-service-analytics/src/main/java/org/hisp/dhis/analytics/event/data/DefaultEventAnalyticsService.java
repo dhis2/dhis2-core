@@ -82,8 +82,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Lars Helge Overland
  */
@@ -210,7 +208,11 @@ public class DefaultEventAnalyticsService
                 grid.limitGrid( params.getLimit() );
             }
         }
-        
+
+        // ---------------------------------------------------------------------
+        // Meta-data
+        // ---------------------------------------------------------------------
+
         addMetadata( params, grid );
         
         return grid;
@@ -282,44 +284,25 @@ public class DefaultEventAnalyticsService
     
             timer.getTime( "Got events " + grid.getHeight() );
         }
-        
+
         // ---------------------------------------------------------------------
         // Meta-data
         // ---------------------------------------------------------------------
 
-        Map<String, Object> metaData = new HashMap<>();
-        
-        Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
+        addMetadata( params, grid );
 
-        if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
-        {
-            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
-                Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
-        }
-        else
-        {
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
-        }
-
-        User user = securityManager.getCurrentUser( params );
-
-        Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-        
-        if ( params.isHierarchyMeta() )
-        {
-            Map<String, String> parentMap = getParentGraphMap( asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ), roots );
-            
-            metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), parentMap );
-        }
+        // ---------------------------------------------------------------------
+        // Paging
+        // ---------------------------------------------------------------------
 
         if ( params.isPaging() )
         {
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             
-            metaData.put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
+            grid.getMetaData().put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
         }
 
-        return grid.setMetaData( ImmutableMap.copyOf( metaData ) );
+        return grid;
     }
 
     @Override
@@ -438,6 +421,10 @@ public class DefaultEventAnalyticsService
                 {
                     dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
                 }
+                else if ( item.hasOptionSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
             }
 
             if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
@@ -452,6 +439,7 @@ public class DefaultEventAnalyticsService
             User user = securityManager.getCurrentUser( params );
 
             List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            
             Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
             
             if ( params.isHierarchyMeta() )
@@ -464,7 +452,7 @@ public class DefaultEventAnalyticsService
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
-            grid.setMetaData( ImmutableMap.copyOf( metaData ) );
+            grid.setMetaData( metaData );
         }
     }
 }

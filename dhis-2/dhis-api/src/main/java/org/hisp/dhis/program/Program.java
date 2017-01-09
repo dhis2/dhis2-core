@@ -280,6 +280,42 @@ public class Program
     {
         return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() ).collect( Collectors.toList() );
     }
+    
+    /**
+     * Indicates whether this program contains the given data element.
+     */
+    public boolean containsDataElement( DataElement dataElement )
+    {
+        for ( ProgramStage stage : programStages )
+        {
+            for ( ProgramStageDataElement element : stage.getProgramStageDataElements() )
+            {
+                if ( dataElement.equals( element.getDataElement() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Indicates whether this program contains the given tracked entity
+     * attribute.
+     */
+    public boolean containsAttribute( TrackedEntityAttribute attribute )
+    {
+        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
+        {
+            if ( attribute.equals( programAttribute.getAttribute() ) )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
     public ProgramStage getProgramStageByStage( int stage )
     {

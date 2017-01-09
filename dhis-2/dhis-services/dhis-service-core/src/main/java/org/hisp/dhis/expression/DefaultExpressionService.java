@@ -38,6 +38,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.RegexUtils;
@@ -62,13 +63,12 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -267,8 +267,8 @@ public class DefaultExpressionService
             }
         }
 
-        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), valueMap, constantMap,
-            orgUnitCountMap, days, expression.getMissingValueStrategy(),
+        String expressionString = generateExpression( expression.getExplodedExpressionFallback(), 
+            valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(), 
             incompleteValues, aggregateMap );
 
         return expressionString != null ? calculateExpression( expressionString ) : null;
@@ -359,57 +359,58 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
     public Set<DataElement> getDataElementsInExpression( String expression )
     {
-        return getDataElementsInExpressionInternal( OPERAND_PATTERN, expression );
-    }
-
-    private Set<DataElement> getDataElementsInExpressionInternal( Pattern pattern, String expression )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        if ( expression != null )
-        {
-            final Matcher matcher = pattern.matcher( expression );
-
-            while ( matcher.find() )
-            {
-                final DataElement dataElement = dataElementService.getDataElement( matcher.group( 1 ) );
-
-                if ( dataElement != null )
-                {
-                    dataElements.add( dataElement );
-                }
-            }
-        }
-
-        return dataElements;
+        return getIdObjectsInExpression( OPERAND_PATTERN, expression,
+            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) );
     }
 
     @Override
-    @Transactional
     public Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression )
     {
-        Set<DataElementCategoryOptionCombo> optionCombosInExpression = new HashSet<>();
+        return getIdObjectsInExpression( OPTION_COMBO_OPERAND_PATTERN, expression, 
+            ( m  ) -> categoryService.getDataElementCategoryOptionCombo( m.group( 2 ) ) );
+    }
 
-        if ( expression != null )
+    @Override
+    public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
+    {
+        return getIdObjectsInExpression( OU_GROUP_PATTERN, expression, 
+            ( m ) -> organisationUnitGroupService.getOrganisationUnitGroup( m.group( 1 ) ) );
+    }
+
+    /**
+     * Returns a set of identifiable objects which are referenced in
+     * the given expression based on the given regular expression pattern.
+     * 
+     * @param pattern the regular expression pattern to match identifiable objects on.
+     * @param expression the expression where identifiable objects are referenced.
+     * @param provider the provider of identifiable objects, accepts a matcher and 
+     *        provides the object.
+     * @return a set of identifiable objects.
+     */
+    private <T extends IdentifiableObject> Set<T> getIdObjectsInExpression( Pattern pattern, String expression, Function<Matcher, T> provider )
+    {
+        Set<T> objects = new HashSet<>();
+        
+        if ( expression == null )
         {
-            final Matcher matcher = OPTION_COMBO_OPERAND_PATTERN.matcher( expression );
+            return  objects;
+        }
+        
+        final Matcher matcher = pattern.matcher( expression );
 
-            while ( matcher.find() )
+        while ( matcher.find() )
+        {
+            final T object = provider.apply( matcher );
+            
+            if ( object != null )
             {
-                DataElementCategoryOptionCombo categoryOptionCombo = categoryService
-                    .getDataElementCategoryOptionCombo( matcher.group( 2 ) );
-
-                if ( categoryOptionCombo != null )
-                {
-                    optionCombosInExpression.add( categoryOptionCombo );
-                }
+                objects.add( object );
             }
         }
-
-        return optionCombosInExpression;
+        
+        return objects;
     }
 
     @Override
@@ -444,7 +445,8 @@ public class DefaultExpressionService
     {
         Set<BaseDimensionalItemObject> results=new HashSet<BaseDimensionalItemObject>();
 
-        results.addAll( getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, expression ) );
+        results.addAll( getIdObjectsInExpression( DATA_ELEMENT_TOTAL_PATTERN, expression, 
+            ( m ) -> dataElementService.getDataElement( m.group( 1 ) ) ) );
         results.addAll( getOperandsInExpression( expression ) );
 
         return results;
@@ -489,73 +491,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
-    public Set<DataElement> getSampleElementsInExpression( String expression )
-    {
-        Set<String> aggregates = getAggregatesInExpression( expression );
-        
-        HashSet<DataElement> elements = new HashSet<DataElement>();
-        
-        if ( aggregates.size() > 0 )
-        {
-            for ( String aggregate_expression : aggregates )
-            {
-                elements.addAll( getDataElementsInExpressionInternal( 
-                    OPERAND_PATTERN, aggregate_expression ) );
-            }
-        }
-        
-        return elements;
-    }
-
-    @Override
-    @Transactional
-    public Set<DataElement> getDataElementsInIndicators( Collection<Indicator> indicators )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            dataElements.addAll( getDataElementsInExpression( indicator.getNumerator() ) );
-            dataElements.addAll( getDataElementsInExpression( indicator.getDenominator() ) );
-        }
-
-        return dataElements;
-    }
-
-    @Override
-    @Transactional
-    public Set<DataElement> getDataElementTotalsInIndicators( Collection<Indicator> indicators )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            dataElements
-                .addAll( getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, indicator.getNumerator() ) );
-            dataElements.addAll(
-                getDataElementsInExpressionInternal( DATA_ELEMENT_TOTAL_PATTERN, indicator.getDenominator() ) );
-        }
-
-        return dataElements;
-    }
-
-    @Override
-    @Transactional
-    public Set<DataElement> getDataElementWithOptionCombosInIndicators( Collection<Indicator> indicators )
-    {
-        Set<DataElement> dataElements = new HashSet<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            dataElements.addAll( getDataElementsInExpressionInternal( OPTION_COMBO_OPERAND_PATTERN, indicator.getNumerator() ) );
-            dataElements.addAll( getDataElementsInExpressionInternal( OPTION_COMBO_OPERAND_PATTERN, indicator.getDenominator() ) );
-        }
-
-        return dataElements;
-    }
-
-    @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression )
     {
         Set<DimensionalItemObject> dimensionItems = Sets.newHashSet();
@@ -597,30 +532,6 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression )
-    {
-        Set<OrganisationUnitGroup> groupsInExpression = new HashSet<>();
-
-        if ( expression != null )
-        {
-            final Matcher matcher = OU_GROUP_PATTERN.matcher( expression );
-
-            while ( matcher.find() )
-            {
-                final OrganisationUnitGroup group = organisationUnitGroupService
-                    .getOrganisationUnitGroup( matcher.group( 1 ) );
-
-                if ( group != null )
-                {
-                    groupsInExpression.add( group );
-                }
-            }
-        }
-
-        return groupsInExpression;
-    }
-
-    @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators )
     {
         Set<OrganisationUnitGroup> groups = new HashSet<>();
@@ -635,29 +546,6 @@ public class DefaultExpressionService
         }
 
         return groups;
-    }
-
-    @Override
-    @Transactional
-    public void filterInvalidIndicators( List<Indicator> indicators )
-    {
-        if ( indicators != null )
-        {
-            Iterator<Indicator> iterator = indicators.iterator();
-
-            while ( iterator.hasNext() )
-            {
-                Indicator indicator = iterator.next();
-
-                if ( !expressionIsValid( indicator.getNumerator() ).isValid()
-                    || !expressionIsValid( indicator.getDenominator() ).isValid() )
-                {
-                    iterator.remove();
-                    log.warn( "Indicator is invalid: " + indicator + ", " + indicator.getNumerator() + ", "
-                        + indicator.getDenominator() );
-                }
-            }
-        }
     }
 
     @Override
@@ -1066,7 +954,7 @@ public class DefaultExpressionService
         missingValueStrategy = ObjectUtils.firstNonNull( missingValueStrategy, NEVER_SKIP );
 
         // ---------------------------------------------------------------------
-        // Substitute aggregates
+        // Aggregates
         // ---------------------------------------------------------------------
 
         StringBuffer sb = new StringBuffer();
@@ -1213,24 +1101,6 @@ public class DefaultExpressionService
         }
 
         return TextUtils.appendTail( matcher, sb );
-    }
-
-    @Override
-    @Transactional
-    public List<DataElementOperand> getOperandsInIndicators( List<Indicator> indicators )
-    {
-        final List<DataElementOperand> operands = new ArrayList<>();
-
-        for ( Indicator indicator : indicators )
-        {
-            Set<DataElementOperand> temp = getOperandsInExpression( indicator.getExplodedNumerator() );
-            operands.addAll( temp != null ? temp : new HashSet<DataElementOperand>() );
-
-            temp = getOperandsInExpression( indicator.getExplodedDenominator() );
-            operands.addAll( temp != null ? temp : new HashSet<DataElementOperand>() );
-        }
-
-        return operands;
     }
 
     // -------------------------------------------------------------------------

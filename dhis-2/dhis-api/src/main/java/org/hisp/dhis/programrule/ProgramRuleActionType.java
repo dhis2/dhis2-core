@@ -37,6 +37,7 @@ public enum ProgramRuleActionType
     DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
     HIDEFIELD( "hidefield" ),
     HIDESECTION( "hidesection" ),
+    HIDEPROGRAMSTAGE( "hideprogramstage"),
     ASSIGN( "assign" ),
     SHOWWARNING( "showwarning" ),
     WARNINGONCOMPLETE( "warningoncomplete" ),

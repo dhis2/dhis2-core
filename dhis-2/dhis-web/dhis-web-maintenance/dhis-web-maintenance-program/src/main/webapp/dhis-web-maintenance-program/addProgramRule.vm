@@ -39,6 +39,7 @@
 	var i18n_please_enter_alert_message_when_hiding_a_field = '$encoder.jsEscape( $i18n.getString( "please_enter_alert_message_when_hiding_a_field_that_contains_value" ) , "'")';
 	var i18n_please_enter_alert_message_when_hiding_a_section = '$encoder.jsEscape( $i18n.getString( "please_enter_alert_message_when_hiding_a_section_that_contains_values" ) , "'")';
 	var i18n_hide_section = '$encoder.jsEscape( $i18n.getString( "hide_section" ) , "'" )';
+        var i18n_hide_programstage = '$encoder.jsEscape( $i18n.getString( "hide_programstage" ) , "'" )';
         var i18n_data_element_label = '$encoder.jsEscape( $i18n.getString( "data_element" ) , "'" )';
         var i18n_program_attribute_label = '$encoder.jsEscape( $i18n.getString( "program_attribute" ) , "'" )';
 
@@ -50,12 +51,16 @@
 	var sectionSelector = "<select class='actionSections' >";
 	#foreach( $programStage in $program.programStages )
 		#foreach( $section in $programStage.programStageSections )
-			var uid = '$section.uid';
-			var name = '$section.displayName';
-			sectionSelector += "<option value='" + uid + "'>" + name + "</option>";
+			sectionSelector += "<option value='$section.uid'>$section.displayName</option>";
 		#end
 	#end
 	sectionSelector += "</select>";
+
+        var programStageSelector = "<select class='actionStages' >";
+	#foreach( $programStage in $program.programStages )
+                programStageSelector += "<option value='$programStage.uid'>$programStage.displayName</option>";
+	#end
+	programStageSelector += "</select>";
 </script>
 
 <h3>$i18n.getString( "create_new_program_rule" )</h3>
