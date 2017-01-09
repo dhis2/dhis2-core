@@ -326,6 +326,13 @@ public class HibernateDataValueStore
         String sourcePrefix = source.getPath();
         Integer sourceId = source.getId();
 
+        if ( periodIdList.size() == 0 )
+        {
+            log.debug("sumRecursiveDeflatedDataValues: no periods found.");
+
+            return result;
+        }
+
         String castType = statementBuilder.getDoubleColumnType();
 
         String sql = "select dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid, " +
