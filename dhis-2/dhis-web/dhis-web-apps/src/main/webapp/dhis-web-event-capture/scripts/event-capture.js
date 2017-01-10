@@ -236,7 +236,7 @@ function filterMissingPrograms( programs )
 
     var ids = [];
     _.each( _.values( programs ), function ( program ) {        
-        if(program.programStages && program.programStages[0].programStageDataElements){
+        if(program.programStages && program.programStages[0] && program.programStages[0].programStageDataElements){
             build = build.then(function() {
                 var d = $.Deferred();
                 var p = d.promise();
