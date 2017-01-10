@@ -47,7 +47,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -168,7 +167,7 @@ public class DefaultValidationRuleService
 
     @Override
     public Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
-        DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendAlerts, I18nFormat format )
+        DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format )
     {
         log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
 
@@ -189,7 +188,7 @@ public class DefaultValidationRuleService
 
         formatPeriods( results, format );
 
-        if ( sendAlerts )
+        if ( sendNotifications )
         {
             notificationService.sendNotifications( new HashSet<>( results ) );
         }
@@ -229,7 +228,7 @@ public class DefaultValidationRuleService
         // Find all rules which might generate notifications
         Set<ValidationRule> rules = getValidationRulesWithNotificationTemplates();
 
-        Set<Period> periods = getAlertPeriodsFromRules( rules );
+        Set<Period> periods = extractNotificationPeriods( rules );
 
         Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
             Collectors.toMap( Function.identity(), v -> getDataElements( v ) ) );
@@ -324,57 +323,28 @@ public class DefaultValidationRuleService
     }
 
     /**
-     * Gets the current and most recent periods to search, based on
-     * the period types from the rules to run.
-     * <p>
-     * For each period type, return the period containing the current date
-     * (if any), and the most recent previous period. Add whichever of
-     * these periods actually exist in the database.
-     * <p>
-     * TODO If the last successful daily run was more than one day ago, we might
-     * add some additional periods of type DailyPeriodType not to miss any
-     * alerts.
+     * Get the current and most recent periods to use when performing validation
+     * for generating notifications (previously 'alerts').
      *
-     * @param rules the ValidationRules to be evaluated on this run
-     * @return periods to search for new alerts
-     */
-    private Set<Period> getAlertPeriodsFromRules( Set<ValidationRule> rules )
-    {
-        Set<Period> periods = new HashSet<>();
-
-        Set<PeriodType> rulePeriodTypes = getPeriodTypesFromRules( rules );
-
-        for ( PeriodType periodType : rulePeriodTypes )
-        {
-            Period currentPeriod = periodType.createPeriod();
-            Period previousPeriod = periodType.getPreviousPeriod( currentPeriod );
-            
-            periods.addAll( periodService.getIntersectingPeriodsByPeriodType( periodType,
-                previousPeriod.getStartDate(), currentPeriod.getEndDate() ) );
-        }
-
-        return periods;
-    }
-
-    /**
-     * Gets the Set of period types found in a set of rules.
-     * <p>
-     * Note that that we have to get periodType from periodService,
-     * otherwise the ID will not be present.)
+     * The periods are filtered against existing (persisted) periods.
      *
-     * @param rules validation rules of interest
-     * @return period types contained in those rules
+     * TODO Consider:
+     *      This method assumes that the last successful validation run was one day ago.
+     *      If this is not the case (more than one day ago) adding additional (daily)
+     *      periods to 'fill the gap' could be considered.
      */
-    private Set<PeriodType> getPeriodTypesFromRules( Collection<ValidationRule> rules )
+    private Set<Period> extractNotificationPeriods( Set<ValidationRule> rules )
     {
-        Set<PeriodType> rulePeriodTypes = new HashSet<>();
+        return rules.stream()
+            .map( rule -> periodService.getPeriodTypeByName( rule.getPeriodType().getName() ) )
+            .map( periodType -> {
+                Period current = periodType.createPeriod(), previous = periodType.getPreviousPeriod( current );
+                Date start = previous.getStartDate(), end = current.getEndDate();
 
-        for ( ValidationRule rule : rules )
-        {
-            rulePeriodTypes.add( periodService.getPeriodTypeByName( rule.getPeriodType().getName() ) );
-        }
-
-        return rulePeriodTypes;
+                return periodService.getIntersectingPeriodsByPeriodType( periodType, start, end );
+            } )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toSet() );
     }
 
     // -------------------------------------------------------------------------
