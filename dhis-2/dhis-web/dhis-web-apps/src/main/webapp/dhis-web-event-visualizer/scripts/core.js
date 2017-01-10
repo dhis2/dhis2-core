@@ -1185,7 +1185,7 @@ Ext.onReady( function() {
 
 					// properties
                     layout.showValues = Ext.isBoolean(config.showData) ? config.showData : (Ext.isBoolean(config.showValues) ? config.showValues : true);
-                    layout.showTrendLine = Ext.isBoolean(config.regression) ? config.regression : (Ext.isBoolean(config.showTrendLine) ? config.showTrendLine : false);
+                    layout.regressionType = Ext.isString(config.regressionType) ? config.regressionType : 'NONE';
                     layout.hideEmptyRows = Ext.isBoolean(config.hideEmptyRows) ? config.hideEmptyRows : (Ext.isBoolean(config.hideEmptyRows) ? config.hideEmptyRows : true);
                     layout.hideNaData = Ext.isBoolean(config.hideNaData) ? config.hideNaData : false;
                     layout.completedOnly = Ext.isBoolean(config.completedOnly) ? config.completedOnly : false;

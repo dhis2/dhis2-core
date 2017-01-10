@@ -133,14 +133,14 @@ public class ShowUpdateValidationRuleGroupFormAction
         groupMembers = new ArrayList<>( validationRuleGroup.getMembers() );
 
         Collections.sort( groupMembers );
-        
-        availableUserGroupsToAlert = new ArrayList<>( userGroupService.getAllUserGroups() );
-
-        userGroupsToAlert = new ArrayList<>( validationRuleGroup.getUserGroupsToAlert() );
-        
-        Collections.sort( userGroupsToAlert );
-
-        alertByOrgUnits = validationRuleGroup.isAlertByOrgUnits();
+//
+//        availableUserGroupsToAlert = new ArrayList<>( userGroupService.getAllUserGroups() );
+//
+//        userGroupsToAlert = new ArrayList<>( validationRuleGroup.getUserGroupsToAlert() );
+//
+//        Collections.sort( userGroupsToAlert );
+//
+//        alertByOrgUnits = validationRuleGroup.isAlertByOrgUnits();
 
         return SUCCESS;
     }

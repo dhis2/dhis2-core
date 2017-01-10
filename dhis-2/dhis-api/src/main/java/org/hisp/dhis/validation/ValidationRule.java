@@ -183,22 +183,6 @@ public class ValidationRule
     }
 
     /**
-     * Indicates whether this validation rule has user groups to alert.
-     */
-    public boolean hasUserGroupsToAlert()
-    {
-        for ( ValidationRuleGroup group : groups )
-        {
-            if ( group.hasUserGroupsToAlert() )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Returns the instruction if it is not null or empty, if not returns the
      * left side description, operator and right side description if not null or
      * empty, if not returns null.

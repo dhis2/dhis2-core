@@ -128,18 +128,18 @@ public class UpdateValidationRuleGroupAction
                 group.getMembers().add( validationRuleService.getValidationRule( Integer.valueOf( id ) ) );
             }
         }
-        
-        group.getUserGroupsToAlert().clear();
-
-        if ( userGroupsToAlert != null )
-        {
-            for ( String id : userGroupsToAlert )
-            {
-                group.getUserGroupsToAlert().add( userGroupService.getUserGroup( Integer.valueOf( id ) ) );
-            }
-        }
-
-        group.setAlertByOrgUnits( alertByOrgUnits );
+//
+//        group.getUserGroupsToAlert().clear();
+//
+//        if ( userGroupsToAlert != null )
+//        {
+//            for ( String id : userGroupsToAlert )
+//            {
+//                group.getUserGroupsToAlert().add( userGroupService.getUserGroup( Integer.valueOf( id ) ) );
+//            }
+//        }
+//
+//        group.setAlertByOrgUnits( alertByOrgUnits );
 
         validationRuleService.updateValidationRuleGroup( group );
         
