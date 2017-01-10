@@ -175,8 +175,8 @@ public class DefaultValidationRuleService
         
         Collection<ValidationRule> rules = group != null ? group.getMembers() : getAllValidationRules();
         
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
-            Collectors.toMap( Function.identity(), this::getDataElements ) );
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), this::getDataElements ) );
 
         User user = currentUserService.getCurrentUser();
         
@@ -206,8 +206,8 @@ public class DefaultValidationRuleService
 
         Collection<ValidationRule> rules = getValidationRulesForDataElements( dataSet.getDataElements() );
         
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
-            Collectors.toMap( Function.identity(), v -> getDataElements( v ) ) );
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), this::getDataElements ) );
 
         User user = currentUserService.getCurrentUser();
         
@@ -230,8 +230,8 @@ public class DefaultValidationRuleService
 
         Set<Period> periods = extractNotificationPeriods( rules );
 
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
-            Collectors.toMap( Function.identity(), v -> getDataElements( v ) ) );
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), this::getDataElements ) );
 
         Date lastScheduledRun = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_MONITORING_RUN );
 
