@@ -30,7 +30,6 @@ package org.hisp.dhis.validation.notification;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -118,12 +117,11 @@ public class DefaultValidationNotificationService
         Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = createRecipientsToMessagePairsMap( messagePairs );
 
         // Flatten the grouped and sorted MessagePairs into single NotificationMessages
-        Map<Set<User>, NotificationMessage> flattenedToSummaries = createSummaryNotificationMessages( groupedByRecipients );
+        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages( groupedByRecipients );
 
-        clock.logTime( String.format( "Sending %d summarized notification(s) to %d distinct user(s)",
-            flattenedToSummaries.size(), flattenedToSummaries.keySet().size() ) );
+        clock.logTime( String.format( "Sending %d summarized notification(s)", summaryMessages.size() ) );
 
-        flattenedToSummaries.forEach( this::send );
+        summaryMessages.forEach( this::sendNotification );
 
         clock.logTime( "Done sending validation notifications" );
     }
@@ -151,11 +149,8 @@ public class DefaultValidationNotificationService
      */
     private Map<MessagePair, NotificationMessage> renderNotificationMessages( Set<MessagePair> pairs )
     {
-        ImmutableMap.Builder<MessagePair, NotificationMessage> mapBuilder = ImmutableMap.builder();
-
-        pairs.forEach( pair -> mapBuilder.put( pair, notificationMessageRenderer.render( pair.result, pair.template ) ) );
-
-        return mapBuilder.build();
+        return pairs.stream()
+            .collect( Collectors.toMap( p -> p, p -> notificationMessageRenderer.render( p.result, p.template ) ) );
     }
 
     /**
@@ -277,7 +272,7 @@ public class DefaultValidationNotificationService
             .collect( Collectors.toSet() );
     }
 
-    private void send( Set<User> users, NotificationMessage notificationMessage )
+    private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
     {
         messageService.sendMessage(
             notificationMessage.getSubject(),
