@@ -155,10 +155,7 @@ public class MetadataVersionDelegate
 
         try
         {
-            if ( !isVersionExists )
-            {
-                metadataVersionService.addVersion( version );
-            }
+            metadataVersionService.addVersion( version );
         }
         catch ( Exception e )
         {
