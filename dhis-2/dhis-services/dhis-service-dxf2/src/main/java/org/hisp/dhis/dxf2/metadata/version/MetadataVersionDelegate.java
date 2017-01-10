@@ -151,7 +151,6 @@ public class MetadataVersionDelegate
     public synchronized void addNewMetadataVersion( MetadataVersion version )
     {
         version.setImportDate( new Date() );
-        boolean isVersionExists = metadataVersionService.getVersionByName( version.getName() ) != null;
 
         try
         {

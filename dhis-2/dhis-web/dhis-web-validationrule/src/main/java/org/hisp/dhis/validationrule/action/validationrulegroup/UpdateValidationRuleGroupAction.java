@@ -31,7 +31,6 @@ package org.hisp.dhis.validationrule.action.validationrulegroup;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
 
@@ -55,13 +54,6 @@ public class UpdateValidationRuleGroupAction
         this.validationRuleService = validationRuleService;
     }
     
-    private UserGroupService userGroupService;
-
-    public void setUserGroupService( UserGroupService userGroupService )
-    {
-        this.userGroupService = userGroupService;
-    }
-
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -94,20 +86,6 @@ public class UpdateValidationRuleGroupAction
         this.groupMembers = groupMembers;
     }
 
-    private Set<String> userGroupsToAlert;
-
-    public void setUserGroupsToAlert( Set<String> userGroupsToAlert )
-    {
-        this.userGroupsToAlert = userGroupsToAlert;
-    }
-
-    private boolean alertByOrgUnits;
-
-    public void setAlertByOrgUnits( boolean alertByOrgUnits )
-    {
-        this.alertByOrgUnits = alertByOrgUnits;
-    }
-
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -128,19 +106,7 @@ public class UpdateValidationRuleGroupAction
                 group.getMembers().add( validationRuleService.getValidationRule( Integer.valueOf( id ) ) );
             }
         }
-//
-//        group.getUserGroupsToAlert().clear();
-//
-//        if ( userGroupsToAlert != null )
-//        {
-//            for ( String id : userGroupsToAlert )
-//            {
-//                group.getUserGroupsToAlert().add( userGroupService.getUserGroup( Integer.valueOf( id ) ) );
-//            }
-//        }
-//
-//        group.setAlertByOrgUnits( alertByOrgUnits );
-
+        
         validationRuleService.updateValidationRuleGroup( group );
         
         return SUCCESS;
