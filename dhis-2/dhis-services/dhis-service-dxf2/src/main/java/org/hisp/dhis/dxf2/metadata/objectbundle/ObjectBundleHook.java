@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorReport;
 
 import java.util.List;
 
@@ -39,6 +40,15 @@ import java.util.List;
  */
 public interface ObjectBundleHook
 {
+    /**
+     * Hook to run custom validation code. Run before any other validation.
+     *
+     * @param object Object to validate
+     * @param bundle Current validation phase bundle
+     * @return Empty list if not errors, if errors then populated with one or more ErrorReports
+     */
+    <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle );
+
     /**
      * Run before commit phase has started.
      *
