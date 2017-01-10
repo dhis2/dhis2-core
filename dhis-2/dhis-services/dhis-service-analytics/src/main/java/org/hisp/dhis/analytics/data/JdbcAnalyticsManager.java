@@ -73,8 +73,6 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
-    //TODO optimize when all options in dimensions are selected
-
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
