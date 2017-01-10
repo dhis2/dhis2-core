@@ -34,17 +34,19 @@ package org.hisp.dhis.common;
  * is a numeric value and must match a value of this enum. If omitted, the
  * <code>DEFAULT</code> value will be used. The API resources can also be mapped
  * to all versions using the <code>ALL</code> value.
+ * <p>
+ * TODO The <code>DEFAULT</code> version must be updated for each release.
  * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum DhisApiVersion
 {
-    DEFAULT( -1 ),
-    ALL( -2, true ),
+    ALL( -1, true ),
     V23( 23 ),
     V24( 24 ),
     V25( 25 ),
-    V26( 26 );
+    V26( 26 ),
+    DEFAULT( V26.getVersion() );
 
     final int version;
 
