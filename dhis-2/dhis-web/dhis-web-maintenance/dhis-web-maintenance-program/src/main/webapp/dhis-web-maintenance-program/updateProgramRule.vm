@@ -141,7 +141,7 @@
 			</td>			
 			<td>
 				<fieldset style="width:95%; border:1px solid #aaa;">
-					<textarea size="10" id='condition' name='condition' style="width:98%;border:none;height:150px;">$programRule.condition</textarea>
+					<textarea size="10" id='condition' name='condition' style="width:98%;border:none;height:150px;" maxlength="255">$programRule.condition</textarea>
 				</fieldset>
 				<br>								
 				<input type='button' class="small-button" onclick='insertVariable( this );' value="+" />
