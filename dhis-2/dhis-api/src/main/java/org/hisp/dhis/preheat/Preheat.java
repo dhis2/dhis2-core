@@ -66,11 +66,11 @@ public class Preheat
 
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, Set<String>> mandatoryAttributes = new HashMap<>();
+    private Map<Class<?>, Set<String>> mandatoryAttributes = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, Set<String>> uniqueAttributes = new HashMap<>();
+    private Map<Class<?>, Set<String>> uniqueAttributes = new HashMap<>();
 
-    private Map<Class<? extends IdentifiableObject>, Map<String, Map<String, String>>> uniqueAttributeValues = new HashMap<>();
+    private Map<Class<?>, Map<String, Map<String, String>>> uniqueAttributeValues = new HashMap<>();
 
     public Preheat()
     {
@@ -390,32 +390,6 @@ public class Preheat
         this.usernames = usernames;
     }
 
-    public static boolean isDefaultClass( IdentifiableObject object )
-    {
-        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
-    }
-
-    public static boolean isDefaultClass( Class<?> klass )
-    {
-        return DataElementCategory.class.isAssignableFrom( klass ) || DataElementCategoryOption.class.isAssignableFrom( klass )
-            || DataElementCategoryCombo.class.isAssignableFrom( klass ) || DataElementCategoryOptionCombo.class.isAssignableFrom( klass );
-    }
-
-    public static boolean isDefault( IdentifiableObject object )
-    {
-        return isDefaultClass( object ) && "default".equals( object.getName() );
-    }
-
-    public static Class<?> getRealClass( Class<?> klass )
-    {
-        if ( ProxyFactory.isProxyClass( klass ) )
-        {
-            klass = klass.getSuperclass();
-        }
-
-        return klass;
-    }
-
     public void setUniquenessMap( Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniquenessMap )
     {
         this.uniquenessMap = uniquenessMap;
@@ -446,33 +420,59 @@ public class Preheat
         this.periodTypeMap = periodTypeMap;
     }
 
-    public Map<Class<? extends IdentifiableObject>, Set<String>> getMandatoryAttributes()
+    public Map<Class<?>, Set<String>> getMandatoryAttributes()
     {
         return mandatoryAttributes;
     }
 
-    public void setMandatoryAttributes( Map<Class<? extends IdentifiableObject>, Set<String>> mandatoryAttributes )
+    public void setMandatoryAttributes( Map<Class<?>, Set<String>> mandatoryAttributes )
     {
         this.mandatoryAttributes = mandatoryAttributes;
     }
 
-    public Map<Class<? extends IdentifiableObject>, Set<String>> getUniqueAttributes()
+    public Map<Class<?>, Set<String>> getUniqueAttributes()
     {
         return uniqueAttributes;
     }
 
-    public void setUniqueAttributes( Map<Class<? extends IdentifiableObject>, Set<String>> uniqueAttributes )
+    public void setUniqueAttributes( Map<Class<?>, Set<String>> uniqueAttributes )
     {
         this.uniqueAttributes = uniqueAttributes;
     }
 
-    public Map<Class<? extends IdentifiableObject>, Map<String, Map<String, String>>> getUniqueAttributeValues()
+    public Map<Class<?>, Map<String, Map<String, String>>> getUniqueAttributeValues()
     {
         return uniqueAttributeValues;
     }
 
-    public void setUniqueAttributeValues( Map<Class<? extends IdentifiableObject>, Map<String, Map<String, String>>> uniqueAttributeValues )
+    public void setUniqueAttributeValues( Map<Class<?>, Map<String, Map<String, String>>> uniqueAttributeValues )
     {
         this.uniqueAttributeValues = uniqueAttributeValues;
+    }
+
+    public static Class<?> getRealClass( Class<?> klass )
+    {
+        if ( ProxyFactory.isProxyClass( klass ) )
+        {
+            klass = klass.getSuperclass();
+        }
+
+        return klass;
+    }
+
+    public static boolean isDefaultClass( IdentifiableObject object )
+    {
+        return object != null && isDefaultClass( getRealClass( object.getClass() ) );
+    }
+
+    public static boolean isDefaultClass( Class<?> klass )
+    {
+        return DataElementCategory.class.isAssignableFrom( klass ) || DataElementCategoryOption.class.isAssignableFrom( klass )
+            || DataElementCategoryCombo.class.isAssignableFrom( klass ) || DataElementCategoryOptionCombo.class.isAssignableFrom( klass );
+    }
+
+    public static boolean isDefault( IdentifiableObject object )
+    {
+        return isDefaultClass( object ) && "default".equals( object.getName() );
     }
 }

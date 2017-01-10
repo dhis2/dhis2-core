@@ -1,5 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -61,6 +63,7 @@ import com.google.api.client.util.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -323,6 +326,13 @@ public class HibernateDataValueStore
         String sourcePrefix = source.getPath();
         Integer sourceId = source.getId();
 
+        if ( periodIdList.size() == 0 )
+        {
+            log.debug("sumRecursiveDeflatedDataValues: no periods found.");
+
+            return result;
+        }
+
         String castType = statementBuilder.getDoubleColumnType();
 
         String sql = "select dataelementid, categoryoptioncomboid, attributeoptioncomboid, periodid, " +
@@ -389,19 +399,19 @@ public class HibernateDataValueStore
             return map;
         }
 
-        String joinCo = coDimensionConstraints == null && cogDimensionConstraints == null ? "" :
+        String joinCo = coDimensionConstraints == null && cogDimensionConstraints == null ? StringUtils.EMPTY :
             "join categoryoptioncombos_categoryoptions c_c on dv.attributeoptioncomboid = c_c.categoryoptioncomboid ";
 
-        String joinCog = cogDimensionConstraints == null ? "" :
+        String joinCog = cogDimensionConstraints == null ? StringUtils.EMPTY :
             "join categoryoptiongroupmembers cogm on c_c.categoryoptionid = cogm.categoryoptionid ";
 
-        String whereCo = coDimensionConstraints == null ? "" :
+        String whereCo = coDimensionConstraints == null ? StringUtils.EMPTY :
             "and c_c.categoryoptionid in (" + TextUtils.getCommaDelimitedString( getIdentifiers( coDimensionConstraints ) ) + ") ";
 
-        String whereCog = cogDimensionConstraints == null ? "" :
+        String whereCog = cogDimensionConstraints == null ? StringUtils.EMPTY :
             "and cogm.categoryoptiongroupid in (" + TextUtils.getCommaDelimitedString( getIdentifiers( cogDimensionConstraints ) ) + ") ";
 
-        String whereCombo = attributeCombo == null ? "" :
+        String whereCombo = attributeCombo == null ? StringUtils.EMPTY :
             "and dv.attributeoptioncomboid = " + attributeCombo.getId() + " ";
 
         String sql = "select de.uid, coc.uid, dv.attributeoptioncomboid, dv.value, dv.lastupdated, p.startdate, p.enddate " +
@@ -432,8 +442,6 @@ public class HibernateDataValueStore
             Date periodEndDate = rowSet.getDate( 7 );
             long periodInterval = periodEndDate.getTime() - periodStartDate.getTime();
 
-            log.trace( "row: " + dataElement + " = " + value + " [" + periodStartDate + " : " + periodEndDate + "]");
-
             if ( value != null )
             {
                 DataElementOperand dataElementOperand = new DataElementOperand( dataElement, categoryOptionCombo );
@@ -441,10 +449,10 @@ public class HibernateDataValueStore
                 Long existingPeriodInterval = checkForDuplicates.getValue( attributeOptionComboId, dataElementOperand );
 
                 if ( existingPeriodInterval != null && existingPeriodInterval < periodInterval )
-                {
-                    // Don't overwrite the previous value if for a shorter interval
-                    continue;
+                {                    
+                    continue; // Do not overwrite the previous value if for a shorter interval
                 }
+                
                 map.putEntry( attributeOptionComboId, dataElementOperand, value );
 
                 if ( lastUpdatedMap != null )
@@ -459,9 +467,9 @@ public class HibernateDataValueStore
         return map;
     }
     
-    private List<Integer> getIds( Collection<PeriodType> periodTypes )
+    private Set<Integer> getIds( Collection<PeriodType> periodTypes )
     {
-        List<Integer> ids = new ArrayList<>();
+        Set<Integer> ids = new HashSet<>();
         
         for ( PeriodType pt : periodTypes )
         {

@@ -1,5 +1,7 @@
 package org.hisp.dhis.configuration;
 
+import org.apache.commons.lang3.StringUtils;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -29,10 +31,13 @@ package org.hisp.dhis.configuration;
  */
 
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
@@ -44,13 +49,9 @@ public class ConfigurationDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
+    @Autowired
+    private ConfigurationService configService;
+    
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
@@ -64,24 +65,48 @@ public class ConfigurationDeletionHandler
     @Override
     public String allowDeleteUserGroup( UserGroup userGroup )
     {
-        String sql = "SELECT COUNT(*) FROM configuration where feedbackrecipientsid=" + userGroup.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        UserGroup feedbackRecipients = configService.getConfiguration().getFeedbackRecipients();
+        
+        return feedbackRecipients != null ? StringUtils.EMPTY : null;
     }
 
     @Override
     public String allowDeleteDataElementGroup( DataElementGroup dataElementGroup )
     {
-        String sql = "SELECT COUNT(*) FROM configuration where infrastructuraldataelementsid=" + dataElementGroup.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        DataElementGroup infrastructuralDataElements = configService.getConfiguration().getInfrastructuralDataElements();
+        
+        return infrastructuralDataElements != null ? StringUtils.EMPTY : null;
     }
-
+    
+    @Override
+    public String allowDeleteIndicatorGroup( IndicatorGroup indicatorGroup )
+    {
+        IndicatorGroup infrastructuralIndicators = configService.getConfiguration().getInfrastructuralIndicators();
+        
+        return infrastructuralIndicators != null ? StringUtils.EMPTY : null;
+    }
+    
     @Override
     public String allowDeleteOrganisationUnitLevel( OrganisationUnitLevel level )
     {
-        String sql = "SELECT COUNT(*) FROM configuration where offlineorgunitlevelid=" + level.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        OrganisationUnitLevel offlineLevel = configService.getConfiguration().getOfflineOrganisationUnitLevel();
+        
+        return offlineLevel != null ? StringUtils.EMPTY : null;
     }
+    
+    @Override
+    public String allowDeleteOrganisationUnit( OrganisationUnit organisationUnit )
+    {
+        OrganisationUnit selfRegOrgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
+        
+        return selfRegOrgUnit != null ? StringUtils.EMPTY : null;
+    }
+
+    @Override
+    public String allowDeleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    {
+        UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
+        
+        return selfRegRole != null ? StringUtils.EMPTY : null;
+    }    
 }

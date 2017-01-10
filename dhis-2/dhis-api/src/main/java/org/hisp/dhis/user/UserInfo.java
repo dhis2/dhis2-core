@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.mobile;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2016, University of Oslo
@@ -28,21 +28,70 @@ package org.hisp.dhis.api.mobile;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertTrue;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.hisp.dhis.api.mobile.model.OrgUnits;
-import org.hisp.dhis.api.mobile.support.DataStreamSerializableMessageConverter;
-import org.hisp.dhis.api.mobile.support.MediaTypes;
-import org.junit.Test;
-
-public class DataStreamSerializableMessageConverterTest
+/**
+ * Represents minimal user information.
+ * 
+ * @author Lars Helge Overland
+ */
+public class UserInfo
 {
-
-    @Test
-    public void testAssigning()
+    private int id;
+    
+    private String username;
+    
+    private Set<String> authorities = new HashSet<>();
+    
+    protected UserInfo()
     {
-        boolean writeable = new DataStreamSerializableMessageConverter().canWrite( OrgUnits.class,
-            MediaTypes.MOBILE_SERIALIZED_TYPE );
-        assertTrue( writeable );
+    }
+    
+    public UserInfo( int id, String username, Set<String> authorities )
+    {
+        this.id = id;
+        this.username = username;
+        this.authorities = authorities;
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+    
+    public boolean isSuper()
+    {
+        return authorities.contains( UserAuthorityGroup.AUTHORITY_ALL );
+    }
+    
+    public static UserInfo fromUser( User user )
+    {
+        if ( user == null )
+        {
+            return null;
+        }
+        
+        UserCredentials credentials = user.getUserCredentials();
+        
+        return new UserInfo( credentials.getId(), credentials.getUsername(), credentials.getAllAuthorities() );
+    }
+    
+    // -------------------------------------------------------------------------
+    // Get methods
+    // -------------------------------------------------------------------------
+
+    public int getId()
+    {
+        return id;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public Set<String> getAuthorities()
+    {
+        return authorities;
     }
 }

@@ -80,8 +80,6 @@ public class PredictorStoreTest
 
     private DataElement dataElementX;
 
-    private Set<DataElement> dataElements;
-
     private Set<DataElementCategoryOptionCombo> optionCombos;
 
     private DataElementCategoryOptionCombo defaultCombo;
@@ -116,21 +114,14 @@ public class PredictorStoreTest
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementX );
 
-        dataElements = new HashSet<>();
-
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        dataElements.add( dataElementC );
-        dataElements.add( dataElementD );
-
         DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         defaultCombo = categoryOptionCombo;
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
 
-        expressionA = new Expression( "expressionA", "descriptionA", dataElements );
-        expressionB = new Expression( "expressionB", "descriptionB", dataElements );
+        expressionA = new Expression( "expressionA", "descriptionA" );
+        expressionB = new Expression( "expressionB", "descriptionB" );
 
         expressionService.addExpression( expressionB );
         expressionService.addExpression( expressionA );
@@ -288,15 +279,13 @@ public class PredictorStoreTest
         dataElementsB.add( dataElementC );
         dataElementsB.add( dataElementD );
 
-        Set<DataElement> dataElementsC = new HashSet<>();
-
         Set<DataElement> dataElementsD = new HashSet<>();
         dataElementsD.addAll( dataElementsA );
         dataElementsD.addAll( dataElementsB );
 
-        Expression expression1 = new Expression( "Expression1", "Expression1", dataElementsA );
-        Expression expression2 = new Expression( "Expression2", "Expression2", dataElementsB );
-        Expression expression3 = new Expression( "Expression3", "Expression3", dataElementsC );
+        Expression expression1 = new Expression( "Expression1", "Expression1" );
+        Expression expression2 = new Expression( "Expression2", "Expression2" );
+        Expression expression3 = new Expression( "Expression3", "Expression3" );
 
         expressionService.addExpression( expression1 );
         expressionService.addExpression( expression2 );

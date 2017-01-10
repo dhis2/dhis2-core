@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics;
  */
 
 /**
+ * Filter operators for measures.
+ * 
  * @author Lars Helge Overland
  */
 public enum MeasureFilter

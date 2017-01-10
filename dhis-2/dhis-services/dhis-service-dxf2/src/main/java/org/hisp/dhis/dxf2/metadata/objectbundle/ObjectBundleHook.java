@@ -1,8 +1,8 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
- * All rights reserved.
+ * Copyright (c) 2004-2017, University of Oslo
+ *  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
 
 import java.util.List;
 
@@ -40,6 +40,15 @@ import java.util.List;
  */
 public interface ObjectBundleHook
 {
+    /**
+     * Hook to run custom validation code. Run before any other validation.
+     *
+     * @param object Object to validate
+     * @param bundle Current validation phase bundle
+     * @return Empty list if not errors, if errors then populated with one or more ErrorReports
+     */
+    <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle );
+
     /**
      * Run before commit phase has started.
      *

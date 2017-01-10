@@ -29,7 +29,7 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.common.GenericNameableObjectStore;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,7 +62,7 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface AttributeStore
-    extends GenericIdentifiableObjectStore<Attribute>
+    extends GenericNameableObjectStore<Attribute>
 {
     String ID = AttributeStore.class.getName();
 
@@ -86,12 +86,12 @@ public interface AttributeStore
         .put( Document.class, "documentAttribute" )
         .put( Option.class, "optionAttribute" )
         .put( OptionSet.class, "optionSetAttribute" )
-        .put( Constant.class, "constantAttribute")
-        .put( LegendSet.class, "legendSetAttribute")
-        .put( ProgramIndicator.class, "programIndicatorAttribute")
-        .put( SqlView.class, "sqlViewAttribute")
-        .put( Section.class, "sectionAttribute")
-        .put( DataElementCategoryOptionCombo.class, "categoryOptionComboAttribute")
+        .put( Constant.class, "constantAttribute" )
+        .put( LegendSet.class, "legendSetAttribute" )
+        .put( ProgramIndicator.class, "programIndicatorAttribute" )
+        .put( SqlView.class, "sqlViewAttribute" )
+        .put( Section.class, "sectionAttribute" )
+        .put( DataElementCategoryOptionCombo.class, "categoryOptionComboAttribute" )
         .build();
 
     /**

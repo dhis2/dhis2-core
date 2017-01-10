@@ -172,7 +172,7 @@ public class BulkSmsGateway
         {
             uriBuilder = UriComponentsBuilder.fromHttpUrl( bulkSmsConfiguration.getUrlTemplate() );
         }
-        else if ( type.equals( SubmissionType.BATCH ) )
+        else // SubmissionType.BATCH
         {
             uriBuilder = UriComponentsBuilder.fromHttpUrl( bulkSmsConfiguration.getUrlTemplateForBatchSms() );
         }

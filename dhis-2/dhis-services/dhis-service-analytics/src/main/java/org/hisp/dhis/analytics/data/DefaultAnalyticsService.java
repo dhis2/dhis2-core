@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -54,6 +55,7 @@ import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -149,8 +151,6 @@ public class DefaultAnalyticsService
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
-
-    //TODO use immutable maps for meta data
     
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params )
@@ -165,8 +165,6 @@ public class DefaultAnalyticsService
         params = securityManager.withDimensionConstraints( params );
 
         queryPlanner.validate( params );
-
-        params.conform();
 
         return getAggregatedDataValueGridInternal( params );
     }
@@ -718,41 +716,53 @@ public class DefaultAnalyticsService
             Map<String, Object> metaData = new HashMap<>();
 
             // -----------------------------------------------------------------
-            // Items element
+            // Items / names element
             // -----------------------------------------------------------------
 
-            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );
-            
-            // -----------------------------------------------------------------
-            // Names element
-            // -----------------------------------------------------------------
-
-            Map<String, String> uidNameMap = AnalyticsUtils.getDimensionItemNameMap( params );
             Map<String, String> cocNameMap = AnalyticsUtils.getCocNameMap( params );
-            uidNameMap.putAll( cocNameMap );
-            uidNameMap.put( DATA_X_DIM_ID, DISPLAY_NAME_DATA_X );
-
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );            
+            
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
+            {
+                metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), AnalyticsUtils.getDimensionMetadataItemMap( params ) );
+            }
+            else
+            {
+                Map<String, String> uidNameMap = AnalyticsUtils.getDimensionItemNameMap( params );
+                uidNameMap.putAll( cocNameMap );
+                uidNameMap.put( DATA_X_DIM_ID, DISPLAY_NAME_DATA_X );
+                metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+            }
 
             // -----------------------------------------------------------------
             // Item order elements
             // -----------------------------------------------------------------
 
+            Map<String, Object> dimensionItems = new HashMap<>();
+            
             Calendar calendar = PeriodType.getCalendar();
 
             List<String> periodUids = calendar.isIso8601() ?
                 getDimensionalItemIds( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) :
                 getLocalPeriodIdentifiers( params.getDimensionOrFilterItems( PERIOD_DIM_ID ), calendar );
 
-            metaData.put( PERIOD_DIM_ID, periodUids );
-            metaData.put( CATEGORYOPTIONCOMBO_DIM_ID, cocNameMap.keySet() );
+            dimensionItems.put( PERIOD_DIM_ID, periodUids );
+            dimensionItems.put( CATEGORYOPTIONCOMBO_DIM_ID, cocNameMap.keySet() );
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
-                if ( !metaData.keySet().contains( dim.getDimension() ) )
+                if ( !dimensionItems.keySet().contains( dim.getDimension() ) )
                 {
-                    metaData.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
+                    dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
+            }
+            
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
+            {
+                metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
+            }
+            else
+            {
+                metaData.putAll( dimensionItems );
             }
 
             // -----------------------------------------------------------------
@@ -774,7 +784,7 @@ public class DefaultAnalyticsService
                 metaData.put( AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY.getKey(), getParentNameGraphMap( organisationUnits, roots, true ) );
             }
 
-            grid.setMetaData( metaData );
+            grid.setMetaData( ImmutableMap.copyOf( metaData ) );
         }
     }
 

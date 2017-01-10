@@ -44,10 +44,13 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -87,6 +90,9 @@ public class EventQueryPlannerTest
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
     private OrganisationUnit ouC;
+    
+    private LegendSet lsA;    
+    private OptionSet osA;
     
     @Autowired
     private EventQueryPlanner queryPlanner;
@@ -144,6 +150,14 @@ public class EventQueryPlannerTest
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
+        
+        lsA = createLegendSet( 'A' );
+        
+        idObjectManager.save( lsA );
+        
+        osA = new OptionSet( "OptionSetA", ValueType.TEXT );
+        
+        idObjectManager.save( osA );
     }
     
     @Test
@@ -318,5 +332,38 @@ public class EventQueryPlannerTest
             assertTrue( query.hasValueDimension() );
             assertTrue( query.isCollapseDataDimensions() );
         }
+    }    
+
+    @Test
+    public void validateSuccesA()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
+        
+        queryPlanner.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateFailureNoStartEndDatePeriods()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
+        
+        queryPlanner.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateInvalidQueryItem()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withOrganisationUnits( Lists.newArrayList( ouB ) )
+            .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
+        
+        queryPlanner.validate( params );
     }
 }

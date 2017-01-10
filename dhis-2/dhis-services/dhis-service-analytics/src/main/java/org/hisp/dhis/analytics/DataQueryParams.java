@@ -76,6 +76,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -83,8 +84,6 @@ import com.google.common.collect.Sets;
 /**
  * Class representing query parameters for retrieving aggregated data from the
  * analytics service.
- * 
- * TODO finish builder pattern instantiation
  * 
  * @author Lars Helge Overland
  */
@@ -247,7 +246,7 @@ public class DataQueryParams
     /**
      * The API version used for the request.
      */
-    protected DhisApiVersion apiVersion;
+    protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
 
     // -------------------------------------------------------------------------
     // Event transient properties
@@ -393,9 +392,8 @@ public class DataQueryParams
         params.startDate = this.startDate;
         params.endDate = this.endDate;
         params.apiVersion = this.apiVersion;
-        //params.program = this.program; //TODO
-        //params.programStage = this.programStage; //TODO
         
+        params.currentUser = this.currentUser;
         params.partitions = new Partitions( this.partitions );
         params.dataType = this.dataType;
         params.periodType = this.periodType;
@@ -405,6 +403,7 @@ public class DataQueryParams
         params.restrictByOrgUnitOpeningClosedDate = this.restrictByOrgUnitOpeningClosedDate;
         params.restrictByCategoryOptionStartEndDate = this.restrictByCategoryOptionStartEndDate;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
+        params.processingHints = new HashSet<>( this.processingHints );
         
         return params;
     }
@@ -412,24 +411,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Logic read methods
     // -------------------------------------------------------------------------
-    
-    /**
-     * Ensures conformity for this query. The category option combo dimension
-     * can only be present if the data element dimension exists and the indicator 
-     * and data set dimensions do not exist.
-     */
-    public DataQueryParams conform()
-    {
-        if ( !( !getDataElements().isEmpty() && getDataElementOperands().isEmpty() && getIndicators().isEmpty() && getReportingRates().isEmpty() ) )
-        {
-            removeDimension( CATEGORYOPTIONCOMBO_DIM_ID );
-        }
         
-        //TODO program data elements / attributes
-        
-        return this;
-    }
-    
     /**
      * Returns a key representing a group of queries which should be run in 
      * sequence. Currently queries with different aggregation type are run in
@@ -1024,6 +1006,14 @@ public class DataQueryParams
         
         return items;
     }
+    
+    /**
+     * Indicates whether this query has a data period type.
+     */
+    public boolean hasDataPeriodType()
+    {
+        return dataPeriodType != null;
+    }
 
     /**
      * Indicates whether this query has a start and end date.
@@ -1074,7 +1064,7 @@ public class DataQueryParams
     {
         return getFilterReportingRates().size() == 1 && getFilterOptions( DATA_X_DIM_ID ).size() == 1;
     }
-    
+        
     /**
      * Indicates whether this query has a current user specified.
      */
@@ -1084,57 +1074,19 @@ public class DataQueryParams
     }
     
     // -------------------------------------------------------------------------
-    // Logic write methods TODO remove public write methods
+    // Supportive protected methods
     // -------------------------------------------------------------------------
 
     /**
      * Removes the dimension or filter with the given identifier.
      */
-    public DataQueryParams removeDimensionOrFilter( String dimension )
+    protected DataQueryParams removeDimensionOrFilter( String dimension )
     {
         removeDimension( dimension );
         removeFilter( dimension );
         
         return this;
     }
-
-    /**
-     * Replaces the periods of this query with the corresponding data periods.
-     * Sets the period type to the data period type. This method is relevant only 
-     * when then the data period type has lower frequency than the aggregation 
-     * period type. This is valid because disaggregation is allowed for data
-     * with average aggregation operator.
-     */
-    public void replaceAggregationPeriodsWithDataPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
-    {
-        if ( isDisaggregation() && dataPeriodType != null )
-        {
-            this.periodType = this.dataPeriodType.getName();
-            
-            if ( !getPeriods().isEmpty() ) // Period is dimension
-            {
-                setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
-            }
-            else // Period is filter
-            {
-                setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
-            }
-        }
-    }
-    
-    /**
-     * Removes the filter with the given identifier.
-     */
-    public DataQueryParams removeFilter( String filter )
-    {
-        this.filters.remove( new BaseDimensionalObject( filter ) );
-        
-        return this;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive protected methods
-    // -------------------------------------------------------------------------
 
     /**
      * Sets the given options for the given dimension. If the dimension exists, 
@@ -1194,11 +1146,42 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
 
     /**
+     * Replaces the periods of this query with the corresponding data periods.
+     * Sets the period type to the data period type. This method is relevant only 
+     * when then the data period type has lower frequency than the aggregation 
+     * period type. This is valid because disaggregation is allowed for data
+     * with average aggregation operator.
+     */
+    private void replaceAggregationPeriodsWithDataPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
+    {        
+        this.periodType = this.dataPeriodType.getName();
+        
+        if ( !getPeriods().isEmpty() ) // Period is dimension
+        {
+            setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
+        }
+        else // Period is filter
+        {
+            setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, dataPeriodType.getName().toLowerCase(), new ArrayList<>( dataPeriodAggregationPeriodMap.keySet() ) );
+        }
+    }
+    
+    /**
      * Removes the dimension with the given identifier.
      */
     private DataQueryParams removeDimension( String dimension )
     {
         this.dimensions.remove( new BaseDimensionalObject( dimension ) );
+        
+        return this;
+    }
+
+    /**
+     * Removes the filter with the given identifier.
+     */
+    private DataQueryParams removeFilter( String filter )
+    {
+        this.filters.remove( new BaseDimensionalObject( filter ) );
         
         return this;
     }
@@ -1552,12 +1535,14 @@ public class DataQueryParams
     @Override
     public String toString()
     {
-        Map<String, Object> map = new HashMap<>();
-        map.put( "Dimensions", dimensions );
-        map.put( "Filters", filters );
-        map.put( "Aggregation type", aggregationType );
-        
-        return map.toString(); //TODO
+        return ImmutableMap.<String, Object>builder()
+            .put( "Dimensions", dimensions )
+            .put( "Filters", filters )
+            .put( "Aggregation type", aggregationType )
+            .put( "Measure criteria", measureCriteria )
+            .put( "Output format", outputFormat )
+            .put( "API version", apiVersion )
+            .build().toString();
     }
     
     // -------------------------------------------------------------------------
@@ -1763,6 +1748,14 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
 
     /**
+     * Returns all data dimension items part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllDataDimensionItems()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getDimensionOptions( DATA_X_DIM_ID ), getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+    
+    /**
      * Returns all indicators part of a dimension or filter.
      */
     public List<DimensionalItemObject> getAllIndicators()
@@ -1813,7 +1806,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Get helpers for dimensions
     // -------------------------------------------------------------------------
-
+    
     /**
      * Returns all indicators part of the data dimension.
      */
@@ -1898,7 +1891,7 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Get helpers for filters
     // -------------------------------------------------------------------------
-
+    
     /**
      * Returns all indicators part of the data filter.
      */
@@ -2353,6 +2346,12 @@ public class DataQueryParams
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
+            return this;
+        }
+        
+        public Builder withDataPeriodsForAggregationPeriods( ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap )
+        {
+            this.params.replaceAggregationPeriodsWithDataPeriods( dataPeriodAggregationPeriodMap );
             return this;
         }
         

@@ -34,13 +34,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodType;
@@ -180,23 +180,6 @@ public class ValidationRule
     public String getDescriptionNameFallback()
     {
         return description != null && !description.trim().isEmpty() ? description : name;
-    }
-
-    /**
-     * Gets the data elements to evaluate for the current period. For
-     * validation-type rules this means all data elements. For monitoring-type
-     * rules this means just the left side elements.
-     *
-     * @return the data elements to evaluate for the current period.
-     */
-    public Set<DataElement> getCurrentDataElements()
-    {
-        Set<DataElement> currentDataElements =
-            new HashSet<>( leftSide.getDataElementsInExpression() );
-
-        currentDataElements.addAll( rightSide.getDataElementsInExpression() );
-
-        return currentDataElements;
     }
 
     /**

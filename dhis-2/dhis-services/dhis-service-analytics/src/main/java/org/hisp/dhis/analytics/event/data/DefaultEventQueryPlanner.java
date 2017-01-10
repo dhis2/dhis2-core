@@ -152,6 +152,14 @@ public class DefaultEventQueryPlanner
         {
             violation = "Cluster field must be specified when bbox or cluster size are specified";
         }
+
+        for ( QueryItem item : params.getItemsAndItemFilters() )
+        {
+            if ( item.hasLegendSet() && item.hasOptionSet() )
+            {
+                violation = "Query item cannot specify both legend set and option set: " + item.getItemId();
+            }
+        }
         
         if ( violation != null )
         {

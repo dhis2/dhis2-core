@@ -29,39 +29,24 @@ package org.hisp.dhis.common;
  */
 
 /**
+ * Enum representing web API versions. The API version is exposed through
+ * the API URL at <code>/api/{version}/{resource}</code>, where <code>{version}</code>
+ * is a numeric value and must match a value of this enum. If omitted, the
+ * <code>DEFAULT</code> value will be used. The API resources can also be mapped
+ * to all versions using the <code>ALL</code> value.
+ * <p>
+ * TODO The <code>DEFAULT</code> version must be updated for each release.
+ * 
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum DhisApiVersion
 {
-    /**
-     * Default mapping /api/name
-     */
-    DEFAULT( -1 ),
-
-    /**
-     * Map to all versions, not including default.
-     */
-    ALL( -2, true ),
-
-    /**
-     * /api/23/name
-     */
+    ALL( -1, true ),
     V23( 23 ),
-
-    /**
-     * /api/24/name
-     */
     V24( 24 ),
-
-    /**
-     * /api/25/name
-     */
     V25( 25 ),
-
-    /**
-     * /api/26/name
-     */
-    V26( 26 );
+    V26( 26 ),
+    DEFAULT( V26.getVersion() );
 
     final int version;
 
@@ -94,24 +79,59 @@ public enum DhisApiVersion
         return ignore;
     }
 
-    public boolean isAfter( DhisApiVersion dhisApiVersion )
+    /**
+     * Indicates whether this version is equal to the given
+     * version.
+     * 
+     * @param apiVersion the API version.
+     */
+    public boolean eq( DhisApiVersion apiVersion )
     {
-        return version < dhisApiVersion.getVersion();
+        return version == apiVersion.getVersion();
+    }
+    
+    /**
+     * Indicates whether this version is less than the given 
+     * version.
+     * 
+     * @param apiVersion the API version.
+     */
+    public boolean lt( DhisApiVersion apiVersion )
+    {
+        return version < apiVersion.getVersion();
     }
 
-    public boolean isAfterOrSame( DhisApiVersion dhisApiVersion )
+    /**
+     * Indicates whether this version is less than or equal to 
+     * the given version.
+     * 
+     * @param apiVersion the API version.
+     */
+    public boolean le( DhisApiVersion apiVersion )
     {
-        return version <= dhisApiVersion.getVersion();
+        return version <= apiVersion.getVersion();
     }
 
-    public boolean isBefore( DhisApiVersion dhisApiVersion )
+    /**
+     * Indicates whether this version is greater than the given 
+     * version.
+     * 
+     * @param apiVersion the API version.
+     */
+    public boolean gt( DhisApiVersion apiVersion )
     {
-        return version > dhisApiVersion.getVersion();
+        return version > apiVersion.getVersion();
     }
 
-    public boolean isBeforeOrSame( DhisApiVersion dhisApiVersion )
+    /**
+     * Indicates whether this version is greater than or equal to 
+     * the given version.
+     * 
+     * @param apiVersion the API version.
+     */
+    public boolean ge( DhisApiVersion apiVersion )
     {
-        return version >= dhisApiVersion.getVersion();
+        return version >= apiVersion.getVersion();
     }
 
     public static DhisApiVersion getVersion( int version )

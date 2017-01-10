@@ -145,6 +145,12 @@
     <property name="transientIdentifiableProperties" value="true" />
   </bean>
 
+  <bean id="org.hisp.dhis.dataset.DataInputPeriodStore" class="org.hisp.dhis.dataset.hibernate.HibernateDataInputPeriodStore">
+    <property name="clazz" value="org.hisp.dhis.dataset.DataInputPeriod" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
+
   <bean id="org.hisp.dhis.dataelement.DataElementGroupStore" class="org.hisp.dhis.dataelement.hibernate.HibernateDataElementGroupStore">
     <property name="clazz" value="org.hisp.dhis.dataelement.DataElementGroup" />
     <property name="sessionFactory" ref="sessionFactory" />
@@ -937,9 +943,19 @@
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
+    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
   </bean>
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
+
+  <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
+
+  <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
+    class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
+    <property name="messageBatchService" ref="org.hisp.dhis.outboundmessage.OutboundMessageService" />
+    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
+    <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
+  </bean>
 
   <bean id="org.hisp.dhis.dataelement.DataElementCategoryService" class="org.hisp.dhis.dataelement.DefaultDataElementCategoryService">
     <property name="categoryStore" ref="org.hisp.dhis.dataelement.CategoryStore" />
@@ -949,6 +965,8 @@
     <property name="categoryOptionGroupStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupStore" />
     <property name="categoryOptionGroupSetStore" ref="org.hisp.dhis.dataelement.CategoryOptionGroupSetStore" />
     <property name="idObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
+    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
+    <property name="aclService" ref="org.hisp.dhis.security.acl.AclService" />
     <property name="deletionManager" ref="deletionManager" />
   </bean>
 
@@ -1745,10 +1763,6 @@
     <property name="sectionService" ref="org.hisp.dhis.dataset.SectionService" />
   </bean>
 
-  <bean id="org.hisp.dhis.expression.ExpressionDeletionHandler" class="org.hisp.dhis.expression.ExpressionDeletionHandler">
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-  </bean>
-
   <bean id="org.hisp.dhis.indicator.IndicatorDeletionHandler" class="org.hisp.dhis.indicator.IndicatorDeletionHandler">
     <property name="indicatorService" ref="org.hisp.dhis.indicator.IndicatorService" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
@@ -1806,9 +1820,7 @@
   <bean id="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler"
     class="org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler" />
 
-  <bean id="org.hisp.dhis.configuration.ConfigurationDeletionHandler" class="org.hisp.dhis.configuration.ConfigurationDeletionHandler">
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
-  </bean>
+  <bean id="org.hisp.dhis.configuration.ConfigurationDeletionHandler" class="org.hisp.dhis.configuration.ConfigurationDeletionHandler" />
 
   <bean id="org.hisp.dhis.message.MessageConversationDeletionHandler" class="org.hisp.dhis.message.MessageConversationDeletionHandler">
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />

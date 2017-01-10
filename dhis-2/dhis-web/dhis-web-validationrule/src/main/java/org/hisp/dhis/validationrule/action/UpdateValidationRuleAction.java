@@ -31,7 +31,6 @@ package org.hisp.dhis.validationrule.action;
 import com.opensymphony.xwork2.Action;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.expression.Expression;
-import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -58,13 +57,6 @@ public class UpdateValidationRuleAction
     public void setValidationRuleService( ValidationRuleService validationRuleService )
     {
         this.validationRuleService = validationRuleService;
-    }
-
-    private ExpressionService expressionService;
-
-    public void setExpressionService( ExpressionService expressionService )
-    {
-        this.expressionService = expressionService;
     }
 
     private PeriodService periodService;
@@ -189,12 +181,10 @@ public class UpdateValidationRuleAction
         leftSide.setExpression( leftSideExpression );
         leftSide.setDescription( leftSideDescription );
         leftSide.setMissingValueStrategy( safeValueOf( leftSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
-        leftSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( leftSideExpression ) );
 
         rightSide.setExpression( rightSideExpression );
         rightSide.setDescription( rightSideDescription );
         rightSide.setMissingValueStrategy( safeValueOf( rightSideMissingValueStrategy, SKIP_IF_ANY_VALUE_MISSING ) );
-        rightSide.setDataElementsInExpression( expressionService.getDataElementsInExpression( rightSideExpression ) );
 
         PeriodType periodType = periodService.getPeriodTypeByName( periodTypeName );
         validationRule.setPeriodType( periodType == null ? null : periodService.getPeriodTypeByClass( periodType.getClass() ) );

@@ -823,6 +823,8 @@ public class TableAlteror
         executeSql( "update expression set missingvaluestrategy = 'NEVER_SKIP' where missingvaluestrategy is null nullifblank is false" );
         executeSql( "alter table expression alter column missingvaluestrategy set not null" );
         executeSql( "alter table expression drop column nullifblank" );
+        executeSql( "drop table expressiondataelement" );
+        executeSql( "drop table expressionsampleelement" );
 
         executeSql( "alter table dataelementcategoryoption alter column startdate type date" );
         executeSql( "alter table dataelementcategoryoption alter column enddate type date" );

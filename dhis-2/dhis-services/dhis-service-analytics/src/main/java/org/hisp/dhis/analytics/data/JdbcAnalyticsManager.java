@@ -105,7 +105,12 @@ public class JdbcAnalyticsManager
         {
             ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = params.getDataPeriodAggregationPeriodMap();
 
-            params.replaceAggregationPeriodsWithDataPeriods( dataPeriodAggregationPeriodMap );
+            if ( params.isDisaggregation() && params.hasDataPeriodType() )
+            {
+                params = DataQueryParams.newBuilder( params )
+                    .withDataPeriodsForAggregationPeriods( dataPeriodAggregationPeriodMap )
+                    .build();
+            }
 
             String sql = getSelectClause( params );
 

@@ -95,15 +95,21 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         if ( references == null ) return;
 
         Set<DataElementOperand> dataElementOperands = (Set<DataElementOperand>) references.get( "compulsoryDataElementOperands" );
-        if ( dataElementOperands == null || dataElementOperands.isEmpty() ) return;
 
-        for ( DataElementOperand dataElementOperand : dataElementOperands )
+        if ( dataElementOperands != null && !dataElementOperands.isEmpty() )
         {
-            preheatService.connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-            sessionFactory.getCurrentSession().save( dataElementOperand );
-            dataSet.getCompulsoryDataElementOperands().add( dataElementOperand );
+
+            for ( DataElementOperand dataElementOperand : dataElementOperands )
+            {
+                preheatService
+                    .connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                sessionFactory.getCurrentSession().save( dataElementOperand );
+                dataSet.getCompulsoryDataElementOperands().add( dataElementOperand );
+            }
+
+            sessionFactory.getCurrentSession().update( dataSet );
+
         }
 
-        sessionFactory.getCurrentSession().update( dataSet );
     }
 }

@@ -133,22 +133,6 @@ public class Predictor
         return description != null && !description.trim().isEmpty() ? description : name;
     }
 
-    /**
-     * Gets the data sources needed from the target period to evaluate the predictor
-     */
-    public Set<DataElement> getPresentDataNeeded()
-    {
-        return generator.getDataElementsInExpression();
-    }
-
-    /**
-     * Gets the data sources needed from past sample periods to evaluate the predictor
-     */
-    public Set<DataElement> getSampleDataNeeded()
-    {
-        return generator.getSampleElementsInExpression();
-    }
-
     // -------------------------------------------------------------------------
     // Set and get methods
     // -------------------------------------------------------------------------

@@ -29,6 +29,7 @@
 package org.hisp.dhis.dxf2.metadata.tasks;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
@@ -40,6 +41,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.ExpectedException;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -55,6 +57,7 @@ import static org.mockito.Mockito.*;
 /**
  * @author aamerm
  */
+@Category( IntegrationTest.class )
 public class MetadataSyncTaskTest
     extends DhisSpringTest
 {

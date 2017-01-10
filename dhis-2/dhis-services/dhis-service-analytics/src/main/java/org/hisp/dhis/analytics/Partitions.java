@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Class representing analytics table partitions.
+ * 
  * @author Lars Helge Overland
  */
 public class Partitions

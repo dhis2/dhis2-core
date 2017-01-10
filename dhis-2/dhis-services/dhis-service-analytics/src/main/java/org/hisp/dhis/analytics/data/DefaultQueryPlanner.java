@@ -157,9 +157,14 @@ public class DefaultQueryPlanner
 
         if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && params.getAllDataElements().isEmpty() )
         {
-            violation = "Category option combos cannot be specified when data elements are not specified";
+            violation = "Assigned categories cannot be specified when data elements are not specified";
         }
 
+        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
+        {
+            violation = "Assigned categories can only be specified together with data elements, not indicators or reporting rates";
+        }
+        
         if ( !nonAggDataElements.isEmpty() )
         {
             violation = "Data elements must be of a value and aggregation type that allow aggregation: " + getUids( nonAggDataElements );

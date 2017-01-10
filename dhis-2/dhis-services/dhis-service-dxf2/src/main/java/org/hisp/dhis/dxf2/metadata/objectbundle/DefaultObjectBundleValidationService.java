@@ -95,6 +95,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     @Autowired
     private UserService userService;
 
+    @Autowired( required = false )
+    private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
+
     @Override
     public ObjectBundleValidationReport validate( ObjectBundle bundle )
     {
@@ -125,6 +128,8 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
             if ( bundle.getImportMode().isCreateAndUpdate() )
             {
+                typeReport.merge( runValidationHooks( klass, nonPersistedObjects, bundle ) );
+                typeReport.merge( runValidationHooks( klass, persistedObjects, bundle ) );
                 typeReport.merge( validateSecurity( klass, nonPersistedObjects, bundle, ImportStrategy.CREATE ) );
                 typeReport.merge( validateSecurity( klass, persistedObjects, bundle, ImportStrategy.UPDATE ) );
                 typeReport.merge( validateBySchemas( klass, nonPersistedObjects, bundle ) );
@@ -143,10 +148,14 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     typeReport.getStats().incIgnored();
                 }
 
+                typeReport.getStats().incCreated( nonPersistedObjects.size() );
+                typeReport.getStats().incUpdated( persistedObjects.size() );
+
                 typeReport.merge( checkReferences );
             }
             else if ( bundle.getImportMode().isCreate() )
             {
+                typeReport.merge( runValidationHooks( klass, nonPersistedObjects, bundle ) );
                 typeReport.merge( validateSecurity( klass, nonPersistedObjects, bundle, ImportStrategy.CREATE ) );
                 typeReport.merge( validateForCreate( klass, persistedObjects, bundle ) );
                 typeReport.merge( validateBySchemas( klass, nonPersistedObjects, bundle ) );
@@ -161,10 +170,13 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     typeReport.getStats().incIgnored();
                 }
 
+                typeReport.getStats().incCreated( nonPersistedObjects.size() );
+
                 typeReport.merge( checkReferences );
             }
             else if ( bundle.getImportMode().isUpdate() )
             {
+                typeReport.merge( runValidationHooks( klass, persistedObjects, bundle ) );
                 typeReport.merge( validateSecurity( klass, persistedObjects, bundle, ImportStrategy.UPDATE ) );
                 typeReport.merge( validateForUpdate( klass, nonPersistedObjects, bundle ) );
                 typeReport.merge( validateBySchemas( klass, persistedObjects, bundle ) );
@@ -179,12 +191,16 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                     typeReport.getStats().incIgnored();
                 }
 
+                typeReport.getStats().incUpdated( persistedObjects.size() );
+
                 typeReport.merge( checkReferences );
             }
             else if ( bundle.getImportMode().isDelete() )
             {
                 typeReport.merge( validateSecurity( klass, persistedObjects, bundle, ImportStrategy.DELETE ) );
                 typeReport.merge( validateForDelete( klass, nonPersistedObjects, bundle ) );
+
+                typeReport.getStats().incDeleted( persistedObjects.size() );
             }
 
             validation.addTypeReport( typeReport );
@@ -205,6 +221,45 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     private void handleDefaults( List<IdentifiableObject> objects )
     {
         objects.removeIf( Preheat::isDefault );
+    }
+
+    private TypeReport runValidationHooks( Class<? extends IdentifiableObject> klass, List<IdentifiableObject> objects, ObjectBundle bundle )
+    {
+        TypeReport typeReport = new TypeReport( klass );
+
+        if ( objects == null || objects.isEmpty() )
+        {
+            return typeReport;
+        }
+
+        Iterator<IdentifiableObject> iterator = objects.iterator();
+        int idx = 0;
+
+        while ( iterator.hasNext() )
+        {
+            IdentifiableObject object = iterator.next();
+            List<ErrorReport> errorReports = new ArrayList<>();
+            objectBundleHooks.forEach( hook -> errorReports.addAll( hook.validate( object, bundle ) ) );
+
+            if ( !errorReports.isEmpty() )
+            {
+                ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+                objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
+                objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3000,
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( bundle.getUser() ),
+                    bundle.getPreheatIdentifier().getIdentifiersWithName( object ) ) );
+
+                typeReport.addObjectReport( objectReport );
+                typeReport.getStats().incIgnored();
+
+                iterator.remove();
+                continue;
+            }
+
+            idx++;
+        }
+
+        return typeReport;
     }
 
     private void validateAtomicity( ObjectBundle bundle, ObjectBundleValidationReport validation )

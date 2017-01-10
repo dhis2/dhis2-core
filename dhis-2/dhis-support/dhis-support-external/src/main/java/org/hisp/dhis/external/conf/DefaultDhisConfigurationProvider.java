@@ -117,7 +117,6 @@ public class DefaultDhisConfigurationProvider
             Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
             
             this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
-            this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_EMAIL.getKey(), json.get( "client_email" ) );
         }
         catch ( LocationManagerException ex )
         {

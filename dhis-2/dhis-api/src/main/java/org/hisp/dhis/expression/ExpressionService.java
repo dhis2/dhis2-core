@@ -176,26 +176,6 @@ public interface ExpressionService
     Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days );
 
-    /**
-     * Generates the calculated value for the given expression base on the values
-     * supplied in the value map, constant map and days.
-     *
-     * @param expression      the expression which holds the formula for the calculation.
-     * @param valueMap        the mapping between data element operands and values to
-     *                        use in the calculation.
-     * @param constantMap     the mapping between the constant uid and value to use
-     *                        in the calculation.
-     * @param orgUnitCountMap the mapping between organisation unit group uid and
-     *                        count of organisation units to use in the calculation.
-     * @param days            the number of days to use in the calculation.
-     * @param set             of data element operands that have values but they are incomplete
-     *                        (for example due to aggregation from organisationUnit children where
-     *                        not all children had a value.)
-     * @return the calculated value as a double.
-     */
-    Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
-        Set<DataElementOperand> incompleteValues );
 
     /**
      * Generates the calculated value for the given expression base on the values
@@ -261,6 +241,15 @@ public interface ExpressionService
     Set<DataElementCategoryOptionCombo> getOptionCombosInExpression( String expression );
 
     /**
+     * Returns all OrganisationUnitGroups in the given expression string. Returns
+     * an set list if the given indicators are null or empty.
+     *
+     * @param expression the expression string.
+     * @return a Set of OrganisationUnitGroups included in the expression string.
+     */
+    Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression );
+
+    /**
      * Returns all operands included in an expression string. The operand is on
      * the form #{data-element-id.category-option combo-id}. Only operands with
      * a category option combo will be included. Requires that the expression
@@ -293,44 +282,6 @@ public interface ExpressionService
     Set<String> getAggregatesInExpression( String expression );
 
     /**
-     * Returns all data elements included in aggregates from the given
-     * expression string. Returns an empty set if the given expression
-     * is null.
-     *
-     * @param expression the expression string.
-     * @return a set of data elements included in aggregate  expressions
-     * within the expression string.
-     */
-    Set<DataElement> getSampleElementsInExpression( String expression );
-
-    /**
-     * Returns all data elements which are present in the numerator and denominator
-     * of the given indicators.
-     *
-     * @param indicators the collection of indicators.
-     * @return a set of data elements.
-     */
-    Set<DataElement> getDataElementsInIndicators( Collection<Indicator> indicators );
-
-    /**
-     * Returns all data elements which are present in the numerator and denominator
-     * of the given indicators which represent totals.
-     *
-     * @param indicators the collection of indicators.
-     * @return a set of data elements.
-     */
-    Set<DataElement> getDataElementTotalsInIndicators( Collection<Indicator> indicators );
-
-    /**
-     * Returns all data elements which are present in the numerator and denominator
-     * of the given indicators which include category option combinations.
-     *
-     * @param indicators the collection of indicators.
-     * @return a set of data elements.
-     */
-    Set<DataElement> getDataElementWithOptionCombosInIndicators( Collection<Indicator> indicators );
-
-    /**
      * Returns all dimensional item objects which are present in the given expression.
      *
      * @param expression the expression.
@@ -348,15 +299,6 @@ public interface ExpressionService
     Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators );
 
     /**
-     * Returns all OrganisationUnitGroups in the given expression string. Returns
-     * an set list if the given indicators are null or empty.
-     *
-     * @param expression the expression string.
-     * @return a Set of OrganisationUnitGroups included in the expression string.
-     */
-    Set<OrganisationUnitGroup> getOrganisationUnitGroupsInExpression( String expression );
-
-    /**
      * Returns all OrganisationUnitGroups in the numerator and denominator
      * expressions in the given Indicators. Returns an empty set if the given
      * indicators are null or empty.
@@ -365,14 +307,6 @@ public interface ExpressionService
      * @return a Set of OrganisationUnitGroups.
      */
     Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators );
-
-    /**
-     * Filters indicators from the given collection where the numerator and /
-     * or the denominator are invalid.
-     *
-     * @param indicators collection of Indicators.
-     */
-    void filterInvalidIndicators( List<Indicator> indicators );
 
     /**
      * Tests whether the expression is valid. Returns a positive value if the
@@ -442,13 +376,4 @@ public interface ExpressionService
     String generateExpression( String expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         MissingValueStrategy missingValueStrategy );
-
-    /**
-     * Returns all Operands included in the formulas for the given collection of
-     * Indicators. Requires that the explodedNumerator and explodedDenominator
-     * properties have been populated in order to handle totals.
-     *
-     * @param indicators the collection of Indicators.
-     */
-    List<DataElementOperand> getOperandsInIndicators( List<Indicator> indicators );
 }
