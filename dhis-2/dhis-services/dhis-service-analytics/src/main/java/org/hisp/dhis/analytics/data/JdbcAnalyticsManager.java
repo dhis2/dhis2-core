@@ -265,7 +265,7 @@ public class JdbcAnalyticsManager
         {
             sql = "value";
         }
-        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and undefined //TODO
+        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and null
         {
             sql = "sum(value)";
         }

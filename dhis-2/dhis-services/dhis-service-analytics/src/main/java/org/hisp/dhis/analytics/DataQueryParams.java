@@ -416,7 +416,7 @@ public class DataQueryParams
      * Returns a key representing a group of queries which should be run in 
      * sequence. Currently queries with different aggregation type are run in
      * sequence. It is not allowed for the implementation to differentiate on
-     * dimensional objects. TODO test including tableName (partition)
+     * dimensional objects.
      */
     public String getSequentialQueryGroupKey()
     {
@@ -1092,8 +1092,6 @@ public class DataQueryParams
      * Sets the given options for the given dimension. If the dimension exists, 
      * replaces the dimension items with the given items. If not, creates a new 
      * dimension with the given items.
-     * 
-     * TODO check if we need add new
      */
     protected DataQueryParams setDimensionOptions( String dimension, DimensionType type, String dimensionName, List<DimensionalItemObject> options )
     {

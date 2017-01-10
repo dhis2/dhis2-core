@@ -374,8 +374,6 @@ public class DefaultEventAnalyticsService
      * Adds meta data values to the given grid based on the given data query
      * parameters.
      * 
-     * TODO handle legend sets for ITEMS.
-     *
      * @param params the data query parameters.
      * @param grid the grid.
      */
@@ -393,7 +391,7 @@ public class DefaultEventAnalyticsService
             
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
             
-            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
                 metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
                     Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
@@ -427,7 +425,7 @@ public class DefaultEventAnalyticsService
                 }
             }
 
-            if ( params.getApiVersion().eq( DhisApiVersion.V26 ) ) //TODO change to ge
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
             {
                 metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
             }
