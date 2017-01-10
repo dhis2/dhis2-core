@@ -93,8 +93,6 @@ public class DefaultQueryPlanner
     // DefaultQueryPlanner implementation
     // -------------------------------------------------------------------------
 
-    //TODO shortcut group by methods when only 1 option?
-
     @Override
     public void validate( DataQueryParams params )
         throws IllegalQueryException

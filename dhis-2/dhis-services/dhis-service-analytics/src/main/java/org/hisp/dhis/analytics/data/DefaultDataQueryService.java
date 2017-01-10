@@ -205,7 +205,6 @@ public class DefaultDataQueryService
         return list;
     }
 
-    // TODO verify that current user can read each dimension and dimension item
     // TODO optimize so that org unit levels + boundary are used in query instead of fetching all org units one by one
 
     @Override
