@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -57,13 +56,6 @@ public class ShowUpdateValidationRuleGroupFormAction
         this.validationRuleService = validationRuleService;
     }
     
-    private UserGroupService userGroupService;
-
-    public void setUserGroupService( UserGroupService userGroupService )
-    {
-        this.userGroupService = userGroupService;
-    }
-
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------

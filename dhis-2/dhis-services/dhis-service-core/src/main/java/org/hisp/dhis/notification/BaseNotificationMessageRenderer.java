@@ -224,7 +224,7 @@ public abstract class BaseNotificationMessageRenderer<T>
     {
         if ( StringUtils.isEmpty( input ) )
         {
-            return "";
+            return StringUtils.EMPTY;
         }
 
         return replaceWithValues( input, expressionToValueMap );
