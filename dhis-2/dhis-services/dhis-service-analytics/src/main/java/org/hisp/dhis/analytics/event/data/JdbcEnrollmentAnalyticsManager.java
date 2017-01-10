@@ -240,8 +240,6 @@ public class JdbcEnrollmentAnalyticsManager
                 params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             return function + "(" + expression + ")";
-            
-            //TODO check if expression is valid and safe SQL
         }
         else
         {

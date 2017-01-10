@@ -83,8 +83,6 @@ public class PartitionUtils
         return earliest;
     }
 
-    //TODO optimize by including required filter periods only
-
     public static Partitions getPartitions( Date startDate, Date endDate, String tablePrefix, String tableSuffix, Set<String> validPartitions )
     {
         Period period = new Period();
