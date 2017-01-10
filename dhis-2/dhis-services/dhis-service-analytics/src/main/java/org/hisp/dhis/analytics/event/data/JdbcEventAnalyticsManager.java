@@ -416,7 +416,7 @@ public class JdbcEventAnalyticsManager
     {
         EventOutputType outputType = params.getOutputType();
         
-        if ( params.hasValueDimension() ) // && isNumeric
+        if ( params.hasValueDimension() ) // TODO && isNumeric
         {
             String function = params.getAggregationTypeFallback().getValue();
             
@@ -434,8 +434,6 @@ public class JdbcEventAnalyticsManager
                 params.getProgramIndicator().getProgramIndicatorAnalyticsType() );
             
             return function + "(" + expression + ")";
-            
-            //TODO check if expression is valid and safe SQL
         }
         else
         {
