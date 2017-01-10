@@ -926,11 +926,11 @@
     <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
     <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
     <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
+    <property name="notificationService" ref="org.hisp.dhis.validation.notification.ValidationNotificationService" />
   </bean>
 
   <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
@@ -939,7 +939,6 @@
 
   <bean id="org.hisp.dhis.validation.notification.ValidationNotificationService"
     class="org.hisp.dhis.validation.notification.DefaultValidationNotificationService">
-    <property name="messageBatchService" ref="org.hisp.dhis.outboundmessage.OutboundMessageService" />
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
     <property name="notificationMessageRenderer" ref="validationNotificationMessageRenderer" />
   </bean>
