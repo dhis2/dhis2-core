@@ -19,20 +19,11 @@
 
     <property name="description" type="text" />
 
-    <property name="alertByOrgUnits" column="alertbyorgunits" />
-
     <set name="members" table="validationrulegroupmembers">
       <cache usage="read-write" />
       <key column="validationgroupid" foreign-key="fk_validationrulegroupmembers_validationrulegroupid" />
       <many-to-many class="org.hisp.dhis.validation.ValidationRule" column="validationruleid"
         foreign-key="fk_validationrulegroup_validationruleid" />
-    </set>
-
-    <set name="userGroupsToAlert" table="validationrulegroupusergroupstoalert">
-      <cache usage="read-write" />
-      <key column="validationgroupid" foreign-key="fk_validationrulegroupusergroupstoalert_validationgroupid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroup" column="usergroupid"
-        foreign-key="fk_validationrulegroupusergroupstoalert_usergroupid" />
     </set>
 
     <!-- Access properties -->

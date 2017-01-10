@@ -39,7 +39,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
@@ -47,6 +49,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -67,6 +70,9 @@ public class ValidationRuleStoreTest
 
     @Autowired
     private ExpressionService expressionService;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
 
     private DataElement dataElementA;
 
@@ -264,5 +270,43 @@ public class ValidationRuleStoreTest
 
         assertNotNull( validationRuleStore.getCount() );
         assertEquals( 3, validationRuleStore.getCount() );
+    }
+
+    @Test
+    public void testGetValidationRulesWithNotificationTemplates()
+    {
+        // Setup
+        ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionA, expressionB, periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionA, expressionB, periodType );
+
+        validationRuleStore.save( validationRuleA );
+        validationRuleStore.save( validationRuleB );
+
+        // Test empty
+
+        List<ValidationRule> rules = validationRuleStore.getValidationRulesWithNotificationTemplates();
+
+        assertEquals( 0, rules.size() );
+
+        // Add template
+
+        ValidationNotificationTemplate template = createValidationNotificationTemplate( "Template A" );
+
+        template.addValidationRule( validationRuleA );
+        idObjectManager.save( template );
+
+        rules = validationRuleStore.getValidationRulesWithNotificationTemplates();
+
+        assertEquals( 1, rules.size() );
+
+        // Add one more
+
+        template.addValidationRule( validationRuleB );
+        idObjectManager.update( template );
+
+        rules = validationRuleStore.getValidationRulesWithNotificationTemplates();
+
+        assertEquals( 2, rules.size() );
+        assertTrue( rules.containsAll( Sets.newHashSet( validationRuleA, validationRuleB ) ) );
     }
 }

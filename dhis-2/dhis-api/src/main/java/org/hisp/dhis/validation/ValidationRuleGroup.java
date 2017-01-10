@@ -38,7 +38,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.user.UserGroup;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -53,10 +52,6 @@ public class ValidationRuleGroup
     private String description;
 
     private Set<ValidationRule> members = new HashSet<>();
-
-    private Set<UserGroup> userGroupsToAlert = new HashSet<>();
-
-    private boolean alertByOrgUnits;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -95,14 +90,6 @@ public class ValidationRuleGroup
         members.clear();
     }
 
-    /**
-     * Indicates whether this group has user roles to alert.
-     */
-    public boolean hasUserGroupsToAlert()
-    {
-        return userGroupsToAlert != null && !userGroupsToAlert.isEmpty();
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -134,32 +121,6 @@ public class ValidationRuleGroup
         this.members = members;
     }
 
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "userGroupsToAlert", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "userGroupToAlert", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroup> getUserGroupsToAlert()
-    {
-        return userGroupsToAlert;
-    }
-
-    public void setUserGroupsToAlert( Set<UserGroup> userGroupsToAlert )
-    {
-        this.userGroupsToAlert = userGroupsToAlert;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isAlertByOrgUnits()
-    {
-        return alertByOrgUnits;
-    }
-
-    public void setAlertByOrgUnits( boolean alertByOrgUnits )
-    {
-        this.alertByOrgUnits = alertByOrgUnits;
-    }
-
     @Override
     public void mergeWith( IdentifiableObject other, MergeMode mergeMode )
     {
@@ -168,8 +129,6 @@ public class ValidationRuleGroup
         if ( other.getClass().isInstance( this ) )
         {
             ValidationRuleGroup validationRuleGroup = (ValidationRuleGroup) other;
-
-            alertByOrgUnits = validationRuleGroup.isAlertByOrgUnits();
 
             if ( mergeMode.isReplace() )
             {
