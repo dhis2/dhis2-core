@@ -176,7 +176,7 @@ public class DefaultValidationRuleService
         Collection<ValidationRule> rules = group != null ? group.getMembers() : getAllValidationRules();
         
         Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream().collect( 
-            Collectors.toMap( Function.identity(), v -> getDataElements( v ) ) );
+            Collectors.toMap( Function.identity(), this::getDataElements ) );
 
         User user = currentUserService.getCurrentUser();
         
