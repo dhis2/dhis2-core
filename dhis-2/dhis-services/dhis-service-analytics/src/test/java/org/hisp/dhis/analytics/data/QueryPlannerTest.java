@@ -147,8 +147,6 @@ public class QueryPlannerTest
     private OrganisationUnit ouD;
     private OrganisationUnit ouE;
 
-    //TODO test for indicators, periods in filter
-
     @Override
     public void setUpTest()
     {
