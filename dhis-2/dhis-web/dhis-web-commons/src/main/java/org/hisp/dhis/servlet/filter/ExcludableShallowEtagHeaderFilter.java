@@ -37,7 +37,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 /**
@@ -69,7 +71,9 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
 public class ExcludableShallowEtagHeaderFilter
     extends ShallowEtagHeaderFilter
 {
-    private static final String EXCLUDE_URI_REGEX_NAME = "excludeUriRegex";
+    private static final Log log = LogFactory.getLog( ExcludableShallowEtagHeaderFilter.class );
+    
+    private static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
     private Pattern pattern = null;
 
@@ -79,12 +83,14 @@ public class ExcludableShallowEtagHeaderFilter
     {
         FilterConfig filterConfig = getFilterConfig();
 
-        String excludeRegex = filterConfig != null ? filterConfig.getInitParameter( EXCLUDE_URI_REGEX_NAME ) : null;
+        String excludeRegex = filterConfig != null ? filterConfig.getInitParameter( EXCLUDE_URI_REGEX_VAR_NAME ) : null;
 
-        if ( StringUtils.isNotBlank( excludeRegex ) )
-        {
-            pattern = Pattern.compile( excludeRegex );
-        }
+        Assert.notNull( excludeRegex, String.format( excludeRegex, 
+            "Parameter '%s' must be specified for ExcludableShallowEtagHeaderFilter", EXCLUDE_URI_REGEX_VAR_NAME ) );
+        
+        pattern = Pattern.compile( excludeRegex );
+        
+        log.debug( String.format( "ExcludableShallowEtagHeaderFilter initialized with %s: '%s'", EXCLUDE_URI_REGEX_VAR_NAME, excludeRegex ) );
     }
 
     @Override
@@ -93,7 +99,9 @@ public class ExcludableShallowEtagHeaderFilter
     {
         String uri = request.getRequestURI();
 
-        if ( pattern != null && pattern.matcher( uri ).find() )
+        boolean match = pattern.matcher( uri ).find();
+                
+        if ( match )
         {
             filterChain.doFilter( request, response ); // Proceed without invoking this filter
         }
