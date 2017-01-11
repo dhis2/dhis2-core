@@ -64,7 +64,22 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
                 errorList.addAll( dataSet.getDataInputPeriods().stream()
 
                     // Get DataInputPeriod objects
-                    .map( dataInputPeriod -> bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod ) )
+                    .map( dataInputPeriod ->
+                    {
+                        DataInputPeriod dip = bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod );
+
+                        if ( dip == null )
+                        {
+                            preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                            sessionFactory.getCurrentSession().save( dataInputPeriod );
+                            return dataInputPeriod;
+                        }
+                        else
+                        {
+                            return dip;
+                        }
+                    }
+                    )
 
                     // Get DataInputPeriods where PeriodType != dataSet.periodType
                     .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals(dataSet.getPeriodType() ) )
