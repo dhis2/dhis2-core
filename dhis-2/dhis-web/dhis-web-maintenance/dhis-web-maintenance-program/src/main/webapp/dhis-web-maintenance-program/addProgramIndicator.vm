@@ -63,11 +63,11 @@ jQuery( document ).ready( function()
 				</select>
 			</td>
 		</tr>
-                <tr>
+                <tr #if($program.programType == 'WITHOUT_REGISTRATION')style="display:none"#end>
                     <td><label for="programIndicatorAnalyticsType">$i18n.getString( "analytics_type" )</label></td>
                     <td>
-                        <select id="programIndicatorAnalyticsType" name="programIndicatorAnalyticsType">
-                            <option value="EVENT">$i18n.getString( "analytics_type_event" )</option>
+                        <select id="programIndicatorAnalyticsType" name="programIndicatorAnalyticsType" onchange="programIndicatorAnalyticsTypeChanged()">
+                            <option value="EVENT" #if($program.programType=='WITHOUT_REGISTRATION') selected #end>$i18n.getString( "analytics_type_event" )</option>
                             <option value="ENROLLMENT">$i18n.getString( "analytics_type_enrollment" )</option>
                         </select>
                     </td>
