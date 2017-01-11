@@ -33,16 +33,52 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 {
+
+    @Override
+    public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
+    {
+        ArrayList<ErrorReport> errorList = new ArrayList<>();
+
+        if ( DataSet.class.isInstance( object ))
+        {
+            DataSet dataSet = (DataSet) object;
+
+            if ( !dataSet.getDataInputPeriods().isEmpty() )
+            {
+                errorList.addAll( dataSet.getDataInputPeriods().stream()
+
+                    // Get DataInputPeriod objects
+                    .map( dataInputPeriod -> bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod ) )
+
+                    // Get DataInputPeriods where PeriodType != dataSet.periodType
+                    .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals(dataSet.getPeriodType() ) )
+
+                    // Add Error reports for all incidents
+                    .map( dataInputPeriod -> new ErrorReport( object.getClass(), ErrorCode.E4012, "dataInputPeriods" ) )
+
+                    .collect( Collectors.toList() ) );
+            }
+        }
+
+        return errorList;
+    }
+
+
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
