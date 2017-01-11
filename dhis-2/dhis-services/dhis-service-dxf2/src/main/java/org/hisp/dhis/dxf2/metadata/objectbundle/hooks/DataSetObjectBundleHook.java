@@ -61,16 +61,16 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
             if ( !dataSet.getDataInputPeriods().isEmpty() )
             {
                 errorList.addAll( dataSet.getDataInputPeriods().stream()
+
+                    // Get DataInputPeriod objects
                     .map( dataInputPeriod -> bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod ) )
-                    .peek( dataInputPeriod1 -> System.out.println(dataInputPeriod1) )
-                    .filter( dataInputPeriod ->
-                    {
-                        preheatService
-                            .connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                        return !dataInputPeriod.getPeriod().getPeriodType()
-                        .equals( bundle.getPreheat().getPeriodTypeMap().get( dataSet.getPeriodType().getName() ) );
-                    } )
-                    .map( dataInputPeriod -> new ErrorReport( object.getClass(), ErrorCode.E4012, object.getClass() ) )
+
+                    // Get DataInputPeriods where PeriodType != dataSet.periodType
+                    .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals(dataSet.getPeriodType() ) )
+
+                    // Add Error reports for all incidents
+                    .map( dataInputPeriod -> new ErrorReport( object.getClass(), ErrorCode.E4012, "dataInputPeriods" ) )
+
                     .collect( Collectors.toList() ) );
             }
         }
