@@ -197,6 +197,7 @@ public class DataInputPeriod
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
+            .add( "uid", uid )
             .add( "period", period )
             .add( "openingDate", openingDate )
             .add( "closingDate", closingDate )
