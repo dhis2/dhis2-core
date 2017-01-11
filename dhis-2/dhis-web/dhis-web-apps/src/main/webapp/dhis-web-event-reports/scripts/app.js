@@ -7833,7 +7833,7 @@ Ext.onReady( function() {
 					rowNames = Ext.Array.clean([].concat(rowDimNames, (Ext.Array.contains(rowObjNames, dc) ? co : []))),
 					url = '';
 
-				url += ns.core.init.contextPath + '/api/analytics.' + type + getParamString();
+				url += ns.core.init.contextPath + '/api/25/analytics.' + type + getParamString();
 				url += '&tableLayout=true';
 				url += '&columns=' + columnNames.join(';');
 				url += '&rows=' + rowNames.join(';');
