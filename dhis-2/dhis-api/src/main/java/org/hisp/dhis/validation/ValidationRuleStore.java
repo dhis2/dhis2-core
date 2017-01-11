@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,4 +55,11 @@ public interface ValidationRuleStore
      * @return a collection of ValidationRules.
      */
     List<ValidationRule> getValidationRulesByDataElements( Collection<DataElement> dataElements );
+
+    /**
+     * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+     *
+     * @return a List of ValidationRule.
+     */
+    List<ValidationRule> getValidationRulesWithNotificationTemplates();
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,16 +59,17 @@ public interface ValidationRuleService
     /**
      * Validate DataValues.
      *
-     * @param startDate      the start date.
-     * @param endDate        the end date.
-     * @param sources        a collection of Sources.
-     * @param attributeCombo attribute category option combo (null for all).
-     * @param group          validation rule group (null for all validationRules).
-     * @param sendAlerts     whether to send alerts for surveillance.
+     * @param startDate         the start date.
+     * @param endDate           the end date.
+     * @param sources           a collection of Sources.
+     * @param attributeCombo    attribute category option combo (null for all).
+     * @param group             validation rule group (null for all validationRules).
+     * @param sendNotifications whether to send notifications upon rule violations.
      * @param format         the i18n format.
-     * @return a LiCollectionst of ValidationResults for each validation violation.
+     * @return a Collection of ValidationResults for each validation violation.
      */
-    Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources, DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendAlerts, I18nFormat format );
+    Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
+        DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format );
 
     /**
      * Validate DataValues.
@@ -82,7 +83,7 @@ public interface ValidationRuleService
     Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source, DataElementCategoryOptionCombo attributeCombo );
 
     /**
-     * Evaluates all the validation rules that could generate alerts,
+     * Evaluates all the validation rules that could generate notifications,
      * and sends results (if any) to users who should be notified.
      */
     void scheduledRun();

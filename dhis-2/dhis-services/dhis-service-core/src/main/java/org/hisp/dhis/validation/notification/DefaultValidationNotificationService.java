@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,37 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
 
-import java.util.Collections;
-import java.util.EnumMap;
+import javax.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -67,8 +68,10 @@ public class DefaultValidationNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationNotificationService.class );
 
-    private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = ImmutableSet.<DeliveryChannel>builder()
-        .addAll( Iterators.forArray( DeliveryChannel.values() ) ).build();
+    private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr ->
+        Objects.nonNull( vr ) &&
+        Objects.nonNull( vr.getValidationRule() ) &&
+        !vr.getValidationRule().getNotificationTemplates().isEmpty();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -79,13 +82,6 @@ public class DefaultValidationNotificationService
     public void setNotificationMessageRenderer( NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
     {
         this.notificationMessageRenderer = notificationMessageRenderer;
-    }
-
-    private OutboundMessageBatchService messageBatchService;
-
-    public void setMessageBatchService( OutboundMessageBatchService messageBatchService )
-    {
-        this.messageBatchService = messageBatchService;
     }
 
     private MessageService messageService;
@@ -102,25 +98,31 @@ public class DefaultValidationNotificationService
     @Override
     public void sendNotifications( Set<ValidationResult> validationResults )
     {
-        Clock clock = new Clock( log ).startClock().
-            logTime( String.format( "Creating notification messages for %d validation rule violations", validationResults.size() ) );
+        if ( validationResults.isEmpty() )
+        {
+            return;
+        }
 
-        Set<Message> allMessages = createMessages( validationResults );
+        Clock clock = new Clock( log ).startClock()
+            .logTime( String.format( "Creating notifications for %d validation results", validationResults.size() ) );
 
-        clock.logTime( String.format( "Rendered %d messages", allMessages.size() ) );
+        // Filter out un-applicable validation results and put in (natural) order
+        SortedSet<ValidationResult> applicableResults = validationResults.stream()
+            .filter( IS_APPLICABLE_RESULT )
+            .collect( Collectors.toCollection( TreeSet::new ) );
 
-        // Group messages by type and dispatch internal/outbound in parallel
+        // Transform into distinct pairs of ValidationRule and ValidationNotificationTemplate
+        SortedSet<MessagePair> messagePairs = createMessagePairs( applicableResults );
 
-        allMessages.stream()
-            .collect( Collectors.groupingBy( MessageType::getTypeFor, Collectors.toSet() ) )
-            .entrySet().forEach( entry -> {
-                MessageType type = entry.getKey();
-                Set<Message> messages = entry.getValue();
+        // Group the set of MessagePair into divisions representing a single summarized message and its recipients
+        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = createRecipientsToMessagePairsMap( messagePairs );
 
-                clock.logTime( String.format( "Sending %d %s messages", messages.size(), type.name().toLowerCase() ) );
+        // Flatten the grouped and sorted MessagePairs into single NotificationMessages
+        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages( groupedByRecipients, new Date() );
 
-                send( type, messages );
-            } );
+        clock.logTime( String.format( "Sending %d summarized notification(s)", summaryMessages.size() ) );
+
+        summaryMessages.forEach( this::sendNotification );
 
         clock.logTime( "Done sending validation notifications" );
     }
@@ -129,103 +131,120 @@ public class DefaultValidationNotificationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void send( MessageType type, Set<Message> messages )
+    private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages(
+        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients, final Date validationDate )
     {
-        switch ( type )
-        {
-            case OUTBOUND:
-                sendOutboundMessages( messages );
-                break;
-            case INTERNAL:
-                sendDhisMessages( messages );
-                break;
-        }
-    }
+        final Map<MessagePair, NotificationMessage> renderedNotificationsMap = groupedByRecipients.entrySet().stream()
+            .flatMap( entry -> entry.getValue().stream() )
+            .collect( Collectors.toMap( p -> p, p -> notificationMessageRenderer.render( p.result, p.template ) ) );
 
-    private Set<Message> createMessages( Set<ValidationResult> validationResults )
-    {
-        return validationResults.stream()
-            .filter( Objects::nonNull )
-            .filter( v -> Objects.nonNull( v.getValidationRule() ) )
-            .filter( v -> !v.getValidationRule().getNotificationTemplates().isEmpty() ) // Only pass through when there is a template
-            .flatMap( this::createMessages )
-            .collect( Collectors.toSet() );
-    }
-
-    private Stream<Message> createMessages( final ValidationResult validationResult )
-    {
-        return validationResult.getValidationRule().getNotificationTemplates().stream()
-            .map( template ->
-                new Message(
-                    createNotification( validationResult, template ),
-                    createRecipients( validationResult, template )
+        // Collect all pre-rendered messages into summaries and return mapped by recipients
+        return groupedByRecipients.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey(),
+                    e -> createSummarizedMessage( e.getValue(), renderedNotificationsMap, validationDate )
                 )
             );
     }
 
-    private NotificationMessage createNotification( ValidationResult validationResult, ValidationNotificationTemplate template )
+    /**
+     * Creates a summarized message from the given MessagePairs and pre-rendered map of NotificationMessages.
+     * The messages generated by each distinct MessagePair are concatenated in their given order.
+     */
+    private static NotificationMessage createSummarizedMessage(
+        SortedSet<MessagePair> pairs, final Map<MessagePair, NotificationMessage> renderedNotificationsMap, final Date validationDate )
     {
-        return notificationMessageRenderer.render( validationResult, template );
+        Map<Importance, Long> counts = pairs.stream()
+            .map( m -> m.result.getValidationRule().getImportance() )
+            .collect( Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+
+        String subject = String.format(
+            "Validation violations as of %s: High %d, medium %d, low %d",
+            DateUtils.getLongDateString( validationDate ),
+            counts.getOrDefault( Importance.HIGH, 0L ),
+            counts.getOrDefault( Importance.MEDIUM, 0L ),
+            counts.getOrDefault( Importance.LOW, 0L )
+        );
+
+        // Concatenate the notifications in sorted order, divide by double linebreak
+        String message = pairs.stream().sorted()
+            .map( renderedNotificationsMap::get )
+            .map( n -> String.format( "%s%s%s", n.getSubject(), LN, n.getMessage() ) )
+            .reduce( "", (initStr, newStr) -> String.format( "%s%s%s", initStr, LN + LN, newStr ) );
+
+        return new NotificationMessage( subject, message );
     }
 
-    private Recipients createRecipients( ValidationResult validationResult, ValidationNotificationTemplate template )
+    private static SortedSet<MessagePair> createMessagePairs( SortedSet<ValidationResult> results )
     {
-        if ( template.getNotificationRecipient().isExternalRecipient() )
-        {
-            return new Recipients( recipientsFromOrgUnit( validationResult, template ) );
-        }
-        else
-        {
-            return new Recipients( recipientsFromUserGroups( validationResult, template ) );
-        }
+        return results.stream()
+            .flatMap( result -> result.getValidationRule().getNotificationTemplates().stream()
+                .map( template -> new MessagePair( result, template ) )
+            )
+            .collect( Collectors.toCollection( TreeSet::new ) );
     }
 
-    private static Map<DeliveryChannel, Set<String>> recipientsFromOrgUnit(
-        final ValidationResult validationResult, ValidationNotificationTemplate template )
+    private static Map<Set<User>, SortedSet<MessagePair>> createRecipientsToMessagePairsMap( SortedSet<MessagePair> messagePairs )
     {
-        Set<DeliveryChannel> channels = template.getDeliveryChannels();
+        // Map each user to a distinct set of MessagePair
+        Map<User, SortedSet<MessagePair>> singleUserToMessagePairs = getMessagePairsPerSingleUser( messagePairs );
 
-        if ( channels.isEmpty() )
-        {
-            return Maps.newHashMap();
-        }
+        // Group each distinct SortedSet of MessagePair for the distinct Set of recipient Users
+        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients = groupRecipientsForMessagePairs( singleUserToMessagePairs );
 
-        Map<DeliveryChannel, Set<String>> channelPrincipalMap = new EnumMap<>( DeliveryChannel.class );
-
-        OrganisationUnit organisationUnit = validationResult.getOrgUnit();
-
-        if ( organisationUnit == null )
-        {
-            return Maps.newHashMap();
-        }
-
-        // Resolve e-mail address and/or phone number where applicable
-        // Multiple recipients per delivery channel are supported, but
-        // and org unit can only have one of each, hence the singleton sets.
-
-        // E-mail address
-
-        String email = organisationUnit.getEmail();
-
-        if ( StringUtils.isNotBlank( email ) && channels.contains( DeliveryChannel.EMAIL ) )
-        {
-            channelPrincipalMap.put( DeliveryChannel.EMAIL, Collections.singleton( email ) );
-        }
-
-        // Phone numbers
-
-        String phone = organisationUnit.getPhoneNumber();
-
-        if ( StringUtils.isNotBlank( phone ) && channels.contains( DeliveryChannel.SMS ) )
-        {
-            channelPrincipalMap.put( DeliveryChannel.SMS, Collections.singleton( phone ) );
-        }
-
-        return channelPrincipalMap;
+        return groupedByRecipients;
     }
 
-    private static Set<User> recipientsFromUserGroups( final ValidationResult validationResult, ValidationNotificationTemplate template )
+    private static Map<User, SortedSet<MessagePair>> getMessagePairsPerSingleUser( SortedSet<MessagePair> messagePairs )
     {
+        Map<User, SortedSet<MessagePair>> messagePairsPerUsers = new HashMap<>();
+
+        for ( MessagePair pair : messagePairs )
+        {
+            Set<User> usersForThisPair = resolveRecipients( pair );
+
+            for ( User user : usersForThisPair )
+            {
+                messagePairsPerUsers.computeIfAbsent( user, k -> new TreeSet<>() ).add( pair );
+            }
+        }
+
+        return messagePairsPerUsers;
+    }
+
+    private static Map<Set<User>, SortedSet<MessagePair>> groupRecipientsForMessagePairs( Map<User, SortedSet<MessagePair>> messagePairsPerUser )
+    {
+        BiMap<Set<User>, SortedSet<MessagePair>> grouped = HashBiMap.create();
+
+        for ( Map.Entry<User, SortedSet<MessagePair>> entry : messagePairsPerUser.entrySet() )
+        {
+            User user = entry.getKey();
+            SortedSet<MessagePair> setOfPairs = entry.getValue();
+
+            if ( grouped.containsValue( setOfPairs ) )
+            {
+                // Value exists -> Add user to the existing key set
+                grouped.inverse().get( setOfPairs ).add( user );
+            }
+            else
+            {
+                // Value doesn't exist -> Add the [user, set] as a new entry
+                grouped.put( Sets.newHashSet( user ), setOfPairs );
+            }
+        }
+
+        return grouped;
+    }
+
+    /**
+     * Resolve all distinct recipients for the given MessagePair.
+     */
+    private static Set<User> resolveRecipients( MessagePair pair )
+    {
+        ValidationResult validationResult = pair.result;
+        ValidationNotificationTemplate template = pair.template;
+
         // Limit recipients to be withing org unit hierarchy only, effectively
         // producing a cross-cut of all users in the configured user groups.
 
@@ -245,103 +264,76 @@ public class DefaultValidationNotificationService
         return template.getRecipientUserGroups().stream()
             .flatMap( ug -> ug.getMembers().stream() )
             .distinct()
-            .filter( user -> !limitToHierarchy /* pass-through */ || orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
+            .filter( user -> !limitToHierarchy || orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
             .collect( Collectors.toSet() );
     }
 
-    private void sendDhisMessages( Set<Message> messages )
+    private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
     {
-        messages.forEach( message -> {
-                String msgSubj = message.notificationMessage.getSubject();
-                String msgText = message.notificationMessage.getMessage();
-
-                Set<User> rcpt = message.recipients.userRecipients.map( r -> r ).orElse( Sets.newHashSet() );
-
-                messageService.sendMessage( msgSubj, msgText, null, rcpt );
-            }
+        messageService.sendMessage(
+            notificationMessage.getSubject(),
+            notificationMessage.getMessage(),
+            null,
+            users,
+            null,
+            false,
+            false
         );
     }
 
-    private void sendOutboundMessages( Set<Message> messages )
-    {
-        List<OutboundMessageBatch> outboundBatches = createOutboundMessageBatches( messages );
-        messageBatchService.sendBatches( outboundBatches );
-    }
-
-    private static List<OutboundMessageBatch> createOutboundMessageBatches( Set<Message> messages )
-    {
-        Map<DeliveryChannel, List<OutboundMessage>> outboundMessagesByChannel = new HashMap<>();
-
-        for ( Message message : messages )
-        {
-            for ( DeliveryChannel channel : ALL_DELIVERY_CHANNELS )
-            {
-                List<OutboundMessage> messagesForChannel = outboundMessagesByChannel.computeIfAbsent( channel, c -> Lists.newArrayList() );
-                messagesForChannel.add( toOutboundMessage( message, channel ) );
-            }
-        }
-
-        return outboundMessagesByChannel.entrySet().stream()
-            .map( entry -> new OutboundMessageBatch( entry.getValue(), entry.getKey() ) )
-            .collect( Collectors.toList() );
-    }
-
-    private static OutboundMessage toOutboundMessage( Message message, DeliveryChannel channel )
-    {
-        String subText = message.notificationMessage.getSubject();
-        String msgText = message.notificationMessage.getMessage();
-
-        Set<String> recipients = message.recipients.externalRecipients.map( rcpt -> rcpt.get( channel ) ).orElse( Sets.newHashSet() );
-
-        return new OutboundMessage( subText, msgText, recipients );
-    }
-
     // -------------------------------------------------------------------------
-    // Supportive methods
+    // Internal classes
     // -------------------------------------------------------------------------
 
-    private static class Recipients
+    /**
+     * Wrapper for a distinct pair of ValidationResult and template which
+     * correspond to one single (rendered) message.
+     *
+     * The natural order reflects the ordering of the contained ValidationResult.
+     */
+    private static class MessagePair
+        implements Comparable<MessagePair>
     {
-        final Optional<Set<User>> userRecipients;
-        final Optional<Map<DeliveryChannel, Set<String>>> externalRecipients;
+        final ValidationResult result;
+        final ValidationNotificationTemplate template;
 
-        Recipients( Set<User> userRecipients )
+        private MessagePair( ValidationResult result, ValidationNotificationTemplate template )
         {
-            this.userRecipients = Optional.of( userRecipients );
-            this.externalRecipients = Optional.empty();
+            this.result = result;
+            this.template = template;
         }
 
-        Recipients( Map<DeliveryChannel, Set<String>> externalRecipients )
+        @Override
+        public boolean equals( Object other )
         {
-            this.userRecipients = Optional.empty();
-            this.externalRecipients = Optional.of( externalRecipients );
+            if ( this == other ) return true;
+
+            if ( !(other instanceof MessagePair) ) return false;
+
+            MessagePair that = (MessagePair) other;
+
+            return new EqualsBuilder()
+                .append( result, that.result )
+                .append( template, that.template )
+                .isEquals();
         }
 
-        boolean isExternal()
+        @Override
+        public int hashCode()
         {
-            return externalRecipients.isPresent();
+            return new HashCodeBuilder( 17, 37 )
+                .append( result )
+                .append( template )
+                .toHashCode();
         }
-    }
 
-    private static class Message
-    {
-        final NotificationMessage notificationMessage;
-        final Recipients recipients;
-
-        public Message( NotificationMessage notificationMessage, Recipients recipients )
+        @Override
+        public int compareTo( @NotNull MessagePair other )
         {
-            this.notificationMessage = notificationMessage;
-            this.recipients = recipients;
-        }
-    }
-
-    private enum MessageType
-    {
-        OUTBOUND, INTERNAL;
-
-        static MessageType getTypeFor( Message message )
-        {
-            return message.recipients.isExternal() ? OUTBOUND : INTERNAL;
+            return new CompareToBuilder()
+                .append( this.result, other.result )
+                .append( this.template, other.template )
+                .build();
         }
     }
 }

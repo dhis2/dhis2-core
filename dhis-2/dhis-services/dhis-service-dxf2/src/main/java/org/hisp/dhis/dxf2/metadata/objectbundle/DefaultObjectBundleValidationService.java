@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -245,9 +245,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             {
                 ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3000,
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( bundle.getUser() ),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( object ) ) );
+                objectReport.addErrorReports( errorReports );
 
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
