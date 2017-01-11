@@ -2523,7 +2523,7 @@ Ext.onReady( function() {
 
                 format = format || 'json';
 
-                paramString = '/api/analytics/events/' + dataTypeMap[view.dataType] + '/' + view.program.id + '.' + format + '?';
+                paramString = '/api/25/analytics/events/' + dataTypeMap[view.dataType] + '/' + view.program.id + '.' + format + '?';
 
 				// stage
 				paramString += 'stage=' + view.programStage.id;
