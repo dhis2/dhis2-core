@@ -451,43 +451,7 @@ public class DataQueryParams
         
         return map;
     }
-    
-    /**
-     * Creates a list of dimension indexes which are relevant to completeness queries.
-     */
-    public List<Integer> getCompletenessDimensionIndexes()
-    {
-        List<Integer> indexes = new ArrayList<>();
         
-        for ( int i = 0; i < dimensions.size(); i++ )
-        {
-            if ( COMPLETENESS_DIMENSION_TYPES.contains( dimensions.get( i ).getDimensionType() ) )
-            {
-                indexes.add( i );
-            }
-        }
-        
-        return indexes;
-    }
-
-    /**
-     * Creates a list of filter indexes which are relevant to completeness queries.
-     */
-    public List<Integer> getCompletenessFilterIndexes()
-    {
-        List<Integer> indexes = new ArrayList<>();
-        
-        for ( int i = 0; i < filters.size(); i++ )
-        {
-            if ( COMPLETENESS_DIMENSION_TYPES.contains( filters.get( i ).getDimensionType() ) )
-            {
-                indexes.add( i );
-            }
-        }
-        
-        return indexes;
-    }
-    
     /**
      * Returns the index of the period dimension in the dimension map.
      */
@@ -823,6 +787,23 @@ public class DataQueryParams
         }
         
         return list;
+    }
+    
+    /**
+     * Indicates whether all dimensions and filters have value types among the given
+     * set of value types.
+     */
+    public boolean containsOnlyDimensionsAndFilters( Set<DimensionType> dimensionTypes )
+    {
+        for ( DimensionalObject dimension : getDimensionsAndFilters() )
+        {
+            if ( !dimensionTypes.contains( dimension.getDimensionType() ) )
+            {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     /**
@@ -2016,13 +1997,7 @@ public class DataQueryParams
             this.params.setDimensionOptions( dimension, type, dimensionName, options );
             return this;
         }
-        
-        public Builder retainDimensions( List<Integer> indexes )
-        {
-            this.params.dimensions = ListUtils.getAtIndexes( this.params.dimensions, indexes );
-            return this;
-        }
-        
+                
         public Builder retainDataDimension( DataDimensionItemType itemType )
         {
             this.params.retainDataDimension( itemType );
@@ -2131,12 +2106,6 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder retainFilters( List<Integer> indexes )
-        {
-            this.params.filters = ListUtils.getAtIndexes( this.params.filters, indexes );
-            return this;
-        }
-        
         public Builder removeFilter( String filter )
         {
             this.params.filters.remove( new BaseDimensionalObject( filter ) );

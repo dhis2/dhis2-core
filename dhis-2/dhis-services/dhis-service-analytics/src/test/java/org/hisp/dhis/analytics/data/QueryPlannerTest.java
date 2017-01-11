@@ -51,6 +51,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -146,6 +148,10 @@ public class QueryPlannerTest
     private OrganisationUnit ouC;
     private OrganisationUnit ouD;
     private OrganisationUnit ouE;
+    
+    private DataElementGroup degA;
+    
+    private DataElementGroupSet dgsA;
 
     @Override
     public void setUpTest()
@@ -221,6 +227,17 @@ public class QueryPlannerTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
+        
+        degA = createDataElementGroup( 'A' );
+        degA.addDataElement( deA );
+        degA.addDataElement( deB );
+        
+        dataElementService.addDataElementGroup( degA );
+        
+        dgsA = createDataElementGroupSet( 'A' );
+        dgsA.getMembers().add( degA );
+        
+        dataElementService.addDataElementGroupSet( dgsA );
     }
 
     // -------------------------------------------------------------------------
@@ -1028,7 +1045,7 @@ public class QueryPlannerTest
     }
     
     @Test( expected = IllegalQueryException.class )
-    public void validateFailureA()
+    public void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
@@ -1044,6 +1061,17 @@ public class QueryPlannerTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA, inB ) ) ).build();
+        
+        queryPlanner.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
+            .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
         
         queryPlanner.validate( params );
     }
