@@ -558,12 +558,7 @@ public class DefaultAnalyticsService
             // Get completeness targets
             // -----------------------------------------------------------------
 
-            List<Integer> completenessDimIndexes = params.getCompletenessDimensionIndexes();
-            List<Integer> completenessFilterIndexes = params.getCompletenessFilterIndexes();
-
             DataQueryParams targetParams = DataQueryParams.newBuilder( params )
-                .retainDimensions( completenessDimIndexes )
-                .retainFilters( completenessFilterIndexes )
                 .withSkipPartitioning( true )
                 .withTimely( false )
                 .withRestrictByOrgUnitOpeningClosedDate( true )
@@ -594,8 +589,7 @@ public class DefaultAnalyticsService
                 // Get target value
                 // -------------------------------------------------------------
 
-                List<String> targetRow = ListUtils.getAtIndexes( dataRow, completenessDimIndexes );
-                String targetKey = StringUtils.join( targetRow, DIMENSION_SEP );
+                String targetKey = StringUtils.join( dataRow, DIMENSION_SEP );
                 Double target = targetMap.get( targetKey );
                 Double actual = entry.getValue();
 
