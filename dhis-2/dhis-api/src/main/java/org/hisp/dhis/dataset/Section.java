@@ -106,7 +106,7 @@ public class Section
 
     private void addIndicator( Indicator indicator )
     {
-        indicators.remove( indicator );
+        indicators.add( indicator );
     }
 
     public void removeAllGreyedFields()

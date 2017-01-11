@@ -5252,7 +5252,7 @@ Ext.onReady( function() {
                     console.log(obj.id, (r.responseText ? Ext.decode(r.responseText) : r));
                 };
 
-                config.url = init.contextPath + '/api/eventCharts/' + obj.id + '.' + type + '?fields=' + conf.url.analysisFields.join(',');
+                config.url = encodeURI(init.contextPath + '/api/eventCharts/' + obj.id + '.' + type + '?fields=' + conf.url.analysisFields.join(','));
                 config.disableCaching = false;
                 config.headers = headers;
                 config.success = success;
