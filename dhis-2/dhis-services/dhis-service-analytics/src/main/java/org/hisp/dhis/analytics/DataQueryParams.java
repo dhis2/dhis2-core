@@ -663,7 +663,7 @@ public class DataQueryParams
     
     /**
      * Generates all permutations of the dimension options for this query.
-     * Ignores the data element, category option combo and indicator dimensions.
+     * Ignores the data and category option combo dimensions.
      */
     public List<List<DimensionItem>> getDimensionItemPermutations()
     {
