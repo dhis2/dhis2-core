@@ -245,9 +245,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             {
                 ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3000,
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( bundle.getUser() ),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( object ) ) );
+                objectReport.addErrorReports( errorReports );
 
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
