@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,7 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]"; // TODO reconsider this...
     protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
+    protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
 
     protected static final Pattern VAR_CONTENT_PATTERN = Pattern.compile( "^[A-Za-z0-9_]+$" );
     protected static final Pattern ATTR_CONTENT_PATTERN = Pattern.compile( "[A-Za-z][A-Za-z0-9]{10}" );
@@ -202,7 +203,17 @@ public abstract class BaseNotificationMessageRenderer<T>
             return StringUtils.EMPTY;
         }
 
-        String value = resolver.apply( entity );
+        String value;
+
+        try
+        {
+            value = resolver.apply( entity );
+        }
+        catch ( Exception ex )
+        {
+            log.warn( "Caught exception when running value resolver for variable: " + variableName , ex );
+            value = VALUE_ON_ERROR;
+        }
 
         return value != null ? value : StringUtils.EMPTY;
     }
