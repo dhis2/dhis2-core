@@ -376,7 +376,7 @@ public class DefaultAnalyticsService
 
             List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
 
-            Map<String, Map<DimensionalItemObject, Double>> permutationDimensionalItemValueMap = getPermutationDimensionalItemValueMap( dataSourceParams );
+            Map<String, Map<DimensionalItemObject, Double>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
 
             for ( Indicator indicator : indicators )
             {
@@ -384,7 +384,7 @@ public class DefaultAnalyticsService
                 {
                     String permKey = DimensionItem.asItemKey( dimensionItems );
 
-                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionalItemValueMap.get( permKey );
+                    Map<DimensionalItemObject, Double> valueMap = permutationDimensionItemValueMap.get( permKey );
 
                     if ( valueMap == null )
                     {
@@ -521,12 +521,11 @@ public class DefaultAnalyticsService
             {
                 DataQueryParams dataSourceParams = DataQueryParams.newBuilder( params )
                     .retainDataDimensionReportingRates( metric )
-                    .withIncludeNumDen( false )
                     .ignoreDataApproval() // No approval for reporting rates
                     .withAggregationType( AggregationType.COUNT )
                     .withTimely( ( REPORTING_RATE_ON_TIME == metric || ACTUAL_REPORTS_ON_TIME == metric ) ).build();
 
-                addReportingRates( dataSourceParams, grid, metric, params.isIncludeNumDen() );
+                addReportingRates( dataSourceParams, grid, metric );
             }
         }
     }
@@ -535,16 +534,16 @@ public class DefaultAnalyticsService
      * Adds reporting rates to the given grid based on the given data query
      * parameters and reporting rate metric.
      *
-     * @param dataSourceParams the data query parameters.
+     * @param params the data query parameters.
      * @param grid the grid.
      * @param metric the reporting rate metric.
      * @param includeNumDen whether to include numerator and denominator.
      */
-    private void addReportingRates( DataQueryParams dataSourceParams, Grid grid, ReportingRateMetric metric, boolean includeNumDen )
+    private void addReportingRates( DataQueryParams params, Grid grid, ReportingRateMetric metric )
     {
-        if ( !dataSourceParams.getReportingRates().isEmpty() && !dataSourceParams.isSkipData() )
+        if ( !params.getReportingRates().isEmpty() && !params.isSkipData() )
         {
-            if ( !COMPLETENESS_DIMENSION_TYPES.containsAll( dataSourceParams.getDimensionTypes() ) )
+            if ( !COMPLETENESS_DIMENSION_TYPES.containsAll( params.getDimensionTypes() ) )
             {
                 return;
             }
@@ -553,16 +552,16 @@ public class DefaultAnalyticsService
             // Get complete data set registrations
             // -----------------------------------------------------------------
 
-            Map<String, Double> aggregatedDataMap = getAggregatedCompletenessValueMap( dataSourceParams );
+            Map<String, Double> aggregatedDataMap = getAggregatedCompletenessValueMap( params );
 
             // -----------------------------------------------------------------
             // Get completeness targets
             // -----------------------------------------------------------------
 
-            List<Integer> completenessDimIndexes = dataSourceParams.getCompletenessDimensionIndexes();
-            List<Integer> completenessFilterIndexes = dataSourceParams.getCompletenessFilterIndexes();
+            List<Integer> completenessDimIndexes = params.getCompletenessDimensionIndexes();
+            List<Integer> completenessFilterIndexes = params.getCompletenessFilterIndexes();
 
-            DataQueryParams targetParams = DataQueryParams.newBuilder( dataSourceParams )
+            DataQueryParams targetParams = DataQueryParams.newBuilder( params )
                 .retainDimensions( completenessDimIndexes )
                 .retainFilters( completenessFilterIndexes )
                 .withSkipPartitioning( true )
@@ -573,12 +572,12 @@ public class DefaultAnalyticsService
 
             Map<String, Double> targetMap = getAggregatedCompletenessTargetMap( targetParams );
 
-            Integer periodIndex = dataSourceParams.getPeriodDimensionIndex();
+            Integer periodIndex = params.getPeriodDimensionIndex();
             Integer dataSetIndex = DataQueryParams.DX_INDEX;
 
-            Map<String, PeriodType> dsPtMap = dataSourceParams.getDataSetPeriodTypeMap();
+            Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
 
-            PeriodType filterPeriodType = dataSourceParams.getFilterPeriodType();
+            PeriodType filterPeriodType = params.getFilterPeriodType();
 
             // -----------------------------------------------------------------
             // Join data maps, calculate completeness and add to grid
@@ -598,7 +597,6 @@ public class DefaultAnalyticsService
                 List<String> targetRow = ListUtils.getAtIndexes( dataRow, completenessDimIndexes );
                 String targetKey = StringUtils.join( targetRow, DIMENSION_SEP );
                 Double target = targetMap.get( targetKey );
-
                 Double actual = entry.getValue();
 
                 if ( target != null && actual != null )
@@ -625,7 +623,7 @@ public class DefaultAnalyticsService
                     {
                         value = target;
                     }
-                    else if ( !MathUtils.isEqual( target, MathUtils.ZERO ) ) // REPORTING_RATE
+                    else if ( !MathUtils.isZero( target) ) // REPORTING_RATE
                     {
                         value = (actual * PERCENT) / target;
                     }
@@ -635,9 +633,9 @@ public class DefaultAnalyticsService
 
                     grid.addRow()
                         .addValues( dataRow.toArray() )
-                        .addValue( dataSourceParams.isSkipRounding() ? value : MathUtils.getRounded( value ) );
+                        .addValue( params.isSkipRounding() ? value : MathUtils.getRounded( value ) );
 
-                    if ( includeNumDen )
+                    if ( params.isIncludeNumDen() )
                     {
                         grid.addValue( actual )
                             .addValue( target )
@@ -1106,7 +1104,7 @@ public class DefaultAnalyticsService
      *
      * @param params the data query parameters.
      */
-    private Map<String, Map<DimensionalItemObject, Double>> getPermutationDimensionalItemValueMap( DataQueryParams params )
+    private Map<String, Map<DimensionalItemObject, Double>> getPermutationDimensionItemValueMap( DataQueryParams params )
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
