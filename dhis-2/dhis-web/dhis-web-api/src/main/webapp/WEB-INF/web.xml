@@ -21,7 +21,7 @@
     <async-supported>true</async-supported>
     <init-param>
       <param-name>excludeUriRegex</param-name>
-      <param-value>/api/dataValueSets|/api/dataValues|/api/dataValues/files|/api/fileResources|/api/analytics</param-value>
+      <param-value>/api/(\d{2}/)?dataValueSets|/api/(\d{2}/)?dataValues|/api/(\d{2}/)?fileResources</param-value>
     </init-param>
   </filter>
   <filter>
