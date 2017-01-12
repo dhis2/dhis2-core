@@ -7313,19 +7313,6 @@ Ext.onReady( function() {
                             return;
                         }
 
-						// sync
-						config.showRowTotals = config.rowTotals;
-						delete config.rowTotals;
-
-						config.showColTotals = config.colTotals;
-						delete config.colTotals;
-
-						config.showColSubTotals = config.colSubTotals;
-						delete config.colSubTotals;
-
-						config.showRowSubTotals = config.rowSubTotals;
-						delete config.rowSubTotals;
-
 						if (config.startDate) {
 							config.startDate = config.startDate.substr(0,10);
 						}
