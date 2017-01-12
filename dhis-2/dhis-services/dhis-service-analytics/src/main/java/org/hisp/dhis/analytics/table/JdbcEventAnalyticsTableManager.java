@@ -65,7 +65,7 @@ public class JdbcEventAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
-        log.info( "Get tables using earliest: " + earliest + ", spatial support: " + databaseInfo.isSpatialSupport() );
+        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
         return getTables( getDataYears( earliest ) );
     }

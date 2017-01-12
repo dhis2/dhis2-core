@@ -105,8 +105,6 @@ public class JdbcAnalyticsTableManager
             return "No organisation unit levels exist, not updating aggregate analytics tables";
         }
 
-        log.info( "Approval enabled: " + isApprovalEnabled( null ) );
-
         return null;
     }
 
@@ -151,7 +149,7 @@ public class JdbcAnalyticsTableManager
 
         sqlCreate += statementBuilder.getTableOptions( false );
 
-        log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
+        log.info( String.format( "Creating table: %s, columns: %d", tableName, columns.size() ) );
 
         log.debug( "Create SQL: " + sqlCreate );
 
@@ -472,17 +470,18 @@ public class JdbcAnalyticsTableManager
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
         Integer maxYears = (Integer) systemSettingManager.getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
-
+        
+        log.debug( String.format( "Hide approval setting: %b, approval levels exists: %b, max years threshold: %d", setting, levels, maxYears ) );
+        
         if ( table != null )
         {
             boolean periodOverMaxYears = AnalyticsUtils.periodIsOutsideApprovalMaxYears( table.getPeriod(), maxYears );
-
+            
             return setting && levels && !periodOverMaxYears;
         }
         else
         {
             return setting && levels;
         }
-
     }
 }

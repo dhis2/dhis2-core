@@ -249,7 +249,7 @@ public abstract class AbstractJdbcTableManager
     {
         tables.forEach( table -> analyzeTable( table.getTempTableName() ) );
     }
-
+    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -351,12 +351,12 @@ public abstract class AbstractJdbcTableManager
      */
     protected void populateAndLog( String sql, String tableName )
     {
-        log.debug( "Populate table: " + tableName + " SQL: " + sql );
+        log.debug( String.format( "Populate table: %s with SQL: ", tableName, sql ) );
 
         Timer timer = new SystemTimer().start();
         
         jdbcTemplate.execute( sql );
         
-        log.info( "Populated table in " + timer.stop().toString() + ": " + tableName );
+        log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
     }
 }
