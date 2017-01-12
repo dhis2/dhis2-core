@@ -41,14 +41,14 @@ import org.springframework.core.io.Resource;
  */
 public interface ScriptLibrary
 {
-    abstract public boolean containsScript( String name );
+    public boolean containsScript( String name );
 
-    abstract public String[] retrieveDirectDependencies( String scriptName );
+    public String[] retrieveDirectDependencies( String scriptName );
 
-    abstract public String[] retrieveDependencies( String scriptName );
+    public String[] retrieveDependencies( String scriptName );
 
-    abstract public Reader retrieveScript( String name ) throws ScriptNotFoundException;
+    public Reader retrieveScript( String name ) throws ScriptNotFoundException;
 
-    abstract public String getName();
+    public String getName();
 
 }
