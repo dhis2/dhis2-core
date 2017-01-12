@@ -43,7 +43,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 
-public class ServerSideAppEngineXSLT extends ServerSideAppEngine
+public class ServerSideAppEngineXSLT extends ServerSideAppEngineIO
 {
 
     protected TransformerFactory factory = TransformerFactory.newInstance();

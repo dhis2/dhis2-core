@@ -28,17 +28,13 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Reader;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 
-abstract public class ServerSideAppEngine implements ServerSideAppEngine
+
+abstract public class ServerSideAppEngineIO implements ServerSideAppEngine
 {
 
-    private static final Log log = LogFactory.getLog( ServerSideAppEngine.class );
+    private static final Log log = LogFactory.getLog( ServerSideAppEngineIO.class );
 
     //@Autowired this is not a bean? so won't work/do anything?
     //protected SessionFactory sessionFactory;
@@ -75,7 +71,7 @@ abstract public class ServerSideAppEngine implements ServerSideAppEngine
         throws ScriptException
     {
         Object res = null;
-        log.info( "Run ServerSideAppEngine: beginning execution" );
+        log.info( "Run ServerSideAppEngineIO: beginning execution" );
 
         if ( execContext.getUser() == null )
         {
@@ -88,7 +84,7 @@ abstract public class ServerSideAppEngine implements ServerSideAppEngine
             //sanity check.
             throw new ScriptNotFoundException( "No script defined" );
         }
-        log.info( "Run ServerSideAppEngine: evaluating script " + execContext.getScriptName() );
+        log.info( "Run ServerSideAppEngineIO: evaluating script " + execContext.getScriptName() );
         try
         {
             res = evaluateScript();
@@ -104,7 +100,7 @@ abstract public class ServerSideAppEngine implements ServerSideAppEngine
                 ExceptionUtils.getStackTrace( e ) );
             throw new ScriptExecutionException( "evaluation failed : " + e.toString() );
         }
-        log.info( "Run ServerSideAppEngine: evaluation done" );
+        log.info( "Run ServerSideAppEngineIO: evaluation done" );
         return res;
 
     }

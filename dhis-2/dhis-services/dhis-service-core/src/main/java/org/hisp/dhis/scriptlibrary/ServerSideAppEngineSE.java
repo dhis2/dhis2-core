@@ -54,7 +54,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 
-public class ServerSideAppEngineSE extends ServerSideAppEngine
+public class ServerSideAppEngineSE extends ServerSideAppEngineIO
 {
 
     protected static final Log log = LogFactory.getLog( ServerSideAppEngineSE.class );

@@ -85,7 +85,7 @@ public class ServerSideAppEngineControllerAction extends ServerSideAppEngineCont
             //create and initialize the http execution context to send to the script
             ExecutionContextHttpInterface execContext = getExecutionContext( httpRequest, httpResponse, appKey, script );
 
-            //instantiate an ServerSideAppEngine and run the script against the context
+            //instantiate an ServerSideAppEngineIO and run the script against the context
             log.info( "Running " + script + " in app " + appKey + " with context=" + execContext.toString() );
             Object result = engineService.eval( execContext );  //we are not doing anything with the result
             execContext.getOut().flush();

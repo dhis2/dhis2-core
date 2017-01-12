@@ -44,7 +44,7 @@ import java.io.Reader;
 import java.util.HashMap;
 
 
-public class ServerSideAppEngineXQuery extends ServerSideAppEngine
+public class ServerSideAppEngineXQuery extends ServerSideAppEngineIO
 {
 
     protected static final Log log = LogFactory.getLog( ServerSideAppEngineXQuery.class );
