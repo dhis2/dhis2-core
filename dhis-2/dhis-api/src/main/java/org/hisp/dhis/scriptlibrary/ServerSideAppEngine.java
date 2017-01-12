@@ -28,54 +28,21 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 import java.io.Reader;
-
-import org.apache.commons.io.input.ReaderInputStream;
-
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.appmanager.App;
+import java.util.concurrent.Callable;
 
 
-public class EngineXSLT extends Engine
+public interface ServerSideAppEngine extends Callable
 {
 
-    protected TransformerFactory factory = TransformerFactory.newInstance();
-    protected static final Log log = LogFactory.getLog( EngineXSLT.class );
+    abstract Object evaluateScript() throws ScriptException;
 
-    @Override
-    public Object evaluateScript()
-        throws ScriptException
-    {
-        Reader scriptReader = getScriptReader();
-        Transformer transformer;
 
-        try
-        {
-            Source xslt = new StreamSource( new ReaderInputStream( scriptReader ) );
-            Source text = new StreamSource( execContext.getIn() );
-            StreamResult trans_out = new StreamResult( execContext.getOut() );
-            transformer = factory.newTransformer( xslt );
-            transformer.setParameter( "dhisScriptContext", execContext );
-            transformer.transform( text, trans_out );
-        }
+    abstract void setExecutionContext ( ExecutionContextInterface execContext );
+    abstract ExecutionContextInterface getExecutionContext();
+    abstract void setScriptReader(Reader scriptReader);
 
-        catch ( Exception e )
-        {
-            log.info( "Error running script engine: " + e.toString() + "\n" +
-                ExceptionUtils.getStackTrace( e ) );
-            throw new ScriptExecutionException( "Could not execute script:" + e.toString() );
-        }
-
-        return transformer.getOutputProperties();
-    }
-
+    abstract Reader getScriptReader();
 
 }

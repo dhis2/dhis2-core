@@ -28,63 +28,44 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Reader;
 
-import javax.xml.transform.stream.StreamSource;
+import org.apache.commons.io.input.ReaderInputStream;
+
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.basex.core.*;
-import org.basex.query.*;
-import org.basex.query.value.*;
-
-import java.io.Reader;
-import java.util.HashMap;
 
 
-public class EngineXQuery extends Engine
+public class ServerSideAppEngineXSLT extends ServerSideAppEngine
 {
 
-    protected static final Log log = LogFactory.getLog( EngineXQuery.class );
-
-    protected HashMap<String, Context> XQContexts = new HashMap<>();
-
-
-    protected Context context = null;
-
-
-    protected Context getXQContext()
-    {
-        if ( context == null )
-        {
-            context = new Context();
-        }
-        return context;
-    }
+    protected TransformerFactory factory = TransformerFactory.newInstance();
+    protected static final Log log = LogFactory.getLog( ServerSideAppEngineXSLT.class );
 
     @Override
     public Object evaluateScript()
         throws ScriptException
     {
+        Reader scriptReader = getScriptReader();
+        Transformer transformer;
+
         try
         {
-            Reader scriptReader = getScriptReader();
-            Context context = getXQContext();
-
-            String query = IOUtils.toString( scriptReader );
-            QueryProcessor qp = new QueryProcessor( query, context );
-            qp.bind( "dhisScriptContext", execContext );
-            //qp.context(execContext);
-
-            StreamSource text = new StreamSource( execContext.getIn() );
-            StreamResult outXQ = new StreamResult( execContext.getOut() );
-
-            Value result = qp.value();
-            return result;
-
+            Source xslt = new StreamSource( new ReaderInputStream( scriptReader ) );
+            Source text = new StreamSource( execContext.getIn() );
+            StreamResult trans_out = new StreamResult( execContext.getOut() );
+            transformer = factory.newTransformer( xslt );
+            transformer.setParameter( "dhisScriptContext", execContext );
+            transformer.transform( text, trans_out );
         }
+
         catch ( Exception e )
         {
             log.info( "Error running script engine: " + e.toString() + "\n" +
@@ -92,6 +73,8 @@ public class EngineXQuery extends Engine
             throw new ScriptExecutionException( "Could not execute script:" + e.toString() );
         }
 
+        return transformer.getOutputProperties();
     }
+
 
 }

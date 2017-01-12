@@ -471,7 +471,7 @@ public class EngineControllerFHIR extends EngineController
         {
             log.info( "response is ScriptObjectMirror" );
             log.info( "creating JSON representation of response" );
-            json = EngineSE.toJsonString( (ScriptObjectMirror) response );
+            json = ServerSideAppEngineSE.toJsonString( (ScriptObjectMirror) response );
             log.info( "SOM string representation: " + json );
 
         }

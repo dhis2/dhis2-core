@@ -88,14 +88,14 @@ public class DefaultEngineService implements EngineServiceInterface
     @Autowired
     protected SessionFactory sessionFactory;
 
-    protected HashMap<String, EngineInterface> scriptEngines = new HashMap<String, EngineInterface>();
+    protected HashMap<String, ServerSideAppEngine> scriptEngines = new HashMap<String, ServerSideAppEngine>();
     protected HashMap<String, Long> lastCachedTimes = new HashMap<String, Long>();
 
 
     @Autowired
     DhisConfigurationProvider dhisConf;
 
-    public EngineInterface getEngine( App app, ScriptLibrary sl, String scriptName )
+    public ServerSideAppEngine getEngine( App app, ScriptLibrary sl, String scriptName )
         throws ScriptException
     {
 
@@ -113,7 +113,7 @@ public class DefaultEngineService implements EngineServiceInterface
         Long lastCachedTime = lastCachedTimes.get( scriptEngineKey );
 
 
-        EngineInterface engine = scriptEngines.get( scriptEngineKey );
+        ServerSideAppEngine engine = scriptEngines.get( scriptEngineKey );
         if ( (lastCachedTime != null)
             && (lastModifiedTime != null)
             && (lastCachedTime.longValue() > 0)
@@ -148,11 +148,11 @@ public class DefaultEngineService implements EngineServiceInterface
         return engine;
     }
 
-    protected EngineInterface getEngineXSLT( App app, String scriptName )
+    protected ServerSideAppEngine getEngineXSLT( App app, String scriptName )
         throws ScriptException
     {
-        EngineXSLT xsltEngine;
-        xsltEngine = new EngineXSLT();
+        ServerSideAppEngineXSLT xsltEngine;
+        xsltEngine = new ServerSideAppEngineXSLT();
         log.info( "Retrieving dependencies for " + scriptName );
         ExecutionContext depContext = new ExecutionContext();
         depContext.setApplicationContext( applicationContext );
@@ -165,7 +165,7 @@ public class DefaultEngineService implements EngineServiceInterface
 
     protected BaseXServer basex = null;
 
-    protected EngineInterface getEngineXQuery( App app, String scriptName )
+    protected ServerSideAppEngine getEngineXQuery( App app, String scriptName )
         throws ScriptException
     {
         if ( basex == null )
@@ -179,8 +179,8 @@ public class DefaultEngineService implements EngineServiceInterface
                 log.info( "Could not start basex server" );
             }
         }
-        EngineXQuery xqueryEngine;
-        xqueryEngine = new EngineXQuery();
+        ServerSideAppEngineXQuery xqueryEngine;
+        xqueryEngine = new ServerSideAppEngineXQuery();
         log.info( "Retrieving dependencies for " + scriptName );
 
         ExecutionContext depContext = new ExecutionContext();
@@ -193,7 +193,7 @@ public class DefaultEngineService implements EngineServiceInterface
     }
 
 
-    protected EngineInterface getEngineSE( App app, String scriptName )
+    protected ServerSideAppEngine getEngineSE( App app, String scriptName )
         throws ScriptException
     {
         log.info( "Creating ScriptEngine engine for " );
@@ -226,7 +226,7 @@ public class DefaultEngineService implements EngineServiceInterface
             throw new ScriptException( "extension " + ext + ": cannot get engine:" + e.toString() );
         }
         log.info( "Instantiating SE engine for " + scriptName );
-        EngineSE scriptEngine = new EngineSE( engine );
+        ServerSideAppEngineSE scriptEngine = new ServerSideAppEngineSE( engine );
         log.info( "Retrieving dependencies for " + scriptName );
         ExecutionContext depContext = new ExecutionContext();
         depContext.setApplicationContext( applicationContext );
@@ -240,7 +240,7 @@ public class DefaultEngineService implements EngineServiceInterface
         return scriptEngine;
     }
 
-    protected void loadDependencies( EngineInterface scriptEngine, ExecutionContext depContext )
+    protected void loadDependencies( ServerSideAppEngine scriptEngine, ExecutionContext depContext )
         throws ScriptException
     {
         String scriptName = null;
@@ -355,14 +355,14 @@ public class DefaultEngineService implements EngineServiceInterface
             throw new ScriptAccessException( "Script execution - permission denied on user" );
         }
 
-        EngineInterface engine = getEngine( app, sl, scriptName );
+        ServerSideAppEngine engine = getEngine( app, sl, scriptName );
         engine.setScriptReader( scriptReader );
         return execute( engine, execContext );
 
     }
 
 
-    protected Object execute( EngineInterface engine, ExecutionContextInterface execContext )
+    protected Object execute( ServerSideAppEngine engine, ExecutionContextInterface execContext )
         throws ScriptException
     {
         log.info( "Execute start" );
@@ -389,7 +389,7 @@ public class DefaultEngineService implements EngineServiceInterface
     // this is needed to respect timeouts set via setMaxTime()
     // :-(
     @Transactional
-    protected Object executeThreaded( EngineInterface engine, ExecutionContextInterface execContext )
+    protected Object executeThreaded( ServerSideAppEngine engine, ExecutionContextInterface execContext )
         throws ScriptException
     {
         log.info( "Execute start" );

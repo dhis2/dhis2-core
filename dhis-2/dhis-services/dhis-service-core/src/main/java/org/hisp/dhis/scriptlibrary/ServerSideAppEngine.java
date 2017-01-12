@@ -35,9 +35,10 @@ import org.apache.commons.logging.LogFactory;
 
 
 
-abstract public class Engine implements EngineInterface {
+abstract public class ServerSideAppEngine implements ServerSideAppEngine
+{
 
-    private static final Log log = LogFactory.getLog(Engine.class);
+    private static final Log log = LogFactory.getLog(ServerSideAppEngine.class);
 
     //@Autowired this is not a bean? so won't work/do anything?
     //protected SessionFactory sessionFactory;
@@ -70,7 +71,7 @@ abstract public class Engine implements EngineInterface {
             throws ScriptException
     {
         Object res =null;
-        log.info("Run Engine: beginning execution");
+        log.info("Run ServerSideAppEngine: beginning execution");
 
         if (execContext.getUser() == null) {
             //sanity check.
@@ -81,7 +82,7 @@ abstract public class Engine implements EngineInterface {
             //sanity check.
             throw new ScriptNotFoundException("No script defined");
         }
-        log.info("Run Engine: evaluating script " + execContext.getScriptName());
+        log.info("Run ServerSideAppEngine: evaluating script " + execContext.getScriptName());
         try {
             res = evaluateScript();
         } catch (ScriptException e) {
@@ -92,7 +93,7 @@ abstract public class Engine implements EngineInterface {
                     ExceptionUtils.getStackTrace(e));
             throw new ScriptExecutionException("evaluation failed : " + e.toString() );
         }
-        log.info("Run Engine: evaluation done");
+        log.info("Run ServerSideAppEngine: evaluation done");
         return res;
 
     }

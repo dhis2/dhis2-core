@@ -54,15 +54,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 
-public class EngineSE extends Engine
+public class ServerSideAppEngineSE extends ServerSideAppEngine
 {
 
-    protected static final Log log = LogFactory.getLog( EngineSE.class );
+    protected static final Log log = LogFactory.getLog( ServerSideAppEngineSE.class );
 
 
     public ScriptEngine engine;
 
-    public EngineSE( ScriptEngine engine )
+    public ServerSideAppEngineSE( ScriptEngine engine )
     {
         this.engine = engine;
     }
@@ -72,41 +72,41 @@ public class EngineSE extends Engine
         throws ScriptException
     {
         Reader scriptReader = getScriptReader();
-        log.info( "EngineSE - eval start" );
+        log.info( "ServerSideAppEngineSE - eval start" );
 
         if ( execContext == null )
         {
-            log.info( "EngineSE - bad script context" );
+            log.info( "ServerSideAppEngineSE - bad script context" );
             throw new ScriptExecutionException( "Null script context" );
         }
 
 
         if ( engine == null )
         {
-            log.info( "EngineSE - bad SE" );
+            log.info( "ServerSideAppEngineSE - bad SE" );
             throw new ScriptExecutionException( "Bad ScriptEngine" );
         }
 
 
         try
         {
-            log.info( "EngineSE - putting context" );
+            log.info( "ServerSideAppEngineSE - putting context" );
             ScriptContext ctx = engine.getContext();
             ctx.setWriter( execContext.getOut() );
             ctx.setErrorWriter( execContext.getError() );
             ctx.setReader( execContext.getIn() );
-            log.info( "EngineSE - setting execution context for "
+            log.info( "ServerSideAppEngineSE - setting execution context for "
                 + execContext.getAppKey() + ":" + execContext.getScriptName() + " to:\n"
                 + execContext.toString() );
             engine.put( "dhisScriptContext", execContext );
             Object res = engine.eval( scriptReader );
-            log.info( "EngineSE - eval done" );
-            log.info( "EngineSE - eval execution context=" + execContext.toString() );
+            log.info( "ServerSideAppEngineSE - eval done" );
+            log.info( "ServerSideAppEngineSE - eval execution context=" + execContext.toString() );
             Object o = ctx.getAttribute( "dhisScriptContext" );
 
             if ( o != null )
             {
-                log.info( "EngineSE - eval execution context=" + o.toString() );
+                log.info( "ServerSideAppEngineSE - eval execution context=" + o.toString() );
             }
 
             return res;
