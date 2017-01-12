@@ -108,7 +108,6 @@ public class ExecutionContext implements ExecutionContextInterface
     }
     public void setAppKey ( String appKey )
     {
-        log.debug("Setting appKey to =(" + appKey + ")");
         this.appKey = appKey;
     }
     public void setScriptName ( String scriptName )
@@ -134,19 +133,19 @@ public class ExecutionContext implements ExecutionContextInterface
     }
 
     public void logInfo(Object o) {
-        log.info(o);
+        log.info("[" + appKey + ":" + scriptName + "] " + o);
     }
 
     public void logDebug(Object o) {
-        log.debug(o);
+        log.debug("[" + appKey + ":" + scriptName + "] " + o);
     }
 
     public void logError(Object o) {
-        log.error(o);
+        log.error("[" + appKey + ":" + scriptName + "] " + o);
     }
 
     public void logFatal(Object o) {
-        log.fatal(o);
+        log.fatal("[" + appKey + ":" + scriptName + "] " + o);
     }
 
 

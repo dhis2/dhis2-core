@@ -108,9 +108,6 @@ public class DefaultEngineService implements EngineServiceInterface {
 		String scriptEngineKey = sl.getName() + ":" + scriptName + ":" + user.getId();
 		Long lastModifiedTime = appManager.getLastModified( appKey);
 		Long lastCachedTime = lastCachedTimes.get(scriptEngineKey);
-		log.info("Checking for scriptEngine at key: " + scriptEngineKey);
-		log.info("LCT=" + lastCachedTime);
-		log.info("LMT=" + lastModifiedTime);
 
 
 		EngineInterface engine = scriptEngines.get(scriptEngineKey);
@@ -320,9 +317,8 @@ public class DefaultEngineService implements EngineServiceInterface {
 
 		if (  !appManager.isAccessible ( app, user ) )
 		{
-			log.info("WARNING: App check for user access is disabled!");
-			//HELP:  This should not be commented out.  Not sure what the above expression evaluates  to false
-			//throw new ScriptAccessException ( "Script execution - permission denied on user" );
+			//log.info("WARNING: App check for user access is disabled!");
+			throw new ScriptAccessException ( "Script execution - permission denied on user" );
 		}
 
 		EngineInterface engine = getEngine ( app, sl, scriptName );

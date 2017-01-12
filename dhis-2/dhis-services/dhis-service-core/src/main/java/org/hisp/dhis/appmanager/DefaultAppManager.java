@@ -216,6 +216,7 @@ public class DefaultAppManager
         }
     }
 
+
     public JsonNode retrieveManifestInfo (String appKey, String[] path )
     {
         log.info("Retrieve manifest info for " + appKey + "\nPath=" + String.join("/",path));
