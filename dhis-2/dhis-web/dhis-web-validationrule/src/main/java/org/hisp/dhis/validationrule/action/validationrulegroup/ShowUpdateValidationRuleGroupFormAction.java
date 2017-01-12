@@ -1,7 +1,7 @@
 package org.hisp.dhis.validationrule.action.validationrulegroup;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -57,13 +56,6 @@ public class ShowUpdateValidationRuleGroupFormAction
         this.validationRuleService = validationRuleService;
     }
     
-    private UserGroupService userGroupService;
-
-    public void setUserGroupService( UserGroupService userGroupService )
-    {
-        this.userGroupService = userGroupService;
-    }
-
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -133,14 +125,14 @@ public class ShowUpdateValidationRuleGroupFormAction
         groupMembers = new ArrayList<>( validationRuleGroup.getMembers() );
 
         Collections.sort( groupMembers );
-        
-        availableUserGroupsToAlert = new ArrayList<>( userGroupService.getAllUserGroups() );
-
-        userGroupsToAlert = new ArrayList<>( validationRuleGroup.getUserGroupsToAlert() );
-        
-        Collections.sort( userGroupsToAlert );
-
-        alertByOrgUnits = validationRuleGroup.isAlertByOrgUnits();
+//
+//        availableUserGroupsToAlert = new ArrayList<>( userGroupService.getAllUserGroups() );
+//
+//        userGroupsToAlert = new ArrayList<>( validationRuleGroup.getUserGroupsToAlert() );
+//
+//        Collections.sort( userGroupsToAlert );
+//
+//        alertByOrgUnits = validationRuleGroup.isAlertByOrgUnits();
 
         return SUCCESS;
     }

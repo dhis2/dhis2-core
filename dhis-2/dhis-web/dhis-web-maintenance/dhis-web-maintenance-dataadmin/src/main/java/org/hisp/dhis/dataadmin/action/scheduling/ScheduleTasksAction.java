@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataadmin.action.scheduling;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,6 @@ import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_6AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_7AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_DAILY_8AM;
 import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_15MIN;
-import static org.hisp.dhis.system.scheduling.Scheduler.CRON_EVERY_MIN;
 
 /**
  * @author Lars Helge Overland
@@ -456,7 +455,6 @@ public class ScheduleTasksAction
                 // -------------------------------------------------------------
 
                 schedulingManager.scheduleTasks( cronKeyMap );
-
             }
         }
         else

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -245,9 +246,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             {
                 ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
                 objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
-                objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E3000,
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( bundle.getUser() ),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( object ) ) );
+                objectReport.addErrorReports( errorReports );
 
                 typeReport.addObjectReport( objectReport );
                 typeReport.getStats().incIgnored();
@@ -984,6 +983,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
     {
         return klass != null && (
             UserCredentials.class.isAssignableFrom( klass ) || DataElementOperand.class.isAssignableFrom( klass )
-                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
+                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ) ||
+                DataInputPeriod.class.isAssignableFrom( klass ));
     }
 }

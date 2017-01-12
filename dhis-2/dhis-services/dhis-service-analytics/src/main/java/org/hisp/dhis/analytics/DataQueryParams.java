@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -416,7 +416,7 @@ public class DataQueryParams
      * Returns a key representing a group of queries which should be run in 
      * sequence. Currently queries with different aggregation type are run in
      * sequence. It is not allowed for the implementation to differentiate on
-     * dimensional objects. TODO test including tableName (partition)
+     * dimensional objects.
      */
     public String getSequentialQueryGroupKey()
     {
@@ -451,43 +451,7 @@ public class DataQueryParams
         
         return map;
     }
-    
-    /**
-     * Creates a list of dimension indexes which are relevant to completeness queries.
-     */
-    public List<Integer> getCompletenessDimensionIndexes()
-    {
-        List<Integer> indexes = new ArrayList<>();
         
-        for ( int i = 0; i < dimensions.size(); i++ )
-        {
-            if ( COMPLETENESS_DIMENSION_TYPES.contains( dimensions.get( i ).getDimensionType() ) )
-            {
-                indexes.add( i );
-            }
-        }
-        
-        return indexes;
-    }
-
-    /**
-     * Creates a list of filter indexes which are relevant to completeness queries.
-     */
-    public List<Integer> getCompletenessFilterIndexes()
-    {
-        List<Integer> indexes = new ArrayList<>();
-        
-        for ( int i = 0; i < filters.size(); i++ )
-        {
-            if ( COMPLETENESS_DIMENSION_TYPES.contains( filters.get( i ).getDimensionType() ) )
-            {
-                indexes.add( i );
-            }
-        }
-        
-        return indexes;
-    }
-    
     /**
      * Returns the index of the period dimension in the dimension map.
      */
@@ -663,7 +627,7 @@ public class DataQueryParams
     
     /**
      * Generates all permutations of the dimension options for this query.
-     * Ignores the data element, category option combo and indicator dimensions.
+     * Ignores the data and category option combo dimensions.
      */
     public List<List<DimensionItem>> getDimensionItemPermutations()
     {
@@ -823,6 +787,23 @@ public class DataQueryParams
         }
         
         return list;
+    }
+    
+    /**
+     * Indicates whether all dimensions and filters have value types among the given
+     * set of value types.
+     */
+    public boolean containsOnlyDimensionsAndFilters( Set<DimensionType> dimensionTypes )
+    {
+        for ( DimensionalObject dimension : getDimensionsAndFilters() )
+        {
+            if ( !dimensionTypes.contains( dimension.getDimensionType() ) )
+            {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     /**
@@ -1092,8 +1073,6 @@ public class DataQueryParams
      * Sets the given options for the given dimension. If the dimension exists, 
      * replaces the dimension items with the given items. If not, creates a new 
      * dimension with the given items.
-     * 
-     * TODO check if we need add new
      */
     protected DataQueryParams setDimensionOptions( String dimension, DimensionType type, String dimensionName, List<DimensionalItemObject> options )
     {
@@ -2018,13 +1997,7 @@ public class DataQueryParams
             this.params.setDimensionOptions( dimension, type, dimensionName, options );
             return this;
         }
-        
-        public Builder retainDimensions( List<Integer> indexes )
-        {
-            this.params.dimensions = ListUtils.getAtIndexes( this.params.dimensions, indexes );
-            return this;
-        }
-        
+                
         public Builder retainDataDimension( DataDimensionItemType itemType )
         {
             this.params.retainDataDimension( itemType );
@@ -2133,12 +2106,6 @@ public class DataQueryParams
             return this;
         }
 
-        public Builder retainFilters( List<Integer> indexes )
-        {
-            this.params.filters = ListUtils.getAtIndexes( this.params.filters, indexes );
-            return this;
-        }
-        
         public Builder removeFilter( String filter )
         {
             this.params.filters.remove( new BaseDimensionalObject( filter ) );
