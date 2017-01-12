@@ -40,10 +40,10 @@ import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationContext;
 
 
-public class ExecutionContext implements ExecutionContextInterface
+public class DefaultServerSideAppExecutionContext implements ServerSideAppExecutionContext
 {
 
-    protected static final Log log = LogFactory.getLog ( ExecutionContext.class );
+    protected static final Log log = LogFactory.getLog ( DefaultServerSideAppExecutionContext.class );
     protected ApplicationContext applicationContext;
     protected Reader in;
     protected Writer out;
@@ -52,7 +52,7 @@ public class ExecutionContext implements ExecutionContextInterface
     protected String scriptName;
     protected String appKey;
 
-    public ExecutionContext()
+    public DefaultServerSideAppExecutionContext()
     {
         user = null;
         in = new StringReader ( "" );
@@ -66,7 +66,7 @@ public class ExecutionContext implements ExecutionContextInterface
 
     public String toString()
     {
-        return "ExecutionContext for:\n\tappKey=" + getAppKey()
+        return "DefaultServerSideAppExecutionContext for:\n\tappKey=" + getAppKey()
                 + "\n\tfor script name=" + getScriptName()
                 + "\n\tfor user " + user.toString()
                 ;

@@ -28,46 +28,16 @@ package org.hisp.dhis.scriptlibrary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Reader;
-import java.io.Writer;
-import org.hisp.dhis.user.User;
-import org.springframework.context.ApplicationContext;
 
-public interface ExecutionContextInterface {
 
-    abstract String getAppKey();
+/**
+ * @author Carl Leitner <litlfred@gmail.com>
+ */
+public interface ServerSideAppEngineService
+{
 
-    abstract String getScriptName();
 
-    abstract User getUser();
+    Object eval(ServerSideAppExecutionContext execContext) throws ScriptException;
 
-    abstract Reader getIn();
 
-    abstract Writer getOut();
-
-    abstract Writer getError();
-
-    abstract ApplicationContext getApplicationContext();
-
-    abstract void setApplicationContext(ApplicationContext applicationContext);
-
-    abstract void setAppKey(String appKey);
-
-    abstract void setScriptName(String scriptName);
-
-    abstract void setUser(User user);
-
-    abstract void setIn(Reader in);
-
-    abstract void setOut(Writer out);
-
-    abstract void setError(Writer out);
-
-    abstract void logFatal(Object o);
-
-    abstract void logError(Object o);
-
-    abstract void logInfo(Object o);
-
-    abstract void logDebug(Object o);
 }

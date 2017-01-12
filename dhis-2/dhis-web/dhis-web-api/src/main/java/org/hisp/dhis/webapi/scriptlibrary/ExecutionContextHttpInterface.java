@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.scriptlibrary;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.scriptlibrary.ExecutionContextInterface;
+import org.hisp.dhis.scriptlibrary.ServerSideAppExecutionContext;
 
-public interface ExecutionContextHttpInterface extends ExecutionContextInterface
+public interface ExecutionContextHttpInterface extends ServerSideAppExecutionContext
 {
     abstract HttpServletResponse getHttpServletResponse();
     abstract HttpServletRequest getHttpServletRequest();

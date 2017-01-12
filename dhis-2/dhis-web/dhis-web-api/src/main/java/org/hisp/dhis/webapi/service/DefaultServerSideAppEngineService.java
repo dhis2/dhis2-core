@@ -68,7 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Carl Leitner <litlfred@gmail.com>
  */
 @Service
-public class DefaultEngineService implements EngineServiceInterface
+public class DefaultServerSideAppEngineService implements ServerSideAppEngineService
 {
 
     protected static final Log log = LogFactory.getLog( DefaultDataValueService.class );
@@ -154,7 +154,7 @@ public class DefaultEngineService implements EngineServiceInterface
         ServerSideAppEngineXSLT xsltEngine;
         xsltEngine = new ServerSideAppEngineXSLT();
         log.info( "Retrieving dependencies for " + scriptName );
-        ExecutionContext depContext = new ExecutionContext();
+        DefaultServerSideAppExecutionContext depContext = new DefaultServerSideAppExecutionContext();
         depContext.setApplicationContext( applicationContext );
         depContext.setUser( currentUserService.getCurrentUser() );
         depContext.setAppKey( app.getKey() );
@@ -183,7 +183,7 @@ public class DefaultEngineService implements EngineServiceInterface
         xqueryEngine = new ServerSideAppEngineXQuery();
         log.info( "Retrieving dependencies for " + scriptName );
 
-        ExecutionContext depContext = new ExecutionContext();
+        DefaultServerSideAppExecutionContext depContext = new DefaultServerSideAppExecutionContext();
         depContext.setApplicationContext( applicationContext );
         depContext.setUser( currentUserService.getCurrentUser() );
         depContext.setAppKey( app.getKey() );
@@ -228,7 +228,7 @@ public class DefaultEngineService implements EngineServiceInterface
         log.info( "Instantiating SE engine for " + scriptName );
         ServerSideAppEngineSE scriptEngine = new ServerSideAppEngineSE( engine );
         log.info( "Retrieving dependencies for " + scriptName );
-        ExecutionContext depContext = new ExecutionContext();
+        DefaultServerSideAppExecutionContext depContext = new DefaultServerSideAppExecutionContext();
         depContext.setApplicationContext( applicationContext );
         depContext.setAppKey( app.getKey() );
         depContext.setScriptName( scriptName );
@@ -240,7 +240,7 @@ public class DefaultEngineService implements EngineServiceInterface
         return scriptEngine;
     }
 
-    protected void loadDependencies( ServerSideAppEngine scriptEngine, ExecutionContext depContext )
+    protected void loadDependencies( ServerSideAppEngine scriptEngine, DefaultServerSideAppExecutionContext depContext )
         throws ScriptException
     {
         String scriptName = null;
@@ -311,7 +311,7 @@ public class DefaultEngineService implements EngineServiceInterface
 
     protected String contextPath;
 
-    public Object eval( ExecutionContextInterface execContext )
+    public Object eval( ServerSideAppExecutionContext execContext )
         throws ScriptException
     {
         String scriptName = execContext.getScriptName();
@@ -362,7 +362,7 @@ public class DefaultEngineService implements EngineServiceInterface
     }
 
 
-    protected Object execute( ServerSideAppEngine engine, ExecutionContextInterface execContext )
+    protected Object execute( ServerSideAppEngine engine, ServerSideAppExecutionContext execContext )
         throws ScriptException
     {
         log.info( "Execute start" );
@@ -389,7 +389,7 @@ public class DefaultEngineService implements EngineServiceInterface
     // this is needed to respect timeouts set via setMaxTime()
     // :-(
     @Transactional
-    protected Object executeThreaded( ServerSideAppEngine engine, ExecutionContextInterface execContext )
+    protected Object executeThreaded( ServerSideAppEngine engine, ServerSideAppExecutionContext execContext )
         throws ScriptException
     {
         log.info( "Execute start" );

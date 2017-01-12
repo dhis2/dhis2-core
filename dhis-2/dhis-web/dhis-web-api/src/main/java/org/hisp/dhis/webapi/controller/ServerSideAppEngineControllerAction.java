@@ -37,8 +37,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.scriptlibrary.*;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpInterface;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttp;
+import org.hisp.dhis.webapi.scriptlibrary.ServerSideAppExecutionContextHttp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.AntPathMatcher;
@@ -51,7 +50,7 @@ import org.springframework.web.servlet.HandlerMapping;
  * @author Carl Leitner <litlfred@gmail.com>
  */
 @Controller
-public class EngineControllerAction extends EngineController
+public class ServerSideAppEngineControllerAction extends ServerSideAppEngineController
 {
     public static final String PATH = "ssa";
 
@@ -123,7 +122,7 @@ public class EngineControllerAction extends EngineController
     {
         String ext = FilenameUtils.getExtension( script );
 
-        ExecutionContextHttp execContext = new ExecutionContextHttp();
+        ServerSideAppExecutionContextHttp execContext = new ServerSideAppExecutionContextHttp();
         execContext.setScriptName( script );
         initExecutionContext( execContext, appKey, httpRequest, httpResponse );
         return execContext;

@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.scriptlibrary;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hisp.dhis.scriptlibrary.ExecutionContext;
-import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpInterface;
 
-public class ExecutionContextHttp extends ExecutionContext implements ExecutionContextHttpInterface
+import org.hisp.dhis.scriptlibrary.DefaultServerSideAppExecutionContext;
+
+public class ServerSideAppExecutionContextHttp extends DefaultServerSideAppExecutionContext implements ExecutionContextHttpInterface
 {
     /*
      *

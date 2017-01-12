@@ -39,7 +39,7 @@ import org.hisp.dhis.datavalue.DefaultDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttpInterface;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.DefaultEngineService;
+import org.hisp.dhis.webapi.service.DefaultServerSideAppEngineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -49,7 +49,7 @@ import org.springframework.stereotype.Controller;
 /**
  * @author Carl Leitner <litlfred@gmail.com>
  */
-abstract public class EngineController
+abstract public class ServerSideAppEngineController
 {
     protected static final Log log = LogFactory.getLog( DefaultDataValueService.class );
 
@@ -60,8 +60,8 @@ abstract public class EngineController
     @Autowired
     protected CurrentUserService currentUserService;
     @Autowired
-    //@Qualifier ( "org.hisp.dhis.webapi.service.DefaultEngineService" ) //for some reason we are also getting "defaultEngineBuilder" as a bean
-    protected DefaultEngineService engineService;
+    //@Qualifier ( "org.hisp.dhis.webapi.service.DefaultServerSideAppEngineService" ) //for some reason we are also getting "defaultEngineBuilder" as a bean
+    protected DefaultServerSideAppEngineService engineService;
 
 
     protected void sendError( HttpServletResponse httpResponse, int sc, String msg )

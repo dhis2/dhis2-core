@@ -47,8 +47,8 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
 import org.hisp.dhis.scriptlibrary.*;
 import org.hisp.dhis.web.ohie.fhir.service.BaseProcessor;
-import org.hisp.dhis.webapi.controller.EngineController;
-import org.hisp.dhis.webapi.scriptlibrary.ExecutionContextHttp;
+import org.hisp.dhis.webapi.controller.ServerSideAppEngineController;
+import org.hisp.dhis.webapi.scriptlibrary.ServerSideAppExecutionContextHttp;
 import org.hisp.dhis.webapi.scriptlibrary.HttpException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -67,8 +67,8 @@ import org.hisp.dhis.web.ohie.fhir.service.STU3Processor;
  */
 @Controller
 @ComponentScan( basePackages = { "org.hisp.dhis.webapi.service" } )
-@RequestMapping( value = EngineControllerFHIR.RESOURCE_PATH + "/{app}" )
-public class EngineControllerFHIR extends EngineController
+@RequestMapping( value = ServerSideAppEngineControllerFHIR.RESOURCE_PATH + "/{app}" )
+public class ServerSideAppEngineControllerFHIR extends ServerSideAppEngineController
 {
 
     @Autowired
@@ -78,7 +78,7 @@ public class EngineControllerFHIR extends EngineController
 
     protected static final Log log = LogFactory.getLog( DefaultDataValueService.class );
 
-    public class ExecutionContextFHIR extends ExecutionContextHttp
+    public class ServerSideAppExecutionContextFHIR extends ServerSideAppExecutionContextHttp
     {
         protected Object response = null;
 
@@ -222,7 +222,7 @@ public class EngineControllerFHIR extends EngineController
         this.fhirProcessors = fhirProcessors;
     }
 
-    public EngineControllerFHIR()
+    public ServerSideAppEngineControllerFHIR()
     {
         fhirProcessors.put( "dstu2", new DSTU2Processor() );
         fhirProcessors.put( "stu3", new STU3Processor() );
@@ -396,7 +396,7 @@ public class EngineControllerFHIR extends EngineController
 
             try
             {
-                ExecutionContextFHIR execContext = getExecutionContext( script, httpRequest, httpResponse, appKey, fhirVersion, resource, operation, id );
+                ServerSideAppExecutionContextFHIR execContext = getExecutionContext( script, httpRequest, httpResponse, appKey, fhirVersion, resource, operation, id );
                 Object result = engineService.eval( execContext );
                 processOperationResult( execContext, fhirVersion );
             }
@@ -433,7 +433,7 @@ public class EngineControllerFHIR extends EngineController
         sendError( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, "Operation " + operation + " not found on resource " + resource );
     }
 
-    protected void processOperationResult( ExecutionContextFHIR execContext, String fhirVersion )
+    protected void processOperationResult( ServerSideAppExecutionContextFHIR execContext, String fhirVersion )
         throws HttpException, ScriptException
     {
         Object response = execContext.getResponse();
@@ -566,11 +566,11 @@ public class EngineControllerFHIR extends EngineController
     }
 
 
-    protected ExecutionContextFHIR getExecutionContext( String script, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+    protected ServerSideAppExecutionContextFHIR getExecutionContext( String script, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
         String appKey, String fhirVersion, String resource, String operation, String id )
         throws ScriptException
     {
-        ExecutionContextFHIR execContext = new ExecutionContextFHIR();
+        ServerSideAppExecutionContextFHIR execContext = new ServerSideAppExecutionContextFHIR();
         execContext.setScriptName( script );
         log.info( "Setting execution context to script " + script + " for app " + appKey );
         initExecutionContext( execContext, appKey, httpRequest, httpResponse );

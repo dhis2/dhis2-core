@@ -39,8 +39,8 @@ public interface ServerSideAppEngine extends Callable
     abstract Object evaluateScript() throws ScriptException;
 
 
-    abstract void setExecutionContext ( ExecutionContextInterface execContext );
-    abstract ExecutionContextInterface getExecutionContext();
+    abstract void setExecutionContext ( ServerSideAppExecutionContext execContext );
+    abstract ServerSideAppExecutionContext getExecutionContext();
     abstract void setScriptReader(Reader scriptReader);
 
     abstract Reader getScriptReader();

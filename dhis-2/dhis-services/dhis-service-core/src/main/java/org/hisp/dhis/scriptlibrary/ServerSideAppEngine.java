@@ -44,14 +44,14 @@ abstract public class ServerSideAppEngine implements ServerSideAppEngine
     //protected SessionFactory sessionFactory;
 
 
-    public ExecutionContextInterface execContext = null;
+    public ServerSideAppExecutionContext execContext = null;
 
-    public ExecutionContextInterface getExecutionContext() {
+    public ServerSideAppExecutionContext getExecutionContext() {
         return execContext;
     }
 
     @Override
-    public void setExecutionContext(ExecutionContextInterface execContext) {
+    public void setExecutionContext(ServerSideAppExecutionContext execContext) {
         this.execContext = execContext;
     }
 
