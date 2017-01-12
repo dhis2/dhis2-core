@@ -90,8 +90,8 @@ public abstract class BaseNotificationMessageRenderer<T>
 
     protected enum ExpressionType
     {
-        VARIABLE( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
-        ATTRIBUTE( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
+        VARIABLE ( VARIABLE_PATTERN, VAR_CONTENT_PATTERN ),
+        ATTRIBUTE ( ATTRIBUTE_PATTERN, ATTR_CONTENT_PATTERN );
 
         private final Pattern expressionPattern;
         private final Pattern contentPattern;
