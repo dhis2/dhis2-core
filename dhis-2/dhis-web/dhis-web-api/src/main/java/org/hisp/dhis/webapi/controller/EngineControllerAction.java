@@ -48,10 +48,10 @@ import org.springframework.web.servlet.HandlerMapping;
 
 
 /**
-* @author Carl Leitner <litlfred@gmail.com>
+ * @author Carl Leitner <litlfred@gmail.com>
  */
 @Controller
-public class EngineControllerAction  extends EngineController
+public class EngineControllerAction extends EngineController
 {
     public static final String PATH = "ssa";
 
@@ -59,37 +59,36 @@ public class EngineControllerAction  extends EngineController
     protected AppManager appManager;
 
 
-
-    @RequestMapping (
-        value =   {
-             //   "/{app}/" + PATH + "/**"
-               PATH + "/{app}/{script:.+}",
-               PATH + "/{app}/{script:.+}/**",
-               PATH + "/{app}/{script:.+}/**/*",
+    @RequestMapping(
+        value = {
+            //   "/{app}/" + PATH + "/**"
+            PATH + "/{app}/{script:.+}",
+            PATH + "/{app}/{script:.+}/**",
+            PATH + "/{app}/{script:.+}/**/*",
             //    "/{app}/" + PATH + "/{root:.+}/**/{script:.+}"
-	    }
+        }
     )
-    public void execScript ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                             @PathVariable ( "app" ) String appKey
-			                 //@PathVariable ( "script" ) String script
+    public void execScript( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
+        @PathVariable( "app" ) String appKey
+        //@PathVariable ( "script" ) String script
     )
     {
         String script = "";
         try
         {
 
-            String path = (String) httpRequest.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
+            String path = (String) httpRequest.getAttribute( HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE );
             String root = "/" + appKey + "/" + PATH + "/";
-            script = PATH  +"/" + path.substring( root.length());
-            log.info ( "Received request to run script engine\nPath:" + path + "\nAppKey:" + appKey  + "\nScript:" + script )  ;
+            script = PATH + "/" + path.substring( root.length() );
+            log.info( "Received request to run script engine\nPath:" + path + "\nAppKey:" + appKey + "\nScript:" + script );
 
 
             //create and initialize the http execution context to send to the script
-            ExecutionContextHttpInterface execContext = getExecutionContext ( httpRequest, httpResponse, appKey, script );
+            ExecutionContextHttpInterface execContext = getExecutionContext( httpRequest, httpResponse, appKey, script );
 
             //instantiate an Engine and run the script against the context
-            log.info ( "Running " + script + " in app " + appKey + " with context=" + execContext.toString() );
-            Object result =  engineService.eval(execContext);  //we are not doing anything with the result
+            log.info( "Running " + script + " in app " + appKey + " with context=" + execContext.toString() );
+            Object result = engineService.eval( execContext );  //we are not doing anything with the result
             execContext.getOut().flush();
             execContext.getOut().close();
 
@@ -97,36 +96,36 @@ public class EngineControllerAction  extends EngineController
 
         catch ( ScriptAccessException e )
         {
-            sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, e.toString() );
+            sendError( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, e.toString() );
         }
 
         catch ( ScriptNotFoundException e )
         {
-            sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, e.toString() );
+            sendError( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, e.toString() );
         }
 
         catch ( ScriptException e )
         {
-            sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.toString() );
+            sendError( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.toString() );
         }
 
         catch ( Exception e )
         {
-            log.error ( "Received request to run  " + script + " in app " + appKey , e);
-            sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "internal script processing error\n" + e.toString()  );
+            log.error( "Received request to run  " + script + " in app " + appKey, e );
+            sendError( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "internal script processing error\n" + e.toString() );
         }
 
         return;
     }
 
 
-    protected ExecutionContextHttpInterface getExecutionContext ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey, String script )
+    protected ExecutionContextHttpInterface getExecutionContext( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey, String script )
     {
-        String ext = FilenameUtils.getExtension ( script );
+        String ext = FilenameUtils.getExtension( script );
 
         ExecutionContextHttp execContext = new ExecutionContextHttp();
-        execContext.setScriptName(script);
-        initExecutionContext ( execContext, appKey,  httpRequest, httpResponse );
+        execContext.setScriptName( script );
+        initExecutionContext( execContext, appKey, httpRequest, httpResponse );
         return execContext;
     }
 

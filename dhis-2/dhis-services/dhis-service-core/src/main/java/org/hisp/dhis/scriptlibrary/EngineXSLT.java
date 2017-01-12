@@ -29,7 +29,9 @@ package org.hisp.dhis.scriptlibrary;
  */
 
 import java.io.Reader;
+
 import org.apache.commons.io.input.ReaderInputStream;
+
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -42,36 +44,34 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.appmanager.App;
 
 
-
-
 public class EngineXSLT extends Engine
 {
 
     protected TransformerFactory factory = TransformerFactory.newInstance();
-    protected static final Log log = LogFactory.getLog ( EngineXSLT.class );
+    protected static final Log log = LogFactory.getLog( EngineXSLT.class );
 
     @Override
-    public Object evaluateScript ()
-    throws ScriptException
+    public Object evaluateScript()
+        throws ScriptException
     {
         Reader scriptReader = getScriptReader();
         Transformer transformer;
 
         try
         {
-            Source xslt = new StreamSource ( new ReaderInputStream ( scriptReader ) );
-            Source text = new StreamSource ( execContext.getIn() );
-            StreamResult trans_out = new StreamResult ( execContext.getOut() );
-            transformer = factory.newTransformer ( xslt );
-            transformer.setParameter ( "dhisScriptContext", execContext );
-            transformer.transform ( text, trans_out );
+            Source xslt = new StreamSource( new ReaderInputStream( scriptReader ) );
+            Source text = new StreamSource( execContext.getIn() );
+            StreamResult trans_out = new StreamResult( execContext.getOut() );
+            transformer = factory.newTransformer( xslt );
+            transformer.setParameter( "dhisScriptContext", execContext );
+            transformer.transform( text, trans_out );
         }
 
         catch ( Exception e )
         {
-            log.info ("Error running script engine: "  + e.toString() + "\n" +
-                    ExceptionUtils.getStackTrace(e));
-            throw new ScriptExecutionException("Could not execute script:" + e.toString());
+            log.info( "Error running script engine: " + e.toString() + "\n" +
+                ExceptionUtils.getStackTrace( e ) );
+            throw new ScriptExecutionException( "Could not execute script:" + e.toString() );
         }
 
         return transformer.getOutputProperties();

@@ -57,55 +57,56 @@ import org.apache.commons.logging.LogFactory;
 public class EngineSE extends Engine
 {
 
-    protected static final Log log = LogFactory.getLog ( EngineSE.class );
+    protected static final Log log = LogFactory.getLog( EngineSE.class );
 
 
     public ScriptEngine engine;
 
-    public EngineSE(ScriptEngine engine){
-        this.engine=engine;
+    public EngineSE( ScriptEngine engine )
+    {
+        this.engine = engine;
     }
 
     @Override
-    public Object evaluateScript ()
-    throws ScriptException
+    public Object evaluateScript()
+        throws ScriptException
     {
         Reader scriptReader = getScriptReader();
-        log.info ( "EngineSE - eval start" );
+        log.info( "EngineSE - eval start" );
 
         if ( execContext == null )
         {
-            log.info ( "EngineSE - bad script context" );
-            throw new ScriptExecutionException ( "Null script context" );
+            log.info( "EngineSE - bad script context" );
+            throw new ScriptExecutionException( "Null script context" );
         }
 
 
         if ( engine == null )
         {
-            log.info ( "EngineSE - bad SE" );
-            throw new ScriptExecutionException ( "Bad ScriptEngine" );
+            log.info( "EngineSE - bad SE" );
+            throw new ScriptExecutionException( "Bad ScriptEngine" );
         }
 
 
         try
         {
-            log.info ( "EngineSE - putting context" );
+            log.info( "EngineSE - putting context" );
             ScriptContext ctx = engine.getContext();
-            ctx.setWriter ( execContext.getOut() );
-            ctx.setErrorWriter ( execContext.getError() );
-            ctx.setReader ( execContext.getIn() );
-            log.info ( "EngineSE - setting execution context for "
-                                 + execContext.getAppKey() + ":" + execContext.getScriptName() + " to:\n"
-                                 + execContext.toString() );
-            engine.put ( "dhisScriptContext", execContext );
-            Object res  =  engine.eval ( scriptReader );
-            log.info ( "EngineSE - eval done" );
-            log.info ( "EngineSE - eval execution context=" + execContext.toString() );
-            Object o = ctx.getAttribute ( "dhisScriptContext" );
+            ctx.setWriter( execContext.getOut() );
+            ctx.setErrorWriter( execContext.getError() );
+            ctx.setReader( execContext.getIn() );
+            log.info( "EngineSE - setting execution context for "
+                + execContext.getAppKey() + ":" + execContext.getScriptName() + " to:\n"
+                + execContext.toString() );
+            engine.put( "dhisScriptContext", execContext );
+            Object res = engine.eval( scriptReader );
+            log.info( "EngineSE - eval done" );
+            log.info( "EngineSE - eval execution context=" + execContext.toString() );
+            Object o = ctx.getAttribute( "dhisScriptContext" );
 
             if ( o != null )
             {
-                log.info ( "EngineSE - eval execution context=" + o.toString() );
+                log.info( "EngineSE - eval execution context=" + o.toString() );
             }
 
             return res;
@@ -113,94 +114,128 @@ public class EngineSE extends Engine
 
         catch ( Exception e )
         {
-            log.info ("Error running script engine: "  + e.toString() + "\n" +
-                        ExceptionUtils.getStackTrace(e));
-            throw new ScriptExecutionException("Could not execute script:" + e.toString());
+            log.info( "Error running script engine: " + e.toString() + "\n" +
+                ExceptionUtils.getStackTrace( e ) );
+            throw new ScriptExecutionException( "Could not execute script:" + e.toString() );
         }
     }
 
 
-    public static JsonNode toJsonNode (ScriptObjectMirror som) {
-        try {
+    public static JsonNode toJsonNode( ScriptObjectMirror som )
+    {
+        try
+        {
             JsonNodeFactory nf = JsonNodeFactory.instance;
-            return generateJsonNode(som,nf);
-        } catch (Exception e) {
-            log.info("Could not convert to json node:" + e.toString());
+            return generateJsonNode( som, nf );
+        }
+        catch ( Exception e )
+        {
+            log.info( "Could not convert to json node:" + e.toString() );
             return null;
         }
 
     }
 
-    public static String toJsonString (ScriptObjectMirror som) {
-        try {
+    public static String toJsonString( ScriptObjectMirror som )
+    {
+        try
+        {
             StringWriter out = new StringWriter();
-            JsonGenerator gen = jsonFactory.createGenerator(out);
-            generateJsonString(som,gen);
+            JsonGenerator gen = jsonFactory.createGenerator( out );
+            generateJsonString( som, gen );
             gen.close();
             return out.toString();
-        } catch (Exception e) {
-            log.info("Could not convert to json string:" + e.toString());
+        }
+        catch ( Exception e )
+        {
+            log.info( "Could not convert to json string:" + e.toString() );
             return null;
         }
     }
-
-
-
 
 
     private static JsonFactory jsonFactory = new JsonFactory();
 
 
-    private static void addMember( Object o, JsonGenerator gen)
-            throws IOException
+    private static void addMember( Object o, JsonGenerator gen )
+        throws IOException
     {
-        if (o == null) {
+        if ( o == null )
+        {
             gen.writeNull();
-        } else if (o instanceof JSObject) {
-            generateJsonString((JSObject) o, gen);
-        } else if (o instanceof Boolean) {
-            gen.writeBoolean( (Boolean) o);
-        } else if (o instanceof Double) {
-            gen.writeNumber( (Double) o);
-        } else if (o instanceof Float) {
-            gen.writeNumber( (Float) o);
-        } else if (o instanceof Integer) {
-            gen.writeNumber((Integer) o);
-        } else if (o instanceof Long) {
-            gen.writeNumber((Long) o);
-        } else if (o instanceof Short) {
-            gen.writeNumber((Short) o);
-        } else if (o instanceof BigDecimal) {
-            gen.writeNumber((BigDecimal) o);
-        } else {
-            gen.writeString(o.toString());
+        }
+        else if ( o instanceof JSObject )
+        {
+            generateJsonString( (JSObject) o, gen );
+        }
+        else if ( o instanceof Boolean )
+        {
+            gen.writeBoolean( (Boolean) o );
+        }
+        else if ( o instanceof Double )
+        {
+            gen.writeNumber( (Double) o );
+        }
+        else if ( o instanceof Float )
+        {
+            gen.writeNumber( (Float) o );
+        }
+        else if ( o instanceof Integer )
+        {
+            gen.writeNumber( (Integer) o );
+        }
+        else if ( o instanceof Long )
+        {
+            gen.writeNumber( (Long) o );
+        }
+        else if ( o instanceof Short )
+        {
+            gen.writeNumber( (Short) o );
+        }
+        else if ( o instanceof BigDecimal )
+        {
+            gen.writeNumber( (BigDecimal) o );
+        }
+        else
+        {
+            gen.writeString( o.toString() );
         }
     }
-    private static void generateJsonString(JSObject obj, JsonGenerator gen)
-            throws IOException
+
+    private static void generateJsonString( JSObject obj, JsonGenerator gen )
+        throws IOException
     {
-        if (obj.isArray()) {
+        if ( obj.isArray() )
+        {
             gen.writeStartArray();
-            Object len = obj.getMember("length");
-            if (len instanceof Number) {
+            Object len = obj.getMember( "length" );
+            if ( len instanceof Number )
+            {
                 int n = ((Number) len).intValue();
-                for (int i = 0; i < n; i++) {
-                    addMember(obj.getSlot(i),gen);
+                for ( int i = 0; i < n; i++ )
+                {
+                    addMember( obj.getSlot( i ), gen );
                 }
             }
             gen.writeEndArray();
-        } else {
+        }
+        else
+        {
             gen.writeStartObject();
             Set<String> members;
-            if (obj instanceof ScriptObjectMirror) {
-                String[] keys = ((ScriptObjectMirror) obj).getOwnKeys(true);
-                members = Arrays.stream(keys).collect(Collectors.toSet());
-            } else {
+            if ( obj instanceof ScriptObjectMirror )
+            {
+                String[] keys = ((ScriptObjectMirror) obj).getOwnKeys( true );
+                members = Arrays.stream( keys ).collect( Collectors.toSet() );
+            }
+            else
+            {
                 members = obj.keySet();
             }
-            for (String key : members) {
-                gen.writeFieldName(key);
-                addMember(obj.getMember(key),gen);
+            for ( String key : members )
+            {
+                gen.writeFieldName( key );
+                addMember( obj.getMember( key ), gen );
             }
             gen.writeEndObject();
         }
@@ -208,89 +243,140 @@ public class EngineSE extends Engine
     }
 
 
-    private static void addNodeToObject(String k, Object v, JsonNodeFactory nf, ObjectNode parent)
+    private static void addNodeToObject( String k, Object v, JsonNodeFactory nf, ObjectNode parent )
     {
-        if (v == null) {
-            parent.set(k,nf.nullNode());
-        } else if (v instanceof JSObject ) {
-            JsonNode child = generateJsonNode((JSObject) v,nf);
-            parent.set(k,child);
-        } else if (v instanceof Boolean) {
-            parent.set(k,nf.booleanNode((Boolean) v));
-        } else if (v instanceof Double) {
-            parent.set(k, nf.numberNode((Double) v));
-        } else if (v instanceof Float) {
-            parent.set(k, nf.numberNode((Float) v));
-        } else if (v instanceof Integer) {
-            parent.set(k, nf.numberNode((Integer) v));
-        } else if (v instanceof Long) {
-            parent.set(k, nf.numberNode((Long) v));
-        } else if (v instanceof Short) {
-            parent.set(k, nf.numberNode((Short) v));
-        } else if (v instanceof BigDecimal) {
-            parent.set(k, nf.numberNode((BigDecimal) v));
-        } else if (v instanceof BigInteger) {
-            parent.set(k, nf.numberNode( (BigInteger) v));
-        } else {
-            parent.set(k, nf.textNode(v.toString()));
+        if ( v == null )
+        {
+            parent.set( k, nf.nullNode() );
+        }
+        else if ( v instanceof JSObject )
+        {
+            JsonNode child = generateJsonNode( (JSObject) v, nf );
+            parent.set( k, child );
+        }
+        else if ( v instanceof Boolean )
+        {
+            parent.set( k, nf.booleanNode( (Boolean) v ) );
+        }
+        else if ( v instanceof Double )
+        {
+            parent.set( k, nf.numberNode( (Double) v ) );
+        }
+        else if ( v instanceof Float )
+        {
+            parent.set( k, nf.numberNode( (Float) v ) );
+        }
+        else if ( v instanceof Integer )
+        {
+            parent.set( k, nf.numberNode( (Integer) v ) );
+        }
+        else if ( v instanceof Long )
+        {
+            parent.set( k, nf.numberNode( (Long) v ) );
+        }
+        else if ( v instanceof Short )
+        {
+            parent.set( k, nf.numberNode( (Short) v ) );
+        }
+        else if ( v instanceof BigDecimal )
+        {
+            parent.set( k, nf.numberNode( (BigDecimal) v ) );
+        }
+        else if ( v instanceof BigInteger )
+        {
+            parent.set( k, nf.numberNode( (BigInteger) v ) );
+        }
+        else
+        {
+            parent.set( k, nf.textNode( v.toString() ) );
         }
     }
 
-    private static void addNodeToArray(Integer i, Object v, JsonNodeFactory nf, ArrayNode parent)
+    private static void addNodeToArray( Integer i, Object v, JsonNodeFactory nf, ArrayNode parent )
     {
-        if (v == null) {
-            parent.set(i,nf.nullNode());
-        } else if (v instanceof JSObject ) {
-            JsonNode child = generateJsonNode((JSObject) v,nf);
-            parent.set(i,child);
-        } else if (v instanceof Boolean) {
-            parent.set(i,nf.booleanNode((Boolean) v));
-        } else if (v instanceof Double) {
-            parent.set(i, nf.numberNode((Double) v));
-        } else if (v instanceof Float) {
-            parent.set(i, nf.numberNode((Float) v));
-        } else if (v instanceof Integer) {
-            parent.set(i, nf.numberNode((Integer) v));
-        } else if (v instanceof Long) {
-            parent.set(i, nf.numberNode((Long) v));
-        } else if (v instanceof Short) {
-            parent.set(i, nf.numberNode((Short) v));
-        } else if (v instanceof BigDecimal) {
-            parent.set(i, nf.numberNode((BigDecimal) v));
-        } else if (v instanceof BigInteger) {
-            parent.set(i, nf.numberNode( (BigInteger) v));
-        } else {
-            parent.set(i, nf.textNode(v.toString()));
+        if ( v == null )
+        {
+            parent.set( i, nf.nullNode() );
+        }
+        else if ( v instanceof JSObject )
+        {
+            JsonNode child = generateJsonNode( (JSObject) v, nf );
+            parent.set( i, child );
+        }
+        else if ( v instanceof Boolean )
+        {
+            parent.set( i, nf.booleanNode( (Boolean) v ) );
+        }
+        else if ( v instanceof Double )
+        {
+            parent.set( i, nf.numberNode( (Double) v ) );
+        }
+        else if ( v instanceof Float )
+        {
+            parent.set( i, nf.numberNode( (Float) v ) );
+        }
+        else if ( v instanceof Integer )
+        {
+            parent.set( i, nf.numberNode( (Integer) v ) );
+        }
+        else if ( v instanceof Long )
+        {
+            parent.set( i, nf.numberNode( (Long) v ) );
+        }
+        else if ( v instanceof Short )
+        {
+            parent.set( i, nf.numberNode( (Short) v ) );
+        }
+        else if ( v instanceof BigDecimal )
+        {
+            parent.set( i, nf.numberNode( (BigDecimal) v ) );
+        }
+        else if ( v instanceof BigInteger )
+        {
+            parent.set( i, nf.numberNode( (BigInteger) v ) );
+        }
+        else
+        {
+            parent.set( i, nf.textNode( v.toString() ) );
         }
     }
 
-    private static JsonNode generateJsonNode(JSObject obj, JsonNodeFactory nf ) {
-        if (obj.isArray() ) {
+    private static JsonNode generateJsonNode( JSObject obj, JsonNodeFactory nf )
+    {
+        if ( obj.isArray() )
+        {
             ArrayNode parent = nf.arrayNode();
-            Object len = obj.getMember("length");
-            if (len instanceof Number) {
+            Object len = obj.getMember( "length" );
+            if ( len instanceof Number )
+            {
                 int n = ((Number) len).intValue();
-                for (int i = 0; i < n; i++) {
-                    addNodeToArray(i,obj.getSlot(i),nf,  parent);
+                for ( int i = 0; i < n; i++ )
+                {
+                    addNodeToArray( i, obj.getSlot( i ), nf, parent );
                 }
             }
             return parent;
-        } else {
+        }
+        else
+        {
             ObjectNode parent = nf.objectNode();
             Set<String> members;
-            if (obj instanceof ScriptObjectMirror) {
-                String[] keys = ((ScriptObjectMirror) obj).getOwnKeys(true);
-                members = Arrays.stream(keys).collect(Collectors.toSet());
-            } else {
+            if ( obj instanceof ScriptObjectMirror )
+            {
+                String[] keys = ((ScriptObjectMirror) obj).getOwnKeys( true );
+                members = Arrays.stream( keys ).collect( Collectors.toSet() );
+            }
+            else
+            {
                 members = obj.keySet();
             }
-            for (String key : members) {
-                addNodeToObject(key,obj.getMember(key),nf,  parent);
+            for ( String key : members )
+            {
+                addNodeToObject( key, obj.getMember( key ), nf, parent );
             }
             return parent;
         }
     }
-
 
 
 }

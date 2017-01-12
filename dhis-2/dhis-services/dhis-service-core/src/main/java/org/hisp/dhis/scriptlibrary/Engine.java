@@ -77,7 +77,7 @@ abstract public class Engine implements EngineInterface {
             throw new ScriptAccessException("No script execution on null user allowed");
         }
 
-        if (execContext.getScriptName() == null) {
+        if ( execContext.getScriptName() == null) {
             //sanity check.
             throw new ScriptNotFoundException("No script defined");
         }

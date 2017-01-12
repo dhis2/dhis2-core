@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -56,6 +57,7 @@ import javax.json.JsonReader;
 import javax.json.JsonString;
 import javax.json.JsonStructure;
 import javax.json.JsonValue;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
@@ -78,11 +80,10 @@ import org.springframework.core.io.ResourceLoader;
 public class AppScriptLibrary implements ScriptLibrary
 {
 
-    protected static final Log log = LogFactory.getLog ( AppScriptLibrary.class );
+    protected static final Log log = LogFactory.getLog( AppScriptLibrary.class );
 
 
-
-    protected  AppManager appManager;
+    protected AppManager appManager;
     protected App app;
     protected String[] resources;
     protected String[] operations;
@@ -93,167 +94,180 @@ public class AppScriptLibrary implements ScriptLibrary
         return app.getKey();
     }
 
-    public AppScriptLibrary ( App app, AppManager appManager )
+    public AppScriptLibrary( App app, AppManager appManager )
     {
         this.appManager = appManager;
         String appKey = app.getKey();
-        log.info ( "Init library for " + appKey );
+        log.info( "Init library for " + appKey );
         this.app = app;
         this.resources = resources;
         this.operations = operations;
     }
 
 
-    public App getApp() {
-	return app;
+    public App getApp()
+    {
+        return app;
     }
 
-    protected App getApp(String appKey) {
-        return  appManager.getApp(appKey,this.app.getContextPath());
+    protected App getApp( String appKey )
+    {
+        return appManager.getApp( appKey, this.app.getContextPath() );
     }
 
     protected Map<String, ScriptLibrary> scriptLibraries = new HashMap<String, ScriptLibrary>();
     protected Map<String, App> apps = new HashMap<String, App>();
 
 
-    public ScriptLibrary getScriptLibrary ( String key )
+    public ScriptLibrary getScriptLibrary( String key )
     {
-        return appManager.getScriptLibrary(getApp(key));
+        return appManager.getScriptLibrary( getApp( key ) );
     }
 
-    public boolean containsScript ( String scriptName ) {
-        try {
-            return appManager.findResource(app.getKey(), scriptName) != null;
+    public boolean containsScript( String scriptName )
+    {
+        try
+        {
+            return appManager.findResource( app.getKey(), scriptName ) != null;
         }
-        catch(Exception e )
+        catch ( Exception e )
         {
             return false;
         }
     }
 
-    public  Reader retrieveScript ( String name )
-    throws  ScriptNotFoundException
+    public Reader retrieveScript( String name )
+        throws ScriptNotFoundException
     {
-        log.info("Retrieving script " + name + " within " + app.getKey());
-        try {
-            if (name.startsWith("/apps/")) {
-                String depAppKey = name.substring(6);
-                String depResource = depAppKey.substring(depAppKey.indexOf("/") + 1);
-                depAppKey = depAppKey.substring(0, depAppKey.indexOf("/"));
-                ScriptLibrary depAppLib = getScriptLibrary(depAppKey);
-                Resource r = appManager.findResource( depAppKey, depResource);
-                return new InputStreamReader(r.getInputStream());
+        log.info( "Retrieving script " + name + " within " + app.getKey() );
+        try
+        {
+            if ( name.startsWith( "/apps/" ) )
+            {
+                String depAppKey = name.substring( 6 );
+                String depResource = depAppKey.substring( depAppKey.indexOf( "/" ) + 1 );
+                depAppKey = depAppKey.substring( 0, depAppKey.indexOf( "/" ) );
+                ScriptLibrary depAppLib = getScriptLibrary( depAppKey );
+                Resource r = appManager.findResource( depAppKey, depResource );
+                return new InputStreamReader( r.getInputStream() );
 
-            } else {
-                Resource r = appManager.findResource(app.getKey(), name);
-                return new InputStreamReader(r.getInputStream());
             }
-        } catch (Exception e) {
-            throw new ScriptNotFoundException("Could not get " + name + " :\n" + e.toString());
+            else
+            {
+                Resource r = appManager.findResource( app.getKey(), name );
+                return new InputStreamReader( r.getInputStream() );
+            }
+        }
+        catch ( Exception e )
+        {
+            throw new ScriptNotFoundException( "Could not get " + name + " :\n" + e.toString() );
         }
     }
 
 
-    public String[] retrieveDirectDependencies(String script) 
+    public String[] retrieveDirectDependencies( String script )
     {
         try
         {
-            ArrayList<String> sdeps  = new ArrayList();
-            String[] path = {"script-library" ,"dependencies" , script};
-            log.info("Retrieving manifest for " + app.getKey() + " -- " + app.getFolderName());
-            JsonNode deps = appManager.retrieveManifestInfo ( app.getKey(), path);
-            if (deps != null) {
-                if (!deps.isArray()) {
-                    throw new Exception("Invalid dependencies for script");
+            ArrayList<String> sdeps = new ArrayList();
+            String[] path = { "script-library", "dependencies", script };
+            log.info( "Retrieving manifest for " + app.getKey() + " -- " + app.getFolderName() );
+            JsonNode deps = appManager.retrieveManifestInfo( app.getKey(), path );
+            if ( deps != null )
+            {
+                if ( !deps.isArray() )
+                {
+                    throw new Exception( "Invalid dependencies for script" );
                 }
-                for (int i = 0; i < deps.size(); i++) {
-                    JsonNode dep = deps.get(i);
-                    if (dep.isValueNode())
-                        sdeps.add(dep.asText());
+                for ( int i = 0; i < deps.size(); i++ )
+                {
+                    JsonNode dep = deps.get( i );
+                    if ( dep.isValueNode() )
+                        sdeps.add( dep.asText() );
                 }
             }
-            log.info("Deps: " + String.join(" ",sdeps.toArray ( new String[sdeps.size()] )));
-            return sdeps.toArray ( new String[sdeps.size()] );
+            log.info( "Deps: " + String.join( " ", sdeps.toArray( new String[sdeps.size()] ) ) );
+            return sdeps.toArray( new String[sdeps.size()] );
         }
 
         catch ( Exception e )
         {
-            log.info("Could not load dependencies for script " + script + " in app " + app.getKey()
-                    + "\n" + e.toString()
-                    + "\n" + ExceptionUtils.getStackTrace(e)
+            log.info( "Could not load dependencies for script " + script + " in app " + app.getKey()
+                + "\n" + e.toString()
+                + "\n" + ExceptionUtils.getStackTrace( e )
             );
             return new String[0];
         }
 
     }
 
-    
-    public String[] retrieveDependencies ( String name )
+
+    public String[] retrieveDependencies( String name )
     {
-	try {
-	    Stack<String> deps = new Stack<String>();
-	    deps.addAll ( Arrays.asList(retrieveDirectDependencies(name)));
-	    ArrayList<String> seen = new ArrayList();
-	    seen.add(name);
-	    log.info("Retreived direct depenencies in all dependences: " + deps);
-	    while ( ! deps.isEmpty() )
-	    {
-		String script = deps.pop();
-		seen.add(script);
-		log.info ( "Attempting to resolve dependency: " + script );
-		ScriptLibrary depAppLib;
-		String depAppKey = null;
-		String depResource = null;
-		if (  script.startsWith("/apps/" ))
-		{
-		    depAppKey = script.substring(6);
-		    depResource = depAppKey.substring(depAppKey.indexOf("/") + 1);
-		    depAppKey = depAppKey.substring(0,depAppKey.indexOf("/") );
-		    depAppLib = getScriptLibrary(depAppKey);
-		    if (depAppLib == null) {
-			throw new ScriptNotFoundException("Dependent app " + depAppKey + " not found in script library ["  + script + "]");
-		    }
-		} 
-		else {
-		    depAppLib = this;
-		    depResource = script;
-		}
+        try
+        {
+            Stack<String> deps = new Stack<String>();
+            deps.addAll( Arrays.asList( retrieveDirectDependencies( name ) ) );
+            ArrayList<String> seen = new ArrayList();
+            seen.add( name );
+            log.info( "Retreived direct depenencies in all dependences: " + deps );
+            while ( !deps.isEmpty() )
+            {
+                String script = deps.pop();
+                seen.add( script );
+                log.info( "Attempting to resolve dependency: " + script );
+                ScriptLibrary depAppLib;
+                String depAppKey = null;
+                String depResource = null;
+                if ( script.startsWith( "/apps/" ) )
+                {
+                    depAppKey = script.substring( 6 );
+                    depResource = depAppKey.substring( depAppKey.indexOf( "/" ) + 1 );
+                    depAppKey = depAppKey.substring( 0, depAppKey.indexOf( "/" ) );
+                    depAppLib = getScriptLibrary( depAppKey );
+                    if ( depAppLib == null )
+                    {
+                        throw new ScriptNotFoundException( "Dependent app " + depAppKey + " not found in script library [" + script + "]" );
+                    }
+                }
+                else
+                {
+                    depAppLib = this;
+                    depResource = script;
+                }
 
-		if (  ! depAppLib.containsScript ( depResource ) )
-		{
-		    throw new ScriptNotFoundException ( "Script " + depResource + " not found in script library [" + script + "]" );
-		} 
-		
-		
-		String[] newDeps = depAppLib.retrieveDirectDependencies(depResource);
-		for (String newDep :  newDeps)  {
-		    if ( (!newDep.startsWith("/apps/")) && depAppKey != null)
-		    {
-			newDep = "/apps/" + depAppKey + "/" + newDep;
-		    } 
-		    if (seen.contains(newDep)) {
-			continue;
-		    } 
-		    deps.add(newDep);
+                if ( !depAppLib.containsScript( depResource ) )
+                {
+                    throw new ScriptNotFoundException( "Script " + depResource + " not found in script library [" + script + "]" );
+                }
 
-		}
-	    }
-	    Collections.reverse(seen);
-	    seen.remove(seen.size() -1); //ger rid of the starting script	    
-	    return seen.toArray ( new String[seen.size()] );
-	}
+
+                String[] newDeps = depAppLib.retrieveDirectDependencies( depResource );
+                for ( String newDep : newDeps )
+                {
+                    if ( (!newDep.startsWith( "/apps/" )) && depAppKey != null )
+                    {
+                        newDep = "/apps/" + depAppKey + "/" + newDep;
+                    }
+                    if ( seen.contains( newDep ) )
+                    {
+                        continue;
+                    }
+                    deps.add( newDep );
+
+                }
+            }
+            Collections.reverse( seen );
+            seen.remove( seen.size() - 1 ); //ger rid of the starting script
+            return seen.toArray( new String[seen.size()] );
+        }
 
         catch ( Exception e )
         {
-            log.error ( "Could not retrieve  deps " , e);
+            log.error( "Could not retrieve  deps ", e );
             return new String[0];
         }
     }
-
-
-
-
-
 
 
 }

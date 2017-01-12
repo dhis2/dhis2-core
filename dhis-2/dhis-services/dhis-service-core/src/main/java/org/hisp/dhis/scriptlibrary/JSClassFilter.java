@@ -30,10 +30,11 @@ package org.hisp.dhis.scriptlibrary;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import jdk.nashorn.api.scripting.ClassFilter;
 
 /**
-* @author Carl Leitner <litlfred@gmail.com>
+ * @author Carl Leitner <litlfred@gmail.com>
  */
 public class JSClassFilter implements ClassFilter
 {
@@ -44,18 +45,18 @@ public class JSClassFilter implements ClassFilter
         super();
     }
 
-    public void setBlacklist ( List<String> bl )
+    public void setBlacklist( List<String> bl )
     {
         blacklist = bl;
     }
 
     @Override
-    public boolean exposeToScripts ( String s )
+    public boolean exposeToScripts( String s )
     {
         //example code to remove java.io.File.  this should probably be moved outside
         for ( String exclude : blacklist )
         {
-            if ( s.compareTo ( exclude ) == 0 )
+            if ( s.compareTo( exclude ) == 0 )
             {
                 return false;
             }

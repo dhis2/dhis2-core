@@ -30,6 +30,7 @@ package org.hisp.dhis.web.ohie.fhir.webapi;
  */
 
 import ca.uhn.fhir.model.api.Bundle;
+
 import java.io.Reader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
@@ -61,11 +63,11 @@ import org.hisp.dhis.web.ohie.fhir.service.DSTU2Processor;
 import org.hisp.dhis.web.ohie.fhir.service.STU3Processor;
 
 /**
-* @author Carl Leitner <litlfred@gmail.com>
+ * @author Carl Leitner <litlfred@gmail.com>
  */
 @Controller
-@ComponentScan ( basePackages = {"org.hisp.dhis.webapi.service"} )
-@RequestMapping (  value =  EngineControllerFHIR.RESOURCE_PATH  + "/{app}" )
+@ComponentScan( basePackages = { "org.hisp.dhis.webapi.service" } )
+@RequestMapping( value = EngineControllerFHIR.RESOURCE_PATH + "/{app}" )
 public class EngineControllerFHIR extends EngineController
 {
 
@@ -74,270 +76,303 @@ public class EngineControllerFHIR extends EngineController
 
     public static final String RESOURCE_PATH = "/fhir";
 
-    protected static final Log log = LogFactory.getLog ( DefaultDataValueService.class );
+    protected static final Log log = LogFactory.getLog( DefaultDataValueService.class );
 
     public class ExecutionContextFHIR extends ExecutionContextHttp
     {
         protected Object response = null;
+
         public Object getResponse()
         {
             return response;
         }
-        public void setResponse ( Object response )
+
+        public void setResponse( Object response )
         {
 
-                log.info("setting response");
-                this.response = response;
+            log.info( "setting response" );
+            this.response = response;
         }
+
         protected String outputType = null;
+
         public String getOutputType()
         {
             return outputType;
         }
-        public void setOutputType ( String outputType )
+
+        public void setOutputType( String outputType )
         {
             this.outputType = outputType;
         }
+
         protected Boolean isXml = false;
+
         public Boolean getIsXml()
         {
             return isXml;
         }
-        public void setIsXml ( Boolean isXml )
+
+        public void setIsXml( Boolean isXml )
         {
             this.isXml = isXml;
         }
-        protected int errorCode = 200 ;
+
+        protected int errorCode = 200;
+
         public int getErrorCode()
         {
             return errorCode;
         }
-        public void setErrorCode ( int errorCode )
+
+        public void setErrorCode( int errorCode )
         {
             this.errorCode = errorCode;
         }
+
         protected String id;
+
         public String getId()
         {
             return id;
         }
-        public void setId ( String id )
+
+        public void setId( String id )
         {
             this.id = id;
         }
+
         protected String operation;
+
         public String getOperation()
         {
             return operation;
         }
-        public void setOperation ( String operation )
+
+        public void setOperation( String operation )
         {
             this.operation = operation;
         }
+
         protected String resourceName;
+
         public String getResourceName()
         {
             return this.resourceName;
         }
-        public void setResourceName ( String resourceName )
+
+        public void setResourceName( String resourceName )
         {
             this.resourceName = resourceName;
         }
+
         protected String errorMessage = "";
+
         public String getErrorMessage()
         {
             return errorMessage;
         }
-        public void setErrorMessage ( String errorMessage )
+
+        public void setErrorMessage( String errorMessage )
         {
             this.errorMessage = errorMessage;
         }
+
         protected Object bundle;
+
         public Object getBundle()
         {
             return bundle;
         }
-        public void setBundle ( Object bundle )
+
+        public void setBundle( Object bundle )
         {
             this.bundle = bundle;
         }
+
         protected Object resource;
+
         public Object getResource()
         {
             return resource;
         }
-        public void setResource ( Object resource )
+
+        public void setResource( Object resource )
         {
-            this.resource  = resource;
+            this.resource = resource;
         }
 
         public String toString()
         {
             return super.toString()
-                   + "\n\tid=" + id + "\n"
-                   + "\terrorCode=" + errorCode + "\n"
-                   + "\terrorMessage=" + errorMessage + "\n"
-                   + "\toperation=" + operation + "\n"
-                   + "\tresponse=" + response + "\n"
-                   ;
+                + "\n\tid=" + id + "\n"
+                + "\terrorCode=" + errorCode + "\n"
+                + "\terrorMessage=" + errorMessage + "\n"
+                + "\toperation=" + operation + "\n"
+                + "\tresponse=" + response + "\n"
+                ;
         }
     }
 
 
-    protected Map<String, BaseProcessor> fhirProcessors = new HashMap<String,BaseProcessor>();
+    protected Map<String, BaseProcessor> fhirProcessors = new HashMap<String, BaseProcessor>();
 
-    public void setFhirProcessors(HashMap<String,BaseProcessor> fhirProcessors) {
+    public void setFhirProcessors( HashMap<String, BaseProcessor> fhirProcessors )
+    {
         this.fhirProcessors = fhirProcessors;
     }
 
-   public EngineControllerFHIR() {
-        fhirProcessors.put("dstu2",new DSTU2Processor());
-        fhirProcessors.put("stu3",new STU3Processor());
-   }
-
-    @RequestMapping (
-        value =  "/{fhirVersion}/{resource}/{id}",
-        method = RequestMethod.GET
-    )
-    public void operationRead ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion,
-                                @PathVariable ( "id" ) String id  , @PathVariable ( "resource" ) String resource )
+    public EngineControllerFHIR()
     {
-        log.info ( "Received read request for " + resource + " on id [" + id + "]" );
-        doOperation ( httpRequest, httpResponse, app, fhirVersion,  resource, "read", id );
+        fhirProcessors.put( "dstu2", new DSTU2Processor() );
+        fhirProcessors.put( "stu3", new STU3Processor() );
     }
 
-    @RequestMapping (
-        value =  "/{fhirVersion}/{resource}/{id}/{extended}",
+    @RequestMapping(
+        value = "/{fhirVersion}/{resource}/{id}",
         method = RequestMethod.GET
     )
-    public void operationExtended ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                    @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion, @PathVariable ( "extended" ) String extOp,
-                                    @PathVariable ( "id" ) String id  , @PathVariable ( "resource" ) String resource )
+    public void operationRead( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
+        @PathVariable( "app" ) String app, @PathVariable( "fhirVersion" ) String fhirVersion,
+        @PathVariable( "id" ) String id, @PathVariable( "resource" ) String resource )
     {
-        log.info ( "Received extended operation request [" + extOp + "] for " + resource + " on id [" + id + "]" );
-        doOperation ( httpRequest, httpResponse, app, fhirVersion, resource, extOp, id );
+        log.info( "Received read request for " + resource + " on id [" + id + "]" );
+        doOperation( httpRequest, httpResponse, app, fhirVersion, resource, "read", id );
     }
 
-    @RequestMapping (
-        value =  "/{fhirVersion}/{resource}",
+    @RequestMapping(
+        value = "/{fhirVersion}/{resource}/{id}/{extended}",
         method = RequestMethod.GET
     )
-    public void operationSearch ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                  @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion, @PathVariable ( "resource" ) String resource )
+    public void operationExtended( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
+        @PathVariable( "app" ) String app, @PathVariable( "fhirVersion" ) String fhirVersion, @PathVariable( "extended" ) String extOp,
+        @PathVariable( "id" ) String id, @PathVariable( "resource" ) String resource )
     {
-        doOperation ( httpRequest, httpResponse, app, fhirVersion, resource, "search" );
+        log.info( "Received extended operation request [" + extOp + "] for " + resource + " on id [" + id + "]" );
+        doOperation( httpRequest, httpResponse, app, fhirVersion, resource, extOp, id );
     }
 
-    @RequestMapping (
-        value =  "/{fhirVersion}/{resource}",
+    @RequestMapping(
+        value = "/{fhirVersion}/{resource}",
+        method = RequestMethod.GET
+    )
+    public void operationSearch( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
+        @PathVariable( "app" ) String app, @PathVariable( "fhirVersion" ) String fhirVersion, @PathVariable( "resource" ) String resource )
+    {
+        doOperation( httpRequest, httpResponse, app, fhirVersion, resource, "search" );
+    }
+
+    @RequestMapping(
+        value = "/{fhirVersion}/{resource}",
         method = RequestMethod.POST
     )
-    public void operationCreate ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                  @PathVariable ( "app" ) String app, @PathVariable ("fhirVersion") String fhirVersion, @PathVariable ( "resource" ) String resource )
+    public void operationCreate( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
+        @PathVariable( "app" ) String app, @PathVariable( "fhirVersion" ) String fhirVersion, @PathVariable( "resource" ) String resource )
     {
-        doOperation ( httpRequest, httpResponse, app ,fhirVersion, resource, "create" );
+        doOperation( httpRequest, httpResponse, app, fhirVersion, resource, "create" );
     }
 
-    @RequestMapping (
-        value =  "/{fhirVersion}",
+    @RequestMapping(
+        value = "/{fhirVersion}",
         method = RequestMethod.POST
     )
-    public void operationBatch ( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
-                                 @PathVariable ( "app" ) String app , @PathVariable ("fhirVersion") String fhirVersion)
+    public void operationBatch( HttpServletResponse httpResponse, HttpServletRequest httpRequest,
+        @PathVariable( "app" ) String app, @PathVariable( "fhirVersion" ) String fhirVersion )
     {
-        doOperation ( httpRequest, httpResponse, app, fhirVersion, null, "batch" );
+        doOperation( httpRequest, httpResponse, app, fhirVersion, null, "batch" );
     }
 
-    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String app, String fhirVersion, String resource, String operation )
+    protected void doOperation( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String app, String fhirVersion, String resource, String operation )
     {
-        doOperation ( httpRequest, httpResponse, app, fhirVersion, resource, operation, null );
+        doOperation( httpRequest, httpResponse, app, fhirVersion, resource, operation, null );
     }
 
 
-
-    protected void doOperation ( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey,  String fhirVersion, String resource, String operation, String id )
+    protected void doOperation( HttpServletRequest httpRequest, HttpServletResponse httpResponse, String appKey, String fhirVersion, String resource, String operation, String id )
     {
-        log.info ( "Attempting " + operation + " on " + resource + " in " + appKey );
-        String contextPath =  ContextUtils.getContextPath ( httpRequest );
+        log.info( "Attempting " + operation + " on " + resource + " in " + appKey );
+        String contextPath = ContextUtils.getContextPath( httpRequest );
         JsonNode info;
 
         try
         {
 
-            info =  appManager.retrieveManifestInfo ( appKey, ( "script-library/bindings" + RESOURCE_PATH + "/" + fhirVersion ).split ( "/" ) );
+            info = appManager.retrieveManifestInfo( appKey, ("script-library/bindings" + RESOURCE_PATH + "/" + fhirVersion).split( "/" ) );
 
-            if ( info == null || ! info.isArray())
+            if ( info == null || !info.isArray() )
             {
-                throw new NullPointerException ( "No binding info for " + appKey );
+                throw new NullPointerException( "No binding info for " + appKey );
             }
         }
 
         catch ( Exception e )
         {
-            log.info ( "Could not retrieve binding info for " + appKey + ":"  + e.toString() );
-            e.printStackTrace ( System.out );
+            log.info( "Could not retrieve binding info for " + appKey + ":" + e.toString() );
+            e.printStackTrace( System.out );
             return;
         }
 
 
-        for ( int i=0; i < info.size(); i++ )
+        for ( int i = 0; i < info.size(); i++ )
         {
-            if (! info.get(i).isObject()) {
+            if ( !info.get( i ).isObject() )
+            {
                 continue;
             }
-            JsonNode node = info.get(i);
+            JsonNode node = info.get( i );
             String script = null;
             String op = null;
 
             try
             {
-                JsonNode opNode = node.get ( "operation" );
-                JsonNode scriptNode = node.get( "script");
-                if (!opNode.isValueNode() || !scriptNode.isValueNode()) {
+                JsonNode opNode = node.get( "operation" );
+                JsonNode scriptNode = node.get( "script" );
+                if ( !opNode.isValueNode() || !scriptNode.isValueNode() )
+                {
                     continue;
                 }
                 op = opNode.asText();
                 script = scriptNode.asText();
 
-                if ( !op.equals ( operation )
-                        ||  script == null
-                   )
+                if ( !op.equals( operation )
+                    || script == null
+                    )
                 {
-                    log.info ( "Skipping: " + script + "/" + op +  " against " + operation + "/" + resource );
+                    log.info( "Skipping: " + script + "/" + op + " against " + operation + "/" + resource );
                     continue;
                 }
 
-                JsonNode rsrc = node.get ( "resource" );
+                JsonNode rsrc = node.get( "resource" );
 
                 if ( rsrc.isValueNode() )
                 {
-                    String r =  rsrc.asText();
+                    String r = rsrc.asText();
 
-                    if (  ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
+                    if ( ((resource != null) && (!resource.equals( r ))) )
                     {
-                        log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
+                        log.info( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
                         continue;
                     }
                 }
 
-                else if ( rsrc.isArray())
+                else if ( rsrc.isArray() )
                 {
-                    for ( int j=0; j < rsrc.size(); j++)
+                    for ( int j = 0; j < rsrc.size(); j++ )
                     {
                         String r = null;
 
                         try
                         {
-                            JsonNode rNode = rsrc.get(i);
-                            if (!rNode.isValueNode()) {
+                            JsonNode rNode = rsrc.get( i );
+                            if ( !rNode.isValueNode() )
+                            {
                                 continue;
                             }
                             r = rNode.asText();
 
-                            if (   ( ( resource != null ) && ( ! resource.equals ( r ) ) ) )
+                            if ( ((resource != null) && (!resource.equals( r ))) )
                             {
-                                log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
+                                log.info( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource );
                                 continue;
                             }
 
@@ -346,7 +381,7 @@ public class EngineControllerFHIR extends EngineController
 
                         catch ( Exception e )
                         {
-                            log.info ( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource + ":\n" + e.toString() );
+                            log.info( "Skipping: " + script + "/" + op + "/" + r + " against " + operation + "/" + resource + ":\n" + e.toString() );
                             continue;
                         }
                     }
@@ -355,77 +390,78 @@ public class EngineControllerFHIR extends EngineController
 
             catch ( Exception e )
             {
-                log.info ( "Skipping: " + e.toString() );
+                log.info( "Skipping: " + e.toString() );
                 continue;
             }
 
             try
             {
-                ExecutionContextFHIR execContext = getExecutionContext ( script, httpRequest, httpResponse, appKey, fhirVersion, resource, operation, id );
-                Object result =  engineService.eval(execContext);
-                processOperationResult ( execContext, fhirVersion);
+                ExecutionContextFHIR execContext = getExecutionContext( script, httpRequest, httpResponse, appKey, fhirVersion, resource, operation, id );
+                Object result = engineService.eval( execContext );
+                processOperationResult( execContext, fhirVersion );
             }
 
             catch ( HttpException he )
             {
-                sendError ( httpResponse, he.getStatusCode(), he.getMessage() );
-                return ;
+                sendError( httpResponse, he.getStatusCode(), he.getMessage() );
+                return;
             }
 
             catch ( ScriptAccessException ea )
             {
-                sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, ea.toString() );
-                return ;
+                sendError( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, ea.toString() );
+                return;
             }
 
             catch ( ScriptNotFoundException enf )
             {
-                sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, enf.toString() );
-                return ;
+                sendError( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, enf.toString() );
+                return;
             }
 
             catch ( Exception e )
             {
-                sendError ( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                            "internal script processing error for " + script + " on " + resource + ":\n" + e.toString() );
-                return ;
+                sendError( httpResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "internal script processing error for " + script + " on " + resource + ":\n" + e.toString() );
+                return;
             }
 
             return; //we break out of the loop
         }
 
-        log.info ( "No binding information for " + operation + " on " + resource + " in " + appKey );
-        sendError ( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, "Operation " + operation + " not found on resource " + resource );
+        log.info( "No binding information for " + operation + " on " + resource + " in " + appKey );
+        sendError( httpResponse, HttpServletResponse.SC_NOT_IMPLEMENTED, "Operation " + operation + " not found on resource " + resource );
     }
 
-    protected void processOperationResult ( ExecutionContextFHIR execContext , String fhirVersion)
-    throws HttpException, ScriptException
+    protected void processOperationResult( ExecutionContextFHIR execContext, String fhirVersion )
+        throws HttpException, ScriptException
     {
         Object response = execContext.getResponse();
-        log.info ( "Processing result" );
-        log.info ( "retrieved script context" );
+        log.info( "Processing result" );
+        log.info( "retrieved script context" );
         HttpServletResponse httpResponse = execContext.getHttpServletResponse();
-        log.info ( "retrieved script http response" );
-        BaseProcessor fhirProcessor =  fhirProcessors.get(fhirVersion);
-        if (fhirProcessor == null) {
-            throw new ScriptExecutionException("No processor for FHIR version: " + fhirVersion);
+        log.info( "retrieved script http response" );
+        BaseProcessor fhirProcessor = fhirProcessors.get( fhirVersion );
+        if ( fhirProcessor == null )
+        {
+            throw new ScriptExecutionException( "No processor for FHIR version: " + fhirVersion );
         }
         if ( execContext.getErrorCode() >= 400 )
         {
-            throw new HttpException ( execContext.getErrorMessage(), execContext.getErrorCode() );
+            throw new HttpException( execContext.getErrorMessage(), execContext.getErrorCode() );
         }
 
-        log.info ( "no error reported by script" );
+        log.info( "no error reported by script" );
 
 
         if ( response == null )
         {
-            log.info ( "Got null response" );
+            log.info( "Got null response" );
         }
 
         else
         {
-            log.info ( "Got response:" + response.toString() );
+            log.info( "Got response:" + response.toString() );
         }
 
         String json = null;
@@ -433,24 +469,25 @@ public class EngineControllerFHIR extends EngineController
 
         if ( response instanceof ScriptObjectMirror && response != null )
         {
-            log.info ( "response is ScriptObjectMirror" );
-            log.info ( "creating JSON representation of response" );
-            json = EngineSE.toJsonString( (ScriptObjectMirror) response);
-            log.info("SOM string representation: " + json);
+            log.info( "response is ScriptObjectMirror" );
+            log.info( "creating JSON representation of response" );
+            json = EngineSE.toJsonString( (ScriptObjectMirror) response );
+            log.info( "SOM string representation: " + json );
 
         }
 
         else if ( response instanceof Map && response != null )
         {
-            log.info ( "response is Map" );
-            json =  JSONObject.toJSONString ( ( Map ) response );
+            log.info( "response is Map" );
+            json = JSONObject.toJSONString( (Map) response );
         }
-        else  if ((response instanceof String)) {
+        else if ( (response instanceof String) )
+        {
             json = (String) response; //hope for the best here.
         }
         else
         {
-            log.info ( "unknown response type" );
+            log.info( "unknown response type" );
         }
 
         //make sure we can validate as  valid
@@ -458,106 +495,105 @@ public class EngineControllerFHIR extends EngineController
 
         if ( json == null )
         {
-            log.info ( "json response is null" );
+            log.info( "json response is null" );
             out = "";
         }
 
         else
         {
-            log.info ( "post processing json response:" + execContext.getOutputType() );
+            log.info( "post processing json response:" + execContext.getOutputType() );
 
             switch ( execContext.getOutputType() )
             {
-            case "resource":
-                log.info ( "post processing json response - resource" );
-                IBaseResource r =fhirProcessor.resourceFromJSON ( json );
-                log.info ( "post processing json response - created resource" );
+                case "resource":
+                    log.info( "post processing json response - resource" );
+                    IBaseResource r = fhirProcessor.resourceFromJSON( json );
+                    log.info( "post processing json response - created resource" );
 
-                if ( execContext.getIsXml() )
-                {
-                    log.info ( "post processing json response - output XML" );
-                    out = fhirProcessor.resourceToXML ( r );
-                }
+                    if ( execContext.getIsXml() )
+                    {
+                        log.info( "post processing json response - output XML" );
+                        out = fhirProcessor.resourceToXML( r );
+                    }
 
-                else
-                {
-                    log.info ( "post processing json response - output JSON" );
-                    out = fhirProcessor.resourceToJSON ( r );
-                }
+                    else
+                    {
+                        log.info( "post processing json response - output JSON" );
+                        out = fhirProcessor.resourceToJSON( r );
+                    }
 
-                break;
+                    break;
 
-            case "bundle":
-                log.info ( "post processing json response - bundle" );
-                Bundle b = fhirProcessor.bundleFromJSON ( json );
+                case "bundle":
+                    log.info( "post processing json response - bundle" );
+                    Bundle b = fhirProcessor.bundleFromJSON( json );
 
-                if ( execContext.getIsXml() )
-                {
-                    log.info ( "post processing json response - output XML" );
-                    out = fhirProcessor.bundleToXML ( b );
-                }
+                    if ( execContext.getIsXml() )
+                    {
+                        log.info( "post processing json response - output XML" );
+                        out = fhirProcessor.bundleToXML( b );
+                    }
 
-                else
-                {
-                    log.info ( "post processing json response - output JSON" );
-                    out = fhirProcessor.bundleToJSON ( b );
-                }
+                    else
+                    {
+                        log.info( "post processing json response - output JSON" );
+                        out = fhirProcessor.bundleToJSON( b );
+                    }
 
-                break;
+                    break;
 
-            default:
-                out = response.toString();
-                //do nothing
+                default:
+                    out = response.toString();
+                    //do nothing
             }
         }
 
-        log.info ( "output=\n" + out );
+        log.info( "output=\n" + out );
 
         try
         {
-            httpResponse.getWriter().write ( out );
+            httpResponse.getWriter().write( out );
             httpResponse.getWriter().flush();
             httpResponse.getWriter().close();
         }
 
         catch ( Exception e )
         {
-            log.info ( "Could not write to http response output stream:" + e.toString() );
+            log.info( "Could not write to http response output stream:" + e.toString() );
         }
 
         //send the output and handle error codes
     }
 
 
-
-
-    protected ExecutionContextFHIR getExecutionContext ( String script, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-            String appKey, String fhirVersion, String resource, String operation, String id )
-            throws ScriptException
+    protected ExecutionContextFHIR getExecutionContext( String script, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
+        String appKey, String fhirVersion, String resource, String operation, String id )
+        throws ScriptException
     {
         ExecutionContextFHIR execContext = new ExecutionContextFHIR();
-        execContext.setScriptName(script);
-        log.info("Setting execution context to script " + script + " for app " + appKey);
-        initExecutionContext ( execContext, appKey,  httpRequest, httpResponse );
+        execContext.setScriptName( script );
+        log.info( "Setting execution context to script " + script + " for app " + appKey );
+        initExecutionContext( execContext, appKey, httpRequest, httpResponse );
 
 
         String contentType = httpRequest.getContentType();
-        String format = httpRequest.getParameter ( "_format" );
-        execContext.setIsXml (  ( contentType == "application/xml" )
-                                || ( contentType == "application/xml+fhir" )
-                                || ( contentType == "text/xml" )
-                             );
-        execContext.setResourceName ( resource );
+        String format = httpRequest.getParameter( "_format" );
+        execContext.setIsXml( (contentType == "application/xml")
+            || (contentType == "application/xml+fhir")
+            || (contentType == "text/xml")
+        );
+        execContext.setResourceName( resource );
         String inputType;
-        execContext.setOperation ( operation );
+        execContext.setOperation( operation );
 
-        BaseProcessor fhirProcessor = fhirProcessors.get(fhirVersion);
-        if (fhirProcessor == null) {
-            throw new ScriptExecutionException("No processor for FHIR Version: " + fhirVersion );
+        BaseProcessor fhirProcessor = fhirProcessors.get( fhirVersion );
+        if ( fhirProcessor == null )
+        {
+            throw new ScriptExecutionException( "No processor for FHIR Version: " + fhirVersion );
         }
         if ( operation != null )
         {
-            inputType = fhirProcessor.operationsInput.get ( operation );
+            inputType = fhirProcessor.operationsInput.get( operation );
         }
 
         else
@@ -565,61 +601,61 @@ public class EngineControllerFHIR extends EngineController
             inputType = "bundle"; //e.g. for bundle
         }
 
-        execContext.setOutputType ( fhirProcessor.operationsOutput.get ( operation ) );
+        execContext.setOutputType( fhirProcessor.operationsOutput.get( operation ) );
         String method = httpRequest.getMethod().toUpperCase();
-        execContext.setId ( id );
+        execContext.setId( id );
 
         if ( method == "POST" || method == "PUT" )
         {
             try
             {
-                Reader in = new InputStreamReader ( httpRequest.getInputStream() );
+                Reader in = new InputStreamReader( httpRequest.getInputStream() );
 
                 //convert to json object with HAPI
                 switch ( inputType )
                 {
-                case "resource":
-                    IBaseResource res;
+                    case "resource":
+                        IBaseResource res;
 
-                    if ( execContext.getIsXml() )
-                    {
-                        res = fhirProcessor.resourceFromXML ( in );
-                    }
+                        if ( execContext.getIsXml() )
+                        {
+                            res = fhirProcessor.resourceFromXML( in );
+                        }
 
-                    else
-                    {
-                        res = fhirProcessor.resourceFromJSON ( in );
-                    }
+                        else
+                        {
+                            res = fhirProcessor.resourceFromJSON( in );
+                        }
 
-                    execContext.setResource ( res );
-                    break;
+                        execContext.setResource( res );
+                        break;
 
-                case "bundle":
-                    Bundle bun;
+                    case "bundle":
+                        Bundle bun;
 
-                    if ( execContext.getIsXml() )
-                    {
-                        bun = fhirProcessor.bundleFromXML ( in );
-                    }
+                        if ( execContext.getIsXml() )
+                        {
+                            bun = fhirProcessor.bundleFromXML( in );
+                        }
 
-                    else
-                    {
-                        bun = fhirProcessor.bundleFromJSON ( in );
-                    }
+                        else
+                        {
+                            bun = fhirProcessor.bundleFromJSON( in );
+                        }
 
-                    execContext.setBundle ( bun );
-                    break;
+                        execContext.setBundle( bun );
+                        break;
 
-                default:
-                    log.info ( "unknown input type for " + operation + " on " + resource );
-                    sendError ( httpResponse, HttpServletResponse.SC_BAD_REQUEST, "unknown input type for " + operation + " on " + resource );
-                    return null;
+                    default:
+                        log.info( "unknown input type for " + operation + " on " + resource );
+                        sendError( httpResponse, HttpServletResponse.SC_BAD_REQUEST, "unknown input type for " + operation + " on " + resource );
+                        return null;
                 }
             }
 
             catch ( Exception e )
             {
-                sendError ( httpResponse, HttpServletResponse.SC_BAD_REQUEST, "could not process input: " + e.toString() );
+                sendError( httpResponse, HttpServletResponse.SC_BAD_REQUEST, "could not process input: " + e.toString() );
                 return null;
             }
         }

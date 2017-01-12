@@ -44,45 +44,52 @@ import java.io.Reader;
 import java.util.HashMap;
 
 
-public class EngineXQuery extends Engine {
+public class EngineXQuery extends Engine
+{
 
-    protected static final Log log = LogFactory.getLog(EngineXQuery.class);
+    protected static final Log log = LogFactory.getLog( EngineXQuery.class );
 
-    protected HashMap<String,Context> XQContexts = new HashMap<>();
-
-
-    protected Context context  = null;
+    protected HashMap<String, Context> XQContexts = new HashMap<>();
 
 
-    protected Context getXQContext() {
-        if (context == null) {
+    protected Context context = null;
+
+
+    protected Context getXQContext()
+    {
+        if ( context == null )
+        {
             context = new Context();
         }
         return context;
     }
 
     @Override
-    public Object evaluateScript ()
-            throws ScriptException {
-        try {
+    public Object evaluateScript()
+        throws ScriptException
+    {
+        try
+        {
             Reader scriptReader = getScriptReader();
             Context context = getXQContext();
 
-            String query = IOUtils.toString(scriptReader);
-            QueryProcessor qp = new QueryProcessor(query, context);
-            qp.bind("dhisScriptContext",execContext);
+            String query = IOUtils.toString( scriptReader );
+            QueryProcessor qp = new QueryProcessor( query, context );
+            qp.bind( "dhisScriptContext", execContext );
             //qp.context(execContext);
 
-            StreamSource text = new StreamSource(execContext.getIn());
-            StreamResult outXQ = new StreamResult(execContext.getOut());
-            
+            StreamSource text = new StreamSource( execContext.getIn() );
+            StreamResult outXQ = new StreamResult( execContext.getOut() );
+
             Value result = qp.value();
             return result;
 
-        } catch (Exception e) {
-            log.info("Error running script engine: " + e.toString() + "\n" +
-                    ExceptionUtils.getStackTrace(e));
-            throw new ScriptExecutionException("Could not execute script:" + e.toString());
+        }
+        catch ( Exception e )
+        {
+            log.info( "Error running script engine: " + e.toString() + "\n" +
+                ExceptionUtils.getStackTrace( e ) );
+            throw new ScriptExecutionException( "Could not execute script:" + e.toString() );
         }
 
     }

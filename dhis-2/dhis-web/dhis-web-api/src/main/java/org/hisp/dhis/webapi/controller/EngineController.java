@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.datavalue.DefaultDataValueService;
@@ -46,11 +47,11 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 /**
-* @author Carl Leitner <litlfred@gmail.com>
+ * @author Carl Leitner <litlfred@gmail.com>
  */
-abstract public class  EngineController
+abstract public class EngineController
 {
-    protected static final Log log = LogFactory.getLog ( DefaultDataValueService.class );
+    protected static final Log log = LogFactory.getLog( DefaultDataValueService.class );
 
     @Autowired
     protected ApplicationContext applicationContext;
@@ -63,50 +64,48 @@ abstract public class  EngineController
     protected DefaultEngineService engineService;
 
 
-
-    protected void sendError ( HttpServletResponse httpResponse, int sc, String msg )
+    protected void sendError( HttpServletResponse httpResponse, int sc, String msg )
     {
         try
         {
-            httpResponse.sendError ( sc, msg );
+            httpResponse.sendError( sc, msg );
         }
 
         catch ( Exception e )
         {
-            log.info ( "Could not send error:" + e.toString() );
+            log.info( "Could not send error:" + e.toString() );
         }
 
     }
 
 
-    protected void initExecutionContext ( ExecutionContextHttpInterface execContext, String appKey,  HttpServletRequest httpRequest, HttpServletResponse httpResponse )
+    protected void initExecutionContext( ExecutionContextHttpInterface execContext, String appKey, HttpServletRequest httpRequest, HttpServletResponse httpResponse )
     {
         try
         {
-            log.info ( "Setting script context appKey:" + appKey );
-            execContext.setAppKey ( appKey );
-            execContext.setUser ( currentUserService.getCurrentUser() );
+            log.info( "Setting script context appKey:" + appKey );
+            execContext.setAppKey( appKey );
+            execContext.setUser( currentUserService.getCurrentUser() );
 
-            log.info ( "Setting application context" );
-            execContext.setApplicationContext ( applicationContext );
+            log.info( "Setting application context" );
+            execContext.setApplicationContext( applicationContext );
 
-            log.info ( "Setting http stream context" );
-            execContext.setOut ( new OutputStreamWriter ( httpResponse.getOutputStream() ) );
-            execContext.setIn ( new InputStreamReader ( httpRequest.getInputStream() ) );
+            log.info( "Setting http stream context" );
+            execContext.setOut( new OutputStreamWriter( httpResponse.getOutputStream() ) );
+            execContext.setIn( new InputStreamReader( httpRequest.getInputStream() ) );
 
-            log.info ( "Setting http request/response context" );
-            execContext.setHttpServletRequest ( httpRequest );
-            execContext.setHttpServletResponse ( httpResponse );
+            log.info( "Setting http request/response context" );
+            execContext.setHttpServletRequest( httpRequest );
+            execContext.setHttpServletResponse( httpResponse );
 
 
         }
 
         catch ( Exception e )
         {
-            log.info ( "Could not initialize execution context:" + e.toString() );
+            log.info( "Could not initialize execution context:" + e.toString() );
         }
     }
-
 
 
 }
