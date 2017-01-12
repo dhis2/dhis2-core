@@ -27,9 +27,11 @@ package org.hisp.dhis.scriptlibrary;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 import java.io.Reader;
 import java.io.IOException;
 import javax.json.JsonValue;
+
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.scriptlibrary.ScriptNotFoundException;
 import org.springframework.core.io.Resource;
@@ -39,10 +41,14 @@ import org.springframework.core.io.Resource;
  */
 public interface ScriptLibrary
 {
-    abstract public boolean containsScript ( String name );
-    abstract public String[] retrieveDirectDependencies ( String scriptName );
-    abstract public String[] retrieveDependencies ( String scriptName );
-    abstract public Reader retrieveScript ( String name ) throws ScriptNotFoundException;
+    abstract public boolean containsScript( String name );
+
+    abstract public String[] retrieveDirectDependencies( String scriptName );
+
+    abstract public String[] retrieveDependencies( String scriptName );
+
+    abstract public Reader retrieveScript( String name ) throws ScriptNotFoundException;
+
     abstract public String getName();
 
 }

@@ -36,13 +36,15 @@ import java.util.concurrent.Callable;
 public interface ServerSideAppEngine extends Callable
 {
 
-    abstract Object evaluateScript() throws ScriptException;
+    Object evaluateScript() throws ScriptException;
 
 
-    abstract void setExecutionContext ( ServerSideAppExecutionContext execContext );
-    abstract ServerSideAppExecutionContext getExecutionContext();
-    abstract void setScriptReader(Reader scriptReader);
+    void setExecutionContext( ServerSideAppExecutionContext execContext );
 
-    abstract Reader getScriptReader();
+    ServerSideAppExecutionContext getExecutionContext();
+
+    void setScriptReader( Reader scriptReader );
+
+    Reader getScriptReader();
 
 }

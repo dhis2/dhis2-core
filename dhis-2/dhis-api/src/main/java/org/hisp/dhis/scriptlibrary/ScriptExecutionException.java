@@ -31,10 +31,11 @@ package org.hisp.dhis.scriptlibrary;
 /**
  * @author Carl Leitner <litlfred@gmail.com>
  */
-public class  ScriptExecutionException extends ScriptException
+public class ScriptExecutionException extends ScriptException
 {
-    public ScriptExecutionException(String s) {
-        super(s);
+    public ScriptExecutionException( String s )
+    {
+        super( s );
     }
 
 }

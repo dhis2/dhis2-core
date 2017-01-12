@@ -34,9 +34,9 @@ package org.hisp.dhis.scriptlibrary;
 public class ScriptAccessException extends ScriptException
 {
 
-    public ScriptAccessException ( String s )
+    public ScriptAccessException( String s )
     {
-        super ( s );
+        super( s );
     }
 
 }

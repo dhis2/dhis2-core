@@ -29,7 +29,6 @@ package org.hisp.dhis.scriptlibrary;
  */
 
 
-
 /**
  * @author Carl Leitner <litlfred@gmail.com>
  */
@@ -37,7 +36,7 @@ public interface ServerSideAppEngineService
 {
 
 
-    Object eval(ServerSideAppExecutionContext execContext) throws ScriptException;
+    Object eval( ServerSideAppExecutionContext execContext ) throws ScriptException;
 
 
 }

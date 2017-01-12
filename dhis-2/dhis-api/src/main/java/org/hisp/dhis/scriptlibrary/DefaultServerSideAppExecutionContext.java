@@ -43,7 +43,7 @@ import org.springframework.context.ApplicationContext;
 public class DefaultServerSideAppExecutionContext implements ServerSideAppExecutionContext
 {
 
-    protected static final Log log = LogFactory.getLog ( DefaultServerSideAppExecutionContext.class );
+    protected static final Log log = LogFactory.getLog( DefaultServerSideAppExecutionContext.class );
     protected ApplicationContext applicationContext;
     protected Reader in;
     protected Writer out;
@@ -55,7 +55,7 @@ public class DefaultServerSideAppExecutionContext implements ServerSideAppExecut
     public DefaultServerSideAppExecutionContext()
     {
         user = null;
-        in = new StringReader ( "" );
+        in = new StringReader( "" );
         out = new StringWriter();
         error = new StringWriter();
     }
@@ -67,15 +67,17 @@ public class DefaultServerSideAppExecutionContext implements ServerSideAppExecut
     public String toString()
     {
         return "DefaultServerSideAppExecutionContext for:\n\tappKey=" + getAppKey()
-                + "\n\tfor script name=" + getScriptName()
-                + "\n\tfor user " + user.toString()
-                ;
+            + "\n\tfor script name=" + getScriptName()
+            + "\n\tfor user " + user.toString()
+            ;
     }
+
     public String getAppKey()
     {
-        log.debug("Getting appKey" + appKey);
+        log.debug( "Getting appKey" + appKey );
         return appKey;
     }
+
     public String getScriptName()
     {
         return scriptName;
@@ -85,67 +87,80 @@ public class DefaultServerSideAppExecutionContext implements ServerSideAppExecut
     {
         return user;
     }
+
     public Reader getIn()
     {
         return in;
     }
+
     public Writer getOut()
     {
         return out;
     }
+
     public Writer getError()
     {
         return error;
     }
+
     public ApplicationContext getApplicationContext()
     {
         return applicationContext;
     }
 
-    public void setApplicationContext ( ApplicationContext applicationContext )
+    public void setApplicationContext( ApplicationContext applicationContext )
     {
         this.applicationContext = applicationContext;
     }
-    public void setAppKey ( String appKey )
+
+    public void setAppKey( String appKey )
     {
         this.appKey = appKey;
     }
-    public void setScriptName ( String scriptName )
+
+    public void setScriptName( String scriptName )
     {
         this.scriptName = scriptName;
     }
 
-    public void setUser ( User user )
+    public void setUser( User user )
     {
         this.user = user;
     }
-    public void setIn ( Reader in )
+
+    public void setIn( Reader in )
     {
         this.in = in;
     }
-    public void setOut ( Writer out )
+
+    public void setOut( Writer out )
     {
         this.out = out;
     }
-    public void setError ( Writer error )
+
+    public void setError( Writer error )
     {
         this.error = error;
     }
 
-    public void logInfo(Object o) {
-        log.info("[" + appKey + ":" + scriptName + "] " + o);
+    public void logInfo( Object o )
+    {
+        log.info( "[" + appKey + ":" + scriptName + "] " + o );
     }
 
-    public void logDebug(Object o) {
-        log.debug("[" + appKey + ":" + scriptName + "] " + o);
+    public void logDebug( Object o )
+    {
+        log.debug( "[" + appKey + ":" + scriptName + "] " + o );
     }
 
-    public void logError(Object o) {
-        log.error("[" + appKey + ":" + scriptName + "] " + o);
+    public void logError( Object o )
+    {
+        log.error( "[" + appKey + ":" + scriptName + "] " + o );
     }
 
-    public void logFatal(Object o) {
-        log.fatal("[" + appKey + ":" + scriptName + "] " + o);
+    public void logFatal( Object o )
+    {
+        log.fatal( "[" + appKey + ":" + scriptName + "] " + o );
     }
 
 

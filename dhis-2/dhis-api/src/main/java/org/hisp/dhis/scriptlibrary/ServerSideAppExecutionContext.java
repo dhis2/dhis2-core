@@ -37,39 +37,39 @@ import org.springframework.context.ApplicationContext;
 public interface ServerSideAppExecutionContext
 {
 
-    abstract String getAppKey();
+    String getAppKey();
 
-    abstract String getScriptName();
+    String getScriptName();
 
-    abstract User getUser();
+    User getUser();
 
-    abstract Reader getIn();
+    Reader getIn();
 
-    abstract Writer getOut();
+    Writer getOut();
 
-    abstract Writer getError();
+    Writer getError();
 
-    abstract ApplicationContext getApplicationContext();
+    ApplicationContext getApplicationContext();
 
-    abstract void setApplicationContext( ApplicationContext applicationContext );
+    void setApplicationContext( ApplicationContext applicationContext );
 
-    abstract void setAppKey( String appKey );
+    void setAppKey( String appKey );
 
-    abstract void setScriptName( String scriptName );
+    void setScriptName( String scriptName );
 
-    abstract void setUser( User user );
+    void setUser( User user );
 
-    abstract void setIn( Reader in );
+    void setIn( Reader in );
 
-    abstract void setOut( Writer out );
+    void setOut( Writer out );
 
-    abstract void setError( Writer out );
+    void setError( Writer out );
 
-    abstract void logFatal( Object o );
+    void logFatal( Object o );
 
-    abstract void logError( Object o );
+    void logError( Object o );
 
-    abstract void logInfo( Object o );
+    void logInfo( Object o );
 
-    abstract void logDebug( Object o );
+    void logDebug( Object o );
 }

@@ -34,9 +34,9 @@ package org.hisp.dhis.scriptlibrary;
 public class ScriptNotFoundException extends ScriptException
 {
 
-    public ScriptNotFoundException ( String s )
+    public ScriptNotFoundException( String s )
     {
-        super ( s );
+        super( s );
     }
 
 }
