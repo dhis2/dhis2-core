@@ -96,7 +96,7 @@ public class ContextUtils
         configureResponse( response, contentType, cacheStrategy, null, false );
     }
 
-    public void configureAnalyticsResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy, Date latestEndDate )
+    public void configureAnalyticsResponse( HttpServletResponse response, String contentType, CacheStrategy cacheStrategy, String filename, boolean attachment, Date latestEndDate )
     {
         int cacheThreshold = (int) systemSettingManager.getSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD );
         Calendar threshold = Calendar.getInstance();
@@ -104,11 +104,11 @@ public class ContextUtils
 
         if ( latestEndDate != null && cacheThreshold > 0 && threshold.getTime().before( latestEndDate ) )
         {
-            configureResponse( response, contentType, CacheStrategy.NO_CACHE );
+            configureResponse( response, contentType, CacheStrategy.NO_CACHE, filename, attachment );
         }
         else
         {
-            configureResponse( response, contentType, cacheStrategy );
+            configureResponse( response, contentType, cacheStrategy, filename, attachment );
         }
     }
 
