@@ -85,6 +85,11 @@ public abstract class ResourceTable<T>
     {
         return "alter table " + getTempTableName() + " rename to " + getTableName() + ";";
     }
+    
+    public final String getAnalyzeTableStatement()
+    {
+        return "analyze " + getTableName() + ";";
+    }
 
     // -------------------------------------------------------------------------
     // Protected methods
