@@ -1,6 +1,4 @@
-package org.hisp.dhis.analytics;
-
-import org.hisp.dhis.analytics.table.AnalyticsTableType;
+package org.hisp.dhis.analytics.table;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -30,40 +28,34 @@ import org.hisp.dhis.analytics.table.AnalyticsTableType;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.TaskId;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
 
 /**
- * Service for analytics table generation and analysis.
- * 
- * @author Lars Helge Overland
- */
-public interface AnalyticsTableService
+* @author Lars Helge Overland
+*/
+public enum AnalyticsTableType
 {
-    /**
-     * Returns the type of analytics table which this manager handles.
-     */
-    AnalyticsTableType getAnalyticsTableType();
+    DATA_VALUE( "analytics" ),
+    COMPLETENESS( "analytics_completeness" ),
+    COMPLETENESS_TARGET( "analytics_completenesstarget" ),
+    ORG_UNIT_TARGET( "analytics_orgunittarget" ),
+    EVENT( "analytics_event" ),
+    ENROLLMENT( "analytics_enrollment" );
     
-    /**
-     * Rebuilds the analytics tables.
-     * 
-     * @param lastYears the number of last years of data to include, null if all.
-     * @param taskId the TaskId.
-     */
-    void update( Integer lastYears, TaskId id );
+    private String tableName;
     
-    /**
-     * Drops main and temporary analytics tables.
-     */
-    void dropTables();
+    private AnalyticsTableType( String tableName )
+    {
+        this.tableName = tableName;
+    }
 
-    /**
-     * Performs an SQL analyze operation on all analytics tables.
-     */
-    void analyzeAnalyticsTables();
+    public String getTableName()
+    {
+        return tableName;
+    }
     
-    /**
-     * Generate required resource tables.
-     */
-    void generateResourceTables();
+    public String getTempTableName()
+    {
+        return tableName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+    }
 }

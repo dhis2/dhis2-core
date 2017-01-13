@@ -38,9 +38,9 @@ import java.util.Set;
 public interface PartitionManager
 {
     /**
-     * Returns a set of names of current analytics partitions.
+     * Returns a set of names of current data value analytics partitions.
      */
-    Set<String> getAnalyticsPartitions();
+    Set<String> getDataValueAnalyticsPartitions();
 
     /**
      * Returns a set of names of current event analytics partitions.

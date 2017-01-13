@@ -55,6 +55,12 @@ public class JdbcCompletenessTargetTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.COMPLETENESS_TARGET;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
@@ -75,12 +81,6 @@ public class JdbcCompletenessTargetTableManager
         return null;
     }    
     
-    @Override
-    public String getTableName()
-    {
-        return COMPLETENESS_TARGET_TABLE_NAME;
-    }
-
     @Override
     public void createTable( AnalyticsTable table )
     {
