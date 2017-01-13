@@ -27,6 +27,7 @@ package org.hisp.dhis.webapi.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SettingKey;
@@ -38,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Calendar;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -114,5 +116,30 @@ public class ContextUtilsTest
         response.reset();
         contextUtils.configureResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false );
         assertEquals( "max-age=3600, private", response.getHeader( "Cache-Control" ) );
+    }
+
+    @Test
+    public void testConfigureAnalyticsResponseReturnsCorrectCacheHeaders()
+    {
+
+        Calendar thisYear = Calendar.getInstance();
+        Calendar fiveYearBack = Calendar.getInstance();
+
+        thisYear.set( 2017, 01, 01 );
+        fiveYearBack.set( 2012, 01, 01 );
+
+        DataQueryParams withinThreshold = DataQueryParams.newBuilder().withEndDate( thisYear.getTime() ).build();
+        DataQueryParams outsideThreshold = DataQueryParams.newBuilder().withEndDate( fiveYearBack.getTime() ).build();
+
+        systemSettingManager.saveSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD, 3 );
+
+        response.reset();
+        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, withinThreshold.getLatestEndDate() );
+        assertEquals( "no-cache", response.getHeader( "Cache-Control" ) );
+
+        response.reset();
+        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, outsideThreshold.getLatestEndDate() );
+        assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
+
     }
 }

@@ -102,7 +102,7 @@ public class ContextUtils
         Calendar threshold = Calendar.getInstance();
         threshold.add( Calendar.YEAR, cacheThreshold * -1 );
 
-        if ( latestEndDate != null && cacheThreshold > 0 && threshold.before( latestEndDate ) )
+        if ( latestEndDate != null && cacheThreshold > 0 && threshold.getTime().before( latestEndDate ) )
         {
             configureResponse( response, contentType, CacheStrategy.NO_CACHE );
         }
