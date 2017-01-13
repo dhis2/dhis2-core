@@ -140,7 +140,15 @@ public class JdbcResourceTableStore
         
         jdbcTemplate.execute( resourceTable.getRenameTempTableStatement() );
         
-        log.info( "Swapped resource table, done: " + resourceTable.getTableName() + " in: " + clock.time() );
+        log.info( "Swapped resource table: " + resourceTable.getTableName() );
+
+        // ---------------------------------------------------------------------
+        // Analyze
+        // ---------------------------------------------------------------------
+
+        jdbcTemplate.execute( resourceTable.getAnalyzeTableStatement() );
+        
+        log.info( "Analyzed resource table: " + resourceTable.getTableName() + ", done in: " + clock.time() );
     }
     
     @Override
