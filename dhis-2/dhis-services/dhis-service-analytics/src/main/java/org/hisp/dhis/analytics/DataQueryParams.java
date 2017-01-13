@@ -507,6 +507,11 @@ public class DataQueryParams
         return !dimOpts.isEmpty() || !filterOpts.isEmpty();
     }
 
+    /**
+     * Finds the latest endDate associated with this DataQueryParams. checks endDate, period dimensions and
+     * period filters
+     * @return the latest endDate present.
+     */
     public Calendar getLatestEndDate()
     {
         // Set to minimum value
@@ -514,10 +519,27 @@ public class DataQueryParams
 
         if ( endDate != null && endDate.after( latestEndDate ) )
         {
-            latestEndDate = latestEndDate;
+            latestEndDate = endDate;
         }
 
-        return null;
+        for ( DimensionalItemObject object : getFilterPeriods() )
+        {
+            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+
+            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
+        }
+
+        for ( DimensionalItemObject object : getPeriods() )
+        {
+            Period period = PeriodType.getPeriodFromIsoString( object.getDimensionItem() );
+
+            latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
+        }
+
+        Calendar result = Calendar.getInstance();
+        result.setTime( latestEndDate );
+
+        return result;
 
     }
     
