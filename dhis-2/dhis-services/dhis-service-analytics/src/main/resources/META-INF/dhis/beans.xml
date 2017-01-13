@@ -42,6 +42,10 @@
     <property name="tableManager" ref="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" />
   </bean>
   
+  <!-- Table generator -->
+  
+  <bean id="org.hisp.dhis.analytics.AnalyticsTableGenerator" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableGenerator" />
+  
   <!-- Partition manager -->
   
   <bean id="org.hisp.dhis.analytics.partition.PartitionManager" class="org.hisp.dhis.analytics.partition.JdbcPartitionManager" />

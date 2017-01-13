@@ -61,9 +61,4 @@ public interface AnalyticsTableService
      * Performs an SQL analyze operation on all analytics tables.
      */
     void analyzeAnalyticsTables();
-    
-    /**
-     * Generate required resource tables.
-     */
-    void generateResourceTables();
 }
