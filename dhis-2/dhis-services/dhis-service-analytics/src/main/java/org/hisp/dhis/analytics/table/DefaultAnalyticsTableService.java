@@ -95,12 +95,18 @@ public class DefaultAnalyticsTableService
     // -------------------------------------------------------------------------
     
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return tableManager.getAnalyticsTableType();
+    }
+    
+    @Override
     public void update( Integer lastYears, TaskId taskId )
     {
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
         
-        String tableName = tableManager.getTableName();
+        String tableName = tableManager.getAnalyticsTableType().getTableName();
         Date earliest = PartitionUtils.getEarliestDate( lastYears );
         
         Clock clock = new Clock( log ).startClock().logTime( "Starting update: " + tableName + ", processes: " + processNo + ", org unit levels: " + orgUnitLevelNo );
@@ -134,6 +140,7 @@ public class DefaultAnalyticsTableService
         notifier.notify( taskId, "Applying aggregation levels" );
         
         applyAggregationLevels( tables );
+        
         clock.logTime( "Applied aggregation levels" );
         notifier.notify( taskId, "Creating indexes" );
         

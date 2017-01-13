@@ -51,6 +51,12 @@ public class JdbcOrgUnitTargetTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.ORG_UNIT_TARGET;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
@@ -71,12 +77,6 @@ public class JdbcOrgUnitTargetTableManager
         return null;
     }    
     
-    @Override
-    public String getTableName()
-    {
-        return ORGUNIT_TARGET_TABLE_NAME;
-    }
-
     @Override
     public void createTable( AnalyticsTable table )
     {

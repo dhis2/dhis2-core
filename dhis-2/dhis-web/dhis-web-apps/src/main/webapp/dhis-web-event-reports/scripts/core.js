@@ -298,12 +298,10 @@ Ext.onReady( function() {
                     '!lastUpdated',
                     '!href',
                     '!created',
-                    '!publicAccess',
                     '!rewindRelativePeriods',
                     '!userOrganisationUnit',
                     '!userOrganisationUnitChildren',
                     '!userOrganisationUnitGrandChildren',
-                    '!externalAccess',
                     '!access',
                     '!relativePeriods',
                     '!columnDimensions',
@@ -312,7 +310,6 @@ Ext.onReady( function() {
                     '!user',
                     '!organisationUnitGroups',
                     '!itemOrganisationUnitGroups',
-                    '!userGroupAccesses',
                     '!indicators',
                     '!dataElements',
                     '!dataElementOperands',
@@ -397,62 +394,6 @@ Ext.onReady( function() {
 				var layout = {},
 					getValidatedDimensionArray,
 					validateSpecialCases;
-
-				// columns: [Dimension]
-
-				// rows: [Dimension]
-
-				// filters: [Dimension]
-
-				// showRowTotals: boolean (true)
-
-				// showColTotals: boolean (true)
-
-				// showColSubTotals: boolean (true)
-
-				// showRowSubTotals: boolean (true)
-
-                // showDimensionLabels: boolean (false)
-
-				// hideEmptyRows: boolean (false)
-
-				// hideNaData: boolean (false)
-
-				// completedOnly: boolean (false)
-
-                // collapseDataDimensions: boolean (false)
-
-                // outputType: string ('EVENT') - 'EVENT', 'TRACKED_ENTITY_INSTANCE', 'ENROLLMENT'
-
-                // aggregationType: string ('default') - 'default', 'count', 'sum'
-
-				// showHierarchy: boolean (false)
-
-				// displayDensity: string ('NORMAL') - 'COMPACT', 'NORMAL', 'COMFORTABLE'
-
-				// fontSize: string ('NORMAL') - 'SMALL', 'NORMAL', 'LARGE'
-
-				// digitGroupSeparator: string ('SPACE') - 'NONE', 'COMMA', 'SPACE'
-
-				// legendSet: object
-
-				// parentGraphMap: object
-
-				// sorting: transient object
-
-				// reportingPeriod: boolean (false) //report tables only
-
-				// organisationUnit: boolean (false) //report tables only
-
-				// parentOrganisationUnit: boolean (false) //report tables only
-
-				// regression: boolean (false)
-
-				// cumulative: boolean (false)
-
-				// sortOrder: integer (0) //-1, 0, 1
-
-				// topLimit: integer (100) //5, 10, 20, 50, 100
 
 				getValidatedDimensionArray = function(dimensionArray) {
 					var dimensionArray = Ext.clone(dimensionArray);
@@ -614,6 +555,23 @@ Ext.onReady( function() {
 					layout.digitGroupSeparator = Ext.isString(config.digitGroupSeparator) && !Ext.isEmpty(config.digitGroupSeparator) ? config.digitGroupSeparator : conf.finals.style.space;
 					layout.legendSet = Ext.isObject(config.legendSet) && Ext.isString(config.legendSet.id) ? config.legendSet : null;
 
+                    // sharing
+                    if (Ext.isString(config.publicAccess)) {
+                        layout.publicAccess = config.publicAccess;
+                    }
+
+                    if (Ext.isBoolean(config.externalAccess)) {
+                        layout.externalAccess = config.externalAccess;
+                    }
+
+                    if (Ext.isArray(config.userGroupAccesses) && config.userGroupAccesses.length) {
+                        layout.userGroupAccesses = config.userGroupAccesses;
+                    }
+
+                    if (Ext.isArray(config.userAccesses) && config.userAccesses.length) {
+                        layout.userAccesses = config.userAccesses;
+                    }
+
                     // value
                     if ((Ext.isObject(config.value) && Ext.isString(config.value.id)) || Ext.isString(config.value)) {
                         layout.value = Ext.isString(config.value) ? {id: config.value} : config.value;
@@ -628,8 +586,8 @@ Ext.onReady( function() {
 					layout.sorting = Ext.isObject(config.sorting) && Ext.isDefined(config.sorting.id) && Ext.isString(config.sorting.direction) ? config.sorting : null;
 
 					layout.reportingPeriod = Ext.isObject(config.reportParams) && Ext.isBoolean(config.reportParams.paramReportingPeriod) ? config.reportParams.paramReportingPeriod : (Ext.isBoolean(config.reportingPeriod) ? config.reportingPeriod : false);
-					layout.organisationUnit =  Ext.isObject(config.reportParams) && Ext.isBoolean(config.reportParams.paramOrganisationUnit) ? config.reportParams.paramOrganisationUnit : (Ext.isBoolean(config.organisationUnit) ? config.organisationUnit : false);
-					layout.parentOrganisationUnit =  Ext.isObject(config.reportParams) && Ext.isBoolean(config.reportParams.paramParentOrganisationUnit) ? config.reportParams.paramParentOrganisationUnit : (Ext.isBoolean(config.parentOrganisationUnit) ? config.parentOrganisationUnit : false);
+					layout.organisationUnit = Ext.isObject(config.reportParams) && Ext.isBoolean(config.reportParams.paramOrganisationUnit) ? config.reportParams.paramOrganisationUnit : (Ext.isBoolean(config.organisationUnit) ? config.organisationUnit : false);
+					layout.parentOrganisationUnit = Ext.isObject(config.reportParams) && Ext.isBoolean(config.reportParams.paramParentOrganisationUnit) ? config.reportParams.paramParentOrganisationUnit : (Ext.isBoolean(config.parentOrganisationUnit) ? config.parentOrganisationUnit : false);
 
 					//layout.regression = Ext.isBoolean(config.regression) ? config.regression : false;
 					//layout.cumulative = Ext.isBoolean(config.cumulative) ? config.cumulative : false;
