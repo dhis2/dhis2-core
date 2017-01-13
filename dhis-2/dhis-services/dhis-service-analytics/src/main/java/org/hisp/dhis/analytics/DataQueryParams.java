@@ -363,6 +363,8 @@ public class DataQueryParams
     
     /**
      * Copies all properties of this query onto the given query.
+     * <p>
+     * The <pre>processingHints</pre> set is not copied.
      * 
      * @param params the query to copy properties onto.
      * @return the given property with all properties of this query set.
@@ -403,7 +405,6 @@ public class DataQueryParams
         params.restrictByOrgUnitOpeningClosedDate = this.restrictByOrgUnitOpeningClosedDate;
         params.restrictByCategoryOptionStartEndDate = this.restrictByCategoryOptionStartEndDate;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
-        params.processingHints = new HashSet<>( this.processingHints );
         
         return params;
     }
