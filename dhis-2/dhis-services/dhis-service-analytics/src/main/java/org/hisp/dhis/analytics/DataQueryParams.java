@@ -512,7 +512,7 @@ public class DataQueryParams
      * period filters
      * @return the latest endDate present.
      */
-    public Calendar getLatestEndDate()
+    public Date getLatestEndDate()
     {
         // Set to minimum value
         Date latestEndDate = new Date(Long.MIN_VALUE);
@@ -536,10 +536,7 @@ public class DataQueryParams
             latestEndDate = ( period.getEndDate().after( latestEndDate ) ? period.getEndDate() : latestEndDate );
         }
 
-        Calendar result = Calendar.getInstance();
-        result.setTime( latestEndDate );
-
-        return result;
+        return latestEndDate;
 
     }
     
