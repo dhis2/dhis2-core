@@ -62,6 +62,12 @@ public class JdbcEventAnalyticsTableManager
     private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.EVENT;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
@@ -101,12 +107,6 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return tables;
-    }
-
-    @Override
-    public String getTableName()
-    {
-        return EVENT_ANALYTICS_TABLE_NAME;
     }
 
     @Override

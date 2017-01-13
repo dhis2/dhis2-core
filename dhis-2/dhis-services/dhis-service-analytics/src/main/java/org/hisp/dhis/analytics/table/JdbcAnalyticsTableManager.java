@@ -57,7 +57,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
 
 /**
- * This class manages the analytics table. The analytics table is a denormalized
+ * This class manages the analytics tables. The analytics table is a denormalized
  * table designed for analysis which contains raw data values. It has columns for
  * each organisation unit group set and organisation unit level. Also, columns
  * for dataelementid, periodid, organisationunitid, categoryoptioncomboid, value.
@@ -83,9 +83,15 @@ public class JdbcAnalyticsTableManager
     // -------------------------------------------------------------------------
 
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.DATA_VALUE;
+    }
+    
+    @Override
     public Set<String> getExistingDatabaseTables()
     {
-        return partitionManager.getAnalyticsPartitions();
+        return partitionManager.getDataValueAnalyticsPartitions();
     }
     
     @Override
@@ -106,12 +112,6 @@ public class JdbcAnalyticsTableManager
         }
 
         return null;
-    }
-
-    @Override
-    public String getTableName()
-    {
-        return ANALYTICS_TABLE_NAME;
     }
 
     @Override

@@ -30,13 +30,13 @@ package org.hisp.dhis.analytics.data;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DimensionItem;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -81,7 +81,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.ANALYTICS_TABLE_NAME;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.*;
@@ -93,6 +92,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 public class QueryPlannerTest
     extends DhisSpringTest
 {
+    private static final String ANALYTICS_TABLE_NAME = AnalyticsTableType.DATA_VALUE.getTableName();
+    
     @Autowired
     private QueryPlanner queryPlanner;
 
@@ -1135,7 +1136,7 @@ public class QueryPlannerTest
         assertTrue( params.hasStartEndDate() );
         
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
-            .withTableName( AnalyticsTableManager.ANALYTICS_TABLE_NAME ).build();
+            .withTableName( ANALYTICS_TABLE_NAME ).build();
         
         List<DataQueryParams> queries = queryPlanner.groupByPartition( params, plannerParams );
         
@@ -1147,9 +1148,9 @@ public class QueryPlannerTest
         
         assertNotNull( partitions );
         assertEquals( 3, partitions.size() );
-        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
-        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
-        assertEquals( AnalyticsTableManager.ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2014", partitions.get( 0 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2015", partitions.get( 1 ) );
+        assertEquals( ANALYTICS_TABLE_NAME + "_2016", partitions.get( 2 ) );
     }
         
     // -------------------------------------------------------------------------

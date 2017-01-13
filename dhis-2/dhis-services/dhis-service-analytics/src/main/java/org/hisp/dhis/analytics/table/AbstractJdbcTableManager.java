@@ -145,7 +145,7 @@ public abstract class AbstractJdbcTableManager
 
         Collections.sort( dataYears );
         
-        String baseName = getTableName();
+        String baseName = getAnalyticsTableType().getTableName();
         
         for ( Integer year : dataYears )
         {
@@ -156,13 +156,7 @@ public abstract class AbstractJdbcTableManager
 
         return tables;
     }
-    
-    @Override
-    public String getTempTableName()
-    {
-        return getTableName() + TABLE_TEMP_SUFFIX;
-    }
-    
+        
     @Override
     @Async
     public Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes )
@@ -255,6 +249,14 @@ public abstract class AbstractJdbcTableManager
     // -------------------------------------------------------------------------
   
     /**
+     * Returns the analytics table name.
+     */
+    protected String getTableName()
+    {
+        return getAnalyticsTableType().getTableName();
+    }
+    
+    /**
      * Quotes the given column name.
      */
     protected String quote( String column )
@@ -275,7 +277,7 @@ public abstract class AbstractJdbcTableManager
      */
     private String shortenTableName( String table )
     {
-        table = table.replaceAll( ANALYTICS_TABLE_NAME, "ax" );
+        table = table.replaceAll( getAnalyticsTableType().getTableName(), "ax" );
         table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
         
         return table;

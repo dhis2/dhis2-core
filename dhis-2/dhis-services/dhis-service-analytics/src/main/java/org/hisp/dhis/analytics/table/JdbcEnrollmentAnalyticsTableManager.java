@@ -63,6 +63,12 @@ public class JdbcEnrollmentAnalyticsTableManager
     private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.ENROLLMENT;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
@@ -94,12 +100,6 @@ public class JdbcEnrollmentAnalyticsTableManager
         return tables;
     }
     
-    @Override
-    public String getTableName()
-    {
-        return ENROLLMENT_ANALYTICS_TABLE_NAME;
-    }
-
     @Override
     protected void populateTable( AnalyticsTable table )
     {

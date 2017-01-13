@@ -56,6 +56,12 @@ public class JdbcCompletenessTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.COMPLETENESS;
+    }
+    
+    @Override
     public Set<String> getExistingDatabaseTables()
     {
         return Sets.newHashSet( getTableName() );
@@ -73,13 +79,7 @@ public class JdbcCompletenessTableManager
         
         return null;
     }
-    
-    @Override
-    public String getTableName()
-    {
-        return COMPLETENESS_TABLE_NAME;
-    }
-    
+        
     @Override
     public void createTable( AnalyticsTable table )
     {
