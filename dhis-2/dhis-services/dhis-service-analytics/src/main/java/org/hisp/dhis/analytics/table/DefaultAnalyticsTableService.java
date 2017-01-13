@@ -185,24 +185,6 @@ public class DefaultAnalyticsTableService
         log.info( "Analytics tables analyzed" );
     }
     
-    @Override
-    public void generateResourceTables()
-    {
-        resourceTableService.dropAllSqlViews();
-        resourceTableService.generateOrganisationUnitStructures();
-        resourceTableService.generateDataSetOrganisationUnitCategoryTable();
-        resourceTableService.generateCategoryOptionComboNames();
-        resourceTableService.generateDataElementGroupSetTable();
-        resourceTableService.generateIndicatorGroupSetTable();
-        resourceTableService.generateOrganisationUnitGroupSetTable();
-        resourceTableService.generateCategoryTable();
-        resourceTableService.generateDataElementTable();
-        resourceTableService.generatePeriodTable();
-        resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();        
-        resourceTableService.createAllSqlViews();
-    }
-    
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

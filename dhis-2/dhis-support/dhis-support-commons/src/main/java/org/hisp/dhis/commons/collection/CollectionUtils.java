@@ -85,10 +85,28 @@ public class CollectionUtils
         return null;
     }
 
+    /**
+     * Applies the given consumer to each item in the given collection after filtering
+     * out null items.
+     * 
+     * @param collection the collection.
+     * @param consumer the consumer.
+     */
     public static <E> void nullSafeForEach( Collection<E> collection, Consumer<E> consumer )
     {
         collection.stream()
             .filter( Objects::nonNull )
             .forEach( consumer );
+    }
+    
+    /**
+     * Returns an empty set if the given set is null, if not returns the set.
+     * 
+     * @param set the set.
+     * @return a non-null set.
+     */
+    public static <T> Set<T> emptyIfNull( Set<T> set )
+    {
+        return set != null ? set : new HashSet<>();
     }
 }

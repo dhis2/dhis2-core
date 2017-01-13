@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.table.scheduling;
+package org.hisp.dhis.analytics;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,43 +28,28 @@ package org.hisp.dhis.analytics.table.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
+import java.util.Set;
 
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.security.NoSecurityContextRunnable;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Interface responsible for generating analytics tables. Will look for and
+ * invoke implementations of interface {@link AnalyticsTableService}.
+ * 
  * @author Lars Helge Overland
  */
-public class AnalyticsTableTask
-    extends NoSecurityContextRunnable
+public interface AnalyticsTableGenerator
 {
-    @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
-    
-    private Integer lastYears;
-
-    public void setLastYears( Integer lastYears )
-    {
-        this.lastYears = lastYears;
-    }
-
-    private TaskId taskId;
-
-    public void setTaskId( TaskId taskId )
-    {
-        this.taskId = taskId;
-    }
-    
-    // -------------------------------------------------------------------------
-    // Runnable implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void call()
-    {
-        analyticsTableGenerator.generateTables( lastYears, taskId, new HashSet<>(), false );
-    }
+    /**
+     * Generates analytics tables.
+     * 
+     * @param lastYears the number of years relative to now to include.
+     * @param taskId the task identifier.
+     * @param skipTableTypes indicates the types of analytics tables for 
+     *        which to skip generation.
+     * @param skipResourceTables indicates whether to skip generation of
+     *        resource tables.
+     */
+    void generateTables( Integer lastYears, TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
 }
