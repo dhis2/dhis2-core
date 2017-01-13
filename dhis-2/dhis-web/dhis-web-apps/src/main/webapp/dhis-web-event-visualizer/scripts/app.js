@@ -3016,23 +3016,51 @@ Ext.onReady( function() {
 										favorite.name = record.data.name;
 
 										if (confirm(message)) {
-											Ext.Ajax.request({
-												url: ns.core.init.contextPath + '/api/eventCharts/' + record.data.id + '?mergeStrategy=REPLACE',
-												method: 'PUT',
-												headers: {'Content-Type': 'application/json'},
-												params: Ext.encode(favorite),
-												success: function(r) {
-													ns.app.layout.id = record.data.id;
-													ns.app.xLayout.id = record.data.id;
+                                            Ext.Ajax.request({
+                                                url: ns.core.init.contextPath + '/api/sharing?type=eventChart&id=' + record.data.id,
+                                                method: 'GET',
+                                                failure: function(r) {
+                                                    ns.app.viewport.mask.hide();
+                                                    ns.alert(r);
+                                                },
+                                                success: function(r) {
+                                                    var sharing = Ext.decode(r.responseText);
 
-													ns.app.layout.name = true;
-													ns.app.xLayout.name = true;
+                                                    if (Ext.isString(sharing.publicAccess)) {
+                                                        layout.publicAccess = sharing.publicAccess;
+                                                    }
 
-													ns.app.stores.eventChart.loadStore();
+                                                    if (Ext.isBoolean(sharing.externalAccess)) {
+                                                        layout.externalAccess = sharing.externalAccess;
+                                                    }
 
-													ns.app.shareButton.enable();
-												}
-											});
+                                                    if (Ext.isArray(sharing.userGroupAccesses) && sharing.userGroupAccesses.length) {
+                                                        layout.userGroupAccesses = sharing.userGroupAccesses;
+                                                    }
+
+                                                    if (Ext.isArray(sharing.userAccesses) && sharing.userAccesses.length) {
+                                                        layout.userAccesses = sharing.userAccesses;
+                                                    }
+
+                                                    Ext.Ajax.request({
+                                                        url: ns.core.init.contextPath + '/api/eventCharts/' + record.data.id + '?mergeStrategy=REPLACE',
+                                                        method: 'PUT',
+                                                        headers: {'Content-Type': 'application/json'},
+                                                        params: Ext.encode(favorite),
+                                                        success: function(r) {
+                                                            ns.app.layout.id = record.data.id;
+                                                            ns.app.layout.name = true;
+
+                                                            if (ns.app.xLayout) {
+                                                                ns.app.xLayout.id = record.data.id;
+                                                                ns.app.xLayout.name = true;
+                                                            }
+
+                                                            ns.app.stores.eventChart.loadStore();
+                                                        }
+                                                    });
+                                                }
+                                            });
 										}
 									}
 									else {

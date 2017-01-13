@@ -3308,23 +3308,51 @@ Ext.onReady( function() {
 										favorite.name = record.data.name;
 
 										if (confirm(message)) {
-											Ext.Ajax.request({
-												url: ns.core.init.contextPath + '/api/eventReports/' + record.data.id + '?mergeStrategy=REPLACE',
-												method: 'PUT',
-												headers: {'Content-Type': 'application/json'},
-												params: Ext.encode(favorite),
-												success: function(r) {
-													ns.app.layout.id = record.data.id;
-													ns.app.layout.name = true;
+                                            Ext.Ajax.request({
+                                                url: ns.core.init.contextPath + '/api/sharing?type=eventReport&id=' + record.data.id,
+                                                method: 'GET',
+                                                failure: function(r) {
+                                                    ns.app.viewport.mask.hide();
+                                                    ns.alert(r);
+                                                },
+                                                success: function(r) {
+                                                    var sharing = Ext.decode(r.responseText);
 
-                                                    if (ns.app.xLayout) {
-                                                        ns.app.xLayout.id = record.data.id;
-                                                        ns.app.xLayout.name = true;
+                                                    if (Ext.isString(sharing.publicAccess)) {
+                                                        layout.publicAccess = sharing.publicAccess;
                                                     }
 
-													ns.app.stores.eventReport.loadStore();
-												}
-											});
+                                                    if (Ext.isBoolean(sharing.externalAccess)) {
+                                                        layout.externalAccess = sharing.externalAccess;
+                                                    }
+
+                                                    if (Ext.isArray(sharing.userGroupAccesses) && sharing.userGroupAccesses.length) {
+                                                        layout.userGroupAccesses = sharing.userGroupAccesses;
+                                                    }
+
+                                                    if (Ext.isArray(sharing.userAccesses) && sharing.userAccesses.length) {
+                                                        layout.userAccesses = sharing.userAccesses;
+                                                    }
+
+                                                    Ext.Ajax.request({
+                                                        url: ns.core.init.contextPath + '/api/eventReports/' + record.data.id + '?mergeStrategy=REPLACE',
+                                                        method: 'PUT',
+                                                        headers: {'Content-Type': 'application/json'},
+                                                        params: Ext.encode(favorite),
+                                                        success: function(r) {
+                                                            ns.app.layout.id = record.data.id;
+                                                            ns.app.layout.name = true;
+
+                                                            if (ns.app.xLayout) {
+                                                                ns.app.xLayout.id = record.data.id;
+                                                                ns.app.xLayout.name = true;
+                                                            }
+
+                                                            ns.app.stores.eventReport.loadStore();
+                                                        }
+                                                    });
+                                                }
+                                            });
 										}
 									}
 									else {
