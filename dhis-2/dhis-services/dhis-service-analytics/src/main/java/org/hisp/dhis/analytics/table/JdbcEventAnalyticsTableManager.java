@@ -152,9 +152,7 @@ public class JdbcEventAnalyticsTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
 
-        sqlCreate = removeLast( sqlCreate, 1 ) + ") ";
-
-        sqlCreate += statementBuilder.getTableOptions( false );
+        sqlCreate = removeLast( sqlCreate, 1 ) + ")";
 
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
         
