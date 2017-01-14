@@ -145,9 +145,7 @@ public class JdbcAnalyticsTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
 
-        sqlCreate += "daysxvalue " + dbl + ", daysno integer not null, value " + dbl + ", textvalue text) ";
-
-        sqlCreate += statementBuilder.getTableOptions( false );
+        sqlCreate += "daysxvalue " + dbl + ", daysno integer not null, value " + dbl + ", textvalue text)";
 
         log.info( String.format( "Creating table: %s, columns: %d", tableName, columns.size() ) );
 
