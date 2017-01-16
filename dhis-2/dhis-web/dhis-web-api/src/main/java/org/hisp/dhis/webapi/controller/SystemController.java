@@ -34,6 +34,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.metadata.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
@@ -56,7 +57,6 @@ import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -236,7 +236,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/info/minimal", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
-    public @ResponseBody SystemInfo getMinialSystemInfo( Model model, HttpServletRequest request )
+    public @ResponseBody SystemInfo getMinimalSystemInfo( Model model, HttpServletRequest request )
     {
         return systemService.getMinimalSystemInfo();
     }
