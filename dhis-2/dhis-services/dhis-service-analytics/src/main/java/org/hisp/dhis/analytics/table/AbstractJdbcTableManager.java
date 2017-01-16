@@ -156,7 +156,7 @@ public abstract class AbstractJdbcTableManager
 
         return tables;
     }
-        
+    
     @Override
     @Async
     public Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes )
