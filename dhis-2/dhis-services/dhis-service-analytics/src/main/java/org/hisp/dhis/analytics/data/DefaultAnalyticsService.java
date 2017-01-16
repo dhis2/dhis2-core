@@ -547,10 +547,6 @@ public class DefaultAnalyticsService
                 return;
             }
 
-            // -----------------------------------------------------------------
-            // Get completeness targets and complete data set registrations
-            // -----------------------------------------------------------------
-
             DataQueryParams targetParams = DataQueryParams.newBuilder( params )
                 .withSkipPartitioning( true )
                 .withTimely( false )
@@ -560,24 +556,21 @@ public class DefaultAnalyticsService
 
             Map<String, Double> targetMap = getAggregatedCompletenessTargetMap( targetParams );
 
-            Map<String, Double> aggregatedDataMap = getAggregatedCompletenessValueMap( params );
+            Map<String, Double> dataMap = metric != EXPECTED_REPORTS ? getAggregatedCompletenessValueMap( params ) : new HashMap<>();
 
             Integer periodIndex = params.getPeriodDimensionIndex();
             Integer dataSetIndex = DataQueryParams.DX_INDEX;
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
-            //FIXME If target value exists, but not actual reports exist we could still display target
-            //FIXME avoid duplicate requests for actual reports
-
-            for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
+            for ( Map.Entry<String, Double> entry : targetMap.entrySet() )
             {
                 List<String> dataRow = Lists.newArrayList( entry.getKey().split( DIMENSION_SEP ) );
 
-                Double target = targetMap.get( entry.getKey() );
-                Double actual = entry.getValue();
+                Double target = entry.getValue();
+                Double actual = dataMap.get( entry.getKey() );
                 
-                if ( target != null && actual != null )
+                if ( target != null && ( actual != null || metric == EXPECTED_REPORTS ) )
                 {
                     // ---------------------------------------------------------
                     // Multiply target value by number of periods in time span
@@ -593,15 +586,15 @@ public class DefaultAnalyticsService
 
                     Double value = 0d;
 
-                    if ( ACTUAL_REPORTS == metric || ACTUAL_REPORTS_ON_TIME == metric )
-                    {
-                        value = actual;
-                    }
-                    else if ( EXPECTED_REPORTS == metric )
+                    if ( EXPECTED_REPORTS == metric )
                     {
                         value = target;
                     }
-                    else if ( !MathUtils.isZero( target) ) // REPORTING_RATE
+                    else if ( ACTUAL_REPORTS == metric || ACTUAL_REPORTS_ON_TIME == metric )
+                    {
+                        value = actual;
+                    }
+                    else if ( !MathUtils.isZero( target) ) // REPORTING_RATE or REPORTING_RATE_ON_TIME
                     {
                         value = ( actual * PERCENT ) / target;
                     }
