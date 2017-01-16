@@ -371,14 +371,28 @@ public class HibernateDataValueStore
     }
 
     @Override
-    public int getDataValueCountLastUpdatedAfter( Date date )
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate )
     {
+        if ( startDate == null && endDate == null )
+        {
+            throw new IllegalArgumentException( "Start date or end date must be specified" );
+        }
+        
         Criteria criteria = sessionFactory.getCurrentSession()
             .createCriteria( DataValue.class )
-            .add( Restrictions.ge( "lastUpdated", date ) )
             .add( Restrictions.eq( "deleted", false ) )
             .setProjection( Projections.rowCount() );
 
+        if ( startDate != null )
+        {
+            criteria.add( Restrictions.ge( "lastUpdated", startDate ) );
+        }
+        
+        if ( endDate != null )
+        {
+            criteria.add( Restrictions.le( "lastUpdated", endDate ) );
+        }
+        
         Number rs = (Number) criteria.uniqueResult();
 
         return rs != null ? rs.intValue() : 0;

@@ -184,13 +184,15 @@ public interface DataValueStore
         Collection<Period> periods, OrganisationUnit source );
 
     /**
-     * Gets the number of DataValues which have been updated after the given 
-     * date time.
+     * Gets the number of DataValues which have been updated between the given 
+     * start and end date. The <pre>startDate</pre> and <pre>endDate</pre> parameters
+     * can both be null but one must be defined.
      * 
-     * @param date the date time.
+     * @param startDate the start date to compare against data value last updated.
+     * @param endDate the end date to compare against data value last updated.
      * @return the number of DataValues.
      */
-    int getDataValueCountLastUpdatedAfter( Date date );
+    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate );
 
     /**
      * Returns a map of values for each attribute option combo found.
