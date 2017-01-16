@@ -123,7 +123,7 @@ public class ObjectBundleValidationReport
         {
             return new ArrayList<>();
         }
-        
+
         return typeReportMap.get( klass ).getObjectReports();
     }
 
@@ -133,7 +133,7 @@ public class ObjectBundleValidationReport
         {
             return new ArrayList<>();
         }
-        
+
         return typeReportMap.get( klass ).getErrorReports().stream().collect( Collectors.toList() );
     }
 

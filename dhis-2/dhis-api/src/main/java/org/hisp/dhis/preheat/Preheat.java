@@ -52,24 +52,54 @@ import java.util.Set;
  */
 public class Preheat
 {
+    /**
+     * User to use for import job (important for threaded imports).
+     */
     private User user;
 
+    /**
+     * Internal map of all objects mapped by identifier => class type => uid.
+     */
     private Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>>> map = new HashMap<>();
 
+    /**
+     * Internal map of all default object (like category option combo, etc).
+     */
     private Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = new HashMap<>();
 
+    /**
+     * All usernames in the system mapped by username => userCredentials.
+     */
     private Map<String, UserCredentials> usernames = new HashMap<>();
 
+    /**
+     * Map of unique columns, mapped by class type => uid => value.
+     */
     private Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniquenessMap = new HashMap<>();
 
+    /**
+     * All periods available.
+     */
     private Map<String, Period> periodMap = new HashMap<>();
 
+    /**
+     * All periodTypes available.
+     */
     private Map<String, PeriodType> periodTypeMap = new HashMap<>();
 
+    /**
+     * Map of all required attributes, mapped by class type.
+     */
     private Map<Class<?>, Set<String>> mandatoryAttributes = new HashMap<>();
 
+    /**
+     * Map of all unique attributes, mapped by class type.
+     */
     private Map<Class<?>, Set<String>> uniqueAttributes = new HashMap<>();
 
+    /**
+     * Map of all unique attributes values, mapped by class type => attribute uid => object uid.
+     */
     private Map<Class<?>, Map<String, Map<String, String>>> uniqueAttributeValues = new HashMap<>();
 
     public Preheat()

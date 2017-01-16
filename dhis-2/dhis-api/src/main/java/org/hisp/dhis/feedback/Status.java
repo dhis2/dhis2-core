@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.common;
+package org.hisp.dhis.feedback;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
