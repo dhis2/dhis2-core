@@ -158,6 +158,7 @@ public class DefaultDataValueService
         }
 
         dataValue.setCreated( new Date() );
+        dataValue.setLastUpdated( new Date() );
 
         // ---------------------------------------------------------------------
         // Check and restore soft deleted value
@@ -190,6 +191,8 @@ public class DefaultDataValueService
         }
         else if ( dataValueIsValid( dataValue.getValue(), dataValue.getDataElement() ) == null )
         {
+            dataValue.setLastUpdated( new Date() );
+            
             DataValueAudit dataValueAudit = new DataValueAudit( dataValue, dataValue.getAuditValue(), dataValue.getStoredBy(), AuditType.UPDATE );
 
             dataValueAuditService.addDataValueAudit( dataValueAudit );
@@ -210,6 +213,7 @@ public class DefaultDataValueService
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
 
+        dataValue.setLastUpdated( new Date() );
         dataValue.setDeleted( true );
         
         dataValueStore.updateDataValue( dataValue );

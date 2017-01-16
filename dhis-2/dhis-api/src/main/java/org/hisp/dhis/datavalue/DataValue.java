@@ -100,6 +100,7 @@ public class DataValue
     public DataValue()
     {
         this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
     /**
@@ -117,6 +118,7 @@ public class DataValue
         this.categoryOptionCombo = categoryOptionCombo;
         this.attributeOptionCombo = attributeOptionCombo;
         this.created = new Date();
+        this.lastUpdated = new Date();
     }
 
     /**
