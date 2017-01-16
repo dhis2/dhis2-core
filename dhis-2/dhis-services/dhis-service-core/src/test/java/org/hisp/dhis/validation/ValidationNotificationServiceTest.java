@@ -34,13 +34,17 @@ import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.DefaultValidationNotificationService;
 import org.junit.Before;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+import org.junit.Test;
 
 import java.util.Set;
 
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anySetOf;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -61,20 +65,24 @@ public class ValidationNotificationServiceTest
     @Before
     public void setUpTest()
     {
-        messageService = Mockito.mock( MessageService.class );
+        service = new DefaultValidationNotificationService();
+        setUpMocks();
+    }
 
-        Mockito.when( messageService.sendMessage(
-            Mockito.anyString(),
-            Mockito.anyString(),
-            Mockito.anyString(),
-            Mockito.anySetOf( User.class ),
-            Mockito.any( User.class ),
-            Mockito.anyBoolean(),
-            Mockito.anyBoolean()
+    private void setUpMocks()
+    {
+        messageService = mock( MessageService.class );
+
+        when( messageService.sendMessage(
+            anyString(),
+            anyString(),
+            anyString(),
+            anySetOf( User.class ),
+            any( User.class ),
+            anyBoolean(),
+            anyBoolean()
         ) ).then( invocation -> new Message( invocation.getArguments() ) );
 
-        // Setup mocks
-        service = new DefaultValidationNotificationService();
         service.setNotificationMessageRenderer( renderer );
         service.setMessageService( messageService );
     }
@@ -83,6 +91,7 @@ public class ValidationNotificationServiceTest
     // Tests
     // -------------------------------------------------------------------------
 
+    @Test
     public void testValidationNotificationsAreGenerated()
     {
         // TODO
