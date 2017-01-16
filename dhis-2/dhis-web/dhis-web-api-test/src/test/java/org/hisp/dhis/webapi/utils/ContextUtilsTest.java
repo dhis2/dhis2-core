@@ -134,11 +134,11 @@ public class ContextUtilsTest
         systemSettingManager.saveSystemSetting( SettingKey.CACHE_ANALYTICS_DATA_YEAR_THRESHOLD, 3 );
 
         response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, withinThreshold.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false, withinThreshold.getLatestEndDate() );
         assertEquals( "no-cache", response.getHeader( "Cache-Control" ) );
 
         response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, outsideThreshold.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, null, CacheStrategy.CACHE_1_HOUR, null, false, outsideThreshold.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
 
     }
