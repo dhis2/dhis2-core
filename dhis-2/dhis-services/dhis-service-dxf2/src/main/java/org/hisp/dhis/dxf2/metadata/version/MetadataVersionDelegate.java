@@ -60,7 +60,7 @@ public class MetadataVersionDelegate
     private static final Log log = LogFactory.getLog( MetadataVersionDelegate.class );
 
     @Autowired
-    DefaultMetadataSystemSettingService metadataSystemSettingService;
+    private DefaultMetadataSystemSettingService metadataSystemSettingService;
 
     @Autowired
     private SynchronizationManager synchronizationManager;
