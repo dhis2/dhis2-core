@@ -90,7 +90,7 @@ public class MetadataSyncController
             {
                 metadataSyncSummary = metadataSyncService.doMetadataSync( syncParams );
 
-                if ( metadataSyncSummary.getImportReport() == null )
+                if ( metadataSyncSummary.getImportReport() == null && metadataSyncSummary.getMetadataVersion() != null )
                 {
                     throw new MetadataSyncServiceException( metadataSyncSummary.getMetadataVersion().getName() + " already exists in system and hence not starting the sync." );
                 }

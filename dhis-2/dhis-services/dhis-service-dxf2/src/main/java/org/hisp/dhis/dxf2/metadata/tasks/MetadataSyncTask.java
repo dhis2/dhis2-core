@@ -129,7 +129,7 @@ public class MetadataSyncTask
             {
                 MetadataSyncSummary metadataSyncSummary = handleMetadataSync( context, dataVersion );
 
-                if ( metadataSyncSummary.getImportReport() == null )
+                if ( metadataSyncSummary.getImportReport() == null && metadataSyncSummary.getMetadataVersion() != null )
                 {
                     log.error( metadataSyncSummary.getMetadataVersion().getName() + " already exists in system and hence stopping the sync." );
                 }
