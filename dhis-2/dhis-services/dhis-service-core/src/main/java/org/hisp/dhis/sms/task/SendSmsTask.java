@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.task;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import javax.annotation.Resource;
 
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.sms.MessageResponseStatus;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
@@ -65,7 +65,7 @@ public class SendSmsTask
 
     private String message;
 
-    private MessageResponseStatus status;
+    private OutboundMessageResponse status;
 
     private TaskId taskId;
 
@@ -93,12 +93,12 @@ public class SendSmsTask
         }
     }
 
-    public MessageResponseStatus getStatus()
+    public OutboundMessageResponse getStatus()
     {
         return status;
     }
 
-    public void setStatus( MessageResponseStatus status )
+    public void setStatus( OutboundMessageResponse status )
     {
         this.status = status;
     }

@@ -50,7 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
- * @version $Id$
  */
 public class DataApprovalStoreTest
     extends DhisSpringTest

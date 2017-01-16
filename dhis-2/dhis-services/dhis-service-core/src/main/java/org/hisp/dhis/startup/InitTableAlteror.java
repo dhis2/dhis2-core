@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,6 +106,10 @@ public class InitTableAlteror
         executeSql( "UPDATE programstageinstance SET deleted = false WHERE deleted IS NULL" );
         executeSql( "alter table programstageinstance alter column deleted set not null" );
         executeSql( "create index in_programstageinstance_deleted on programstageinstace(deleted)" );
+
+        // Remove DataSet start and end date - replaced by DataInputPeriods
+        executeSql( "ALTER TABLE dataset drop column startdate" );
+        executeSql( "ALTER TABLE dataset drop column enddate" );
 
         updateLegendSetAssociationAndDeleteOldAssociation();
     }

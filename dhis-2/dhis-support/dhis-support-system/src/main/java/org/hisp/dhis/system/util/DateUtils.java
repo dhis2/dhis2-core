@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -627,7 +627,7 @@ public class DateUtils
 
         return Date.from( instant );
     }
-
+    
     /**
      * Return the current date minus the duration specified by the given string.
      *

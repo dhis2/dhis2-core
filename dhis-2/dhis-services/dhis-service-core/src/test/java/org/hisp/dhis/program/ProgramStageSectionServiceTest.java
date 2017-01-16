@@ -96,8 +96,8 @@ public class ProgramStageSectionServiceTest
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
 
-        ProgramStageDataElement stageDeA = createProgramStageDataElement( stageA, dataElementA, false, 1 );
-        ProgramStageDataElement stageDeB = createProgramStageDataElement( stageA, dataElementB, false, 2 );
+        ProgramStageDataElement stageDeA = createProgramStageDataElement( stageA, dataElementA, 1 );
+        ProgramStageDataElement stageDeB = createProgramStageDataElement( stageA, dataElementB, 2 );
 
         programStageDataElementService.addProgramStageDataElement( stageDeA );
         programStageDataElementService.addProgramStageDataElement( stageDeB );

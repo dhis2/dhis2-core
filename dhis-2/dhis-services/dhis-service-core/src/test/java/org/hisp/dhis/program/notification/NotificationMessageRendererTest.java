@@ -30,7 +30,6 @@ package org.hisp.dhis.program.notification;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -102,8 +101,6 @@ public class NotificationMessageRendererTest
 
     private TrackedEntityAttribute teiAttrX, teiAttrY, teiAttrZ;
 
-    private ProgramNotificationTemplate programNotificationTemplateA;
-
     @Override
     protected void setUpTest() throws Exception
     {
@@ -165,21 +162,6 @@ public class NotificationMessageRendererTest
         );
 
         teiService.updateTrackedEntityInstance( teiA );
-
-        /**
-         * ProgramStageNotification
-         */
-
-        programNotificationTemplateA =
-            new ProgramNotificationTemplate(
-                "Some name",
-                "Subject template",
-                "Message template",
-                NotificationTrigger.SCHEDULED_DAYS_DUE_DATE,
-                ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
-                Collections.singleton( DeliveryChannel.EMAIL ),
-                -2,
-                null );
     }
 
     @Test

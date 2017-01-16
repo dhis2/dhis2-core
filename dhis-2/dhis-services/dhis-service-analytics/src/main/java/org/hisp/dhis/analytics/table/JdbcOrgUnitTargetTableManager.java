@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,12 @@ public class JdbcOrgUnitTargetTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.ORG_UNIT_TARGET;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
@@ -72,12 +78,6 @@ public class JdbcOrgUnitTargetTableManager
     }    
     
     @Override
-    public String getTableName()
-    {
-        return ORGUNIT_TARGET_TABLE_NAME;
-    }
-
-    @Override
     public void createTable( AnalyticsTable table )
     {
         final String tableName = table.getTempTableName();
@@ -97,10 +97,8 @@ public class JdbcOrgUnitTargetTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
         
-        sqlCreate += "value double precision) ";
+        sqlCreate += "value double precision)";
         
-        sqlCreate += statementBuilder.getTableOptions( false );
-
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
         
         log.debug( "Create SQL: " + sqlCreate );

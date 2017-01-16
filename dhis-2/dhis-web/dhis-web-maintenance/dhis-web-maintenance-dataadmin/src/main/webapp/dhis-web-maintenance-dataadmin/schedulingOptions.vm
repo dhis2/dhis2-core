@@ -1,0 +1,42 @@
+<div class="dateTimePicker">
+  <span id="addSchedulerLabel" class="schedulerHeader"></span>
+  <table class="weekPickerContainer">
+    <tr>
+      <td class="schedulerLabel">$i18n.getString( "Every" )</td>
+      <td id="weekPeriod">
+        <select id="weekPeriodNumber" name="value" class="customScheduling inline" >
+          <option value="1-7" selected="selected">1st</option>
+          <option value="8-14">2nd</option>
+          <option value="15-21">3rd</option>
+          <option value="22-28">4th</option>
+        </select>
+      </td>
+      <td>
+        <select id="weekPicker" name="weekPicker" class="customScheduling inline">
+          <option value="0" selected="selected">$i18n.getString( "weekday.sunday" )</option>
+          <option value="1">$i18n.getString( "weekday.monday" )</option>
+          <option value="2">$i18n.getString( "weekday.tuesday" )</option>
+          <option value="3">$i18n.getString( "weekday.wednesday" )</option>
+          <option value="4">$i18n.getString( "weekday.thursday" )</option>
+          <option value="5">$i18n.getString( "weekday.friday" )</option>
+          <option value="6">$i18n.getString( "weekday.saturday" )</option>
+        </select>
+      </td>
+    </tr>
+  </table>
+  <table class="yearPickerContainer">
+    <tr>
+      <td class="schedulerLabel">$i18n.getString( "Every" )</td>
+      <td><select name="monthPicker" id="monthPicker" class="customScheduling inline monthPicker"></select></td>
+      <td><select name="dayPicker" id="dayPicker" class="customScheduling inline dayPicker"></select></td>
+    </tr>
+  </table>
+  <table class="timePickerContainer">
+    <tr>
+      <td class="schedulerLabel">$i18n.getString( "At" )</td>
+      <td>
+        <select id="timePicker" name="timePicker" class="customScheduling inline timePicker"></select>
+      </td>
+    </tr>
+  </table>
+</div>

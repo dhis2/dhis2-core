@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.TaskId;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -1536,24 +1535,22 @@ public abstract class AbstractEventService
 
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
     {
-        return organisationUnitCache.get( id,
-            new IdentifiableObjectCallable<>( manager, OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
+        return organisationUnitCache.get( id, () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
 
     private Program getProgram( IdScheme idScheme, String id )
     {
-        return programCache.get( id, new IdentifiableObjectCallable<>( manager, Program.class, idScheme, id ) );
+        return programCache.get( id, () -> manager.getObject( Program.class, idScheme, id ) );
     }
 
     private ProgramStage getProgramStage( IdScheme idScheme, String id )
     {
-        return programStageCache.get( id,
-            new IdentifiableObjectCallable<>( manager, ProgramStage.class, idScheme, id ) );
+        return programStageCache.get( id, () -> manager.getObject( ProgramStage.class, idScheme, id ) );
     }
 
     private DataElement getDataElement( IdScheme idScheme, String id )
     {
-        return dataElementCache.get( id, new IdentifiableObjectCallable<>( manager, DataElement.class, idScheme, id ) );
+        return dataElementCache.get( id, () -> manager.getObject( DataElement.class, idScheme, id ) );
     }
 
     @Override

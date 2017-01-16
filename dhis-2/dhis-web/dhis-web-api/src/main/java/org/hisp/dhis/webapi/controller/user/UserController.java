@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,14 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -215,21 +217,6 @@ public class UserController
         renderService.toJson( response.getOutputStream(), createUser( user, currentUser ) );
     }
 
-    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
-    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !validateInviteUser( user, currentUser ) )
-        {
-            return;
-        }
-
-        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
-    }
-
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
     public void postJsonInvite( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
@@ -243,6 +230,43 @@ public class UserController
         }
 
         renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
+    }
+
+    @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void postJsonInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        Users users = renderService.fromJson( request.getInputStream(), Users.class );
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        for ( User user : users.getUsers() )
+        {
+            if ( !validateInviteUser( user, currentUser ) )
+            {
+                return;
+            }
+        }
+
+        for ( User user : users.getUsers() )
+        {
+            inviteUser( user, currentUser, request );
+        }
+    }
+
+    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( !validateInviteUser( user, currentUser ) )
+        {
+            return;
+        }
+
+        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
@@ -295,28 +319,6 @@ public class UserController
         RestoreOptions restoreOptions = isInviteUsername ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
         securityService.sendRestoreMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions );
-    }
-
-    @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postJsonInvites( HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        Users users = renderService.fromJson( request.getInputStream(), Users.class );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        for ( User user : users.getUsers() )
-        {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
-        }
-
-        for ( User user : users.getUsers() )
-        {
-            inviteUser( user, currentUser, request );
-        }
     }
 
     @SuppressWarnings( "unchecked" )
@@ -504,8 +506,7 @@ public class UserController
     /**
      * Validates whether the given user can be created.
      *
-     * @param user     the user.
-     * @param response the response.
+     * @param user the user.
      */
     private boolean validateCreateUser( User user, User currentUser ) throws WebMessageException
     {
@@ -545,9 +546,10 @@ public class UserController
         user.getUserCredentials().getCatDimensionConstraints().addAll(
             currentUser.getUserCredentials().getCatDimensionConstraints() );
 
-        MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setImportStrategy( ImportStrategy.CREATE );
-        importParams.addObject( user );
+        MetadataImportParams importParams = new MetadataImportParams()
+            .setImportReportMode( ImportReportMode.FULL )
+            .setImportStrategy( ImportStrategy.CREATE )
+            .addObject( user );
 
         ImportReport importReport = importService.importMetadata( importParams );
 
@@ -595,7 +597,7 @@ public class UserController
      *
      * @param user user object parsed from the POST request.
      */
-    private ImportReport inviteUser( User user, User currentUser, HttpServletRequest request ) throws Exception
+    private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request ) throws Exception
     {
         RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty() ?
             RestoreOptions.INVITE_WITH_USERNAME_CHOICE : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
@@ -603,12 +605,28 @@ public class UserController
         securityService.prepareUserForInvite( user );
 
         ImportReport importReport = createUser( user, currentUser );
+        ObjectReport objectReport = getObjectReport( importReport );
 
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
             securityService.sendRestoreMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ), restoreOptions );
         }
 
-        return importReport;
+        return objectReport;
+    }
+
+    private ObjectReport getObjectReport( ImportReport importReport )
+    {
+        if ( !importReport.getTypeReports().isEmpty() )
+        {
+            TypeReport typeReport = importReport.getTypeReports().get( 0 );
+
+            if ( !typeReport.getObjectReports().isEmpty() )
+            {
+                return typeReport.getObjectReports().get( 0 );
+            }
+        }
+
+        return null;
     }
 }

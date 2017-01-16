@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,14 +130,6 @@ public interface DataApprovalService
      * @return
      */
     DataApproval getDataApproval( DataApproval approval );
-
-    /**
-     * Finds the lowest level (if any) at which data would be approved.
-     *
-     * @param approval approval param
-     * @return
-     */
-    DataApproval lowestApproval( DataApproval approval );
 
     /**
      * Tells whether data is approved (and therefore locked by approval.)

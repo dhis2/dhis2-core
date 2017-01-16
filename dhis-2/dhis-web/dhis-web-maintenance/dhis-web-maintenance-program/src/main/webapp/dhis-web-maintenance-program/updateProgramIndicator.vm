@@ -63,6 +63,18 @@ jQuery( document ).ready( function()
 			</select>
 		</td>
 	</tr>
+        <tr #if($program.programType == 'WITHOUT_REGISTRATION')style="display:none"#end>
+              <td><label for="programIndicatorAnalyticsType">$i18n.getString( "analytics_type" )</label></td>
+              <td>
+                  <select id="programIndicatorAnalyticsType" name="programIndicatorAnalyticsType" onchange="programIndicatorAnalyticsTypeChanged()">
+                      <option value="EVENT"#if( $programIndicator.programIndicatorAnalyticsType == "EVENT" ||
+                            $program.programType == 'WITHOUT_REGISTRATION' ) selected="selected"#end>$i18n.getString( "analytics_type_event" )</option>
+                      <option value="ENROLLMENT"#if( $programIndicator.programIndicatorAnalyticsType == "ENROLLMENT" &&
+                            $program.programType != 'WITHOUT_REGISTRATION' ) selected="selected"#end>$i18n.getString( "analytics_type_enrollment" )</option>
+                  </select>
+              </td>
+              <td></td>
+          </tr>
 	<tr>
         <td><label for="aggregationType">$i18n.getString( "aggregation_type" )</label></td>
         <td>

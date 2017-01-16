@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -60,7 +61,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -87,7 +88,7 @@ import java.util.List;
  */
 @Controller
 @RequestMapping( value = DataValueController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueController
 {
     public static final String RESOURCE_PATH = "/dataValues";
@@ -186,7 +187,7 @@ public class DataValueController
         }
 
         OptionSet optionSet = dataElement.getOptionSet();
-        
+
         if ( optionSet != null && !optionSet.getOptionCodesAsSet().contains( value ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
@@ -224,7 +225,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
 
         // ---------------------------------------------------------------------
         // Assemble and save data value
@@ -365,7 +366,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
 
         // ---------------------------------------------------------------------
         // Delete data value
@@ -703,10 +704,10 @@ public class DataValueController
         }
     }
 
-    private void validatePeriodWithinDataSetOpenPeriods( DataElement dataElement, Period period )
+    private void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, Period period )
         throws WebMessageException
     {
-        if ( !dataElement.isPeriodInDataSetOpenPeriods( period ) )
+        if ( !dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Period reported is not open in data set" ) );
         }

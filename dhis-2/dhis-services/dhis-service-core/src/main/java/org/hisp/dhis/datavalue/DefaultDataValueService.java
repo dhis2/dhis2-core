@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -342,7 +342,10 @@ public class DefaultDataValueService
             {
                 Integer periodId = ddv.getPeriodId();
                 Integer aoc = ddv.getAttributeOptionComboId();
-                
+
+                // TODO: Since dataElement and orgUnit are fixed, and the MapMap is by period and aoc,
+                // this just sums across disaggs. This could be done in instead within
+                // sumRecursiveDeflatedDataValues by removing categoryoptioncomboid from group by
                 if ( !( period2aoc.containsValue( periodId, aoc ) ) )
                 {
                     DataValue dv = accumulatedValues.getValue( periodId, aoc );

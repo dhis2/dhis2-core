@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,8 @@ public class Event
     private List<Note> notes = new ArrayList<>();
 
     private Boolean followup;
+
+    private boolean deleted;
 
     private String created;
 
@@ -347,6 +349,18 @@ public class Event
         this.completedDate = completedDate;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDeleted()
+    {
+        return deleted;
+    }
+
+    public void setDeleted( boolean deleted )
+    {
+        this.deleted = deleted;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -384,6 +398,7 @@ public class Event
             ", attributeCategoryOptions=" + attributeCategoryOptions +
             ", completedBy=" + completedBy +
             ", completedDate=" + completedDate +
+            ", deleted=" + deleted +
             '}';
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,11 +63,12 @@ public interface DimensionalItemObject
     List<LegendSet> getLegendSets();
 
     /**
-     * Gets the first legendSet in the legendSet list.
-     * Only exists to avoid breaking existing applications,
-     * should be removed when 2.25 is no longer supported.
+     * Gets the first legend set in the legend set list. This
+     * field is derived from <pre>getLegendSets()</pre> and
+     * is not persisted.
+     * 
+     * Will be removed from serialization in 2.28.
      */
-    @Deprecated
     LegendSet getLegendSet();
 
     /**

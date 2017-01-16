@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -152,7 +152,7 @@ public class MapView
     private String labelFontColor;
 
     private boolean eventClustering;
-    
+
     private String eventCoordinateField;
 
     private String eventPointColor;
@@ -259,7 +259,9 @@ public class MapView
     @Override
     public String getName()
     {
-        if ( !dataDimensionItems.isEmpty() && dataDimensionItems.get( 0 ).getDimensionalItemObject() != null )
+        if ( !dataDimensionItems.isEmpty() &&
+            dataDimensionItems.get( 0 ) != null &&
+            dataDimensionItems.get( 0 ).getDimensionalItemObject() != null )
         {
             return dataDimensionItems.get( 0 ).getDimensionalItemObject().getName();
         }

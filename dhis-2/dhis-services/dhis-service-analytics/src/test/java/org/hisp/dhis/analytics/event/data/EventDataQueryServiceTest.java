@@ -55,7 +55,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -109,9 +108,6 @@ public class EventDataQueryServiceTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
-
-    @Autowired
     private DataElementService dataElementService;
 
     @Autowired
@@ -154,12 +150,11 @@ public class EventDataQueryServiceTest
         programService.addProgram( prA );
 
         psA = createProgramStage( 'A', 0 );
+        psA.addDataElement( deA, 0 );
+        psA.addDataElement( deB, 1 );
         prA.getProgramStages().add( psA );
 
         programStageService.saveProgramStage( psA );
-
-        programStageDataElementService.addProgramStageDataElement( createProgramStageDataElement( psA, deA, false, 1 ) );
-        programStageDataElementService.addProgramStageDataElement( createProgramStageDataElement( psA, deB, false, 2 ) );
 
         legendA = createLegend( 'A', 0d, 10d );
         legendB = createLegend( 'B', 10d, 20d );
@@ -186,8 +181,8 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401;201402" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, 
-            false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
+            null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
+            false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -206,8 +201,8 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, 
-            false, false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
+            null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, false, 
+            false, false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -345,8 +340,8 @@ public class EventDataQueryServiceTest
         filterParams.add( atA.getUid() + ":LE:5" );
 
         EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, 
-            false, false, false, false, null, null, null, null, null, false, false, null, null, null, null );
+            null, null, dimensionParams, filterParams, null, null, false, false, false, false, 
+            false, false, null, null, null, null, null, false, false, null, null, null, null );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getItems().size() );

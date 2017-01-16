@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,7 @@ import java.util.function.Function;
 
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -92,8 +93,6 @@ public class DefaultQueryPlanner
     // -------------------------------------------------------------------------
     // DefaultQueryPlanner implementation
     // -------------------------------------------------------------------------
-
-    //TODO shortcut group by methods when only 1 option?
 
     @Override
     public void validate( DataQueryParams params )
@@ -149,17 +148,22 @@ public class DefaultQueryPlanner
         {
             violation = "Dimensions cannot be specified more than once: " + params.getDuplicateDimensions();
         }
-
-        if ( !params.getAllReportingRates().isEmpty() && !params.getDataElementGroupSets().isEmpty() )
+        
+        if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
         {
-            violation = "Reporting rates and data element group sets cannot be specified simultaneously";
+            violation = "Reporting rates can only be specified together with dimensions of type: " + COMPLETENESS_DIMENSION_TYPES;
         }
 
         if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && params.getAllDataElements().isEmpty() )
         {
-            violation = "Category option combos cannot be specified when data elements are not specified";
+            violation = "Assigned categories cannot be specified when data elements are not specified";
         }
 
+        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
+        {
+            violation = "Assigned categories can only be specified together with data elements, not indicators or reporting rates";
+        }
+        
         if ( !nonAggDataElements.isEmpty() )
         {
             violation = "Data elements must be of a value and aggregation type that allow aggregation: " + getUids( nonAggDataElements );
@@ -249,15 +253,15 @@ public class DefaultQueryPlanner
 
         final List<DataQueryParams> queries = new ArrayList<>( groupByPartition( params, plannerParams ) );
         
-        List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>().
-            add( q -> groupByOrgUnitLevel( q ) ).
-            add( q -> groupByPeriodType( q ) ).
-            add( q -> groupByDataType( q ) ).
-            add( q -> groupByAggregationType( q ) ).
-            add( q -> groupByDaysInPeriod( q ) ).
-            add( q -> groupByDataPeriodType( q ) ).
-            addAll( plannerParams.getQueryGroupers() ).
-            build();
+        List<Function<DataQueryParams, List<DataQueryParams>>> groupers = new ImmutableList.Builder<Function<DataQueryParams, List<DataQueryParams>>>()
+            .add( q -> groupByOrgUnitLevel( q ) )
+            .add( q -> groupByPeriodType( q ) )
+            .add( q -> groupByDataType( q ) )
+            .add( q -> groupByAggregationType( q ) )
+            .add( q -> groupByDaysInPeriod( q ) )
+            .add( q -> groupByDataPeriodType( q ) )
+            .addAll( plannerParams.getQueryGroupers() )
+            .build();
         
         for ( Function<DataQueryParams, List<DataQueryParams>> grouper : groupers )
         {
@@ -347,7 +351,7 @@ public class DefaultQueryPlanner
     @Override
     public List<DataQueryParams> groupByPartition( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        Set<String> validPartitions = partitionManager.getAnalyticsPartitions();
+        Set<String> validPartitions = partitionManager.getDataValueAnalyticsPartitions();
         
         String tableName = plannerParams.getTableName();
         String tableSuffix = plannerParams.getTableSuffix();

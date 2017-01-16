@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -474,7 +474,7 @@ public class DefaultSecurityService
     public boolean canCreatePublic( IdentifiableObject identifiableObject )
     {
         return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canCreatePublic( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+            || aclService.canMakePublic( currentUserService.getCurrentUser(), identifiableObject.getClass() );
     }
 
     @Override
@@ -483,14 +483,14 @@ public class DefaultSecurityService
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
         return !aclService.isShareable( klass )
-            || aclService.canCreatePublic( currentUserService.getCurrentUser(), klass );
+            || aclService.canMakePublic( currentUserService.getCurrentUser(), klass );
     }
 
     @Override
     public boolean canCreatePrivate( IdentifiableObject identifiableObject )
     {
         return !aclService.isShareable( identifiableObject.getClass() )
-            || aclService.canCreatePrivate( currentUserService.getCurrentUser(), identifiableObject.getClass() );
+            || aclService.canMakePrivate( currentUserService.getCurrentUser(), identifiableObject.getClass() );
     }
 
     @Override
@@ -507,7 +507,7 @@ public class DefaultSecurityService
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
 
         return !aclService.isShareable( klass )
-            || aclService.canCreatePrivate( currentUserService.getCurrentUser(), klass );
+            || aclService.canMakePrivate( currentUserService.getCurrentUser(), klass );
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,9 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,7 +59,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.google.common.collect.Sets;
 
 /**
- * This class is responsible for retrieving raw data from the
+ * Class responsible for retrieving raw data from the
  * analytics tables.
  *
  * @author Lars Helge Overland
@@ -124,9 +126,11 @@ public class JdbcRawAnalyticsManager
     
     private String getStatement( DataQueryParams params, String partition )
     {
-        List<String> dimensionColumns = params.getDimensions()
+        List<String> dimensionColumns = params.getDimensions()            
             .stream().map( d -> statementBuilder.columnQuote( d.getDimensionName() ) )
             .collect( Collectors.toList() );
+        
+        setOrgUnitSelect( params, dimensionColumns );
         
         SqlHelper sqlHelper = new SqlHelper();
         
@@ -170,5 +174,24 @@ public class JdbcRawAnalyticsManager
         }
         
         return sql;
+    }
+    
+    /**
+     * Generates and sets the select statement for the organisation unit dimension
+     * taking the output identifier scheme into account.
+     * 
+     * @param params the data query.
+     * @param dimensionColumns the dimension columns.
+     */
+    private void setOrgUnitSelect( DataQueryParams params, List<String> dimensionColumns )
+    {
+        if ( params.hasNonUidOutputIdScheme() )
+        {
+            String ouCol = statementBuilder.columnQuote( ORGUNIT_DIM_ID );
+            String idScheme = params.getOutputIdScheme().getIdentifiableString().toLowerCase();
+            String ouSelect = "ou." + idScheme + " as " + ouCol;
+        
+            Collections.replaceAll( dimensionColumns, ouCol, ouSelect );
+        }
     }
 }

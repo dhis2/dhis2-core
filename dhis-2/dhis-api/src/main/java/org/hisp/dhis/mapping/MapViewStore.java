@@ -1,9 +1,7 @@
 package org.hisp.dhis.mapping;
 
-import java.util.List;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import java.util.List;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;

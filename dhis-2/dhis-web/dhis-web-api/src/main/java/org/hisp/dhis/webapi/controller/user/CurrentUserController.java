@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.controller.exception.FilterTooShortException;
 import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FormUtils;
@@ -100,7 +101,7 @@ import java.util.Set;
  */
 @Controller
 @RequestMapping( value = { CurrentUserController.RESOURCE_PATH, "/me" }, method = RequestMethod.GET )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.V23 } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.V23 } )
 public class CurrentUserController
 {
     public static final String RESOURCE_PATH = "/currentUser";
@@ -681,10 +682,11 @@ public class CurrentUserController
                 formDataSet.setId( uid );
                 formDataSet.setLabel( dataSet.getDisplayName() );
 
-                dataSet.getCategoryCombo().getCategories().forEach( cat -> {
+                dataSet.getCategoryCombo().getCategories().forEach( cat ->
+                {
                     cat.setAccess( aclService.getAccess( cat, currentUser ) );
                     cat.getCategoryOptions().forEach( catOpts -> catOpts.setAccess( aclService.getAccess( catOpts, currentUser ) ) );
-                });
+                } );
 
                 forms.getForms().put( uid, FormUtils.fromDataSet( dataSet, false, userOrganisationUnits ) );
                 formOrganisationUnit.getDataSets().add( formDataSet );

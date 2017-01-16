@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -279,6 +279,42 @@ public class Program
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet()
     {
         return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() ).collect( Collectors.toList() );
+    }
+    
+    /**
+     * Indicates whether this program contains the given data element.
+     */
+    public boolean containsDataElement( DataElement dataElement )
+    {
+        for ( ProgramStage stage : programStages )
+        {
+            for ( ProgramStageDataElement element : stage.getProgramStageDataElements() )
+            {
+                if ( dataElement.equals( element.getDataElement() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Indicates whether this program contains the given tracked entity
+     * attribute.
+     */
+    public boolean containsAttribute( TrackedEntityAttribute attribute )
+    {
+        for ( ProgramTrackedEntityAttribute programAttribute : programAttributes )
+        {
+            if ( attribute.equals( programAttribute.getAttribute() ) )
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     public ProgramStage getProgramStageByStage( int stage )

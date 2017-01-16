@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -40,7 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping( value = ProgramNotificationTemplateSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ProgramNotificationTemplateController
     extends AbstractCrudController<ProgramNotificationTemplate>
 {

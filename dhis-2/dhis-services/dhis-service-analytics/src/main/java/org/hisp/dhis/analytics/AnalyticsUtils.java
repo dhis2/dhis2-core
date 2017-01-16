@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.*;
@@ -46,6 +47,8 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
@@ -67,6 +70,13 @@ public class AnalyticsUtils
 
     private static final String KEY_AGG_VALUE = "[aggregated]";
     
+    /**
+     * Returns an SQL statement for retrieving raw data values for
+     * an aggregate query.
+     * 
+     * @param params the data query parameters.
+     * @return an SQL statement.
+     */
     public static String getDebugDataSql( DataQueryParams params )
     {
         List<DimensionalItemObject> dataElements = new ArrayList<>( NameableObjectUtils.getCopyNullSafe( params.getDataElements() ) );
@@ -505,6 +515,63 @@ public class AnalyticsUtils
     }
 
     /**
+     * Returns a mapping between identifiers and meta data items for the given query.
+     *
+     * @param params the data query parameters.
+     * @return a mapping between identifiers and meta data items.
+     */
+    public static Map<String, MetadataItem> getDimensionMetadataItemMap( DataQueryParams params )
+    {
+        List<DimensionalObject> dimensions = params.getDimensionsAndFilters();
+
+        Map<String, MetadataItem> map = new HashMap<>();
+
+        Calendar calendar = PeriodType.getCalendar();
+
+        for ( DimensionalObject dimension : dimensions )
+        {
+            for ( DimensionalItemObject item : dimension.getItems() )
+            {
+                if ( DimensionType.PERIOD == dimension.getDimensionType() && !calendar.isIso8601() )
+                {
+                    Period period = (Period) item;
+                    DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
+                    map.put( period.getPeriodType().getIsoDate( dateTimeUnit ), new MetadataItem( period.getDisplayName() ) );
+                }
+                else
+                {
+                    String legendSet = item.hasLegendSet() ? item.getLegendSet().getUid() : null;
+                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), legendSet ) );
+                }
+
+                if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
+                {
+                    OrganisationUnit unit = (OrganisationUnit) item;
+                    
+                    for ( OrganisationUnit ancestor : unit.getAncestors() )
+                    {
+                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ) ) );
+                    }
+                }
+                
+                if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() )
+                {
+                    DataElement dataElement = (DataElement) item;
+                    
+                    for ( DataElementCategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
+                    {
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ) ) );
+                    }
+                }
+            }
+
+            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ) ) );
+        }
+
+        return map;
+    }
+
+    /**
      * Returns a mapping between the category option combo identifiers and names
      * for the given query.
      *
@@ -517,7 +584,7 @@ public class AnalyticsUtils
 
         List<DimensionalItemObject> des = params.getAllDataElements();
 
-        if ( des != null && !des.isEmpty() )
+        if ( !des.isEmpty() )
         {
             for ( DimensionalItemObject de : des )
             {
@@ -532,7 +599,104 @@ public class AnalyticsUtils
 
         return metaData;
     }
+    
+    /**
+     * Returns a mapping of identifiers and names for the given event query.
+     * 
+     * @param params the event query.
+     * @return a mapping of identifiers and names for the given event query.
+     */
+    public static Map<String, String> getUidNameMap( EventQueryParams params )
+    {
+        Map<String, String> map = new HashMap<>();
 
+        Program program = params.getProgram();
+        ProgramStage stage = params.getProgramStage();
+
+        map.put( program.getUid(), program.getDisplayProperty( params.getDisplayProperty() ) );
+
+        if ( stage != null )
+        {
+            map.put( stage.getUid(), stage.getName() );
+        }
+        else
+        {
+            for ( ProgramStage st : program.getProgramStages() )
+            {
+                map.put( st.getUid(), st.getName() );
+            }
+        }
+
+        if ( params.hasValueDimension() )
+        {
+            map.put( params.getValue().getUid(), params.getValue().getDisplayProperty( params.getDisplayProperty() ) );
+        }
+        
+        map.putAll( getUidDisplayPropertyMap( params.getItems(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getItemFilters(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getDimensions(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
+        map.putAll( getUidDisplayPropertyMap( params.getFilters(), params.isHierarchyMeta(), params.getDisplayProperty() ) );
+        map.putAll( IdentifiableObjectUtils.getUidNameMap( params.getLegends() ) );
+        
+        return map;
+    }
+    /**
+     * Returns a mapping between identifiers and display properties for the given 
+     * list of query items.
+     * 
+     * @param queryItems the list of query items.
+     * @param displayProperty the display property to use.
+     * @return a mapping between identifiers and display properties.
+     */
+    public static Map<String, String> getUidDisplayPropertyMap( List<QueryItem> queryItems, DisplayProperty displayProperty )
+    {
+        Map<String, String> map = new HashMap<>();
+        
+        for ( QueryItem item : queryItems )
+        {
+            map.put( item.getItem().getUid(), item.getItem().getDisplayProperty( displayProperty ) );
+        }
+        
+        return map;
+    }
+
+    /**
+     * Returns a mapping between identifiers and display properties for the given 
+     * list of dimensions.
+     * 
+     * @param dimensions the dimensions.
+     * @param hierarchyMeta indicates whether to include meta data about the
+     *        organisation unit hierarchy.
+     * @return a mapping between identifiers and display properties.
+     */
+    public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
+    {
+        Map<String, String> map = new HashMap<>();
+
+        for ( DimensionalObject dimension : dimensions )
+        {
+            boolean hierarchy = hierarchyMeta && DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() );
+
+            for ( DimensionalItemObject object : dimension.getItems() )
+            {
+                Set<DimensionalItemObject> objects = Sets.newHashSet( object );
+                                
+                if ( hierarchy )
+                {
+                    OrganisationUnit unit = (OrganisationUnit) object;
+                    
+                    objects.addAll( unit.getAncestors() );
+                }
+                
+                map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( objects, displayProperty ) );
+            }
+            
+            map.put( dimension.getDimension(), dimension.getDisplayProperty( displayProperty ) );
+        }
+
+        return map;
+    }
+    
     /**
      * returns true if the given period occurs less than maxYears before the current date.
      * @param period periods to check

@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.notification;
  */
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
@@ -56,6 +57,9 @@ public class ProgramStageNotificationMessageRenderer
             .put( ProgramStageTemplateVariable.DAYS_UNTIL_DUE_DATE,  psi -> daysUntil( psi.getDueDate() ) )
             .put( ProgramStageTemplateVariable.CURRENT_DATE,         psi -> formatDate( new Date() ) )
             .build();
+
+    private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
+        ImmutableSet.of( ExpressionType.ATTRIBUTE, ExpressionType.VARIABLE );
 
     // -------------------------------------------------------------------------
     // Singleton instance
@@ -94,7 +98,6 @@ public class ProgramStageNotificationMessageRenderer
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(), ProgramStageNotificationMessageRenderer::filterValue ) );
     }
 
-
     @Override
     protected TemplateVariable fromVariableName( String name )
     {
@@ -102,9 +105,9 @@ public class ProgramStageNotificationMessageRenderer
     }
 
     @Override
-    protected boolean isValidVariableName( String variableName )
+    protected Set<ExpressionType> getSupportedExpressionTypes()
     {
-        return ProgramStageTemplateVariable.isValidVariableName( variableName );
+        return SUPPORTED_EXPRESSION_TYPES;
     }
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -823,6 +823,8 @@ public class TableAlteror
         executeSql( "update expression set missingvaluestrategy = 'NEVER_SKIP' where missingvaluestrategy is null nullifblank is false" );
         executeSql( "alter table expression alter column missingvaluestrategy set not null" );
         executeSql( "alter table expression drop column nullifblank" );
+        executeSql( "drop table expressiondataelement" );
+        executeSql( "drop table expressionsampleelement" );
 
         executeSql( "alter table dataelementcategoryoption alter column startdate type date" );
         executeSql( "alter table dataelementcategoryoption alter column enddate type date" );
@@ -978,6 +980,9 @@ public class TableAlteror
         removeOutdatedTranslationProperties();
 
         updateLegendRelationship();
+        
+        executeSql( "update programindicator set programindicatoranalyticstype = 'EVENT' where programindicatoranalyticstype is null" );
+        executeSql( "alter table programindicator alter column programindicatoranalyticstype set not null" );
 
         log.info( "Tables updated" );
     }

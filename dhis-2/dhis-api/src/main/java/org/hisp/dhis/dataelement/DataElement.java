@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -570,8 +570,7 @@ public class DataElement
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
     {
-        //TODO
-        //return optionSet != null ? optionSet.getValueType() : valueType;
+        //TODO return optionSet != null ? optionSet.getValueType() : valueType;
         return valueType;
     }
 
@@ -707,26 +706,17 @@ public class DataElement
         this.commentOptionSet = commentOptionSet;
     }
 
-    public boolean isPeriodInDataSetOpenPeriods( Period period )
+    /**
+     * Checks if the combination of period and date is allowed for any of the dataSets associated with the dataElement
+     *
+     * @param period period to check
+     * @param date date to check
+     * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the period and date.
+     */
+    public boolean isDataInputAllowedForPeriodAndDate( Period period, Date date )
     {
-        if ( getDataSets().isEmpty() )
-        {
-            return true;
-        }
-
-        boolean result = false;
-
-        for ( DataSet dataSet : getDataSets() )
-        {
-            if ( dataSet.getOpenPeriods().contains( period ) )
-            {
-                return true;
-            }
-
-            result = result || dataSet.getOpenPeriods().isEmpty();
-        }
-
-        return result;
+        return getDataSets().isEmpty() || getDataSets().stream()
+            .anyMatch( dataSet -> dataSet.isDataInputPeriodAndDateAllowed( period, date ) );
     }
 
     @Override

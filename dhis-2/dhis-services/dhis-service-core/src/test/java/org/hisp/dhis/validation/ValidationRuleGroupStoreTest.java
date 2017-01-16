@@ -81,8 +81,6 @@ public class ValidationRuleGroupStoreTest
 
     private DataElement dataElementD;
 
-    private Set<DataElement> dataElements;
-
     private Set<DataElementCategoryOptionCombo> optionCombos;
 
     private Expression expressionA;
@@ -109,20 +107,13 @@ public class ValidationRuleGroupStoreTest
         dataElementService.addDataElement( dataElementC );
         dataElementService.addDataElement( dataElementD );
 
-        dataElements = new HashSet<>();
-
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        dataElements.add( dataElementC );
-        dataElements.add( dataElementD );
-
         DataElementCategoryOptionCombo categoryOptionCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
 
-        expressionA = new Expression( "expressionA", "descriptionA", dataElements );
-        expressionB = new Expression( "expressionB", "descriptionB", dataElements );
+        expressionA = new Expression( "expressionA", "descriptionA" );
+        expressionB = new Expression( "expressionB", "descriptionB" );
 
         expressionService.addExpression( expressionB );
         expressionService.addExpression( expressionA );

@@ -2,7 +2,7 @@ package org.hisp.dhis.sms.outbound;
 
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class ClickatellResponseEntity
 {
 
-    private Map<String, List<Map<String, String>>> data;
+    private Map<Object, List<Map<Object, Object>>> data;
 
-    public ClickatellResponseEntity( Map<String, List<Map<String, String>>> data )
+    public ClickatellResponseEntity( Map<Object, List<Map<Object, Object>>> data )
     {
         super();
         this.data = data;
@@ -59,12 +59,12 @@ public class ClickatellResponseEntity
 
     @JsonProperty( value = "data" )
     @JacksonXmlProperty( localName = "data" )
-    public Map<String, List<Map<String, String>>> getData()
+    public Map<Object, List<Map<Object, Object>>> getData()
     {
         return data;
     }
 
-    public void setData( Map<String, List<Map<String, String>>> data )
+    public void setData( Map<Object, List<Map<Object, Object>>> data )
     {
         this.data = data;
     }

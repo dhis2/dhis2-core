@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,10 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.util.IOUtils;
-import org.hisp.dhis.sms.MessageResponseStatus;
-import org.hisp.dhis.sms.OutBoundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.hisp.dhis.sms.outbound.MessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.BufferedReader;
@@ -90,11 +90,11 @@ public class SimplisticHttpGetGateWay
         HttpURLConnection.HTTP_ACCEPTED, HttpURLConnection.HTTP_CREATED );
 
     @Override
-    public List<MessageResponseStatus> sendBatch( MessageBatch batch, SmsGatewayConfig gatewayConfig )
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        List<MessageResponseStatus> statuses = new ArrayList<>();
+        List<OutboundMessageResponse> statuses = new ArrayList<>();
 
-        for ( OutBoundMessage message : batch.getBatch() )
+        for ( OutboundMessage message : batch.getMessages() )
         {
             statuses.add( send( message.getSubject(), message.getText(), message.getRecipients(), gatewayConfig ) );
         }
@@ -109,11 +109,11 @@ public class SimplisticHttpGetGateWay
     }
 
     @Override
-    public MessageResponseStatus send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig config )
     {
         GenericHttpGatewayConfig genericHttpConfiguraiton = (GenericHttpGatewayConfig) config;
 
-        MessageResponseStatus status = new MessageResponseStatus();
+        OutboundMessageResponse status = new OutboundMessageResponse();
 
         UriComponentsBuilder uri = buildUrl( genericHttpConfiguraiton, text, recipients );
 

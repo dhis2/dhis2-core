@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,6 +127,14 @@ public class DataElementOperand
 
     public DataElementOperand( String dataElementId, String optionComboId )
     {
+        this.dataElementId = dataElementId;
+        this.optionComboId = optionComboId;
+        this.operandId = dataElementId + SEPARATOR + optionComboId;
+    }
+
+    public DataElementOperand( DataElement dataElement, String dataElementId, String optionComboId )
+    {
+        this.dataElement = dataElement;
         this.dataElementId = dataElementId;
         this.optionComboId = optionComboId;
         this.operandId = dataElementId + SEPARATOR + optionComboId;
@@ -606,7 +614,7 @@ public class DataElementOperand
         }
 
         result = prime * result + ((dataElement == null) ? 0 : dataElement.hashCode());
-        result = prime * result + ((categoryOptionCombo == null) ? 0 : categoryOptionCombo.hashCode());
+        result = prime * result + ((categoryOptionCombo == null) ? 0 : categoryOptionCombo.hashCodeIdentifiableObject());
         result = prime * result + ((dataElementId == null) ? 0 : dataElementId.hashCode());
         result = prime * result + ((optionComboId == null) ? 0 : optionComboId.hashCode());
 
@@ -662,7 +670,7 @@ public class DataElementOperand
                 return false;
             }
         }
-        else if ( !categoryOptionCombo.equals( other.categoryOptionCombo ) )
+        else if ( !categoryOptionCombo.equalsIdentifiableObject( other.categoryOptionCombo ) )
         {
             return false;
         }

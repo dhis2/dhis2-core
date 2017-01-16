@@ -35,11 +35,11 @@
     <property name="filter" type="text" />
 
     <property name="aggregationType" length="40">
-		<type name="org.hibernate.type.EnumType">
-			<param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
-      <param name="useNamed">true</param>
-			<param name="type">12</param>
-		</type> 
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.analytics.AggregationType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type> 
 	</property>
     
     <property name="decimals" />
@@ -56,6 +56,14 @@
     <property name="aggregateExportAttributeOptionCombo" column="aggregateexportattributeoptioncombo" />
 	
     <property name="displayInForm" />
+
+    <property name="programIndicatorAnalyticsType" length="10">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.program.ProgramIndicatorAnalyticsType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type> 
+    </property>
 
     <!-- Object Translation -->
     <set name="translations" table="programindicatortranslations" cascade="delete-orphan">

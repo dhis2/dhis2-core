@@ -1,7 +1,9 @@
 package org.hisp.dhis.analytics;
 
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +33,17 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.scheduling.TaskId;
 
 /**
+ * Service for analytics table generation and analysis.
+ * 
  * @author Lars Helge Overland
  */
 public interface AnalyticsTableService
 {
+    /**
+     * Returns the type of analytics table which this manager handles.
+     */
+    AnalyticsTableType getAnalyticsTableType();
+    
     /**
      * Rebuilds the analytics tables.
      * 
@@ -49,12 +58,7 @@ public interface AnalyticsTableService
     void dropTables();
 
     /**
-     * Performs an <code>analyze</code> operation on all analytics tables.
+     * Performs an SQL analyze operation on all analytics tables.
      */
     void analyzeAnalyticsTables();
-    
-    /**
-     * Generate required resource tables.
-     */
-    void generateResourceTables();
 }

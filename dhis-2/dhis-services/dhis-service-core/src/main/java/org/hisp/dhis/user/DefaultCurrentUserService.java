@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,42 @@ package org.hisp.dhis.user;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 /**
+ * Service for retrieving information about the currently
+ * authenticated user.
+ * 
+ * Note that most methods are transactional, except for
+ * retrieving current UserInfo.
+ * 
  * @author Torgeir Lorange Ostby
  */
-@Transactional
 public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
+    /**
+     * Cache for user IDs. Key is username. Disabled during test phase. 
+     * Take care not to cache user info which might change during runtime.
+     */
+    private static final Cache<String, Integer> USERNAME_ID_CACHE = Caffeine.newBuilder()
+        .expireAfterAccess( 1, TimeUnit.HOURS )
+        .initialCapacity( 200 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 2000 )
+        .build();
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -55,6 +78,7 @@ public class DefaultCurrentUserService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -75,6 +99,38 @@ public class DefaultCurrentUserService
     }
 
     @Override
+    public UserInfo getCurrentUserInfo()
+    {
+        UserDetails userDetails = getCurrentUserDetails();
+        
+        if ( userDetails == null )
+        {
+            return null;
+        }
+        
+        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
+        
+        if ( userId == null )
+        {
+            return null;
+        }
+        
+        Set<String> authorities = userDetails.getAuthorities()
+            .stream().map( GrantedAuthority::getAuthority )
+            .collect( Collectors.toSet() );
+        
+        return new UserInfo( userId, userDetails.getUsername(), authorities );
+    }
+    
+    private Integer getUserId( String username )
+    {
+        UserCredentials credentials = currentUserStore.getUserCredentialsByUsername( username );
+        
+        return credentials != null ? credentials.getId() : null;
+    }
+
+    @Override
+    @Transactional
     public boolean currentUserIsSuper()
     {
         User user = getCurrentUser();
@@ -83,6 +139,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
+    @Transactional
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
@@ -91,7 +148,8 @@ public class DefaultCurrentUserService
     }
     
     @Override
-    public boolean currenUserIsAuthorized( String auth )
+    @Transactional
+    public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();
         

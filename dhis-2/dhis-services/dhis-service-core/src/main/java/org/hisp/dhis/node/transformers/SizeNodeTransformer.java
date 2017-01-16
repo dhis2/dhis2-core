@@ -1,8 +1,8 @@
 package org.hisp.dhis.node.transformers;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
- *  All rights reserved.
+ * Copyright (c) 2004-2017, University of Oslo
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -63,7 +63,7 @@ public class SizeNodeTransformer implements NodeTransformer
         {
             return new SimpleNode( property.getCollectionName(), node.getChildren().size(), property.isAttribute() );
         }
-        else if ( property.is( PropertyType.TEXT ) || property.is( PropertyType.TEXT ) )
+        else if ( property.is( PropertyType.TEXT ) )
         {
             return new SimpleNode( property.getName(), ((String) ((SimpleNode) node).getValue()).length(), property.isAttribute() );
         }

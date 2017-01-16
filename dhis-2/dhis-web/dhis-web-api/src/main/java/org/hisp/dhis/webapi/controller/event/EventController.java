@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.utils.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -84,10 +85,10 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.scheduling.Scheduler;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -119,7 +120,7 @@ import java.util.zip.GZIPOutputStream;
  */
 @Controller
 @RequestMapping( value = EventController.RESOURCE_PATH )
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class EventController
 {
     public static final String RESOURCE_PATH = "/events";
@@ -174,7 +175,7 @@ public class EventController
 
     @Autowired
     protected TrackedEntityInstanceService entityInstanceService;
-    
+
     @Autowired
     private ContextUtils contextUtils;
 
@@ -248,13 +249,13 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter, dataElement, includeDeleted );
-        
+
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
-        
+
         return eventService.getEventsGrid( params );
-        
+
     }
-    
+
     @RequestMapping( value = "", method = RequestMethod.GET )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public @ResponseBody RootNode getEvents(
@@ -448,7 +449,7 @@ public class EventController
 
         return event;
     }
-    
+
     @RequestMapping( value = "/files", method = RequestMethod.GET )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKED_ENTITY_DATAVALUE_ADD')" )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
@@ -820,7 +821,7 @@ public class EventController
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-    
+
     private boolean fieldsContains( String match, List<String> fields )
     {
         for ( String field : fields )
@@ -839,7 +840,7 @@ public class EventController
     {
         return fieldsContains( "href", fields );
     }
-    
+
     private List<Order> getOrderParams( String order )
     {
         if ( order != null && !StringUtils.isEmpty( order ) )
@@ -850,13 +851,13 @@ public class EventController
 
         return null;
     }
-    
+
     private List<String> getGridOrderParams( String order )
     {
         if ( order != null && !StringUtils.isEmpty( order ) )
         {
-            
-            return Arrays.asList( order.split( "," ) ) ; 
+
+            return Arrays.asList( order.split( "," ) );
         }
 
         return null;

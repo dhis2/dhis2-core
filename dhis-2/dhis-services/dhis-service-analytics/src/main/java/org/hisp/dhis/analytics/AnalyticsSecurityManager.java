@@ -1,9 +1,7 @@
 package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.analytics.event.EventQueryParams;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +28,13 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.user.User;
 
 /**
+ * Manager for analytics engine security concerns.
+ * 
  * @author Lars Helge Overland
  */
 public interface AnalyticsSecurityManager
@@ -73,6 +74,7 @@ public interface AnalyticsSecurityManager
      * query and sets the level property of each related organisation unit.
      * 
      * @param params the data query parameters.
+     * @return a data query parameters.
      * @throws IllegalQueryException is the specified approval level does not exist.
      */
     DataQueryParams withDataApprovalConstraints( DataQueryParams params );
@@ -85,7 +87,8 @@ public interface AnalyticsSecurityManager
      * query, no action is taken. If the current user does not have accessible 
      * items in any dimension constraint, an IllegalQueryException is thrown.
      * 
-     * @param pamrams the data query parameters.
+     * @param params the data query parameters.
+     * @return a data query parameters.
      * @throws IllegalQueryException is the specified approval level does not exist.
      */
     DataQueryParams withDimensionConstraints( DataQueryParams params );

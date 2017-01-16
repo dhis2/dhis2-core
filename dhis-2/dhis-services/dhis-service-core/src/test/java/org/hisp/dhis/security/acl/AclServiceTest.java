@@ -130,8 +130,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canCreatePublic( user, Dashboard.class ) );
-        assertTrue( aclService.canCreatePrivate( user, Dashboard.class ) );
+        assertFalse( aclService.canMakePublic( user, Dashboard.class ) );
+        assertTrue( aclService.canMakePrivate( user, Dashboard.class ) );
     }
 
     @Test
@@ -152,8 +152,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canCreatePublic( user, Chart.class ) );
-        assertTrue( aclService.canCreatePrivate( user, Chart.class ) );
+        assertFalse( aclService.canMakePublic( user, Chart.class ) );
+        assertTrue( aclService.canMakePrivate( user, Chart.class ) );
     }
 
     @Test
@@ -174,8 +174,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canCreatePublic( user, Map.class ) );
-        assertTrue( aclService.canCreatePrivate( user, Map.class ) );
+        assertFalse( aclService.canMakePublic( user, Map.class ) );
+        assertTrue( aclService.canMakePrivate( user, Map.class ) );
     }
 
     @Test
@@ -196,8 +196,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canCreatePublic( user, ReportTable.class ) );
-        assertTrue( aclService.canCreatePrivate( user, ReportTable.class ) );
+        assertFalse( aclService.canMakePublic( user, ReportTable.class ) );
+        assertTrue( aclService.canMakePrivate( user, ReportTable.class ) );
     }
 
     @Test
@@ -218,8 +218,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canCreatePublic( user, EventChart.class ) );
-        assertTrue( aclService.canCreatePrivate( user, EventChart.class ) );
+        assertFalse( aclService.canMakePublic( user, EventChart.class ) );
+        assertTrue( aclService.canMakePrivate( user, EventChart.class ) );
     }
 
     @Test
@@ -240,8 +240,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
-        assertFalse( aclService.canCreatePublic( user, EventReport.class ) );
-        assertTrue( aclService.canCreatePrivate( user, EventReport.class ) );
+        assertFalse( aclService.canMakePublic( user, EventReport.class ) );
+        assertTrue( aclService.canMakePrivate( user, EventReport.class ) );
     }
 
     @Test
@@ -262,8 +262,8 @@ public class AclServiceTest
     {
         User user = createAdminUser( "F_LEGEND_SET_PRIVATE_ADD" );
 
-        assertFalse( aclService.canCreatePublic( user, LegendSet.class ) );
-        assertTrue( aclService.canCreatePrivate( user, LegendSet.class ) );
+        assertFalse( aclService.canMakePublic( user, LegendSet.class ) );
+        assertTrue( aclService.canMakePrivate( user, LegendSet.class ) );
     }
 
     @Test
@@ -277,5 +277,128 @@ public class AclServiceTest
         legendSet.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, legendSet ) );
+    }
+
+    @Test
+    public void testVerifyDataElementPrivateRW()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+
+        assertFalse( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyDataElementPrivate()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyDataElementPublicRW()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
+
+        assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyDataElementPublic()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PUBLIC_ADD" );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.verifySharing( dataElement, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyReportTableCanExternalize()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD", "F_REPORTTABLE_EXTERNAL" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyReportTableCantExternalize()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+    }
+
+    @Test
+    public void testVerifyReportTableCanExternalizeNoExplicitAdd()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_EXTERNAL" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+    }
+
+    @Test
+    public void testResetSharingPropsPrivate()
+    {
+        User user = createAdminUser();
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+
+        aclService.resetSharing( reportTable, user );
+
+        assertTrue( AccessStringHelper.DEFAULT.equals( reportTable.getPublicAccess() ) );
+        assertFalse( reportTable.getExternalAccess() );
+        assertTrue( reportTable.getUserAccesses().isEmpty() );
+        assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
+    }
+
+    @Test
+    public void testResetSharingPropsPublic()
+    {
+        User user = createAdminUser( "F_REPORTTABLE_PUBLIC_ADD" );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+        reportTable.setExternalAccess( true );
+
+        assertFalse( aclService.verifySharing( reportTable, user ).isEmpty() );
+
+        aclService.resetSharing( reportTable, user );
+
+        assertTrue( AccessStringHelper.READ_WRITE.equals( reportTable.getPublicAccess() ) );
+        assertFalse( reportTable.getExternalAccess() );
+        assertTrue( reportTable.getUserAccesses().isEmpty() );
+        assertTrue( reportTable.getUserGroupAccesses().isEmpty() );
     }
 }

@@ -1,5 +1,7 @@
+package org.hisp.dhis.webapi.controller.metadata.version;
+
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.controller.metadata.version;
-
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
@@ -41,6 +41,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.omg.PortableServer.CurrentPackage.NoContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +68,7 @@ import java.util.zip.GZIPOutputStream;
  * @author aamerm
  */
 @Controller
-@ApiVersion( { ApiVersion.Version.DEFAULT, ApiVersion.Version.ALL } )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataVersionController
     extends CrudControllerAdvice
 {

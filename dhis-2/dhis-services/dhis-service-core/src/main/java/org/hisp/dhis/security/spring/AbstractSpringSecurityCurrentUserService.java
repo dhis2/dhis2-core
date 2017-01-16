@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.spring;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,23 @@ public abstract class AbstractSpringSecurityCurrentUserService
         return userDetails.getUsername();
     }
 
+    /**
+     * Returns the current UserDetails, or null of there is no
+     * current user or if principal is not of type UserDetails.
+     */
+    protected UserDetails getCurrentUserDetails()
+    {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if ( authentication == null || !authentication.isAuthenticated() || 
+            authentication.getPrincipal() == null || !( authentication.getPrincipal() instanceof UserDetails ) )
+        {
+            return null;
+        }
+        
+        return (UserDetails) authentication.getPrincipal();
+    }
+    
     @Override
     public void clearCurrentUser()
     {

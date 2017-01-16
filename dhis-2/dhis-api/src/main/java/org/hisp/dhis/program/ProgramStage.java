@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,7 +119,6 @@ public class ProgramStage
 
     public ProgramStage()
     {
-
     }
 
     public ProgramStage( String name, Program program )
@@ -138,7 +137,15 @@ public class ProgramStage
             .filter( element -> element.getDataElement() != null )
             .map( ProgramStageDataElement::getDataElement ).collect( Collectors.toList() );
     }
-
+    
+    public boolean addDataElement( DataElement dataElement, Integer sortOrder )
+    {
+        ProgramStageDataElement element = new ProgramStageDataElement( this, dataElement, false, sortOrder );
+        element.setAutoFields();
+        
+        return this.programStageDataElements.add( element );        
+    }
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public FormType getFormType()

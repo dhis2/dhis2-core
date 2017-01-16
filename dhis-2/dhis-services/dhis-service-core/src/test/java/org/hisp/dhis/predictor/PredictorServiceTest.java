@@ -209,9 +209,9 @@ public class PredictorServiceTest
 
         categoryService.addDataElementCategoryOptionCombo( altCombo );
 
-        expressionA = createExpression(
+        expressionA = new Expression(
             "AVG(#{" + dataElementA.getUid() + "})+" + "1.5*STDEV(#{" + dataElementA.getUid() + "})", "descriptionA" );
-        expressionB = new Expression( "expressionB", "descriptionB", dataElements );
+        expressionB = new Expression( "expressionB", "descriptionB" );
 
         expressionService.addExpression( expressionB );
         expressionService.addExpression( expressionA );
@@ -234,12 +234,6 @@ public class PredictorServiceTest
         DateTime starting = new DateTime( year, month, 1, 0, 0 );
 
         return starting.toDate();
-    }
-
-    private Expression createExpression( String string, String description )
-    {
-        Set<DataElement> elts = expressionService.getDataElementsInExpression( string );
-        return new Expression( string, description, elts );
     }
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, Number value )
@@ -581,15 +575,13 @@ public class PredictorServiceTest
         dataElementsB.add( dataElementC );
         dataElementsB.add( dataElementD );
 
-        Set<DataElement> dataElementsC = new HashSet<>();
-
         Set<DataElement> dataElementsD = new HashSet<>();
         dataElementsD.addAll( dataElementsA );
         dataElementsD.addAll( dataElementsB );
 
-        Expression expression1 = new Expression( "Expression1", "Expression1", dataElementsA );
-        Expression expression2 = new Expression( "Expression2", "Expression2", dataElementsB );
-        Expression expression3 = new Expression( "Expression3", "Expression3", dataElementsC );
+        Expression expression1 = new Expression( "Expression1", "Expression1" );
+        Expression expression2 = new Expression( "Expression2", "Expression2" );
+        Expression expression3 = new Expression( "Expression3", "Expression3" );
 
         expressionService.addExpression( expression1 );
         expressionService.addExpression( expression2 );
@@ -618,8 +610,7 @@ public class PredictorServiceTest
         
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, defaultCombo, "GetPredictionsSequential",
-            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
-                Sets.newHashSet( dataElementA ) ),
+            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA" ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
         Iterable<DataValue> stream = predictorService.getPredictions( p, monthStart( 2001, 7 ),
@@ -642,8 +633,7 @@ public class PredictorServiceTest
         
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, altCombo, "GetPredictionsSeasonal",
-            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
-                Sets.newHashSet( dataElementA ) ),
+            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA" ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 
         Iterable<DataValue> stream = predictorService.getPredictions( p, monthStart( 2001, 7 ),
@@ -670,8 +660,9 @@ public class PredictorServiceTest
         
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, altCombo, "GetPredictionsSeasonalWithOutbreak",
-            createExpression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA" ),
-            createExpression( "#{" + dataElementB.getUid() + "}", "outbreak" ), periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
+            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA" ),
+            new Expression( "#{" + dataElementB.getUid() + "}", "outbreak" ), 
+            periodTypeMonthly, orgUnitLevel1, 3, 1, 2 );
 
         Iterable<DataValue> stream = predictorService.getPredictions( p, monthStart( 2001, 7 ),
             monthStart( 2005, 12 ) );
@@ -694,8 +685,7 @@ public class PredictorServiceTest
 
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
-            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
-                Sets.newHashSet( dataElementA ) ),
+            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA" ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
         predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) );
@@ -713,8 +703,7 @@ public class PredictorServiceTest
 
         String auid = dataElementA.getUid();
         Predictor p = createPredictor( dataElementX, altCombo, "PredictSequential",
-            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA",
-                Sets.newHashSet( dataElementA ) ),
+            new Expression( "AVG(#{" + auid + "})+1.5*STDDEV(#{" + auid + "})", "descriptionA" ),
             null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
         predictorService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ) );
