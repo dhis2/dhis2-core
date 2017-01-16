@@ -67,7 +67,7 @@ public class ConfigurationDeletionHandler
     {
         UserGroup feedbackRecipients = configService.getConfiguration().getFeedbackRecipients();
         
-        return feedbackRecipients != null ? StringUtils.EMPTY : null;
+        return ( feedbackRecipients != null && feedbackRecipients.equals( userGroup ) ) ? StringUtils.EMPTY : null;
     }
 
     @Override
@@ -75,7 +75,7 @@ public class ConfigurationDeletionHandler
     {
         DataElementGroup infrastructuralDataElements = configService.getConfiguration().getInfrastructuralDataElements();
         
-        return infrastructuralDataElements != null ? StringUtils.EMPTY : null;
+        return ( infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ) ) ? StringUtils.EMPTY : null;
     }
     
     @Override
@@ -83,7 +83,7 @@ public class ConfigurationDeletionHandler
     {
         IndicatorGroup infrastructuralIndicators = configService.getConfiguration().getInfrastructuralIndicators();
         
-        return infrastructuralIndicators != null ? StringUtils.EMPTY : null;
+        return ( infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ) ) ? StringUtils.EMPTY : null;
     }
     
     @Override
@@ -91,15 +91,15 @@ public class ConfigurationDeletionHandler
     {
         OrganisationUnitLevel offlineLevel = configService.getConfiguration().getOfflineOrganisationUnitLevel();
         
-        return offlineLevel != null ? StringUtils.EMPTY : null;
+        return ( offlineLevel != null && offlineLevel.equals( level ) ) ? StringUtils.EMPTY : null;
     }
     
     @Override
     public String allowDeleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
         OrganisationUnit selfRegOrgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
-        
-        return selfRegOrgUnit != null ? StringUtils.EMPTY : null;
+
+        return ( selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit ) ) ? StringUtils.EMPTY : null;
     }
 
     @Override
@@ -107,6 +107,6 @@ public class ConfigurationDeletionHandler
     {
         UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
         
-        return selfRegRole != null ? StringUtils.EMPTY : null;
+        return ( selfRegRole != null && selfRegRole.equals( userAuthorityGroup ) ) ? StringUtils.EMPTY : null;
     }    
 }
