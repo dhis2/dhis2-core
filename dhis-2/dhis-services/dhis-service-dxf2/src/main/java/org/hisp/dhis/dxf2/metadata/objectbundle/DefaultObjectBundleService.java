@@ -112,6 +112,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         preheatParams.setObjects( params.getObjects() );
 
         ObjectBundle bundle = new ObjectBundle( params, preheatService.preheat( preheatParams ), params.getObjects() );
+        bundle.setObjectBundleStatus( ObjectBundleStatus.CREATED );
         bundle.setObjectReferences( preheatService.collectObjectReferences( params.getObjects() ) );
 
         return bundle;

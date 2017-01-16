@@ -58,32 +58,74 @@ import java.util.Map;
 @JacksonXmlRootElement( localName = "metadataImportParams", namespace = DxfNamespaces.DXF_2_0 )
 public class MetadataImportParams
 {
+    /**
+     * User to use for import job (important for threaded imports).
+     */
     private User user;
 
+    /**
+     * Should import be imported or just validated.
+     */
     private ObjectBundleMode importMode = ObjectBundleMode.COMMIT;
 
+    /**
+     * What identifiers to match on.
+     */
     private PreheatIdentifier identifier = PreheatIdentifier.UID;
 
+    /**
+     * Preheat mode to use (default is REFERENCE and should not be changed).
+     */
     private PreheatMode preheatMode = PreheatMode.REFERENCE;
 
+    /**
+     * Sets import strategy (create, update, etc).
+     */
     private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
 
+    /**
+     * Should import be treated as a atomic import (all or nothing).
+     */
     private AtomicMode atomicMode = AtomicMode.ALL;
 
+    /**
+     * Merge mode for object updates (default is REPLACE).
+     */
     private MergeMode mergeMode = MergeMode.REPLACE;
 
+    /**
+     * Flush for every object or per type.
+     */
     private FlushMode flushMode = FlushMode.AUTO;
 
+    /**
+     * Decides how much to report back to the user (errors only, or a more full per object report).
+     */
     private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
+    /**
+     * Should sharing be considered when importing objects.
+     */
     private boolean skipSharing;
 
+    /**
+     * Skip validation of objects (not recommended).
+     */
     private boolean skipValidation;
 
+    /**
+     * Name of file that was used for import (if available).
+     */
     private String filename;
 
+    /**
+     * Task id to use for threaded imports.
+     */
     private TaskId taskId;
 
+    /**
+     * Objects to import.
+     */
     private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = new HashMap<>();
 
     public MetadataImportParams()

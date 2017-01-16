@@ -30,13 +30,13 @@ package org.hisp.dhis.dxf2.metadata.tasks;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -92,13 +92,15 @@ public class MetadataSyncTask
 
         try
         {
-            retryTemplate.execute( retryContext -> {
+            retryTemplate.execute( retryContext ->
+                {
                     metadataRetryContext.setRetryContext( retryContext );
                     clearFailedVersionSettings();
                     runSyncTask( metadataRetryContext );
                     return null;
                 }
-                , retryContext -> {
+                , retryContext ->
+                {
                     log.info( "Retries Exhausted. Sending mail to Admin" );
                     updateMetadataVersionFailureDetails( metadataRetryContext );
                     metadataSyncPostProcessor.sendFailureMailToAdmin( metadataRetryContext );
@@ -192,5 +194,4 @@ public class MetadataSyncTask
         systemSettingManager.deleteSystemSetting( SettingKey.METADATA_FAILED_VERSION );
         systemSettingManager.deleteSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
     }
-
 }

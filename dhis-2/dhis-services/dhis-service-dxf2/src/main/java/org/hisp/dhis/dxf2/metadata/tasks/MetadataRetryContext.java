@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.metadata.tasks;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.common.Status;
-import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.springframework.retry.RetryContext;
@@ -47,7 +47,6 @@ import java.util.List;
 
 public class MetadataRetryContext
 {
-
     private static final Log log = LogFactory.getLog( MetadataRetryContext.class );
 
     private RetryContext retryContext;
@@ -72,7 +71,6 @@ public class MetadataRetryContext
         {
             retryContext.setAttribute( MetadataSyncTask.VERSION_KEY, version );
         }
-
     }
 
     public void updateRetryContext( String stepKey, String message, MetadataVersion version, MetadataSyncSummary summary )
@@ -111,6 +109,5 @@ public class MetadataRetryContext
 
             retryContext.setAttribute( MetadataSyncTask.METADATA_SYNC_REPORT, report.toString() );
         }
-
     }
 }
