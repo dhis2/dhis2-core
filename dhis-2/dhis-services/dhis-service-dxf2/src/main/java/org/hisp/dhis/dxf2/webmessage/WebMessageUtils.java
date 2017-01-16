@@ -28,12 +28,11 @@ package org.hisp.dhis.dxf2.webmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.responses.ErrorReportsWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;

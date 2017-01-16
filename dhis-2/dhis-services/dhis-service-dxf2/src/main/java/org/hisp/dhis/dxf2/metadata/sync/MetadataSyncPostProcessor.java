@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.common.Status;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.dxf2.metadata.tasks.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.tasks.MetadataSyncTask;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
