@@ -28,7 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
@@ -40,10 +39,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -52,6 +51,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anySetOf;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -73,12 +73,12 @@ public class ValidationNotificationServiceTest
     @Mock
     private MessageService messageService;
 
-    private List<Message> sentMessages;
+    private List<MockMessage> sentMessages;
 
     @Before
     public void setUpTest()
     {
-        service = new DefaultValidationNotificationService();
+        service = mock( DefaultValidationNotificationService.class );
         setUpMocks();
     }
 
@@ -86,7 +86,7 @@ public class ValidationNotificationServiceTest
     {
         MockitoAnnotations.initMocks( this );
 
-        sentMessages = new ArrayList<>();
+        resetState();
 
         when( messageService.sendMessage(
             anyString(),
@@ -98,10 +98,15 @@ public class ValidationNotificationServiceTest
             anyBoolean()
         ) ).then(
             invocation -> {
-                sentMessages.add( new Message( invocation.getArguments() ) );
+                sentMessages.add( new MockMessage( invocation.getArguments() ) );
                 return anyInt();
             }
         );
+    }
+
+    private void resetState()
+    {
+        sentMessages = new ArrayList<>();
     }
 
     // -------------------------------------------------------------------------
@@ -111,26 +116,29 @@ public class ValidationNotificationServiceTest
     @Test
     public void testTestSetupWorksAsExpected() // TODO Remove
     {
-        messageService.sendMessage( "test", "test", null, Sets.newHashSet(), createUser( 'A' ), false, false );
+        messageService.sendMessage( "test", "test", null, new HashSet<>(), createUser( 'A' ), false, false );
         Assert.assertEquals( 1, sentMessages.size() );
     }
 
     // -------------------------------------------------------------------------
-    // Mocking classes
+    // Mock classes
     // -------------------------------------------------------------------------
 
     /**
      * Mocks the input to MessageService.sendMessage(..)
      */
-    static class Message
+    static class MockMessage
     {
         final String subject, text, metaData;
         final Set<User> users;
         final User sender;
         final boolean includeFeedbackRecipients, forceNotifications;
 
+        /**
+         * Danger danger! Will break if MessageService API changes.
+         */
         @SuppressWarnings( "unchecked" )
-        Message( Object[] args )
+        MockMessage( Object[] args )
         {
             this(
                 (String) args[0],
@@ -143,7 +151,7 @@ public class ValidationNotificationServiceTest
             );
         }
 
-        Message(
+        MockMessage(
             String subject,
             String text,
             String metaData,
