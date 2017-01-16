@@ -50,7 +50,6 @@ import static org.junit.Assert.*;
 /**
  * @author Lars Helge Overland
  */
-@SuppressWarnings( "Duplicates" )
 public class DataQueryParamsTest
     extends DhisConvenienceTest
 {

@@ -398,7 +398,6 @@ public class AnalyticsController
             .withEndDate( endDate ).build();
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-
         return analyticsService.getRawDataValues( params );
     }
 
@@ -427,7 +426,6 @@ public class AnalyticsController
             .withEndDate( endDate ).build();
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
-
         Grid grid = analyticsService.getRawDataValues( params );
         GridUtils.toCsv( grid, response.getWriter() );
     }
