@@ -102,7 +102,9 @@ public class DefaultAnalyticsTableService
         String tableName = tableManager.getTableName();
         Date earliest = PartitionUtils.getEarliestDate( lastYears );
         
-        Clock clock = new Clock( log ).startClock().logTime( "Starting update: " + tableName + ", processes: " + processNo + ", org unit levels: " + orgUnitLevelNo );
+        Clock clock = new Clock( log )
+            .startClock()
+            .logTime( String.format( "Starting update: %s, processes: %d, org unit levels: %d", tableName, processNo, orgUnitLevelNo ) );
         
         String validState = tableManager.validState();
         
@@ -114,8 +116,8 @@ public class DefaultAnalyticsTableService
                 
         final List<AnalyticsTable> tables = tableManager.getTables( earliest );
                 
-        clock.logTime( "Table update start: " + tableName + ", processes: " + processNo + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
-        notifier.notify( taskId, "Performing pre-create table work, processes: " + processNo + ", org unit levels: " + orgUnitLevelNo );
+        clock.logTime( "Table update start: " + tableName + ", partitions: " + tables + ", last years: " + lastYears + ", earliest: " + earliest );
+        notifier.notify( taskId, "Performing pre-create table work, org unit levels: " + orgUnitLevelNo );
         
         tableManager.preCreateTables();
         
