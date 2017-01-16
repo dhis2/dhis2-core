@@ -114,7 +114,7 @@ public class PeriodResourceTable
 
                 for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
                 {
-                    if ( rowType.getFrequencyOrder() <= periodType.getFrequencyOrder() )
+                    if ( rowType.getFrequencyOrder() < periodType.getFrequencyOrder() || rowType.equals( periodType ) )
                     {
                         values.add( IdentifiableObjectUtils.getLocalPeriodIdentifier( startDate, periodType, calendar ) );
                     }
