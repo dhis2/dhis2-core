@@ -1,9 +1,7 @@
 package org.hisp.dhis.setting;
 
-import com.google.common.collect.ImmutableSet;
-
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import com.google.common.collect.ImmutableSet;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import com.google.common.collect.ImmutableSet;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
@@ -139,6 +139,7 @@ public enum SettingKey
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
     METADATA_LAST_FAILED_TIME( "keyMetadataLastFailedTime", Date.class ),
     METADATA_SYNC_CRON( "metaDataSyncCron", String.class ),
+    DATA_SYNC_CRON( "dataSyncCron", String.class ),
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class ),
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class );

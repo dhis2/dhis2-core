@@ -124,7 +124,6 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
     @Test
     public void testGetAll() throws Exception
     {
-
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectMap = manager.getDefaults();
         IdentifiableObject defaultTestObject = defaultObjectMap.get( testClass );
         int valueToTest = defaultTestObject != null ? 5 : 4;

@@ -1,7 +1,6 @@
-package org.hisp.dhis.validation;
-
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +27,51 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.filter.Filter;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataset.DataInputPeriod;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class ValidationResultToAlertFilter
-    implements Filter<ValidationResult>
+/**
+ * @author Stian Sandvold
+ */
+public class DataInputPeriodObjectBundleHook
+    extends AbstractObjectBundleHook
 {
+    @Autowired
+    PeriodService periodService;
+
     @Override
-    public boolean retain( ValidationResult result )
+    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        return result != null && result.getValidationRule() != null && result.getValidationRule().hasUserGroupsToAlert();
+        if ( !DataInputPeriod.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        setPeriod(object);
+    }
+
+    @Override
+    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    {
+        if ( !DataInputPeriod.class.isInstance( object ) )
+        {
+            return;
+        }
+
+        setPeriod(object);
+    }
+
+    private void setPeriod( IdentifiableObject object )
+    {
+        DataInputPeriod dataInputPeriod = (DataInputPeriod) object;
+
+        Period period = periodService.getPeriod( dataInputPeriod.getPeriod().getIsoDate() );
+
+        dataInputPeriod.setPeriod( period );
+        sessionFactory.getCurrentSession().save( period );
     }
 }

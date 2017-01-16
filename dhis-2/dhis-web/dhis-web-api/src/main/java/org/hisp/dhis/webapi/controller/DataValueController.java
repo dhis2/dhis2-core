@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -225,7 +225,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
 
         // ---------------------------------------------------------------------
         // Assemble and save data value
@@ -366,7 +366,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        validatePeriodWithinDataSetOpenPeriods( dataElement, period );
+        validateDataInputPeriodForDataElementAndPeriod( dataElement, period );
 
         // ---------------------------------------------------------------------
         // Delete data value
@@ -704,10 +704,10 @@ public class DataValueController
         }
     }
 
-    private void validatePeriodWithinDataSetOpenPeriods( DataElement dataElement, Period period )
+    private void validateDataInputPeriodForDataElementAndPeriod( DataElement dataElement, Period period )
         throws WebMessageException
     {
-        if ( !dataElement.isPeriodInDataSetOpenPeriods( period ) )
+        if ( !dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Period reported is not open in data set" ) );
         }

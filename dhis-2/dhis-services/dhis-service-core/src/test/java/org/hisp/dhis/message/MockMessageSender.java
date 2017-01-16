@@ -28,7 +28,6 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -45,10 +44,9 @@ public class MockMessageSender
     implements MessageSender
 {
     @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
-        boolean forceSend )
+    public OutboundMessageResponse sendMessage( String subject, String text, 
+        String footer, User sender, Set<User> users, boolean forceSend )
     {
-        // Do nothing
         return null;
     }
 

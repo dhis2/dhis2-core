@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,12 @@ package org.hisp.dhis.expression;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElement;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * An Expression is the expression of e.g. a validation rule. It consist of a
@@ -96,16 +90,6 @@ public class Expression
      */
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 
-    /**
-     * A reference to the DataElements in the Expression.
-     */
-    private Set<DataElement> dataElementsInExpression = new HashSet<>();
-
-    /**
-     * A reference to the DataElements in the Expression.
-     */
-    private Set<DataElement> sampleElementsInExpression = new HashSet<>();
-
     // -------------------------------------------------------------------------
     // Transient properties
     // -------------------------------------------------------------------------
@@ -124,57 +108,28 @@ public class Expression
     }
 
     /**
+     * @param expression               The expression as a String
+     * @param description              A description of the Expression.
+     */
+    public Expression( String expression, String description )
+    {
+        this.expression = expression;
+        this.description = description;
+    }
+
+    /**
      * Constructor with all the parameters.
      *
      * @param expression                 The expression as a String
      * @param description                A description of the Expression.
-     * @param dataElementsInExpression   A reference to the DataElements in the Expression.
-     * @param sampleElementsInExpression Past sampled periods DataElements in the Expression.
      * @param missingValueStrategy       Strategy for handling missing values.
      */
     public Expression( String expression, String description,
-        Set<DataElement> dataElementsInExpression,
-        Set<DataElement> sampleElementsInExpression,
         MissingValueStrategy missingValueStrategy )
     {
         this.expression = expression;
         this.description = description;
-        this.dataElementsInExpression = dataElementsInExpression;
-        this.sampleElementsInExpression = sampleElementsInExpression;
         this.missingValueStrategy = missingValueStrategy;
-    }
-
-    /**
-     * Constructor with all parameters except missingValueStrategy.
-     *
-     * @param expression                 The expression as a String
-     * @param description                A description of the Expression.
-     * @param dataElementsInExpression   A reference to the DataElements in the Expression.
-     * @param sampleElementsInExpression Past sampled periods DataElements in the Expression.
-     */
-    public Expression( String expression, String description,
-        Set<DataElement> dataElementsInExpression,
-        Set<DataElement> sampleElementsInExpression )
-    {
-        this.expression = expression;
-        this.description = description;
-        this.dataElementsInExpression = dataElementsInExpression;
-        this.sampleElementsInExpression = sampleElementsInExpression;
-    }
-
-    /**
-     * Constructor without sample elements
-     *
-     * @param expression               The expression as a String
-     * @param description              A description of the Expression.
-     * @param dataElementsInExpression A reference to the DataElements in the Expression.
-     */
-    public Expression( String expression, String description, Set<DataElement> dataElementsInExpression )
-    {
-        this.expression = expression;
-        this.description = description;
-        this.dataElementsInExpression = dataElementsInExpression;
-        this.sampleElementsInExpression = null;
     }
 
     // -------------------------------------------------------------------------
@@ -329,34 +284,6 @@ public class Expression
         this.expression = expression;
     }
 
-    @JsonProperty( value = "dataElements" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElement> getDataElementsInExpression()
-    {
-        return dataElementsInExpression;
-    }
-
-    public void setDataElementsInExpression( Set<DataElement> dataElementsInExpression )
-    {
-        this.dataElementsInExpression = dataElementsInExpression;
-    }
-
-    @JsonProperty( value = "sampleElements" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "sampleElements", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "sampleElement", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataElement> getSampleElementsInExpression()
-    {
-        return sampleElementsInExpression;
-    }
-
-    public void setSampleElementsInExpression( Set<DataElement> sampleElementsInExpression )
-    {
-        this.sampleElementsInExpression = sampleElementsInExpression;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
@@ -399,10 +326,5 @@ public class Expression
         expression = other.getExpression() == null ? expression : other.getExpression();
         description = other.getDescription() == null ? description : other.getDescription();
         missingValueStrategy = other.getMissingValueStrategy() == null ? missingValueStrategy : other.getMissingValueStrategy();
-
-        dataElementsInExpression = other.getDataElementsInExpression() == null ?
-            dataElementsInExpression : new HashSet<>( other.getDataElementsInExpression() );
-        sampleElementsInExpression = other.getSampleElementsInExpression() == null ?
-            sampleElementsInExpression : new HashSet<>( other.getSampleElementsInExpression() );
     }
 }

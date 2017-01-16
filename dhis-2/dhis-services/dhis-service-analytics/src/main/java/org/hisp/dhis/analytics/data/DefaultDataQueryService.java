@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -147,39 +148,36 @@ public class DefaultDataQueryService
     @Override
     public DataQueryParams getFromAnalyticalObject( AnalyticalObject object )
     {
+        Assert.notNull( object );
+
         DataQueryParams.Builder params = DataQueryParams.newBuilder();
         
-        I18nFormat format = i18nManager.getI18nFormat();
-        
+        I18nFormat format = i18nManager.getI18nFormat();        
         IdScheme idScheme = IdScheme.UID;
+        Date date = object.getRelativePeriodDate();
+        
+        String userOrgUnit = object.getRelativeOrganisationUnit() != null ? 
+            object.getRelativeOrganisationUnit().getUid() : null;
 
-        if ( object != null )
+        List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
+
+        object.populateAnalyticalProperties();
+
+        for ( DimensionalObject column : object.getColumns() )
         {
-            String userOrgUnit = object.getRelativeOrganisationUnit() != null ? 
-                object.getRelativeOrganisationUnit().getUid() : null;
-
-            List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
-
-            Date date = object.getRelativePeriodDate();
-
-            object.populateAnalyticalProperties();
-
-            for ( DimensionalObject column : object.getColumns() )
-            {
-                params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date, userOrgUnits, format, false, idScheme ) );
-            }
-
-            for ( DimensionalObject row : object.getRows() )
-            {
-                params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date, userOrgUnits, format, false, idScheme ) );
-            }
-
-            for ( DimensionalObject filter : object.getFilters() )
-            {
-                params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, idScheme ) );
-            }
+            params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date, userOrgUnits, format, false, idScheme ) );
         }
 
+        for ( DimensionalObject row : object.getRows() )
+        {
+            params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date, userOrgUnits, format, false, idScheme ) );
+        }
+
+        for ( DimensionalObject filter : object.getFilters() )
+        {
+            params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date, userOrgUnits, format, false, idScheme ) );
+        }
+        
         return params.build();
     }
 
@@ -207,7 +205,6 @@ public class DefaultDataQueryService
         return list;
     }
 
-    // TODO verify that current user can read each dimension and dimension item
     // TODO optimize so that org unit levels + boundary are used in query instead of fetching all org units one by one
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.analytics.Rectangle;
 
 /**
- * <p>
  * This interface is responsible for retrieving aggregated event data. Data will 
  * be returned in a grid object or as a dimensional key-value mapping.
- * </p>
  * 
  * @author Lars Helge Overland
  */

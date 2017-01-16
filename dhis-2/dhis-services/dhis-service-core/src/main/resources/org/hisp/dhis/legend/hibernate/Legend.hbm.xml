@@ -17,9 +17,9 @@
 
     <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="startValue" column="startvalue" index="maplegend_startvalue" />
+    <property name="startValue" column="startvalue" index="maplegend_startvalue" not-null="true" />
 
-    <property name="endValue" column="endvalue" index="maplegend_endvalue" />
+    <property name="endValue" column="endvalue" index="maplegend_endvalue" not-null="true" />
 
     <property name="color" column="color" />
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.collection;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,9 @@ package org.hisp.dhis.commons.collection;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * Utility methods for operations on various collections.
@@ -81,5 +83,30 @@ public class CollectionUtils
         }
 
         return null;
+    }
+
+    /**
+     * Applies the given consumer to each item in the given collection after filtering
+     * out null items.
+     * 
+     * @param collection the collection.
+     * @param consumer the consumer.
+     */
+    public static <E> void nullSafeForEach( Collection<E> collection, Consumer<E> consumer )
+    {
+        collection.stream()
+            .filter( Objects::nonNull )
+            .forEach( consumer );
+    }
+    
+    /**
+     * Returns an empty set if the given set is null, if not returns the set.
+     * 
+     * @param set the set.
+     * @return a non-null set.
+     */
+    public static <T> Set<T> emptyIfNull( Set<T> set )
+    {
+        return set != null ? set : new HashSet<>();
     }
 }

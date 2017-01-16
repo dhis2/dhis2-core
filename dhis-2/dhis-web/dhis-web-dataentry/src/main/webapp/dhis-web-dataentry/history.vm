@@ -65,7 +65,7 @@ $( document ).ready( function() {
                 		<input type="button" value="$i18n.getString( 'remove' )" onclick="removeMinMaxLimit()" style="width:100px"></td>
                 </tr>
                 <tr>
-                	<td colspan="3" style="height:15px"></td>
+                	<td colspan="3" style="height:5px"></td>
                 </tr>
                 <tr>
                 	<td colspan="2" style="background-color: #e0e0e0; height:26px;">$i18n.getString( "stored_by" )</td>
@@ -89,8 +89,8 @@ $( document ).ready( function() {
                     #if( $historyInvalid )
                         <div class="tipText">$encoder.htmlEncode( $i18n.getString( "history_not_valid" ) )</div>
                     #else
-                        <img id="historyChart"
-                             src="../api/charts/history/data.png?de=${dataElementHistory.dataElement.uid}&co=${dataElementHistory.optionCombo.uid}&cp=${dataElementHistory.attributeOptionCombo.uid}&ou=${dataElementHistory.organisationUnit.uid}&pe=${periodId}"/>
+                        <img id="historyChart" width="525" height="270"
+                             src="../api/charts/history/data.png?de=${dataElementHistory.dataElement.uid}&co=${dataElementHistory.optionCombo.uid}&cp=${dataElementHistory.attributeOptionCombo.uid}&ou=${dataElementHistory.organisationUnit.uid}&pe=${periodId}&width=525&height=270"/>
                     #end
                 </div>
                 <div id="historyTabs-audit">

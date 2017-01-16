@@ -1302,7 +1302,18 @@ function displayPeriods()
     var periods = dhis2.period.generator.generateReversedPeriods( periodType, dhis2.de.currentPeriodOffset );
 
     periods = dhis2.period.generator.filterOpenPeriods( periodType, periods, openFuturePeriods, dsStartDate, dsEndDate );
-    
+
+    var periodWhitelist = dhis2.de.dataSets[dataSetId].dataInputPeriods
+        .filter(function(dip) { return ( dip.openingDate == "" || new Date( dip.openingDate ) <= Date.now() ) && ( dip.closingDate == "" || Date.now() <= new Date( dip.closingDate )); })
+        .map(function(dip) { return dip.period.isoPeriod; });
+  
+    if ( periodWhitelist.length > 0 ) {
+        periods = periods
+            .filter(function (period) {
+                return periodWhitelist.indexOf(period.iso) > -1
+            });
+    }
+
     clearListById( 'selectedPeriodId' );
 
     if ( periods.length > 0 )
@@ -1316,15 +1327,10 @@ function displayPeriods()
 
     dhis2.de.periodChoices = [];
 
-    dhis2.de.openPeriodsWhitelist = dhis2.de.dataSets[dataSetId].openPeriods.map(function(_period) { return _period.isoPeriod; });
-
-    $.safeEach( periods, function( idx, item ) 
+    $.safeEach( periods, function( idx, item )
     {
-        if ( dhis2.de.openPeriodsWhitelist.length == 0 || dhis2.de.openPeriodsWhitelist.indexOf(item.iso) != -1 )
-        {
-            addOptionById( 'selectedPeriodId', item.iso, item.name );
-            dhis2.de.periodChoices[ item.iso ] = item;
-        }
+        addOptionById( 'selectedPeriodId', item.iso, item.name );
+        dhis2.de.periodChoices[ item.iso ] = item;
     } );
 }
 
@@ -2346,7 +2352,7 @@ function displayHistoryDialog( operandName )
         modal: true,
         title: operandName,
         width: 580,
-        height: 660
+        height: 620
     } );
 }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,12 +95,18 @@ public class DefaultAnalyticsTableService
     // -------------------------------------------------------------------------
     
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return tableManager.getAnalyticsTableType();
+    }
+    
+    @Override
     public void update( Integer lastYears, TaskId taskId )
     {
         int processNo = getProcessNo();
         int orgUnitLevelNo = organisationUnitService.getNumberOfOrganisationalLevels();
         
-        String tableName = tableManager.getTableName();
+        String tableName = tableManager.getAnalyticsTableType().getTableName();
         Date earliest = PartitionUtils.getEarliestDate( lastYears );
         
         Clock clock = new Clock( log ).startClock().logTime( "Starting update: " + tableName + ", processes: " + processNo + ", org unit levels: " + orgUnitLevelNo );
@@ -134,6 +140,7 @@ public class DefaultAnalyticsTableService
         notifier.notify( taskId, "Applying aggregation levels" );
         
         applyAggregationLevels( tables );
+        
         clock.logTime( "Applied aggregation levels" );
         notifier.notify( taskId, "Creating indexes" );
         
@@ -176,24 +183,6 @@ public class DefaultAnalyticsTableService
         tables.forEach( table -> tableManager.analyzeTable( table ) );
         
         log.info( "Analytics tables analyzed" );
-    }
-    
-    @Override
-    public void generateResourceTables()
-    {
-        resourceTableService.dropAllSqlViews();
-        resourceTableService.generateOrganisationUnitStructures();
-        resourceTableService.generateDataSetOrganisationUnitCategoryTable();
-        resourceTableService.generateCategoryOptionComboNames();
-        resourceTableService.generateDataElementGroupSetTable();
-        resourceTableService.generateIndicatorGroupSetTable();
-        resourceTableService.generateOrganisationUnitGroupSetTable();
-        resourceTableService.generateCategoryTable();
-        resourceTableService.generateDataElementTable();
-        resourceTableService.generatePeriodTable();
-        resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateDataElementCategoryOptionComboTable();        
-        resourceTableService.createAllSqlViews();
     }
     
     // -------------------------------------------------------------------------

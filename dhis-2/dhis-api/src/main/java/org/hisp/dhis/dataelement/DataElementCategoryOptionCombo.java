@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -160,6 +160,20 @@ public class DataElementCategoryOptionCombo
             "}";
     }
 
+    // -------------------------------------------------------------------------
+    // hashCode and equals based on identifiable object
+    // -------------------------------------------------------------------------
+
+    public int hashCodeIdentifiableObject()
+    {
+        return super.hashCode();
+    }
+    
+    public boolean equalsIdentifiableObject( Object object )
+    {
+        return super.equals( object );
+    }    
+    
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

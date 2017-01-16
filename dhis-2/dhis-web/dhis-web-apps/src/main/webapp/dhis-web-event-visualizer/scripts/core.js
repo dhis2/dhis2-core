@@ -839,12 +839,10 @@ Ext.onReady( function() {
                     '!lastUpdated',
                     '!href',
                     '!created',
-                    '!publicAccess',
                     '!rewindRelativePeriods',
                     '!userOrganisationUnit',
                     '!userOrganisationUnitChildren',
                     '!userOrganisationUnitGrandChildren',
-                    '!externalAccess',
                     '!access',
                     '!relativePeriods',
                     '!columnDimensions',
@@ -853,7 +851,6 @@ Ext.onReady( function() {
                     '!user',
                     '!organisationUnitGroups',
                     '!itemOrganisationUnitGroups',
-                    '!userGroupAccesses',
                     '!indicators',
                     '!dataElements',
                     '!dataElementOperands',
@@ -936,94 +933,6 @@ Ext.onReady( function() {
 				var layout = {},
 					getValidatedDimensionArray,
 					validateSpecialCases;
-
-                // type: string ('column') - 'column', 'stackedcolumn', 'bar', 'stackedbar', 'line', 'area', 'pie'
-
-                // program: object
-
-                // programStage: object
-
-				// columns: [Dimension]
-
-				// rows: [Dimension]
-
-				// filters: [Dimension]
-
-                // showTrendLine: boolean (false)
-
-                // targetLineValue: number
-
-                // targetLineTitle: string
-
-                // baseLineValue: number
-
-                // baseLineTitle: string
-
-                // sortOrder: number
-
-                // outputType: string ('EVENT') - 'EVENT', 'TRACKED_ENTITY_INSTANCE', 'ENROLLMENT'
-
-                // rangeAxisMaxValue: number
-
-                // rangeAxisMinValue: number
-
-                // rangeAxisSteps: number
-
-                // rangeAxisDecimals: number
-
-                // showValues: boolean (true)
-
-                // showTotals: boolean (true)
-
-                // showSubTotals: boolean (true)
-
-				// hideEmptyRows: boolean (false)
-
-                // hideNaData: boolean (false)
-
-				// completedOnly: boolean (false)
-
-                // aggregationType: string ('default') - 'default', 'count', 'sum'
-
-                // showHierarchy: boolean (false)
-
-                // displayDensity: string ('normal') - 'compact', 'normal', 'comfortable'
-
-                // fontSize: string ('normal') - 'small', 'normal', 'large'
-
-                // digitGroupSeparator: string ('space') - 'none', 'comma', 'space'
-
-                // legendSet: object
-
-                // hideLegend: boolean (false)
-
-                // hideTitle: boolean (false)
-
-                // domainAxisTitle: string
-
-                // rangeAxisTitle: string
-
-                // userOrganisationUnit: boolean (false)
-
-                // userOrganisationUnitChildren: boolean (false)
-
-				// parentGraphMap: object
-
-				// sorting: transient object
-
-                    // reportingPeriod: boolean (false) //report tables only
-
-                    // organisationUnit: boolean (false) //report tables only
-
-                    // parentOrganisationUnit: boolean (false) //report tables only
-
-				// regression: boolean (false)
-
-				// cumulative: boolean (false)
-
-				// sortOrder: integer (0) //-1, 0, 1
-
-				// topLimit: integer (100) //5, 10, 20, 50, 100
 
 				getValidatedDimensionArray = function(dimensionArray) {
 					var dimensionArray = Ext.clone(dimensionArray);
@@ -1185,7 +1094,7 @@ Ext.onReady( function() {
 
 					// properties
                     layout.showValues = Ext.isBoolean(config.showData) ? config.showData : (Ext.isBoolean(config.showValues) ? config.showValues : true);
-                    layout.showTrendLine = Ext.isBoolean(config.regression) ? config.regression : (Ext.isBoolean(config.showTrendLine) ? config.showTrendLine : false);
+                    layout.regressionType = Ext.isString(config.regressionType) ? config.regressionType : 'NONE';
                     layout.hideEmptyRows = Ext.isBoolean(config.hideEmptyRows) ? config.hideEmptyRows : (Ext.isBoolean(config.hideEmptyRows) ? config.hideEmptyRows : true);
                     layout.hideNaData = Ext.isBoolean(config.hideNaData) ? config.hideNaData : false;
                     layout.completedOnly = Ext.isBoolean(config.completedOnly) ? config.completedOnly : false;
@@ -1211,6 +1120,23 @@ Ext.onReady( function() {
                     layout.hideTitle = Ext.isBoolean(config.hideTitle) ? config.hideTitle : false;
                     layout.title = Ext.isString(config.title) &&  !Ext.isEmpty(config.title) ? config.title : null;
 
+                    // sharing
+                    if (Ext.isString(config.publicAccess)) {
+                        layout.publicAccess = config.publicAccess;
+                    }
+
+                    if (Ext.isBoolean(config.externalAccess)) {
+                        layout.externalAccess = config.externalAccess;
+                    }
+
+                    if (Ext.isArray(config.userGroupAccesses) && config.userGroupAccesses.length) {
+                        layout.userGroupAccesses = config.userGroupAccesses;
+                    }
+
+                    if (Ext.isArray(config.userAccesses) && config.userAccesses.length) {
+                        layout.userAccesses = config.userAccesses;
+                    }
+                    
                     // value
                     if ((Ext.isObject(config.value) && Ext.isString(config.value.id)) || Ext.isString(config.value)) {
                         layout.value = Ext.isString(config.value) ? {id: config.value} : config.value;
@@ -3108,7 +3034,7 @@ Ext.onReady( function() {
 
                 var hasRelativeOrgunits = service.layout.hasRecordIds(layout, userIdDestroyCacheKeys);
 
-                paramString = '/api/analytics/events/aggregate/' + layout.program.id + '.' + (format || 'json') + '?';
+                paramString = '/api/25/analytics/events/aggregate/' + layout.program.id + '.' + (format || 'json') + '?';
 
 				// stage
 				paramString += 'stage=' + layout.programStage.id;

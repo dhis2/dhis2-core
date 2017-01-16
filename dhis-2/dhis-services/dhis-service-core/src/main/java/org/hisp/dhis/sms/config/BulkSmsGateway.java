@@ -1,11 +1,11 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permi      tted provided that the following conditions are met:
+ * modification, are permitted provided that the following conditions are met:
  * Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
@@ -172,7 +172,7 @@ public class BulkSmsGateway
         {
             uriBuilder = UriComponentsBuilder.fromHttpUrl( bulkSmsConfiguration.getUrlTemplate() );
         }
-        else if ( type.equals( SubmissionType.BATCH ) )
+        else // SubmissionType.BATCH
         {
             uriBuilder = UriComponentsBuilder.fromHttpUrl( bulkSmsConfiguration.getUrlTemplateForBatchSms() );
         }

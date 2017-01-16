@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -135,6 +135,7 @@ public class DefaultSchedulingManager
     public void stopTasks()
     {
         systemSettingManager.deleteSystemSetting( SettingKey.METADATA_SYNC_CRON);
+        systemSettingManager.deleteSystemSetting( SettingKey.DATA_SYNC_CRON);
         systemSettingManager.saveSystemSetting( SettingKey.SCHEDULED_TASKS, null );
         
         scheduler.stopAllTasks();

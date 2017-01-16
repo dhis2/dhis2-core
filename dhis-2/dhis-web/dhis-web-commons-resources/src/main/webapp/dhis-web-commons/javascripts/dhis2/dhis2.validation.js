@@ -40,6 +40,10 @@ dhis2.validation.isValidZeroNumber = function(value) {
   return regex.test(value);
 };
 
+dhis2.validation.isNumericType = function(type) {
+  return type == 'INTEGER' || type == 'INTEGER_POSITIVE' || type == 'INTEGER_NEGATIVE' || type == 'INTEGER_ZERO_OR_POSITIVE' || type == 'NUMBER' || type == 'UNIT_INTERVAL' || type == 'PERCENTAGE';
+};
+
 /**
  * Allow only integers or a single zero and no thousands separators.
  */

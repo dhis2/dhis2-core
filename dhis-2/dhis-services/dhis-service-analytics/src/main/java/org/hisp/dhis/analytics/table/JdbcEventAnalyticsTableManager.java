@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,10 +62,16 @@ public class JdbcEventAnalyticsTableManager
     private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
     
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.EVENT;
+    }
+    
+    @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
     {
-        log.info( "Get tables using earliest: " + earliest + ", spatial support: " + databaseInfo.isSpatialSupport() );
+        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
 
         return getTables( getDataYears( earliest ) );
     }
@@ -101,12 +107,6 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return tables;
-    }
-
-    @Override
-    public String getTableName()
-    {
-        return EVENT_ANALYTICS_TABLE_NAME;
     }
 
     @Override

@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
+package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,34 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.analytics.AnalyticsTableManager;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ObjectBundleException
-    extends RuntimeException
+* @author Lars Helge Overland
+*/
+public enum AnalyticsTableType
 {
-    public ObjectBundleException( String message )
+    DATA_VALUE( "analytics" ),
+    COMPLETENESS( "analytics_completeness" ),
+    COMPLETENESS_TARGET( "analytics_completenesstarget" ),
+    ORG_UNIT_TARGET( "analytics_orgunittarget" ),
+    EVENT( "analytics_event" ),
+    ENROLLMENT( "analytics_enrollment" );
+    
+    private String tableName;
+    
+    private AnalyticsTableType( String tableName )
     {
-        super( message );
+        this.tableName = tableName;
+    }
+
+    public String getTableName()
+    {
+        return tableName;
+    }
+    
+    public String getTempTableName()
+    {
+        return tableName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
     }
 }

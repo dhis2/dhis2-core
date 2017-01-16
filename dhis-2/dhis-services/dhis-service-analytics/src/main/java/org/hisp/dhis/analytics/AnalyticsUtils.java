@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,13 @@ public class AnalyticsUtils
 
     private static final String KEY_AGG_VALUE = "[aggregated]";
     
+    /**
+     * Returns an SQL statement for retrieving raw data values for
+     * an aggregate query.
+     * 
+     * @param params the data query parameters.
+     * @return an SQL statement.
+     */
     public static String getDebugDataSql( DataQueryParams params )
     {
         List<DimensionalItemObject> dataElements = new ArrayList<>( NameableObjectUtils.getCopyNullSafe( params.getDataElements() ) );
@@ -577,7 +584,7 @@ public class AnalyticsUtils
 
         List<DimensionalItemObject> des = params.getAllDataElements();
 
-        if ( des != null && !des.isEmpty() )
+        if ( !des.isEmpty() )
         {
             for ( DimensionalItemObject de : des )
             {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,12 @@ public class JdbcCompletenessTableManager
     extends AbstractJdbcTableManager
 {
     @Override
+    public AnalyticsTableType getAnalyticsTableType()
+    {
+        return AnalyticsTableType.COMPLETENESS;
+    }
+    
+    @Override
     public Set<String> getExistingDatabaseTables()
     {
         return Sets.newHashSet( getTableName() );
@@ -73,13 +79,7 @@ public class JdbcCompletenessTableManager
         
         return null;
     }
-    
-    @Override
-    public String getTableName()
-    {
-        return COMPLETENESS_TABLE_NAME;
-    }
-    
+        
     @Override
     public void createTable( AnalyticsTable table )
     {
@@ -100,10 +100,8 @@ public class JdbcCompletenessTableManager
             sqlCreate += col.getName() + " " + col.getDataType() + ",";
         }
         
-        sqlCreate += "value date) ";
+        sqlCreate += "value date)";
         
-        sqlCreate += statementBuilder.getTableOptions( false );
-
         log.info( "Creating table: " + tableName + ", columns: " + columns.size() );
         
         log.debug( "Create SQL: " + sqlCreate );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,6 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.EVENT_ANALYTICS_TABLE_NAME;
-import static org.hisp.dhis.analytics.AnalyticsTableManager.ENROLLMENT_ANALYTICS_TABLE_NAME;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +40,7 @@ import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
@@ -152,6 +150,14 @@ public class DefaultEventQueryPlanner
         {
             violation = "Cluster field must be specified when bbox or cluster size are specified";
         }
+
+        for ( QueryItem item : params.getItemsAndItemFilters() )
+        {
+            if ( item.hasLegendSet() && item.hasOptionSet() )
+            {
+                violation = "Query item cannot specify both legend set and option set: " + item.getItemId();
+            }
+        }
         
         if ( violation != null )
         {
@@ -202,7 +208,7 @@ public class DefaultEventQueryPlanner
             Period queryPeriod = new Period();
             queryPeriod.setStartDate( params.getStartDate() );
             queryPeriod.setEndDate( params.getEndDate() );
-            params.setPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) );
+            params.setPartitions( PartitionUtils.getPartitions( queryPeriod, AnalyticsTableType.EVENT.getTableName(), tableSuffix, validPartitions ) );
         }
                 
         //TODO periods, convert to start/end dates
@@ -235,7 +241,7 @@ public class DefaultEventQueryPlanner
             List<EventQueryParams> indicatorQueries = new ArrayList<>();
             
             EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( ENROLLMENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) )
+                .withPartitions( PartitionUtils.getPartitions( AnalyticsTableType.ENROLLMENT.getTableName(), tableSuffix, validPartitions ) )
                 .build();
         
             if ( query.getPartitions().hasAny() )
@@ -254,7 +260,7 @@ public class DefaultEventQueryPlanner
             queryPeriod.setEndDate( params.getEndDate() );
             
             EventQueryParams query = new EventQueryParams.Builder( params )
-                .withPartitions( PartitionUtils.getPartitions( queryPeriod, EVENT_ANALYTICS_TABLE_NAME, tableSuffix, validPartitions ) )
+                .withPartitions( PartitionUtils.getPartitions( queryPeriod, AnalyticsTableType.EVENT.getTableName(), tableSuffix, validPartitions ) )
                 .build();
             
             if ( query.getPartitions().hasAny() )
@@ -267,7 +273,7 @@ public class DefaultEventQueryPlanner
         else // Aggregate only
         {
             QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-                withTableName( EVENT_ANALYTICS_TABLE_NAME ).
+                withTableName( AnalyticsTableType.EVENT.getTableName() ).
                 withTableSuffix( tableSuffix ).build();
 
             return QueryPlannerUtils.convert( queryPlanner.groupByPartition( params, plannerParams ) );

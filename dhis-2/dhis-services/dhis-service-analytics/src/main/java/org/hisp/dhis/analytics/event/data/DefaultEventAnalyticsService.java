@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
@@ -109,7 +110,6 @@ public class DefaultEventAnalyticsService
     // EventAnalyticsService implementation
     // -------------------------------------------------------------------------
 
-    // TODO use ValueType for type in grid headers
     // TODO use [longitude/latitude] format for event points
     // TODO order event analytics tables on execution date to avoid default sort
     // TODO sorting in queries
@@ -208,7 +208,11 @@ public class DefaultEventAnalyticsService
                 grid.limitGrid( params.getLimit() );
             }
         }
-        
+
+        // ---------------------------------------------------------------------
+        // Meta-data
+        // ---------------------------------------------------------------------
+
         addMetadata( params, grid );
         
         return grid;
@@ -228,9 +232,11 @@ public class DefaultEventAnalyticsService
         securityManager.decideAccessEventQuery( params );
         
         queryPlanner.validate( params );
-
-        params.replacePeriodsWithStartEndDates();
         
+        params = new EventQueryParams.Builder( params )
+            .withStartEndDatesForPeriods()
+            .build();
+
         Grid grid = new ListGrid();
         
         // ---------------------------------------------------------------------
@@ -278,34 +284,25 @@ public class DefaultEventAnalyticsService
     
             timer.getTime( "Got events " + grid.getHeight() );
         }
-        
+
         // ---------------------------------------------------------------------
         // Meta-data
         // ---------------------------------------------------------------------
 
-        Map<String, Object> metaData = new HashMap<>();
+        addMetadata( params, grid );
 
-        metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), AnalyticsUtils.getUidNameMap( params ) );
-
-        User user = securityManager.getCurrentUser( params );
-
-        Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
-        
-        if ( params.isHierarchyMeta() )
-        {
-            Map<String, String> parentMap = getParentGraphMap( asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ), roots );
-            
-            metaData.put( AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY.getKey(), parentMap );
-        }
+        // ---------------------------------------------------------------------
+        // Paging
+        // ---------------------------------------------------------------------
 
         if ( params.isPaging() )
         {
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             
-            metaData.put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
+            grid.getMetaData().put( AnalyticsMetaDataKey.PAGER.getKey(), pager );
         }
 
-        return grid.setMetaData( metaData );
+        return grid;
     }
 
     @Override
@@ -318,13 +315,12 @@ public class DefaultEventAnalyticsService
         
         params = new EventQueryParams.Builder( params )
             .withGeometryOnly( true )
+            .withStartEndDatesForPeriods()
             .build();
         
         securityManager.decideAccess( params );
         
         queryPlanner.validate( params );
-
-        params.replacePeriodsWithStartEndDates();
         
         Grid grid = new ListGrid();
         
@@ -358,14 +354,13 @@ public class DefaultEventAnalyticsService
 
         params = new EventQueryParams.Builder( params )
             .withGeometryOnly( true )
+            .withStartEndDatesForPeriods()
             .build();
         
         securityManager.decideAccess( params );
         
         queryPlanner.validate( params );
 
-        params.replacePeriodsWithStartEndDates();
-        
         params = queryPlanner.planEventQuery( params );
 
         return eventAnalyticsManager.getRectangle( params );
@@ -379,9 +374,6 @@ public class DefaultEventAnalyticsService
      * Adds meta data values to the given grid based on the given data query
      * parameters.
      * 
-     * TODO handle legend sets for ITEMS.
-     * TODO version for ITEMS / NAMES.
-     *
      * @param params the data query parameters.
      * @param grid the grid.
      */
@@ -399,16 +391,25 @@ public class DefaultEventAnalyticsService
             
             Map<String, String> uidNameMap = AnalyticsUtils.getUidNameMap( params );
             
-            metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
-                Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
-            metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
-            metaData.put( PERIOD_DIM_ID, periodUids );
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
+            {
+                metaData.put( AnalyticsMetaDataKey.ITEMS.getKey(), uidNameMap.entrySet().stream().collect( 
+                    Collectors.toMap( e -> e.getKey(), e -> new MetadataItem( e.getValue() ) ) ) );
+            }
+            else
+            {
+                metaData.put( AnalyticsMetaDataKey.NAMES.getKey(), uidNameMap );
+            }
+            
+            Map<String, Object> dimensionItems = new HashMap<>();
+            
+            dimensionItems.put( PERIOD_DIM_ID, periodUids );
 
             for ( DimensionalObject dim : params.getDimensionsAndFilters() )
             {
                 if ( !metaData.keySet().contains( dim.getDimension() ) )
                 {
-                    metaData.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
+                    dimensionItems.put( dim.getDimension(), getDimensionalItemIds( dim.getItems() ) );
                 }
             }
             
@@ -416,13 +417,27 @@ public class DefaultEventAnalyticsService
             {
                 if ( item.hasLegendSet() )
                 {
-                    metaData.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getLegends() ) );
+                    dimensionItems.put( item.getItemId(), IdentifiableObjectUtils.getUids( item.getLegendSet().getSortedLegends() ) );
                 }
+                else if ( item.hasOptionSet() )
+                {
+                    dimensionItems.put( item.getItemId(), item.getQueryFilterItems() );
+                }
+            }
+
+            if ( params.getApiVersion().ge( DhisApiVersion.V26 ) )
+            {
+                metaData.put( AnalyticsMetaDataKey.DIMENSIONS.getKey(), dimensionItems );
+            }
+            else
+            {
+                metaData.putAll( dimensionItems );
             }
 
             User user = securityManager.getCurrentUser( params );
 
             List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            
             Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
             
             if ( params.isHierarchyMeta() )

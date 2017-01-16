@@ -20,7 +20,7 @@
   </bean>
 
   <bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
-    <property name="poolSize" value="10" />
+    <property name="poolSize" value="25" />
   </bean>
 
   <bean id="scheduler" class="org.hisp.dhis.system.scheduling.SpringScheduler">

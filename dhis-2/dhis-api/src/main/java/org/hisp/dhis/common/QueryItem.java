@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,7 +162,37 @@ public class QueryItem
     {
         return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
     }
+    
+    /**
+     * Returns filter items for all filters associated with this
+     * query item.
+     */
+    public List<String> getQueryFilterItems()
+    {
+        List<String> filterItems = new ArrayList<>();
+        filters.forEach( f -> filterItems.addAll( QueryFilter.getFilterItems( f.getFilter() ) ) );
+        return filterItems;
+    }
+    
+    /**
+     * Returns SQL filter for the given query filter and SQL encoded
+     * filter. If the item value type is text-based, the filter is
+     * converted to lower-case.
+     * 
+     * @param filter the query filter.
+     * @param encodedFilter the SQL encoded filter.
+     */
+    public String getSqlFilter( QueryFilter filter, String encodedFilter )
+    {
+        String sqlFilter = filter.getSqlFilter( encodedFilter );
         
+        return isText() ? sqlFilter.toLowerCase() : sqlFilter;
+    }
+    
+    // -------------------------------------------------------------------------
+    // Static utilities
+    // -------------------------------------------------------------------------
+
     public static List<QueryItem> getQueryItems( Collection<TrackedEntityAttribute> attributes )
     {
         List<QueryItem> queryItems = new ArrayList<>();

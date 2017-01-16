@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.google.common.collect.Sets;
 
 /**
- * This class is responsible for retrieving raw data from the
+ * Class responsible for retrieving raw data from the
  * analytics tables.
  *
  * @author Lars Helge Overland

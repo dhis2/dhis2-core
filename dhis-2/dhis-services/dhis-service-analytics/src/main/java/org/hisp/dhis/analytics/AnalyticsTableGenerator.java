@@ -1,7 +1,7 @@
-package org.hisp.dhis.api.mobile;
+package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,28 @@ package org.hisp.dhis.api.mobile;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertTrue;
+import java.util.Set;
 
-import org.hisp.dhis.api.mobile.model.OrgUnits;
-import org.hisp.dhis.api.mobile.support.DataStreamSerializableMessageConverter;
-import org.hisp.dhis.api.mobile.support.MediaTypes;
-import org.junit.Test;
+import org.hisp.dhis.analytics.table.AnalyticsTableType;
+import org.hisp.dhis.scheduling.TaskId;
 
-public class DataStreamSerializableMessageConverterTest
+/**
+ * Interface responsible for generating analytics tables. Will look for and
+ * invoke implementations of interface {@link AnalyticsTableService}.
+ * 
+ * @author Lars Helge Overland
+ */
+public interface AnalyticsTableGenerator
 {
-
-    @Test
-    public void testAssigning()
-    {
-        boolean writeable = new DataStreamSerializableMessageConverter().canWrite( OrgUnits.class,
-            MediaTypes.MOBILE_SERIALIZED_TYPE );
-        assertTrue( writeable );
-    }
+    /**
+     * Generates analytics tables.
+     * 
+     * @param lastYears the number of years relative to now to include.
+     * @param taskId the task identifier.
+     * @param skipTableTypes indicates the types of analytics tables for 
+     *        which to skip generation.
+     * @param skipResourceTables indicates whether to skip generation of
+     *        resource tables.
+     */
+    void generateTables( Integer lastYears, TaskId taskId, Set<AnalyticsTableType> skipTableTypes, boolean skipResourceTables );
 }

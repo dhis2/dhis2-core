@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.table;
  */
 
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.analytics.AnalyticsTableManager.ANALYTICS_TABLE_NAME;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -51,7 +50,7 @@ import org.junit.Test;
  */
 public class PartitionUtilsTest
 {
-    private static final String TBL = ANALYTICS_TABLE_NAME;
+    private static final String TBL = AnalyticsTableType.DATA_VALUE.getTableName();
     
     @Test
     public void testGetPartitions()

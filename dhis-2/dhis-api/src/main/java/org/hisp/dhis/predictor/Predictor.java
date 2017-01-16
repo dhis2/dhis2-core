@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,22 +131,6 @@ public class Predictor
     public String getDescriptionNameFallback()
     {
         return description != null && !description.trim().isEmpty() ? description : name;
-    }
-
-    /**
-     * Gets the data sources needed from the target period to evaluate the predictor
-     */
-    public Set<DataElement> getPresentDataNeeded()
-    {
-        return generator.getDataElementsInExpression();
-    }
-
-    /**
-     * Gets the data sources needed from past sample periods to evaluate the predictor
-     */
-    public Set<DataElement> getSampleDataNeeded()
-    {
-        return generator.getSampleElementsInExpression();
     }
 
     // -------------------------------------------------------------------------

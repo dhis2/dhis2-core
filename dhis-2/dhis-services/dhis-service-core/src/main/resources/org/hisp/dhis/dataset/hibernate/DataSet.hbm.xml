@@ -24,11 +24,9 @@
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       not-null="true" foreign-key="fk_dataset_periodtypeid" />
 
-    <set name="openPeriods" table="datasetopenperiods">
-      <cache usage="read-write" />
-      <key column="datasetid" foreign-key="fk_datasetopenperiods_datasetid" />
-      <many-to-many class="org.hisp.dhis.period.Period" column="periodid"
-        foreign-key="fk_dataset_periodid" />
+    <set name="dataInputPeriods" table="datasetdatainputperiods" cascade="all-delete-orphan">
+      <key column="datasetid" foreign-key="fk_datasetdatainputperiods_datasetid" />
+      <one-to-many class="org.hisp.dhis.dataset.DataInputPeriod" />
     </set>
 
     <set name="dataSetElements" table="datasetelement" cascade="all-delete-orphan">
@@ -76,10 +74,6 @@
     <property name="expiryDays" />
 
     <property name="timelyDays" />
-
-    <property name="startDate" type="timestamp" />
-
-    <property name="endDate" type="timestamp" />
 
     <many-to-one name="notificationRecipients" class="org.hisp.dhis.user.UserGroup"
       foreign-key="fk_dataset_notificationrecipients" />

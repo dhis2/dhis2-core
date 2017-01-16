@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.notification;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,11 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.notification.NotificationTemplate;
-import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -51,6 +51,8 @@ public class ValidationNotificationTemplate
     extends BaseIdentifiableObject
     implements NotificationTemplate
 {
+    private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
+
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
@@ -59,27 +61,11 @@ public class ValidationNotificationTemplate
 
     private String messageTemplate;
 
-    private Set<ValidationRule> validationRules = Sets.newHashSet();
+    private Set<ValidationRule> validationRules = new HashSet<>();
 
-    private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
-
-    private ValidationNotificationRecipient notificationRecipient;
-
-    // -------------------------------------------------------------------------
-    // Conditionally relevant properties
-    // -------------------------------------------------------------------------
-
-    /**
-     * Limit notifications to only users which are in the direct hierarchy of the
-     * orgunit. This includes any orgunit in the direct path from the root to the
-     * orgunit, as well all children (recursive).
-     *
-     * Should act like a filter on the configured user groups.
-     * In the case of non User recipients, this is not applicable.
-     */
     private Boolean notifyUsersInHierarchyOnly;
 
-    private Set<UserGroup> recipientUserGroups = Sets.newHashSet();
+    private Set<UserGroup> recipientUserGroups = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -87,6 +73,16 @@ public class ValidationNotificationTemplate
 
     public ValidationNotificationTemplate()
     {
+    }
+
+    // -------------------------------------------------------------------------
+    // Logic
+    // -------------------------------------------------------------------------
+
+    public void addValidationRule( ValidationRule validationRule )
+    {
+        this.validationRules.add( validationRule );
+        validationRule.getNotificationTemplates().add( this );
     }
 
     // -------------------------------------------------------------------------
@@ -106,7 +102,7 @@ public class ValidationNotificationTemplate
         this.subjectTemplate = subjectTemplate;
     }
 
-    @PropertyRange( min = 1, max = 10000 )
+    @PropertyRange( min = 1, max = 1000 )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Override
@@ -115,18 +111,10 @@ public class ValidationNotificationTemplate
         return messageTemplate;
     }
 
-    @PropertyRange( min = 1 )
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Set<DeliveryChannel> getDeliveryChannels()
     {
-        return deliveryChannels;
-    }
-
-    public void setDeliveryChannels( Set<DeliveryChannel> deliveryChannels )
-    {
-        this.deliveryChannels = deliveryChannels;
+        return ALL_DELIVERY_CHANNELS;
     }
 
     public void setMessageTemplate( String messageTemplate )
@@ -146,20 +134,6 @@ public class ValidationNotificationTemplate
         this.validationRules = validationRules;
     }
 
-    @Property( required = Property.Value.TRUE )
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValidationNotificationRecipient getNotificationRecipient()
-    {
-        return notificationRecipient;
-    }
-
-    public void setNotificationRecipient( ValidationNotificationRecipient notificationRecipient )
-    {
-        this.notificationRecipient = notificationRecipient;
-    }
-
-    @Property( required = Property.Value.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getNotifyUsersInHierarchyOnly()
@@ -201,19 +175,15 @@ public class ValidationNotificationTemplate
             {
                 subjectTemplate = that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate();
-                notificationRecipient = that.getNotificationRecipient();
                 notifyUsersInHierarchyOnly = that.notifyUsersInHierarchyOnly;
             }
             else if ( mergeMode.isMerge() )
             {
                 subjectTemplate = that.getSubjectTemplate() == null ? subjectTemplate : that.getSubjectTemplate();
                 messageTemplate = that.getMessageTemplate() == null ? messageTemplate : that.getMessageTemplate();
-                notificationRecipient = that.getNotificationRecipient() == null ? notificationRecipient : that.getNotificationRecipient();
-                notifyUsersInHierarchyOnly = that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
+                notifyUsersInHierarchyOnly =
+                    that.getNotifyUsersInHierarchyOnly() == null ? notifyUsersInHierarchyOnly : that.getNotifyUsersInHierarchyOnly();
             }
-
-            deliveryChannels.clear();
-            deliveryChannels.addAll( that.getDeliveryChannels() );
 
             validationRules.clear();
             validationRules.addAll( that.getValidationRules() );

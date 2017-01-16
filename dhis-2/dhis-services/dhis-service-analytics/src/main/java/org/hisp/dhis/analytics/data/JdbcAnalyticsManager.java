@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,8 +73,6 @@ import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
-    //TODO optimize when all options in dimensions are selected
-
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
@@ -105,7 +103,12 @@ public class JdbcAnalyticsManager
         {
             ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap = params.getDataPeriodAggregationPeriodMap();
 
-            params.replaceAggregationPeriodsWithDataPeriods( dataPeriodAggregationPeriodMap );
+            if ( params.isDisaggregation() && params.hasDataPeriodType() )
+            {
+                params = DataQueryParams.newBuilder( params )
+                    .withDataPeriodsForAggregationPeriods( dataPeriodAggregationPeriodMap )
+                    .build();
+            }
 
             String sql = getSelectClause( params );
 
@@ -260,7 +263,7 @@ public class JdbcAnalyticsManager
         {
             sql = "value";
         }
-        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and undefined //TODO
+        else // SUM, AVERAGE_SUM_INT_DISAGGREGATION and null
         {
             sql = "sum(value)";
         }

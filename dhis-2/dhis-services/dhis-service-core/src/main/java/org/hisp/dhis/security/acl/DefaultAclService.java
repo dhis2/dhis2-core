@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,7 +106,7 @@ public class DefaultAclService implements AclService
 
         if ( haveOverrideAuthority( user )
             || (object.getUser() == null && canMakePublic( user, object.getClass() ) && !schema.getAuthorityByType( AuthorityType.CREATE_PRIVATE ).isEmpty())
-            || (user != null && user.equals( object.getUser() ))
+            || (user != null && object.getUser() != null && user.getUid().equals( object.getUser().getUid() ))
             || ((object instanceof User) && canMakePrivate( user, object.getClass() ))
             || AccessStringHelper.canWrite( object.getPublicAccess() ) )
         {

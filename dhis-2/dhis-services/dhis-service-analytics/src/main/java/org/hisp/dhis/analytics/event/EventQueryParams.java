@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,7 +64,12 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
+ * Class representing query parameters for retrieving event data from the
+ * event analytics service.
+ * 
  * @author Lars Helge Overland
  */
 public class EventQueryParams
@@ -212,6 +215,7 @@ public class EventQueryParams
         params.skipRounding = this.skipRounding;
         params.startDate = this.startDate;
         params.endDate = this.endDate;
+        params.apiVersion = this.apiVersion;
 
         params.partitions = new Partitions( this.partitions );
         params.periodType = this.periodType;
@@ -311,7 +315,7 @@ public class EventQueryParams
      * from the periods as start date and the latest end date from the periods
      * as end date. Remove the period dimension or filter.
      */
-    public void replacePeriodsWithStartEndDates()
+    private void replacePeriodsWithStartEndDates()
     {
         List<Period> periods = asTypedList( getDimensionOrFilterItems( PERIOD_DIM_ID ) );
 
@@ -320,12 +324,12 @@ public class EventQueryParams
             Date start = period.getStartDate();
             Date end = period.getEndDate();
 
-            if ( startDate == null || (start != null && start.before( startDate )) )
+            if ( startDate == null || ( start != null && start.before( startDate ) ) )
             {
                 startDate = start;
             }
 
-            if ( endDate == null || (end != null && end.after( endDate )) )
+            if ( endDate == null || ( end != null && end.after( endDate ) ) )
             {
                 endDate = end;
             }
@@ -423,6 +427,9 @@ public class EventQueryParams
 
     /**
      * Removes items and item filters of type program indicators.
+     * 
+     * TODO add support for program indicators in aggregate event 
+     * analytics and remove this method.
      */
     public EventQueryParams removeProgramIndicatorItems()
     {
@@ -589,22 +596,20 @@ public class EventQueryParams
     @Override
     public String toString()
     {
-        Map<String, Object> map = new HashMap<>();
-        
-        map.put( "Program", program );
-        map.put( "Stage", programStage );
-        map.put( "Start date", startDate );
-        map.put( "End date", endDate );
-        map.put( "Items", items );
-        map.put( "Item filters", itemFilters );
-        map.put( "Value", value );
-        map.put( "Item program indicators", itemProgramIndicators );
-        map.put( "Program indicator", programIndicator );
-        map.put( "Aggregation type", aggregationType );
-        map.put( "Dimensions", dimensions );
-        map.put( "Filters", filters );
-        
-        return map.toString(); //TODO
+        return ImmutableMap.<String, Object>builder()
+            .put( "Program", program )
+            .put( "Stage", programStage )
+            .put( "Start date", startDate )
+            .put( "End date", endDate )
+            .put( "Items", items )
+            .put( "Item filters", itemFilters )
+            .put( "Value", value )
+            .put( "Item program indicators", itemProgramIndicators )
+            .put( "Program indicator", programIndicator )
+            .put( "Aggregation type", aggregationType )
+            .put( "Dimensions", dimensions )
+            .put( "Filters", filters )
+            .build().toString();
     }
 
     // -------------------------------------------------------------------------
@@ -1007,12 +1012,18 @@ public class EventQueryParams
             return this;
         }
         
+        public Builder withStartEndDatesForPeriods()
+        {
+            this.params.replacePeriodsWithStartEndDates();
+            return this;
+        }
+        
         public Builder withApiVersion( DhisApiVersion apiVersion )
         {
             this.params.apiVersion = apiVersion;
             return this;
         }
-
+        
         public EventQueryParams build()
         {
             return params;

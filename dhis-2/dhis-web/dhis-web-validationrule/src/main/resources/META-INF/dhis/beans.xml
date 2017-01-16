@@ -11,7 +11,6 @@
     class="org.hisp.dhis.validationrule.action.AddValidationRuleAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
@@ -47,7 +46,6 @@
     class="org.hisp.dhis.validationrule.action.UpdateValidationRuleAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
     <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
   </bean>
 
@@ -77,7 +75,6 @@
     class="org.hisp.dhis.validationrule.action.validationrulegroup.AddValidationRuleGroupAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.GetValidationRuleGroupAction"
@@ -102,14 +99,12 @@
     class="org.hisp.dhis.validationrule.action.validationrulegroup.ShowUpdateValidationRuleGroupFormAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.UpdateValidationRuleGroupAction"
     class="org.hisp.dhis.validationrule.action.validationrulegroup.UpdateValidationRuleGroupAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
-    <property name="userGroupService" ref="org.hisp.dhis.user.UserGroupService" />
   </bean>
 
   <bean id="org.hisp.dhis.validationrule.action.validationrulegroup.ValidateValidationRuleGroupAction"

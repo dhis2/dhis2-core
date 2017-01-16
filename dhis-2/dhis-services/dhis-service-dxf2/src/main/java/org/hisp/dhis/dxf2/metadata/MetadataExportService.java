@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2016, University of Oslo
+ * Copyright (c) 2004-2017, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,19 @@ public interface MetadataExportService
      */
     MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters );
 
+    /**
+     * Exports an object including a set of selected dependencies.
+     *
+     * @param object Object to export including dependencies
+     * @return Original object + selected set of dependencies
+     */
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies( IdentifiableObject object );
 
+    /**
+     * Exports an object including a set of selected dependencies as RootNode.
+     *
+     * @param object Object to export including dependencies
+     * @return Original object + selected set of dependencies, exported as RootNode
+     */
     RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object );
 }
