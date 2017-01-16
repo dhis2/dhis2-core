@@ -28,22 +28,30 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.DefaultValidationNotificationService;
+import org.hisp.dhis.validation.notification.ValidationNotificationService;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anySetOf;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -56,11 +64,16 @@ public class ValidationNotificationServiceTest
     // Setup
     // -------------------------------------------------------------------------
 
-    private ValidationNotificationMessageRenderer renderer = new ValidationNotificationMessageRenderer();
+    @InjectMocks
+    private ValidationNotificationService service;
 
-    private DefaultValidationNotificationService service;
+    @Mock
+    private ValidationNotificationMessageRenderer renderer;
 
+    @Mock
     private MessageService messageService;
+
+    private List<Message> sentMessages;
 
     @Before
     public void setUpTest()
@@ -71,7 +84,9 @@ public class ValidationNotificationServiceTest
 
     private void setUpMocks()
     {
-        messageService = mock( MessageService.class );
+        MockitoAnnotations.initMocks( this );
+
+        sentMessages = new ArrayList<>();
 
         when( messageService.sendMessage(
             anyString(),
@@ -81,10 +96,12 @@ public class ValidationNotificationServiceTest
             any( User.class ),
             anyBoolean(),
             anyBoolean()
-        ) ).then( invocation -> new Message( invocation.getArguments() ) );
-
-        service.setNotificationMessageRenderer( renderer );
-        service.setMessageService( messageService );
+        ) ).then(
+            invocation -> {
+                sentMessages.add( new Message( invocation.getArguments() ) );
+                return anyInt();
+            }
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -92,10 +109,10 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testValidationNotificationsAreGenerated()
+    public void testTestSetupWorksAsExpected() // TODO Remove
     {
-        // TODO
-        fail();
+        messageService.sendMessage( "test", "test", null, Sets.newHashSet(), createUser( 'A' ), false, false );
+        Assert.assertEquals( 1, sentMessages.size() );
     }
 
     // -------------------------------------------------------------------------
