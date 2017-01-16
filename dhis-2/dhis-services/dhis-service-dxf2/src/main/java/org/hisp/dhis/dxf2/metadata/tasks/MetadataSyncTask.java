@@ -128,6 +128,12 @@ public class MetadataSyncTask
             for ( MetadataVersion dataVersion : metadataVersionList )
             {
                 MetadataSyncSummary metadataSyncSummary = handleMetadataSync( context, dataVersion );
+
+                if ( metadataSyncSummary.getImportReport() == null )
+                {
+                    log.error( metadataSyncSummary.getMetadataVersion().getName() + " already exists in system and hence stopping the sync." );
+                }
+
                 boolean abortStatus = metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary, context, dataVersion );
 
                 if ( abortStatus )
