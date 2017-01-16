@@ -30,8 +30,6 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -75,8 +73,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 public class HibernateDataValueStore
     implements DataValueStore
 {
-    private static final Log log = LogFactory.getLog( HibernateDataValueStore.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -328,8 +324,6 @@ public class HibernateDataValueStore
 
         if ( periodIdList.size() == 0 )
         {
-            log.debug("sumRecursiveDeflatedDataValues: no periods found.");
-
             return result;
         }
 
@@ -358,14 +352,12 @@ public class HibernateDataValueStore
 
             if ( value != null )
             {
-                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, sourceId,
-                    categoryOptionComboId, attributeOptionComboId, value );
+                DeflatedDataValue dv = new DeflatedDataValue( dataElementId, periodId, 
+                    sourceId, categoryOptionComboId, attributeOptionComboId, value );
 
                 result.add( dv );
             }
         }
-
-        log.debug("sumRecursiveDeflatedDataValues: " + result.size() + " results from \"" + sql + "\"");
 
         return result;
     }
