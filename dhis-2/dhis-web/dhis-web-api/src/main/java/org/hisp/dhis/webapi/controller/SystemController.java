@@ -36,7 +36,7 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.dxf2.metadata.ImportSummary;
+import org.hisp.dhis.dxf2.common.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.NodeUtils;
