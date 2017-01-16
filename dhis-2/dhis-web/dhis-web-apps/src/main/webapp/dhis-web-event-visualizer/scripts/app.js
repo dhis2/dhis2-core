@@ -2688,7 +2688,7 @@ Ext.onReady( function() {
 				dimensions;
 
 			if (ns.app.layout) {
-				favorite = Ext.clone(ns.app.layout);
+				favorite = Object.assign({}, ns.app.layout);
 
 				// server sync
                 favorite.type = chartConf.c2s[favorite.type];
@@ -2711,7 +2711,6 @@ Ext.onReady( function() {
 				favorite.rangeAxisLabel = favorite.rangeAxisTitle;
 				delete favorite.rangeAxisTitle;
 
-				delete favorite.id;
 				delete favorite.parentGraphMap;
                 delete favorite.displayName;
                 delete favorite.access;
@@ -2744,6 +2743,8 @@ Ext.onReady( function() {
 				text: NS.i18n.create,
 				handler: function() {
 					var favorite = getBody();
+
+                    delete favorite.id;
 					favorite.name = nameTextfield.getValue();
 
 					//tmp
@@ -2931,6 +2932,62 @@ Ext.onReady( function() {
 			height: 22
 		});
 
+        var defaultSharing = {
+            externalAccess: false,
+            publicAccess: 'rw------'
+        };
+
+        var getSharing = function(id, callbackFn) {
+            Ext.Ajax.request({
+                url: ns.core.init.contextPath + '/api/sharing?type=eventChart&id=' + id,
+                method: 'GET',
+                failure: function(r) {
+                    ns.app.viewport.mask.hide();
+                    ns.alert(r);
+                },
+                success: function(r) {
+                    var sharing = Ext.decode(r.responseText),
+                        config = {};
+
+                    if (!sharing.object) {
+                        return config;
+                    }
+
+                    if (Ext.isString(sharing.object.publicAccess)) {
+                        config.publicAccess = sharing.object.publicAccess;
+                    }
+
+                    if (Ext.isBoolean(sharing.object.externalAccess)) {
+                        config.externalAccess = sharing.object.externalAccess;
+                    }
+
+                    if (Ext.isArray(sharing.object.userGroupAccesses) && sharing.object.userGroupAccesses.length) {
+                        config.userGroupAccesses = sharing.object.userGroupAccesses;
+                    }
+
+                    if (Ext.isArray(sharing.object.userAccesses) && sharing.object.userAccesses.length) {
+                        config.userAccesses = sharing.object.userAccesses;
+                    }
+
+                    if (callbackFn) {
+                        callbackFn(config);
+                    }
+                }
+            });
+        };
+
+        var overwrite = function(favorite, id) {
+            Ext.Ajax.request({
+                url: ns.core.init.contextPath + '/api/eventCharts/' + id,
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                params: Ext.encode(favorite),
+                success: function(r) {
+                    ns.app.stores.eventChart.loadStore();
+                }
+            });
+        };
+
 		grid = Ext.create('Ext.grid.Panel', {
 			cls: 'ns-grid',
 			scroll: false,
@@ -2993,32 +3050,23 @@ Ext.onReady( function() {
 									message = NS.i18n.overwrite_favorite + '?\n\n' + record.data.name;
 									favorite = getBody();
 
-									if (favorite) {
-										favorite.name = record.data.name;
+									if (!favorite) {
+                                        ns.alert(NS.i18n.please_create_a_table_first);
+                                        return;
+                                    }
 
-										if (confirm(message)) {
-											Ext.Ajax.request({
-												url: ns.core.init.contextPath + '/api/eventCharts/' + record.data.id + '?mergeStrategy=REPLACE',
-												method: 'PUT',
-												headers: {'Content-Type': 'application/json'},
-												params: Ext.encode(favorite),
-												success: function(r) {
-													ns.app.layout.id = record.data.id;
-													ns.app.xLayout.id = record.data.id;
+                                    favorite.name = record.data.name;
 
-													ns.app.layout.name = true;
-													ns.app.xLayout.name = true;
-
-													ns.app.stores.eventChart.loadStore();
-
-													ns.app.shareButton.enable();
-												}
-											});
-										}
-									}
-									else {
-										ns.alert(NS.i18n.please_create_a_table_first);
-									}
+                                    if (confirm(message)) {
+                                        if (favorite.id) {
+                                            getSharing(favorite.id, function(sharing) {
+                                                overwrite(Object.assign(favorite, sharing), record.data.id);
+                                            });
+                                        }
+                                        else {
+                                            overwrite(Object.assign(favorite, defaultSharing), record.data.id);
+                                        }
+                                    }
 								}
 							}
 						},
