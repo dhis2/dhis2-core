@@ -28,38 +28,24 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.*;
+
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -321,5 +307,33 @@ public class DataQueryParamsTest
         assertEquals( 2, dimensions.size() );
         assertTrue( dimensions.contains( new BaseDimensionalObject( PERIOD_DIM_ID ) ) );
         assertTrue( dimensions.contains( new BaseDimensionalObject( ORGUNIT_DIM_ID ) ) );        
+    }
+
+    @Test
+    public void testGetLatestEndDate()
+    {
+        Period q1_2016 = PeriodType.getPeriodFromIsoString( "2016Q1");
+        Period q2_2016 = PeriodType.getPeriodFromIsoString( "2016Q2");
+        Calendar today = Calendar.getInstance();
+
+        DataQueryParams dqp1 = DataQueryParams.newBuilder()
+            .withEndDate( today.getTime() )
+            .withPeriods( Lists.newArrayList( q1_2016 ) )
+            .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
+            .build();
+
+        DataQueryParams dqp2 = DataQueryParams.newBuilder()
+            .withEndDate( q1_2016.getEndDate() )
+            .build();
+
+        DataQueryParams dqp3 = DataQueryParams.newBuilder()
+            .withFilterPeriods( Lists.newArrayList( q2_2016 ) )
+            .withPeriods( Lists.newArrayList( q1_2016 ) )
+            .build();
+
+        assertEquals( today.getTime(), dqp1.getLatestEndDate() );
+        assertEquals( q1_2016.getEndDate(), dqp2.getLatestEndDate() );
+        assertEquals( q2_2016.getEndDate(), dqp3.getLatestEndDate() );
+
     }
 }
