@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.data;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -548,16 +547,6 @@ public class DefaultAnalyticsService
                 return;
             }
 
-            // -----------------------------------------------------------------
-            // Get complete data set registrations
-            // -----------------------------------------------------------------
-
-            Map<String, Double> aggregatedDataMap = getAggregatedCompletenessValueMap( params );
-
-            // -----------------------------------------------------------------
-            // Get completeness targets
-            // -----------------------------------------------------------------
-
             DataQueryParams targetParams = DataQueryParams.newBuilder( params )
                 .withSkipPartitioning( true )
                 .withTimely( false )
@@ -567,33 +556,21 @@ public class DefaultAnalyticsService
 
             Map<String, Double> targetMap = getAggregatedCompletenessTargetMap( targetParams );
 
+            Map<String, Double> dataMap = metric != EXPECTED_REPORTS ? getAggregatedCompletenessValueMap( params ) : new HashMap<>();
+
             Integer periodIndex = params.getPeriodDimensionIndex();
             Integer dataSetIndex = DataQueryParams.DX_INDEX;
-
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
-
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
-            // -----------------------------------------------------------------
-            // Join data maps, calculate completeness and add to grid
-            // -----------------------------------------------------------------
-
-            //FIXME If target value exists, but not actual reports exist we could still display target
-            //FIXME avoid duplicate requests for actual reports
-
-            for ( Map.Entry<String, Double> entry : aggregatedDataMap.entrySet() )
+            for ( Map.Entry<String, Double> entry : targetMap.entrySet() )
             {
                 List<String> dataRow = Lists.newArrayList( entry.getKey().split( DIMENSION_SEP ) );
 
-                // -------------------------------------------------------------
-                // Get target value
-                // -------------------------------------------------------------
-
-                String targetKey = StringUtils.join( dataRow, DIMENSION_SEP );
-                Double target = targetMap.get( targetKey );
-                Double actual = entry.getValue();
-
-                if ( target != null && actual != null )
+                Double target = entry.getValue();
+                Double actual = dataMap.get( entry.getKey() );
+                
+                if ( target != null && ( actual != null || metric == EXPECTED_REPORTS ) )
                 {
                     // ---------------------------------------------------------
                     // Multiply target value by number of periods in time span
@@ -609,17 +586,17 @@ public class DefaultAnalyticsService
 
                     Double value = 0d;
 
-                    if ( ACTUAL_REPORTS == metric || ACTUAL_REPORTS_ON_TIME == metric )
-                    {
-                        value = actual;
-                    }
-                    else if ( EXPECTED_REPORTS == metric )
+                    if ( EXPECTED_REPORTS == metric )
                     {
                         value = target;
                     }
-                    else if ( !MathUtils.isZero( target) ) // REPORTING_RATE
+                    else if ( ACTUAL_REPORTS == metric || ACTUAL_REPORTS_ON_TIME == metric )
                     {
-                        value = (actual * PERCENT) / target;
+                        value = actual;
+                    }
+                    else if ( !MathUtils.isZero( target) ) // REPORTING_RATE or REPORTING_RATE_ON_TIME
+                    {
+                        value = ( actual * PERCENT ) / target;
                     }
 
                     String reportingRate = DimensionalObjectUtils.getDimensionItem( dataRow.get( DX_INDEX ), metric );
