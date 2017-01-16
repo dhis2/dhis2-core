@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.data;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -549,13 +548,7 @@ public class DefaultAnalyticsService
             }
 
             // -----------------------------------------------------------------
-            // Get complete data set registrations
-            // -----------------------------------------------------------------
-
-            Map<String, Double> aggregatedDataMap = getAggregatedCompletenessValueMap( params );
-
-            // -----------------------------------------------------------------
-            // Get completeness targets
+            // Get completeness targets and complete data set registrations
             // -----------------------------------------------------------------
 
             DataQueryParams targetParams = DataQueryParams.newBuilder( params )
@@ -567,16 +560,12 @@ public class DefaultAnalyticsService
 
             Map<String, Double> targetMap = getAggregatedCompletenessTargetMap( targetParams );
 
+            Map<String, Double> aggregatedDataMap = getAggregatedCompletenessValueMap( params );
+
             Integer periodIndex = params.getPeriodDimensionIndex();
             Integer dataSetIndex = DataQueryParams.DX_INDEX;
-
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
-
             PeriodType filterPeriodType = params.getFilterPeriodType();
-
-            // -----------------------------------------------------------------
-            // Join data maps, calculate completeness and add to grid
-            // -----------------------------------------------------------------
 
             //FIXME If target value exists, but not actual reports exist we could still display target
             //FIXME avoid duplicate requests for actual reports
@@ -585,14 +574,9 @@ public class DefaultAnalyticsService
             {
                 List<String> dataRow = Lists.newArrayList( entry.getKey().split( DIMENSION_SEP ) );
 
-                // -------------------------------------------------------------
-                // Get target value
-                // -------------------------------------------------------------
-
-                String targetKey = StringUtils.join( dataRow, DIMENSION_SEP );
-                Double target = targetMap.get( targetKey );
+                Double target = targetMap.get( entry.getKey() );
                 Double actual = entry.getValue();
-
+                
                 if ( target != null && actual != null )
                 {
                     // ---------------------------------------------------------
@@ -619,7 +603,7 @@ public class DefaultAnalyticsService
                     }
                     else if ( !MathUtils.isZero( target) ) // REPORTING_RATE
                     {
-                        value = (actual * PERCENT) / target;
+                        value = ( actual * PERCENT ) / target;
                     }
 
                     String reportingRate = DimensionalObjectUtils.getDimensionItem( dataRow.get( DX_INDEX ), metric );
