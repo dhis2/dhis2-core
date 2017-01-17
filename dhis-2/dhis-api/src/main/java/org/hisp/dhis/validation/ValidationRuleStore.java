@@ -43,10 +43,6 @@ public interface ValidationRuleStore
 {
     String ID = ValidationRuleStore.class.getName();
 
-    // -------------------------------------------------------------------------
-    // ValidationRule
-    // -------------------------------------------------------------------------
-
     /**
      * Returns all ValidationRules which are associated through their left or
      * right side Expression with the given collection of DataElements.

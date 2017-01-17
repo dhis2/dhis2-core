@@ -147,6 +147,14 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />
   </bean>
+  
+  <!-- Validation -->
+
+  <bean id="org.hisp.dhis.validation.ValidationService" class="org.hisp.dhis.validation.DefaultValidationService" />
+
+  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
+
+  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
 
   <!-- Scheduling -->
 

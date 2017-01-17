@@ -58,8 +58,8 @@ import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.system.util.MathUtils.expressionIsTrue;
 import static org.hisp.dhis.system.util.MathUtils.roundSignificant;
 import static org.hisp.dhis.system.util.MathUtils.zeroIfNull;
-import static org.hisp.dhis.validation.ValidationRuleService.MAX_INTERACTIVE_ALERTS;
-import static org.hisp.dhis.validation.ValidationRuleService.MAX_SCHEDULED_ALERTS;
+import static org.hisp.dhis.validation.ValidationService.MAX_INTERACTIVE_ALERTS;
+import static org.hisp.dhis.validation.ValidationService.MAX_SCHEDULED_ALERTS;
 
 /**
  * Runs a validation task on a thread within a multi-threaded validation run.

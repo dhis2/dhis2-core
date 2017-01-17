@@ -29,85 +29,16 @@ package org.hisp.dhis.validation;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 /**
  * @author Margrethe Store
- * @version $Id: ValidationRuleService.java 5434 2008-06-18 18:57:59Z larshelg $
  */
 public interface ValidationRuleService
 {
     String ID = ValidationRuleService.class.getName();
-
-    int MAX_INTERACTIVE_ALERTS = 500;
-    int MAX_SCHEDULED_ALERTS = 100000;
-
-    // -------------------------------------------------------------------------
-    // ValidationRule business logic
-    // -------------------------------------------------------------------------
-
-    /**
-     * Validate DataValues.
-     *
-     * @param startDate         the start date.
-     * @param endDate           the end date.
-     * @param sources           a collection of Sources.
-     * @param attributeCombo    attribute category option combo (null for all).
-     * @param group             validation rule group (null for all validationRules).
-     * @param sendNotifications whether to send notifications upon rule violations.
-     * @param format         the i18n format.
-     * @return a Collection of ValidationResults for each validation violation.
-     */
-    Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
-        DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format );
-
-    /**
-     * Validate DataValues.
-     *
-     * @param dataSet        the DataSet.
-     * @param period         the Period.
-     * @param source         the Organisation unit.
-     * @param attributeCombo attribute category option combo (null for all).
-     * @return a Collection of ValidationResults for each validation violation.
-     */
-    Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source, DataElementCategoryOptionCombo attributeCombo );
-
-    /**
-     * Evaluates all the validation rules that could generate notifications,
-     * and sends results (if any) to users who should be notified.
-     */
-    void scheduledRun();
-
-    /**
-     * Validate that missing data values have a corresponding comment, assuming
-     * that the given data set has the noValueRequiresComment property set to true.
-     *
-     * @param dataSet              the data set.
-     * @param period               the period.
-     * @param organisationUnit     the organisation unit.
-     * @param attributeOptionCombo the attribute option combo.
-     * @return a list of operands representing missing comments.
-     */
-    List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo );
-
-    /**
-     * Returns all validation-type rules which have specified data elements
-     * assigned to them.
-     *
-     * @param dataElements the data elements to look for.
-     * @return all validation rules which have the data elements assigned.
-     */
-    Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements );
 
     // -------------------------------------------------------------------------
     // ValidationRule
@@ -183,6 +114,22 @@ public interface ValidationRuleService
      */
     Set<DataElement> getDataElements( ValidationRule validationRule );
 
+    /**
+     * Returns all validation-type rules which have specified data elements
+     * assigned to them.
+     *
+     * @param dataElements the data elements to look for.
+     * @return all validation rules which have the data elements assigned.
+     */
+    Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements );
+
+    /**
+     * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+     *
+     * @return a List of ValidationRule.
+     */
+    List<ValidationRule> getValidationRulesWithNotificationTemplates();
+
     // -------------------------------------------------------------------------
     // ValidationRuleGroup
     // -------------------------------------------------------------------------
@@ -254,5 +201,4 @@ public interface ValidationRuleService
     int getValidationRuleGroupCount();
 
     int getValidationRuleGroupCountByName( String name );
-
 }
