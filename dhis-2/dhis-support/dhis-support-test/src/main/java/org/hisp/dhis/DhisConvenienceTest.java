@@ -1691,6 +1691,7 @@ public abstract class DhisConvenienceTest
         template.setName( name );
         template.setSubjectTemplate( "Subject" );
         template.setMessageTemplate( "Message" );
+        template.setNotifyUsersInHierarchyOnly( false );
 
         return template;
     }
