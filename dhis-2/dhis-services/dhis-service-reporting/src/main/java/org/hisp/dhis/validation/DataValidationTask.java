@@ -132,9 +132,9 @@ public class DataValidationTask
                 {
                     for ( Period period : periodTypeX.getPeriods() )
                     {
-                        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
+                        MapMap<String, DataElementOperand, Date> lastUpdatedMap = new MapMap<>();
 
-                        MapMap<Integer, DataElementOperand, Double> dataValueMap = getDataValueMap( 
+                        MapMap<String, DataElementOperand, Double> dataValueMap = getDataValueMap( 
                             periodTypeX.getDataElements(), sourceDataElements, periodTypeX.getAllowedPeriodTypes(), 
                             period, sourceX.getSource(), lastUpdatedMap );
 
@@ -145,16 +145,16 @@ public class DataValidationTask
                         {
                             if ( evaluateValidationCheck( dataValueMap, lastUpdatedMap, rule ) )
                             {
-                                Map<Integer, Double> leftSideValues =
+                                Map<String, Double> leftSideValues =
                                     getExpressionValueMap( rule.getLeftSide(), dataValueMap );
 
-                                Map<Integer, Double> rightSideValues =
+                                Map<String, Double> rightSideValues =
                                     getExpressionValueMap( rule.getRightSide(), dataValueMap );
 
-                                Set<Integer> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
+                                Set<String> attributeOptionCombos = Sets.newHashSet( leftSideValues.keySet() );
                                 attributeOptionCombos.addAll( rightSideValues.keySet() );
 
-                                for ( int optionCombo : attributeOptionCombos )
+                                for ( String optionCombo : attributeOptionCombos )
                                 {
                                     Double leftSide = leftSideValues.get( optionCombo );
                                     Double rightSide = rightSideValues.get( optionCombo );
@@ -271,8 +271,8 @@ public class DataValidationTask
      * @param rule              the rule that may be evaluated
      * @return true if the rule should be evaluated with this data, false if not
      */
-    private boolean evaluateValidationCheck( MapMap<Integer, DataElementOperand, Double> currentValueMapMap,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMapMap, ValidationRule rule )
+    private boolean evaluateValidationCheck( MapMap<String, DataElementOperand, Double> currentValueMapMap,
+        MapMap<String, DataElementOperand, Date> lastUpdatedMapMap, ValidationRule rule )
     {
         boolean evaluate = true; // Assume true for now
 
@@ -289,7 +289,7 @@ public class DataValidationTask
                     // scheduled run, otherwise return false
                     evaluate = false;
 
-                    for ( Map.Entry<Integer, Map<DataElementOperand, Date>> entry : lastUpdatedMapMap.entrySet() )
+                    for ( Map.Entry<String, Map<DataElementOperand, Date>> entry : lastUpdatedMapMap.entrySet() )
                     {
                         boolean saveCombo = false;
 
@@ -325,12 +325,12 @@ public class DataValidationTask
      * @param valueMap            Map of value maps, by attribute option combo.
      * @return map of values.
      */
-    private Map<Integer, Double> getExpressionValueMap( Expression expression,
-        MapMap<Integer, DataElementOperand, Double> valueMap )
+    private Map<String, Double> getExpressionValueMap( Expression expression,
+        MapMap<String, DataElementOperand, Double> valueMap )
     {
-        Map<Integer, Double> expressionValueMap = new HashMap<>();
+        Map<String, Double> expressionValueMap = new HashMap<>();
 
-        for ( Map.Entry<Integer, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
+        for ( Map.Entry<String, Map<DataElementOperand, Double>> entry : valueMap.entrySet() )
         {
             Double value = expressionService.getExpressionValue( expression, entry.getValue(),
                 context.getConstantMap(), null, null );
@@ -356,10 +356,10 @@ public class DataValidationTask
      * @param lastUpdatedMap        map showing when each data values was last updated
      * @return map of attribute option combo to map of values found.
      */
-    private MapMap<Integer, DataElementOperand, Double> getDataValueMap( 
+    private MapMap<String, DataElementOperand, Double> getDataValueMap( 
         Set<DataElement> ruleDataElements, Set<DataElement> sourceDataElements,
         Set<PeriodType> allowedPeriodTypes, Period period,
-        OrganisationUnit source, MapMap<Integer, DataElementOperand, Date> lastUpdatedMap )
+        OrganisationUnit source, MapMap<String, DataElementOperand, Date> lastUpdatedMap )
     {
         Set<DataElement> dataElementsToGet = new HashSet<>( ruleDataElements );
         dataElementsToGet.retainAll( sourceDataElements );

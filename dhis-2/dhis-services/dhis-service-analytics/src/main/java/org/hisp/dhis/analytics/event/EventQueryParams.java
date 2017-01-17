@@ -68,10 +68,20 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * Class representing query parameters for retrieving event data from the
- * event analytics service.
+ * event analytics service. Example instantiation:
+ * 
+ * <pre>
+ * {@code
+ * EventQueryParams params = new EventQueryParams.Builder()
+ *      .addItem( qiA )
+ *      .addItemFilter( qiB )
+ *      .withOrganisationUnits( ouA, ouB )
+ *      .build();
+ * }
+ * </pre>
  * 
  * @author Lars Helge Overland
- */
+ */ 
 public class EventQueryParams
     extends DataQueryParams
 {

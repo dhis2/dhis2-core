@@ -57,7 +57,17 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
- * analytics service.
+ * analytics service. Example instantiation:
+ * 
+ * <pre>
+ * {@code
+ * DataQueryParams params = DataQueryParams.newBuilder()
+ *      .withDataElements( deA, deB )
+ *      .withOrganisationUnits( ouA, ouB )
+ *      .withFilterPeriods( peA, peB )
+ *      .build();
+ * }
+ * </pre>
  * 
  * @author Lars Helge Overland
  */
@@ -2063,6 +2073,12 @@ public class DataQueryParams
         public Builder withCategoryOptionCombos( List<? extends DimensionalItemObject> categoryOptionCombos )
         {
             this.params.setDimensionOptions( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.CATEGORY_OPTION_COMBO, null, asList( categoryOptionCombos ) );
+            return this;
+        }
+        
+        public Builder withAttributeOptionCombos( List<? extends DimensionalItemObject> attributeOptionCombos )
+        {
+            this.params.setDimensionOptions( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, null, asList( attributeOptionCombos ) );
             return this;
         }
         

@@ -239,10 +239,10 @@ public interface DataValueService
      * @param periodTypes allowable period types in which to find the data
      * @param attributeCombo the attribute combo to check (if restricted)
      * @param lastUpdatedMap map in which to return the lastUpdated date for each value
-     * @return map of values by attribute option combo id, then DataElementOperand
+     * @return map of values by attribute option combo UID, then DataElementOperand
      */
-    MapMap<Integer, DataElementOperand, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
+    MapMap<String, DataElementOperand, Double> getDataValueMapByAttributeCombo( Collection<DataElement> dataElements, Date date,
         OrganisationUnit source, Collection<PeriodType> periodTypes, DataElementCategoryOptionCombo attributeCombo,
         Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints,
-        MapMap<Integer, DataElementOperand, Date> lastUpdatedMap );
+        MapMap<String, DataElementOperand, Date> lastUpdatedMap );
 }
