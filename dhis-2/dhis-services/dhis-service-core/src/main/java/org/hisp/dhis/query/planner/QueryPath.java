@@ -28,7 +28,7 @@ package org.hisp.dhis.query.planner;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.repackaged.com.google.common.base.Joiner;
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.schema.Property;
 
