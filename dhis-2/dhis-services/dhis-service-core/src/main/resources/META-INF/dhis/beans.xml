@@ -916,18 +916,8 @@
   <bean id="org.hisp.dhis.validation.ValidationRuleService" class="org.hisp.dhis.validation.DefaultValidationRuleService">
     <property name="validationRuleStore" ref="org.hisp.dhis.validation.ValidationRuleStore" />
     <property name="validationRuleGroupStore" ref="org.hisp.dhis.validation.ValidationRuleGroupStore" />
-    <property name="periodService" ref="org.hisp.dhis.period.PeriodService" />
-    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="dataValueService" ref="org.hisp.dhis.datavalue.DataValueService" />
-    <property name="categoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
-    <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="systemSettingManager" ref="org.hisp.dhis.setting.SystemSettingManager" />
     <property name="expressionService" ref="org.hisp.dhis.expression.ExpressionService" />
-    <property name="notificationService" ref="org.hisp.dhis.validation.notification.ValidationNotificationService" />
   </bean>
-
-  <bean id="validationTask" class="org.hisp.dhis.validation.DataValidationTask" scope="prototype" />
 
   <bean id="validationNotificationMessageRenderer" class="org.hisp.dhis.notification.ValidationNotificationMessageRenderer" />
 
@@ -1545,10 +1535,6 @@
     <property name="globalResourceBundleName" value="i18n_global" />
     <property name="specificResourceBundleName" value="i18n_module" />
   </bean>
-
-  <!-- Scheduled task for data monitoring -->
-
-  <bean id="monitoringLastDayTask" class="org.hisp.dhis.validation.scheduling.MonitoringTask" scope="prototype" />
 
   <!-- Scheduled task for scheduled program notifications -->
 

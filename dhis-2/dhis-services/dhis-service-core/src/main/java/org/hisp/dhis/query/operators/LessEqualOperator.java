@@ -80,7 +80,14 @@ public class LessEqualOperator extends Operator
 
         Type type = new Type( value );
 
-        if ( type.isInteger() )
+        if ( type.isString() )
+        {
+            String s1 = getValue( String.class );
+            String s2 = (String) value;
+
+            return s1 != null && (s2.equals( s1 ) || s2.compareTo( s1 ) < 0);
+        }
+        else if ( type.isInteger() )
         {
             Integer s1 = getValue( Integer.class );
             Integer s2 = (Integer) value;

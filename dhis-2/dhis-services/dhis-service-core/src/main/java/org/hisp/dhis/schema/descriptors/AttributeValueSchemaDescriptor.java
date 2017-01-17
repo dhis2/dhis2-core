@@ -1,4 +1,4 @@
-package org.hisp.dhis.query.planner;
+package org.hisp.dhis.schema.descriptors;
 
 /*
  * Copyright (c) 2004-2017, University of Oslo
@@ -28,75 +28,29 @@ package org.hisp.dhis.query.planner;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.schema.Property;
-
-import java.util.Arrays;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.springframework.core.Ordered;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class QueryPath
+public class AttributeValueSchemaDescriptor implements SchemaDescriptor
 {
-    private final Property property;
+    public static final String SINGULAR = "attributeValue";
 
-    private final boolean persisted;
+    public static final String PLURAL = "attributeValues";
 
-    private String[] alias = new String[]{};
-
-    private static final Joiner PATH_JOINER = Joiner.on( "." );
-
-    public QueryPath( Property property, boolean persisted )
-    {
-        this.property = property;
-        this.persisted = persisted;
-    }
-
-    public QueryPath( Property property, boolean persisted, String[] alias )
-    {
-        this( property, persisted );
-        this.alias = alias;
-    }
-
-    public Property getProperty()
-    {
-        return property;
-    }
-
-    public String getPath()
-    {
-        return haveAlias() ? PATH_JOINER.join( alias ) + "." + property.getFieldName() : property.getFieldName();
-    }
-
-    public boolean isPersisted()
-    {
-        return persisted;
-    }
-
-    public String[] getAlias()
-    {
-        return alias;
-    }
-
-    public boolean haveAlias()
-    {
-        return alias != null && alias.length > 0;
-    }
-
-    public boolean haveAlias( int n )
-    {
-        return alias != null && alias.length > n;
-    }
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public String toString()
+    public Schema getSchema()
     {
-        return MoreObjects.toStringHelper( this )
-            .add( "name", property.getName() )
-            .add( "path", getPath() )
-            .add( "persisted", persisted )
-            .add( "alias", Arrays.toString( alias ) )
-            .toString();
+        Schema schema = new Schema( AttributeValue.class, SINGULAR, PLURAL );
+        schema.setMetadata( false );
+        schema.setOrder( Ordered.HIGHEST_PRECEDENCE );
+
+        return schema;
     }
 }
