@@ -45,7 +45,7 @@ $(document).ready(function () {
             $(parentClass+' .weekPickerContainer').show();
             $(parentClass+' #weekPeriod').show();
             $(parentClass+' #weekPicker').show();
-            $(parentClass+' .timePickerContainer').show();F
+            $(parentClass+' .timePickerContainer').show();
         },
 
         yearly: function (parentClass)
