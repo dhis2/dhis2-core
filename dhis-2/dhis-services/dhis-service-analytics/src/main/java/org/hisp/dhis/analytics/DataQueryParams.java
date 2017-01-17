@@ -2076,6 +2076,12 @@ public class DataQueryParams
             return this;
         }
         
+        public Builder withAttributeOptionCombos( List<? extends DimensionalItemObject> attributeOptionCombos )
+        {
+            this.params.setDimensionOptions( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, null, asList( attributeOptionCombos ) );
+            return this;
+        }
+        
         public Builder withCategory( DataElementCategory category )
         {
             this.params.setDimensionOptions( category.getUid(), DimensionType.CATEGORY, null, new ArrayList<>( category.getItems() ) );
