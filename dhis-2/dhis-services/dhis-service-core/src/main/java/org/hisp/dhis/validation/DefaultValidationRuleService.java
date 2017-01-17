@@ -28,43 +28,15 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.GenericIdentifiableObjectStore;
-import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElementCategoryService;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.validation.notification.ValidationNotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import org.hisp.dhis.common.GenericIdentifiableObjectStore;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.expression.ExpressionService;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Margrethe Store
@@ -75,8 +47,6 @@ import java.util.stream.Collectors;
 public class DefaultValidationRuleService
     implements ValidationRuleService
 {
-    private static final Log log = LogFactory.getLog( DefaultValidationRuleService.class );
-
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -95,280 +65,11 @@ public class DefaultValidationRuleService
         this.validationRuleGroupStore = validationRuleGroupStore;
     }
 
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
-    private DataValueService dataValueService;
-
-    public void setDataValueService( DataValueService dataValueService )
-    {
-        this.dataValueService = dataValueService;
-    }
-
-    private DataElementCategoryService categoryService;
-
-    public void setCategoryService( DataElementCategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
-
-    private ConstantService constantService;
-
-    public void setConstantService( ConstantService constantService )
-    {
-        this.constantService = constantService;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
-    }
-
     private ExpressionService expressionService;
-    
+
     public void setExpressionService( ExpressionService expressionService )
     {
         this.expressionService = expressionService;
-    }
-
-    private ValidationNotificationService notificationService;
-
-    public void setNotificationService( ValidationNotificationService notificationService )
-    {
-        this.notificationService = notificationService;
-    }
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    // -------------------------------------------------------------------------
-    // ValidationRule business logic
-    // -------------------------------------------------------------------------
-
-    @Override
-    public Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
-        DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format )
-    {
-        log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
-
-        List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
-        
-        Collection<ValidationRule> rules = group != null ? group.getMembers() : getAllValidationRules();
-        
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
-            .collect( Collectors.toMap( Function.identity(), this::getDataElements ) );
-
-        User user = currentUserService.getCurrentUser();
-        
-        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext(
-            sources, periods, rules, attributeCombo, 
-            null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
-
-        formatPeriods( results, format );
-
-        if ( sendNotifications )
-        {
-            notificationService.sendNotifications( new HashSet<>( results ) );
-        }
-
-        return results;
-    }
-
-    @Override
-    public Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo attributeCombo )
-    {
-        log.debug( "Validate data set: " + dataSet.getName() + " period: " + period.getPeriodType().getName() + " "
-            + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName()
-            + " attribute combo: " + ( attributeCombo == null ? "[none]" : attributeCombo.getName() ) );
-
-        Collection<ValidationRule> rules = getValidationRulesForDataElements( dataSet.getDataElements() );
-        
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
-            .collect( Collectors.toMap( Function.identity(), this::getDataElements ) );
-
-        User user = currentUserService.getCurrentUser();
-        
-        return Validator.validate( ValidationRunContext.getNewContext( 
-            Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
-    }
-
-    @Override
-    public void scheduledRun()
-    {
-        log.info( "Starting scheduled monitoring task" );
-
-        List<OrganisationUnit> sources = organisationUnitService.getAllOrganisationUnits();
-
-        // Find all rules which might generate notifications
-        Set<ValidationRule> rules = getValidationRulesWithNotificationTemplates();
-
-        Set<Period> periods = extractNotificationPeriods( rules );
-
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
-            .collect( Collectors.toMap( Function.identity(), this::getDataElements ) );
-
-        Date lastScheduledRun = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_MONITORING_RUN );
-
-        // Any database changes after this moment will contribute to the next run.
-
-        Date thisRun = new Date();
-
-        log.info( "Scheduled monitoring run sources: " + sources.size() + ", periods: " + periods.size() + ", rules:" + rules.size()
-            + ", last run: " + (lastScheduledRun == null ? "[none]" : lastScheduledRun) );
-
-        User user = currentUserService.getCurrentUser();
-        
-        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext( 
-            sources, periods, rules, null, lastScheduledRun,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
-
-        log.info( "Validation run result count: " + results.size() );
-
-        notificationService.sendNotifications( new HashSet<>( results ) );
-
-        log.info( "Sent notifications, monitoring task done" );
-
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_MONITORING_RUN, thisRun );
-    }
-
-    @Override
-    public List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
-    {
-        List<DataElementOperand> violations = new ArrayList<>();
-
-        if ( dataSet.isNoValueRequiresComment() )
-        {
-            for ( DataElement de : dataSet.getDataElements() )
-            {
-                for ( DataElementCategoryOptionCombo co : de.getCategoryOptionCombos() )
-                {
-                    DataValue dv = dataValueService.getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
-
-                    boolean missingValue = dv == null || StringUtils.trimToNull( dv.getValue() ) == null;
-                    boolean missingComment = dv == null || StringUtils.trimToNull( dv.getComment() ) == null;
-
-                    if ( missingValue && missingComment )
-                    {
-                        violations.add( new DataElementOperand( de, co ) );
-                    }
-                }
-            }
-        }
-
-        return violations;
-    }
-
-    @Override
-    public Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements )
-    {
-        Set<ValidationRule> rulesForDataElements = new HashSet<>();
-
-        for ( ValidationRule validationRule : getAllValidationRules() )
-        {
-            Set<DataElement> validationRuleElements = getDataElements( validationRule );
-
-            if ( dataElements.containsAll( validationRuleElements ) )
-            {
-                rulesForDataElements.add( validationRule );
-            }
-        }
-
-        return rulesForDataElements;
-    }
-
-    @Override
-    public Set<DataElement> getDataElements( ValidationRule validationRule )
-    {
-        Set<DataElement> elements = new HashSet<>();
-        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getLeftSide().getExpression() ) );
-        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getRightSide().getExpression() ) );
-        return elements;
-    }
-    
-    // -------------------------------------------------------------------------
-    // Supportive methods - scheduled run
-    // -------------------------------------------------------------------------
-
-    private Set<ValidationRule> getValidationRulesWithNotificationTemplates()
-    {
-        return Sets.newHashSet( validationRuleStore.getValidationRulesWithNotificationTemplates() );
-    }
-
-    /**
-     * Get the current and most recent periods to use when performing validation
-     * for generating notifications (previously 'alerts').
-     *
-     * The periods are filtered against existing (persisted) periods.
-     *
-     * TODO Consider:
-     *      This method assumes that the last successful validation run was one day ago.
-     *      If this is not the case (more than one day ago) adding additional (daily)
-     *      periods to 'fill the gap' could be considered.
-     */
-    private Set<Period> extractNotificationPeriods( Set<ValidationRule> rules )
-    {
-        return rules.stream()
-            .map( rule -> periodService.getPeriodTypeByName( rule.getPeriodType().getName() ) )
-            .map( periodType -> {
-                Period current = periodType.createPeriod(), previous = periodType.getPreviousPeriod( current );
-                Date start = previous.getStartDate(), end = current.getEndDate();
-
-                return periodService.getIntersectingPeriodsByPeriodType( periodType, start, end );
-            } )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toSet() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods - monitoring
-    // -------------------------------------------------------------------------
-
-    /**
-     * Formats and sets name on the period of each result.
-     *
-     * @param results the collection of validation results.
-     * @param format  the i18n format.
-     */
-    private void formatPeriods( Collection<ValidationResult> results, I18nFormat format )
-    {
-        if ( format != null )
-        {
-            for ( ValidationResult result : results )
-            {
-                if ( result != null && result.getPeriod() != null )
-                {
-                    result.getPeriod().setName( format.formatPeriod( result.getPeriod() ) );
-                }
-            }
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -447,6 +148,39 @@ public class DefaultValidationRuleService
         return validationRuleStore.getAllLikeName( name, first, max ) ;
     }
 
+    @Override
+    public Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements )
+    {
+        Set<ValidationRule> rulesForDataElements = new HashSet<>();
+
+        for ( ValidationRule validationRule : getAllValidationRules() )
+        {
+            Set<DataElement> validationRuleElements = getDataElements( validationRule );
+
+            if ( dataElements.containsAll( validationRuleElements ) )
+            {
+                rulesForDataElements.add( validationRule );
+            }
+        }
+
+        return rulesForDataElements;
+    }
+
+    @Override
+    public Set<DataElement> getDataElements( ValidationRule validationRule )
+    {
+        Set<DataElement> elements = new HashSet<>();
+        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getLeftSide().getExpression() ) );
+        elements.addAll( expressionService.getDataElementsInExpression( validationRule.getRightSide().getExpression() ) );
+        return elements;
+    }
+    
+    @Override
+    public List<ValidationRule> getValidationRulesWithNotificationTemplates()
+    {
+        return validationRuleStore.getValidationRulesWithNotificationTemplates();
+    }
+    
     // -------------------------------------------------------------------------
     // ValidationRuleGroup CRUD operations
     // -------------------------------------------------------------------------

@@ -38,7 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.ValidationSummary;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -63,7 +63,7 @@ import java.util.ArrayList;
 public class ValidationController
 {
     @Autowired
-    private ValidationRuleService validationRuleService;
+    private ValidationService validationService;
 
     @Autowired
     private DataSetService dataSetService;
@@ -109,8 +109,8 @@ public class ValidationController
 
         ValidationSummary summary = new ValidationSummary();
 
-        summary.setValidationRuleViolations( new ArrayList<>( validationRuleService.validate( dataSet, period, orgUnit, attributeOptionCombo ) ) );
-        summary.setCommentRequiredViolations( validationRuleService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
+        summary.setValidationRuleViolations( new ArrayList<>( validationService.validate( dataSet, period, orgUnit, attributeOptionCombo ) ) );
+        summary.setCommentRequiredViolations( validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
 
         return summary;
     }

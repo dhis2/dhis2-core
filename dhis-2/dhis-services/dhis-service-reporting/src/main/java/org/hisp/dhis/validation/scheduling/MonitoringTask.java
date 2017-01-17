@@ -38,7 +38,7 @@ import org.hisp.dhis.scheduling.TaskId;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.validation.ValidationRuleService;
+import org.hisp.dhis.validation.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -49,7 +49,7 @@ public class MonitoringTask
     implements Runnable
 {
     @Autowired
-    private ValidationRuleService validationRuleService;
+    private ValidationService validationService;
 
     @Autowired
     private Notifier notifier;
@@ -80,7 +80,7 @@ public class MonitoringTask
         
         try
         {
-            validationRuleService.scheduledRun();
+            validationService.scheduledRun();
             
             notifier.notify( taskId, INFO, "Monitoring process done", true );
         }

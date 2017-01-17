@@ -140,6 +140,7 @@
   <bean id="org.hisp.dhis.validationrule.action.RunValidationAction" class="org.hisp.dhis.validationrule.action.RunValidationAction"
     scope="prototype">
     <property name="validationRuleService" ref="org.hisp.dhis.validation.ValidationRuleService" />
+    <property name="validationService" ref="org.hisp.dhis.validation.ValidationService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="dataElementCategoryService" ref="org.hisp.dhis.dataelement.DataElementCategoryService" />
   </bean>
