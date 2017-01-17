@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -80,6 +81,9 @@ public class DataValidationTask
 
     @Autowired
     private DataValueService dataValueService;
+
+    @Autowired
+    private EventAnalyticsService eventAnalyticsService;
 
     @Autowired
     private DataElementCategoryService categoryService;
