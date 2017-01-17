@@ -46,7 +46,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.OrderComparator;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -63,6 +69,7 @@ public class DefaultSchemaService
     private ImmutableList<SchemaDescriptor> descriptors = new ImmutableList.Builder<SchemaDescriptor>().
         add( new MetadataVersionSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
+        add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).
         add( new CategoryOptionComboSchemaDescriptor() ).
         add( new CategoryOptionGroupSchemaDescriptor() ).
