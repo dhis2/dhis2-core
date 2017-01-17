@@ -57,7 +57,17 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
 /**
  * Class representing query parameters for retrieving aggregated data from the
- * analytics service.
+ * analytics service. Example instantiation:
+ * 
+ * <pre>
+ * {@code
+ * DataQueryParams params = DataQueryParams.newBuilder()
+ *      .withDataElements( deA, deB )
+ *      .withOrganisationUnits( ouA, ouB )
+ *      .withFilterPeriods( peA, peB )
+ *      .build();
+ * }
+ * </pre>
  * 
  * @author Lars Helge Overland
  */
