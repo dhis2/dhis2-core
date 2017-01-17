@@ -51,7 +51,7 @@
 	#foreach( $programStage in $programRule.program.programStages )
 		#foreach( $section in $programStage.programStageSections )
 			var uid = '$section.uid';
-			var name = '$section.displayName';
+			var name = '$encoder.jsEscape($section.displayName, "'" )';
 			sectionSelector += "<option value='" + uid + "'>" + name + "</option>";
 		#end
 	#end
