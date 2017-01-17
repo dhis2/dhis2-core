@@ -36,7 +36,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
+import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -214,7 +216,7 @@ public class DefaultSqlViewService
 
         String query = StringUtils.EMPTY;
 
-        query += sqlHelper.whereAnd() + " " + columnName + " " + parseOperator( operator, value );
+        query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
 
         return query;
     }
@@ -232,7 +234,7 @@ public class DefaultSqlViewService
         {
             sql = SqlViewUtils.removeQuerySeparator( sql );
 
-            String outerSql = "select " + parseSelectFields( fields ) + " from " + "(" + sql + ") as qry ";
+            String outerSql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + "(" + sql + ") as qry ";
 
             SqlHelper sqlHelper = new SqlHelper();
 
@@ -248,7 +250,7 @@ public class DefaultSqlViewService
 
     private String getSqlForView( Grid grid, SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields )
     {
-        String sql = "select " + parseSelectFields( fields ) + " from " + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
+        String sql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
 
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
@@ -258,9 +260,15 @@ public class DefaultSqlViewService
         {
             SqlHelper sqlHelper = new SqlHelper();
 
-            if ( hasCriteria ) sql += getCriteriaSqlClause( criteria, sqlHelper );
+            if ( hasCriteria )
+            {
+                sql += getCriteriaSqlClause( criteria, sqlHelper );
+            }
 
-            if ( hasFilter ) sql += parseFilters( filters, sqlHelper );
+            if ( hasFilter )
+            {
+                sql += parseFilters( filters, sqlHelper );
+            }
         }
 
         return sql;
@@ -273,7 +281,7 @@ public class DefaultSqlViewService
 
         if ( criteria != null && !criteria.isEmpty() )
         {
-           if ( sqlHelper == null ) sqlHelper = new SqlHelper();
+            sqlHelper = ObjectUtils.firstNonNull( sqlHelper, new SqlHelper() );
 
             for ( String filter : criteria.keySet() )
             {
@@ -385,159 +393,6 @@ public class DefaultSqlViewService
         return sqlViewStore.refreshMaterializedView( sqlView );
     }
 
-    private String parseOperator( String operator, Object arg )
-    {
 
-        if ( operator == null || arg == null )
-        {
-            throw new QueryParserException( "Filter Value or Operator is null" );
-        }
 
-        switch ( operator )
-        {
-            case "eq":
-            {
-                return "= '" + arg + "'";
-            }
-            case "!eq":
-            {
-                return "!= '" + arg + "'";
-            }
-            case "ne":
-            {
-                return "!= '" + arg + "'";
-            }
-            case "neq":
-            {
-                return "!= '" + arg + "'";
-            }
-            case "gt":
-            {
-                return "> '" + arg + "'";
-            }
-            case "lt":
-            {
-                return "< '" + arg + "'";
-            }
-            case "gte":
-            {
-                return ">= '" + arg + "'";
-            }
-            case "ge":
-            {
-                return ">= '" + arg + "'";
-            }
-            case "lte":
-            {
-                return "<= '" + arg + "'";
-            }
-            case "le":
-            {
-                return "<= '" + arg + "'";
-            }
-            case "like":
-            {
-                return "like '%" + arg + "%'";
-            }
-            case "!like":
-            {
-                return "not like '" + arg + "'"  ;
-            }
-            case "^like":
-            {
-                return " like '" + arg + "%'";
-            }
-            case "!^like":
-            {
-                return " not like '" + arg + "%'";
-            }
-            case "$like":
-            {
-                return " like '%" + arg + "'";
-            }
-            case "!$like":
-            {
-                return " not like '%" + arg + "'";
-            }
-            case "ilike":
-            {
-                return " ilike '%" + arg + "%'";
-            }
-            case "!ilike":
-            {
-                return " not ilike '" + arg + "'";
-            }
-            case "^ilike":
-            {
-                return " ilike '" + arg + "%'";
-            }
-            case "!^ilike":
-            {
-                return " not ilike '" + arg + "%'";
-            }
-            case "$ilike":
-            {
-                return  " ilike '%" + arg + "'";
-            }
-            case "!$ilike":
-            {
-                return " not ilike '%" + arg + "'";
-            }
-            case "in":
-            {
-                return "in " + parseCollectionValue( arg.toString() );
-            }
-            case "!in":
-            {
-                return " not in " + parseCollectionValue( arg.toString() );
-            }
-            case "null":
-            {
-                return "is null";
-            }
-            case "!null":
-            {
-                return "is not null";
-            }
-            default:
-            {
-                throw new QueryParserException( "`" + operator + "` is not a valid operator." );
-            }
-        }
-    }
-
-    private String parseSelectFields( List<String> fields )
-    {
-        if ( fields == null || fields.isEmpty() )
-        {
-            return " * ";
-        }
-        else {
-            String str = StringUtils.EMPTY;
-            for( int i = 0; i < fields.size(); i++ )
-            {
-                str += fields.get( i );
-                if ( i < fields.size() - 1 )
-                {
-                    str +=  ",";
-                }
-            }
-            return str;
-        }
-    }
-
-    private String parseCollectionValue( String value )
-    {
-        if ( value == null )
-        {
-            throw new QueryParserException( "Value is null" );
-        }
-
-        if ( !value.startsWith( "[" ) || !value.endsWith( "]" ) )
-        {
-            throw new QueryParserException( "Invalid query value" );
-        }
-
-        return value.replace( "]", ")" ).replace( "[", "(" );
-    }
 }
