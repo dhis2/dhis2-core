@@ -51,14 +51,14 @@
 	var sectionSelector = "<select class='actionSections' >";
 	#foreach( $programStage in $programRule.program.programStages )
 		#foreach( $section in $programStage.programStageSections )
-			sectionSelector += "<option value='$section.uid'>$section.displayName</option>";
+			sectionSelector += "<option value='$section.uid'>$encoder.jsEscape($section.displayName, "'" )</option>";
 		#end
 	#end
 	sectionSelector += "</select>";
 
         var programStageSelector = "<select class='actionStages' >";
 	#foreach( $programStage in $program.programStages )
-                programStageSelector += "<option value='$programStage.uid'>$programStage.displayName</option>";
+                programStageSelector += "<option value='$programStage.uid'>$encoder.jsEscape($programStage.displayName, "'" )</option>";
 	#end
 	programStageSelector += "</select>";
 </script>
