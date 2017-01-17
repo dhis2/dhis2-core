@@ -64,7 +64,6 @@ public class BaseNotificationMessageRendererTest
     private static final Pair<String, String> ATTR_B = ImmutablePair.of( "b1234567890", "Attribute B value" );
     private static final Pair<String, String> ATTR_NULL = ImmutablePair.of( "n1234567890", null );
 
-    @SuppressWarnings( "unchecked" )
     @Before
     public void setUpTest()
     {

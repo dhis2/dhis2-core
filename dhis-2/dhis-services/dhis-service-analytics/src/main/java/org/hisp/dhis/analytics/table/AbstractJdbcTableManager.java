@@ -151,12 +151,14 @@ public abstract class AbstractJdbcTableManager
         {
             Period period = PartitionUtils.getPeriod( calendar, year );
             
-            tables.add( new AnalyticsTable( baseName, getDimensionColumns( null ), period ) );
+            AnalyticsTable table = new AnalyticsTable( baseName, getDimensionColumns( null ), period );
+            
+            tables.add( table );
         }
 
         return tables;
     }
-        
+    
     @Override
     @Async
     public Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes )

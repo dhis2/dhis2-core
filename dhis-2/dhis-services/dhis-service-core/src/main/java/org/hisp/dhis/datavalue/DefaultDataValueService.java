@@ -389,13 +389,19 @@ public class DefaultDataValueService
         Calendar cal = PeriodType.createCalendarInstance();
         cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
 
-        return dataValueStore.getDataValueCountLastUpdatedAfter( cal.getTime() );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( cal.getTime(), null );
     }
 
     @Override
     public int getDataValueCountLastUpdatedAfter( Date date )
     {
-        return dataValueStore.getDataValueCountLastUpdatedAfter( date );
+        return dataValueStore.getDataValueCountLastUpdatedBetween( date, null );
+    }
+
+    @Override
+    public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate )
+    {
+        return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate );
     }
 
     @Override
