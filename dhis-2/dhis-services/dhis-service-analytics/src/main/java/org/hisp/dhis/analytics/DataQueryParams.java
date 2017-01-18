@@ -48,6 +48,8 @@ import org.springframework.util.Assert;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_INT_DISAGGREGATION;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE_SUM_INT_DISAGGREGATION;
 import static org.hisp.dhis.common.DimensionType.*;
@@ -1346,12 +1348,18 @@ public class DataQueryParams
      * Sets the given list of data dimension options. Replaces existing options
      * of the given data dimension type.
      * 
-     * @param itemType the data dimension type.
+     * @param itemType the data dimension type, or all types if null.
      * @param options the data dimension options.
      */
-    private void setDataDimensionOptions( DataDimensionItemType itemType, List<? extends DimensionalItemObject> options )
+    private void setDataDimensionOptions( @Nullable DataDimensionItemType itemType, List<? extends DimensionalItemObject> options )
     {
-        List<DimensionalItemObject> existing = AnalyticsUtils.getByDataDimensionItemType( itemType, getDimensionOptions( DATA_X_DIM_ID ) );
+        List<DimensionalItemObject> existing = getDimensionOptions( DATA_X_DIM_ID );
+        
+        if ( itemType != null )
+        {
+            existing = AnalyticsUtils.getByDataDimensionItemType( itemType, existing );
+        }
+        
         DimensionalObject dimension = getDimension( DATA_X_DIM_ID );
         
         if ( dimension == null )
@@ -2039,6 +2047,12 @@ public class DataQueryParams
             this.params.pruneToDimensionType( type );
             return this;
         }
+        
+        public Builder withDataDimensionItems( List<? extends DimensionalItemObject> dataDimensionItems )
+        {
+            this.params.setDataDimensionOptions( null, dataDimensionItems );
+            return this;
+        }
 
         public Builder withIndicators( List<? extends DimensionalItemObject> indicators )
         {
@@ -2088,18 +2102,6 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withOrganisationUnits( List<? extends DimensionalItemObject> organisationUnits )
-        {
-            this.params.setDimensionOptions( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null, asList( organisationUnits ) );
-            return this;
-        }
-        
-        public Builder withOrganisationUnit( DimensionalItemObject organisationUnit )
-        {
-            this.withOrganisationUnits( getList( organisationUnit ) );
-            return this;
-        }
-        
         public Builder withPeriods( List<? extends DimensionalItemObject> periods )
         {
             this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );
@@ -2109,6 +2111,18 @@ public class DataQueryParams
         public Builder withPeriod( DimensionalItemObject period )
         {
             this.withPeriods( getList( period ) );
+            return this;
+        }
+
+        public Builder withOrganisationUnits( List<? extends DimensionalItemObject> organisationUnits )
+        {
+            this.params.setDimensionOptions( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null, asList( organisationUnits ) );
+            return this;
+        }
+        
+        public Builder withOrganisationUnit( DimensionalItemObject organisationUnit )
+        {
+            this.withOrganisationUnits( getList( organisationUnit ) );
             return this;
         }
         
@@ -2136,9 +2150,15 @@ public class DataQueryParams
             return this;
         }
         
-        public Builder withFilterPeriods( List<DimensionalItemObject> periods )
+        public Builder withFilterPeriods( List<? extends DimensionalItemObject> periods )
         {
-            this.params.setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, periods );
+            this.params.setFilterOptions( PERIOD_DIM_ID, DimensionType.PERIOD, null, asList( periods ) );
+            return this;
+        }
+        
+        public Builder withFilterOrganisationUnits( List<? extends DimensionalItemObject> organisationUnits )
+        {
+            this.params.setFilterOptions( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null, asList( organisationUnits ) );
             return this;
         }
 

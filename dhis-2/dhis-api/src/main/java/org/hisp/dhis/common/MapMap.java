@@ -54,6 +54,14 @@ public class MapMap<T, U, V>
         this.put( key, map );
     }
 
+    public void putMap( MapMap<T, U, V> map )
+    {
+        for ( Map.Entry<T, Map<U, V>> entry : map.entrySet() )
+        {
+            this.putEntries( entry.getKey(), entry.getValue() );
+        }
+    }
+    
     public V getValue( T key, U valueKey )
     {
         return this.get( key ) == null ? null : this.get( key ).get( valueKey );

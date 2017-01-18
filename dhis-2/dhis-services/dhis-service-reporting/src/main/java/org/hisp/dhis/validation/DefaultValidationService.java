@@ -1,5 +1,9 @@
 package org.hisp.dhis.validation;
 
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
+
 /*
  * Copyright (c) 2004-2016, University of Oslo
  * All rights reserved.
@@ -41,6 +45,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -62,6 +68,7 @@ import org.hisp.dhis.validation.notification.ValidationNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -71,6 +78,9 @@ public class DefaultValidationService
     implements ValidationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationService.class );
+
+    private static final ImmutableSet<DimensionItemType> EVENT_DIM_ITEM_TYPES = ImmutableSet.of(
+        PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE, PROGRAM_INDICATOR );
     
     @Autowired
     private PeriodService periodService;
@@ -123,12 +133,15 @@ public class DefaultValidationService
         
         Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
             .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
-
+        
+        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
+        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
+        
         User user = currentUserService.getCurrentUser();
         
         Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext(
             sources, periods, rules, attributeCombo, 
-            null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
+            null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 
@@ -155,11 +168,14 @@ public class DefaultValidationService
         Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
             .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
 
+        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
+        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
+        
         User user = currentUserService.getCurrentUser();
         
         return Validator.validate( ValidationRunContext.getNewContext( 
             Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
+            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
     }
@@ -179,6 +195,9 @@ public class DefaultValidationService
         Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
             .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
 
+        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
+        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
+        
         Date lastScheduledRun = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_MONITORING_RUN );
 
         // Any database changes after this moment will contribute to the next run.
@@ -192,7 +211,7 @@ public class DefaultValidationService
         
         Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext( 
             sources, periods, rules, null, lastScheduledRun,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
+            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
             categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
             categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 

@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dataelement.CategoryOptionGroup;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOption;
@@ -75,6 +76,8 @@ public class ValidationRunContext
     private Map<String, Double> constantMap;
     
     private Map<ValidationRule, Set<DataElement>> validationRuleDataElementsMap;
+    
+    private Set<DimensionalItemObject> dimensionItems;
 
     private Map<ValidationRule, ValidationRuleExtended> ruleXMap;
 
@@ -104,7 +107,8 @@ public class ValidationRunContext
      * @param lastScheduledRun (for SCHEDULED runs) date/time of previous run
      * @param runType whether this is an INTERACTIVE or SCHEDULED run
      * @param constantMap map of constants
-     * @param validationRuleDataElementsMap map of validation rule to data sets
+     * @param validationRuleDataElementsMap map of validation rule to data elements
+     * @param validationRuleDimensionItemObjectsMap map of validation rule to dimension item objects
      * @param cogDimensionConstraints category option group dimension constraints.
      * @param coDimensionConstraints category option dimension constraints.
 
@@ -112,9 +116,11 @@ public class ValidationRunContext
      */
     public static ValidationRunContext getNewContext( Collection<OrganisationUnit> sources,
         Collection<Period> periods, Collection<ValidationRule> rules, DataElementCategoryOptionCombo attributeCombo,
-        Date lastScheduledRun, ValidationRunType runType, 
-        Map<String, Double> constantMap, Map<ValidationRule, Set<DataElement>> validationRuleDataElementsMap, 
-        Set<CategoryOptionGroup> cogDimensionConstraints, Set<DataElementCategoryOption> coDimensionConstraints )
+        Date lastScheduledRun, ValidationRunType runType, Map<String, Double> constantMap, 
+        Map<ValidationRule, Set<DataElement>> validationRuleDataElementsMap,
+        Set<DimensionalItemObject> dimensionItems,
+        Set<CategoryOptionGroup> cogDimensionConstraints, 
+        Set<DataElementCategoryOption> coDimensionConstraints )
     {
         ValidationRunContext context = new ValidationRunContext();
         context.validationResults = new ConcurrentLinkedQueue<>(); // thread-safe
@@ -126,6 +132,7 @@ public class ValidationRunContext
         context.runType = runType;
         context.constantMap = constantMap;
         context.validationRuleDataElementsMap = validationRuleDataElementsMap;
+        context.dimensionItems = dimensionItems;
         context.cogDimensionConstraints = cogDimensionConstraints;
         context.coDimensionConstraints = coDimensionConstraints;
         context.initialize( sources, periods, rules );
@@ -341,6 +348,11 @@ public class ValidationRunContext
     public Map<String, Double> getConstantMap()
     {
         return constantMap;
+    }
+
+    public Set<DimensionalItemObject> getDimensionItems()
+    {
+        return dimensionItems;
     }
 
     public Map<ValidationRule, ValidationRuleExtended> getRuleXMap()

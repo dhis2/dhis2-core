@@ -33,6 +33,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.expression.ExpressionService;
@@ -173,6 +175,15 @@ public class DefaultValidationRuleService
         elements.addAll( expressionService.getDataElementsInExpression( validationRule.getLeftSide().getExpression() ) );
         elements.addAll( expressionService.getDataElementsInExpression( validationRule.getRightSide().getExpression() ) );
         return elements;
+    }
+
+    @Override
+    public Set<DimensionalItemObject> getDimensionalItemObjects( ValidationRule validationRule, Set<DimensionItemType> dimensionItemTypes )
+    {
+        Set<DimensionalItemObject> objects = new HashSet<>();
+        objects.addAll( expressionService.getDimensionalItemObjectsInExpression( validationRule.getLeftSide().getExpression(), dimensionItemTypes ) );
+        objects.addAll( expressionService.getDimensionalItemObjectsInExpression( validationRule.getRightSide().getExpression(), dimensionItemTypes ) );
+        return objects;
     }
     
     @Override

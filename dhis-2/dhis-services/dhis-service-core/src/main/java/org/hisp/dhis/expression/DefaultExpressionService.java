@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.GenericStore;
@@ -257,6 +258,8 @@ public class DefaultExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
     {
+        //TODO this code must be simplified and rewritten
+        
         if ( aggregateMap == null )
         {
             Matcher simpleMatch = OPERAND_PATTERN.matcher( expression.getExpression() );
@@ -518,6 +521,14 @@ public class DefaultExpressionService
     }
 
     @Override
+    public Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression, Set<DimensionItemType> dimensionItemTypes )
+    {
+        Set<DimensionalItemObject> objects = getDimensionalItemObjectsInExpression( expression );
+        
+        return objects.stream().filter( o -> dimensionItemTypes.contains( o.getDimensionItemType() ) ).collect( Collectors.toSet() );
+    }
+
+    @Override
     public Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators )
     {
         Set<DimensionalItemObject> items = Sets.newHashSet();
@@ -530,7 +541,7 @@ public class DefaultExpressionService
 
         return items;
     }
-
+    
     @Override
     public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators )
     {
@@ -975,7 +986,7 @@ public class DefaultExpressionService
                 scan = start + 1;
                 tail = start;
             }
-            else if ( ( aggregateMap == null ) || (expression.charAt( start ) == '<' ) )
+            else if ( aggregateMap == null || expression.charAt( start ) == '<' )
             {
                 sb.append( expression.substring( scan, end ) );
                 scan = end + 1;
