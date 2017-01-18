@@ -392,6 +392,11 @@ jQuery.each(attributes, function(i, item) {
 
 #macro( sharingDialog )
 
+<script>
+  var i18n_cancel = "$i18n.getString( "cancel" )";
+  var i18n_save = "$i18n.getString( "save" )";
+</script>
+
 <div id="sharingSettings" title='$i18n.getString( "sharing_settings" )' style="display: none;" class="page">
     <table style="width: 100%;">
         <tbody>
