@@ -216,6 +216,12 @@ public class DefaultRenderService
                 continue;
             }
 
+            if ( !schema.isMetadata() )
+            {
+                log.debug( "Skipping non-metadata property `" + fieldName + "`." );
+                continue;
+            }
+
             List<IdentifiableObject> collection = new ArrayList<>();
 
             for ( JsonNode item : node )

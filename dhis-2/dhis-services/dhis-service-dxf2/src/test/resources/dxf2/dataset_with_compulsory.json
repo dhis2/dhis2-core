@@ -210,22 +210,22 @@
       ]
     }
   ],
-  "dataSetElements": [
-    {
-      "id": "rSChycu6mOY",
-      "dataElement": {
-        "id": "lQBOv8uoqn0"
-      },
-      "dataSet": {
-        "id": "couZzkKqTjV"
-      }
-    }
-  ],
   "dataSets": [
     {
       "user": {
         "id": "HEh4ijSTjeV"
       },
+      "dataSetElements": [
+        {
+          "id": "rSChycu6mOY",
+          "dataElement": {
+            "id": "lQBOv8uoqn0"
+          },
+          "dataSet": {
+            "id": "couZzkKqTjV"
+          }
+        }
+      ],
       "indicators": [ ],
       "userGroupAccesses": [ ],
       "periodType": "Monthly",

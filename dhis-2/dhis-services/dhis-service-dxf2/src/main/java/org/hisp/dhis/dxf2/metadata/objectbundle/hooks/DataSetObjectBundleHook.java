@@ -32,6 +32,7 @@ import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.period.PeriodType;
 
@@ -50,6 +51,11 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         DataSet dataSet = (DataSet) object;
 
         Session session = sessionFactory.getCurrentSession();
+
+        for ( DataSetElement dataSetElement : dataSet.getDataSetElements() )
+        {
+            preheatService.connectReferences( dataSetElement, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+        }
 
         for ( DataElementOperand dataElementOperand : dataSet.getCompulsoryDataElementOperands() )
         {
@@ -70,6 +76,9 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         if ( !DataSet.class.isInstance( object ) ) return;
         DataSet dataSet = (DataSet) object;
         DataSet persistedDataSet = (DataSet) persistedObject;
+
+        dataSet.getDataSetElements().clear();
+        persistedDataSet.getDataSetElements().clear();
 
         dataSet.getCompulsoryDataElementOperands().clear();
         persistedDataSet.getCompulsoryDataElementOperands().clear();
@@ -94,14 +103,27 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         Map<String, Object> references = bundle.getObjectReferences( DataSet.class ).get( dataSet.getUid() );
         if ( references == null ) return;
 
-        Set<DataElementOperand> dataElementOperands = (Set<DataElementOperand>) references.get( "compulsoryDataElementOperands" );
-        if ( dataElementOperands == null || dataElementOperands.isEmpty() ) return;
+        Set<DataSetElement> dataSetElements = (Set<DataSetElement>) references.get( "dataSetElements" );
 
-        for ( DataElementOperand dataElementOperand : dataElementOperands )
+        if ( dataSetElements != null && !dataSetElements.isEmpty() )
         {
-            preheatService.connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-            sessionFactory.getCurrentSession().save( dataElementOperand );
-            dataSet.getCompulsoryDataElementOperands().add( dataElementOperand );
+            for ( DataSetElement dataSetElement : dataSetElements )
+            {
+                preheatService.connectReferences( dataSetElement, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                dataSet.getDataSetElements().add( dataSetElement );
+            }
+        }
+
+        Set<DataElementOperand> dataElementOperands = (Set<DataElementOperand>) references.get( "compulsoryDataElementOperands" );
+
+        if ( dataElementOperands != null && !dataElementOperands.isEmpty() )
+        {
+            for ( DataElementOperand dataElementOperand : dataElementOperands )
+            {
+                preheatService.connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                sessionFactory.getCurrentSession().save( dataElementOperand );
+                dataSet.getCompulsoryDataElementOperands().add( dataElementOperand );
+            }
         }
 
         sessionFactory.getCurrentSession().update( dataSet );

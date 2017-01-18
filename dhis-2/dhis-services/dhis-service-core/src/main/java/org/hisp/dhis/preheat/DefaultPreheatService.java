@@ -42,11 +42,13 @@ import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.DataElementCategoryDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
@@ -477,6 +479,17 @@ public class DefaultPreheatService implements PreheatService
                                 addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
                             } );
                         }
+
+                        if ( DataSetElement.class.isAssignableFrom( p.getItemKlass() ) )
+                        {
+                            CollectionUtils.nullSafeForEach( reference, identifiableObject ->
+                            {
+                                DataSetElement dataSetElement = (DataSetElement) identifiableObject;
+                                addIdentifiers( map, dataSetElement.getDataSet() );
+                                addIdentifiers( map, dataSetElement.getCategoryCombo() );
+                                addIdentifiers( map, dataSetElement.getDataElement() );
+                            } );
+                        }
                     }
                 } );
 
@@ -835,6 +848,7 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || DataElementOperand.class.isAssignableFrom( klass ));
+        return klass != null && (DataElementOperand.class.isAssignableFrom( klass ) || UserCredentials.class.isAssignableFrom( klass ) ||
+            ReportingRate.class.isAssignableFrom( klass ) || DataSetElement.class.isAssignableFrom( klass ));
     }
 }
