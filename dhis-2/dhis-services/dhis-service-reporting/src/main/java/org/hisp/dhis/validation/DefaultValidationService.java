@@ -28,11 +28,21 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -52,14 +62,7 @@ import org.hisp.dhis.validation.notification.ValidationNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -68,13 +71,13 @@ public class DefaultValidationService
     implements ValidationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationService.class );
-
+    
     @Autowired
     private PeriodService periodService;
 
     @Autowired
     private DataValueService dataValueService;
-
+    
     @Autowired
     private DataElementCategoryService categoryService;
 
@@ -92,7 +95,7 @@ public class DefaultValidationService
 
     @Autowired
     private ValidationRuleService validationRuleService;
-
+    
     @Autowired
     private ApplicationContext applicationContext;
 
@@ -115,10 +118,19 @@ public class DefaultValidationService
         log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
 
         List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
-
+        
         Collection<ValidationRule> rules = group != null ? group.getMembers() : validationRuleService.getAllValidationRules();
+        
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
 
-        Collection<ValidationResult> results = runValidation( sources, periods, rules, attributeCombo, null, ValidationRunType.SCHEDULED );
+        User user = currentUserService.getCurrentUser();
+        
+        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext(
+            sources, periods, rules, attributeCombo, 
+            null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
+            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
+            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 
         formatPeriods( results, format );
 
@@ -136,12 +148,20 @@ public class DefaultValidationService
     {
         log.debug( "Validate data set: " + dataSet.getName() + " period: " + period.getPeriodType().getName() + " "
             + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName()
-            + " attribute combo: " + (attributeCombo == null ? "[none]" : attributeCombo.getName()) );
+            + " attribute combo: " + ( attributeCombo == null ? "[none]" : attributeCombo.getName() ) );
 
         Collection<ValidationRule> rules = validationRuleService.getValidationRulesForDataElements( dataSet.getDataElements() );
+        
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
 
-        return runValidation(
-            Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null, ValidationRunType.SCHEDULED );
+        User user = currentUserService.getCurrentUser();
+        
+        return Validator.validate( ValidationRunContext.getNewContext( 
+            Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null,
+            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
+            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
+            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
     }
 
     @Override
@@ -156,6 +176,9 @@ public class DefaultValidationService
 
         Set<Period> periods = extractNotificationPeriods( rules );
 
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
+
         Date lastScheduledRun = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_MONITORING_RUN );
 
         // Any database changes after this moment will contribute to the next run.
@@ -165,8 +188,13 @@ public class DefaultValidationService
         log.info( "Scheduled monitoring run sources: " + sources.size() + ", periods: " + periods.size() + ", rules:" + rules.size()
             + ", last run: " + (lastScheduledRun == null ? "[none]" : lastScheduledRun) );
 
-        Collection<ValidationResult> results =
-            runValidation( sources, periods, rules, null, lastScheduledRun, ValidationRunType.SCHEDULED );
+        User user = currentUserService.getCurrentUser();
+        
+        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext( 
+            sources, periods, rules, null, lastScheduledRun,
+            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap,
+            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
+            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
 
         log.info( "Validation run result count: " + results.size() );
 
@@ -177,54 +205,36 @@ public class DefaultValidationService
         systemSettingManager.saveSystemSetting( SettingKey.LAST_MONITORING_RUN, thisRun );
     }
 
-    public List<DataElementOperand> validateRequiredComments(
-        DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
+    @Override
+    public List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period, OrganisationUnit organisationUnit, DataElementCategoryOptionCombo attributeOptionCombo )
     {
-        if ( !dataSet.isNoValueRequiresComment() )
+        List<DataElementOperand> violations = new ArrayList<>();
+
+        if ( dataSet.isNoValueRequiresComment() )
         {
-            return Collections.emptyList();
+            for ( DataElement de : dataSet.getDataElements() )
+            {
+                for ( DataElementCategoryOptionCombo co : de.getCategoryOptionCombos() )
+                {
+                    DataValue dv = dataValueService.getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
+
+                    boolean missingValue = dv == null || StringUtils.trimToNull( dv.getValue() ) == null;
+                    boolean missingComment = dv == null || StringUtils.trimToNull( dv.getComment() ) == null;
+
+                    if ( missingValue && missingComment )
+                    {
+                        violations.add( new DataElementOperand( de, co ) );
+                    }
+                }
+            }
         }
 
-        // Go through all DEs of the data set and find any violations
-        return dataSet.getDataElements().stream()
-            .flatMap( de -> de.getCategoryOptionCombos().stream()
-                .filter( co -> {
-                    DataValue dv = dataValueService.getDataValue( de, period, organisationUnit, co, attributeOptionCombo );
-                    return dv == null || ( StringUtils.isBlank( dv.getValue() ) && StringUtils.isBlank( dv.getComment() ) );
-                } ).map( co -> new DataElementOperand( de, co ) )
-            )
-            .collect( Collectors.toList() );
+        return violations;
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private Collection<ValidationResult> runValidation(
-        Collection<OrganisationUnit> sources,
-        Collection<Period> periods,
-        Collection<ValidationRule> rules,
-        DataElementCategoryOptionCombo attributeOptionCombo,
-        Date lastScheduledRun,
-        ValidationRunType runType )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        ValidationRunContext ctx = ValidationRunContext.getNewContext(
-            sources,
-            periods,
-            rules,
-            attributeOptionCombo,
-            lastScheduledRun,
-            runType,
-            constantService.getConstantMap(),
-            rules.stream().collect( Collectors.toMap( Function.identity(), r -> validationRuleService.getDataElements( r ) ) ),
-            user == null ? null : categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            user == null ? null : categoryService.getCoDimensionConstraints( user.getUserCredentials() )
-        );
-
-        return Validator.validate( ctx, applicationContext );
-    }
 
     private Set<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
