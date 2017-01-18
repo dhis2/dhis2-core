@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataInputPeriod;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -55,7 +56,7 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
     {
         ArrayList<ErrorReport> errorList = new ArrayList<>();
 
-        if ( DataSet.class.isInstance( object ))
+        if ( DataSet.class.isInstance( object ) )
         {
             DataSet dataSet = (DataSet) object;
 
@@ -65,24 +66,24 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 
                     // Get DataInputPeriod objects
                     .map( dataInputPeriod ->
-                    {
-                        DataInputPeriod dip = bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod );
+                        {
+                            DataInputPeriod dip = bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataInputPeriod );
 
-                        if ( dip == null )
-                        {
-                            preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-                            sessionFactory.getCurrentSession().save( dataInputPeriod );
-                            return dataInputPeriod;
+                            if ( dip == null )
+                            {
+                                preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                                sessionFactory.getCurrentSession().save( dataInputPeriod );
+                                return dataInputPeriod;
+                            }
+                            else
+                            {
+                                return dip;
+                            }
                         }
-                        else
-                        {
-                            return dip;
-                        }
-                    }
                     )
 
                     // Get DataInputPeriods where PeriodType != dataSet.periodType
-                    .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals(dataSet.getPeriodType() ) )
+                    .filter( dataInputPeriod -> !dataInputPeriod.getPeriod().getPeriodType().equals( dataSet.getPeriodType() ) )
 
                     // Add Error reports for all incidents
                     .map( dataInputPeriod -> new ErrorReport( object.getClass(), ErrorCode.E4012, "dataInputPeriods" ) )
@@ -129,6 +130,9 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         DataSet dataSet = (DataSet) object;
         DataSet persistedDataSet = (DataSet) persistedObject;
 
+        dataSet.getDataSetElements().clear();
+        persistedDataSet.getDataSetElements().clear();
+
         dataSet.getCompulsoryDataElementOperands().clear();
         persistedDataSet.getCompulsoryDataElementOperands().clear();
 
@@ -155,6 +159,17 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         Map<String, Object> references = bundle.getObjectReferences( DataSet.class ).get( dataSet.getUid() );
         if ( references == null ) return;
 
+        Set<DataSetElement> dataSetElements = (Set<DataSetElement>) references.get( "dataSetElements" );
+
+        if ( dataSetElements != null && !dataSetElements.isEmpty() )
+        {
+            for ( DataSetElement dataSetElement : dataSetElements )
+            {
+                preheatService.connectReferences( dataSetElement, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                dataSet.getDataSetElements().add( dataSetElement );
+            }
+        }
+
         Set<DataElementOperand> dataElementOperands = (Set<DataElementOperand>) references.get( "compulsoryDataElementOperands" );
 
         if ( dataElementOperands != null && !dataElementOperands.isEmpty() )
@@ -162,32 +177,24 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 
             for ( DataElementOperand dataElementOperand : dataElementOperands )
             {
-                preheatService
-                    .connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                preheatService.connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
                 sessionFactory.getCurrentSession().save( dataElementOperand );
                 dataSet.getCompulsoryDataElementOperands().add( dataElementOperand );
             }
-
-            sessionFactory.getCurrentSession().update( dataSet );
-
         }
 
         Set<DataInputPeriod> dataInputPeriods = (Set<DataInputPeriod>) references.get( "dataInputPeriods" );
 
         if ( dataInputPeriods != null && !dataInputPeriods.isEmpty() )
         {
-
             for ( DataInputPeriod dataInputPeriod : dataInputPeriods )
             {
-                preheatService
-                    .connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+                preheatService.connectReferences( dataInputPeriod, bundle.getPreheat(), bundle.getPreheatIdentifier() );
                 sessionFactory.getCurrentSession().save( dataInputPeriod );
                 dataSet.getDataInputPeriods().add( dataInputPeriod );
             }
-
-            sessionFactory.getCurrentSession().update( dataSet );
-
         }
 
+        sessionFactory.getCurrentSession().update( dataSet );
     }
 }
