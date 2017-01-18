@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
  */
 public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 {
-
     @Override
     public List<ErrorReport> validate( IdentifiableObject object, ObjectBundle bundle )
     {
@@ -63,7 +62,6 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
             if ( !dataSet.getDataInputPeriods().isEmpty() )
             {
                 errorList.addAll( dataSet.getDataInputPeriods().stream()
-
                     // Get DataInputPeriod objects
                     .map( dataInputPeriod ->
                         {
@@ -95,7 +93,6 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         return errorList;
     }
 
-
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
     {
@@ -103,6 +100,11 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
         DataSet dataSet = (DataSet) object;
 
         Session session = sessionFactory.getCurrentSession();
+
+        for ( DataSetElement dataSetElement : dataSet.getDataSetElements() )
+        {
+            preheatService.connectReferences( dataSetElement, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+        }
 
         for ( DataElementOperand dataElementOperand : dataSet.getCompulsoryDataElementOperands() )
         {
