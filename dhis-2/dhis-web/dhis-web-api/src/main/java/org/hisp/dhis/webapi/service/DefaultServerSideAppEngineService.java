@@ -123,7 +123,6 @@ public class DefaultServerSideAppEngineService implements ServerSideAppEngineSer
             log.info( "reusing script engine with key: " + scriptEngineKey + "\n" );
             return engine;
         }
-
         String ext = FilenameUtils.getExtension( scriptName );
         log.info( "Creating engine on script type:" + ext );
         if ( ext.equals( "xsl" ) || ext.equals( "xslt" ) )
