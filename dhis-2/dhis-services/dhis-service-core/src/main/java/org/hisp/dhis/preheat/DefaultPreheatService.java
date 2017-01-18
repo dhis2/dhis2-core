@@ -479,6 +479,17 @@ public class DefaultPreheatService implements PreheatService
                                 addIdentifiers( map, dataElementOperand.getCategoryOptionCombo() );
                             } );
                         }
+
+                        if ( DataSetElement.class.isAssignableFrom( p.getItemKlass() ) )
+                        {
+                            CollectionUtils.nullSafeForEach( reference, identifiableObject ->
+                            {
+                                DataSetElement dataSetElement = (DataSetElement) identifiableObject;
+                                addIdentifiers( map, dataSetElement.getDataSet() );
+                                addIdentifiers( map, dataSetElement.getCategoryCombo() );
+                                addIdentifiers( map, dataSetElement.getDataElement() );
+                            } );
+                        }
                     }
                 } );
 

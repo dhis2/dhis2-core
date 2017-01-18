@@ -52,6 +52,11 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 
         Session session = sessionFactory.getCurrentSession();
 
+        for ( DataSetElement dataSetElement : dataSet.getDataSetElements() )
+        {
+            preheatService.connectReferences( dataSetElement, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+        }
+
         for ( DataElementOperand dataElementOperand : dataSet.getCompulsoryDataElementOperands() )
         {
             preheatService.connectReferences( dataElementOperand, bundle.getPreheat(), bundle.getPreheatIdentifier() );
