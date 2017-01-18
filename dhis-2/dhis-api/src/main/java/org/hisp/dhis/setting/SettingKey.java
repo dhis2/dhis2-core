@@ -133,7 +133,8 @@ public enum SettingKey
     METADATAVERSION_ENABLED( "keyVersionEnabled",Boolean.FALSE, Boolean.class),
     METADATA_FAILED_VERSION( "keyMetadataFailedVersion", String.class ),
     METADATA_LAST_FAILED_TIME("keyMetadataLastFailedTime", Date.class ),
-    METADATA_SYNC_CRON( "metaDataSyncCron",String.class ),
+    METADATA_SYNC_CRON( "metaDataSyncCron", String.class ),
+    DATA_SYNC_CRON( "dataSyncCron", String.class ),
     LAST_SUCCESSFUL_SCHEDULED_PROGRAM_NOTIFICATIONS( "keyLastSuccessfulScheduledProgramNotifications", Date.class ),
     REMOTE_METADATA_VERSION( "keyRemoteMetadataVersion", String.class),
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class);

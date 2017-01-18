@@ -13,7 +13,7 @@
             november: '$encoder.jsEscape( $i18n.getString( "month.november" ) , "'")',
             december: '$encoder.jsEscape( $i18n.getString( "month.december" ) , "'")'
         }
-        var metadata_sync_scheduler_alert = '$encoder.jsEscape( $i18n.getString( "metadata_sync_scheduler_alert" ) , "'")';
+        var sync_scheduler_alert = '$encoder.jsEscape( $i18n.getString( "sync_scheduler_alert" ) , "'")';
 </script>
 <link type="text/css" rel="stylesheet" href="style/custom-scheduler.css">
 
@@ -85,7 +85,23 @@
 </select>
 </div>
 
-<!-- Metadata Sync-->
+    <div id="dataSyncScheduler" class="setting settingIndent schedulerWrapper scheduling dataSyncScheduler">
+        <div class="syncActionWrapper">
+
+            <div class="radioButtonGroup">
+                <input type="radio" class="radio" name="dataSyncDatepick" id="minute" value="minute" checked="checked">$i18n.getString( "Minute" )<br>
+                <input type="radio" class="radio" name="dataSyncDatepick" id="hourly" value="hourly">$i18n.getString( "Hourly" )<br>
+                <input type="radio" class="radio" name="dataSyncDatepick" id="daily" value="daily">$i18n.getString( "Daily" )<br>
+                <input type="radio" class="radio" name="dataSyncDatepick" id="weekly" value="weekly">$i18n.getString( "Weekly" )<br>
+                <input type="radio" class="radio" name="dataSyncDatepick" id="monthly" value="monthly">$i18n.getString( "Monthly" )<br>
+                <input type="radio" class="radio" name="dataSyncDatepick" id="yearly" value="yearly">$i18n.getString( "Yearly" )<br>
+            </div>
+            #parse( "/dhis-web-maintenance-dataadmin/schedulingOptions.vm" )
+        </div>
+        <input type="text" id="dataSyncCron" name="dataSyncCron" class="scheduling" value="${dataSyncCron}" hidden>
+    </div>
+
+    <!-- Metadata Sync-->
     <div class="settingHeader">$i18n.getString( "metadata_synchronization")</div>
 
     <div class="settingLabel settingIndent">$i18n.getString( "metadata_synchronization_strategy")</div>
@@ -100,60 +116,16 @@
       <input id="submitSyncNow" type="button" style="width:140px" value="$i18n.getString( 'synchronize_now' )"/>
     </div>
 
-    <div id="scheduler" class="setting settingIndent schedulerWrapper scheduling">
-
+    <div id="metadataSyncScheduler" class="setting settingIndent schedulerWrapper scheduling metadataSyncScheduler">
         <div class="syncActionWrapper">
 
             <div class="radioButtonGroup">
-                <input type="radio" class="radio" name="datepick" id="daily" value="daily">$i18n.getString( "Daily" )<br>
-                <input type="radio" class="radio" name="datepick" id="weekly" value="weekly">$i18n.getString( "Weekly" )<br>
-                <input type="radio" class="radio" name="datepick" id="monthly" value="monthly">$i18n.getString( "Monthly" )<br>
-                <input type="radio" class="radio" name="datepick" id="yearly" value="yearly">$i18n.getString( "Yearly" )<br>
+                <input type="radio" class="radio" name="metadataSyncDatepick" id="daily" value="daily" checked="checked">$i18n.getString( "Daily" )<br>
+                <input type="radio" class="radio" name="metadataSyncDatepick" id="weekly" value="weekly">$i18n.getString( "Weekly" )<br>
+                <input type="radio" class="radio" name="metadataSyncDatepick" id="monthly" value="monthly">$i18n.getString( "Monthly" )<br>
+                <input type="radio" class="radio" name="metadataSyncDatepick" id="yearly" value="yearly">$i18n.getString( "Yearly" )<br>
             </div>
-            <div class="dateTimePicker">
-                <span id="addSchedulerLabel" class="schedulerHeader"></span>
-
-                <table class="weekPickerContainer">
-                    <tr>
-                        <td class="schedulerLabel">$i18n.getString( "Every" )</td>
-                        <td id="weekPeriod">
-                            <select id="weekPeriodNumber" name="value" class="customScheduling inline" >
-                                <option value="1-7" selected="selected">1st</option>
-                                <option value="8-14">2nd</option>
-                                <option value="15-21">3rd</option>
-                                <option value="22-28">4th</option>
-                            </select>
-                        </td>
-                        <td>
-                            <select id="weekPicker" name="weekPicker" class="customScheduling inline">
-                                <option value="0" selected="selected">$i18n.getString( "weekday.sunday" )</option>
-                                <option value="1">$i18n.getString( "weekday.monday" )</option>
-                                <option value="2">$i18n.getString( "weekday.tuesday" )</option>
-                                <option value="3">$i18n.getString( "weekday.wednesday" )</option>
-                                <option value="4">$i18n.getString( "weekday.thursday" )</option>
-                                <option value="5">$i18n.getString( "weekday.friday" )</option>
-                                <option value="6">$i18n.getString( "weekday.saturday" )</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
-                <table class="yearPickerContainer">
-                    <tr>
-                        <td class="schedulerLabel">$i18n.getString( "Every" )</td>
-                        <td><select name="monthPicker" id="monthPicker" class="customScheduling inline"></select></td>
-                        <td><select name="dayPicker" id="dayPicker" class="customScheduling inline"></select></td>
-                    </tr>
-                </table>
-                <table class="timePickerContainer">
-                    <tr>
-                        <td class="schedulerLabel">$i18n.getString( "At" )</td>
-                        <td>
-                            <select id="timePicker" name="timePicker" class="customScheduling inline"></select>
-                        </td>
-                    </tr>
-                </table>
-
-            </div>
+            #parse( "/dhis-web-maintenance-dataadmin/schedulingOptions.vm" )
         </div>
         <input type="text" id="metadataSyncCron" name="metadataSyncCron" class="scheduling" value="${metadataSyncCron}" hidden>
     </div>
