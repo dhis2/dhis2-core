@@ -123,7 +123,7 @@ public class DefaultValidationService
 
     @Override
     public Collection<ValidationResult> validate( Date startDate, Date endDate, Collection<OrganisationUnit> sources,
-        DataElementCategoryOptionCombo attributeCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format )
+        DataElementCategoryOptionCombo attributeOptionCombo, ValidationRuleGroup group, boolean sendNotifications, I18nFormat format )
     {
         log.debug( "Validate start:" + startDate + " end: " + endDate + " sources: " + sources.size() + " group: " + group );
 
@@ -131,20 +131,8 @@ public class DefaultValidationService
         
         Collection<ValidationRule> rules = group != null ? group.getMembers() : validationRuleService.getAllValidationRules();
         
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
-            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
+        Collection<ValidationResult> results = runValidation( sources, periods, rules, attributeOptionCombo, null, ValidationRunType.SCHEDULED );
         
-        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
-        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
-        
-        User user = currentUserService.getCurrentUser();
-        
-        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext(
-            sources, periods, rules, attributeCombo, 
-            null, ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
-
         formatPeriods( results, format );
 
         if ( sendNotifications )
@@ -157,27 +145,14 @@ public class DefaultValidationService
 
     @Override
     public Collection<ValidationResult> validate( DataSet dataSet, Period period, OrganisationUnit source,
-        DataElementCategoryOptionCombo attributeCombo )
+        DataElementCategoryOptionCombo attributeOptionCombo )
     {
         log.debug( "Validate data set: " + dataSet.getName() + " period: " + period.getPeriodType().getName() + " "
-            + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName()
-            + " attribute combo: " + ( attributeCombo == null ? "[none]" : attributeCombo.getName() ) );
+            + period.getStartDate() + " " + period.getEndDate() + " source: " + source.getName() );
 
         Collection<ValidationRule> rules = validationRuleService.getValidationRulesForDataElements( dataSet.getDataElements() );
         
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
-            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
-
-        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
-        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
-        
-        User user = currentUserService.getCurrentUser();
-        
-        return Validator.validate( ValidationRunContext.getNewContext( 
-            Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeCombo, null,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
+        return runValidation( Sets.newHashSet( source ), Sets.newHashSet( period ), rules, attributeOptionCombo, null, ValidationRunType.SCHEDULED );
     }
 
     @Override
@@ -192,29 +167,15 @@ public class DefaultValidationService
 
         Set<Period> periods = extractNotificationPeriods( rules );
 
-        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
-            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
-
-        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
-        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
-        
         Date lastScheduledRun = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_MONITORING_RUN );
-
-        // Any database changes after this moment will contribute to the next run.
-
-        Date thisRun = new Date();
 
         log.info( "Scheduled monitoring run sources: " + sources.size() + ", periods: " + periods.size() + ", rules:" + rules.size()
             + ", last run: " + (lastScheduledRun == null ? "[none]" : lastScheduledRun) );
 
-        User user = currentUserService.getCurrentUser();
-        
-        Collection<ValidationResult> results = Validator.validate( ValidationRunContext.getNewContext( 
-            sources, periods, rules, null, lastScheduledRun,
-            ValidationRunType.SCHEDULED, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
-            categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
-            categoryService.getCoDimensionConstraints( user.getUserCredentials() ) ), applicationContext );
+        Collection<ValidationResult> results = runValidation( sources, periods, rules, null, lastScheduledRun, ValidationRunType.SCHEDULED );
 
+        Date thisRun = new Date();
+        
         log.info( "Validation run result count: " + results.size() );
 
         notificationService.sendNotifications( new HashSet<>( results ) );
@@ -255,6 +216,27 @@ public class DefaultValidationService
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    private Collection<ValidationResult> runValidation( Collection<OrganisationUnit> sources, Collection<Period> periods, 
+        Collection<ValidationRule> rules, DataElementCategoryOptionCombo attributeOptionCombo, 
+        Date lastScheduledRun, ValidationRunType runType )
+    {
+        Map<ValidationRule, Set<DataElement>> ruleDataElementsMap = rules.stream()
+            .collect( Collectors.toMap( Function.identity(), vr -> validationRuleService.getDataElements( vr ) ) );
+        
+        Set<DimensionalItemObject> dimensionItems = new HashSet<>();
+        rules.forEach( vr -> dimensionItems.addAll( validationRuleService.getDimensionalItemObjects( vr, EVENT_DIM_ITEM_TYPES ) ) );
+        
+        User user = currentUserService.getCurrentUser();
+        
+        ValidationRunContext ctx = ValidationRunContext.getNewContext(
+            sources, periods, rules, attributeOptionCombo, 
+            lastScheduledRun, runType, constantService.getConstantMap(), ruleDataElementsMap, dimensionItems,
+            user == null ? null : categoryService.getCogDimensionConstraints( user.getUserCredentials() ),
+            user == null ? null : categoryService.getCoDimensionConstraints( user.getUserCredentials() ) );
+            
+        return Validator.validate( ctx, applicationContext );
+    }
+    
     private Set<ValidationRule> getValidationRulesWithNotificationTemplates()
     {
         return Sets.newHashSet( validationRuleService.getValidationRulesWithNotificationTemplates() );
