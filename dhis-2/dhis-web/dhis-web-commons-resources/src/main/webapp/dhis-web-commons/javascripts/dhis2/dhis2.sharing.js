@@ -178,30 +178,42 @@ function showSharingDialog( type, uid ) {
     $(document).on('click', '.removeUserGroupAccess', removeUserGroupAccess);
     $('#addUserGroupAccess').unbind('click').bind('click', addUserGroupAccessSelectedItem);
 
-    $('#sharingSettings').dialog({
+    var buttons = {};
+
+    buttons[i18n_cancel] = function() {
+      $( '#sharingSearch' ).autocomplete( 'destroy' );
+      $( this ).dialog( 'destroy' );
+    };
+
+    buttons[i18n_save] = function() {
+      var me = $( this );
+
+      data.object.publicAccess = getPublicAccess();
+      data.object.externalAccess = getExternalAccess();
+
+      var allAccesses = getAccesses();
+
+      data.object.userGroupAccesses = allAccesses.filter( function(item) {
+        return item.type === 'userGroup';
+      } );
+
+      data.object.userAccesses = allAccesses.filter( function(item) {
+        return item.type === 'user';
+      } );
+
+      saveSharingSettings( type, uid, data ).done( function() {
+        $( '#sharingSearch' ).autocomplete( 'destroy' );
+        me.dialog( 'destroy' );
+      } );
+    };
+
+    $( '#sharingSettings' ).dialog( {
       modal: true,
       resizable: false,
       width: 485,
       height: 555,
-      buttons: {
-        'Cancel': function() {
-          $('#sharingFindUserGroup').autocomplete('destroy');
-          $(this).dialog('destroy');
-        },
-        'Save': function() {
-          var me = $(this);
-
-          data.object.publicAccess = getPublicAccess();
-          data.object.externalAccess = getExternalAccess();
-          data.object.userGroupAccesses = getUserGroupAccesses();
-
-          saveSharingSettings(type, uid, data).done(function() {
-            $('#sharingFindUserGroup').autocomplete('destroy');
-            me.dialog('destroy');
-          });
-        }
-      }
-    });
+      buttons: buttons
+    } );
 
     $('#sharingFindUserGroup').autocomplete({
       source: function( request, response ) {
