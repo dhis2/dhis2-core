@@ -178,32 +178,6 @@ function showSharingDialog( type, uid ) {
     $(document).on('click', '.removeUserGroupAccess', removeUserGroupAccess);
     $('#addUserGroupAccess').unbind('click').bind('click', addUserGroupAccessSelectedItem);
 
-<<<<<<< HEAD
-    $('#sharingSettings').dialog({
-      modal: true,
-      resizable: false,
-      width: 485,
-      height: 555,
-      buttons: {
-        'Cancel': function() {
-          $('#sharingFindUserGroup').autocomplete('destroy');
-          $(this).dialog('destroy');
-        },
-        'Save': function() {
-          var me = $(this);
-
-          data.object.publicAccess = getPublicAccess();
-          data.object.externalAccess = getExternalAccess();
-          data.object.userGroupAccesses = getUserGroupAccesses();
-
-          saveSharingSettings(type, uid, data).done(function() {
-            $('#sharingFindUserGroup').autocomplete('destroy');
-            me.dialog('destroy');
-          });
-        }
-      }
-    });
-=======
     var buttons = {};
 
     buttons[i18n_cancel] = function() {
@@ -240,7 +214,6 @@ function showSharingDialog( type, uid ) {
       height: 555,
       buttons: buttons
     } );
->>>>>>> c364c7ea9... add i18n keys to cancel/save button in sharing dialog
 
     $('#sharingFindUserGroup').autocomplete({
       source: function( request, response ) {
