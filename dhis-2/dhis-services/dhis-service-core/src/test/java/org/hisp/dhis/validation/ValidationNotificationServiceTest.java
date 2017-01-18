@@ -28,7 +28,9 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
@@ -55,6 +57,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -65,6 +69,17 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
 /**
+ * Tests for the business logic implemented in ValidationNotificationService.
+ *
+ * The actual rendering of the messages is not tested here, only the logic
+ * responsible for generating and sending the messages/summaries for each recipient.
+ *
+ * See {@link org.hisp.dhis.notification.BaseNotificationMessageRendererTest}.
+ *
+ * TODO
+ *  - Add test for intersecting the recipients in case of template.notifyUsersInHierarchyOnly
+ *  - Add test which asserts messages are split/summarized correctly for multiple recipient groups.
+ *
  * @author Halvdan Hoem Grelland
  */
 @RunWith( MockitoJUnitRunner.class )
@@ -74,6 +89,9 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
     // Setup
     // -------------------------------------------------------------------------
+
+    private static final String STATIC_MOCK_SUBJECT = "Subject goes here";
+    private static final String STATIC_MOCK_MESSAGE = "Message goes here";
 
     @Mock
     private ValidationNotificationMessageRenderer renderer;
@@ -92,6 +110,10 @@ public class ValidationNotificationServiceTest
         setUpMocks();
     }
 
+    /**
+     * We mock the sending of messages to write to a local List (which we can inspect).
+     * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
+     */
     private void setUpMocks()
     {
         resetState();
@@ -118,7 +140,7 @@ public class ValidationNotificationServiceTest
         when(
             renderer.render( any(), any() )
         ).thenReturn(
-            new NotificationMessage( "Whatever subject", "Whatever message" )
+            new NotificationMessage( STATIC_MOCK_SUBJECT, STATIC_MOCK_MESSAGE )
         );
     }
 
@@ -180,6 +202,26 @@ public class ValidationNotificationServiceTest
 
         assertEquals( 1, sentMessages.size() );
         assertEquals( 2, sentMessages.get( 0 ).users.size() );
+    }
+
+    @Test
+    public void testMultipleValidationResultsAreSummarized()
+    {
+        setUpEntitiesA();
+
+        Set<ValidationResult> results = IntStream.iterate( 0, i -> i + 1 ).limit( 10 )
+            .boxed()
+            .map( i -> createValidationResultA() )
+            .collect( Collectors.toSet() );
+
+        service.sendNotifications( results );
+
+        assertEquals( "The validation results should form a single summarized message", 1, sentMessages.size() );
+
+        String text = sentMessages.iterator().next().text;
+
+        assertEquals(
+            "Wrong number of messages in the summarized message", 10, StringUtils.countMatches( text, STATIC_MOCK_SUBJECT ) );
     }
 
     // -------------------------------------------------------------------------
@@ -298,6 +340,20 @@ public class ValidationNotificationServiceTest
             this.sender = sender;
             this.includeFeedbackRecipients = includeFeedbackRecipients;
             this.forceNotifications = forceNotifications;
+        }
+
+        @Override
+        public String toString()
+        {
+            return MoreObjects.toStringHelper( this )
+                .add( "subject", subject )
+                .add( "text", text )
+                .add( "metaData", metaData )
+                .add( "users", users )
+                .add( "sender", sender )
+                .add( "includeFeedbackRecipients", includeFeedbackRecipients )
+                .add( "forceNotifications", forceNotifications )
+                .toString();
         }
     }
 }
