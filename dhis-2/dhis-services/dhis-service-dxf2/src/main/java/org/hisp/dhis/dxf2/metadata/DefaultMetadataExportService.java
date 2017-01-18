@@ -433,7 +433,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSetElement( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSetElement dataSetElement )
     {
         if ( dataSetElement == null ) return metadata;
-        metadata.putValue( DataSetElement.class, dataSetElement );
 
         handleDataElement( metadata, dataSetElement.getDataElement() );
         handleCategoryCombo( metadata, dataSetElement.getCategoryCombo() );
