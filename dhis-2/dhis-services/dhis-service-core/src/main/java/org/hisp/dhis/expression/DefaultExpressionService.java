@@ -30,6 +30,9 @@ package org.hisp.dhis.expression;
 
 import com.google.common.collect.Sets;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -45,6 +48,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -69,6 +73,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,6 +82,7 @@ import java.util.stream.Collectors;
 import static org.hisp.dhis.expression.Expression.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
 import static org.hisp.dhis.system.util.MathUtils.*;
+import static org.hisp.dhis.dataelement.DataElementCategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * The expression is a string describing a formula containing data element ids
@@ -91,6 +97,12 @@ public class DefaultExpressionService
 {
     private static final Log log = LogFactory.getLog( DefaultExpressionService.class );
 
+    private Cache<String, String> CACHE_CATEGORY_OPTION_COMBO_NAME_UID = Caffeine.newBuilder()
+        .expireAfterAccess( 1, TimeUnit.DAYS )
+        .initialCapacity( 1 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 100 )
+        .build();
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -258,7 +270,7 @@ public class DefaultExpressionService
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         Set<DataElementOperand> incompleteValues, ListMap<String, Double> aggregateMap )
     {
-        //TODO this code must be simplified and rewritten
+        //TODO this needs to be rewritten
         
         if ( aggregateMap == null )
         {
@@ -284,9 +296,12 @@ public class DefaultExpressionService
         String comboId = StringUtils.trimToNull( expressionMatch.group( 2 ) );
         DataElement dataElement = dataElementService.getDataElement( elementId );
         
-        final DataElementCategoryOptionCombo defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
+        //TODO this needs to be rewritten
         
-        if ( comboId == null || comboId.equals( defaultCombo.getUid() ) )
+        String defaultOptionComboUid = CACHE_CATEGORY_OPTION_COMBO_NAME_UID.get( DEFAULT_CATEGORY_COMBO_NAME, 
+            name -> categoryService.getDefaultDataElementCategoryOptionCombo().getUid() );
+        
+        if ( comboId == null || comboId.equals( defaultOptionComboUid ) )
         {
             Double value = valueMap.get( dataElement );
             
@@ -299,11 +314,11 @@ public class DefaultExpressionService
         if ( comboId == null )
         {
             Double sum = null;
-            final Set<DataElementCategoryOptionCombo> combos = dataElement.getCategoryOptionCombos();
+            final Set<DataElementCategoryOptionCombo> optionCombos = dataElement.getCategoryOptionCombos();
 
-            for ( DataElementCategoryOptionCombo combo : combos )
+            for ( DataElementCategoryOptionCombo optionCombo : optionCombos )
             {
-                DataElementOperand deo = new DataElementOperand( elementId, combo.getUid() );
+                DataElementOperand deo = new DataElementOperand( elementId, optionCombo.getUid() );
                 Double value = valueMap.get( deo );
 
                 if ( value != null )
@@ -312,6 +327,7 @@ public class DefaultExpressionService
                     {
                         sum = 0.0;
                     }
+                    
                     sum = sum + value;
                 }
             }
