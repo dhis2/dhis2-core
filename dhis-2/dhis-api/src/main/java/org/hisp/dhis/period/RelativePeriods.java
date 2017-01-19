@@ -65,7 +65,7 @@ public class RelativePeriods
         "november",
         "december"};
 
-    public static final String TODAY = "today";
+    public static final String THISDAY = "thisDay";
     public static final String YESTERDAY = "yesterday";
     public static final String LAST_WEEK = "last_week";
     public static final String LAST_MONTH = "reporting_month";
@@ -131,7 +131,7 @@ public class RelativePeriods
 
     private int id;
 
-    private boolean today = false;
+    private boolean thisDay = false;
 
     private boolean yesterday = false;
 
@@ -208,7 +208,7 @@ public class RelativePeriods
     }
 
     /**
-     * @param today                 today
+     * @param thisDay               today
      * @param yesterday             yesterday
      * @param last3Days             last 3 days
      * @param last7Days             last 7 days
@@ -242,7 +242,7 @@ public class RelativePeriods
      * @param last12Weeks           last 12 weeks
      * @param last52Weeks           last 52 weeks
      */
-    public RelativePeriods( boolean today, boolean yesterday, boolean last3Days, boolean last7Days, boolean last14Days,
+    public RelativePeriods( boolean thisDay, boolean yesterday, boolean last3Days, boolean last7Days, boolean last14Days,
                             boolean thisMonth, boolean lastMonth, boolean thisBimonth, boolean lastBimonth,
                             boolean thisQuarter, boolean lastQuarter, boolean thisSixMonth, boolean lastSixMonth,
                             boolean monthsThisYear, boolean quartersThisYear, boolean thisYear,
@@ -251,7 +251,7 @@ public class RelativePeriods
                             boolean thisFinancialYear, boolean lastFinancialYear, boolean last5FinancialYears,
                             boolean thisWeek, boolean lastWeek, boolean last4Weeks, boolean last12Weeks, boolean last52Weeks )
     {
-        this.today = today;
+        this.thisDay = thisDay;
         this.yesterday = yesterday;
         this.last3Days = last3Days;
         this.last7Days = last7Days;
@@ -296,7 +296,7 @@ public class RelativePeriods
      */
     public RelativePeriods clear()
     {
-        this.today = false;
+        this.thisDay = false;
         this.yesterday = false;
         this.last3Days = false;
         this.last7Days = false;
@@ -349,7 +349,7 @@ public class RelativePeriods
      */
     public PeriodType getPeriodType()
     {
-        if ( isToday() || isYesterday() || isLast3Days() || isLast7Days() || isLast14Days() )
+        if ( isThisDay() || isYesterday() || isLast3Days() || isLast7Days() || isLast14Days() )
         {
             return PeriodType.getPeriodTypeByName( DailyPeriodType.NAME );
         }
@@ -497,9 +497,9 @@ public class RelativePeriods
 
         List<Period> periods = new ArrayList<>();
 
-        if ( isToday() )
+        if ( isThisDay() )
         {
-            periods.add( getRelativePeriod(  new DailyPeriodType(), TODAY, date, dynamicNames, format ) );
+            periods.add( getRelativePeriod(  new DailyPeriodType(), THISDAY, date, dynamicNames, format ) );
         }
 
         if ( isYesterday() )
@@ -796,7 +796,7 @@ public class RelativePeriods
     {
         Map<RelativePeriodEnum, RelativePeriods> map = new HashMap<>();
 
-        map.put( RelativePeriodEnum.TODAY, new RelativePeriods().setToday( true ) );
+        map.put( RelativePeriodEnum.TODAY, new RelativePeriods().setThisDay( true ) );
         map.put( RelativePeriodEnum.YESTERDAY, new RelativePeriods().setYesterday( true ) );
         map.put( RelativePeriodEnum.LAST_3_DAYS, new RelativePeriods().setLast3Days( true ) );
         map.put( RelativePeriodEnum.LAST_7_DAYS, new RelativePeriods().setLast7Days( true ) );
@@ -843,7 +843,7 @@ public class RelativePeriods
     {
         List<RelativePeriodEnum> list = new ArrayList<>();
 
-        add( list, RelativePeriodEnum.TODAY, today );
+        add( list, RelativePeriodEnum.TODAY, thisDay );
         add( list, RelativePeriodEnum.YESTERDAY, yesterday );
         add( list, RelativePeriodEnum.LAST_3_DAYS, last3Days );
         add( list, RelativePeriodEnum.LAST_7_DAYS, last7Days );
@@ -885,7 +885,7 @@ public class RelativePeriods
     {
         if ( relativePeriods != null )
         {
-            today = relativePeriods.contains( RelativePeriodEnum.TODAY );
+            thisDay = relativePeriods.contains( RelativePeriodEnum.TODAY );
             yesterday = relativePeriods.contains( RelativePeriodEnum.YESTERDAY );
             last3Days = relativePeriods.contains( RelativePeriodEnum.LAST_3_DAYS );
             last7Days = relativePeriods.contains( RelativePeriodEnum.LAST_7_DAYS );
@@ -948,14 +948,14 @@ public class RelativePeriods
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isToday()
+    public boolean isThisDay()
     {
-        return today;
+        return thisDay;
     }
 
-    public RelativePeriods setToday( boolean today )
+    public RelativePeriods setThisDay( boolean thisDay )
     {
-        this.today = today;
+        this.thisDay = thisDay;
         return this;
     }
 
@@ -1399,7 +1399,7 @@ public class RelativePeriods
 
         int result = 1;
 
-        result = prime * result + (today ? 1 : 0);
+        result = prime * result + (thisDay ? 1 : 0);
         result = prime * result + (yesterday ? 1 : 0);
         result = prime * result + (last3Days ? 1 : 0);
         result = prime * result + (last7Days ? 1 : 0);
@@ -1451,7 +1451,7 @@ public class RelativePeriods
 
         final RelativePeriods other = (RelativePeriods) object;
 
-        if ( !today == other.today )
+        if ( !thisDay == other.thisDay )
         {
             return false;
         }
