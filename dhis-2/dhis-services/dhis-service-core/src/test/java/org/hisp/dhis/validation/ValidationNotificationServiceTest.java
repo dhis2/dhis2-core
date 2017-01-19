@@ -54,7 +54,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -152,16 +151,6 @@ public class ValidationNotificationServiceTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
-    @Test
-    public void testTestSetupWorksAsExpected() throws Exception // TODO Remove
-    {
-        messageService.sendMessage( "test", "test", null, new HashSet<>(), createUser( 'A' ), false, false );
-        assertEquals( 1, sentMessages.size() );
-
-        messageService.sendMessage( "test", "test", null, new HashSet<>(), createUser( 'A' ), false, false );
-        assertEquals( 2, sentMessages.size() );
-    }
 
     @Test
     public void testNoValidationResultsCausesNoNotificationsSent()
