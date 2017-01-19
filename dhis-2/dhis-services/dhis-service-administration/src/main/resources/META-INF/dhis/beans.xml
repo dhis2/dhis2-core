@@ -64,15 +64,10 @@
   
   <!-- Scheduled tasks -->
   
-  <bean id="resourceTableTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
-
-  <bean id="resourceTable15MinTask" class="org.hisp.dhis.resourcetable.scheduling.ResourceTableTask" scope="prototype" />
-
   <bean id="sendScheduledMessageTaskNow" class="org.hisp.dhis.sms.scheduling.SendScheduledMessageTask" scope="prototype">
 		<property name="outboundSmsService" ref="org.hisp.dhis.sms.outbound.OutboundSmsService" />
 		<property name="smsSender" ref="smsMessageSender" />
 		<property name="notifier" ref="notifier" />
 	</bean>
-
 
 </beans>
