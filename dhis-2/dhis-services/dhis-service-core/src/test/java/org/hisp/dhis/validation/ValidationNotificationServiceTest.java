@@ -75,8 +75,6 @@ import static org.mockito.Mockito.when;
  *
  * See {@link org.hisp.dhis.notification.BaseNotificationMessageRendererTest}.
  *
- * TODO
- *  - Add test for intersecting the recipients in case of template.notifyUsersInHierarchyOnly
  *  - Add test which asserts messages are split/summarized correctly for multiple recipient groups.
  *
  * @author Halvdan Hoem Grelland
@@ -103,19 +101,14 @@ public class ValidationNotificationServiceTest
 
     private List<MockMessage> sentMessages;
 
-    @Before
-    public void setUpTest()
-    {
-        setUpMocks();
-    }
-
     /**
      * We mock the sending of messages to write to a local List (which we can inspect).
      * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
      */
-    private void setUpMocks()
+    @Before
+    public void init()
     {
-        resetState();
+        sentMessages = new ArrayList<>();
 
         // Stub MessageService.sendMessage(..) so that it appends any outgoing messages to our List
         when(
@@ -131,7 +124,7 @@ public class ValidationNotificationServiceTest
         ).then(
             invocation -> {
                 sentMessages.add( new MockMessage( invocation.getArguments() ) );
-                return RandomUtils.nextInt( 100, 2000 );
+                return 42;
             }
         );
 
@@ -141,11 +134,6 @@ public class ValidationNotificationServiceTest
         ).thenReturn(
             new NotificationMessage( STATIC_MOCK_SUBJECT, STATIC_MOCK_MESSAGE )
         );
-    }
-
-    private void resetState()
-    {
-        sentMessages = new ArrayList<>();
     }
 
     // -------------------------------------------------------------------------
@@ -213,16 +201,104 @@ public class ValidationNotificationServiceTest
             "Wrong number of messages in the summarized message", 10, StringUtils.countMatches( text, STATIC_MOCK_SUBJECT ) );
     }
 
+    @Test
+    public void testNotifyUsersInHierarchyLimitsRecipients()
+    {
+        setUpEntitiesA();
+        OrganisationUnit root = createOrganisationUnit( 'R' );
+
+        userB = createUser( 'B' );
+        orgUnitA.addUser( userB ); // A and B have orgunit A
+
+        User userC = createUser( 'C' ),
+             userD = createUser( 'D' ),
+             userE = createUser( 'E' ),
+             userF = createUser( 'F' );
+
+        root.addUser( userF );
+
+        OrganisationUnit orgUnitB = createOrganisationUnit( 'B' );
+
+        orgUnitB.addUser( userC ); // C and D have org unit B
+        orgUnitB.addUser( userD );
+
+        OrganisationUnit orgUnitC = createOrganisationUnit( 'C' );
+        orgUnitC.addUser( userE ); // Org unit C has user E
+
+        userGroupA.addUser( userB );
+        userGroupA.addUser( userC );
+        userGroupA.addUser( userD );
+        userGroupA.addUser( userE );
+
+        UserGroup userGroupB = createUserGroup( 'B', Sets.newHashSet( userF ) );
+        userF.getGroups().add( userGroupB );
+
+        /*
+            Configure org unit hierarchy like so:
+                    R
+                   / \
+                  A   B
+                 /
+                C
+
+            Any users in B and C should be ignored
+                =>  Users C, D and E should not be notified due to their position
+                    in the hierarchy.
+
+                    User E is not part of user group A and should also be excluded.
+        */
+
+        // Root -> A and B
+        root.getChildren().addAll( Sets.newHashSet( orgUnitA, orgUnitB ) );
+        orgUnitA.setParent( root );
+        orgUnitB.setParent( root );
+
+
+        // A -> C
+        orgUnitA.getChildren().add( orgUnitC );
+        orgUnitC.setParent( orgUnitA );
+
+        // Set our crucial setting
+        templateA.setNotifyUsersInHierarchyOnly( true );
+
+        // Perform tests
+        ValidationResult result = createValidationResultA();
+        service.sendNotifications( Sets.newHashSet( result ) );
+
+        assertEquals( 1, sentMessages.size() );
+
+        Set<User> rcpt = sentMessages.iterator().next().users;
+
+        assertEquals( 2, rcpt.size() );
+        assertTrue( rcpt.containsAll( Sets.newHashSet( userA, userB ) ) );
+
+        sentMessages = new ArrayList<>();
+
+        // Add the second group (with user F) to the template
+        templateA.getRecipientUserGroups().add( userGroupB );
+
+        result = createValidationResultA();
+        service.sendNotifications( Sets.newHashSet( result ) );
+
+        assertEquals( 1, sentMessages.size() );
+        rcpt = sentMessages.iterator().next().users;
+
+        // We now expect user F, which is on the root org unit and in group B
+        // to also be among the recipients
+        assertEquals( 3, rcpt.size() );
+        assertTrue( rcpt.containsAll( Sets.newHashSet( userA, userB, userF ) ) );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private OrganisationUnit orgUnitA, orgUnitB;
+    private OrganisationUnit orgUnitA;
     private User userA, userB;
     private DataElementCategoryOptionCombo catOptCombo = createCategoryOptionCombo( 'A', 'x', 'y', 'z' );
-    private ValidationRule valRuleA, valRuleB;
-    private ValidationNotificationTemplate templateA, templateB;
-    private UserGroup userGroupA, userGroupB;
+    private ValidationRule valRuleA;
+    private ValidationNotificationTemplate templateA;
+    private UserGroup userGroupA;
 
     private void setUpEntitiesA()
     {
@@ -245,29 +321,6 @@ public class ValidationNotificationServiceTest
         templateA = createValidationNotificationTemplate( "Template A" );
         templateA.addValidationRule( valRuleA );
         templateA.setRecipientUserGroups( Sets.newHashSet( userGroupA ) );
-    }
-
-    private void setUpEntitiesB()
-    {
-        userB = createUser( 'B' );
-
-        orgUnitB = createOrganisationUnit( 'B' );
-        orgUnitB.addUser( userB );
-
-        userGroupB = createUserGroup( 'B', Sets.newHashSet( userB ) );
-        userB.setGroups( Sets.newHashSet( userGroupB ) );
-
-        valRuleB = createValidationRule(
-            'B',
-            Operator.equal_to,
-            createExpression2( 'A', "X" ),
-            createExpression2( 'B', "Y" ),
-            PeriodType.getPeriodTypeByName( QuarterlyPeriodType.NAME )
-        );
-
-        templateB = createValidationNotificationTemplate( "Template B" );
-        templateB.addValidationRule( valRuleB );
-        templateB.setRecipientUserGroups( Sets.newHashSet( userGroupB ) );
     }
 
     private ValidationResult createValidationResultA() {
