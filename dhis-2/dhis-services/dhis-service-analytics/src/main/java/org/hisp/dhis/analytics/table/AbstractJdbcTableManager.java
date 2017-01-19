@@ -115,7 +115,11 @@ public abstract class AbstractJdbcTableManager
      * Returns a list of analytics table columns. Column names are quoted.
      */
     protected abstract List<AnalyticsTableColumn> getDimensionColumns( AnalyticsTable table );
-    
+
+    // -------------------------------------------------------------------------
+    // Implementation
+    // -------------------------------------------------------------------------
+
     /**
      * Override in order to perform work before tables are being generated.
      */
@@ -124,10 +128,6 @@ public abstract class AbstractJdbcTableManager
     {
     }
     
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
     @Override
     @Transactional
     public List<AnalyticsTable> getTables( Date earliest )
@@ -337,9 +337,7 @@ public abstract class AbstractJdbcTableManager
         {
             throw new IllegalStateException( "Analytics table dimensions are empty" );
         }
-        
-        columns = new ArrayList<>( columns );
-        
+                
         List<String> columnNames = columns.stream().map( d -> d.getName() ).collect( Collectors.toList() );
                 
         Set<String> duplicates = ListUtils.getDuplicates( columnNames );
