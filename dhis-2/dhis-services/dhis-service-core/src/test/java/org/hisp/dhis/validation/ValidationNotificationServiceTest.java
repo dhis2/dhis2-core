@@ -74,8 +74,9 @@ import static org.mockito.Mockito.when;
  * responsible for generating and sending the messages/summaries for each recipient.
  *
  * See {@link org.hisp.dhis.notification.BaseNotificationMessageRendererTest}.
- *
+ * TODO
  *  - Add test which asserts messages are split/summarized correctly for multiple recipient groups.
+ *  - Consider splitting up the hierarchy test
  *
  * @author Halvdan Hoem Grelland
  */
@@ -355,33 +356,13 @@ public class ValidationNotificationServiceTest
         @SuppressWarnings( "unchecked" )
         MockMessage( Object[] args )
         {
-            this(
-                (String) args[0],
-                (String) args[1],
-                (String) args[2],
-                (Set<User>) args[3],
-                (User) args[4],
-                (boolean) args[5],
-                (boolean) args[6]
-            );
-        }
-
-        MockMessage(
-            String subject,
-            String text,
-            String metaData,
-            Set<User> users,
-            User sender,
-            boolean includeFeedbackRecipients,
-            boolean forceNotifications )
-        {
-            this.subject = subject;
-            this.text = text;
-            this.metaData = metaData;
-            this.users = users;
-            this.sender = sender;
-            this.includeFeedbackRecipients = includeFeedbackRecipients;
-            this.forceNotifications = forceNotifications;
+            this.subject = (String) args[0];
+            this.text = (String) args[1];
+            this.metaData = (String) args[2];
+            this.users = (Set<User>) args[3];
+            this.sender = (User) args[4];
+            this.includeFeedbackRecipients = (boolean) args[5];
+            this.forceNotifications = (boolean) args[6];
         }
 
         @Override
