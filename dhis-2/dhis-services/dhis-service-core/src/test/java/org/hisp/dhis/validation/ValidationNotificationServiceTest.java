@@ -254,7 +254,6 @@ public class ValidationNotificationServiceTest
         orgUnitA.setParent( root );
         orgUnitB.setParent( root );
 
-
         // A -> C
         orgUnitA.getChildren().add( orgUnitC );
         orgUnitC.setParent( orgUnitA );
