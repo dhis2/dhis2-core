@@ -281,13 +281,8 @@ public class DefaultExpressionService
         Map<? extends DimensionalItemObject, Double> valueMap )
     {
         String elementId = expressionMatch.group( 1 );
-        String comboId = expressionMatch.group( 2 );
+        String comboId = StringUtils.trimToNull( expressionMatch.group( 2 ) );
         DataElement dataElement = dataElementService.getDataElement( elementId );
-        
-        if ( comboId != null && comboId.length() == 0 )
-        {
-            comboId = null;
-        }
         
         final DataElementCategoryOptionCombo defaultCombo = categoryService.getDefaultDataElementCategoryOptionCombo();
         
